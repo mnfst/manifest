@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "ner_extraction",
+  "case": 19,
+  "response": "{\"persons\": [\"Thierry Breton\"], \"organizations\": [\"European Parliament\"], \"locations\": [\"Brussels\"]}",
+  "score": 5,
+  "cost": 0.0004,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 33
+  }
+}

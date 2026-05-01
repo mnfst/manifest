@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 27,
+  "response": "{\"name\": \"convert_currency\", \"arguments\": {\"amount\": 500, \"from_currency\": \"EUR\", \"to_currency\": \"JPY\"}}",
+  "score": 5,
+  "cost": 7.574e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 109
+  }
+}

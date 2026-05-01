@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 7,
+  "response": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"6:30 AM tomorrow\", \"label\": \"Morning Workout\"}}",
+  "score": 4,
+  "cost": 0.0019998000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 430
+  }
+}

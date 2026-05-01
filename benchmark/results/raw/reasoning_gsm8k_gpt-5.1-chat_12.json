@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Step-by-step solution:\n\n\u2022 Each time Jim does this routine:\n  - TV: 2 hours  \n  - Reading: half of 2 hours = 1 hour  \n  - Total per session = 3 hours\n\n\u2022 He does this 3 times per week:\n  3 hours \u00d7 3 = 9 hours per week\n\n\u2022 Over 4 weeks:\n  9 hours \u00d7 4 = 36 hours\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.000982,
+  "expected": "36",
+  "tokens": {
+    "input": 87,
+    "output": 101
+  }
+}

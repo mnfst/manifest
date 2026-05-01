@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 17,
+  "response": "Tymnet was an international data communications network headquartered in San Jose, California, that used virtual call packet\u2011switched technology to connect host computers at thousands of organizations.",
+  "score": 5,
+  "cost": 0.000748,
+  "expected": "an international data communications network headquartered in San Jose, CA",
+  "tokens": {
+    "input": 222,
+    "output": 38
+  }
+}

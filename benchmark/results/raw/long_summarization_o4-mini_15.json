@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 15,
+  "response": "The EU\u2019s GDPR, in force since May 2018, applies to any organization handling EU residents\u2019 personal data and enshrines rights to access, erasure, portability, explicit consent, mandatory Data Protection Officers for large-scale processing, and a 72-hour breach-reporting rule, with penalties up to 4% of global annual revenue or \u20ac20 million. Major enforcement actions include Meta\u2019s \u20ac1.2 billion fine in 2023, Amazon\u2019s \u20ac746 million sanction for ad targeting, and Google\u2019s over \u20ac200 million in cumulative penalties. Its provisions have inspired similar laws worldwide\u2014such as California\u2019s CCPA, Brazil\u2019s LGPD, and India\u2019s Digital Personal Data Protection Act\u2014yet critics warn of heavy compliance costs for small businesses, stifled innovation, cookie-banner fatigue, and uneven member-state enforcement. Despite these challenges, GDPR has established data privacy as a fundamental right and set the global benchmark for data protection legislation.",
+  "score": 5,
+  "cost": 0.0029898000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 603
+  }
+}

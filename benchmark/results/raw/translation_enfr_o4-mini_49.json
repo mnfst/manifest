@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "J\u2019ai des g\u00e2teaux \u00e0 la cr\u00e8me, des sucreries, du hareng marin\u00e9 et des dattes cristallis\u00e9es.",
+  "score": 5,
+  "cost": 0.0013750000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 302
+  }
+}

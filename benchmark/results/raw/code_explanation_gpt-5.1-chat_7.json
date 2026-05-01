@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements an LRU (Least Recently Used) caching decorator: it stores function results in an OrderedDict, moves recently accessed entries to the end, and evicts the least recently used item when the cache exceeds the given max size. It returns cached results for repeated arguments to avoid recomputing the function.",
+  "score": 5,
+  "cost": 0.000822,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 73
+  }
+}

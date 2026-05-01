@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code implements a **retry decorator with exponential backoff** \u2014 it attempts to execute the decorated function up to `max_attempts` times, and after each failed attempt (except the last) it waits an exponentially increasing amount of time (`delay * 2^i`) before retrying, re-raising the exception if all attempts fail.",
+  "score": 5,
+  "cost": 5.656e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 71
+  }
+}

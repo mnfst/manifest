@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "About 1.1 \u00d7 10^11 metric tonnes of carbon.",
+  "score": 1,
+  "cost": 0.0011803000000000002,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 165,
+    "output": 227
+  }
+}

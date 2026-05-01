@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "Low removes 1 liter/day, medium 2 liters/day, high 4 liters/day.\n\nAmount removed:\n- Low for 3 days: 3 liters\n- Medium for 3 days: 6 liters\n- High for 5 days: 20 liters\n\nTotal = 29 liters\n\nANSWER: 29",
+  "score": 3,
+  "cost": 0.000998,
+  "expected": "29",
+  "tokens": {
+    "input": 199,
+    "output": 75
+  }
+}

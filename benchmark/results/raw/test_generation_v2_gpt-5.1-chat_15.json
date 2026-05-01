@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 15,
+  "response": "Here are pytest\u2011style unit tests covering normal behavior, edge cases, and error scenarios.\n\n```python\nimport pytest\nfrom your_module import rotate_list\n\n\ndef test_rotate_happy_path():\n    assert rotate_list([1, 2, 3, 4, 5], 1) == [5, 1, 2, 3, 4]\n    assert rotate_list([1, 2, 3, 4, 5], 2) == [4, 5, 1, 2, 3]\n    assert rotate_list([1, 2, 3], 3) == [1, 2, 3]  # full rotation\n    assert rotate_list([\"a\", \"b\", \"c\"], 1) == [\"c\", \"a\", \"b\"]\n\n\ndef test_rotate_k_zero():\n    assert rotate_list([1, 2, 3], 0) == [1, 2, 3]\n\n\ndef test_rotate_k_negative():\n    # Negative rotation effectively rotates left\n    # k = -1 on [1,2,3] -> rotate right by 2\n    assert rotate_list([1, 2, 3], -1) == [2, 3, 1]\n    assert rotate_list([1, 2, 3], -4) == [2, 3, 1]  # since -4 % 3 = 2\n\n\ndef test_rotate_empty_list():\n    assert rotate_list([], 5) == []\n    assert rotate_list([], 0) == []\n\n\ndef test_rotate_single_element():\n    assert rotate_list([42], 100) == [42]\n\n\ndef test_rotate_large_k():\n    assert rotate_list([1, 2, 3], 10) == [3, 1, 2]  # 10 % 3 = 1\n\n\ndef test_rotate_invalid_inputs():\n    with pytest.raises(TypeError):\n        rotate_list(None, 3)\n    with pytest.raises(TypeError):\n        rotate_list([1, 2, 3], None)\n    with pytest.raises(TypeError):\n        rotate_list(\"not a list\", 2)\n```\n\nIf you want, I can also generate a parameterized version or integrate these into an existing test suite.",
+  "score": 4,
+  "cost": 0.00399,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 480
+  }
+}

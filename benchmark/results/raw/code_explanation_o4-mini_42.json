@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This class implements a bounded, FIFO \u201cproducer\u2013consumer\u201d queue for asyncio by keeping three deques: one for stored items, one for producers blocked on a full queue, and one for consumers blocked on an empty queue.  When you call put(), if the queue is at maxsize it creates and awaits a Future (queuing the producer) until space frees up; when you call get(), if there are no items it creates and awaits a Future (queuing the consumer) until an item is put, and each time an item is enqueued it immediately wakes one waiting consumer.",
+  "score": 5,
+  "cost": 0.0033693,
+  "expected": "",
+  "tokens": {
+    "input": 211,
+    "output": 713
+  }
+}

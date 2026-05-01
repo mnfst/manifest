@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "They clap their lobes, expelling a jet of water that drives them backwards very quickly.",
+  "score": 2,
+  "cost": 0.0010241000000000002,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 267,
+    "output": 166
+  }
+}

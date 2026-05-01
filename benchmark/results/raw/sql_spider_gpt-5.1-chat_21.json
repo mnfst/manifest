@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "SELECT flight_number\nFROM flights\nJOIN airlines ON flights.airline_id = airlines.id\nWHERE airlines.name = 'United Airlines';",
+  "score": 5,
+  "cost": 0.000424,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 36
+  }
+}

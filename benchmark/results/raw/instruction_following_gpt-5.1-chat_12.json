@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is a way for two different apps or services to talk to each other and share information.\n\nA simple way to think about it:\n\u2022 It works like a waiter in a restaurant.  \n\u2022 You tell the waiter what you want.  \n\u2022 The waiter goes to the kitchen and passes along your request.  \n\u2022 The kitchen prepares it.  \n\u2022 The waiter brings the result back to you.  \n\nIn the same way, an API takes a request from one app, passes it to another app, and brings back the answer. This lets different apps work together smoothly without you needing to know how they do it behind the scenes.",
+  "score": 5,
+  "cost": 0.001134,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 137
+  }
+}

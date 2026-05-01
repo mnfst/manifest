@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 17,
+  "response": "This function implements the Chain of Responsibility pattern: it creates a handler that passes a request through the given handler functions in order and returns the first non\u2011None result. If no handler processes the request, it returns None.",
+  "score": 5,
+  "cost": 0.000586,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 54
+  }
+}

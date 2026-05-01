@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "The total grapes consist of:\n- Madeline\u2019s 6 grapes\n- Brother\u2019s 5\u00d76 = 30 grapes\n- Mother\u2019s 4 pies \u00d7 12 grapes each = 48 grapes\n\nTotal grapes = 6 + 30 + 48 = 84\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.00129,
+  "expected": "84",
+  "tokens": {
+    "input": 105,
+    "output": 135
+  }
+}

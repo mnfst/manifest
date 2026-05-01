@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU executes instructions by performing calculations and managing the flow of data so that software and hardware can operate.",
+  "score": 4,
+  "cost": 0.00028,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 31
+  }
+}

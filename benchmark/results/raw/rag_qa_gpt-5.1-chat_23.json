@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "The presence of the mortgage banker is highly likely even in small projects.",
+  "score": 5,
+  "cost": 0.000538,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 197,
+    "output": 18
+  }
+}

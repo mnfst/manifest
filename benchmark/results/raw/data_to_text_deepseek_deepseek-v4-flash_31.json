@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "data_to_text",
+  "case": 31,
+  "response": "Taylor Swift's tenth studio album, *Midnights*, was released in October 2022 and features 13 tracks of pop and synth-pop spanning 44 minutes. The album achieved massive commercial success, selling 1.58 million copies in its first week and accumulating over 3.4 billion Spotify streams, ultimately winning the Grammy for Album of the Year.",
+  "score": 5,
+  "cost": 5.4040000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 73
+  }
+}

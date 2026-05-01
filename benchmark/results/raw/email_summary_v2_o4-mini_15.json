@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Legal has approved two updates to the terms\u2014adding an arbitration clause for the enterprise tier and shortening data retention to 90 days\u2014and these changes must go live before the EU launch on May 1. They will prepare and finalize the updated version today.",
+  "score": 5,
+  "cost": 0.0009768,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 197
+  }
+}

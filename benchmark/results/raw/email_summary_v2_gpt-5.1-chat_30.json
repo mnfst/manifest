@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X released new AI features, including auto\u2011categorization that we currently lack, though their pricing is twice ours and market reaction has been neutral. Product recommends fast\u2011tracking our AI roadmap item to maintain our advantage in API quality and integrations.",
+  "score": 5,
+  "cost": 0.000666,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 60
+  }
+}

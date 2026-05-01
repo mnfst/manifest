@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let \\( x \\) represent the number of people who got on the bus at the terminal. After the first stop, 5 more people get in, so the number becomes \\( x + 5 \\). At the second stop, 7 people get off, leaving \\( x + 5 - 7 = x - 2 \\), and then 8 more get in, resulting in \\( x - 2 + 8 = x + 6 \\). This final number is given as 20 people heading to the third stop, so \\( x + 6 = 20 \\). Solving gives \\( x = 14 \\).\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.00020468000000000003,
+  "expected": "14",
+  "tokens": {
+    "input": 106,
+    "output": 339
+  }
+}

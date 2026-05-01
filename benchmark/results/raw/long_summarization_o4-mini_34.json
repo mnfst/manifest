@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 34,
+  "response": "Global food production must rise 60% by 2050 to feed a projected 9.7 billion people, even as climate change drives down yields and agriculture itself emits roughly 25% of global greenhouse gases. Water scarcity\u2014exemplified by the Ogallala Aquifer\u2019s rapid depletion\u2014and soil degradation on 33% of the world\u2019s arable land exacerbate the crisis, while about one-third of all food is lost or wasted between farm and fork. Proposed solutions include precision agriculture with AI and sensors, urban vertical farming, alternative proteins, drought-resistant GM crops, and regenerative practices to rebuild soil health. Scaling these innovations alongside policy reforms on subsidies, trade, and carbon pricing is crucial to keep food affordable and accessible to the world\u2019s poorest.",
+  "score": 5,
+  "cost": 0.0027852,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 560
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "The original cost per balloon was 900 \u00f7 20 = 45 dollars.  \nAfter the increase, each balloon cost 45 + 20 = 65 dollars.  \nFor 170 balloons, Bentley paid 170 \u00d7 65 = 11050 dollars.\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.001256,
+  "expected": "11050",
+  "tokens": {
+    "input": 96,
+    "output": 133
+  }
+}

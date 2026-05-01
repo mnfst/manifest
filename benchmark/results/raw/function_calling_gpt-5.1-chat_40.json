@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "function_calling",
+  "case": 40,
+  "response": "{\"name\": \"search_messages\", \"arguments\": {\"channel\": \"announcements\", \"query\": \"release\"}}",
+  "score": 2,
+  "cost": 0.000964,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 97
+  }
+}

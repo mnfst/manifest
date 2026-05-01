@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- The sedan traveling eastbound skidded on wet pavement while braking, veered into the oncoming lane, and struck an SUV head\u2011on.  \n- Both vehicles sustained significant front\u2011end damage, and airbags deployed in each; the SUV\u2019s driver reported chest pain while the sedan\u2019s driver had minor cuts.  \n- Police cited excessive speed for conditions as a contributing factor, and both vehicles were towed from the scene for further inspection.",
+  "score": 5,
+  "cost": 0.000836,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 100
+  }
+}

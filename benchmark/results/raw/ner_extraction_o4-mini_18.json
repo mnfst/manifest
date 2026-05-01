@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "{\"persons\": [\"Sarah Chen\"], \"organizations\": [\"MIT\", \"Science magazine\"], \"locations\": []}",
+  "score": 5,
+  "cost": 0.0011,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 233
+  }
+}

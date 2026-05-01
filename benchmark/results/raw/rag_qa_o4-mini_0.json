@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "A small fraction of the flow is diverted into Lake \u00dcberlingen.",
+  "score": 2,
+  "cost": 0.0009636000000000001,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 232,
+    "output": 161
+  }
+}

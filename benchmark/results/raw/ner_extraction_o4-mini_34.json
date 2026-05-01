@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "{\"persons\":[\"Gordon Ramsay\"],\"organizations\":[\"Bellagio hotel\"],\"locations\":[\"Las Vegas\"]}",
+  "score": 5,
+  "cost": 0.0016654,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 361
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```\nout = []\nvowels = {'a':'c','e':'g','i':'k','o':'q','u':'w'}\nfor ch in message.swapcase():\n    if ch.lower() in vowels:\n        repl = vowels[ch.lower()]\n        out.append(repl.upper() if ch.isupper() else repl)\n    else:\n        out.append(ch)\nreturn ''.join(out)\n```",
+  "score": 4,
+  "cost": 0.00356,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 410
+  }
+}

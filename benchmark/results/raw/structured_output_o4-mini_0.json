@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "structured_output",
+  "case": 0,
+  "response": "{\"name\":\"John Smith\",\"age\":32,\"job_title\":\"software engineer\",\"company\":\"Google\",\"location\":{\"city\":\"Mountain View\",\"state\":\"CA\"}}",
+  "score": 5,
+  "cost": 0.0008701000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 178
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "She pays 500 + 800 = 1300 for the brooch itself.  \nInsurance costs 10% of 1300, which is 130.  \nTotal paid = 1300 + 130 = 1430.\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.000696,
+  "expected": "1430",
+  "tokens": {
+    "input": 96,
+    "output": 63
+  }
+}

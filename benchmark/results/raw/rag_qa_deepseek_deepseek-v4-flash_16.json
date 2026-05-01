@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Approximately fifty percent more.",
+  "score": 5,
+  "cost": 5.7400000000000006e-05,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 214,
+    "output": 49
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sentiment_sst2",
+  "case": 16,
+  "response": "negative",
+  "score": 5,
+  "cost": 0.000143,
+  "expected": "negative",
+  "tokens": {
+    "input": 50,
+    "output": 20
+  }
+}

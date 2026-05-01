@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "Step 1: List Anakin\u2019s catch.  \n- Starfish: 10  \n- Sea horses: 6  \n- Clownfish: 3  \n\nStep 2: Determine Locsin\u2019s catch using the \u201cfewer\u201d and \u201cmore\u201d information.  \n- Starfish: 5 fewer than Anakin \u2192 10 \u2013 5 = 5  \n- Sea horses: 3 fewer than Anakin \u2192 6 \u2013 3 = 3  \n- Clownfish: 2 more than Anakin \u2192 3 + 2 = 5  \n\nStep 3: Compute each person\u2019s total.  \n- Anakin\u2019s total = 10 + 6 + 3 = 19  \n- Locsin\u2019s total = 5 + 3 + 5 = 13  \n\nStep 4: Add both totals to get the combined catch.  \n- Combined = 19 + 13 = 32  \n\nANSWER: 32",
+  "score": 5,
+  "cost": 0.0018953,
+  "expected": "32",
+  "tokens": {
+    "input": 111,
+    "output": 403
+  }
+}

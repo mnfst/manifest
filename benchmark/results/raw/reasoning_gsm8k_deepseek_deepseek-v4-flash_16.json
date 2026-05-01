@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Sarah spent $300 on books at $15 each, so the total number of books is 300 \u00f7 15 = 20. She gave an equal number to her 4 kids, so each child gets 20 \u00f7 4 = 5 books.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00010220000000000002,
+  "expected": "5",
+  "tokens": {
+    "input": 82,
+    "output": 162
+  }
+}

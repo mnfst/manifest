@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "A sunset sinks toward the horizon, spilling warm, glowing colors across the sky. The clouds catch the light and turn soft shades of orange and gold, while the edges of the landscape fade into a gentle dusk. The sun itself becomes a bright, melting sphere, slipping slowly behind distant shapes. As the light dims, the air grows calmer, and the day gives way to a quiet, lingering glow that seems to hold everything in a moment of calm.",
+  "score": 5,
+  "cost": 0.00084,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 100
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Let total votes = 100.\n\n1. Candidate A\u2019s votes = 20% of 100  \n   = 0.20 \u00d7 100  \n   = 20 votes  \n\n2. Candidate B\u2019s votes = 50% more than A\u2019s votes  \n   = A\u2019s votes + 0.50\u00d7A\u2019s votes  \n   = 20 + (0.50\u00d720)  \n   = 20 + 10  \n   = 30 votes  \n\n3. Candidate C\u2019s votes = total votes \u2212 (A\u2019s votes + B\u2019s votes)  \n   = 100 \u2212 (20 + 30)  \n   = 100 \u2212 50  \n   = 50 votes  \n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0025157000000000005,
+  "expected": "50",
+  "tokens": {
+    "input": 95,
+    "output": 548
+  }
+}

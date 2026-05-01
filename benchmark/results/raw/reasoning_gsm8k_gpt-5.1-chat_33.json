@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "The cost of 5 lollipops is 2.00. Since the total with 4 candies is 3.20, the candies must cost 1.20 total, or 0.30 each.\n\nThen:\n10 lollipops = 4.00  \n10 candies = 3.00  \nTotal = 7.00\n\nANSWER: 7.00",
+  "score": 5,
+  "cost": 0.001392,
+  "expected": "7",
+  "tokens": {
+    "input": 84,
+    "output": 153
+  }
+}

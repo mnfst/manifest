@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Let\u2019s break it down step by step.\n\n**Step 1: Adam's points**  \nAdam = 50 points.\n\n**Step 2: Betty's points**  \nBetty collected 30% more than Adam.  \n30% of 50 = 15.  \nBetty = 50 + 15 = 65 points.\n\n**Step 3: Tom's points**  \nTom has 30 points less than Betty.  \nTom = 65 \u2212 30 = 35 points.\n\n**Step 4: Marta's points**  \nMarta collected 3 times more than Tom.  \nMarta = 3 \u00d7 35 = 105 points.\n\n**Step 5: Total points collected**  \nTotal = Adam + Betty + Tom + Marta  \n= 50 + 65 + 35 + 105 = 255 points.\n\n**Step 6: Points missing**  \nMinimum threshold = 400 points.  \nMissing = 400 \u2212 255 = 145 points.\n\nANSWER: 145",
+  "score": 2,
+  "cost": 0.00013580000000000002,
+  "expected": "145",
+  "tokens": {
+    "input": 142,
+    "output": 207
+  }
+}

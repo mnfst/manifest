@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Rafaela received 40 customers \u00d7 $20 = $800 in tips. Julieta received 10% less, which is $800 - 0.10 \u00d7 $800 = $720. Their total is $800 + $720 = $1520.\n\nANSWER: 1520",
+  "score": 4,
+  "cost": 0.00012572,
+  "expected": "1520",
+  "tokens": {
+    "input": 90,
+    "output": 202
+  }
+}

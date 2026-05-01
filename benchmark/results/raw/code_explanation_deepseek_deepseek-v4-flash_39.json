@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "This code implements a multi-producer, multi-consumer pattern where each producer adds items to a shared queue followed by a `None` sentinel to signal completion, and each consumer repeatedly retrieves items until it encounters a `None`, at which point it re-queues the sentinel (to allow other consumers to also terminate) and exits.",
+  "score": 5,
+  "cost": 0.00010304,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 158
+  }
+}

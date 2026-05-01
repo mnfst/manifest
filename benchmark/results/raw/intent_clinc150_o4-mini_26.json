@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "intent_clinc150",
+  "case": 26,
+  "response": "change_volume",
+  "score": 5,
+  "cost": 0.0006501,
+  "expected": "change_volume",
+  "tokens": {
+    "input": 507,
+    "output": 21
+  }
+}

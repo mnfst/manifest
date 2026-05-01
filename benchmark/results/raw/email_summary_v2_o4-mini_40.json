@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows Engineering (0.7), Sales (0.9), and Support (0.8) met targets but Product fell short at 0.6 due to a delayed AI feature. It\u2019s recommended to carry forward the AI OKR with increased allocation and begin next-quarter planning on Monday.",
+  "score": 5,
+  "cost": 0.002189,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 467
+  }
+}

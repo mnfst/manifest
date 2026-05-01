@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Romeo and Juliet tells the story of two teenagers from feuding families, the Montagues and Capulets, who fall instantly and passionately in love. Secretly married by Friar Laurence in hopes of ending the hostility, they are instead driven apart when Romeo is banished for killing Tybalt in a clash sparked by the feud. A desperate plan to reunite them goes wrong when Juliet\u2019s feigned death is mistaken for real, leading Romeo to kill himself beside her. Juliet awakens, finds him dead, and takes her own life, prompting both families to finally reconcile.",
+  "score": 5,
+  "cost": 0.00102,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 121
+  }
+}

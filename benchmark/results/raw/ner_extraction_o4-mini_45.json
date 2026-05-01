@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 45,
+  "response": "{\n  \"persons\": [\"Leonardo da Vinci\"],\n  \"organizations\": [\"The Louvre Museum\", \"Royal Collection\"],\n  \"locations\": [\"Paris\"]\n}",
+  "score": 5,
+  "cost": 0.0008668,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 179
+  }
+}

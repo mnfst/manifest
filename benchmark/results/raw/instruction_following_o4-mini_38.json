@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Login failed: Incorrect username or password. Please try again.",
+  "score": 4,
+  "cost": 0.0012870000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 287
+  }
+}

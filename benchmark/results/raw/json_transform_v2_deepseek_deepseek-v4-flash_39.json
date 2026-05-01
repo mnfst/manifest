@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "json_transform_v2",
+  "case": 39,
+  "response": "{\"summary\":{\"total\":5,\"by_level\":{\"ERROR\":3,\"WARN\":1,\"INFO\":1}},\"errors\":[{\"msg\":\"timeout\",\"count\":2,\"first_seen\":\"10:00\"},{\"msg\":\"disk full\",\"count\":1,\"first_seen\":\"10:05\"}]}",
+  "score": 4,
+  "cost": 0.00027524,
+  "expected": "",
+  "tokens": {
+    "input": 198,
+    "output": 442
+  }
+}

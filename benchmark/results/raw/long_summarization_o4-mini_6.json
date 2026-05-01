@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Before 2020 fewer than 5% of workers were fully remote, but the pandemic forced a global experiment in home-based work powered by tools like Zoom, Slack, and cloud infrastructure. Studies by Stanford\u2019s Nick Bloom and others found that productivity gains were mixed and often depended on role and home environment, fueling both corporate \u201creturn-to-office\u201d mandates and more flexible hybrid models. This shift has reduced demand for commercial real estate, encouraged geographic arbitrage as employees relocate to lower-cost areas, and raised new challenges for company culture and junior staff development. Simultaneously, countries have begun issuing digital nomad visas to attract mobile talent.",
+  "score": 5,
+  "cost": 0.0016632000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 342
+  }
+}

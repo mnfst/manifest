@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "SELECT c.name\nFROM conductor c\nJOIN conductor_orchestra co ON c.id = co.conductor_id\nGROUP BY c.name\nORDER BY COUNT(DISTINCT co.orchestra_id) DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 5,
+  "cost": 0.0029051000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 642
+  }
+}

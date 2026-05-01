@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "France offered full citizenship rights\u2014known as \u201cassimilation\u201d\u2014to its colonial subjects, a concession that was rare by imperial standards.",
+  "score": 5,
+  "cost": 0.0012287000000000003,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 169,
+    "output": 237
+  }
+}

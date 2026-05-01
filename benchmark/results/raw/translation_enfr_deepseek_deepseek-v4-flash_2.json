@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus vint et parla distinctement et avec bont\u00e9 : \u00ab C\u2019est moi. \u00bb Cette expression devint le fondement de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 0.00014532000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 248
+  }
+}

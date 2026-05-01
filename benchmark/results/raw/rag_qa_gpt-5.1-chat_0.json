@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "A small fraction goes to Lake \u00dcberlingen.",
+  "score": 2,
+  "cost": 0.000568,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 232,
+    "output": 13
+  }
+}

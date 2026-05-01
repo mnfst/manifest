@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s have seen a surge in space activity, driven by both government programs and private companies. Key developments include SpaceX's Starship, NASA's Artemis Moon missions, the James Webb Space Telescope's discoveries, and China's and India's lunar achievements. The rise of satellite internet constellations like Starlink and space tourism ventures from Blue Origin and Virgin Galactic highlight commercial growth, while asteroid mining remains a future prospect. However, these advances are constrained by the outdated Outer Space Treaty and the growing problem of space debris.",
+  "score": 4,
+  "cost": 7.728e-05,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 106
+  }
+}

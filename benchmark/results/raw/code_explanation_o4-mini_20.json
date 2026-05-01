@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This `partition` function implements the classic functional\u2010programming \u201cpartition\u201d pattern: it first clones the input iterable with `itertools.tee`, then returns two lazy iterators\u2014one (`filter(predicate, \u2026)`) yielding all items for which the predicate is true, and the other (`itertools.filterfalse(predicate, \u2026)`) yielding all those for which it is false.",
+  "score": 5,
+  "cost": 0.0016236000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 352
+  }
+}

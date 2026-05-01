@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "The Great Plague of London was in 1665.",
+  "score": 0,
+  "cost": 0.000664,
+  "expected": "1665",
+  "tokens": {
+    "input": 268,
+    "output": 16
+  }
+}

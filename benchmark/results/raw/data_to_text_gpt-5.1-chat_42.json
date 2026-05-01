@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "data_to_text",
+  "case": 42,
+  "response": "This Pad Thai recipe is a medium\u2011difficulty Thai dish that serves four people and takes about 15 minutes to prep and 10 minutes to cook. Each serving contains about 380 calories, with 22 grams of protein, 45 grams of carbs, and 12 grams of fat.",
+  "score": 5,
+  "cost": 0.000682,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 62
+  }
+}

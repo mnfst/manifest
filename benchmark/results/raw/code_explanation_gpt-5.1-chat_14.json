@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This function implements Dijkstra's shortest\u2011path algorithm using a min\u2011heap priority queue. It computes the minimum distance from a start node to all other reachable nodes in a weighted graph with non\u2011negative edge weights.",
+  "score": 5,
+  "cost": 0.000656,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 47
+  }
+}

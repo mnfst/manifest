@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 43,
+  "response": "if not numbers:\n        return []\n    result = [numbers[0]]\n    for num in numbers[1:]:\n        result.append(delimeter)\n        result.append(num)\n    return result",
+  "score": 4,
+  "cost": 0.0020867000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 442
+  }
+}

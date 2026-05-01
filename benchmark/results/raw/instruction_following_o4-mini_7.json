@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Ingredients: 3 eggs, salt, pepper, 1 tbsp butter. In a bowl, whisk eggs with salt and pepper. Melt butter in a pan over medium heat. Pour eggs; stir gently until soft curds form. Serve immediately.",
+  "score": 5,
+  "cost": 0.0014586000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 326
+  }
+}

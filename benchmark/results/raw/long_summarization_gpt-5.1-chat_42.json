@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 42,
+  "response": "The global food system faces mounting strain as the population heads toward 9.7 billion by 2050, requiring 60% more food production even as climate change, water scarcity, and soil degradation reduce agricultural capacity. Agriculture contributes about 25% of global greenhouse gas emissions, and key water sources like the Ogallala Aquifer are being depleted. One-third of all food is lost or wasted, worsening the supply challenge. Proposed solutions range from AI-driven precision farming and alternative proteins to drought\u2011resistant crops, regenerative agriculture, and major policy reforms, but scaling these while keeping food affordable remains a central challenge.",
+  "score": 5,
+  "cost": 0.001608,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 128
+  }
+}

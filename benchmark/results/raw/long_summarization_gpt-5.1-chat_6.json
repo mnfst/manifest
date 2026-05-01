@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work shifted from a niche benefit used by less than 5% of workers before 2020 to a widespread practice after the pandemic forced companies to rely on tools like Zoom, Slack, and cloud platforms. Research, including studies by Stanford\u2019s Nick Bloom, shows mixed productivity outcomes, leading many organizations to adopt hybrid models despite backlash against strict return\u2011to\u2011office mandates. This shift has affected commercial real estate, accelerated geographic moves to lower\u2011cost areas, and raised concerns about company culture and the development of junior employees. It has also fueled new trends such as digital\u2011nomad visas that support more flexible, location\u2011independent lifestyles.",
+  "score": 5,
+  "cost": 0.001352,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 133
+  }
+}

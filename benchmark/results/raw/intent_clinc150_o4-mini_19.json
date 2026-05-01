@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "calendar",
+  "score": 5,
+  "cost": 0.0009284000000000001,
+  "expected": "calendar",
+  "tokens": {
+    "input": 508,
+    "output": 84
+  }
+}

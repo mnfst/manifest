@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "{\"persons\":[\"Sarah Chen\"],\"organizations\":[\"MIT\",\"Science\"],\"locations\":[]}",
+  "score": 5,
+  "cost": 0.000352,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 27
+  }
+}

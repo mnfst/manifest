@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The team proposes introducing a $29/month \u201cStarter\u201d tier\u2014offering 5 users, 10K API calls, and email support\u2014to recapture users who churn due to price and is projected to recover $180K in ARR. Please review the new pricing tier proposal and provide your feedback or approval to proceed.",
+  "score": 5,
+  "cost": 0.0016115000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 339
+  }
+}

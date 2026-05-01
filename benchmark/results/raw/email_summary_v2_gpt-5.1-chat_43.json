@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The audit found two problematic OSS dependencies: an AGPL\u2011licensed charting library and a package with no license. Legal/Engineering recommends replacing the charting library with an Apache\u2011licensed alternative and removing both flagged packages before the next release.",
+  "score": 5,
+  "cost": 0.000676,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 58
+  }
+}

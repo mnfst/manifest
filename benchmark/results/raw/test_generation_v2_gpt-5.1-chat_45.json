@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 45,
+  "response": "Here are pytest\u2011style unit tests covering happy path, edge cases, and error cases.  \n(Using a single code block so you can drop it directly into a test file.)\n\n```python\nimport pytest\n\nfrom your_module import sliding_window\n\n\ndef test_sliding_window_happy_path():\n    iterable = [1, 2, 3, 4, 5]\n    size = 3\n    result = list(sliding_window(iterable, size))\n    assert result == [\n        (1, 2, 3),\n        (2, 3, 4),\n        (3, 4, 5),\n    ]\n\n\ndef test_sliding_window_exact_length():\n    iterable = [10, 20, 30]\n    size = 3\n    result = list(sliding_window(iterable, size))\n    assert result == [(10, 20, 30)]\n\n\ndef test_sliding_window_size_1():\n    iterable = [7, 8, 9]\n    size = 1\n    result = list(sliding_window(iterable, size))\n    assert result == [(7,), (8,), (9,)]\n\n\ndef test_sliding_window_iterable_too_short():\n    iterable = [1, 2]\n    size = 3\n    with pytest.raises(StopIteration):\n        list(sliding_window(iterable, size))\n\n\ndef test_sliding_window_empty_iterable():\n    iterable = []\n    size = 1\n    with pytest.raises(StopIteration):\n        list(sliding_window(iterable, size))\n\n\ndef test_sliding_window_size_zero():\n    # The function will attempt next(it) zero times, but deque(maxlen=0) is allowed\n    # However, yielding an empty tuple repeatedly is not meaningful, and should error\n    iterable = [1, 2, 3]\n    size = 0\n    with pytest.raises(ValueError):\n        # deque(maxlen=0) raises ValueError\n        list(sliding_window(iterable, size))\n\n\ndef test_sliding_window_non_iterable():\n    with pytest.raises(TypeError):\n        list(sliding_window(123, 2))\n```\n\nIf you want additional cases (e.g., generators, large windows, etc.), just let me know.",
+  "score": 4,
+  "cost": 0.004492,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 537
+  }
+}

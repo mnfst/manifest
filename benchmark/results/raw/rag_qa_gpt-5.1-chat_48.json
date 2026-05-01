@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "L is believed to be a subset of P, but it is unknown whether it is *strictly* contained in P or actually equal to P.",
+  "score": 5,
+  "cost": 0.001074,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 121,
+    "output": 104
+  }
+}

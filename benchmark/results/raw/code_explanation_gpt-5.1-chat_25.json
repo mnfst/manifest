@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements a simple publish\u2013subscribe (observer) pattern: you can register callback functions for named events, trigger all callbacks for an event with `emit`, and remove specific callbacks with `off`. It stores event listeners in a dictionary mapping event names to lists of functions.",
+  "score": 5,
+  "cost": 0.000752,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 65
+  }
+}

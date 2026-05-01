@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 36,
+  "response": "Here are pytest\u2011style unit tests in plain text (no special formatting):\n\n```\nimport pytest\nfrom your_module import validate_password\n\ndef test_valid_password_happy_path():\n    assert validate_password(\"Abcdef12\") is True\n\ndef test_too_short_password():\n    assert validate_password(\"Ab1\") is False\n\ndef test_missing_uppercase():\n    assert validate_password(\"abcdef12\") is False\n\ndef test_missing_lowercase():\n    assert validate_password(\"ABCDEF12\") is False\n\ndef test_missing_digit():\n    assert validate_password(\"Abcdefgh\") is False\n\ndef test_all_requirements_met_with_symbols():\n    assert validate_password(\"A1bcdef!\") is True\n\ndef test_password_with_only_digits():\n    assert validate_password(\"12345678\") is False\n\ndef test_password_with_only_letters():\n    assert validate_password(\"Abcdefgh\") is False\n\ndef test_password_exactly_eight_chars_valid():\n    assert validate_password(\"A1bcdefg\") is True\n\ndef test_password_exactly_eight_chars_invalid():\n    assert validate_password(\"Abcdefgh\") is False\n\ndef test_empty_string():\n    assert validate_password(\"\") is False\n\ndef test_whitespace_only():\n    assert validate_password(\"        \") is False\n\ndef test_non_alphanumeric_chars_only():\n    assert validate_password(\"!!!!@@@@\") is False\n```",
+  "score": 4,
+  "cost": 0.00251,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 286
+  }
+}

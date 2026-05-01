@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This class implements an LRU (least-recently-used) cache of fixed capacity using Python\u2019s OrderedDict: on get it returns the value (or \u20131) and moves the key to the end to mark it as recently used, and on put it inserts or updates the key and, if over capacity, evicts the oldest (least recently used) entry.",
+  "score": 5,
+  "cost": 0.0014135,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 286
+  }
+}

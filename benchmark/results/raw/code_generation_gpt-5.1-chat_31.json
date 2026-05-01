@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 31,
+  "response": "filtered = [s for s in lst if len(s) % 2 == 0]\nreturn sorted(filtered, key=lambda x: (len(x), x))",
+  "score": 4,
+  "cost": 0.00078,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 43
+  }
+}

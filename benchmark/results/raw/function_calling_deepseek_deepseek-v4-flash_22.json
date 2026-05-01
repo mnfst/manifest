@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 22,
+  "response": "{\"name\": \"create_database\", \"arguments\": {\"name\": \"analytics_prod\", \"engine\": \"postgresql\"}}",
+  "score": 5,
+  "cost": 8.624000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 132
+  }
+}

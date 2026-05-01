@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This function implements the Sieve of Eratosthenes, an efficient algorithm for finding all prime numbers up to a given integer n. It iteratively marks multiples of each prime starting from 2, then returns the list of numbers that remain unmarked (the primes).",
+  "score": 5,
+  "cost": 0.000738,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 59
+  }
+}

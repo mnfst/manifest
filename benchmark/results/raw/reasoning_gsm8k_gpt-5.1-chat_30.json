@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Adam has 50 points.  \nBetty has 30% more than Adam, so 65 points.  \nTom has 30 less than Betty, so 35 points.  \nMartha has 3 times Tom\u2019s points, so 105 points.\n\nTotal points = 50 + 65 + 35 + 105 = 255  \nMissing points = 400 \u2212 255 = 145\n\nANSWER: 145",
+  "score": 2,
+  "cost": 0.001568,
+  "expected": "145",
+  "tokens": {
+    "input": 144,
+    "output": 160
+  }
+}

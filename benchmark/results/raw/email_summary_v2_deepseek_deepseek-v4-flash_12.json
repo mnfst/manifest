@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The engineering team has 4 open positions (2 backend, 1 frontend, 1 ML) with 23 candidates in process, but the frontend role has been open for 60 days with no strong candidates. The recommendation is to expand the search to remote candidates or adjust the compensation band to attract better applicants.",
+  "score": 5,
+  "cost": 9.408000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 144
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Dear Team,\n\nI wanted to let you know that today is my last day at the company. I have truly appreciated your support, collaboration, and friendship over the past few years. Working alongside such talented and dedicated individuals has been an incredible experience that I will always cherish. Although I am excited about my next adventure, I will miss our daily interactions and shared achievements. Thank you all for making this workplace feel like a second home.\n\nBest regards,  \n[Your Name]",
+  "score": 5,
+  "cost": 0.004177800000000001,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 945
+  }
+}

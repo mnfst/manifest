@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 2,
+  "response": "s = sorted(lst)\nres = []\ni, j = 0, len(s) - 1\ntoggle = True\nwhile i <= j:\n    if toggle:\n        res.append(s[i])\n        i += 1\n    else:\n        res.append(s[j])\n        j -= 1\n    toggle = not toggle\nreturn res",
+  "score": 5,
+  "cost": 0.00095,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 80
+  }
+}

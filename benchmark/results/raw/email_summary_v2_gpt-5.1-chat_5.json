@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product launch is at risk because the payment integration failed PCI compliance and will need two more weeks to fix. The team must choose between launching without payments (with updated T&Cs) or delaying to May 15, and this will be discussed in a meeting tomorrow at 10am.",
+  "score": 5,
+  "cost": 0.000742,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 68
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "Here are pytest\u2011style unit tests that cover:\n\n\u2022 Happy path: typical positive integers  \n\u2022 Edge cases: n = 0, n = 1  \n\u2022 Error cases: negative input  \n\nNo special formatting is used so your environment can parse it easily.\n\n```\nimport pytest\nfrom your_module import factorial\n\n\ndef test_factorial_happy_path():\n    assert factorial(2) == 2\n    assert factorial(3) == 6\n    assert factorial(5) == 120\n    assert factorial(10) == 3628800\n\n\ndef test_factorial_edge_cases():\n    assert factorial(0) == 1\n    assert factorial(1) == 1\n\n\ndef test_factorial_negative_input():\n    with pytest.raises(ValueError):\n        factorial(-1)\n\n    with pytest.raises(ValueError):\n        factorial(-10)\n```",
+  "score": 5,
+  "cost": 0.001572,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 176
+  }
+}

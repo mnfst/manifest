@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 38,
+  "response": "Here are pytest\u2011style unit tests. They mock time.time so tests run deterministically. No special formatting is used.\n\nimport pytest\nfrom unittest.mock import patch\nfrom your_module import rate_limiter\n\ndef test_happy_path_allows_up_to_max_calls():\n    limiter = rate_limiter(max_calls=3, period_seconds=10)\n    with patch(\"time.time\", return_value=100):\n        assert limiter() is True\n        assert limiter() is True\n        assert limiter() is True\n        assert limiter() is False  # 4th call blocked\n\ndef test_calls_expire_after_period():\n    limiter = rate_limiter(max_calls=2, period_seconds=5)\n    with patch(\"time.time\", return_value=100):\n        assert limiter() is True\n        assert limiter() is True\n        assert limiter() is False  # limit reached\n\n    # Advance time past expiry\n    with patch(\"time.time\", return_value=106):\n        # Old timestamps are expired; should allow again\n        assert limiter() is True\n\ndef test_edge_case_zero_max_calls():\n    limiter = rate_limiter(max_calls=0, period_seconds=10)\n    with patch(\"time.time\", return_value=100):\n        assert limiter() is False\n\ndef test_edge_case_zero_period_allows_only_one_immediately():\n    limiter = rate_limiter(max_calls=2, period_seconds=0)\n    with patch(\"time.time\", return_value=100):\n        assert limiter() is True\n        # period is zero, so second call happens at same time and should fail\n        assert limiter() is False\n\ndef test_multiple_period_windows():\n    limiter = rate_limiter(max_calls=1, period_seconds=3)\n\n    with patch(\"time.time\", return_value=100):\n        assert limiter() is True\n        assert limiter() is False\n\n    with patch(\"time.time\", return_value=103):\n        # falls exactly on period boundary: old call should be removed\n        assert limiter() is True\n\ndef test_time_moves_backward():\n    # If time goes backward (edge condition), limiter should not break\n    limiter = rate_limiter(max_calls=1, period_seconds=5)\n\n    with patch(\"time.time\", return_value=100):\n        assert limiter() is True\n\n    # Time moves backward; old call remains since now - t < period may fail\n    with patch(\"time.time\", return_value=99):\n        assert limiter() is False  # still within window logically\n\nLet me know if you want tests for concurrency or integration examples.",
+  "score": 4,
+  "cost": 0.004988,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 596
+  }
+}

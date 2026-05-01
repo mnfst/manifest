@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 46,
+  "response": "min_even = None\nmin_index = -1\nfor i, val in enumerate(arr):\n    if val % 2 == 0:\n        if min_even is None or val < min_even:\n            min_even = val\n            min_index = i\nif min_even is None:\n    return []\nelse:\n    return [min_even, min_index]",
+  "score": 4,
+  "cost": 0.00020286000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 341,
+    "output": 277
+  }
+}

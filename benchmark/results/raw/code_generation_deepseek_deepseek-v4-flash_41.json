@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 41,
+  "response": "result = l[:]\n    third_indices = [i for i in range(len(l)) if i % 3 == 0]\n    third_values = sorted([l[i] for i in third_indices])\n    for i, val in zip(third_indices, third_values):\n        result[i] = val\n    return result",
+  "score": 4,
+  "cost": 0.00031276000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 182,
+    "output": 513
+  }
+}

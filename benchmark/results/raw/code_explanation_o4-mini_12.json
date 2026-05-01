@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This function performs a DFS\u2010based topological sort on a directed graph: it does a depth\u2010first traversal of each unvisited node, pushes each node onto a stack only after all its descendants have been visited (postorder), and then returns the reversed stack as the topologically sorted order.",
+  "score": 5,
+  "cost": 0.0013046,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 270
+  }
+}

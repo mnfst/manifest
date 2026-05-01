@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "The class size increased by 20%, so multiply last year\u2019s enrollment by 1.20.\n\n50 \u00d7 1.20 = 60\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.000512,
+  "expected": "60",
+  "tokens": {
+    "input": 80,
+    "output": 44
+  }
+}

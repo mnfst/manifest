@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "Here is a comparison of **TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)** , two core protocols of the Internet Layer (specifically the Transport Layer of the OSI model).\n\n### The Core Difference (In Simple Terms)\n\n- **TCP** is like a **registered mail service**. It guarantees delivery, checks for errors, and sends items in the correct order. It is slower but reliable.\n- **UDP** is like **throwing a frisbee** to a friend. It is fast and simple, but there is no guarantee your friend will catch it, or that it will arrive in the order you threw it.\n\n---\n\n### Comparison Table\n\n| Feature | TCP (Transmission Control Protocol) | UDP (User Datagram Protocol) |\n| :--- | :--- | :--- |\n| **Connection Type** | **Connection-oriented** (A formal handshake is required before data transfer). | **Connectionless** (Data is sent immediately without establishing a connection). |\n| **Reliability** | **High** (Guarantees delivery. If packets are lost, they are resent). | **Low** (No guarantee of delivery. \"Fire and forget\"). |\n| **Data Ordering** | **Guaranteed** (Packets arrive in the exact order they were sent). | **Not Guaranteed** (Packets may arrive out of order or be lost). |\n| **Error Checking** | **Extensive** (Checks for errors, requests retransmission of corrupted data). | **Basic** (Checks for errors, but corrupted packets are simply discarded\u2014no retransmission). |\n| **Speed** | **Slower** (Due to overhead from handshakes, acknowledgments, and error recovery). | **Faster** (Minimal overhead; no handshake or acknowledgment required). |\n| **Header Size** | **20\u201360 bytes** (Larger header due to sequence numbers, ACKs, etc.). | **8 bytes** (Very small header). |\n| **Data Flow Control** | **Yes** (Manages the rate of data transmission to prevent overwhelming the receiver). | **No** (Sends data as fast as the application provides it). |\n| **Congestion Control** | **Yes** (Slows down transmission when the network is busy). | **No** (Does not adjust to network congestion). |\n| **Use Cases** | Web browsing (HTTP",
+  "score": 4,
+  "cost": 0.00028196,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 500
+  }
+}

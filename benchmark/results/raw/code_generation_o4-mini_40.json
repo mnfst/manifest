@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 40,
+  "response": "abs_a = abs(a)\n    root = round(abs_a ** (1/3))\n    return root**3 == abs_a",
+  "score": 4,
+  "cost": 0.005993900000000001,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 1327
+  }
+}

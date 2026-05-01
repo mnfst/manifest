@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 26,
+  "response": "Here are pytest-style unit tests covering the happy path, edge cases, and error cases.\n\n```python\nimport pytest\nfrom your_module import safe_divide\n\ndef test_safe_divide_happy_path():\n    assert safe_divide(10, 2) == 5\n    assert safe_divide(7.5, 2.5) == 3.0\n\ndef test_safe_divide_zero_division_default():\n    assert safe_divide(10, 0) == 0.0\n\ndef test_safe_divide_zero_division_custom_default():\n    assert safe_divide(10, 0, default=99) == 99\n\ndef test_safe_divide_negative_numbers():\n    assert safe_divide(-10, 2) == -5\n    assert safe_divide(10, -2) == -5\n    assert safe_divide(-10, -2) == 5\n\ndef test_safe_divide_float_precision():\n    result = safe_divide(1.0, 3.0)\n    assert abs(result - (1/3)) < 1e-9\n\ndef test_safe_divide_large_numbers():\n    assert safe_divide(1e308, 1e308) == 1.0\n\ndef test_safe_divide_with_inf_and_nan():\n    assert safe_divide(float(\"inf\"), 2) == float(\"inf\")\n    assert safe_divide(2, float(\"inf\")) == 0.0\n    assert safe_divide(float(\"nan\"), 2) != safe_divide(float(\"nan\"), 2)  # NaN check\n    assert safe_divide(2, float(\"nan\")) != safe_divide(2, float(\"nan\"))\n\ndef test_safe_divide_invalid_types():\n    with pytest.raises(TypeError):\n        safe_divide(\"10\", 2)\n    with pytest.raises(TypeError):\n        safe_divide(10, \"2\")\n```",
+  "score": 4,
+  "cost": 0.003408,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 407
+  }
+}

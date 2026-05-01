@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "Votre mari avait-il invit\u00e9 le lieutenant Gilbert chez vous ?",
+  "score": 5,
+  "cost": 0.000236,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 21
+  }
+}

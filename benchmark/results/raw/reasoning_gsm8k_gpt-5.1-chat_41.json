@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let Harald's sales be H.  \nMarilyn sold 10H.  \nTotal: H + 10H = 11H = 88,000.  \nSo H = 88,000 \u00f7 11 = 8,000.\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.000672,
+  "expected": "8000",
+  "tokens": {
+    "input": 72,
+    "output": 66
+  }
+}

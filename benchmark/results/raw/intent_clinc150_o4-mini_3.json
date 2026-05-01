@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "intent_clinc150",
+  "case": 3,
+  "response": "schedule_maintenance",
+  "score": 5,
+  "cost": 0.0015015,
+  "expected": "schedule_maintenance",
+  "tokens": {
+    "input": 509,
+    "output": 214
+  }
+}

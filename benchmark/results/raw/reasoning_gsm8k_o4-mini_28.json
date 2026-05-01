@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Here is the step-by-step reasoning:\n\n1. Let x be the number of people who got on the bus at the terminal.  \n2. After the first stop, 5 more people got on, so the total is x + 5.  \n3. At the second stop, 7 people got off and 8 people got on.  \n   New total = (x + 5) \u2212 7 + 8 = x + 5 + 1 = x + 6.  \n4. This total (x + 6) is given to be 20 people who are heading to the third stop.  \n5. Therefore, x + 6 = 20  \n   \u21d2 x = 20 \u2212 6  \n   \u21d2 x = 14.  \n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0020416,
+  "expected": "14",
+  "tokens": {
+    "input": 108,
+    "output": 437
+  }
+}

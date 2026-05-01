@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun dips toward the horizon, its glowing orb casting long, molten streaks of orange and gold across the sky. Wisps of cloud catch the fading light, turning a soft rose and lilac before darkening to deep indigo. The air cools as grass and trees stand in silhouette, their outlines crisp against the molten palette above. A hush settles over the world, broken only by the gentle lapping of water that mirrors the shifting hues. In this fleeting moment, warmth lingers even as daylight ebbs, inviting a quiet pause to witness day\u2019s grand farewell.",
+  "score": 4,
+  "cost": 0.0014608000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 327
+  }
+}

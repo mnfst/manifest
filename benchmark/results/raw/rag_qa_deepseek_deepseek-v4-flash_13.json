@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "Victorian Government",
+  "score": 0,
+  "cost": 2.3940000000000005e-05,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 155,
+    "output": 4
+  }
+}

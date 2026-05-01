@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This is an implementation of the A* search algorithm on a weighted graph: it keeps a min-heap of frontier nodes keyed by f(n)=g(n)+h(n) (where g is the path cost so far and h is the heuristic estimate to the goal), pops the lowest-f node to expand its neighbors, and returns the shortest path once the goal is reached.",
+  "score": 5,
+  "cost": 0.0017292,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 351
+  }
+}

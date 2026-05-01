@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "json_transform_v2",
+  "case": 22,
+  "response": "{\"company\":\"Acme Corp\",\"age_years\":9,\"size\":\"medium\",\"total_funding\":25000000,\"latest_round\":{\"series\":\"B\",\"amount\":20000000}}",
+  "score": 5,
+  "cost": 0.0029502000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 633
+  }
+}

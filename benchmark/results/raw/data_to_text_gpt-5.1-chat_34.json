@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "data_to_text",
+  "case": 34,
+  "response": "Stockholm, the capital of Sweden, is a city founded in 1252 that now has a population of about 1.6 million people within an area of 188 square kilometers. Residents, who primarily speak Swedish, enjoy a high standard of living with a GDP per capita of about $62,000, in a climate that averages around -3\u00b0C in January and 18\u00b0C in July.",
+  "score": 5,
+  "cost": 0.000866,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 85
+  }
+}

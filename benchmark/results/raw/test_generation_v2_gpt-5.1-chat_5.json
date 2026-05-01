@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "Here are pytest\u2011style unit tests covering happy path, edge cases, and error cases:\n\n```python\nimport pytest\nfrom your_module import count_vowels\n\ndef test_count_vowels_basic():\n    assert count_vowels(\"hello\") == 2\n    assert count_vowels(\"world\") == 1\n    assert count_vowels(\"AEIOU\") == 5\n\ndef test_count_vowels_mixed_case():\n    assert count_vowels(\"PyThOn\") == 1\n\ndef test_count_vowels_with_spaces_and_punctuation():\n    assert count_vowels(\"h e!l?l,o\") == 1\n    assert count_vowels(\"why?!\") == 0\n\ndef test_count_vowels_empty_string():\n    assert count_vowels(\"\") == 0\n\ndef test_count_vowels_no_vowels():\n    assert count_vowels(\"rhythms\") == 0\n\ndef test_count_vowels_all_vowels():\n    assert count_vowels(\"aeiouAEIOU\") == 10\n\ndef test_count_vowels_numbers_and_symbols():\n    assert count_vowels(\"1234!@#$\") == 0\n\ndef test_count_vowels_non_string_raises():\n    with pytest.raises(AttributeError):\n        count_vowels(None)\n    with pytest.raises(AttributeError):\n        count_vowels(123)\n```",
+  "score": 5,
+  "cost": 0.002372,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 281
+  }
+}

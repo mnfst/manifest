@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 48,
+  "response": "French:  \n- Choisissez l\u2019une de ces Renault \u00e0 louer \u00e0 Galati ou dans d\u2019autres villes comme Arad, Timisoara, Sibiu, Oradea, Brasov, Bucarest, Iasi ou Suceava, et vous arriverez \u00e0 destination en un rien de temps. De plus, vous \u00e9conomiserez beaucoup d\u2019argent que vous pourrez d\u00e9penser autrement.",
+  "score": 5,
+  "cost": 0.000848,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 82
+  }
+}

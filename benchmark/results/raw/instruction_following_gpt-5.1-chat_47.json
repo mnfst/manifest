@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here are the key elements that make a good password:\n\n1. Use a long length \u2014 at least 12\u201316 characters.  \n2. Include a mix of character types: uppercase letters, lowercase letters, numbers, and symbols.  \n3. Avoid personal information such as names, birthdays, or common words related to you.  \n4. Do not use common passwords or predictable patterns like \"1234,\" \"password,\" or keyboard sequences.  \n5. Create something unique for every account rather than reusing passwords.  \n6. Consider using a passphrase made of several unrelated words if easier to remember.  \n7. Store passwords securely in a reputable password manager.",
+  "score": 5,
+  "cost": 0.001138,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 138
+  }
+}

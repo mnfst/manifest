@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Cela ne peut conduire qu\u2019au chaos et \u00e0 la terreur.",
+  "score": 5,
+  "cost": 0.00045870000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 96
+  }
+}

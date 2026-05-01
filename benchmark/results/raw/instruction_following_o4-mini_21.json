@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here\u2019s one simple route using only left and right turns:\n\n- Exit the park\u2019s main gate and turn right onto Main Street.  \n- Continue two blocks, then turn left onto First Avenue.  \n- Go one block, then turn right onto Oak Street.  \n- Continue three blocks, then turn left onto Third Avenue.  \n- After one block the library will be on your right.",
+  "score": 5,
+  "cost": 0.0038313000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 865
+  }
+}

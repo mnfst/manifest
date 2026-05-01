@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code defines an LRU (Least Recently Used) cache decorator: it wraps a function so that calls and their results are stored in an OrderedDict keyed by the call arguments, moves a key to the end whenever it\u2019s accessed to mark it as recently used, and when the number of entries exceeds `maxsize` it automatically evicts the oldest (least recently used) item.",
+  "score": 5,
+  "cost": 0.0019613,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 416
+  }
+}

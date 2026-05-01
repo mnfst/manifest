@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "Hommejeunechh, 49 ans, Pays de la Loire (Angers)",
+  "score": 5,
+  "cost": 0.0013464,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 295
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "test_generation_v2",
+  "case": 11,
+  "response": "Here\u2019s a pytest module that exercises `merge_sorted` over normal cases, edge\u2010cases, and error conditions. You can drop this into e.g. `tests/test_merge_sorted.py`. Make sure that your `merge_sorted` function is importable.\n\n```python\nimport pytest\n\n# adjust this import to point at your actual module\nfrom my_module import merge_sorted\n\n\n@ pytest.mark.parametrize(\"a, b, expected\", [\n    # both non\u2010empty interleaving\n    ([1, 3, 5], [2, 4, 6], [1, 2, 3, 4, 5, 6]),\n    # duplicates\n    ([1, 1, 2], [1, 2, 2], [1, 1, 1, 2, 2, 2]),\n    # one list entirely less than the other\n    ([1, 2, 3], [4, 5, 6], [1, 2, 3, 4, 5, 6]),\n    # negative and floats\n    ([-3, -1, 0], [-2, 1], [-3, -2, -1, 0, 1]),\n    ([0.5, 2.5], [1.5, 3.5], [0.5, 1.5, 2.5, 3.5]),\n    # single\u2010element lists\n    ([10], [5], [5, 10]),\n    ([10], [], [10]),\n    ([], [5], [5]),\n    # both empty\n    ([], [], []),\n])\ndef test_merge_sorted_happy_paths(a, b, expected):\n    result = merge_sorted(list(a), list(b))  # copy to ensure in\u2010place safety\n    assert result == expected\n\n\ndef test_original_inputs_are_unchanged():\n    a = [1, 4, 7]\n    b = [2, 3, 5]\n    a_copy = a.copy()\n    b_copy = b.copy()\n    _ = merge_sorted(a, b)\n    assert a == a_copy\n    assert b == b_copy\n\n\n@ pytest.mark.parametrize(\"a, b\", [\n    # wrong container types\n    (None, [1, 2, 3]),\n    ([1, 2, 3], None),\n    (123, [1, 2, 3]),\n    ([1, 2, 3], \"not a list\"),\n])\ndef test_invalid_input_type_raises_type_error(a, b):\n    with pytest.raises(TypeError):\n        merge_sorted(a, b)\n\n\ndef test_unorderable_elements_raise_type_error():\n    # mixing ints and strings in sorted\u2010arrays will fail on comparison\n    with pytest.raises(TypeError):\n        merge_sorted([1, 2, 3], [\"a\", \"b\", \"c\"])\n```\n\nExplanation of what\u2019s covered:\n\n- Happy\u2010path parameterized tests cover various merge scenarios: interleaving, duplicates, empty lists, singletons, floats, negatives, etc.\n- We verify the original lists aren\u2019t modified.\n- We check that passing non\u2010list types (including `None`) raises `TypeError` when calling `len(\u2026)` or attempting to iterate.\n- We also check that mixing uncomparable element types triggers a `TypeError` inside the comparison.",
+  "score": 4,
+  "cost": 0.0067231999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 1497
+  }
+}

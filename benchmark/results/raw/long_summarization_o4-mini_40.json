@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 40,
+  "response": "The internet\u2019s origins trace back to the 1960s when the US Department of Defense funded networking research, leading to ARPANET\u2019s first message in 1969 and gradual university-linked growth until the 1983 adoption of TCP/IP. In 1989, Tim Berners-Lee invented the World Wide Web at CERN\u2014introducing HTML, URLs, and HTTP\u2014and the 1993 Mosaic browser made it widely accessible. The late-1990s dot-com boom spurred huge investments but culminated in the 2001 crash, with survivors like Amazon and Google emerging as industry giants. From mid-2000s social media platforms to the 2007 iPhone revolution and 2006\u2019s AWS launch, today over 5 billion people rely on the internet for commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.0028556000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 571
+  }
+}

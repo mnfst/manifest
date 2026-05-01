@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The database team plans to migrate from MySQL 5.7 to PostgreSQL 16 from May to July using a blue-green deployment with no downtime, but three stored procedures require rewriting. The testing environment is ready for the schema conversion and dual-write phases.",
+  "score": 4,
+  "cost": 0.00012894000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 207
+  }
+}

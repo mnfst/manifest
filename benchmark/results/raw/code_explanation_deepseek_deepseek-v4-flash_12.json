@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code performs a topological sort of a directed acyclic graph using depth-first search (DFS). It recursively visits each node, appends it to a stack only after all its descendants have been processed, and then returns the reversed stack to produce a valid topological order.",
+  "score": 5,
+  "cost": 0.00010192000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 156
+  }
+}

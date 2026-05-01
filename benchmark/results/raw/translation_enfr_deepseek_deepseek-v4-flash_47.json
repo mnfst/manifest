@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "Une r\u00e9pression de cette nature, accompagn\u00e9e ces derni\u00e8res semaines de l'arrestation de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de pr\u00e9tendues fausses informations, a l\u00e9gitimement \u00e9veill\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 4.732e-05,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 69
+  }
+}

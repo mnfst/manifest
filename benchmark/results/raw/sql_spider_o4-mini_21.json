@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "SELECT f.flight_number\nFROM flights AS f\nJOIN airlines AS a\n  ON f.airline_id = a.airline_id\nWHERE a.name = 'United Airlines';",
+  "score": 5,
+  "cost": 0.0017204000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 374
+  }
+}

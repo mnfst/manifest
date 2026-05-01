@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "5,500,000 square kilometres (2,100,000 sq mi)",
+  "score": 2,
+  "cost": 4.9560000000000007e-05,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 286,
+    "output": 17
+  }
+}

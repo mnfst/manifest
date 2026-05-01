@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- A two-vehicle collision occurred at the intersection of Main Street and Oak Avenue at 3:15 PM, involving a red sedan and a blue SUV.\n- The sedan failed to stop at a red light, striking the SUV\u2019s passenger side as it proceeded through the intersection on a green signal.\n- No injuries were reported, but both vehicles sustained significant front-end and side damage, requiring towing from the scene.",
+  "score": 5,
+  "cost": 7.672e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 133
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Total lollipops sold:\n30 students * 10 each = 300 lollipops\n\nProfit per lollipop:\n0.8 \u2212 0.5 = 0.3 dollars\n\nTotal profit:\n300 * 0.3 = 90 dollars\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.001304,
+  "expected": "90",
+  "tokens": {
+    "input": 120,
+    "output": 133
+  }
+}

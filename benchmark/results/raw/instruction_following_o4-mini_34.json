@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a specialized data structure that speeds up data retrieval by allowing the database engine to quickly locate rows matching a query without scanning the entire table. It maintains an ordered (or hashed) list of key values with pointers to the corresponding records, much like an index in the back of a book.",
+  "score": 3,
+  "cost": 0.0023430000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 528
+  }
+}

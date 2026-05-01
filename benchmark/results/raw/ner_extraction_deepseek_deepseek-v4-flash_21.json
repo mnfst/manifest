@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "{\n  \"persons\": [\"Picasso\", \"Monet\"],\n  \"organizations\": [\"The Metropolitan Museum of Art\"],\n  \"locations\": [\"New York\"]\n}",
+  "score": 5,
+  "cost": 7.392e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 114
+  }
+}

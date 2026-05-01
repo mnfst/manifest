@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "function_calling",
+  "case": 46,
+  "response": "{\"name\": \"restart_service\", \"arguments\": {\"name\": \"redis\"}}",
+  "score": 5,
+  "cost": 0.000378,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 26
+  }
+}

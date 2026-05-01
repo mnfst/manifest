@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 46,
+  "response": "{\"name\":\"restart_service\",\"arguments\":{\"name\":\"redis\"}}",
+  "score": 5,
+  "cost": 0.0033275000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 735
+  }
+}

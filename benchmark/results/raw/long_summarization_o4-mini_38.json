@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 38,
+  "response": "The global food system must boost output by about 60% to feed an estimated 9.7 billion people in 2050, even as climate change drives down yields through droughts, floods and extreme heat. Agriculture itself emits roughly 25% of global greenhouse gases, depletes critical water sources like the Ogallala Aquifer, and has degraded 33% of arable land, while one-third of all food is lost or wasted between farm and fork. Proposed solutions include precision agriculture with AI, urban vertical farms, alternative proteins, drought-resistant genetics and regenerative farming, alongside policy shifts in subsidies, trade and carbon pricing. The central challenge lies in scaling these innovations affordably and equitably so the world\u2019s poorest populations can still access sufficient food.",
+  "score": 4,
+  "cost": 0.0025124000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 498
+  }
+}

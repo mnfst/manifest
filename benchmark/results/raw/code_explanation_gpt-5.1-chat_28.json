@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 28,
+  "response": "This code computes the length of the longest common subsequence between two sequences using a dynamic programming table. It fills a grid bottom\u2011up by comparing characters and building the longest match count from previously solved subproblems.",
+  "score": 5,
+  "cost": 0.000692,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 47
+  }
+}

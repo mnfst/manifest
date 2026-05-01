@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "structured_output",
+  "case": 34,
+  "response": "{\n  \"student_id\": \"20240156\",\n  \"course_code\": \"CS301\",\n  \"course_name\": \"Algorithms\",\n  \"score\": 87,\n  \"max_score\": 100,\n  \"grade\": \"A-\",\n  \"semester\": \"Fall 2024\",\n  \"instructor\": \"Prof. Williams\"\n}",
+  "score": 5,
+  "cost": 0.0013684,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 283
+  }
+}

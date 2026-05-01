@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "One of the things I love most about this novel is the way it gradually pulls you into a world that\u2019s at once impossibly magical and yet deeply human. The story centers on two young illusionists who\u2019ve been bound, from the day they were born, to compete against one another in a contest of creative power and imagination. The arena for their rivalry is an ever\u2010shifting, nocturnal spectacle\u2014an elaborate traveling show that arrives without warning, opens only at night, and delights its visitors with impossible feats of wonder: gardens made of ice, acrobats who appear to defy gravity, and ensembles of performers who read your thoughts as they linger in the shadows.\n\nAs the circus expands\u2014tent by tent, alley by cobblestone alley\u2014it becomes clear that neither magician fully understands the rules governing their duel. What begins as a carefully orchestrated battle of skill and endurance slowly transforms into something far richer: a tender, almost heartbreaking romance that challenges the very terms of their engagement. The tension between their personal desires and the higher purpose imposed on them by older, more secretive masters creates a palpable undercurrent throughout the book.\n\nStylistically, the prose dances between dreamlike passages and vividly detailed set pieces. Chapters shift perspective\u2014sometimes narrated by the two competitors themselves, other times by the performers and visitors who make the circus their home. That mosaic of viewpoints deepens the sense that this is more than a simple love story or a fantasy contest; it\u2019s an exploration of creativity under constraint, the cost of obsession, and the surprising ways that human connections can blossom even in a world built on illusion. By the time you reach the final scene, you\u2019re left pondering what it means to build something that exists purely in the imagination, yet touches every heart it encounters.",
+  "score": 5,
+  "cost": 0.0036443,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 824
+  }
+}

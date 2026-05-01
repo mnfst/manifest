@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT c.name\nFROM countries c\nJOIN makers m ON c.id = m.country_id\nGROUP BY c.name\nORDER BY COUNT(m.id) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.00013300000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 220
+  }
+}

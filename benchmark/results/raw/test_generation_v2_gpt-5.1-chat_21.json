@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 21,
+  "response": "Here are pytest-style unit tests (no special formatting):\n\nfrom truncate_module import truncate\nimport pytest\n\ndef test_truncate_happy_path():\n    s = \"Hello World\"\n    result = truncate(s, 5)\n    assert result == \"He...\"\n\ndef test_no_truncation_needed_equal_length():\n    s = \"Hello\"\n    result = truncate(s, 5)\n    assert result == \"Hello\"\n\ndef test_no_truncation_needed_shorter():\n    s = \"Hi\"\n    result = truncate(s, 5)\n    assert result == \"Hi\"\n\ndef test_custom_suffix():\n    s = \"abcdef\"\n    result = truncate(s, 4, \"..\")\n    assert result == \"ab..\"\n\ndef test_suffix_longer_than_max_len():\n    s = \"abcdef\"\n    # max_len < len(suffix) leads to negative slicing\n    # Expected behavior: s[:negative] becomes empty string\n    result = truncate(s, 2, \"...\")\n    assert result == \"...\"\n\ndef test_empty_string():\n    assert truncate(\"\", 5) == \"\"\n\ndef test_zero_max_len():\n    # max_len = 0, suffix length > 0 -> s[:0 - suffix_len] -> s[-3] -> empty slice -> suffix\n    assert truncate(\"Hello\", 0) == \"...\"\n\ndef test_negative_max_len():\n    # Negative max_len should slice from the end before adding suffix\n    # Example: max_len = -1, suffix = \"...\", slice index = -1 - 3 = -4\n    result = truncate(\"Hello\", -1)\n    assert result == \"o...\"\n\ndef test_suffix_empty():\n    s = \"Hello\"\n    result = truncate(s, 3, \"\")\n    assert result == \"Hel\"\n\ndef test_suffix_equal_to_max_len():\n    s = \"HelloWorld\"\n    result = truncate(s, 3, \"...\")\n    # slice index = 3 - 3 = 0, so \"\" + \"...\"\n    assert result == \"...\"",
+  "score": 4,
+  "cost": 0.004034,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 484
+  }
+}

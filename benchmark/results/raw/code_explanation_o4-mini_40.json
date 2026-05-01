@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This class implements the Circuit Breaker design pattern: it wraps a function call, counts consecutive failures, \u201copens\u201d the circuit (blocking calls) once failures hit the threshold, waits for the timeout to elapse (half-open), and then either closes the circuit on success or re-opens it on further failures.",
+  "score": 5,
+  "cost": 0.0011451000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 211
+  }
+}

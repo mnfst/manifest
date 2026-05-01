@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code implements the classic 0/1-knapsack problem using a bottom-up dynamic-programming approach: it builds a (n+1)\u00d7(capacity+1) table `dp` where `dp[i][w]` is the maximum value achievable with the first i items and weight limit w, and for each item i and weight w it chooses the better of excluding or including that item. The function returns the maximum value `dp[n][capacity]`.",
+  "score": 5,
+  "cost": 0.0020834,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 436
+  }
+}

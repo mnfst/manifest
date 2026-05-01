@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT cm.id AS maker_id,\n       cm.name AS maker_full_name,\n       COUNT(cmo.id) AS model_count\nFROM car_makers cm\nLEFT JOIN car_models cmo\n  ON cmo.maker_id = cm.id\nGROUP BY cm.id, cm.name;",
+  "score": 5,
+  "cost": 0.004081,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 908
+  }
+}

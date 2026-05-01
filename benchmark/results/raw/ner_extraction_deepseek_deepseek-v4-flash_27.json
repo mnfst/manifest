@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "{\n  \"persons\": [\"Cristiano Ronaldo\"],\n  \"organizations\": [\"Al Nassr\", \"Manchester United\"],\n  \"locations\": [\"Riyadh\"]\n}",
+  "score": 5,
+  "cost": 6.888e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 104
+  }
+}

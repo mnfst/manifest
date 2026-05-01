@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Step 1: Original weight = 8 pounds  \nStep 2: Increase by 50% \u2192 8 \u00d7 0.50 = 4, so new weight = 8 + 4 = 12 pounds  \nStep 3: Use a weight 2 pounds lighter \u2192 12 \u2212 2 = 10 pounds  \n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.0010736,
+  "expected": "10",
+  "tokens": {
+    "input": 100,
+    "output": 219
+  }
+}

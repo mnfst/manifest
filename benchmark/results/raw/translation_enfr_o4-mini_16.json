@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "J\u2019ai l\u2019impression que ma bite n\u2019est pas assez grosse pour toi.",
+  "score": 4,
+  "cost": 0.0013145,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 290
+  }
+}

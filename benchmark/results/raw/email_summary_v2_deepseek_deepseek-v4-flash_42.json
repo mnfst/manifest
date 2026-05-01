@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The workshop revealed strong demand for better bulk import and SSO support, while three customers expressed interest in the internal tool as a standalone product. The sales team should review the attached follow-up report to address these action items.",
+  "score": 5,
+  "cost": 4.004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 45
+  }
+}

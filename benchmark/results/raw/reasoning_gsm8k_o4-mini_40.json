@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "Step 1. April has 30 days, so each \u201chalf\u201d of the month is 15 days.\n\nStep 2. Let x = amount saved per day in the first half. Then the daily saving in the second half is 2x.\n\nStep 3. Total saving = (15 days)\u00b7x + (15 days)\u00b7(2x) = 15x + 30x = 45x.\n\nStep 4. Set total saving equal to the target:\n45x = 1125\nx = 1125 \u00f7 45\nx = 25\n\nStep 5. Amount saved per day in the second half = 2x = 2\u00b725 = 50\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0019822,
+  "expected": "50",
+  "tokens": {
+    "input": 98,
+    "output": 426
+  }
+}

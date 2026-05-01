@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "{\"persons\":[\"Picasso\",\"Monet\"],\"organizations\":[\"The Metropolitan Museum of Art\"],\"locations\":[\"New York\"]}",
+  "score": 5,
+  "cost": 0.0005544000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 108
+  }
+}

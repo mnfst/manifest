@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan, a country of about 125 million people, has a GDP of $4.2 trillion and is currently growing at a rate of 1.1 percent. It reports low unemployment at 2.6 percent but faces inflation of 3.2 percent and a high debt\u2011to\u2011GDP ratio of 263 percent. Japan\u2019s life expectancy is 84.6 years, and its exports total roughly $756 billion.",
+  "score": 5,
+  "cost": 0.000932,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 91
+  }
+}

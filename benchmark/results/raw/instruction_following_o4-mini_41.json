@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "def sort_items(items, reverse=False, key=None):\n    \"\"\"Sorts a sequence of items and returns a new list.\n\n    Performs a stable sort of the given iterable. By default, the sort is in\n    ascending order, but this can be reversed. A custom key function may be\n    provided to extract a comparison key from each element.\n\n    Args:\n        items (Iterable): An iterable of elements to be sorted.\n        reverse (bool, optional): If True, sort in descending order.\n            Defaults to False.\n        key (Callable, optional): A function of one argument that is used to\n            extract a comparison key from each element. Defaults to None.\n\n    Returns:\n        List: A new list containing all elements from `items` in sorted order.\n\n    Raises:\n        TypeError: If `items` is not iterable, or if elements cannot be compared\n            (or key returns incomparable values).\n    \"\"\"\n    # Implementation goes here\n    pass",
+  "score": 5,
+  "cost": 0.0037884,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 856
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA is a double-stranded molecule that stores the genetic instructions used in the growth, development, and functioning of all known living organisms. Its sequence of nucleotide bases (A, T, C, G) encodes the information needed to build proteins and pass hereditary traits to offspring.",
+  "score": 2,
+  "cost": 5.9640000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 102
+  }
+}

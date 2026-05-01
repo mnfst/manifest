@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that improves the speed of data retrieval operations on a table by allowing the database to quickly locate rows without scanning the entire table. However, it comes at the cost of additional storage space and slower write operations, as the index must be updated whenever data is inserted, updated, or deleted.",
+  "score": 2,
+  "cost": 6.608e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 114
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 23,
+  "response": "Apple Inc. (AAPL) closed at $185.50, up 2.3% on the day, with 45 million shares changing hands. The company\u2019s market capitalization stands at $2.87 trillion, with a price-to-earnings ratio of 28.4 and a dividend yield of 0.55%. Over the past 52 weeks, the stock has traded between a low of $155 and a high of $198.",
+  "score": 5,
+  "cost": 0.0014652000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 307
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Here are three chatbot greetings, each with a distinct tone:\n\n**Formal**  \n\"Hello, and welcome. I am your virtual assistant. How may I assist you today?\"\n\n**Casual**  \n\"Hey there! What can I help you with today?\"\n\n**Humorous**  \n\"Greetings, human! I come in peace\u2026 and with answers. What\u2019s on your mind?\"",
+  "score": 5,
+  "cost": 6.580000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 112
+  }
+}

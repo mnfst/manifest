@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "Ohio Company of Virginia",
+  "score": 0,
+  "cost": 6.944e-05,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 256,
+    "output": 60
+  }
+}

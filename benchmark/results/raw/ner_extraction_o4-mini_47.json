@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "{\"persons\":[\"Alain Aspect\"],\"organizations\":[\"Nobel Prize in Physics\",\"Universite Paris-Saclay\"],\"locations\":[\"Stockholm\"]}",
+  "score": 4,
+  "cost": 0.0017050000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 369
+  }
+}

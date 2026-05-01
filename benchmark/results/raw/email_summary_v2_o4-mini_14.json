@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "DevOps reports a 40% month-over-month spike in the AWS bill\u2014approximately $45K per month\u2014driven by new ML training jobs on $32/hr p4d instances. They need a decision by Friday on whether to switch to spot instances (70% savings, interruption risk) or reserved instances (30% savings, commitment).",
+  "score": 5,
+  "cost": 0.0016445000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 347
+  }
+}

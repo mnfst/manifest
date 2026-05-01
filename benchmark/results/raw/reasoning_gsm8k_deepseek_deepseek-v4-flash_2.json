@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Let's break it down step by step.\n\n1. Tom sails from 1 PM to 4 PM at 10 miles per hour.  \n   That's 3 hours of travel.  \n   Distance = speed \u00d7 time = 10 mph \u00d7 3 h = 30 miles.\n\n2. He travels back the same distance (30 miles) at 6 mph.  \n   Time = distance \u00f7 speed = 30 miles \u00f7 6 mph = 5 hours.\n\nSo it takes him 5 hours to get back.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 7.42e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 86,
+    "output": 111
+  }
+}

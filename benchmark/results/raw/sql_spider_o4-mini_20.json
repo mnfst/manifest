@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "SELECT a.abbreviation, a.country\nFROM airlines a\nJOIN flights f ON f.airline_id = a.id\nGROUP BY a.abbreviation, a.country\nHAVING COUNT(*) = (\n  SELECT MIN(cnt)\n  FROM (\n    SELECT COUNT(*) AS cnt\n    FROM flights\n    GROUP BY airline_id\n  ) AS counts\n);",
+  "score": 4,
+  "cost": 0.0032901000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 729
+  }
+}

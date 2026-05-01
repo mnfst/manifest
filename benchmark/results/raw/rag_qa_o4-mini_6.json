@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU Article 294.",
+  "score": 0,
+  "cost": 0.0008338000000000001,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 398,
+    "output": 90
+  }
+}

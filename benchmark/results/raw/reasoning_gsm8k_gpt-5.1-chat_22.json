@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Rafaela received 40 \u00d7 20 = 800 dollars.  \nJulieta received 10% less, which is 0.9 \u00d7 800 = 720 dollars.  \nTogether they received 800 + 720 = 1520 dollars.\n\nANSWER: 1520",
+  "score": 4,
+  "cost": 0.00072,
+  "expected": "1520",
+  "tokens": {
+    "input": 92,
+    "output": 67
+  }
+}

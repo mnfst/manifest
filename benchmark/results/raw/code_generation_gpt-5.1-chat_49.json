@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 49,
+  "response": "```\nif not string:\n    return ''\nn = len(string)\nfor i in range(n):\n    if string[i:] == string[i:][::-1]:\n        prefix = string[:i]\n        return string + prefix[::-1]\nreturn string\n```",
+  "score": 4,
+  "cost": 0.00135,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 126
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This code implements the Knuth\u2013Morris\u2013Pratt (KMP) string\u2011search algorithm: it first builds the pattern\u2019s longest\u2011prefix\u2011suffix (LPS) table, then scans the text using that table to find the first occurrence of the pattern in linear time. It returns the starting index of the match or -1 if no match is found.",
+  "score": 4,
+  "cost": 0.00099,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 78
+  }
+}

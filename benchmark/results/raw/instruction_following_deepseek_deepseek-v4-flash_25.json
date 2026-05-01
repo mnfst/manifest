@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Meeting: Project Update - Tuesday 2pm",
+  "score": 5,
+  "cost": 4.802000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 81
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Marketing exceeded its Q3 budget by 15% due to an August campaign, while engineering is 8% under budget from delayed hiring. Sarah proposes reallocating $50K from engineering to cover the overspend and asks to discuss this on Thursday.",
+  "score": 5,
+  "cost": 4.2000000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 52
+  }
+}

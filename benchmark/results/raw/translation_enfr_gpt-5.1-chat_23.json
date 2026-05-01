@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "French: Les \u00e9vacuateurs de crues capables de g\u00e9rer les \u00e9v\u00e9nements d\u2019inondation postul\u00e9s sont soit int\u00e9gr\u00e9s aux structures du barrage, soit construits comme structures distinctes.",
+  "score": 5,
+  "cost": 0.000474,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 47
+  }
+}

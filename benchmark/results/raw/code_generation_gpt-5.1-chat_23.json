@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 23,
+  "response": "curr = nums[0]\n    min_sum = nums[0]\n    for n in nums[1:]:\n        curr = min(n, curr + n)\n        min_sum = min(min_sum, curr)\n    return min_sum",
+  "score": 5,
+  "cost": 0.000702,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 58
+  }
+}

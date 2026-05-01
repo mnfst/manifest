@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "We start with last year's enrollment: 50 students.\n\nA 20% increase means we add 20% of 50 to the original number.\n\n20% of 50 = 0.20 \u00d7 50 = 10.\n\nSo this year's enrollment = 50 + 10 = 60.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 4.9000000000000005e-05,
+  "expected": "60",
+  "tokens": {
+    "input": 78,
+    "output": 68
+  }
+}

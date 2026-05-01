@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 47,
+  "response": "Nik has 200 crayons, each weighing 1 ounce, so the total weight of crayons is 200 ounces. He puts them into groups of 8 per box, requiring 200 / 8 = 25 boxes. Each box weighs 8 ounces, so the total weight of boxes is 25 \u00d7 8 = 200 ounces. The combined weight is 200 + 200 = 400 ounces. Since there are 16 ounces per pound, the total weight in pounds is 400 / 16 = 25 pounds.\n\nANSWER: 25",
+  "score": 5,
+  "cost": 0.00023618,
+  "expected": "25",
+  "tokens": {
+    "input": 115,
+    "output": 393
+  }
+}

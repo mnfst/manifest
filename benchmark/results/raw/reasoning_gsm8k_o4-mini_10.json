@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "Let r_L be the removal rate on low, r_M on medium, and r_H on high.\n\nGiven:\nr_L = 1 liter/day  \nr_M = 2 \u00b7 r_L = 2 liters/day  \nr_H = 2 \u00b7 r_M = 4 liters/day  \n\nBrian runs the dehumidifier:\n\u2013 3 days on low \u2192 3 \u00b7 r_L = 3 \u00b7 1 = 3 liters  \n\u2013 3 days on medium \u2192 3 \u00b7 r_M = 3 \u00b7 2 = 6 liters  \n\u2013 5 days on high \u2192 5 \u00b7 r_H = 5 \u00b7 4 = 20 liters  \n\nTotal water removed = 3 + 6 + 20 = 29 liters\n\nANSWER: 29",
+  "score": 5,
+  "cost": 0.0018337000000000002,
+  "expected": "29",
+  "tokens": {
+    "input": 199,
+    "output": 367
+  }
+}

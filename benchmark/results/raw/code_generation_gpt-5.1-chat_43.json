@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 43,
+  "response": "```\nif not numbers:\n    return []\nresult = [numbers[0]]\nfor n in numbers[1:]:\n    result.append(delimeter)\n    result.append(n)\nreturn result\n```",
+  "score": 5,
+  "cost": 0.00065,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 49
+  }
+}

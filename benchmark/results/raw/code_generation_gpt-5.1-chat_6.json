@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 6,
+  "response": "counts = {}\nfor n in numbers:\n    counts[n] = counts.get(n, 0) + 1\n\nresult = []\nfor n in numbers:\n    if counts[n] == 1:\n        result.append(n)\n\nreturn result",
+  "score": 5,
+  "cost": 0.000694,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 58
+  }
+}

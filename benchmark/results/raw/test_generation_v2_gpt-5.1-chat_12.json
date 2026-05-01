@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "Here are pytest\u2011style unit tests that cover:\n\n\u2022 Happy path  \n\u2022 Edge cases  \n\u2022 Error cases\n\nYou can place this in a test file such as `test_chunk_list.py`.\n\n```python\nimport pytest\nfrom your_module import chunk_list\n\n\ndef test_chunk_list_happy_path():\n    result = chunk_list([1, 2, 3, 4, 5], 2)\n    assert result == [[1, 2], [3, 4], [5]]\n\n\ndef test_chunk_list_exact_division():\n    result = chunk_list([1, 2, 3, 4], 2)\n    assert result == [[1, 2], [3, 4]]\n\n\ndef test_chunk_list_size_greater_than_list():\n    result = chunk_list([1, 2, 3], 10)\n    assert result == [[1, 2, 3]]\n\n\ndef test_chunk_list_single_element_chunks():\n    result = chunk_list([1, 2, 3], 1)\n    assert result == [[1], [2], [3]]\n\n\ndef test_chunk_list_empty_list():\n    result = chunk_list([], 3)\n    assert result == []\n\n\ndef test_chunk_list_size_one():\n    result = chunk_list([10, 20], 1)\n    assert result == [[10], [20]]\n\n\ndef test_chunk_list_invalid_size_zero():\n    with pytest.raises(ValueError):\n        chunk_list([1, 2, 3], 0)\n\n\ndef test_chunk_list_invalid_size_negative():\n    with pytest.raises(ValueError):\n        chunk_list([1, 2, 3], -5)\n```\n\nIf you'd like, I can also add property\u2011based tests using Hypothesis.",
+  "score": 3,
+  "cost": 0.003074,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 363
+  }
+}

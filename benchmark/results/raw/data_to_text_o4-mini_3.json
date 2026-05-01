@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 3,
+  "response": "The iPhone 15 Pro starts at $999 and features a vibrant 6.1-inch OLED display powered by Apple\u2019s new A17 Pro chip. It boasts a 48 MP main camera, a 3,274 mAh battery and comes in storage capacities of 128 GB, 256 GB, 512 GB or 1 TB, all wrapped in a sleek 187 g frame. With a user rating of 4.6 out of 5, it delivers top-tier performance and versatile imaging for demanding users.",
+  "score": 5,
+  "cost": 0.0015543000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 327
+  }
+}

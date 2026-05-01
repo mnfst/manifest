@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI is unlocking new frontiers in healthcare, creativity, and sustainability. As we push the boundaries of what's possible, let's stay curious, ethical, and collaborative. The future is human + machine, building better lives together. #AI #TechForGood",
+  "score": 5,
+  "cost": 0.0017314000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 389
+  }
+}

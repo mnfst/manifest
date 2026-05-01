@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 20,
+  "response": "American Airlines flight AA 1234 operates from JFK to LAX, departing at 08:30 and arriving at 11:45 after a 5 hour 15 minute journey aboard a Boeing 787. Offered in Economy class for $289, this service maintains an on-time performance rate of 82%.",
+  "score": 5,
+  "cost": 0.0021615000000000007,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 468
+  }
+}

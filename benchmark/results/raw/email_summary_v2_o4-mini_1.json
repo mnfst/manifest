@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "Jen\u2019s post-mortem attributes the roughly 47-minute service degradation affecting 12,000 users to a misconfigured load balancer at 2:14 PM. Action items include adding load balancer configuration validation to the CI pipeline, updating the runbook, and implementing traffic distribution alerts.",
+  "score": 5,
+  "cost": 0.0015939,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 336
+  }
+}

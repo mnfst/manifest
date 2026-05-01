@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are four words that rhyme with \u201ccat\u201d:\n\n\u2022 bat  \n\u2022 hat  \n\u2022 mat  \n\u2022 rat",
+  "score": 5,
+  "cost": 0.00048180000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 105
+  }
+}

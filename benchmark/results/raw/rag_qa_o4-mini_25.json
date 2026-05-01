@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure.",
+  "score": 0,
+  "cost": 0.0008305,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 159,
+    "output": 149
+  }
+}

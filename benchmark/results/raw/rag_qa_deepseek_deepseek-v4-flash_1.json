@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "",
+  "score": 0,
+  "cost": 5.768000000000001e-05,
+  "expected": "1665",
+  "tokens": {
+    "input": 268,
+    "output": 36
+  }
+}

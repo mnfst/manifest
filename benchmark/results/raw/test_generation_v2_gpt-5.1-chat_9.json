@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 9,
+  "response": "Here are pytest\u2011style unit tests covering happy path, edge cases, and error conditions.  \nThey assume the function is imported from its module.\n\n```python\nimport pytest\nfrom your_module import max_subarray_sum\n\ndef test_happy_path_mixed_values():\n    arr = [1, -2, 3, 5, -1, 2]\n    assert max_subarray_sum(arr) == 9  # 3 + 5 + (-1) + 2\n\ndef test_all_negative_values():\n    arr = [-5, -1, -8, -9]\n    assert max_subarray_sum(arr) == -1  # largest (least negative) element\n\ndef test_all_positive_values():\n    arr = [2, 4, 6, 1]\n    assert max_subarray_sum(arr) == 13\n\ndef test_single_element():\n    arr = [7]\n    assert max_subarray_sum(arr) == 7\n\ndef test_empty_list_returns_zero():\n    assert max_subarray_sum([]) == 0\n\ndef test_large_input():\n    arr = [1] * 100000\n    assert max_subarray_sum(arr) == 100000\n\ndef test_single_negative_element():\n    arr = [-10]\n    assert max_subarray_sum(arr) == -10\n\ndef test_alternating_positive_negative():\n    arr = [5, -4, 3, -2, 1]\n    assert max_subarray_sum(arr) == 5  # best is first element alone\n\ndef test_error_non_numeric_in_list():\n    arr = [1, \"a\", 3]\n    with pytest.raises(TypeError):\n        max_subarray_sum(arr)\n```",
+  "score": 4,
+  "cost": 0.00307,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 359
+  }
+}

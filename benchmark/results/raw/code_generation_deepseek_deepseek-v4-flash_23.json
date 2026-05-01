@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 23,
+  "response": "We can solve this using a variation of Kadane\u2019s algorithm, but for the minimum sum instead of the maximum.  \n\n```python\n    min_ending_here = float('inf')\n    min_so_far = float('inf')\n    for num in nums:\n        min_ending_here = min(num, min_ending_here + num)\n        min_so_far = min(min_so_far, min_ending_here)\n    return min_so_far\n```",
+  "score": 4,
+  "cost": 7.49e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 104
+  }
+}

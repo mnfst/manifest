@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```\nif x == 0:\n    return \"0\"\ndigits = []\nn = x\nwhile n > 0:\n    digits.append(str(n % base))\n    n //= base\nreturn \"\".join(reversed(digits))\n```",
+  "score": 5,
+  "cost": 0.000716,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 59
+  }
+}

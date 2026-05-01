@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "La plage la plus proche est \u00e0 une courte distance en voiture, se trouvant \u00e0 environ 6...",
+  "score": 4,
+  "cost": 1.9600000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 26
+  }
+}

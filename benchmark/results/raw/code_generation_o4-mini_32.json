@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 32,
+  "response": "words = s.split(' ')\n    for i, w in enumerate(words):\n        words[i] = ''.join(sorted(w))\n    return ' '.join(words)",
+  "score": 5,
+  "cost": 0.0040733,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 886
+  }
+}

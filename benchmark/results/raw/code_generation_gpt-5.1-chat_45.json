@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 45,
+  "response": "s = set(l1).intersection(l2)\nreturn sorted(s)",
+  "score": 5,
+  "cost": 0.000482,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 24
+  }
+}

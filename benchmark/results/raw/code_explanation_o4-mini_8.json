@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This code defines a \u201cdebounce\u201d decorator: when you wrap a function `fn` with `@debounce(wait)`, any calls to the wrapped function within `wait` seconds of each other will cancel the previous scheduled call and restart the timer, so that `fn` only actually runs once `wait` seconds have passed since the last invocation. It uses `threading.Timer` and a single-element list to keep a mutable reference to the current timer.",
+  "score": 5,
+  "cost": 0.0017314000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 368
+  }
+}

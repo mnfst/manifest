@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Warsaw\u2019s infrastructure suffered considerably.",
+  "score": 5,
+  "cost": 0.000406,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 159,
+    "output": 11
+  }
+}

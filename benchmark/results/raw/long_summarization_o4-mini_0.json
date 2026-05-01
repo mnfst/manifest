@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 0,
+  "response": "The internet traces back to US Department of Defense\u2013funded research in the 1960s, with ARPANET\u2019s first successful message sent in 1969 and the 1983 shift to TCP/IP laying the technical groundwork for today\u2019s network. In 1989 Tim Berners-Lee created the World Wide Web (HTML, URLs, HTTP), Mosaic\u2019s 1993 browser made it accessible to ordinary users, and the late-1990s dot-com boom (and subsequent 2001 crash) left survivors like Amazon and Google as industry leaders. The mid-2000s saw social media giants (Facebook, Twitter, YouTube), the mobile internet took off after the 2007 iPhone launch, and cloud computing surged following AWS\u2019s 2006 debut. Today the internet connects over 5 billion people and underpins commerce, communication, and entertainment worldwide.",
+  "score": 5,
+  "cost": 0.0034804000000000007,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 713
+  }
+}

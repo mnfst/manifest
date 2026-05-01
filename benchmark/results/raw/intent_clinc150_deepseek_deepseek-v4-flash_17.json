@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "intent_clinc150",
+  "case": 17,
+  "response": "todo_list",
+  "score": 0,
+  "cost": 0.00016590000000000002,
+  "expected": "reminder",
+  "tokens": {
+    "input": 569,
+    "output": 154
+  }
+}

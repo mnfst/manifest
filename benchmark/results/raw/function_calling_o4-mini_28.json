@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 28,
+  "response": "{\"name\":\"block_ip\",\"arguments\":{\"ip\":\"192.168.1.100\"}}",
+  "score": 4,
+  "cost": 0.0008217000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 165
+  }
+}

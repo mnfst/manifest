@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Antibiotics, first discovered by Alexander Fleming in 1928, revolutionized medicine by enabling safe surgery and effective treatment of bacterial infections, especially during the golden age of discovery in the 1950s and 1960s. Since then, development of new antibiotics has slowed sharply because they offer limited financial returns compared to long\u2011term drugs. Meanwhile, widespread use, including in livestock, has fueled the rise of resistant bacteria such as MRSA, creating a global public\u2011health crisis. Current research efforts focus on alternatives like phage therapy, CRISPR\u2011based methods, and AI\u2011assisted drug discovery to counter antimicrobial resistance.",
+  "score": 5,
+  "cost": 0.001336,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 133
+  }
+}

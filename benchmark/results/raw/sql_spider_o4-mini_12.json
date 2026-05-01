@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "SELECT p.id, p.role, p.first_name\nFROM professionals p\nJOIN treatments t ON p.id = t.professional_id\nGROUP BY p.id, p.role, p.first_name\nHAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 0.0029139,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 642
+  }
+}

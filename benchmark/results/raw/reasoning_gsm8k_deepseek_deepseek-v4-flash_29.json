@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "The rink has 12 red cars. Green cars are 2 fewer than red, so 10 green cars. Blue cars are 3 times green, so 30 blue cars. The total of red, green, and blue is 12 + 10 + 30 = 52. With 75 total cars, yellow cars are 75 - 52 = 23.\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.00015918,
+  "expected": "23",
+  "tokens": {
+    "input": 105,
+    "output": 258
+  }
+}

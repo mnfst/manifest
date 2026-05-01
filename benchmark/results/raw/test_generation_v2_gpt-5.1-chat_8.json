@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 8,
+  "response": "Here are pytest\u2011style unit tests covering happy paths, edge cases, and error cases.\n\nNo special formatting is used so they can be easily parsed.\n\nYou can save this as test_binary_search.py.\n\n```\nimport pytest\nfrom your_module import binary_search\n\ndef test_happy_path_found_middle():\n    arr = [1, 3, 5, 7, 9]\n    assert binary_search(arr, 5) == 2\n\ndef test_happy_path_found_start():\n    arr = [1, 3, 5, 7, 9]\n    assert binary_search(arr, 1) == 0\n\ndef test_happy_path_found_end():\n    arr = [1, 3, 5, 7, 9]\n    assert binary_search(arr, 9) == 4\n\ndef test_not_found_in_list():\n    arr = [1, 3, 5, 7, 9]\n    assert binary_search(arr, 4) == -1\n\ndef test_empty_list():\n    arr = []\n    assert binary_search(arr, 10) == -1\n\ndef test_single_element_found():\n    arr = [5]\n    assert binary_search(arr, 5) == 0\n\ndef test_single_element_not_found():\n    arr = [5]\n    assert binary_search(arr, 3) == -1\n\ndef test_repeated_values_target_present():\n    arr = [2, 2, 2, 2, 2]\n    result = binary_search(arr, 2)\n    # Any index from 0 to 4 is acceptable\n    assert result in range(5)\n\ndef test_repeated_values_target_absent():\n    arr = [2, 2, 2, 2, 2]\n    assert binary_search(arr, 3) == -1\n\ndef test_negative_numbers_found():\n    arr = [-10, -5, -2, 0, 3, 8]\n    assert binary_search(arr, -2) == 2\n\ndef test_negative_numbers_not_found():\n    arr = [-10, -5, -2, 0, 3, 8]\n    assert binary_search(arr, -3) == -1\n\ndef test_unsorted_input():\n    arr = [3, 1, 4, 2]\n    # behavior is undefined; but we document that the result is not guaranteed\n    # here we only assert that the function returns an int\n    result = binary_search(arr, 3)\n    assert isinstance(result, int)\n\ndef test_target_greater_than_all():\n    arr = [1, 2, 3]\n    assert binary_search(arr, 10) == -1\n\ndef test_target_less_than_all():\n    arr = [1, 2, 3]\n    assert binary_search(arr, -5) == -1\n```\n\nIf you want stricter or additional tests (for example, randomized property tests), tell me and I can add them.",
+  "score": 4,
+  "cost": 0.005208,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 620
+  }
+}

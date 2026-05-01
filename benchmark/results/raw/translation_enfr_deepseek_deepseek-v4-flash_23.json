@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Des \u00e9vacuateurs de crue capables de g\u00e9rer les crues de projet sont soit int\u00e9gr\u00e9s dans les structures du barrage, soit construits comme des structures s\u00e9par\u00e9es.",
+  "score": 5,
+  "cost": 0.00013986,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 238
+  }
+}

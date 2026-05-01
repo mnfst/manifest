@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Not found in context",
+  "score": 5,
+  "cost": 8.190000000000001e-05,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 197,
+    "output": 97
+  }
+}

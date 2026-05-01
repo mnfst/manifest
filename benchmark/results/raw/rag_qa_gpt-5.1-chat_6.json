@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU Article 294 defines the ordinary legislative procedure.",
+  "score": 5,
+  "cost": 0.000924,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 398,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "French: L\u2019unit\u00e9 est simplement fix\u00e9e \u00e0 l\u2019appuie\u2011t\u00eate du si\u00e8ge du conducteur \u00e0 l\u2019aide d\u2019une sangle \u00e9lastique robuste. Dans ce\u2026",
+  "score": 4,
+  "cost": 0.000966,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 109
+  }
+}

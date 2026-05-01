@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "```sql\nSELECT c.name\nFROM conductors c\nJOIN orchestras o ON c.id = o.conductor_id\nGROUP BY c.id, c.name\nORDER BY COUNT(DISTINCT o.id) DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 3.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 51
+  }
+}

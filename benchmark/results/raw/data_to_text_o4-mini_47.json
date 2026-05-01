@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 47,
+  "response": "Taylor Swift\u2019s tenth studio album, Midnights, arrived in October 2022 as a 13-track venture into pop and synth-pop, clocking in at just over 44 minutes. It sold 1.58 million copies in its first week, has been streamed over 3.4 billion times on Spotify, and went on to win the Grammy Award for Album of the Year.",
+  "score": 5,
+  "cost": 0.0011,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 226
+  }
+}

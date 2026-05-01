@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 18,
+  "response": "The global food system faces mounting strain as the world population is expected to reach 9.7 billion by 2050, demanding a 60% boost in food production even as climate change, water scarcity, and soil degradation cut yields. Agriculture already accounts for roughly 25% of greenhouse-gas emissions, and over 33% of arable land has lost productivity; meanwhile about one-third of all food is lost or wasted between farm and fork. Depleting water sources like the Ogallala Aquifer and similar aquifers in India, China, and the Middle East compound the crisis. Experts argue that scaling up precision agriculture, vertical farming, alternative proteins, drought-resistant crops, regenerative practices, and supportive policy reforms (subsidies, trade rules, carbon pricing) is essential to meet future demand affordably and sustainably.",
+  "score": 4,
+  "cost": 0.0017248,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 319
+  }
+}

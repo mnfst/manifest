@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Here\u2019s a concise, helpful solution without revealing internal step\u2011by\u2011step reasoning:\n\nAlexandra raises 430.  \nKim raises 320 more, so Kim raises 430 + 320 = 750.  \nSarah raises 300.  \nMaryam raises 400 more, so Maryam raises 300 + 400 = 700.\n\nTotal raised = 430 + 750 + 300 + 700 = 2180.\n\nANSWER: 2180",
+  "score": 4,
+  "cost": 0.00101,
+  "expected": "2280",
+  "tokens": {
+    "input": 93,
+    "output": 103
+  }
+}

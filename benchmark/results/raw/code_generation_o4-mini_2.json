@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 2,
+  "response": "sorted_lst = sorted(lst)\n    res = []\n    i, j = 0, len(sorted_lst) - 1\n    while i <= j:\n        res.append(sorted_lst[i])\n        i += 1\n        if i <= j:\n            res.append(sorted_lst[j])\n            j -= 1\n    return res",
+  "score": 4,
+  "cost": 0.0039325,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 855
+  }
+}

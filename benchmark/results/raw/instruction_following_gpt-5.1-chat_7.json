@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Beat 2\u20133 eggs with salt and a splash of milk. Melt butter in a pan on medium\u2011low heat. Pour in eggs, stir gently until soft curds form. Remove from heat slightly early. Season with pepper and serve.",
+  "score": 4,
+  "cost": 0.000516,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 59
+  }
+}

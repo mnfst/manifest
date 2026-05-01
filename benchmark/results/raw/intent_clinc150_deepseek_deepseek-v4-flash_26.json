@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "intent_clinc150",
+  "case": 26,
+  "response": "change_volume",
+  "score": 5,
+  "cost": 0.0001106,
+  "expected": "change_volume",
+  "tokens": {
+    "input": 566,
+    "output": 56
+  }
+}

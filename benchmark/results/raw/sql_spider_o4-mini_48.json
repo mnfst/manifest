@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "SELECT model\nFROM cars\nWHERE weight < (\n  SELECT AVG(weight)\n  FROM cars\n);",
+  "score": 5,
+  "cost": 0.0010978000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 231
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "SELECT title, rating\nFROM episodes\nORDER BY rating DESC\nLIMIT 3;",
+  "score": 5,
+  "cost": 0.0024959,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 548
+  }
+}

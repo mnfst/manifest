@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew.",
+  "score": 1,
+  "cost": 0.000568,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 224,
+    "output": 15
+  }
+}

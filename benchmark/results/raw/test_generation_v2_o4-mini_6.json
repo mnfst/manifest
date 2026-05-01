@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "Here\u2019s a single pytest\u2010style test module that you can drop into your `tests/` directory (or wherever you keep your tests). It assumes that your function lives in a file called `reverse_words.py` next to your tests. If your layout is different, just adjust the import accordingly.\n\n```python\n# tests/test_reverse_words.py\nimport pytest\nfrom reverse_words import reverse_words\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        # happy paths\n        (\"hello world\", \"world hello\"),\n        (\"Hello World from pytest\", \"pytest from World Hello\"),\n        # single word\n        (\"pytest\", \"pytest\"),\n        # empty string\n        (\"\", \"\"),\n        # only whitespace\n        (\"     \", \"\"),\n        # multiple spaces between words, leading/trailing spaces\n        (\"  foo   bar   baz  \", \"baz bar foo\"),\n        # tabs and newlines count as whitespace\n        (\"one\\ttwo\\nthree  four\", \"four three two one\"),\n        # unicode / non\u2010ASCII\n        (\"\u3053\u3093\u306b\u3061\u306f \u4e16\u754c\", \"\u4e16\u754c \u3053\u3093\u306b\u3061\u306f\"),\n    ]\n)\ndef test_reverse_words_various(input_str, expected):\n    assert reverse_words(input_str) == expected\n\ndef test_reverse_words_preserves_nonwords():\n    # punctuation should stay attached to words\n    s = \"end.\"\n    assert reverse_words(s) == \"end.\"\n\n    s = \"hello, world!\"\n    assert reverse_words(s) == \"world! hello,\"\n\ndef test_reverse_words_large_input_performance():\n    # build a long string of 10000 words\n    words = [f\"w{i}\" for i in range(10000)]\n    s = \" \".join(words)\n    # reversing twice gets you back to the original\n    reversed_once = reverse_words(s)\n    assert reversed_once.split() == list(reversed(words))\n    assert reverse_words(reversed_once) == s\n\n@pytest.mark.parametrize(\"bad_input\", [None, 123, 5.67, [\"a\", \"b\"], {\"a\": \"b\"}])\ndef test_reverse_words_type_error(bad_input):\n    with pytest.raises(TypeError):\n        reverse_words(bad_input)\n```\n\nExplanation of the test cases:\n\n1. Parametrized \u201chappy\u2010path\u201d checks for normal, empty, whitespace\u2010only, multi\u2010space, tab/newline, and Unicode inputs.\n2. A small extra test to demonstrate punctuation is untouched.\n3. A performance\u2010style check on a large string (here we simply verify correctness when reversing twice).\n4. Error cases: passing non\u2010string types should raise a `TypeError`.",
+  "score": 4,
+  "cost": 0.005594600000000001,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 1258
+  }
+}

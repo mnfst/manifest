@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code implements the classic 0/1 knapsack dynamic programming algorithm, building a table of optimal values for each item-count and weight limit. It returns the maximum total value achievable without exceeding the given capacity, where each item can be taken at most once.",
+  "score": 5,
+  "cost": 0.000748,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 56
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 5,
+  "response": "if not l:\n        raise ValueError(\"max_element() arg is an empty sequence\")\n    max_val = l[0]\n    for e in l[1:]:\n        if e > max_val:\n            max_val = e\n    return max_val",
+  "score": 5,
+  "cost": 0.0018491000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 392
+  }
+}

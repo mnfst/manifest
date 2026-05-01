@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "James needs candles for his two sons: one is 12 years old, and the other is 4 years younger, so 8 years old. The total number of candles required is 12 + 8 = 20. Candles are sold in packs of 5 for $3 each, so he needs 20 / 5 = 4 packs. The total cost is 4 \u00d7 $3 = $12.\n\nANSWER: 12",
+  "score": 5,
+  "cost": 0.00017724,
+  "expected": "12",
+  "tokens": {
+    "input": 86,
+    "output": 295
+  }
+}

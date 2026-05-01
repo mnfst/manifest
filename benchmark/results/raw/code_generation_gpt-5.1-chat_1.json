@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 1,
+  "response": "```\ngroups = paren_string.split()\nresult = []\nfor g in groups:\n    depth = 0\n    max_depth = 0\n    for ch in g:\n        if ch == '(':\n            depth += 1\n            if depth > max_depth:\n                max_depth = depth\n        elif ch == ')':\n            depth -= 1\n    result.append(max_depth)\nreturn result\n```",
+  "score": 4,
+  "cost": 0.001026,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 93
+  }
+}

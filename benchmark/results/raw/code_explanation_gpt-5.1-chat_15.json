@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 15,
+  "response": "This code implements the merge sort algorithm: it recursively divides the input list into halves, sorts each half, and then merges the two sorted halves into a single sorted list using a linear two\u2011pointer merge procedure.",
+  "score": 5,
+  "cost": 0.000688,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 46
+  }
+}

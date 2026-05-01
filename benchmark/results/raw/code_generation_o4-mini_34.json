@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 34,
+  "response": "if n <= 1:\n        return y\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0:\n            return y\n    return x",
+  "score": 5,
+  "cost": 0.0021043000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 449
+  }
+}

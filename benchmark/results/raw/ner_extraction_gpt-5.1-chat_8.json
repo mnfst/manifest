@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "ner_extraction",
+  "case": 8,
+  "response": "{\"persons\": [\"Elon Musk\"], \"organizations\": [\"Tesla\"], \"locations\": [\"Fremont\", \"California\"]}",
+  "score": 5,
+  "cost": 0.000426,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 36
+  }
+}

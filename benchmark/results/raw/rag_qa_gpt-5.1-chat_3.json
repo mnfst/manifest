@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "Hassan al\u2011Turabi",
+  "score": 0,
+  "cost": 0.000376,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 148,
+    "output": 10
+  }
+}

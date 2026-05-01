@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- Improves cardiovascular health and reduces the risk of heart disease.\n- Enhances mental well-being by reducing symptoms of anxiety and depression.\n- Helps maintain a healthy weight by boosting metabolism and burning calories.",
+  "score": 5,
+  "cost": 4.312000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 73
+  }
+}

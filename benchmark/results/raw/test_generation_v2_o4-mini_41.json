@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "test_generation_v2",
+  "case": 41,
+  "response": "Here\u2019s an example `pytest`\u2010style test suite covering normal inputs, edge\u2010cases and invalid inputs. Adjust the import line to point at wherever your `hex_to_rgb` function actually lives.\n\n```python\nimport pytest\n\n# adjust this import to match your project structure\nfrom your_module import hex_to_rgb\n\n\n@ pytest.mark.parametrize(\n    \"input_hex, expected_rgb\",\n    [\n        # happy paths, lowercase\n        (\"000000\", (0, 0, 0)),\n        (\"ffffff\", (255, 255, 255)),\n        (\"ff0000\", (255, 0, 0)),\n        (\"00ff00\", (0, 255, 0)),\n        (\"0000ff\", (0, 0, 255)),\n        (\"1a2b3c\", (26, 43, 60)),\n\n        # happy paths, uppercase\n        (\"ABCDEF\", (171, 205, 239)),\n        (\"AaBbCc\", (170, 187, 204)),\n\n        # with leading '#'\n        (\"#000000\", (0, 0, 0)),\n        (\"#ffffff\", (255, 255, 255)),\n        (\"#1a2b3c\", (26, 43, 60)),\n        (\"#AaBbCc\", (170, 187, 204)),\n\n        # extra characters beyond 6 are ignored by slicing\n        (\"#aabbccdd\", (170, 187, 204)),\n        (\"11223344\", (17, 34, 51)),\n    ],\n)\ndef test_hex_to_rgb_valid(input_hex, expected_rgb):\n    assert hex_to_rgb(input_hex) == expected_rgb\n\n\n@ pytest.mark.parametrize(\n    \"bad_hex\",\n    [\n        # too short\n        \"\",\n        \"1\",\n        \"12345\",\n        \"#1234\",\n        \"#abc\",\n        # non\u2010hex characters\n        \"zzzzzz\",\n        \"#gggggg\",\n        \"12hg34\",\n        \"#12hg34\",\n        # whitespace matters: function only strips '#'\n        \" #ffffff\",  # leading space not removed\n        \"#ffffff\\n\",  # trailing newline not removed\n    ],\n)\ndef test_hex_to_rgb_value_error(bad_hex):\n    with pytest.raises(ValueError):\n        hex_to_rgb(bad_hex)\n\n\ndef test_hex_to_rgb_type_error():\n    # passing non\u2010string should raise an AttributeError on .lstrip\n    # or a TypeError if int(...) misfires\n    for non_str in [None, 123456, 12.34, [], {}]:\n        with pytest.raises((AttributeError, TypeError, ValueError)):\n            hex_to_rgb(non_str)\n```",
+  "score": 4,
+  "cost": 0.006315100000000001,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 1416
+  }
+}

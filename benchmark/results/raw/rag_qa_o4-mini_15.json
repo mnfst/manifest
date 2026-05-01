@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia.",
+  "score": 5,
+  "cost": 0.001177,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 214,
+    "output": 214
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "ner_extraction",
+  "case": 39,
+  "response": "{\n  \"persons\": [\"Dario Amodei\"],\n  \"organizations\": [\"Anthropic\"],\n  \"locations\": [\"Aspen Ideas Festival\", \"Colorado\"]\n}",
+  "score": 4,
+  "cost": 3.164e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 37
+  }
+}

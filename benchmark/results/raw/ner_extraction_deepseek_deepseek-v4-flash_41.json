@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "ner_extraction",
+  "case": 41,
+  "response": "{\n  \"persons\": [\"LeBron James\"],\n  \"organizations\": [\"Los Angeles Lakers\"],\n  \"locations\": []\n}",
+  "score": 5,
+  "cost": 2.5200000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 27
+  }
+}

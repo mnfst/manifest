@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "long_summarization",
+  "case": 25,
+  "response": "Quantum computing uses qubits that can exist in superposition, entanglement, and interference, enabling exponential speedups for certain problems\u2014as demonstrated by Google's 2019 claim of performing a calculation in 200 seconds that would take a classical supercomputer 10,000 years. However, practical quantum computing faces major challenges: qubits are fragile, require near absolute zero temperatures, and have high error rates, with current machines having only 100\u20131000 qubits while millions may be needed for useful applications. Despite these hurdles, quantum computing shows promise for fields like drug discovery, materials science, cryptography, and optimization, with companies such as IBM, Google, IonQ, and Rigetti pursuing different hardware approaches.",
+  "score": 5,
+  "cost": 0.00019922,
+  "expected": "",
+  "tokens": {
+    "input": 267,
+    "output": 289
+  }
+}

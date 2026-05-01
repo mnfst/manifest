@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(mpg) AS avg_mpg\nFROM cars\nWHERE cylinders = 4;",
+  "score": 5,
+  "cost": 0.0019393000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 422
+  }
+}

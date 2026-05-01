@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Here is the step-by-step solution:\n\n1. Rafaela\u2019s total tips = 40 customers * $20 per tip = $800.  \n2. Julieta received 10% less than Rafaela, so Julieta\u2019s tips = $800 \u2212 0.10 * $800 = $800 \u2212 $80 = $720.  \n3. Combined total = $800 + $720 = $1,520.  \n\nANSWER: 1520",
+  "score": 5,
+  "cost": 0.0022748,
+  "expected": "1520",
+  "tokens": {
+    "input": 92,
+    "output": 494
+  }
+}

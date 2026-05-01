@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "The Blue Lantern Bistro is a small, tucked\u2011away restaurant that feels like a secret you\u2019re happy to stumble upon. The moment you walk in, you\u2019re greeted by warm lighting, soft jazz, and the aroma of fresh herbs drifting from the open kitchen. The atmosphere strikes a perfect balance between cozy and sophisticated.\n\nService is a standout here. Staff are attentive without hovering and genuinely enthusiastic about the menu. They offer thoughtful recommendations, and dishes arrive at a relaxed but steady pace.\n\nThe food itself is where The Blue Lantern truly shines. Their signature dish, the rosemary\u2011citrus braised chicken, is tender and full of layered flavor. The truffle polenta side is creamy and rich without being heavy. Desserts are equally impressive; the lavender honey panna cotta is light, fragrant, and not overly sweet.\n\nIf there\u2019s one drawback, it\u2019s that the drink menu is on the smaller side. The cocktails are well crafted, but the wine selection could use a bit more variety for pairing.\n\nOverall, The Blue Lantern Bistro delivers an exceptional dining experience with just a few minor gaps.\n\nRating: 4.5 out of 5 stars.",
+  "score": 0,
+  "cost": 0.001982,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 242
+  }
+}

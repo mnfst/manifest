@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This code implements the **Sieve of Eratosthenes** algorithm to find all prime numbers up to a given integer `n`. It initializes a boolean list `is_prime` with `True` for all numbers from 0 to `n`, marks 0 and 1 as non-prime, then iterates from 2 to the square root of `n`; for each prime `i`, it marks all multiples of `i` starting from `i*i` as `False`, and finally returns a list of numbers that remain `True`.",
+  "score": 5,
+  "cost": 0.000133,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 205
+  }
+}

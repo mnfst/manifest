@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 40,
+  "response": "{\"name\": \"pin_message\", \"arguments\": {\"channel\": \"announcements\", \"message_id\": \"the release\"}}",
+  "score": 4,
+  "cost": 0.0007627200000000002,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 1338
+  }
+}

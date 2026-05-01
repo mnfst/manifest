@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "Step 1: Each row has 8 children.  \nStep 2: Each school has 7 rows, so each school has 8 \u00d7 7 = 56 children.  \nStep 3: There are 5 schools, so total children = 56 \u00d7 5 = 280.  \n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.0016016000000000001,
+  "expected": "280",
+  "tokens": {
+    "input": 92,
+    "output": 341
+  }
+}

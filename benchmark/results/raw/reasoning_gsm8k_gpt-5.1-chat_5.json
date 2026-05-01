@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Here is a brief and clear explanation without detailed inner reasoning:\n\n\u2022 Katelyn saw 50 fairies.  \n\u2022 Her friend later saw half as many, which is 25, and they joined the group.  \n\u2022 That makes 50 + 25 = 75 fairies.  \n\u2022 Then 30 flew away, leaving 75 \u2212 30 = 45.\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.001462,
+  "expected": "45",
+  "tokens": {
+    "input": 115,
+    "output": 154
+  }
+}

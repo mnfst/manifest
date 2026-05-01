@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 13,
+  "response": "{\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}}",
+  "score": 4,
+  "cost": 0.006488900000000001,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 1450
+  }
+}

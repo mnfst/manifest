@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The customer workshop with 15 enterprise accounts revealed key feedback: improved bulk import, SSO integration issues, and strong approval of the analytics dashboard, plus unexpected interest from three customers in our internal tool as a standalone product. Action items: review the attached report, prioritize bulk import enhancements, address SSO blockers, and evaluate standalone product potential.",
+  "score": 5,
+  "cost": 0.001628,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 343
+  }
+}

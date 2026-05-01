@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "SELECT song.name, song.release_year\nFROM song\nJOIN singer ON song.singer_id = singer.id\nWHERE singer.birth_date = (SELECT MAX(birth_date) FROM singer);",
+  "score": 4,
+  "cost": 0.00020104,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 341
+  }
+}

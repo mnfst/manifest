@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA is the molecule that carries the genetic instructions for how living organisms grow, develop, and function. It consists of a sequence of chemical bases that encode information passed from one generation to the next.",
+  "score": 2,
+  "cost": 0.000432,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 49
+  }
+}

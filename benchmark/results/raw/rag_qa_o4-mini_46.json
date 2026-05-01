@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "The other NHL team is the Los Angeles Kings.",
+  "score": 5,
+  "cost": 0.0008195000000000001,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 117,
+    "output": 157
+  }
+}

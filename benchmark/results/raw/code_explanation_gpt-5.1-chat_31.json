@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This code implements the A* search algorithm: it uses a priority queue ordered by f(n) = g(n) + h(n) to explore a graph and return the lowest\u2011cost path from a start node to a goal node. It expands nodes by combining the accumulated path cost with a heuristic estimate of the remaining distance.",
+  "score": 5,
+  "cost": 0.000888,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 69
+  }
+}

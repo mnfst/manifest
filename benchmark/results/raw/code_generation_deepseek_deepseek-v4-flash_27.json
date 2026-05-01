@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 27,
+  "response": "max_strength = None\nbest_ext = None\nfor ext in extensions:\n    cap = sum(1 for c in ext if c.isupper())\n    sm = sum(1 for c in ext if c.islower())\n    strength = cap - sm\n    if max_strength is None or strength > max_strength:\n        max_strength = strength\n        best_ext = ext\nreturn f\"{class_name}.{best_ext}\"",
+  "score": 4,
+  "cost": 0.00021000000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 304,
+    "output": 299
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "We are told there are 2 brothers and 3 sisters.  \nAll sisters are the same age: 16 years old.  \nOne brother is 12 years old, and that is half the age of the older brother.  \nSo the older brother is \\( 12 \\times 2 = 24 \\) years old.\n\nNow, total age:  \nSisters: \\( 3 \\times 16 = 48 \\)  \nBrothers: \\( 12 + 24 = 36 \\)  \nTotal: \\( 48 + 36 = 84 \\)\n\nANSWER: 84",
+  "score": 5,
+  "cost": 7.98e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 94,
+    "output": 119
+  }
+}

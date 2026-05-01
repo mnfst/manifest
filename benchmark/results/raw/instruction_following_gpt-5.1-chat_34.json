@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index speeds up data retrieval by letting the database quickly locate rows without scanning the entire table. It works like a lookup guide that maps key values to their corresponding records.",
+  "score": 4,
+  "cost": 0.000396,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 45
+  }
+}

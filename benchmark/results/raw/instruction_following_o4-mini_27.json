@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "Mammals:\n- Elephant\n- Tiger\n- Dolphin\n\nBirds:\n- Eagle\n- Parrot\n- Penguin\n\nFish:\n- Salmon\n- Clownfish\n- Shark",
+  "score": 5,
+  "cost": 0.0014047,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 313
+  }
+}

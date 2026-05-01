@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 20,
+  "response": "The internet began in the 1960s with US Department of Defense\u2013funded networking research, leading to ARPANET\u2019s first message in 1969. Key advances included the adoption of TCP/IP in 1983 and Tim Berners-Lee\u2019s creation of the World Wide Web in 1989, followed by the Mosaic browser in 1993. The late 1990s dot-com boom and 2001 crash reshaped the tech landscape, leaving major survivors like Amazon and Google, while the 2000s brought social media, smartphones, and cloud computing. Today, the internet connects more than 5 billion people and supports essential global activities in communication, commerce, and entertainment.",
+  "score": 5,
+  "cost": 0.001784,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 145
+  }
+}

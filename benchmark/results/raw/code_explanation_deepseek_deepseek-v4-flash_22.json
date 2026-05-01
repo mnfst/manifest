@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an LRU (Least Recently Used) cache using Python's `OrderedDict`, where `get` moves the accessed key to the end (most recent) and `put` inserts or updates a key-value pair while moving it to the end, then evicts the first item (",
+  "score": 4,
+  "cost": 0.00013300000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 200
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Approximately fifty percent more.",
+  "score": 5,
+  "cost": 0.000554,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 217,
+    "output": 15
+  }
+}

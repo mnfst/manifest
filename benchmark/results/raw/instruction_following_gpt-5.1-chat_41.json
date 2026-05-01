@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "\"\"\"Sort a list of comparable items.\n\nArgs:\n    items (list): The list of items to sort.\n    reverse (bool): If True, sort the list in descending order.\n        Defaults to False.\n    key (callable, optional): A function that extracts a comparison\n        key from each list element. Defaults to None.\n\nReturns:\n    list: A new list containing the sorted items.\n\nRaises:\n    TypeError: If the items cannot be compared or if key is not callable.\n\n\"\"\"",
+  "score": 4,
+  "cost": 0.000928,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 111
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l\u2019ampleur de la longueur non soutenue d\u00e9velopp\u00e9e \u00e0 la suite de l\u2019affouillement exerce une influence significative sur la r\u00e9ponse en flexion du syst\u00e8me tuyau\u2011sol.",
+  "score": 5,
+  "cost": 0.000564,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 57
+  }
+}

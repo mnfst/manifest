@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 34,
+  "response": "Stockholm is the capital city of Sweden, founded in 1252, and today spans 188 km\u00b2 with a population of around 1.6 million. Swedish is the official language, and the city enjoys a GDP per capita of $62,000. Average temperatures range from \u20133 \u00b0C in January to 18 \u00b0C in July.",
+  "score": 5,
+  "cost": 0.0016335,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 348
+  }
+}

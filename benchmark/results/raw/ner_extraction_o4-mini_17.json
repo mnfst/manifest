@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 17,
+  "response": "{\"persons\": [], \"organizations\": [\"Toyota\"], \"locations\": [\"Greensboro\", \"North Carolina\"]}",
+  "score": 5,
+  "cost": 0.0011055000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 234
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "intent_clinc150",
+  "case": 24,
+  "response": "report_fraud",
+  "score": 5,
+  "cost": 0.001138,
+  "expected": "report_fraud",
+  "tokens": {
+    "input": 517,
+    "output": 13
+  }
+}

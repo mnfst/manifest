@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Let's break it down step by step.\n\n**Step 1: Understand the problem**  \nWe have:\n- Twenty dozen cups = \\( 20 \\times 12 = 240 \\) cups.\n- Half a dozen plates = \\( 6 \\) plates.\n- Each plate costs $6000.\n\n**Step 2: Cost of the plates**  \nCost of 6 plates = \\( 6 \\times 6000 = 36000 \\) dollars.\n\n**Step 3: Relating cup cost to plate cost**  \nThe problem says:  \n\"Twenty dozen cups cost $1200 less than the total cost of half a dozen plates.\"\n\nSo, cost of 240 cups = cost of 6 plates \u2212 $1200  \n= \\( 36000 - 1200 = 34800 \\) dollars.\n\n**Step 4: Cost per cup**  \nCost per cup = \\( \\frac{34800}{240} \\).\n\nDivide:  \n\\( 34800 \\div 240 = 145 \\).\n\nSo each cup costs $145.\n\n**Final Answer:**\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.00013370000000000002,
+  "expected": "145",
+  "tokens": {
+    "input": 71,
+    "output": 221
+  }
+}

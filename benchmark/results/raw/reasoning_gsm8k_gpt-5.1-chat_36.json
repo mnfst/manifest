@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Here\u2019s a concise and clear solution:\n\n\u2022 Elaine initially had 20 cards.  \n\u2022 First month: she collected 3 \u00d7 20 = 60 cards.  \n\u2022 Second month: she collected 60 \u2212 20 = 40 cards.  \n\u2022 Third month: she collected twice the total from months 1 and 2:  \n  2 \u00d7 (60 + 40) = 2 \u00d7 100 = 200 cards.  \n\nTotal cards = 20 + 60 + 40 + 200 = 320\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.001722,
+  "expected": "320",
+  "tokens": {
+    "input": 113,
+    "output": 187
+  }
+}

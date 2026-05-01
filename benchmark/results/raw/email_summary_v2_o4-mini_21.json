@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team proposes a cleanup sprint to remove 15 fully rolled-out feature flags and archive 8 dead-code flags from the 47 active flags, focusing on the 23 that are older than six months. This effort will reduce configuration complexity and speed up the test suite by roughly 12%.",
+  "score": 5,
+  "cost": 0.0024321000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 528
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "Server prod-web-01, deployed in the us-east-1 region, is currently running at 78% CPU utilization with 12.4 GB of memory used out of 16 GB and 234 GB of disk space occupied out of 500 GB. It has been online for 45 days and is handling 127 simultaneous connections, delivering a 99th-percentile latency of 145 ms. Over the past hour it has logged 3 errors, indicating a relatively stable but actively used service.",
+  "score": 5,
+  "cost": 0.0023573,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 511
+  }
+}

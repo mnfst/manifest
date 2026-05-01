@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 38,
+  "response": "```\nnegatives = [x for x in lst if x < 0]\npositives = [x for x in lst if x > 0]\n\na = max(negatives) if negatives else None\nb = min(positives) if positives else None\n\nreturn (a, b)\n```",
+  "score": 5,
+  "cost": 0.00093,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 73
+  }
+}

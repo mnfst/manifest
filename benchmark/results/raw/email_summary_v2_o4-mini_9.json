@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly ETL job failed at 3 AM due to an upstream Salesforce schema change, causing dashboards to display stale data since yesterday. A fix has been deployed and the backfill is running, with full recovery expected by 4 PM today.",
+  "score": 5,
+  "cost": 0.0012529000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 262
+  }
+}

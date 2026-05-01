@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "He buys 3 books at 16 dollars each: 3 \u00d7 16 = 48  \nHe buys 3 pencils at 6 dollars each: 3 \u00d7 6 = 18  \nTotal spent: 48 + 18 = 66\n\nANSWER: 66",
+  "score": 5,
+  "cost": 0.001188,
+  "expected": "66",
+  "tokens": {
+    "input": 74,
+    "output": 130
+  }
+}

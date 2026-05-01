@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "SELECT * FROM hires;",
+  "score": 5,
+  "cost": 0.0018711,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 408
+  }
+}

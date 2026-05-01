@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "70s",
+  "score": 2,
+  "cost": 0.00038,
+  "expected": "70",
+  "tokens": {
+    "input": 142,
+    "output": 12
+  }
+}

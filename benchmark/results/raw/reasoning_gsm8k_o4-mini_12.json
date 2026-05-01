@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Let\u2019s break the problem down step by step:\n\n1. Time spent watching TV per session = 2 hours  \n2. Time spent reading per session = half as long as TV = 2 \u00f7 2 = 1 hour  \n3. Total time per session = 2 + 1 = 3 hours  \n4. He does this 3 times each week, so weekly time = 3 sessions \u00d7 3 hours = 9 hours  \n5. Over 4 weeks, total time = 4 \u00d7 9 hours = 36 hours  \n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.0015389000000000002,
+  "expected": "36",
+  "tokens": {
+    "input": 87,
+    "output": 328
+  }
+}

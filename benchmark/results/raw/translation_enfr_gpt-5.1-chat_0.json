@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "French: Je sais comment aider, et j\u2019en ai envie.",
+  "score": 5,
+  "cost": 0.000254,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 23
+  }
+}

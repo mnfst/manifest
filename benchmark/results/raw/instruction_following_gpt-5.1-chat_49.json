@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Formal:  \nWelcome. How may I assist you today?\n\nCasual:  \nHey there! What can I help you with?\n\nHumorous:  \nHi! I\u2019m your friendly chatbot\u201499% helpful, 1% powered by coffee. What\u2019s up?",
+  "score": 5,
+  "cost": 0.000504,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 57
+  }
+}

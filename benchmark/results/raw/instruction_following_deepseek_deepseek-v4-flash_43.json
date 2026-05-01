@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that there's a giant cloud of alcohol in space? The Sagittarius B2 cloud, located near the center of our Milky Way galaxy, contains enough ethyl alcohol to make roughly 400 trillion trillion pints of beer\u2014though it's mixed with other toxic chemicals, so don't plan a space pub crawl just yet!",
+  "score": 5,
+  "cost": 4.1020000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 68
+  }
+}

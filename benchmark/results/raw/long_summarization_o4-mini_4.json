@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles have come a long way since their first experiments in the 1830s, but widespread adoption only accelerated when Tesla upended the industry with high-performance battery packs and sleek charging networks. Manufacturers have grappled with technical hurdles\u2014battery energy density, charging times and grid capacity\u2014while governments have offered incentives to offset environmental concerns over lithium and cobalt mining. Today legacy automakers like Ford, GM and VW are racing to electrify their lineups, even as China remains the world\u2019s largest EV market and leading manufacturer. Ongoing issues such as range anxiety and slow charge cycles persist, though next-generation solid-state batteries promise faster charging, greater safety and higher capacities.",
+  "score": 5,
+  "cost": 0.0022396,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 476
+  }
+}

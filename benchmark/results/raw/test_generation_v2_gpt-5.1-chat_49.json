@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 49,
+  "response": "Here are pytest\u2011style unit tests covering happy paths, edge cases, and error cases.  \nNo special formatting is used so the tests are easy to copy into a file like test_intersection.py.\n\n------------------------------------------------------------\n\nimport pytest\nfrom your_module import intersection\n\ndef test_happy_path_basic_overlap():\n    lst1 = [1, 2, 3, 4]\n    lst2 = [3, 4, 5]\n    assert intersection(lst1, lst2) == [3, 4]\n\ndef test_happy_path_with_duplicates_in_lst1():\n    lst1 = [1, 2, 2, 3, 3, 3]\n    lst2 = [2, 3]\n    assert intersection(lst1, lst2) == [2, 3]\n\ndef test_happy_path_with_duplicates_in_lst2():\n    lst1 = [1, 2, 3]\n    lst2 = [2, 2, 3, 3]\n    assert intersection(lst1, lst2) == [2, 3]\n\ndef test_happy_path_order_preserved():\n    lst1 = [\"a\", \"b\", \"c\", \"b\", \"a\"]\n    lst2 = [\"b\", \"a\"]\n    assert intersection(lst1, lst2) == [\"b\", \"a\"]\n\ndef test_edge_case_no_overlap():\n    assert intersection([1, 2, 3], [4, 5]) == []\n\ndef test_edge_case_empty_lst1():\n    assert intersection([], [1, 2]) == []\n\ndef test_edge_case_empty_lst2():\n    assert intersection([1, 2, 3], []) == []\n\ndef test_edge_case_both_empty():\n    assert intersection([], []) == []\n\ndef test_edge_case_non_hashable_items():\n    # Lists cannot be added to a set, so lst2 containing lists should break\n    with pytest.raises(TypeError):\n        intersection([1, [2]], [[2]])\n\ndef test_error_case_non_iterable_inputs():\n    with pytest.raises(TypeError):\n        intersection(123, [1, 2])\n\n    with pytest.raises(TypeError):\n        intersection([1, 2], 123)\n\ndef test_error_case_none_inputs():\n    with pytest.raises(TypeError):\n        intersection(None, [1, 2])\n\n    with pytest.raises(TypeError):\n        intersection([1, 2], None)\n\n------------------------------------------------------------\n\nIf you'd like, I can also generate property\u2011based tests using Hypothesis.",
+  "score": 4,
+  "cost": 0.0043,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 513
+  }
+}

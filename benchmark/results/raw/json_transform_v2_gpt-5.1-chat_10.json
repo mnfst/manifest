@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "json_transform_v2",
+  "case": 10,
+  "response": "{\"items\": 4, \"subtotal\": 1136, \"discount_code\": \"SAVE20\", \"member_discount\": true, \"estimated_total\": 1136}",
+  "score": 4,
+  "cost": 0.001138,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 109
+  }
+}

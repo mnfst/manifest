@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "\u2022 On May 14, 2024 at 6:45 PM, a silver sedan and a black pickup truck collided at the T-intersection of Pine St. and Elm Ave. after the sedan driver failed to yield on a stop sign during light rain.  \n\u2022 The sedan sustained heavy front-end damage and its driver, a 28-year-old male, complained of chest pain; the pickup\u2019s rear bumper was crumpled and its driver, a 52-year-old female, reported neck stiffness\u2014both were checked on scene by EMS and declined hospital transport.  \n\u2022 Officer Adams cited the sedan driver for failure to yield, collected witness statements, photographed the scene, and submitted a formal police report (Case #2024-0458) for insurance and legal follow-up.",
+  "score": 2,
+  "cost": 0.0019514,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 439
+  }
+}

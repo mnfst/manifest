@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 34,
+  "response": "{\"name\": \"scale_deployment\", \"arguments\": {\"service\": \"web\", \"replicas\": 5}}",
+  "score": 5,
+  "cost": 0.0005676,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 107
+  }
+}

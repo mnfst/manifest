@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 26,
+  "response": "{\"name\": \"upload_file\", \"arguments\": {\"path\": \"report.pdf\", \"destination\": \"shared documents folder\"}}",
+  "score": 5,
+  "cost": 0.0008503,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 172
+  }
+}

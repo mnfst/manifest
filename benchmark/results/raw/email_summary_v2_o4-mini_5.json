@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The payment integration failed PCI compliance, forcing a two-week delay with the team choosing between launching now without payments (which requires updated T&Cs) or postponing the full launch to May 15. A decision meeting is scheduled for tomorrow at 10 am to confirm next steps.",
+  "score": 5,
+  "cost": 0.0021373000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 461
+  }
+}

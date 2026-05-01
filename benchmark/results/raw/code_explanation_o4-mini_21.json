@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 21,
+  "response": "This code defines a higher-order \u201cpipe\u201d function that implements a left-to-right function composition (the pipeline pattern): you call `pipe(fn1, fn2, \u2026)`, and it returns a new function which, when given an input `x`, feeds it through `fn1`, then `fn2`, and so on, returning the final result.",
+  "score": 5,
+  "cost": 0.0016137000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 350
+  }
+}

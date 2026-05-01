@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible pull that makes things with mass attract each other. It\u2019s the reason why:\n\n\u2022 You stay on the ground instead of floating away  \n\u2022 The Earth orbits the Sun  \n\u2022 The Moon orbits the Earth  \n\u2022 Objects fall when you drop them  \n\nSir Isaac Newton described gravity as a force between two masses: the bigger the masses and the closer they are, the stronger the pull. Albert Einstein later explained gravity as the bending of space and time around massive objects\u2014like a heavy ball pressing down on a trampoline, causing smaller balls to roll inward.\n\nWhether viewed as a force or as warped spacetime, gravity governs the motion of planets, keeps our atmosphere in place, and makes everyday activities\u2014like dropping your keys\u2014behave predictably. That is gravity.",
+  "score": 5,
+  "cost": 0.0016698,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 373
+  }
+}

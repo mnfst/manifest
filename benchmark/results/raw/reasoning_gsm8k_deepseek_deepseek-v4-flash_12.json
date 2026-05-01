@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Jim watches TV for 2 hours each session, then reads for half that time, which is 1 hour. So each session totals 3 hours. He does this 3 times per week, so weekly total is 3 \u00d7 3 = 9 hours. Over 4 weeks, the total is 9 \u00d7 4 = 36 hours.\n\nANSWER: 36",
+  "score": 4,
+  "cost": 0.00018662000000000003,
+  "expected": "36",
+  "tokens": {
+    "input": 85,
+    "output": 312
+  }
+}

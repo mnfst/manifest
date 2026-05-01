@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Oxygen (gaseous oxygen)",
+  "score": 0,
+  "cost": 0.0005775,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 161,
+    "output": 91
+  }
+}

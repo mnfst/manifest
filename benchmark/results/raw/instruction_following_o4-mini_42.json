@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm rolls in like a living beast. Dark charcoal clouds blot out the pale light, then suddenly split open with brilliant forks of lightning that paint the sky in stark white. A deep, rolling thunderclap shakes windows and rattles your chest, while heavy raindrops pelt rooftops and spatter against your cheeks, cool and insistent. The air carries the sharp scent of ozone mixed with the earthy perfume of freshly soaked soil, and every gust of wind seems to crackle with electric tension.",
+  "score": 5,
+  "cost": 0.0014025000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 314
+  }
+}

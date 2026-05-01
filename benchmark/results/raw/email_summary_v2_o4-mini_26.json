@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "We received a GDPR data export request from user ID 45892 that requires us to submit all personal data across our services, analytics data, processing purposes documentation, and third-party data sharing logs by May 25 (30-day deadline). The Privacy Team must compile and deliver these records within the deadline to ensure legal compliance.",
+  "score": 5,
+  "cost": 0.0016104000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 341
+  }
+}

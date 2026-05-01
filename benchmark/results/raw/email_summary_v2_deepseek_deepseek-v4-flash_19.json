@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "The Datadog contract expires June 30, with a renewal offer of $155K/year for three years (14% discount) or a cheaper Grafana Cloud alternative at $95K/year requiring a three-month migration. Finance needs a decision by May 15.",
+  "score": 5,
+  "cost": 7.616000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 112
+  }
+}

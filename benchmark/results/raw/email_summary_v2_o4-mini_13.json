@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Customer success metrics improved in Q1 with NPS up to 62, support CSAT at 4.3/5 and churn down to 1.2%, and three enterprise expansions worth $800K are currently in the pipeline. The team should prioritize development of SSO, custom dashboards and an increased API rate limit to address top customer feature requests.",
+  "score": 5,
+  "cost": 0.0013717,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 283
+  }
+}

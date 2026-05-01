@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 12,
+  "response": "return [s for s in strings if substring in s]",
+  "score": 4,
+  "cost": 0.0011220000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 224
+  }
+}

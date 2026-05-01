@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here's a Google-style docstring for a sort function:\n\n```python\ndef sort_data(data, key=None, reverse=False):\n    \"\"\"Sort a list of elements in ascending order.\n    \n    Sorts the input data using an optional key function and sort direction.\n    The original list is modified in-place and also returned for convenience.\n    \n    Args:\n        data (list): The list of elements to be sorted. Elements must be\n            comparable unless a key function is provided.\n        key (callable, optional): A function that serves as a key for the\n            sort comparison. Defaults to None, which means elements are\n            compared directly.\n        reverse (bool, optional): If True, sorts in descending order.\n            Defaults to False (ascending order).\n    \n    Returns:\n        list: The sorted list (same object as input, sorted in-place).\n    \n    Raises:\n        TypeError: If elements are not comparable and no key function\n            is provided, or if the key function returns non-comparable values.\n    \n    Examples:\n        >>> data = [3, 1, 4, 1, 5, 9, 2, 6]\n        >>> sort_data(data)\n        [1, 1, 2, 3, 4, 5, 6, 9]\n        \n        >>> data = ['apple', 'banana', 'cherry', 'date']\n        >>> sort_data(data, key=len)\n        ['date', 'apple', 'banana', 'cherry']\n        \n        >>> data = [3, 1, 4, 1, 5]\n        >>> sort_data(data, reverse=True)\n        [5, 4, 3, 1, 1]\n    \"\"\"\n    data.sort(key=key, reverse=reverse)\n    return data\n```\n\nThis docstring follows Google style conventions by including:\n- A brief description of what the function does\n- An `Args:` section documenting each parameter with type, description, and defaults\n- A `Returns:` section describing the return value\n- A `Raises:` section documenting potential exceptions\n- An `Examples:` section showing usage examples",
+  "score": 4,
+  "cost": 0.00025452000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 450
+  }
+}

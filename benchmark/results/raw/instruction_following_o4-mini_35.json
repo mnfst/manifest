@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "Marisol discovered the old key while rummaging through her grandmother\u2019s attic last Sunday. Its intricate brass filigree hinted at hidden secrets that beckoned her curiosity. That night, she slipped it into the lock of a dusty wooden chest tucked beneath the attic eaves. With a soft click, the lid creaked open to reveal a faded leather journal and a delicate silver locket. As candlelight flickered across the brittle pages, Marisol traced her grandmother\u2019s looping script and uncovered a tale of forbidden love during wartime. Tears welled in her eyes as she realized this was not just a story, but a legacy entrusted to her.",
+  "score": 5,
+  "cost": 0.0020768,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 468
+  }
+}

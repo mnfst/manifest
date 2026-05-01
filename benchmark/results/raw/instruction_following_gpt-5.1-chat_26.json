@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle is the continuous movement of water through Earth\u2019s atmosphere, surface, and underground layers. It begins with evaporation, the process in which liquid water from oceans, lakes, rivers, and soil absorbs heat from the sun and rises into the atmosphere as water vapor. Plants also contribute through transpiration, releasing water vapor from their leaves.\n\nAs the water vapor rises higher into the atmosphere, it cools and condenses into tiny droplets, forming clouds. This phase is called condensation. Different temperatures and atmospheric conditions cause various types of clouds to form, which influence when and how precipitation will occur.\n\nWhen the droplets in clouds grow too large or heavy to stay suspended, they fall back to Earth as precipitation. This can take the form of rain, snow, sleet, or hail, depending on temperature. Precipitation replenishes water in rivers, lakes, oceans, soil, and groundwater sources.\n\nFinally, water that reaches the ground either flows over the surface as runoff or infiltrates the soil to become groundwater. Runoff feeds into streams and rivers that eventually lead back to the ocean, while groundwater may slowly flow into bodies of water over time. Through these processes, the water cycle continuously recycles Earth\u2019s water supply.",
+  "score": 4,
+  "cost": 0.002074,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 255
+  }
+}

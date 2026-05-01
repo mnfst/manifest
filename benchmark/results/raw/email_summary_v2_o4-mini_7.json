@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "Facilities has announced that the new office at 500 Market Street will be ready on June 1, with the move scheduled for June 7\u20138, IT requiring June 4\u20136 for network setup, and a budget approved for professional movers. Each team must designate a move coordinator by Friday.",
+  "score": 5,
+  "cost": 0.0021362000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 463
+  }
+}

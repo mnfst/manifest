@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Eve originally had 20 pomelos.  \nShe is left with 1/4 of them: 1/4 \u00d7 20 = 5.  \nSo she gave away 20 \u2212 5 = 15 pomelos.\n\nANSWER: 15",
+  "score": 4,
+  "cost": 0.00066,
+  "expected": "15",
+  "tokens": {
+    "input": 82,
+    "output": 62
+  }
+}

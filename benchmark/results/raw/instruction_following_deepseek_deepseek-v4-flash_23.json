@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "apple; banana; cherry; dragonfruit; elderberry",
+  "score": 5,
+  "cost": 5.5160000000000014e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 94
+  }
+}

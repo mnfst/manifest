@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 45,
+  "response": "Quantum computing uses qubits that can exist in superposition and become entangled, enabling certain computations to be performed exponentially faster than on classical computers. Major players like IBM, Google, IonQ, and Rigetti are pursuing different hardware approaches, and Google claimed quantum supremacy in 2019 by completing a task in 200 seconds that would otherwise take 10,000 years. Significant obstacles remain, including fragile qubits, the need for near\u2011absolute\u2011zero cooling, high error rates, and the requirement for millions of physical qubits to create stable logical qubits. Even so, quantum systems show strong potential for applications in drug discovery, materials science, cryptography, optimization, and financial modeling.",
+  "score": 5,
+  "cost": 0.001704,
+  "expected": "",
+  "tokens": {
+    "input": 276,
+    "output": 144
+  }
+}

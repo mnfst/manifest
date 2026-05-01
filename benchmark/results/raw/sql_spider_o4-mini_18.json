@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "SELECT country\nFROM Singer\nGROUP BY country\nHAVING SUM(CASE WHEN age > 40 THEN 1 ELSE 0 END) > 0\n   AND SUM(CASE WHEN age < 30 THEN 1 ELSE 0 END) > 0;",
+  "score": 4,
+  "cost": 0.0029403000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 649
+  }
+}

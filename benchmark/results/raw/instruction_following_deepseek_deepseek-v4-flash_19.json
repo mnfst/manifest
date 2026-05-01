@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI isn\u2019t just about smarter machines\u2014it\u2019s about augmenting human potential. The real revolution isn\u2019t automation; it\u2019s collaboration. \ud83e\udd16\u2728",
+  "score": 5,
+  "cost": 4.5360000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 77
+  }
+}

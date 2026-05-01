@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "The March onboarding satisfaction score dropped to 7.2/10, with key issues including confusion over benefits deadlines, slow tools access (3-5 days vs. 1-day target), and a missing culture handbook. The priority action item is to fix the tools access process.",
+  "score": 5,
+  "cost": 9.814000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 148
+  }
+}

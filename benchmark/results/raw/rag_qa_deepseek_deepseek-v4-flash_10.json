@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "Saxon Garden",
+  "score": 0,
+  "cost": 9.268e-05,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 422,
+    "output": 60
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 14,
+  "response": "Here are pytest\u2011style unit tests covering:\n\n\u2022 Happy path  \n\u2022 Edge cases  \n\u2022 Error cases  \n\u2022 Behavior with non-dict intermediate values  \n\u2022 Empty key strings  \n\u2022 Default value handling\n\n```python\nimport pytest\nfrom your_module import deep_get\n\n\ndef test_deep_get_happy_path():\n    data = {\"a\": {\"b\": {\"c\": 123}}}\n    assert deep_get(data, \"a.b.c\") == 123\n\n\ndef test_deep_get_missing_key_returns_default():\n    data = {\"a\": {\"b\": {}}}\n    assert deep_get(data, \"a.b.c\", default=\"missing\") == \"missing\"\n\n\ndef test_deep_get_missing_key_default_none():\n    data = {\"a\": {}}\n    assert deep_get(data, \"a.b\") is None\n\n\ndef test_deep_get_non_dict_midpath_returns_default():\n    data = {\"a\": 5}\n    assert deep_get(data, \"a.b\", default=\"bad\") == \"bad\"\n\n\ndef test_deep_get_key_points_to_non_dict_leaves_unchanged():\n    data = {\"a\": {\"b\": 10}}\n    # Asking \"a.b.c\" should fail at \"b\" because it is not a dict\n    assert deep_get(data, \"a.b.c\", default=\"nope\") == \"nope\"\n\n\ndef test_deep_get_empty_keys_string_returns_original_dict():\n    data = {\"a\": 1}\n    # keys.split('.') \u2192 [''], so it will try a single empty key\n    assert deep_get(data, \"\", default=\"x\") == \"x\"\n\n\ndef test_deep_get_empty_keys_with_empty_key_present():\n    data = {\"\": {\"x\": 1}}\n    assert deep_get(data, \"\", default=\"x\") == data[\"\"]\n\n\ndef test_deep_get_non_dict_input_returns_default():\n    assert deep_get(123, \"a.b\", default=\"bad\") == \"bad\"\n\n\ndef test_deep_get_key_with_dot_literal():\n    # Dots are separators, so a literal dot key cannot be accessed directly\n    data = {\"a.b\": 1}\n    assert deep_get(data, \"a.b\") is None  # tries nested keys, not literal key\n\n\ndef test_deep_get_default_is_none_even_if_value_is_none():\n    data = {\"a\": {\"b\": None}}\n    assert deep_get(data, \"a.b\", default=\"x\") is None\n```\n\nIf you want, I can also generate property\u2011based tests or rewrite the function to avoid the ambiguous empty\u2011key behavior.",
+  "score": 4,
+  "cost": 0.00441,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 528
+  }
+}

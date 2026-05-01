@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "intent_clinc150",
+  "case": 48,
+  "response": "application_status",
+  "score": 5,
+  "cost": 0.0006556,
+  "expected": "application_status",
+  "tokens": {
+    "input": 512,
+    "output": 21
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Twenty dozen cups = 20 \u00d7 12 = 240 cups.\n\nHalf a dozen plates = 6 plates.\n\nEach plate costs 6000, so total plate cost:\n6 \u00d7 6000 = 36000\n\nCup cost total is 1200 less:\n36000 \u2212 1200 = 34800\n\nCost per cup:\n34800 \u00f7 240 = 145\n\nANSWER: 145",
+  "score": 4,
+  "cost": 0.001914,
+  "expected": "145",
+  "tokens": {
+    "input": 73,
+    "output": 221
+  }
+}

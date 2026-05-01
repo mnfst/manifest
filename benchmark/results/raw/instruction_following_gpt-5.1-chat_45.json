@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "Here\u2019s a simple comparison table in plain text (no heavy formatting):\n\nTCP vs UDP Comparison\n---------------------\nFeature | TCP | UDP\n------- | --- | ---\nConnection | Connection\u2011oriented | Connectionless\nReliability | Reliable (error checking, retransmission, acknowledgments) | Unreliable (no guarantee of delivery)\nData Order | Ensures ordered delivery | Order not guaranteed\nSpeed | Slower due to overhead | Faster with minimal overhead\nUse Cases | Web browsing (HTTP/HTTPS), email, file transfer | Streaming, gaming, VoIP, DNS\nPacket Handling | Large packets, flow control, congestion control | Small packets, no flow or congestion control\nOverhead | Higher (more headers, checks) | Lower (lightweight header)\n\nIf you'd like, I can also give examples or diagrams.",
+  "score": 5,
+  "cost": 0.001432,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 175
+  }
+}

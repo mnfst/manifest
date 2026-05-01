@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual DR test exceeded the 4\u2011hour RTO target, completing in 6 hours 23 minutes due to a slower\u2011than\u2011expected database restore. The SRE team recommends increasing backup frequency and pre\u2011provisioning a standby database before the next test in October.",
+  "score": 5,
+  "cost": 0.000702,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 61
+  }
+}

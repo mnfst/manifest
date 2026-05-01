@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The security team reports that in the first month of the bug bounty program, 12 of 47 submissions were valid, including 3 critical issues that were patched within 24 hours, with total payouts of $15K. They note the program shows strong ROI and recommend continuing it.",
+  "score": 5,
+  "cost": 0.000756,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 67
+  }
+}

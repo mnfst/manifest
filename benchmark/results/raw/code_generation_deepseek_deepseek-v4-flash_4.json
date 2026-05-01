@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 4,
+  "response": "```python\n    if len(l) <= 2:\n        return True\n    increasing = True\n    decreasing = True\n    for i in range(1, len(l)):\n        if l[i] < l[i-1]:\n            increasing = False\n        if l[i] > l[i-1]:\n            decreasing = False\n        if not increasing and not decreasing:\n            return False\n    return True\n```",
+  "score": 5,
+  "cost": 0.00023842,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 397
+  }
+}

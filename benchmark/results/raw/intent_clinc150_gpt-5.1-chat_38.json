@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "intent_clinc150",
+  "case": 38,
+  "response": "oil_change_when",
+  "score": 5,
+  "cost": 0.001126,
+  "expected": "oil_change_when",
+  "tokens": {
+    "input": 511,
+    "output": 13
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 31,
+  "response": "filtered = [word for word in lst if len(word) % 2 == 0]\nfiltered.sort(key=lambda x: (len(x), x))\nreturn filtered",
+  "score": 4,
+  "cost": 5.054000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 217,
+    "output": 36
+  }
+}

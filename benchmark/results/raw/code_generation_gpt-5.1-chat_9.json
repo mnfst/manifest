@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 9,
+  "response": "```\ntotal = 0\nfor x in lst:\n    if isinstance(x, int) and x > 0 and x % 2 == 1:\n        total += x * x\nreturn total\n```",
+  "score": 4,
+  "cost": 0.000768,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 54
+  }
+}

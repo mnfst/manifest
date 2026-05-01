@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Since Alexander Fleming\u2019s 1928 discovery of penicillin, antibiotics transformed surgery and disease treatment, sparking a golden age of drug discovery in the 1950s and 1960s. Over recent decades, poor financial returns have driven a steep decline in new antibiotic development just as resistant superbugs like MRSA have surged. Contributing factors include the widespread use of antibiotics in livestock, which accelerates resistance. Today, researchers are exploring phage therapy, CRISPR-based approaches, and AI-driven drug discovery to address the antimicrobial resistance crisis.",
+  "score": 5,
+  "cost": 0.0018436000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 385
+  }
+}

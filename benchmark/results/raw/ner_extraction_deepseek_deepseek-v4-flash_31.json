@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "ner_extraction",
+  "case": 31,
+  "response": "{\"persons\": [], \"organizations\": [\"Samsung Electronics\"], \"locations\": [\"South Korea\"]}",
+  "score": 5,
+  "cost": 6.468000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 98
+  }
+}

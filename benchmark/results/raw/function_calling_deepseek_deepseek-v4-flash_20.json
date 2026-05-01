@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 20,
+  "response": "{\"name\": \"git_merge\", \"arguments\": {\"source\": \"feature-auth\", \"target\": \"main\"}}",
+  "score": 5,
+  "cost": 5.3620000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 77
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "La plage la plus proche est facilement accessible en voiture, se trouvant \u00e0 quelque 6\u2026",
+  "score": 4,
+  "cost": 0.0030250000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 678
+  }
+}

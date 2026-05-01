@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The company hit 10K MAU, closed an $8M Series A term sheet at a $40M pre-money valuation, and hired a VP Sales, with MRR at $85K and 11 months of runway post-raise. The fundraising round closes on May 10.",
+  "score": 5,
+  "cost": 0.00011900000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 187
+  }
+}

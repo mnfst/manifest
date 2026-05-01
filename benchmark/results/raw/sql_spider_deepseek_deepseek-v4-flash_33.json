@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "```sql\nSELECT episode_name, rating\nFROM episodes\nORDER BY rating DESC\nLIM",
+  "score": 2,
+  "cost": 0.00017850000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 300
+  }
+}

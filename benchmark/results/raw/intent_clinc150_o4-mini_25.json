@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "intent_clinc150",
+  "case": 25,
+  "response": "shopping_list_update",
+  "score": 5,
+  "cost": 0.0009394000000000001,
+  "expected": "shopping_list_update",
+  "tokens": {
+    "input": 510,
+    "output": 86
+  }
+}

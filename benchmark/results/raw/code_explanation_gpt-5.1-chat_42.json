@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous, bounded FIFO queue using asyncio, where producers and consumers wait via Futures when the queue is full or empty. It follows the classic producer-consumer pattern, manually managing waiters to wake tasks when space or items become available.",
+  "score": 5,
+  "cost": 0.000854,
+  "expected": "",
+  "tokens": {
+    "input": 211,
+    "output": 54
+  }
+}

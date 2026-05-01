@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The server prod\u2011web\u201101 in the us\u2011east\u20111 region is running with CPU usage at 78 percent, memory at 12.4 out of 16 GB, and disk consumption at 234 out of 500 GB. It has been up for 45 days, is currently handling 127 connections, shows a p99 latency of 145 milliseconds, and is experiencing about 3 errors per hour.",
+  "score": 5,
+  "cost": 0.00091,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 89
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The first sign is a shift in the air, a sudden, heavy stillness that feels like the world is holding its breath. Then, a low, guttural **rumble** rolls across the sky, not a sharp crack yet, but the sound of a giant shifting in his sleep. The light changes, turning a sickly, bruised yellow-green as the clouds pile up like dirty cotton. A single, fat drop of rain splats on a dry leaf, a sound like a tiny, wet slap. Then the wind arrives, whipping dust and loose papers into a frantic dance, carrying the sharp, metallic **smell** of ozone and wet earth. The first flash of lightning is a silent, skeletal finger of white fire, instantly followed by a deafening **crack** that splits the air, a sound so sharp you feel it in your teeth. The rain follows not as drops, but as a solid, hissing sheet, drumming a frantic, percussive rhythm on rooftops and car hoods, while the cool, wet **scent** of petrichor rises from the pavement like a ghost.",
+  "score": 5,
+  "cost": 0.00013118,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 230
+  }
+}

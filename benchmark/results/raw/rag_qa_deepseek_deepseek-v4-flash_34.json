@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Based on the context, for q=9 and a=1, 2, 4, 5, 7, or 8, there are infinitely many prime numbers.",
+  "score": 5,
+  "cost": 5.53e-05,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 243,
+    "output": 38
+  }
+}

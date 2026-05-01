@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Ocean waves whisper secrets.",
+  "score": 5,
+  "cost": 0.0018128,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 408
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "Step 1: Compute the loan amount  \nJohn\u2019s house is worth \\$250,000 and he gets a loan equal to 40% of that.  \nLoan amount = 0.40 \u00d7 \\$250,000 = \\$100,000  \n\nStep 2: Compute how much is used to pay off his debts  \nHe uses 60% of the loan to pay debts.  \nDebt payment = 0.60 \u00d7 \\$100,000 = \\$60,000  \n\nStep 3: Compute the leftover money  \nLeftover = Loan amount \u2013 Debt payment = \\$100,000 \u2013 \\$60,000 = \\$40,000  \n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.0019107,
+  "expected": "40,000",
+  "tokens": {
+    "input": 101,
+    "output": 409
+  }
+}

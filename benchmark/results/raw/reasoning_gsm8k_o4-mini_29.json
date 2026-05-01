@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Step 1: Identify the number of red cars.  \nRed = 12  \n\nStep 2: Find the number of green cars, which is 2 fewer than the red cars.  \nGreen = 12 \u2212 2 = 10  \n\nStep 3: Find the number of blue cars, which is 3 times the green cars.  \nBlue = 3 \u00d7 10 = 30  \n\nStep 4: Let the number of yellow cars be Y. The total cars add up to 75:  \n12 (red) + 10 (green) + 30 (blue) + Y (yellow) = 75  \n52 + Y = 75  \nY = 75 \u2212 52  \nY = 23  \n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.0020020000000000003,
+  "expected": "23",
+  "tokens": {
+    "input": 104,
+    "output": 429
+  }
+}

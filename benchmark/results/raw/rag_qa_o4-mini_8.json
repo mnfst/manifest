@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "36%",
+  "score": 5,
+  "cost": 0.0014080000000000002,
+  "expected": "36%",
+  "tokens": {
+    "input": 172,
+    "output": 277
+  }
+}

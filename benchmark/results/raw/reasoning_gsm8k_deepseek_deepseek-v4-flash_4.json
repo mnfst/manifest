@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Mariah used 1/4 of a skein, and her grandma used 1/2 of a skein. Together, they used 1/4 + 1/2 = 1/4 + 2/4 = 3/4 of a skein. Since one skein contains 364 yards, the total yards used is (3/4) \u00d7 364 = 273 yards.\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.00016114000000000002,
+  "expected": "273",
+  "tokens": {
+    "input": 99,
+    "output": 263
+  }
+}

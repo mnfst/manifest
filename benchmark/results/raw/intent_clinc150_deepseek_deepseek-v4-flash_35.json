@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "intent_clinc150",
+  "case": 35,
+  "response": "change_language",
+  "score": 5,
+  "cost": 0.00011340000000000002,
+  "expected": "change_language",
+  "tokens": {
+    "input": 574,
+    "output": 59
+  }
+}

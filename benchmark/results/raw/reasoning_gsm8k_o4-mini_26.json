@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Here is the step-by-step solution:\n\n1. Mitchell sold 21 lemonades at \\$4 each.  \n2. Calculate Mitchell\u2019s total revenue: 21 \u00d7 4 = 84 dollars.  \n3. Liam\u2019s revenue was 63 dollars.  \n4. Find how many more dollars Mitchell made than Liam: 84 \u2212 63 = 21.  \n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0011022,
+  "expected": "21",
+  "tokens": {
+    "input": 102,
+    "output": 225
+  }
+}

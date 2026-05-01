@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Team Sync Meeting: Project Updates and Next Steps",
+  "score": 3,
+  "cost": 0.000706,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 83
+  }
+}

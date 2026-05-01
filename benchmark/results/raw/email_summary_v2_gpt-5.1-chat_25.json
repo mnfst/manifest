@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The company reports strong April progress, including surpassing 10K MAU, signing an $8M Series A term sheet, and hiring a VP of Sales, with MRR reaching $85K and burn at $120K/month. Founders note the raise will provide 11 months of runway and expect to close fundraising by May 10.",
+  "score": 5,
+  "cost": 0.00085,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 80
+  }
+}

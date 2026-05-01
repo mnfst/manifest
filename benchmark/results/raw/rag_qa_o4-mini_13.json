@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government.",
+  "score": 1,
+  "cost": 0.0008371000000000001,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 157,
+    "output": 151
+  }
+}

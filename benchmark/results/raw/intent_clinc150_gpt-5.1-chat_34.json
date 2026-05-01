@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "intent_clinc150",
+  "case": 34,
+  "response": "replacement_card_duration",
+  "score": 5,
+  "cost": 0.001144,
+  "expected": "replacement_card_duration",
+  "tokens": {
+    "input": 520,
+    "output": 13
+  }
+}

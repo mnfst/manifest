@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 22,
+  "response": "Here are pytest\u2011style unit tests written in plain text (no special formatting). You can copy this into a test file such as test_group_by.py.\n\nfrom group_by_module import group_by  # adjust import as needed\n\ndef test_group_by_happy_path():\n    items = [\"a\", \"bb\", \"c\", \"ddd\", \"ee\"]\n    result = group_by(items, key_fn=len)\n    assert result == {1: [\"a\", \"c\"], 2: [\"bb\", \"ee\"], 3: [\"ddd\"]}\n\ndef test_group_by_empty_list():\n    result = group_by([], key_fn=lambda x: x)\n    assert result == {}\n\ndef test_group_by_single_item():\n    result = group_by([42], key_fn=lambda x: x % 2)\n    assert result == {0: [42]}\n\ndef test_group_by_all_same_key():\n    items = [1, 2, 3]\n    result = group_by(items, key_fn=lambda x: 0)\n    assert result == {0: [1, 2, 3]}\n\ndef test_group_by_keys_of_different_types():\n    items = [1, \"a\", 2.5]\n    def key_fn(x):\n        return type(x).__name__\n    result = group_by(items, key_fn)\n    assert result == {\n        \"int\": [1],\n        \"str\": [\"a\"],\n        \"float\": [2.5],\n    }\n\ndef test_group_by_key_fn_raises():\n    items = [1, 2, 3]\n    def bad_key_fn(x):\n        raise ValueError(\"bad key\")\n    try:\n        group_by(items, bad_key_fn)\n        assert False, \"Expected ValueError\"\n    except ValueError as e:\n        assert \"bad key\" in str(e)\n\ndef test_group_by_items_with_unhashable_key():\n    items = [1, 2]\n    def key_fn(x):\n        return [x]  # lists are unhashable and cannot be dict keys\n    try:\n        group_by(items, key_fn)\n        assert False, \"Expected TypeError\"\n    except TypeError:\n        pass",
+  "score": 4,
+  "cost": 0.004312,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 520
+  }
+}

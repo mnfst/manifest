@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden.",
+  "score": 5,
+  "cost": 0.0014135,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 421,
+    "output": 216
+  }
+}

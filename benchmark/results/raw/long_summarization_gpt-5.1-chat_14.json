@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 14,
+  "response": "The text describes mounting pressure on the global food system as the population heads toward 9.7 billion by 2050, driving the need for 60% more food production. Climate change, water scarcity, soil degradation, and food waste are simultaneously reducing the system\u2019s capacity, with agriculture responsible for about 25% of greenhouse gas emissions and one-third of arable land already degraded. Major water sources like the Ogallala Aquifer are being depleted, and roughly one-third of all food is lost or wasted. Potential solutions include precision agriculture, vertical farming, alternative proteins, drought\u2011resistant crops, regenerative practices, and policy reforms, but the key challenge is scaling these approaches while keeping food affordable for the poorest populations.",
+  "score": 4,
+  "cost": 0.001784,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 150
+  }
+}

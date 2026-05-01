@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "This code runs multiple asynchronous coroutines concurrently but limits how many can execute at once using an `asyncio.Semaphore`. It wraps each coroutine in a `limited` function that acquires the semaphore before running, then passes all wrapped coroutines to `asyncio.gather` to collect their results.",
+  "score": 5,
+  "cost": 4.886000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 65
+  }
+}

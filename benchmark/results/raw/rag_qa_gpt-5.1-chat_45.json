@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe.",
+  "score": 5,
+  "cost": 0.000508,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 222,
+    "output": 8
+  }
+}

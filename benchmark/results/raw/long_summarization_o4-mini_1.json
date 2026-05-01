@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 1,
+  "response": "Quantum computing leverages qubits\u2014which can exist in superposition and become entangled\u2014to perform certain calculations exponentially faster than classical bits. Major players like IBM, Google, IonQ and Rigetti are pursuing superconducting circuits, trapped ions, photonics and topological approaches, and in 2019 Google claimed \u201cquantum supremacy\u201d by completing a task in 200 seconds that would take a classical supercomputer 10,000 years. Despite current machines boasting only 100\u20131,000 qubits, practical applications require millions of error-corrected qubits, since real devices are extremely fragile, operate near absolute zero and suffer high error rates. Nonetheless, the technology holds promise for drug discovery, materials science, cryptography, optimization and financial and logistics modeling.",
+  "score": 5,
+  "cost": 0.0016324,
+  "expected": "",
+  "tokens": {
+    "input": 276,
+    "output": 302
+  }
+}

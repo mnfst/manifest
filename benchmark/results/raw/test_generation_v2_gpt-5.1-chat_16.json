@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "Here are pytest\u2011style unit tests covering:\n\n\u2022 Happy path  \n\u2022 Edge cases  \n\u2022 Error cases (type errors, non\u2011ints)\n\n```python\nimport pytest\nfrom your_module import gcd\n\ndef test_gcd_happy_path():\n    assert gcd(10, 5) == 5\n    assert gcd(54, 24) == 6\n    assert gcd(7, 3) == 1\n\ndef test_gcd_zero_values():\n    # gcd(a, 0) == |a|\n    assert gcd(10, 0) == 10\n    assert gcd(0, 10) == 10\n    # gcd(0, 0) is mathematically undefined, but function returns 0\n    assert gcd(0, 0) == 0\n\ndef test_gcd_negative_numbers():\n    assert gcd(-10, 5) == 5\n    assert gcd(10, -5) == 5\n    assert gcd(-10, -5) == 5\n    assert gcd(-7, 3) == 1\n\ndef test_gcd_large_numbers():\n    assert gcd(123456789, 987654321) == 9\n\ndef test_gcd_swapped_order():\n    # Order shouldn't matter\n    assert gcd(24, 54) == 6\n\ndef test_gcd_invalid_types():\n    with pytest.raises(TypeError):\n        gcd(\"10\", 5)\n    with pytest.raises(TypeError):\n        gcd(10, None)\n    with pytest.raises(TypeError):\n        gcd(3.5, 2)\n\ndef test_gcd_bool_inputs():\n    # bool is a subclass of int, but probably unintended\n    # gcd(True, False) -> gcd(1, 0) \u2192 1\n    # The function will accept them, so test expected behavior\n    assert gcd(True, False) == 1\n```\n\nIf your project prefers rejecting bools, let me know and I can provide a stricter version with explicit type checks.",
+  "score": 4,
+  "cost": 0.0035,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 421
+  }
+}

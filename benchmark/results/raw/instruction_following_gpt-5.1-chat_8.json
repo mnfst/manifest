@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "A blockchain is like a magic notebook that everyone can see, and once you draw a picture on a page, no one can erase or change it. Every time something new happens, a new page gets added to the notebook. Everyone has the same notebook, so they always agree on what\u2019s inside.",
+  "score": 5,
+  "cost": 0.000602,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 70
+  }
+}

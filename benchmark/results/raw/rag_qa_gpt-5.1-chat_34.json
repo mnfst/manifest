@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Infinitely many.",
+  "score": 2,
+  "cost": 0.000558,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 247,
+    "output": 8
+  }
+}

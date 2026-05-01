@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "KMJ-TV",
+  "score": 5,
+  "cost": 5.824000000000001e-05,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 208,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 0.0015048000000000001,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 512,
+    "output": 214
+  }
+}

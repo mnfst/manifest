@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering proposes splitting the Platform group into two teams\u2014Infrastructure and Developer Experience\u2014to reduce bottlenecks caused by infra incidents overshadowing DX work. The email includes a draft org chart for review.",
+  "score": 5,
+  "cost": 0.00059,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 51
+  }
+}

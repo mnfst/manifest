@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sunlight supplies plants\u2019 pigments; pigments spark processes producing sweet sap, sustaining plant structure.",
+  "score": 5,
+  "cost": 0.001802,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 220
+  }
+}

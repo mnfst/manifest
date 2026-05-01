@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 se f\u00e9licite de la soumission du rapport initial de l\u2019\u00c9tat partie et est gratifi\u00e9 du dialogue constructif et fructueux engag\u00e9 avec une d\u00e9l\u00e9gation comp\u00e9tente de haut niveau.",
+  "score": 5,
+  "cost": 0.000502,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 49
+  }
+}

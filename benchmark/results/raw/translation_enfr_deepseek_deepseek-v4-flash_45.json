@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "L'\u00e9vasion fiscale s'est d\u00e9velopp\u00e9e en Tunisie, entra\u00eenant un d\u00e9ficit important en termes de ressources publiques, a d\u00e9clar\u00e9 l'ancien chef du gouvernement int\u00e9rimaire Ali Larayedh en juin 2013, cit\u00e9 par le journal Business Flood.",
+  "score": 5,
+  "cost": 4.2980000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 61
+  }
+}

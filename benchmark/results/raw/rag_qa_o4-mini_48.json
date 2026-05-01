@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "It is almost universally conjectured that L is strictly contained in P (i.e. L \u228a P), even though this has not been proven.",
+  "score": 4,
+  "cost": 0.0020427,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 121,
+    "output": 434
+  }
+}

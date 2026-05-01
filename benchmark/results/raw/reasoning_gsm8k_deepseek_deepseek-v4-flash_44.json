@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Let's go step-by-step.\n\n1. Initially, there are 10 stalls, each with 20 cows.  \n   Total cows = \\( 10 \\times 20 = 200 \\).\n\n2. Mr. Sylas buys 40 more cows.  \n   New total cows = \\( 200 + 40 = 240 \\).\n\n3. He divides the 40 new cows equally among all 20 stalls.  \n   New cows per stall = \\( 40 \\div 20 = 2 \\).\n\n4. Each stall originally had 20 cows, so after adding 2, each stall now has \\( 20 + 2 = 22 \\) cows.\n\n5. We want the number of cows in 8 stalls:  \n   \\( 8 \\times 22 = 176 \\).\n\nANSWER: 176",
+  "score": 5,
+  "cost": 0.00010598000000000001,
+  "expected": "192",
+  "tokens": {
+    "input": 85,
+    "output": 168
+  }
+}

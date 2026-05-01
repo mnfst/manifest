@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```\n    n = len(grid)\n    prev = [[(grid[i][j],) for j in range(n)] for i in range(n)]\n    for _ in range(1, k):\n        cur = [[None]*n for _ in range(n)]\n        for i in range(n):\n            for j in range(n):\n                best = None\n                for di, dj in ((1,0),(-1,0),(0,1),(0,-1)):\n                    ni, nj = i+di, j+dj\n                    if 0 <= ni < n and 0 <= nj < n:\n                        cand = prev[ni][nj] + (grid[i][j],)\n                        if best is None or cand < best:\n                            best = cand\n                cur[i][j] = best\n        prev = cur\n    ans = None\n    for i in range(n):\n        for j in range(n):\n            if ans is None or prev[i][j] < ans:\n                ans = prev[i][j]\n    return list(ans)\n```",
+  "score": 4,
+  "cost": 0.00371,
+  "expected": "",
+  "tokens": {
+    "input": 427,
+    "output": 357
+  }
+}

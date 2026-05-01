@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT DISTINCT c.Name\nFROM country c\nJOIN countrylanguage cl1 ON c.Code = cl1.CountryCode\nJOIN countrylanguage cl2 ON c.Code = cl2.CountryCode\nWHERE cl1.Language = 'English'\n  AND cl2.Language = 'French';",
+  "score": 5,
+  "cost": 0.000654,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 64
+  }
+}

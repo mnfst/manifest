@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "They are funded entirely through tuition fees paid by students.",
+  "score": 4,
+  "cost": 0.0004,
+  "expected": "tuition",
+  "tokens": {
+    "input": 140,
+    "output": 15
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "The March onboarding cohort rated satisfaction at 7.2/10, citing strong support from the buddy system and timely IT setup but noting confusion about the benefits deadline, delayed tools access, and the missing culture handbook. The primary action item is to fix the tools\u2011access delays.",
+  "score": 5,
+  "cost": 0.000704,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 60
+  }
+}

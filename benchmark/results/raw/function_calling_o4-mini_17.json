@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 17,
+  "response": "{\"name\":\"generate_qr\",\"arguments\":{\"data\":\"https://example.com/signup\",\"size\":256}}",
+  "score": 5,
+  "cost": 0.0008437000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 168
+  }
+}

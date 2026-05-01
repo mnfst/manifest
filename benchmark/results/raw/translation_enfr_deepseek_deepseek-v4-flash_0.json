@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je veux le faire.",
+  "score": 5,
+  "cost": 0.00012838,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 221
+  }
+}

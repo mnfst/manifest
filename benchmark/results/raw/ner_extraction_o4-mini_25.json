@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 25,
+  "response": "{\"persons\":[\"Mark Zuckerberg\"],\"organizations\":[\"Meta\"],\"locations\":[\"Menlo Park\"]}",
+  "score": 5,
+  "cost": 0.0005291,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 102
+  }
+}

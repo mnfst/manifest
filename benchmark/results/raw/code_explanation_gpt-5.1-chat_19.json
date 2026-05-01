@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This function implements a sliding\u2011window rate limiter: each call records a timestamp and removes any older than the given time window. It only allows a new call if fewer than the specified number have occurred within the current window.",
+  "score": 5,
+  "cost": 0.00063,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 54
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It\u2019s a sweeping, character\u2011driven epic set in a future where interstellar politics, ecology, and mysticism collide. The story follows a young heir who\u2019s uprooted from a life of privilege and thrust into a harsh desert world where survival depends as much on understanding the land as on navigating the ambitions of powerful factions.\n\nWhat I love most is how the book layers its worldbuilding: it\u2019s not just about space travel or distant planets, but about culture, environment, religion, and the ways they shape one another. The narrative feels mythic yet strangely grounded, full of political intrigue, philosophical undertones, and unforgettable imagery\u2014especially the desert itself, which becomes almost a living character.\n\nIt\u2019s the kind of story that seems to expand every time you revisit it, revealing new patterns beneath the surface.",
+  "score": 5,
+  "cost": 0.001418,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 173
+  }
+}

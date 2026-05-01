@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 24,
+  "response": "{\"name\": \"rotate_api_key\", \"arguments\": {\"service\": \"production\", \"environment\": \"production\"}}",
+  "score": 4,
+  "cost": 0.0001974,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 329
+  }
+}

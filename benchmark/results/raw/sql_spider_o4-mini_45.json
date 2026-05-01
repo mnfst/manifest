@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "SELECT p.first_name, t.description\nFROM professionals AS p\nJOIN professional_treatments AS pt ON p.id = pt.professional_id\nJOIN treatments AS t ON t.id = pt.treatment_id;",
+  "score": 5,
+  "cost": 0.0037312000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 829
+  }
+}

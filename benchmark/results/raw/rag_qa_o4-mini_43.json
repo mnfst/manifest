@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 43,
+  "response": "The book is \"Amazonia: Man and Culture in a Counterfeit Paradise.\"",
+  "score": 5,
+  "cost": 0.0007062,
+  "expected": "Amazonia: Man and Culture in a Counterfeit Paradise",
+  "tokens": {
+    "input": 246,
+    "output": 99
+  }
+}

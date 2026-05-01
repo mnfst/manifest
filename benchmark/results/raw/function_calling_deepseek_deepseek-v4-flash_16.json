@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 16,
+  "response": "{\"name\": \"search_nearby\", \"arguments\": {\"category\": \"gas station\", \"radius_km\": 5, \"open_now\": true}}",
+  "score": 5,
+  "cost": 3.262e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 34
+  }
+}

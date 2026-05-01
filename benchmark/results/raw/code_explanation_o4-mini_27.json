@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This function solves the \u201csliding window maximum\u201d problem in O(n) time by keeping a monotonic (decreasing) deque of indices: as each new element enters, it pops indices that are out of the k-sized window or whose values are smaller, then the deque\u2019s front always holds the index of the current window\u2019s maximum, which it appends to the result once the first full window is built.",
+  "score": 5,
+  "cost": 0.0019998000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 424
+  }
+}

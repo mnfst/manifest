@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 41,
+  "response": "```\nres = l[:]\nidxs = [i for i in range(len(l)) if i % 3 == 0]\nvals = sorted(l[i] for i in idxs)\nfor i, v in zip(idxs, vals):\n    res[i] = v\nreturn res\n```",
+  "score": 4,
+  "cost": 0.000944,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 72
+  }
+}

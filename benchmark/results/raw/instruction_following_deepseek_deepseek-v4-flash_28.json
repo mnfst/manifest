@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Your potential is endless; keep pushing forward and never give up.",
+  "score": 3,
+  "cost": 0.00023688000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 418
+  }
+}

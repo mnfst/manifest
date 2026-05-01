@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Tasting chocolate is like watching a sunset: it begins with a sharp, almost bitter edge of darkness, then slowly melts into a warm, golden sweetness that spreads across your tongue, before finally fading into a lingering, velvety twilight of richness.",
+  "score": 5,
+  "cost": 0.00018886,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 333
+  }
+}

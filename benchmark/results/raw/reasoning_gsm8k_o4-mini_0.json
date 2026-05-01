@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Step-by-step reasoning:\n\n1. Alexandra raises \\$430.  \n2. Kim raises \\$320 more than Alexandra, so Kim raises \\$430 + \\$320 = \\$750.  \n3. Sarah raises \\$300.  \n4. Maryam raises \\$400 more than Sarah, so Maryam raises \\$300 + \\$400 = \\$700.  \n5. Total raised by all four girls = Alexandra + Kim + Sarah + Maryam  \n   = \\$430 + \\$750 + \\$300 + \\$700  \n   = \\$2,180.\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.0018095,
+  "expected": "2280",
+  "tokens": {
+    "input": 93,
+    "output": 388
+  }
+}

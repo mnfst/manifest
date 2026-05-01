@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 10,
+  "response": "{\"persons\":[\"Jennifer Lopez\",\"Ben Affleck\"],\"organizations\":[],\"locations\":[\"Beverly Hills\"]}",
+  "score": 5,
+  "cost": 0.0011033,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 233
+  }
+}

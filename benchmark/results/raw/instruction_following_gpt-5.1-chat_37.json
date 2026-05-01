@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes rich and smooth, like a warm blanket melting over your senses. It's a mix of sweetness and depth, with a slight bitterness that feels like a secret whispered at the end of each bite.",
+  "score": 5,
+  "cost": 0.000438,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "Here\u2019s a side-by-side comparison of TCP vs UDP in a plain-text table:\n\nFeature               TCP                                              UDP  \n--------------------------------------------------------------------------------------  \nFull Name             Transmission Control Protocol                    User Datagram Protocol  \nConnection Type       Connection-oriented                              Connectionless  \nReliability           Reliable (ACKs, retransmissions)                  Unreliable (no ACKs or retries)  \nData Transfer         Stream-oriented                                   Message-oriented (datagrams)  \nFlow Control          Yes (sliding window)                              No  \nCongestion Control    Yes                                                No  \nHandshake             3-way handshake                                   None  \nOrdering               Guaranteed, in-order delivery                    No ordering guarantee  \nError Checking        Checksum + error recovery                         Checksum only  \nHeader Size           20 bytes minimum                                   8 bytes  \nOverhead              Higher (more state & control info)                Lower  \nSpeed                 Slower (due to ACKs, retransmits)                 Faster (minimal protocol logic)  \nTypical Use Cases     Web (HTTP/HTTPS), FTP, SMTP, SSH                   DNS queries, DHCP, VoIP, video streaming, online gaming  \n\nKey takeaways:  \n- TCP adds reliability, ordering, flow- and congestion-control at the cost of extra overhead and latency.  \n- UDP is lightweight and fast, but leaves error recovery and ordering up to the application.",
+  "score": 4,
+  "cost": 0.006076400000000001,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 1377
+  }
+}

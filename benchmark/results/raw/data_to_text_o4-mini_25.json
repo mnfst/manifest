@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 25,
+  "response": "Japan, home to roughly 125 million people, boasts a $4.2 trillion GDP with 1.1% growth, an unemployment rate of 2.6%, and inflation at 3.2%. Its debt-to-GDP ratio stands at 263%, citizens enjoy a life expectancy of 84.6 years, and exports total $756 billion.",
+  "score": 5,
+  "cost": 0.0027918,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 609
+  }
+}

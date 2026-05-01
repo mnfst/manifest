@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 22,
+  "response": "By 2050 the global population is projected to reach 9.7 billion, requiring a 60% increase in food production even as climate change cuts yields and agriculture already generates roughly 25% of greenhouse-gas emissions. Water scarcity in critical areas like the Ogallala Aquifer, soil degradation on 33% of arable land, and the fact that one-third of all food is lost or wasted further strain the system. Proposed solutions\u2014precision agriculture with AI, urban vertical farming, insect- and lab-based proteins, drought-resistant GM crops, and regenerative practices\u2014are complemented by policy shifts in subsidies, trade, and carbon pricing. The central challenge is scaling these innovations affordably to ensure food remains accessible to the world\u2019s poorest.",
+  "score": 5,
+  "cost": 0.0030624000000000007,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 623
+  }
+}

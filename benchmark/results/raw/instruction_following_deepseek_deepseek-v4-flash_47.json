@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here are the key characteristics of a strong password, described in numbered steps.\n\n1.  **Prioritize Length (Aim for 12+ Characters).** The most important factor in password strength is its length. Longer passwords require exponentially more time and computing power to crack via brute-force attacks. A password should be at least 12 characters long, with 14 or more characters being the gold standard for sensitive accounts.\n\n2.  **Use a Mix of Character Types.** Avoid using only lowercase letters. A strong password should include a combination of:\n    - Uppercase letters (A-Z)\n    - Lowercase letters (a-z)\n    - Numbers (0-9)\n    - Symbols (e.g., `! @ # $ % ^ & * ( )`)\n\n3.  **Avoid Predictable Patterns and Personal Information.** Do not use easily guessable information or simple keyboard patterns. This includes:\n    - Your name, username, or company name\n    - Family member or pet names\n    - Birthdays, anniversaries, or addresses\n    - Common sequences like `123456`, `abcdef`, `qwerty`, or `password`\n    - Simple substitutions (e.g., `P@ssw0rd` is still very weak)\n\n4.  **Ensure It is Unique for Every Account.** Never reuse passwords across different websites or services. If one site is compromised and your password is leaked, a hacker will immediately try that same email and password combination on other major platforms (a tactic called credential stuffing).\n\n5.  **Do Not Use Dictionary Words or Common Phrases.** Even a long phrase like `I love pizza` can be vulnerable to dictionary-based attacks. Hackers use programs that test combinations of dictionary words, common phrases, and variations. A random, nonsensical string is far more secure.\n\n6.  **Use a Password Manager.** The only practical way to follow all these rules for dozens of accounts is to use a reputable password manager. It can:\n    - **Generate** cryptographically random, long passwords for you.\n    - **Store** them securely in an encrypted vault.\n    - **Auto-fill** them on websites and apps, so you only need to remember one strong master password.",
+  "score": 5,
+  "cost": 0.00039914000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 709
+  }
+}

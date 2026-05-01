@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "AI\u2019s development has traced a path from Turing\u2019s 1950 \u201cCan machines think?\u201d question through the AI winters of the 1970s and 1980s, only to be revived by deep learning breakthroughs in the 2010s. The 2017 transformer architecture paper ignited a revolution, culminating in GPT models\u2014most notably GPT-3 with its 175 billion parameters\u2014whose performance scales predictably with size. This progress has spurred a race among OpenAI, Google, Anthropic and Meta, igniting debates over open vs. closed source approaches and raising urgent AI-safety concerns such as alignment, misuse and job displacement. Governments are responding with regulation\u2014e.g., the EU AI Act and US executive orders\u2014while industries brace for AI\u2019s profound economic impact on knowledge work.",
+  "score": 5,
+  "cost": 0.0026741,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 571
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "{\"persons\": [\"Warren Buffett\"], \"organizations\": [\"Bank of America\", \"SEC\"], \"locations\": []}",
+  "score": 5,
+  "cost": 0.000414,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 34
+  }
+}

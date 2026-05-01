@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "```sql\nSELECT s.name, s.capacity\nFROM stadium s\nJOIN concert c ON s.stadium_id = c.stadium_id\nWHERE c.year > 2013\nGROUP BY s.stadium_id, s.name, s.capacity\nORDER BY COUNT(c.concert_id) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 4.914e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 69
+  }
+}

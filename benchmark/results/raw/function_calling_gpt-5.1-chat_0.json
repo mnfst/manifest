@@ -2,11 +2,12 @@
   "model": "gpt-5.1-chat",
   "task": "function_calling",
   "case": 0,
-  "response": "{\"name\": \"send_email\", \"arguments\": {\"to\": \"john@example.com\", \"subject\": \"Meeting Tomorrow\", \"body\": \"Hi John, can we meet at 2pm?\"}}",
+  "response": "{\"name\": \"send_email\", \"arguments\": {\"to\": \"john@example.com\", \"subject\": \"Meeting Tomorrow\", \"body\": \"Hi John can we meet at 2pm\"}}",
   "score": 5,
-  "cost": 0.000632,
+  "cost": 0.000604,
+  "expected": "",
   "tokens": {
-    "input": 112,
-    "output": 51
+    "input": 106,
+    "output": 49
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "SELECT country\nFROM Singer\nGROUP BY country\nHAVING COUNT(CASE WHEN age > 40 THEN 1 END) > 0\n   AND COUNT(CASE WHEN age < 30 THEN 1 END) > 0;",
+  "score": 4,
+  "cost": 0.000618,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 58
+  }
+}

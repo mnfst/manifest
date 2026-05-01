@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "\u2022 Improves cardiovascular health  \n\u2022 Boosts mood and reduces stress  \n\u2022 Increases strength and overall fitness",
+  "score": 5,
+  "cost": 0.000236,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 25
+  }
+}

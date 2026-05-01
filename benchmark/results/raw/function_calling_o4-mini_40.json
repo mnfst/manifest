@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 40,
+  "response": "{\"name\":\"search_messages\",\"arguments\":{\"channel\":\"announcements\",\"query\":\"release\"}}",
+  "score": 1,
+  "cost": 0.0011066000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 228
+  }
+}

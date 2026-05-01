@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "1. Determine the fraction of a skein used by Mariah: 1/4 of a skein.  \n2. Determine the fraction of a skein used by Grandma: 1/2 of a skein.  \n3. Find the total fraction of a skein used:  \n   1/4 + 1/2 = 1/4 + 2/4 = 3/4 of a skein.  \n4. There are 364 yards in a full skein.  \n5. Multiply the total fraction by the total yards:  \n   (3/4) \u00d7 364 = 3 \u00d7 (364 \u00f7 4) = 3 \u00d7 91 = 273.  \n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.0014256000000000002,
+  "expected": "273",
+  "tokens": {
+    "input": 100,
+    "output": 299
+  }
+}

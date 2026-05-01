@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here\u2019s a simple checklist of ingredients for a basic salad:\n\n- [ ] Lettuce (e.g., romaine or mixed greens)  \n- [ ] Tomato  \n- [ ] Cucumber  \n- [ ] Red onion  \n- [ ] Carrot  \n- [ ] Bell pepper  \n- [ ] Olive oil  \n- [ ] Vinegar or lemon juice  \n- [ ] Salt  \n- [ ] Pepper",
+  "score": 5,
+  "cost": 0.0018678000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 420
+  }
+}

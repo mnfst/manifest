@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "ner_extraction",
+  "case": 9,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"World Health Organization\"],\n  \"locations\": [\"sub-Saharan Africa\", \"Geneva\"]\n}",
+  "score": 4,
+  "cost": 2.7300000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 31
+  }
+}

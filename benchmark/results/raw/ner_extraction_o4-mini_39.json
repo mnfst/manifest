@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 39,
+  "response": "{\"persons\":[\"Dario Amodei\"],\"organizations\":[\"Anthropic\",\"Aspen Ideas Festival\"],\"locations\":[\"Colorado\"]}",
+  "score": 5,
+  "cost": 0.0005632,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 109
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 40,
+  "response": "Here are pytest-style unit tests covering happy paths, edge cases, and error cases.  \nFormatting is kept simple for API\u2011safe output.\n\n```\nimport pytest\nfrom your_module import rgb_to_hex\n\ndef test_rgb_to_hex_happy_path():\n    assert rgb_to_hex(255, 165, 0) == '#ffa500'\n    assert rgb_to_hex(0, 0, 0) == '#000000'\n    assert rgb_to_hex(173, 216, 230) == '#add8e6'\n\ndef test_rgb_to_hex_edge_values():\n    assert rgb_to_hex(0, 255, 255) == '#00ffff'\n    assert rgb_to_hex(255, 0, 255) == '#ff00ff'\n    assert rgb_to_hex(255, 255, 255) == '#ffffff'\n\ndef test_rgb_to_hex_raises_for_negative_values():\n    with pytest.raises(ValueError):\n        rgb_to_hex(-1, 100, 100)\n    with pytest.raises(ValueError):\n        rgb_to_hex(100, -5, 100)\n    with pytest.raises(ValueError):\n        rgb_to_hex(100, 100, -20)\n\ndef test_rgb_to_hex_raises_for_values_over_255():\n    with pytest.raises(ValueError):\n        rgb_to_hex(256, 100, 100)\n    with pytest.raises(ValueError):\n        rgb_to_hex(100, 999, 100)\n    with pytest.raises(ValueError):\n        rgb_to_hex(100, 100, 300)\n\ndef test_rgb_to_hex_non_integer_types():\n    # Should error because comparison with int fails or because values are invalid\n    with pytest.raises(Exception):\n        rgb_to_hex(12.5, 100, 100)\n    with pytest.raises(Exception):\n        rgb_to_hex(\"255\", 100, 100)\n    with pytest.raises(Exception):\n        rgb_to_hex(None, 100, 100)\n```",
+  "score": 5,
+  "cost": 0.003454,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 405
+  }
+}

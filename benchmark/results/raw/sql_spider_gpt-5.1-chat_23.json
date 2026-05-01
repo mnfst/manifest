@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT production_code, channel\nFROM tvshow\nWHERE type = 'cartoon'\nORDER BY air_date DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 5,
+  "cost": 0.000462,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 40
+  }
+}

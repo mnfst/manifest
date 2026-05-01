@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "ner_extraction",
+  "case": 26,
+  "response": "{\"persons\": [], \"organizations\": [\"Supreme Court\", \"State of Texas\", \"ACLU\"], \"locations\": [\"Texas\"]}",
+  "score": 4,
+  "cost": 0.000958,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 102
+  }
+}

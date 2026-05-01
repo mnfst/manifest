@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "intent_clinc150",
+  "case": 9,
+  "response": "weather",
+  "score": 5,
+  "cost": 0.00010724000000000001,
+  "expected": "weather",
+  "tokens": {
+    "input": 570,
+    "output": 49
+  }
+}

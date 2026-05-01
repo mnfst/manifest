@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "json_transform_v2",
+  "case": 32,
+  "response": "{\"admins\":[\"Alice\",\"Charlie\"],\"users\":[\"Bob\"],\"inactive_count\":1}",
+  "score": 5,
+  "cost": 0.00099,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 92
+  }
+}

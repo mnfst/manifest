@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "Here is a pytest\u2010style test module that exercises the \u201chappy paths,\u201d several edge conditions, and some invalid\u2010type cases for your `count_vowels` function. Save it as e.g. `test_count_vowels.py` alongside the module where `count_vowels` is defined.\n\n```python\nimport pytest\nfrom your_module import count_vowels   # change 'your_module' to the actual module name\n\n\n# Happy paths and edge cases\n@pytest.mark.parametrize(\"input_str, expected\", [\n    (\"aeiou\", 5),                   # all lowercase vowels\n    (\"AEIOU\", 5),                   # all uppercase vowels\n    (\"AbCdEfGh\", 2),                # mixed case, mixed consonants\n    (\"hello world\", 3),             # typical sentence\n    (\"\", 0),                        # empty string\n    (\"bcdfghjklmnpqrstvwxyz\", 0),   # no vowels at all\n    (\"AaEeIiOoUu\", 10),             # alternating upper/lower\n    (\"123!@#AaEe\", 4),              # digits and punctuation\n    (\"\u00e1\u00e9\u00ed\u00f3\u00fa\", 0),                   # accented vowels not in 'aeiou'\n    (\"Why?\", 0),                    # 'y' is not counted\n])\ndef test_count_vowels_various(input_str, expected):\n    assert count_vowels(input_str) == expected\n\n\n# Error cases: inputs that are not strings should raise an AttributeError\n@pytest.mark.parametrize(\"bad_input\", [\n    None,\n    123,\n    3.14,\n    [\"a\", \"e\", \"i\"],\n    {\"s\": \"vowels\"},\n])\ndef test_count_vowels_invalid_types(bad_input):\n    with pytest.raises(AttributeError):\n        count_vowels(bad_input)\n```\n\nExplanation of coverage:\n\n- Happy paths include purely lowercase, purely uppercase, mixed cases, a normal sentence, and strings containing digits/punctuation.\n- Edge cases include the empty string, strings with zero vowels, and strings of exclusively vowels.\n- We explicitly check that accented characters (e.g. `\u00e1\u00e9\u00ed\u00f3\u00fa`) are not counted since the implementation only looks for `'aeiou'`.\n- Finally, passing non\u2010string types (None, integers, floats, lists, dicts) will cause `.lower()` to fail, so we assert that an `AttributeError` is raised.",
+  "score": 4,
+  "cost": 0.0059994,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 1348
+  }
+}

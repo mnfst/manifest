@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "Below is an example `pytest` test module. It assumes your function lives in a file called `palindrome.py` next to this test file. Adjust the import line if your module is named differently. The tests cover:\n\n- Happy paths (odd/even length, mixed case, spaces, numbers)  \n- Non-palindromes  \n- Edge cases (empty string, only spaces, single character)  \n- A case with punctuation where it should _not_ be detected as a palindrome  \n- Error cases when passing a non\u2010string  \n\n```python\n# test_palindrome.py\nimport pytest\nfrom palindrome import is_palindrome\n\n\n@ pytest.mark.parametrize(\"input_str, expected\", [\n    # simple odd/even length\n    (\"racecar\", True),\n    (\"Racecar\", True),\n    (\"abccba\", True),\n    # spaces and mixed case\n    (\"A man a plan a canal Panama\", True),\n    (\"No lemon no melon\", True),\n    # numeric palindromes\n    (\"12321\", True),\n    (\"123321\", True),\n    # non-palindromes\n    (\"hello\", False),\n    (\"world\", False),\n    (\"12345\", False),\n])\ndef test_various_strings(input_str, expected):\n    assert is_palindrome(input_str) is expected\n\n\ndef test_empty_and_whitespace_only():\n    # empty string is a palindrome\n    assert is_palindrome(\"\") is True\n    # all spaces -> stripped to empty -> True\n    assert is_palindrome(\"     \") is True\n    # single space\n    assert is_palindrome(\" \") is True\n\n\n@ pytest.mark.parametrize(\"char\", [\"a\", \"Z\", \"7\"])\ndef test_single_character(char):\n    # Any single character (after lowercasing/stripping) is trivially a palindrome\n    assert is_palindrome(char) is True\n\n\ndef test_punctuation_not_ignored():\n    # We only strip spaces and lowercase; punctuation stays, so this should be False\n    phrase = \"Madam, I'm Adam\"\n    assert is_palindrome(phrase) is False\n\n\n@ pytest.mark.parametrize(\"bad_input\", [\n    None,\n    12321,\n    12.321,\n    [\"a\", \"b\", \"a\"],\n    {\"s\": \"racecar\"},\n])\ndef test_non_string_raises(bad_input):\n    with pytest.raises(AttributeError):\n        # .lower() or .replace() will fail on non-strings\n        is_palindrome(bad_input)\n```\n\nTo run these tests, install pytest (`pip install pytest`) and execute:\n\n```\npytest test_palindrome.py\n```",
+  "score": 4,
+  "cost": 0.0073018,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 1644
+  }
+}

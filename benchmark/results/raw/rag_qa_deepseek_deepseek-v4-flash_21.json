@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Not found in context. (The context mentions \"anaerobic bacteria\" generally but does not name a specific pathogen.)",
+  "score": 5,
+  "cost": 0.00010038000000000001,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 201,
+    "output": 129
+  }
+}

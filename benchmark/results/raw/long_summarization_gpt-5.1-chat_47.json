@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 47,
+  "response": "The GDPR, enacted in May 2018, reshaped global data privacy rules by requiring any organization handling EU residents\u2019 data to follow strict standards such as explicit consent, data access rights, data portability, and rapid breach reporting within 72 hours. It imposes steep penalties of up to 4 percent of worldwide revenue or 20 million euros, leading to major fines including 1.2 billion euros for Meta, 746 million for Amazon, and over 200 million for Google. The regulation has influenced privacy laws in California, Brazil, and India, establishing data protection as a global norm. Critics argue that GDPR creates heavy compliance burdens, inconsistent enforcement, and widespread annoyance from cookie consent banners, but it remains the leading model for modern privacy legislation.",
+  "score": 5,
+  "cost": 0.001852,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 155
+  }
+}

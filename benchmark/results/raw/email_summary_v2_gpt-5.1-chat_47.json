@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "March onboarding satisfaction dropped to 7.2/10, with strong feedback on the buddy system and timely IT setup but recurring issues around benefits deadlines, delayed tool access, and missing culture handbooks. The primary action item is to fix tool-access delays.",
+  "score": 5,
+  "cost": 0.000712,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 61
+  }
+}

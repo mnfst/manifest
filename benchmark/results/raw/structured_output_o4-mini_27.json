@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "structured_output",
+  "case": 27,
+  "response": "{\"type\":\"RSA\",\"bits\":4096,\"fingerprint\":\"SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8\",\"created\":\"2024-01-15\",\"comment\":\"deploy-key-prod\"}",
+  "score": 5,
+  "cost": 0.0013013000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 269
+  }
+}

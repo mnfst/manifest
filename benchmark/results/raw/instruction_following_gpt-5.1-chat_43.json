@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that in space, astronauts can grow up to two inches taller because the lack of gravity lets their spinal discs expand?",
+  "score": 5,
+  "cost": 0.000334,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 36
+  }
+}

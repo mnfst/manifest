@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "{\"persons\":[\"Angela Merkel\"],\"organizations\":[],\"locations\":[\"White House\"]}",
+  "score": 4,
+  "cost": 0.0007931,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 163
+  }
+}

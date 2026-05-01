@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 27,
+  "response": "{\"name\": \"convert_currency\", \"arguments\": {\"amount\": 500, \"from_currency\": \"EUR\", \"to_currency\": \"JPY\"}}",
+  "score": 5,
+  "cost": 0.0006072,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 113
+  }
+}

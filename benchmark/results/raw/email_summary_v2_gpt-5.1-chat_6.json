@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp is threatening to churn due to ongoing API latency issues and a lack of support response, leading their CTO to escalate directly. A dedicated engineer is now assigned, and an executive sponsor is needed for a call this week.",
+  "score": 5,
+  "cost": 0.00065,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 56
+  }
+}

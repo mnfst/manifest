@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "First, compute Joey\u2019s new total:\nJoey\u2019s original score = 214  \nJoey\u2019s score this turn = 26  \nJoey\u2019s new total = 214 + 26 = 240  \n\nNext, compute Marcy\u2019s new total:\nMarcy\u2019s original score = 225  \nMarcy\u2019s score this turn = 10  \nMarcy\u2019s new total = 225 + 10 = 235  \n\nFinally, find the difference:\nDifference = Joey\u2019s new total \u2212 Marcy\u2019s new total  \nDifference = 240 \u2212 235 = 5  \n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.000979,
+  "expected": "5",
+  "tokens": {
+    "input": 82,
+    "output": 202
+  }
+}

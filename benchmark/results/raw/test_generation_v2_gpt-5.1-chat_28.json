@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 28,
+  "response": "Here are pytest\u2011style unit tests (plain text, no special formatting). You can place them in a test_memoize.py file.\n\n------------------------------------------------------------\nimport pytest\n\nfrom your_module import memoize\n\ndef test_memoize_happy_path():\n    calls = {\"count\": 0}\n\n    @memoize\n    def add(a, b):\n        calls[\"count\"] += 1\n        return a + b\n\n    # First call computes result\n    assert add(2, 3) == 5\n    assert calls[\"count\"] == 1\n\n    # Second call with same args returns cached result\n    assert add(2, 3) == 5\n    assert calls[\"count\"] == 1  # no new calls\n\n    # Different args produce new computation\n    assert add(3, 4) == 7\n    assert calls[\"count\"] == 2\n\n\ndef test_memoize_with_single_argument():\n    calls = {\"count\": 0}\n\n    @memoize\n    def square(x):\n        calls[\"count\"] += 1\n        return x * x\n\n    assert square(4) == 16\n    assert square(4) == 16\n    assert calls[\"count\"] == 1  # cached\n\n\ndef test_memoize_with_no_arguments():\n    calls = {\"count\": 0}\n\n    @memoize\n    def get_value():\n        calls[\"count\"] += 1\n        return 10\n\n    # Same result always\n    assert get_value() == 10\n    assert get_value() == 10\n    assert calls[\"count\"] == 1  # cached\n\n\ndef test_memoize_edge_case_mutable_argument():\n    @memoize\n    def identity(x):\n        return x\n\n    # Mutable args should raise TypeError because list is unhashable\n    with pytest.raises(TypeError):\n        identity([1, 2, 3])\n\n\ndef test_memoize_function_raises_error_not_cached():\n    calls = {\"count\": 0}\n\n    @memoize\n    def fail_on_negative(x):\n        calls[\"count\"] += 1\n        if x < 0:\n            raise ValueError(\"negative not allowed\")\n        return x\n\n    # First call raises error\n    with pytest.raises(ValueError):\n        fail_on_negative(-1)\n    assert calls[\"count\"] == 1\n\n    # Calling again should re\u2011execute and raise again, not cache the exception\n    with pytest.raises(ValueError):\n        fail_on_negative(-1)\n    assert calls[\"count\"] == 2\n\n\ndef test_memoize_distinguishes_different_argument_types():\n    calls = {\"count\": 0}\n\n    @memoize\n    def stringify(x):\n        calls[\"count\"] += 1\n        return str(x)\n\n    assert stringify(1) == \"1\"\n    assert stringify(\"1\") == \"1\"\n    assert calls[\"count\"] == 2  # integer 1 and string \"1\" should be separate keys\n------------------------------------------------------------",
+  "score": 3,
+  "cost": 0.005222,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 634
+  }
+}

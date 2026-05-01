@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Meet the HydraFlow 32oz Reusable Water Bottle\u2014built with double-wall vacuum insulation to keep beverages cold for 24 hours or hot for 12. Its BPA-free stainless steel body and leak-proof flip-top lid ensure durability and spill-free performance on the go. Finished in a sleek matte coating with an ergonomic grip, it\u2019s perfect for workouts, commutes, or outdoor adventures.",
+  "score": 2,
+  "cost": 0.001034,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 230
+  }
+}

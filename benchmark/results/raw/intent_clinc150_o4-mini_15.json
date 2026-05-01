@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "intent_clinc150",
+  "case": 15,
+  "response": "share_location",
+  "score": 5,
+  "cost": 0.0009383000000000002,
+  "expected": "share_location",
+  "tokens": {
+    "input": 513,
+    "output": 85
+  }
+}

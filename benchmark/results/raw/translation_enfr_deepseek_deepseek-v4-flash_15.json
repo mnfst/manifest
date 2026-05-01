@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Sector Source est un site web de ressources d\u00e9di\u00e9 \u00e0 aider ceux qui dirigent des associations caritatives et des organisations \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...",
+  "score": 5,
+  "cost": 0.00010598,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 179
+  }
+}

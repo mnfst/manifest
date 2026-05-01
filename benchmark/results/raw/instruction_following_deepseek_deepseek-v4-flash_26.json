@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, is the continuous movement of water on, above, and below the Earth's surface. It begins with evaporation, where heat from the sun causes water from oceans, lakes, rivers, and even soil to turn into water vapor and rise into the atmosphere. Transpiration, the release of water vapor from plants, also contributes to this process. Together, evaporation and transpiration transfer vast amounts of moisture from the Earth's surface into the air, forming the foundation of the cycle.\n\nAs the water vapor rises, it cools and undergoes condensation, forming tiny droplets that cluster around dust particles to create clouds. This process is driven by decreasing temperatures at higher altitudes. When the air becomes saturated with moisture, the droplets combine and grow larger. Condensation is essential for converting invisible vapor into visible cloud formations, setting the stage for precipitation.\n\nWhen the cloud droplets become too heavy to remain suspended, they fall back to Earth as precipitation. This can take various forms, including rain, snow, sleet, or hail, depending on atmospheric temperatures. Precipitation replenishes freshwater sources, delivering water to land surfaces, oceans, and ice caps. It is the primary way water returns from the atmosphere to the Earth, completing the vertical movement of the cycle.\n\nOnce on the ground, water follows several paths. Some of it infiltrates into the soil, replenishing groundwater aquifers, while some flows over the surface as runoff into streams, rivers, and eventually oceans. Plants absorb some water, and animals drink it, but much of it eventually evaporates again or is transpired, restarting the cycle. This continuous loop of evaporation, condensation, precipitation, and collection ensures the distribution and renewal of Earth's water supply.",
+  "score": 5,
+  "cost": 0.00022442000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 397
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "```python\nimport pytest\nfrom factorial import factorial\n\n# Happy path: typical positive integers\ndef test_factorial_two():\n    assert factorial(2) == 2\n\ndef test_factorial_three():\n    assert factorial(3) == 6\n\ndef test_factorial_five():\n    assert factorial(5) == 120\n\ndef test_factorial_ten():\n    assert factorial(10) == 3628800\n\n# Edge cases: n = 0 and n = 1\ndef test_factorial_zero():\n    assert factorial(0) == 1\n\ndef test_factorial_one():\n    assert factorial(1) == 1\n\n# Edge case: large n that still fits within recursion limit\ndef test_factorial_twenty():\n    assert factorial(20) == 2432902008176640000\n\n# Edge case: n that exceeds default recursion depth\ndef test_factorial_recursion_depth():\n    with pytest.raises(RecursionError):\n        factorial(1000)\n\n# Error case: negative integer\ndef test_factorial_negative():\n    with pytest.raises(ValueError, match=\"n must be non-negative\"):\n        factorial(-1)\n\ndef test_factorial_negative_large():\n    with pytest.raises(ValueError, match=\"n must be non-negative\"):\n        factorial(-100)\n\n# Error case: non-integer input (string)\ndef test_factorial_string():\n    with pytest.raises(TypeError):\n        factorial(\"5\")\n\n# Error case: non-integer input (float that is not an integer value)\ndef test_factorial_float():\n    with pytest.raises(TypeError):\n        factorial(5.5)\n```",
+  "score": 4,
+  "cost": 0.0009261,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 1634
+  }
+}

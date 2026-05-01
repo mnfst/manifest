@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t\u2019aime bien\u2026 m\u00eame si je ne sais pas vraiment pourquoi.",
+  "score": 4,
+  "cost": 0.0015961,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 354
+  }
+}

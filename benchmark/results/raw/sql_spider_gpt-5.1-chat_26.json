@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "SELECT COUNT(*) \nFROM flights \nWHERE origin_city = 'Aberdeen' \n  AND dest_city = 'Ashley';",
+  "score": 5,
+  "cost": 0.000426,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 34
+  }
+}

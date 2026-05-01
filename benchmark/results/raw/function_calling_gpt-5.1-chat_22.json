@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "function_calling",
+  "case": 22,
+  "response": "{\"name\": \"create_database\", \"arguments\": {\"name\": \"analytics_prod\", \"engine\": \"postgresql\"}}",
+  "score": 5,
+  "cost": 0.000446,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 34
+  }
+}

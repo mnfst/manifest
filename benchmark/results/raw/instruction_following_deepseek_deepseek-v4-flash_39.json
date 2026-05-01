@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "Here is an explanation of what a VPN does, formatted as a Q&A.\n\n---\n\n**Q: What exactly is a VPN?**\n\n**A:** VPN stands for **Virtual Private Network**. Think of it as a secure, encrypted tunnel between your device (phone, laptop, computer) and a server operated by the VPN company. All your internet traffic is routed through this tunnel before it reaches the wider internet.\n\n**Q: What is the main thing a VPN does?**\n\n**A:** It does two core things simultaneously:\n1.  **Encrypts your data:** It scrambles all the information you send and receive (like passwords, bank details, or browsing history) so that no one else can read it\u2014not your internet provider, not a hacker on public Wi-Fi, not the government.\n2.  **Hides your IP address:** It replaces your real IP address (which reveals your approximate location and identity) with the IP address of the VPN server. This makes it look like you are browsing from wherever that server is located (e.g., a different city or country).\n\n**Q: Why would someone use a VPN? What are the practical benefits?**\n\n**A:** There are three main reasons:\n\n1.  **Privacy & Security on Public Wi-Fi:** When you use a coffee shop or airport Wi-Fi, a hacker on the same network could easily intercept your data. A VPN encrypts everything, making that data unreadable to them.\n2.  **Bypassing Geo-Restrictions:** Streaming services (like Netflix, Hulu, or BBC iPlayer) and websites often show different content depending on your country. By connecting to a VPN server in the US, you can access US Netflix from Europe. Similarly, you can bypass censorship in countries that block certain websites.\n3.  **Hiding Your Activity from Your ISP:** Your Internet Service Provider (ISP) can see every website you visit. A VPN prevents your ISP from tracking your browsing history, selling that data, or throttling (slowing down) your connection for specific activities like streaming or gaming.\n\n**Q: Does a VPN make me completely anonymous online?**\n\n**A:** No. A VPN is a powerful privacy tool, but it is not a magic cloak of invisibility. It hides your activity from your ISP and local network, but the VPN company itself can see your traffic (though reputable ones keep no logs). Websites you visit can still track you via cookies, browser fingerprinting, and your",
+  "score": 4,
+  "cost": 0.00028238,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 500
+  }
+}

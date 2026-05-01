@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 44,
+  "response": "The internet began in the 1960s as US Department of Defense\u2013funded research, with ARPANET\u2019s first message sent in 1969 and the 1983 shift to TCP/IP protocols laying the groundwork for today\u2019s network. Tim Berners-Lee\u2019s 1989 invention of the World Wide Web and the 1993 Mosaic browser made online content widely accessible, triggering the late-1990s dot-com boom and the 2001 crash that nonetheless produced enduring giants like Amazon and Google. The rise of social media in the mid-2000s, the iPhone\u2019s 2007 debut, and cloud platforms such as AWS (launched in 2006) have since driven internet adoption to over 5 billion users, solidifying its role as a cornerstone of modern life.",
+  "score": 5,
+  "cost": 0.0039864,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 828
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "The Moselle.",
+  "score": 5,
+  "cost": 0.0017281000000000002,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 199,
+    "output": 343
+  }
+}

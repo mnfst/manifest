@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "SELECT EXTRACT(YEAR FROM concert_date) AS year, COUNT(*) AS concert_count\nFROM concerts\nGROUP BY EXTRACT(YEAR FROM concert_date)\nORDER BY concert_count DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 5,
+  "cost": 0.001082,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 118
+  }
+}

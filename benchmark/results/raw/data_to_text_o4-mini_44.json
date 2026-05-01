@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "Massachusetts Institute of Technology (MIT), founded in 1861, is consistently ranked #1 among global universities. With 11,500 students and a highly selective 3.9% acceptance rate, MIT\u2019s annual tuition is $57,590, supported by a $24.6 billion endowment. The institute employs 1,069 faculty members and has produced 98 Nobel laureates.",
+  "score": 5,
+  "cost": 0.0019602,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 421
+  }
+}

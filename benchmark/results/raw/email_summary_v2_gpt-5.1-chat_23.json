@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The v1 API will be deprecated on June 30 and removed on September 30, with 340 integrations \u2014 including 12 enterprise customers \u2014 still needing to migrate. The plan is to personally contact the top 20 users and run a webinar for the rest.",
+  "score": 5,
+  "cost": 0.000692,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 63
+  }
+}

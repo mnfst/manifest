@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "```sql\nSELECT flight_number FROM flights WHERE airline = 'United Airlines';\n```",
+  "score": 5,
+  "cost": 0.00013972000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 233
+  }
+}

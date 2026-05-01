@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "SELECT SUM(population) FROM world_1 WHERE district = 'Gelderland';",
+  "score": 2,
+  "cost": 2.0580000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 20
+  }
+}

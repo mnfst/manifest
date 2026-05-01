@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The production web server `prod-web-01` in the `us-east-1` region has been running for 45 days, currently utilizing 78% of its CPU and 12.4 GB of its 16 GB of memory, with 234 GB of its 500 GB disk capacity used. It is handling 127 active connections with a P99 latency of 145 milliseconds and an error rate of just 3 per hour.",
+  "score": 5,
+  "cost": 6.412e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 90
+  }
+}

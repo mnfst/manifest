@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 23,
+  "response": "{\"name\": \"send_message\", \"arguments\": {\"channel\": \"engineering\", \"text\": \"Deploy complete\"}}",
+  "score": 5,
+  "cost": 5.684000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 78
+  }
+}

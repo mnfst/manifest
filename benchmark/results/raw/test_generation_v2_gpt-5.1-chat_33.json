@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 33,
+  "response": "Below is a set of pytest\u2011style unit tests covering:\n\n\u2022 Happy paths  \n\u2022 Edge cases (empty dict, nested empties, non\u2011string keys)  \n\u2022 Error cases (non\u2011dict input, invalid separator, etc.)\n\nNo special formatting is used so the tests can be parsed easily.\n\n---------------------------------------\n\ndef test_flatten_simple():\n    from your_module import flatten_dict\n    data = {\"a\": 1, \"b\": 2}\n    assert flatten_dict(data) == {\"a\": 1, \"b\": 2}\n\ndef test_flatten_nested():\n    from your_module import flatten_dict\n    data = {\"a\": {\"b\": {\"c\": 1}}, \"d\": 2}\n    result = flatten_dict(data)\n    assert result == {\"a.b.c\": 1, \"d\": 2}\n\ndef test_flatten_multiple_levels():\n    from your_module import flatten_dict\n    data = {\"a\": {\"x\": 1}, \"b\": {\"y\": {\"z\": 2}}, \"c\": 3}\n    result = flatten_dict(data)\n    assert result == {\"a.x\": 1, \"b.y.z\": 2, \"c\": 3}\n\ndef test_flatten_with_custom_separator():\n    from your_module import flatten_dict\n    data = {\"a\": {\"b\": 1}}\n    result = flatten_dict(data, sep=\"_\")\n    assert result == {\"a_b\": 1}\n\ndef test_empty_dict():\n    from your_module import flatten_dict\n    assert flatten_dict({}) == {}\n\ndef test_nested_empty_dict():\n    from your_module import flatten_dict\n    data = {\"a\": {}}\n    result = flatten_dict(data)\n    assert result == {}  # no entries produced\n\ndef test_non_string_keys():\n    from your_module import flatten_dict\n    data = {1: {2: 3}}\n    # keys will be converted to string implicitly via f-string\n    result = flatten_dict(data)\n    assert result == {\"1.2\": 3}\n\ndef test_mixed_value_types():\n    from your_module import flatten_dict\n    data = {\"a\": {\"b\": None}, \"c\": True, \"d\": 5.5}\n    assert flatten_dict(data) == {\"a.b\": None, \"c\": True, \"d\": 5.5}\n\ndef test_error_non_dict_input():\n    from your_module import flatten_dict\n    import pytest\n    with pytest.raises(AttributeError):\n        flatten_dict(123)  # calling .items() on non-dict triggers AttributeError\n\ndef test_error_invalid_sep_type():\n    from your_module import flatten_dict\n    import pytest\n    # sep must be a string because it is concatenated; otherwise TypeError\n    with pytest.raises(TypeError):\n        flatten_dict({\"a\": {\"b\": 1}}, sep=5)\n\n---------------------------------------\n\nIf you want, I can also provide parameterized or fixture-based tests.",
+  "score": 4,
+  "cost": 0.005098,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 606
+  }
+}

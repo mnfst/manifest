@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "Here are pytest\u2011style unit tests covering happy path, edge cases, and error cases (invalid input):\n\n```python\nimport pytest\nfrom your_module import flatten\n\ndef test_flatten_simple():\n    assert flatten([1, 2, 3]) == [1, 2, 3]\n\ndef test_flatten_nested():\n    assert flatten([1, [2, 3], 4]) == [1, 2, 3, 4]\n\ndef test_flatten_deeply_nested():\n    assert flatten([1, [2, [3, [4]]]]) == [1, 2, 3, 4]\n\ndef test_flatten_with_empty_lists():\n    assert flatten([1, [], [2, [], [3, []]]]) == [1, 2, 3]\n\ndef test_flatten_empty_input():\n    assert flatten([]) == []\n\ndef test_flatten_mixed_types():\n    assert flatten([1, \"a\", [True, [None]]]) == [1, \"a\", True, None]\n\ndef test_flatten_does_not_modify_original():\n    data = [1, [2, 3]]\n    original_copy = [1, [2, 3]]\n    flatten(data)\n    assert data == original_copy\n\ndef test_flatten_invalid_input_non_list():\n    with pytest.raises(TypeError):\n        flatten(\"not a list\")\n\ndef test_flatten_invalid_input_partial_non_list():\n    # This should NOT raise; non-lists are appended, only the top-level must be a list\n    assert flatten([1, 2, \"abc\"]) == [1, 2, \"abc\"]\n```",
+  "score": 4,
+  "cost": 0.002964,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 351
+  }
+}

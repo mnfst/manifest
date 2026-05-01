@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "json_transform_v2",
+  "case": 19,
+  "response": "{\"event_type\":\"signup\",\"date\":\"2024-03-15\",\"time\":\"14:30\",\"user_id\":\"u_123\",\"attribution\":{\"source\":\"google_ads\",\"platform\":\"mobile\"}}",
+  "score": 5,
+  "cost": 0.00011130000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 165
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The proposed Japan launch plan outlines a May legal-entity setup, June localization, July beta with 10 customers, and August general availability, backed by a $200K budget ($50K legal, $80K localization, $70K local hire). It requests CEO approval to proceed.",
+  "score": 5,
+  "cost": 0.0015697,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 333
+  }
+}

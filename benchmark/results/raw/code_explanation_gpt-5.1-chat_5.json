@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 5,
+  "response": "This code implements the Singleton pattern by overriding __new__ so that the class creates only one instance. Any subsequent instantiations return the same previously created object stored in the class-level _instance variable.",
+  "score": 5,
+  "cost": 0.0005,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 44
+  }
+}

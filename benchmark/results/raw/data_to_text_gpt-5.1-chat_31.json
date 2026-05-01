@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "data_to_text",
+  "case": 31,
+  "response": "Taylor Swift\u2019s 2022 album *Midnights* is a 13\u2011track pop and synth\u2011pop release running 44 minutes. Debuting in October 2022, it earned 1.58 million first\u2011week sales and has accumulated 3.4 billion Spotify streams, ultimately winning the Grammy for Album of the Year.",
+  "score": 5,
+  "cost": 0.000776,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 73
+  }
+}

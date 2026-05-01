@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function splits an iterable into two independent iterators using `itertools.tee`: one yielding items that satisfy the given predicate (`filter`), and one yielding items that do not (`filterfalse`). It implements a classic partitioning pattern without consuming the original iterable.",
+  "score": 5,
+  "cost": 0.00064,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 63
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "Length is 3 yards = 9 feet.  \nArea = 360 square feet, so width = 360 \u00f7 9 = 40 feet.  \nPerimeter = 2 \u00d7 (9 + 40) = 98 feet.\n\nANSWER: 98",
+  "score": 4,
+  "cost": 0.00066,
+  "expected": "98",
+  "tokens": {
+    "input": 74,
+    "output": 64
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Step 1: Eve originally had 20 pomelos.  \nStep 2: She is left with 1/4 of her original pomelos, which is (1/4) \u00d7 20 = 5 pomelos.  \nStep 3: The number of pomelos she gave away is the original minus the remaining: 20 \u2212 5 = 15.  \n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.0013750000000000001,
+  "expected": "15",
+  "tokens": {
+    "input": 82,
+    "output": 292
+  }
+}

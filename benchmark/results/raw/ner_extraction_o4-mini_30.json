@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "{\"persons\":[\"Justin Trudeau\"],\"organizations\":[\"General Assembly\",\"United Nations\"],\"locations\":[\"New York\"]}",
+  "score": 5,
+  "cost": 0.0016654,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 361
+  }
+}

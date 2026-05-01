@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n    return -1\ncount = m - n + 1\ntotal = (n + m) * count // 2\nquotient = total // count\nremainder = total % count\nif remainder * 2 < count:\n    rounded = quotient\nelif remainder * 2 > count:\n    rounded = quotient + 1\nelse:\n    if quotient % 2 == 0:\n        rounded = quotient\n    else:\n        rounded = quotient + 1\nreturn bin(rounded)",
+  "score": 4,
+  "cost": 0.0008554000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 1484
+  }
+}

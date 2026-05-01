@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "A programmer, clever Dave,\nFound a bug that he couldn't quite save.\nSaid, \"It's not a glitch,\nIt's a feature, you witch!\"\nThen he crashed, and went straight to his grave.",
+  "score": 4,
+  "cost": 2.8280000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 47
+  }
+}

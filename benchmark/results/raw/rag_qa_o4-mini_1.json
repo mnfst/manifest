@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "The Great Plague of London occurred in 1665.",
+  "score": 0,
+  "cost": 0.0007128000000000001,
+  "expected": "1665",
+  "tokens": {
+    "input": 268,
+    "output": 95
+  }
+}

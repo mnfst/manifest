@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "[ ] Lettuce  \n[ ] Tomatoes  \n[ ] Cucumbers  \n[ ] Red onions  \n[ ] Olive oil  \n[ ] Lemon juice or vinegar  \n[ ] Salt  \n[ ] Pepper",
+  "score": 5,
+  "cost": 0.00042,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 48
+  }
+}

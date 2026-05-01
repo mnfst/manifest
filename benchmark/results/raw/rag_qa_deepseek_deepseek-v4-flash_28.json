@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "He informed them of the French claims on the territory and told them to leave.",
+  "score": 0,
+  "cost": 8.064000000000001e-05,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 212,
+    "output": 91
+  }
+}

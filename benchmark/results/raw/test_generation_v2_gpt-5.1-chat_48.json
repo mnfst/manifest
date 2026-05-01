@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 48,
+  "response": "Here are pytest-style unit tests covering happy path, edge cases, and error cases.  \n(Using code blocks is fine unless you say otherwise.)\n\n```python\nimport pytest\n\nfrom your_module import trie_insert_search  # adjust import as needed\n\n\ndef test_insert_and_search_happy_path():\n    insert, search = trie_insert_search()\n\n    insert(\"cat\")\n    insert(\"car\")\n    insert(\"dog\")\n\n    assert search(\"cat\") is True\n    assert search(\"car\") is True\n    assert search(\"dog\") is True\n\n    # prefixes not stored as full words\n    assert search(\"ca\") is False\n    assert search(\"do\") is False\n\n\ndef test_search_nonexistent_word():\n    insert, search = trie_insert_search()\n\n    insert(\"hello\")\n\n    assert search(\"hell\") is False\n    assert search(\"world\") is False\n    assert search(\"\") is False\n\n\ndef test_insert_empty_string():\n    insert, search = trie_insert_search()\n\n    insert(\"\")\n\n    # empty string is now a stored word\n    assert search(\"\") is True\n    # but other words are still not found\n    assert search(\"a\") is False\n\n\ndef test_search_after_multiple_inserts_sharing_prefix():\n    insert, search = trie_insert_search()\n\n    insert(\"a\")\n    insert(\"ab\")\n    insert(\"abc\")\n\n    assert search(\"a\") is True\n    assert search(\"ab\") is True\n    assert search(\"abc\") is True\n    assert search(\"abcd\") is False\n\n\ndef test_special_characters():\n    insert, search = trie_insert_search()\n\n    insert(\"h@t\")\n    insert(\"123\")\n    insert(\"space bar\")\n\n    assert search(\"h@t\") is True\n    assert search(\"123\") is True\n    assert search(\"space bar\") is True\n    assert search(\"space\") is False\n\n\ndef test_error_insert_non_string():\n    insert, search = trie_insert_search()\n\n    with pytest.raises(TypeError):\n        insert(None)\n\n    with pytest.raises(TypeError):\n        insert(123)\n\n    with pytest.raises(TypeError):\n        insert(['a', 'b'])\n\n\ndef test_error_search_non_string():\n    insert, search = trie_insert_search()\n\n    insert(\"test\")\n\n    with pytest.raises(TypeError):\n        search(None)\n\n    with pytest.raises(TypeError):\n        search(123)\n\n    with pytest.raises(TypeError):\n        search(['t'])\n```\n\nIf you want, I can also propose improvements to the original function to make input validation explicit.",
+  "score": 4,
+  "cost": 0.004416,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 522
+  }
+}

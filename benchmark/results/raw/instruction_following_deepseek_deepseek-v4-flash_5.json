@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sky bleeds into a gradient of amber and rose, deepening to violet at the horizon. Clouds catch the last light, their edges glowing like embers, while the sun sinks\u2014a molten coin dissolving into a haze of peach and gold. Shadows stretch long and cool across the ground, and the air carries a quiet warmth, tinged with the scent of dust and fading day.",
+  "score": 3,
+  "cost": 7.826e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 135
+  }
+}

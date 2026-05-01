@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "It performs a depth\u2011first search\u2013based topological sort on a directed acyclic graph. The DFS visits each node, pushes it onto a stack after exploring its neighbors, and finally returns the stack in reverse order to produce a valid topological ordering.",
+  "score": 5,
+  "cost": 0.0007,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 61
+  }
+}

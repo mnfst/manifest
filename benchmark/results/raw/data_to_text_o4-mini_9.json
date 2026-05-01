@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 9,
+  "response": "Japan, home to roughly 125 million people, recorded a nominal GDP of $4.2 trillion with annual growth of 1.1%, exported goods worth $756 billion, and boasts a life expectancy of 84.6 years. The labor market remains tight with unemployment at 2.6%, but inflation has risen to 3.2% and the government\u2019s debt load stands at 263% of GDP.",
+  "score": 5,
+  "cost": 0.002277,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 492
+  }
+}

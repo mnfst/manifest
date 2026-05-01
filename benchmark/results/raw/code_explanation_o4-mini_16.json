@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "This helper implements \u201cbounded concurrency\u201d by wrapping each input coroutine in a small inner task that first acquires an asyncio.Semaphore (so no more than limit tasks run at once) and then awaiting the real coroutine, before finally gathering all those wrapped tasks with asyncio.gather.",
+  "score": 5,
+  "cost": 0.0024057,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 526
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "The classroom has 30 boys. The number of girls is 3 times that, so 90. The number of nongendered children is 1/10 of the boys, so 3. The total is 30 + 90 + 3 = 123.\n\nANSWER: 123",
+  "score": 1,
+  "cost": 0.00013188000000000002,
+  "expected": "123",
+  "tokens": {
+    "input": 86,
+    "output": 214
+  }
+}

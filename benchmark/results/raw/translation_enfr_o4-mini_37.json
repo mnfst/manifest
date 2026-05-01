@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "L\u2019alin\u00e9a 104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu\u2019il s\u2019applique nonobstant l\u2019alin\u00e9a 248(25) de la Loi. L\u2019alin\u00e9a 248(25) de la Loi d\u00e9crit, pour d\u2019autres fins de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est r\u00e9put\u00e9e avoir un int\u00e9r\u00eat b\u00e9n\u00e9ficiaire dans une fiducie.",
+  "score": 5,
+  "cost": 0.003949,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 875
+  }
+}

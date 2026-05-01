@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 29,
+  "response": "",
+  "score": 1,
+  "cost": 0.0089606,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 2000
+  }
+}

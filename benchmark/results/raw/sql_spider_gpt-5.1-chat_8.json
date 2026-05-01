@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT cl.language) AS total_official_languages\nFROM country c\nJOIN countrylanguage cl ON c.code = cl.countrycode\nWHERE cl.isofficial = 'T'\n  AND c.indepyear < 1930;",
+  "score": 5,
+  "cost": 0.001144,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 123
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "SELECT name FROM country WHERE continent = 'Africa' AND population < ANY (SELECT population FROM country WHERE continent = 'Asia');",
+  "score": 5,
+  "cost": 0.00017052000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 286
+  }
+}

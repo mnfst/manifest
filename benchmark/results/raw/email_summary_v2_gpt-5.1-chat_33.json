@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 engagement survey shows strong overall scores, with team collaboration rated highest and career growth clarity needing improvement. The People Team proposes quarterly career conversations, an internal mobility program, and mentorship matching, with a town hall on Friday to discuss next steps.",
+  "score": 5,
+  "cost": 0.00066,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 54
+  }
+}

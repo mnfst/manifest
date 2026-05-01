@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "SELECT s.title\nFROM tvshow s\nJOIN director d ON s.director_id = d.id\nWHERE d.name = 'Ben Jones'\n  AND s.type = 'Cartoon';",
+  "score": 5,
+  "cost": 0.006238100000000001,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 1401
+  }
+}

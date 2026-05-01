@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This function implements the Sieve of Eratosthenes to find all prime numbers up to n: it keeps a boolean list marking candidates as prime, then for each i from 2 to \u221an it marks every multiple of i (starting at i\u00b2) as non-prime, and finally returns the numbers still flagged as prime.",
+  "score": 5,
+  "cost": 0.0013739000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 279
+  }
+}

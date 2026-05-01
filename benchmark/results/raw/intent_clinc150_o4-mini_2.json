@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "intent_clinc150",
+  "case": 2,
+  "response": "report_lost_card",
+  "score": 5,
+  "cost": 0.0009471000000000001,
+  "expected": "report_lost_card",
+  "tokens": {
+    "input": 513,
+    "output": 87
+  }
+}

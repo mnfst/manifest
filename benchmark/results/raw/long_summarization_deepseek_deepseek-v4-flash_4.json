@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles have evolved from early 1830s experiments to Tesla's industry disruption, facing technical hurdles in battery technology, charging infrastructure, and environmental debates over lithium and cobalt mining. Legacy automakers like Ford, GM, and VW are transitioning their fleets, while China leads as the world's largest EV market and manufacturer. Key concerns include range anxiety, charging times, and grid capacity, with solid-state batteries emerging as a potential solution. Government incentives play a crucial role in accelerating adoption.",
+  "score": 5,
+  "cost": 0.00014056,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 218
+  }
+}

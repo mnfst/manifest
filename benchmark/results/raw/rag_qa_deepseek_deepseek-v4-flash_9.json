@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "70Based on the context, the winter temperature range is given as \"70-50's\". The high end of this range is 70. \n\nAnswer: 70",
+  "score": 2,
+  "cost": 5.712e-05,
+  "expected": "70",
+  "tokens": {
+    "input": 140,
+    "output": 67
+  }
+}

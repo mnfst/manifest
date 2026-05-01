@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "SELECT c.name AS conductor_name, o.name AS orchestra_name\nFROM conductors c\nINNER JOIN conductor_orchestra co ON c.conductor_id = co.conductor_id\nINNER JOIN orchestras o ON co.orchestra_id = o.orchestra_id;",
+  "score": 5,
+  "cost": 0.005462600000000001,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 1222
+  }
+}

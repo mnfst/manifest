@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\n    count = 0\n    for num in arr:\n        if num == 0:\n            continue\n        s = str(num)\n        # handle negative sign: first digit is negative\n        if s[0] == '-':\n            total = -int(s[1])  # first signed digit negative\n            for ch in s[2:]:\n                total += int(ch)\n        else:\n            total = sum(int(ch) for ch in s)\n        if total > 0:\n            count += 1\n    return count\n```",
+  "score": 4,
+  "cost": 0.00036946000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 620
+  }
+}

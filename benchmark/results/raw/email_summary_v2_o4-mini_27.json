@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The team successfully shipped the auth redesign on time with strong cross-team collaboration, but efficiency suffered due to juggling three different projects and 25-minute standups instead of the 15-minute goal. To address this, the Scrum Master will limit each developer\u2019s work-in-progress to two items and enforce timeboxed standups with a parking lot for off-topic discussions.",
+  "score": 5,
+  "cost": 0.0019404000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 415
+  }
+}

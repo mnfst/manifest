@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "The mobile app's crash rate spiked to 2.3% on Android 12+ due to a null pointer in the notification handler, prompting an emergency release fix to be submitted to the Play Store. No action is required from the recipient, as the fix has already been merged and submitted.",
+  "score": 5,
+  "cost": 9.646000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 149
+  }
+}

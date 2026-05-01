@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 43,
+  "response": "{\"name\":\"git_revert\",\"arguments\":{\"commit\":\"HEAD\"}}",
+  "score": 4,
+  "cost": 0.0016533000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 352
+  }
+}

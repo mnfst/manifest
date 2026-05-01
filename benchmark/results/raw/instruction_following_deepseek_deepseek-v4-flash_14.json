@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated in style with our double-wall insulated stainless steel water bottle, keeping drinks cold for 24 hours or hot for 12. The leak-proof lid and wide mouth make it perfect for gym, office, or outdoor adventures. Durable, BPA-free, and reusable\u2014your eco-friendly companion for every sip.",
+  "score": 5,
+  "cost": 5.9640000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 102
+  }
+}

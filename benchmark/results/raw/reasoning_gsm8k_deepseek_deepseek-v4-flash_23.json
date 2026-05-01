@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "The initial cost per balloon is $900 / 20 = $45. After a $20 increase, the new cost per balloon is $45 + $20 = $65. For 170 balloons, the total cost is 170 \u00d7 $65 = $11,050.\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.00017108000000000002,
+  "expected": "11050",
+  "tokens": {
+    "input": 94,
+    "output": 282
+  }
+}

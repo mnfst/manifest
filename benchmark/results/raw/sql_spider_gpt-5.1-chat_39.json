@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "SELECT c.name AS conductor_name,\n       o.name AS orchestra_name\nFROM conductors c\nJOIN performances p ON c.conductor_id = p.conductor_id\nJOIN orchestras o ON p.orchestra_id = o.orchestra_id;",
+  "score": 5,
+  "cost": 0.00062,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 58
+  }
+}

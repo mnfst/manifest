@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 43,
+  "response": "Here are pytest\u2011style unit tests for the function. All code is plain text so it can be parsed cleanly.\n\n```\nimport pytest\n\nfrom your_module import partial\n\n\ndef test_partial_happy_path_positional_only():\n    def add(a, b, c):\n        return a + b + c\n\n    p = partial(add, 1, 2)\n    assert p(3) == 6\n\n\ndef test_partial_happy_path_keyword_only():\n    def greet(first, last, title):\n        return f\"{title} {first} {last}\"\n\n    p = partial(greet, title=\"Dr.\")\n    assert p(\"Ada\", \"Lovelace\") == \"Dr. Ada Lovelace\"\n\n\ndef test_partial_combination_positional_and_keyword():\n    def f(a, b, c, d=0):\n        return a + b + c + d\n\n    p = partial(f, 10, d=5)\n    assert p(1, 2) == 18   # 10 + 1 + 2 + 5\n\n\ndef test_partial_keyword_override_by_call_arguments():\n    def f(a, b=0):\n        return a + b\n\n    p = partial(f, b=10)\n    assert p(5, b=3) == 8   # call kwargs override partial kwargs\n\n\ndef test_partial_no_extra_args():\n    def f():\n        return \"ok\"\n\n    p = partial(f)\n    assert p() == \"ok\"\n\n\ndef test_partial_empty_partial_kwargs_then_call_kwargs():\n    def f(a=0, b=0):\n        return a * b\n\n    p = partial(f)\n    assert p(a=3, b=4) == 12\n\n\ndef test_partial_error_missing_positional_arguments():\n    def f(a, b):\n        return a + b\n\n    p = partial(f, 1)\n    with pytest.raises(TypeError):\n        # missing required 'b'\n        p()\n\n\ndef test_partial_error_unexpected_keyword():\n    def f(a):\n        return a\n\n    p = partial(f)\n    with pytest.raises(TypeError):\n        p(a=1, b=2)\n\n\ndef test_partial_with_none_arguments():\n    def f(a, b):\n        return (a, b)\n\n    p = partial(f, None)\n    assert p(5) == (None, 5)\n\n\ndef test_partial_order_of_kwargs_merge():\n    def f(**kwargs):\n        return kwargs\n\n    p = partial(f, x=1, y=2)\n    assert p(y=3, z=4) == {\"x\": 1, \"y\": 3, \"z\": 4}\n```",
+  "score": 4,
+  "cost": 0.004588,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 553
+  }
+}

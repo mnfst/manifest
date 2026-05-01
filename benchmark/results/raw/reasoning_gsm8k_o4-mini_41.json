@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let H = number of copies Harald sold.  \nThen Marilyn sold M = 10H copies.  \nTogether they sold M + H = 88,000 copies, so:  \n10H + H = 88,000  \n11H = 88,000  \nH = 88,000 \u00f7 11  \nH = 8,000  \n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.0010692,
+  "expected": "8000",
+  "tokens": {
+    "input": 72,
+    "output": 225
+  }
+}

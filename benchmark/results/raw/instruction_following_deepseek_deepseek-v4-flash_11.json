@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Is this a test of my ability to follow instructions? Should I ask only questions? How many questions would be appropriate? Do you want them to be related to the original message?",
+  "score": 5,
+  "cost": 8.008e-05,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 140
+  }
+}

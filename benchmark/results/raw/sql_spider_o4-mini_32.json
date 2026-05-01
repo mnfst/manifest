@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT p.first_name,\n       AVG(pr.ranking) AS average_ranking\nFROM wta_1.players p\nLEFT JOIN wta_1.player_rankings pr\n  ON p.player_id = pr.player_id\nGROUP BY p.first_name;",
+  "score": 5,
+  "cost": 0.0032054000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 710
+  }
+}

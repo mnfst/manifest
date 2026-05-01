@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Let S be the number of steps Elliott took during his jog.\n\n1. Elliott\u2019s daily goal is 10,000 steps.  \n2. He completed half of his goal on his walks to and from school:  \n   Half of 10,000 is 10,000 \u00f7 2 = 5,000 steps.  \n3. He then did another 1,000 steps walking with his friend, bringing his total so far to 5,000 + 1,000 = 6,000 steps.  \n4. After jogging, he has only 2,000 steps left to reach 10,000. That means after jogging he has taken 10,000 \u2212 2,000 = 8,000 steps in total.  \n5. Therefore, the jog accounted for the increase from 6,000 steps to 8,000 steps:  \n   S = 8,000 \u2212 6,000 = 2,000 steps.\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.0019547,
+  "expected": "2000",
+  "tokens": {
+    "input": 125,
+    "output": 413
+  }
+}

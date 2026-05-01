@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. Choose sufficient length  \n   Aim for at least 12\u201316 characters. Longer passwords are exponentially harder to crack.\n\n2. Include character variety  \n   Mix uppercase letters (A\u2013Z), lowercase letters (a\u2013z), digits (0\u20139) and special symbols (e.g., !, #, %, &).\n\n3. Avoid predictable patterns  \n   Don\u2019t use sequential characters (1234, abcd), repeated characters (aaaa, 1111) or common substitutions (P@ssw0rd).\n\n4. Steer clear of personal information  \n   Never include your name, birthdate, username, or common phrases related to you.\n\n5. Consider a passphrase  \n   Combine several unrelated words into a single phrase (e.g., \u201coceanBattery!7TulipHorse\u201d) for memorability + strength.\n\n6. Make each password unique  \n   Use a different password for every important account so that a breach on one site doesn\u2019t compromise others.\n\n7. Use a reputable password manager  \n   Let it generate and store complex, random passwords for you\u2014this removes the burden of remembering them all.\n\n8. Enable multi-factor authentication (MFA)  \n   Wherever possible, add a second verification step (e.g., a code sent to your phone) to greatly increase account security.",
+  "score": 4,
+  "cost": 0.0018315000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 412
+  }
+}

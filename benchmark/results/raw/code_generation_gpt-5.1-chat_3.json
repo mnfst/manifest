@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 3,
+  "response": "```\nreturn [i * xs[i] for i in range(1, len(xs))]\n```",
+  "score": 4,
+  "cost": 0.000516,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 30
+  }
+}

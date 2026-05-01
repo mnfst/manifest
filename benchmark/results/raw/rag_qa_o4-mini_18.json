@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom.",
+  "score": 5,
+  "cost": 0.0005709,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 171,
+    "output": 87
+  }
+}

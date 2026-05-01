@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "In the 2020s, SpaceX\u2019s Starship development has accelerated plans for crewed Moon and Mars missions while NASA\u2019s Artemis program aims to return astronauts to the lunar surface by mid-decade, and the James Webb Space Telescope has already delivered groundbreaking infrared views of the early universe. China\u2019s Tiangong station and future lunar ambitions, along with India\u2019s successful Chandrayaan missions, highlight intensifying global competition, even as private satellite broadband constellations like Starlink (over 3,000 satellites) and OneWeb expand connectivity. Blue Origin and Virgin Galactic have opened the era of space tourism and several startups are eyeing asteroid mining, but the 1967 Outer Space Treaty has not kept pace with resource extraction claims. Meanwhile, orbital overcrowding and more than 34,000 tracked debris objects larger than 10 cm pose growing collision and safety risks.",
+  "score": 5,
+  "cost": 0.0035409,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 772
+  }
+}

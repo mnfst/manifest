@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT c.Name\nFROM country AS c\nJOIN countrylanguage AS cl ON c.Code = cl.CountryCode\nWHERE cl.Language IN ('English', 'French')\nGROUP BY c.Name\nHAVING COUNT(DISTINCT cl.Language) = 2;",
+  "score": 5,
+  "cost": 0.0017897,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 389
+  }
+}

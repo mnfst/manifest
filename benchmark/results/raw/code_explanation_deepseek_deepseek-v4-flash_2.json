@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "This code implements the **Quicksort** algorithm using a **divide-and-conquer** approach: it selects the middle element as the pivot, partitions the array into three lists (elements less than, equal to, and greater than the pivot), then recursively sorts the left and right partitions before concatenating them with the middle.",
+  "score": 5,
+  "cost": 5.3060000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 66
+  }
+}

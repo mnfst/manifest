@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Q1 results show improved customer metrics (NPS 62, CSAT 4.3/5, churn down to 1.2%) and highlight top feature requests including SSO, custom dashboards, and higher API rate limits. The CS team also reports three enterprise expansion opportunities totaling $800K that may require follow\u2011up.",
+  "score": 5,
+  "cost": 0.000854,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 78
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "Sur sa part, le deuxi\u00e8me atelier s\u2019est concentr\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de supervision des instances conventionnelles \u00e0 l\u2019\u00c9tat du Cameroun, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones.",
+  "score": 4,
+  "cost": 0.000658,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 66
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "SELECT DISTINCT m.name \nFROM makers m \nJOIN cars c ON m.maker_id = c.maker_id \nWHERE c.year = 1970;",
+  "score": 5,
+  "cost": 0.00014322,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 237
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The Urarina.",
+  "score": 5,
+  "cost": 0.0008338000000000001,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 154,
+    "output": 151
+  }
+}

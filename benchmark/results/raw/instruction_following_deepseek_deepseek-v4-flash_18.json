@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "In a world where memory can be surgically removed and emotions are traded like currency, a man discovers that his most painful recollections are the only things keeping him human. He embarks on a journey through a sterile, controlled society to reclaim a past he was forced to forget, only to find that the truth he seeks is both a weapon and a cage. The story unfolds through fragmented, poetic prose, blurring the line between reality and illusion, love and loss, freedom and submission.",
+  "score": 5,
+  "cost": 5.754000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 99
+  }
+}

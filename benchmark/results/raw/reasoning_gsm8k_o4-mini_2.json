@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "First, compute the distance Tom travels outwards. He sails from 1 PM to 4 PM, which is 3 hours, at 10 mph.\n\nDistance = speed \u00d7 time = 10 mph \u00d7 3 h = 30 miles.\n\nOn the return, he covers the same 30 miles at 6 mph.\n\nTime to return = distance / speed = 30 miles / 6 mph = 5 hours.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0012012000000000001,
+  "expected": "5",
+  "tokens": {
+    "input": 88,
+    "output": 251
+  }
+}

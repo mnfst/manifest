@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 46,
+  "response": "",
+  "score": 1,
+  "cost": 0.00018004000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 300
+  }
+}

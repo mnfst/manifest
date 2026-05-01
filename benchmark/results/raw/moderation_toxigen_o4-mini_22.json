@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "moderation_toxigen",
+  "case": 22,
+  "response": "toxic",
+  "score": 5,
+  "cost": 0.0012892000000000003,
+  "expected": "toxic",
+  "tokens": {
+    "input": 64,
+    "output": 277
+  }
+}

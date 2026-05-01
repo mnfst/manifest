@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "Each duck eats 3.5 pounds per week.  \nTen ducks eat 10 \u00d7 3.5 = 35 pounds per week.  \nThere are 7 days in a week, so per day they need 35 \u00f7 7 = 5 pounds.\n\nANSWER: 5",
+  "score": 4,
+  "cost": 0.000704,
+  "expected": "5",
+  "tokens": {
+    "input": 76,
+    "output": 69
+  }
+}

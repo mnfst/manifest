@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements the Circuit Breaker pattern: it tracks consecutive failures of a function call and, once a threshold is reached, opens the circuit to block further calls until a timeout expires. After the timeout, it moves to a half\u2011open state to test recovery, closing the circuit again if the next call succeeds.",
+  "score": 5,
+  "cost": 0.00093,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 67
+  }
+}

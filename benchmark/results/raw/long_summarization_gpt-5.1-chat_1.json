@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 1,
+  "response": "Quantum computing uses qubits that can exist in superposition and become entangled, enabling certain computations far faster than classical computers. Major companies including IBM, Google, IonQ, and Rigetti are pursuing different hardware approaches, and Google claimed in 2019 to perform a task in 200 seconds that would take a classical supercomputer 10,000 years. Despite rapid progress, quantum systems remain limited by fragile qubits, high error rates, and the need for millions of qubits to achieve practical usefulness. Still, the technology shows strong potential in fields like drug discovery, materials science, cryptography, finance, and logistics.",
+  "score": 5,
+  "cost": 0.001592,
+  "expected": "",
+  "tokens": {
+    "input": 276,
+    "output": 130
+  }
+}

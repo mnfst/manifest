@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "Lena found an old brass key buried beneath the loose floorboard in her attic.  \nShe felt a strange pull, as if the key wanted to be used.  \nThat night, a faint glow seeped from the forgotten wardrobe in the corner of her room.  \nWhen she turned the key in its lock, the wardrobe opened onto a moonlit forest she had never seen before.  \nA small fox with silver eyes approached and bowed, as though expecting her arrival.  \nWith a deep breath, Lena stepped through, letting the door close softly behind her.",
+  "score": 5,
+  "cost": 0.001008,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 122
+  }
+}

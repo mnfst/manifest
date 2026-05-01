@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world\u2019s economy grew significantly on a global scale.",
+  "score": 1,
+  "cost": 0.0012232,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 224,
+    "output": 222
+  }
+}

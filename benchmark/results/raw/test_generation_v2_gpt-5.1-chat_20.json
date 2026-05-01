@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 20,
+  "response": "Here are pytest-style unit tests written in plain text (no Markdown or code fences). You can copy them directly into a test file such as test_zip_dicts.py.\n\nfrom pytest import raises\n\nfrom your_module import zip_dicts\n\n\ndef test_zip_dicts_happy_path():\n    d1 = {\"a\": 1, \"b\": 2}\n    d2 = {\"a\": 10, \"b\": 20}\n    result = zip_dicts(d1, d2)\n    assert result == {\"a\": [1, 10], \"b\": [2, 20]}\n\n\ndef test_zip_dicts_different_keys():\n    d1 = {\"a\": 1, \"b\": 2}\n    d2 = {\"b\": 3, \"c\": 4}\n    result = zip_dicts(d1, d2)\n    assert result == {\n        \"a\": [1, None],   # missing from d2\n        \"b\": [2, 3],\n        \"c\": [None, 4],   # missing from d1\n    }\n\n\ndef test_zip_dicts_single_dict():\n    d1 = {\"x\": 5}\n    result = zip_dicts(d1)\n    assert result == {\"x\": [5]}\n\n\ndef test_zip_dicts_no_dicts():\n    result = zip_dicts()\n    # Union of no dicts = empty set; result should be empty dict\n    assert result == {}\n\n\ndef test_zip_dicts_with_empty_dicts():\n    d1 = {}\n    d2 = {}\n    result = zip_dicts(d1, d2)\n    assert result == {}\n\n\ndef test_zip_dicts_handles_None_values():\n    d1 = {\"a\": None}\n    d2 = {\"a\": 3}\n    result = zip_dicts(d1, d2)\n    assert result == {\"a\": [None, 3]}\n\n\ndef test_zip_dicts_non_dict_input_error():\n    # The function will break when set().union(*dicts) receives non-dict\n    with raises(TypeError):\n        zip_dicts({\"a\": 1}, [\"not a dict\"])",
+  "score": 4,
+  "cost": 0.004302,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 519
+  }
+}

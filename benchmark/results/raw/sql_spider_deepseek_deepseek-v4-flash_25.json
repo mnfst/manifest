@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "SELECT * FROM tvshow WHERE genre = 'Cartoon' AND director = 'Ben Jones';",
+  "score": 5,
+  "cost": 2.0300000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 20
+  }
+}

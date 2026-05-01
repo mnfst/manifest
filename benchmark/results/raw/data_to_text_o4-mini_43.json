@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 43,
+  "response": "DataFlow AI, founded in 2022, has quickly emerged in the data infrastructure sector, closing an $8.5 million Series A round led by Sequoia and Y Combinator and securing a $42 million valuation. With an 18-person team driving $120K in monthly recurring revenue and achieving 25% month-over-month growth, the startup is poised for continued momentum.",
+  "score": 5,
+  "cost": 0.0019811,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 425
+  }
+}

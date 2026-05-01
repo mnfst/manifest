@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 34,
+  "response": "The global food system is strained by rising demand, with a projected 9.7 billion people by 2050 requiring 60% more food production. Climate change, water scarcity, and soil degradation are simultaneously reducing yields, while agriculture contributes about 25% of global greenhouse gas emissions. One-third of all food produced is lost or wasted, further worsening the gap between supply and demand. Proposed solutions range from precision and regenerative agriculture to alternative proteins and policy reforms, but scaling them effectively while keeping food affordable remains a major challenge.",
+  "score": 5,
+  "cost": 0.001464,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 110
+  }
+}

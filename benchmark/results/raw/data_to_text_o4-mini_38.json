@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "In the us-east-1 region, the prod-web-01 server has been up for 45 days with 78% CPU utilization, 12.4 GB of 16 GB memory in use, and 234 GB of 500 GB disk space occupied. It\u2019s currently handling 127 active connections, sees a P99 latency of 145 ms, and records about three errors per hour.",
+  "score": 5,
+  "cost": 0.0016797000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 357
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "Loan amount is 40% of 250,000 = 100,000  \nHe spends 60% of the loan on debts = 60,000  \nMoney left over = 100,000 \u2212 60,000 = 40,000\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.000738,
+  "expected": "40,000",
+  "tokens": {
+    "input": 101,
+    "output": 67
+  }
+}

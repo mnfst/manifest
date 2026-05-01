@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "json_transform_v2",
+  "case": 49,
+  "response": "{\n  \"event_type\": \"signup\",\n  \"date\": \"2024-03-15\",\n  \"time\": \"14:30\",\n  \"user_id\": \"u_123\",\n  \"attribution\": {\n    \"source\": \"google_ads\",\n    \"platform\": \"mobile\"\n  }\n}",
+  "score": 4,
+  "cost": 0.0022011000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 467
+  }
+}

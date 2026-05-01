@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "He needs 10,000 steps total.  \nHe already had 5,000 from walking to/from school and 1,000 more with his friend, totaling 6,000.  \nAfter his jog, he had 8,000 steps completed (because only 2,000 were left).  \nSo his jog added 8,000 \u2212 6,000 = 2,000 steps.\n\nANSWER: 2000",
+  "score": 3,
+  "cost": 0.001538,
+  "expected": "2000",
+  "tokens": {
+    "input": 125,
+    "output": 161
+  }
+}

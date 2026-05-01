@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "function_calling",
+  "case": 7,
+  "response": "{\"name\":\"set_alarm\",\"arguments\":{\"time\":\"6:30 AM tomorrow\",\"label\":\"Morning Workout\"}}",
+  "score": 5,
+  "cost": 0.000444,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 31
+  }
+}

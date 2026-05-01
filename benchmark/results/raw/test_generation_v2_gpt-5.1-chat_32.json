@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 32,
+  "response": "Here are pytest\u2011style unit tests covering happy path, edge cases, and error cases:\n\n```python\nimport pytest\nfrom yourmodule import find_missing\n\ndef test_happy_path_missing_middle():\n    nums = [0, 1, 3, 4]  # missing 2\n    assert find_missing(nums) == 2\n\ndef test_happy_path_missing_first():\n    nums = [1, 2, 3]  # missing 0\n    assert find_missing(nums) == 0\n\ndef test_happy_path_missing_last():\n    nums = [0, 1, 2, 3]  # missing 4\n    assert find_missing(nums) == 4\n\ndef test_empty_list():\n    # Sequence should be [0], so missing number is 0\n    assert find_missing([]) == 0\n\ndef test_single_element_zero():\n    # nums = [0], full sequence [0,1], missing 1\n    assert find_missing([0]) == 1\n\ndef test_single_element_one():\n    # nums = [1], full sequence [0,1], missing 0\n    assert find_missing([1]) == 0\n\ndef test_unsorted_input():\n    nums = [3, 0, 1]  # missing 2\n    assert find_missing(nums) == 2\n\ndef test_duplicates_in_input():\n    nums = [0, 1, 1, 3]  # invalid input; formula gives wrong result\n    # Expected behavior: current implementation returns a mathematically incorrect result,\n    # but test documents that behavior rather than enforcing correctness\n    assert find_missing(nums) == (4 * 5 // 2) - sum(nums)\n\ndef test_non_numeric_values():\n    with pytest.raises(TypeError):\n        find_missing([0, \"1\", 2])\n```\n\nIf you want stricter validation (e.g., raising for duplicates), let me know and I can update the tests accordingly.",
+  "score": 4,
+  "cost": 0.003454,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 412
+  }
+}

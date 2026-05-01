@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP Engineering proposes splitting the Platform team into Infrastructure and Developer Experience teams to resolve the bottleneck where DX work is deprioritized due to infrastructure incidents. The draft org chart is attached for review.",
+  "score": 5,
+  "cost": 8.498000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 130
+  }
+}

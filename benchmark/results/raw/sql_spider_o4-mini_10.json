@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "SELECT SUM(surfacearea) AS total_surface_area\nFROM country\nWHERE region = 'Caribbean';",
+  "score": 4,
+  "cost": 0.0019415,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 423
+  }
+}

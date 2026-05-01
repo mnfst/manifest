@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a stack that can return the minimum element in constant time by maintaining a second stack that tracks the minimum value at each push. Each time a value is pushed, the algorithm stores the smaller of the new value and the previous minimum, so popping restores the correct minimum.",
+  "score": 5,
+  "cost": 0.000718,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 60
+  }
+}

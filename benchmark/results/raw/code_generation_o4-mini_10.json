@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 10,
+  "response": "count = 0\n    for n in arr:\n        t = abs(n)\n        digits = [int(d) for d in str(t)]\n        if n < 0:\n            digits[0] = -digits[0]\n        if sum(digits) > 0:\n            count += 1\n    return count",
+  "score": 4,
+  "cost": 0.0039325,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 855
+  }
+}

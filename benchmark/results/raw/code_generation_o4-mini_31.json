@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 31,
+  "response": "lst = [s for s in lst if len(s) % 2 == 0]\n    return sorted(lst, key=lambda s: (len(s), s))",
+  "score": 4,
+  "cost": 0.002167,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 438
+  }
+}

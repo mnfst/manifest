@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 44,
+  "response": "res = []\n    for c in message:\n        if c.isalpha():\n            sc = c.swapcase()\n            if sc.lower() in 'aeiou':\n                sc = chr(ord(sc) + 2)\n            res.append(sc)\n        else:\n            res.append(c)\n    return ''.join(res)",
+  "score": 3,
+  "cost": 0.0055836,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 1234
+  }
+}

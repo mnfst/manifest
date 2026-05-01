@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Joey's score after his turn: 214 + 26 = 240. Marcy's score after her turn: 225 + 10 = 235. The difference is 240 - 235 = 5.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00010122000000000001,
+  "expected": "5",
+  "tokens": {
+    "input": 79,
+    "output": 161
+  }
+}

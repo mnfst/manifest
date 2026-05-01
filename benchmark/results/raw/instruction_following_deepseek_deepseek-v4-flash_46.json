@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Subject: Farewell and Thank You\n\nDear team, I\u2019m writing to let you know that my time here has come to an end, and I\u2019m truly grateful for the support and collaboration we\u2019ve shared. I\u2019ve learned so much from each of you, and I\u2019ll always appreciate the camaraderie and hard work that made our projects successful. While I\u2019m excited for my next chapter, I\u2019ll miss the daily interactions and the positive energy you all bring. Please stay in touch\u2014you can reach me on LinkedIn or at my personal email. Wishing you continued success and looking forward to crossing paths again in the future.",
+  "score": 5,
+  "cost": 0.00022400000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 396
+  }
+}

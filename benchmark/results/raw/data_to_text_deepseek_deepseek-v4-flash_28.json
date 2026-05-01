@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "The Massachusetts Institute of Technology, ranked #1 globally, enrolls about 11,500 students with an extremely selective 3.9% acceptance rate and charges $57,590 in annual tuition. Boasting a $24.6 billion endowment, 1,069 faculty members, and 98 affiliated Nobel laureates, MIT was founded in 1861.",
+  "score": 5,
+  "cost": 0.00021784000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 365
+  }
+}

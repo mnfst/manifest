@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old clockmaker wound his final creation, a silver pocket watch that hummed with a melody only he could hear. He placed it in the hands of his granddaughter, who had never known the tick of a mechanical heart. That night, the watch stopped at midnight, its song fading into silence. She wept, believing she had broken it, until she felt a warmth spread from the metal case. Inside, a tiny spring had unfurled into a perfect, golden rose. The clockmaker had given her not time, but a moment that would never end.",
+  "score": 5,
+  "cost": 9.716e-05,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 170
+  }
+}

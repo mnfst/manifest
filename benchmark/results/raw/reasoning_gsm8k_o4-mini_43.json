@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Step 1: Identify Mike\u2019s age.  \nMike is 24 years old.\n\nStep 2: Find Martha\u2019s age.  \nMartha is 4 years younger than Mike, so  \nMartha\u2019s age = Mike\u2019s age \u2013 4 = 24 \u2013 4 = 20.\n\nStep 3: Find Jeff\u2019s age.  \nJeff is 10 years older than Martha, so  \nJeff\u2019s age = Martha\u2019s age + 10 = 20 + 10 = 30.\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.0012012000000000004,
+  "expected": "30",
+  "tokens": {
+    "input": 84,
+    "output": 252
+  }
+}

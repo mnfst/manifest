@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 13,
+  "response": "This code implements a simple Observer pattern: functions can subscribe to an `Observable` instance, and whenever `notify` is called, all subscribed functions are invoked with the provided arguments. It allows decoupled event broadcasting to multiple listeners.",
+  "score": 5,
+  "cost": 0.000628,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 57
+  }
+}

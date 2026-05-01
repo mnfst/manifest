@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_review_v2",
+  "case": 48,
+  "response": "",
+  "score": 2,
+  "cost": 0.0088726,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 2000
+  }
+}

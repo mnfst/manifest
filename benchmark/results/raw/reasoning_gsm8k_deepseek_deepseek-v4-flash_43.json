@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Jeff is 10 years older than Martha, and Martha is 4 years younger than Mike, who is 24. So Martha is 24 - 4 = 20 years old, and Jeff is 20 + 10 = 30 years old.\n\nANSWER: 30",
+  "score": 5,
+  "cost": 9.66e-05,
+  "expected": "30",
+  "tokens": {
+    "input": 82,
+    "output": 152
+  }
+}

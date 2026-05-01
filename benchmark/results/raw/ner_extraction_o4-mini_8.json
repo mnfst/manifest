@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 8,
+  "response": "{\"persons\":[\"Elon Musk\"],\"organizations\":[\"Tesla\"],\"locations\":[\"Fremont factory\",\"California\"]}",
+  "score": 4,
+  "cost": 0.0016687000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 362
+  }
+}

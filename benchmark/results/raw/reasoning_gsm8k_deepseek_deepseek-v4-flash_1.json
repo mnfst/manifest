@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 1,
+  "response": "Kalinda adds 4 pieces per minute, and her mom adds half that, which is 2 pieces per minute. Together, they add 6 pieces per minute. For a 360-piece puzzle, the time in minutes is 360 / 6 = 60 minutes, which is 1 hour.\n\nANSWER: 1",
+  "score": 5,
+  "cost": 0.0001225,
+  "expected": "1",
+  "tokens": {
+    "input": 91,
+    "output": 196
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "He has two sons aged 12 and 8, so he needs 20 candles total. Candles come in packs of 5, so he needs 4 packs. Each pack costs $3, so total cost is $12.\n\nANSWER: 12",
+  "score": 4,
+  "cost": 0.000672,
+  "expected": "12",
+  "tokens": {
+    "input": 88,
+    "output": 62
+  }
+}

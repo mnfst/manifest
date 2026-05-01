@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Design System version 3 is now ready for adoption, featuring new dark mode color tokens, a 4px spacing scale, updated Button and Modal components, and includes a migration tool to streamline the upgrade. The Design Team recommends a team-by-team rollout beginning with the Settings page.",
+  "score": 5,
+  "cost": 0.0015499,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 331
+  }
+}

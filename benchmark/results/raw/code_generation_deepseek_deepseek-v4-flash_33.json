@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 33,
+  "response": "sides = sorted([a, b, c])\nreturn sides[0]**2 + sides[1]**2 == sides[2]**2",
+  "score": 5,
+  "cost": 7.028e-05,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 90
+  }
+}

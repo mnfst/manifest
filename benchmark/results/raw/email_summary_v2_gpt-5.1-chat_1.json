@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "The outage was caused by a misconfigured load balancer, resulting in 47 minutes of degraded service affecting 12,000 users. Action items include adding load balancer configuration validation to CI, updating the runbook, and implementing traffic distribution alerts.",
+  "score": 5,
+  "cost": 0.00069,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 60
+  }
+}

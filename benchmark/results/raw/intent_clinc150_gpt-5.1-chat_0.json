@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "intent_clinc150",
+  "case": 0,
+  "response": "rollover_401k",
+  "score": 5,
+  "cost": 0.001148,
+  "expected": "rollover_401k",
+  "tokens": {
+    "input": 514,
+    "output": 15
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "{\"persons\": [], \"organizations\": [\"SpaceX\", \"Starlink\"], \"locations\": [\"Cape Canaveral\"]}",
+  "score": 4,
+  "cost": 0.00035602,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 617
+  }
+}

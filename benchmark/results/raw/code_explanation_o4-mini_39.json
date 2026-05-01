@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "This snippet implements the classic producer\u2013consumer pattern using a thread/process-safe queue: each producer pushes its items into the queue and then a special `None` sentinel to signal \u201cdone,\u201d while each consumer pulls items off the queue, processes them, and when it sees a `None` re-enqueues it for its peers and then exits.",
+  "score": 5,
+  "cost": 0.0021945000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 473
+  }
+}

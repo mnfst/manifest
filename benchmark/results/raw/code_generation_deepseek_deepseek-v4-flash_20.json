@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 20,
+  "response": "```python\n    roman_map = [\n        (1000, 'M'),\n        (900, 'CM'),\n        (500, 'D'),\n        (400, 'CD'),\n        (100, 'C'),\n        (90, 'XC'),\n        (50, 'L'),\n        (40, 'XL'),\n        (10, 'X'),\n        (9, 'IX'),\n        (5, 'V'),\n        (4, 'IV'),\n        (1, 'I')\n    ]\n    result = []\n    for value, symbol in roman_map:\n        while number >= value:\n            result.append(symbol)\n            number -= value\n    return ''.join(result).lower()\n```",
+  "score": 5,
+  "cost": 0.00029428,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 492
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO shared the Q1 board deck draft, highlighting strong revenue (127% of target) and NRR (115%) but a 22% increase in CAC. The recipient must submit their product roadmap section by Wednesday for the board meeting next Tuesday.",
+  "score": 5,
+  "cost": 0.00012026000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 194
+  }
+}

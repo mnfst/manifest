@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "Erg\u00e4nzungsschulen werden vollst\u00e4ndig durch die von den Sch\u00fclern erhobenen Schulgeb\u00fchren finanziert.",
+  "score": 2,
+  "cost": 0.0009020000000000001,
+  "expected": "tuition",
+  "tokens": {
+    "input": 140,
+    "output": 170
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 8,
+  "response": "```python\nresult = []\nfor v in values:\n    if isinstance(v, int) and not isinstance(v, bool):\n        result.append(v)\nreturn result\n```",
+  "score": 5,
+  "cost": 0.000602,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 44
+  }
+}

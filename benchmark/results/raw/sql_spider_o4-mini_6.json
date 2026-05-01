@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "SELECT DISTINCT a.name\nFROM airlines a\nJOIN flights f ON a.airline_id = f.airline_id\nWHERE f.destination_airport = 'AHD';",
+  "score": 5,
+  "cost": 0.0014322,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 308
+  }
+}

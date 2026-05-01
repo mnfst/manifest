@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Colonialism often means a country taking physical control of another.",
+  "score": 5,
+  "cost": 8.694e-05,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 305,
+    "output": 79
+  }
+}

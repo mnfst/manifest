@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 17,
+  "response": "if text == \"\":\n        return None\n    import hashlib\n    return hashlib.md5(text.encode()).hexdigest()",
+  "score": 5,
+  "cost": 0.000486,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 34
+  }
+}

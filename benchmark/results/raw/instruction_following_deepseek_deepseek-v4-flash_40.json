@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are five capital cities, each from a different continent:\n\n1. **Tokyo** (Asia)  \n2. **Paris** (Europe)  \n3. **Nairobi** (Africa)  \n4. **Washington, D.C.** (North America)  \n5. **Bras\u00edlia** (South America)",
+  "score": 5,
+  "cost": 0.00010892000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 190
+  }
+}

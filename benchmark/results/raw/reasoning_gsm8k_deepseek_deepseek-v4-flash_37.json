@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Candidate A received 20% of 100 votes, which is 20 votes. Candidate B received 50% more than A, so B = 20 + 0.5 \u00d7 20 = 30 votes. The remaining votes go to candidate C: 100 - 20 - 30 = 50 votes.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00019166000000000002,
+  "expected": "50",
+  "tokens": {
+    "input": 93,
+    "output": 319
+  }
+}

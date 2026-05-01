@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Muslim society could not be Islamic in the absence of Sharia.",
+  "score": 5,
+  "cost": 0.0006193,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 175,
+    "output": 97
+  }
+}

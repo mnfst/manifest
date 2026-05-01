@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "SELECT money_rank FROM poker_player WHERE height = (SELECT MAX(height) FROM poker_player);",
+  "score": 4,
+  "cost": 0.00017682000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 299
+  }
+}

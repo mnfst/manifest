@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "Jen has 3 fish, each requiring $1 worth of food per day, so daily cost is $3. May has 31 days, so total cost is 3 \u00d7 31 = $93.\n\nANSWER: 93",
+  "score": 5,
+  "cost": 8.764e-05,
+  "expected": "93",
+  "tokens": {
+    "input": 70,
+    "output": 139
+  }
+}

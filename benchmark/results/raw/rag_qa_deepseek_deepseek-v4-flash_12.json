@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "J. F. D. Shrewsbury",
+  "score": 5,
+  "cost": 8.89e-05,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 187,
+    "output": 112
+  }
+}

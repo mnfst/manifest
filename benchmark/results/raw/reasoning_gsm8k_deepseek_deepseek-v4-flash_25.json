@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "Let's go step by step.\n\n1. The house is worth $250,000.  \n2. He gets a loan worth 40% of that:  \n   \\( 250,000 \\times 0.40 = 100,000 \\) dollars.\n\n3. He uses 60% of the loan to pay off debts:  \n   \\( 100,000 \\times 0.60 = 60,000 \\) dollars.\n\n4. The leftover money is:  \n   \\( 100,000 - 60,000 = 40,000 \\) dollars.\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 8.204000000000001e-05,
+  "expected": "40,000",
+  "tokens": {
+    "input": 98,
+    "output": 122
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 31,
+  "response": "Here is a pytest-style test suite in plain text (no Markdown code blocks). You can place this into a test file such as test_camel_to_snake.py.\n\nfrom your_module import camel_to_snake\nimport pytest\n\ndef test_happy_path_simple():\n    result = camel_to_snake(\"CamelCase\")\n    assert result == \"camel_case\"\n\ndef test_happy_path_multiple_transitions():\n    result = camel_to_snake(\"ThisIsATestString\")\n    assert result == \"this_is_a_test_string\"\n\ndef test_happy_path_single_word_lower():\n    result = camel_to_snake(\"word\")\n    assert result == \"word\"\n\ndef test_happy_path_single_word_upper():\n    result = camel_to_snake(\"WORD\")\n    assert result == \"word\"\n\ndef test_edge_empty_string():\n    result = camel_to_snake(\"\")\n    assert result == \"\"\n\ndef test_edge_already_snake():\n    result = camel_to_snake(\"already_snake\")\n    assert result == \"already_snake\"\n\ndef test_edge_mixed_characters():\n    result = camel_to_snake(\"JSONData2024File\")\n    # Only breaks lower->upper transitions; numbers unaffected\n    assert result == \"jsondata2024_file\"\n\ndef test_edge_leading_uppercase_sequence():\n    result = camel_to_snake(\"XMLHttpRequest\")\n    # First lowercase->uppercase boundary is before H\n    assert result == \"xml_http_request\"\n\ndef test_error_non_string_input():\n    with pytest.raises(TypeError):\n        camel_to_snake(None)\n\n    with pytest.raises(TypeError):\n        camel_to_snake(123)\n\n    with pytest.raises(TypeError):\n        camel_to_snake([\"Not\", \"A\", \"String\"])",
+  "score": 4,
+  "cost": 0.00353,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 423
+  }
+}

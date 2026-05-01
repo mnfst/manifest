@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 21,
+  "response": "French: Maintenant, pourriez-vous lire ceci, s\u2019il vous pla\u00eet ?",
+  "score": 4,
+  "cost": 0.000264,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 24
+  }
+}

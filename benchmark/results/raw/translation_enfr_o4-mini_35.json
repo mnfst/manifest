@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[journaliste homme n\u00b01 \u00e0 la t\u00e9l\u00e9vision] Un accident s\u2019est produit juste apr\u00e8s 10 h.",
+  "score": 5,
+  "cost": 0.0019217000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 426
+  }
+}

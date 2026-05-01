@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "1. A dozen equals 12. Twenty dozen cups therefore means 20 \u00d7 12 = 240 cups.  \n2. A half dozen equals 6. Half a dozen plates means 6 plates, each sold at \\$6000, so the total cost of the plates is 6 \u00d7 \\$6000 = \\$36 000.  \n3. The total cost of the 240 cups is \\$1200 less than the plates\u2019 cost:  \n   Total cost of cups = \\$36 000 \u2212 \\$1200 = \\$34 800.  \n4. To find the cost per cup, divide the total cost of cups by the number of cups:  \n   Cost per cup = \\$34 800 \u00f7 240 = \\$145.  \n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.003952300000000001,
+  "expected": "145",
+  "tokens": {
+    "input": 73,
+    "output": 880
+  }
+}

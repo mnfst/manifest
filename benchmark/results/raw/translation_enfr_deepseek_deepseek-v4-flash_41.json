@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "Tu n'es pas dans la DGA. Contente-toi de zoomer et ferme ta gueule.",
+  "score": 4,
+  "cost": 0.00022274000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 388
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known for their loyal nature toward the people who care for them. Many families cherish dogs because these loyal companions offer constant comfort and affection. Even in challenging situations, a dog\u2019s loyal spirit remains steady and reassuring. For countless generations, humans have relied on these loyal animals for protection, work, and friendship.",
+  "score": 2,
+  "cost": 0.000628,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 73
+  }
+}

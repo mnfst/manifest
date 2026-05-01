@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 1,
+  "response": "if not paren_string:\n        return []\n    depths = []\n    for group in paren_string.split():\n        max_depth = cur = 0\n        for ch in group:\n            if ch == '(':\n                cur += 1\n                if cur > max_depth:\n                    max_depth = cur\n            elif ch == ')':\n                cur -= 1\n        depths.append(max_depth)\n    return depths",
+  "score": 5,
+  "cost": 0.0022979000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 487
+  }
+}

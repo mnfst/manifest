@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins January 15, requiring completion of a pre-audit checklist including revenue recognition, bank reconciliation, stock option verification, and related-party disclosures. A controller meeting is scheduled for next Tuesday to assign responsibilities.",
+  "score": 5,
+  "cost": 3.9620000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 47
+  }
+}

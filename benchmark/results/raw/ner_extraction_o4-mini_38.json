@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 38,
+  "response": "{\"persons\":[\"Kamala Harris\"],\"organizations\":[\"General Motors\"],\"locations\":[\"Detroit\"]}",
+  "score": 5,
+  "cost": 0.0008063,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 166
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT e.production_code, s.channel\nFROM episodes e\nJOIN shows s ON e.show_id = s.show_id\nWHERE s.genre = 'Cartoon'\nORDER BY e.air_date DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.0037301000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 830
+  }
+}

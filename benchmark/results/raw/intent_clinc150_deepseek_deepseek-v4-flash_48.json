@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "intent_clinc150",
+  "case": 48,
+  "response": "application_status",
+  "score": 5,
+  "cost": 0.00010794000000000001,
+  "expected": "application_status",
+  "tokens": {
+    "input": 571,
+    "output": 50
+  }
+}

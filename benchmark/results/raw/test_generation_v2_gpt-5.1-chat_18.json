@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "Here are pytest\u2011style unit tests in plain text (no special formatting). You can place them in a test file such as test_title_case.py.\n\nfrom your_module import title_case\nimport pytest\n\ndef test_title_case_happy_path():\n    result = title_case(\"hello world\")\n    assert result == \"Hello World\"\n\ndef test_title_case_multiple_spaces():\n    result = title_case(\"  hello   world  \")\n    # split() collapses whitespace\n    assert result == \"Hello World\"\n\ndef test_title_case_single_word():\n    result = title_case(\"python\")\n    assert result == \"Python\"\n\ndef test_title_case_mixed_case():\n    result = title_case(\"hELLo WoRLD\")\n    assert result == \"Hello World\"\n\ndef test_title_case_empty_string():\n    result = title_case(\"\")\n    assert result == \"\"\n\ndef test_title_case_only_spaces():\n    result = title_case(\"     \")\n    # split() turns all spaces into empty list \u2192 join \u2192 empty string\n    assert result == \"\"\n\ndef test_title_case_numeric_and_symbols():\n    result = title_case(\"123 abc! test\")\n    # capitalize() uppercases only first char; symbols unaffected\n    assert result == \"123 Abc! Test\"\n\ndef test_title_case_non_string_input_error():\n    with pytest.raises(AttributeError):\n        title_case(None)\n\ndef test_title_case_unicode():\n    result = title_case(\"caf\u00e9 na\u00efve \u00e9l\u00e8ve\")\n    assert result == \"Caf\u00e9 Na\u00efve \u00c9l\u00e8ve\"\n\nLet me know if you want parametrized tests or fixtures.",
+  "score": 4,
+  "cost": 0.00321,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 387
+  }
+}

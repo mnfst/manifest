@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 24,
+  "response": "```python\n    # Check if triangle is valid\n    if a + b > c and a + c > b and b + c > a:\n        # Calculate semi-perimeter\n        s = (a + b + c) / 2\n        # Heron's formula\n        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5\n        # Round to 2 decimal places\n        return round(area, 2)\n    else:\n        return -1\n```",
+  "score": 5,
+  "cost": 0.00036820000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 620
+  }
+}

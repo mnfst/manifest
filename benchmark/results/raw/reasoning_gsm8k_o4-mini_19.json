@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "Let A be the number of adopted kittens.  \nA = 7.\n\nPatchy\u2019s kittens P = 3 \u00d7 A = 3 \u00d7 7 = 21.\n\nTrixie\u2019s kittens T = 12.\n\nTotal kittens = A + P + T = 7 + 21 + 12 = 40.\n\nANSWER: 40",
+  "score": 5,
+  "cost": 0.0016511000000000004,
+  "expected": "40",
+  "tokens": {
+    "input": 121,
+    "output": 345
+  }
+}

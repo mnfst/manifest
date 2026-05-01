@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "VP Engineering proposes dividing the Platform team into two specialized units\u2014Infrastructure (networking, compute, storage) and Developer Experience (CI/CD, tooling, onboarding)\u2014to prevent DX projects from being sidelined by infrastructure incidents. Please review the attached draft org chart and provide your feedback.",
+  "score": 5,
+  "cost": 0.0018381,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 395
+  }
+}

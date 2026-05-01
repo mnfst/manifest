@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "data_to_text",
+  "case": 0,
+  "response": "Acme Corp, headquartered in Austin, Texas, reported total annual revenue of $54.4 million, reflecting an 18% year\u2011over\u2011year increase. Quarterly revenues were $12.3 million in Q1, $14.1 million in Q2, $11.8 million in Q3, and $16.2 million in Q4. The company now employs 342 people.",
+  "score": 5,
+  "cost": 0.000942,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 91
+  }
+}

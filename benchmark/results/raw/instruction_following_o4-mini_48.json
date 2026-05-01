@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, a feud between noble families Montague and Capulet escalates when young Romeo Montague crashes a Capulet party and falls for Juliet Capulet. Despite their families\u2019 animosity, they marry secretly with Friar Laurence\u2019s help, hoping to reconcile their kin. When Tybalt kills Mercutio and Romeo avenges him by slaying Tybalt, he is banished and the lovers\u2019 plans unravel. Friar Laurence\u2019s scheme to reunite them fails: miscommunication leads Juliet to feign death, Romeo, unaware, kills himself. Juliet awakens, sees Romeo dead, and takes her own life, ending their families\u2019 strife in tragic sorrow.",
+  "score": 5,
+  "cost": 0.0029678,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 668
+  }
+}

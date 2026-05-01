@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The finance team is gearing up for the year-end audit beginning January 15 and requires completion of the following pre-audit tasks: finalize Q4 revenue recognition, reconcile all bank accounts, verify stock option records, and prepare related-party transaction disclosures. A controller meeting is scheduled next Tuesday to assign responsibility for each of these items.",
+  "score": 5,
+  "cost": 0.0013233000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 277
+  }
+}

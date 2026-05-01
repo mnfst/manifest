@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "This function implements the Quicksort algorithm using a divide\u2011and\u2011conquer approach: it selects the middle element as a pivot, partitions the list into elements less than, equal to, and greater than the pivot, then recursively sorts the left and right partitions. It returns a new sorted list formed by concatenating the sorted left part, the pivot group, and the sorted right part.",
+  "score": 5,
+  "cost": 0.000884,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 82
+  }
+}

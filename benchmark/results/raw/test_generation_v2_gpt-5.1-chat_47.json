@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 47,
+  "response": "Here are pytest\u2011style unit tests covering happy path, edge cases, and error cases:\n\n```python\nimport pytest\nfrom your_module import run_length_encode\n\ndef test_happy_path_basic():\n    assert run_length_encode(\"aaabbc\") == [\n        ('a', 3),\n        ('b', 2),\n        ('c', 1)\n    ]\n\ndef test_happy_path_single_char():\n    assert run_length_encode(\"a\") == [('a', 1)]\n\ndef test_happy_path_no_repeats():\n    assert run_length_encode(\"abc\") == [\n        ('a', 1),\n        ('b', 1),\n        ('c', 1)\n    ]\n\ndef test_edge_empty_string():\n    assert run_length_encode(\"\") == []\n\ndef test_edge_all_same_char():\n    assert run_length_encode(\"aaaaaa\") == [('a', 6)]\n\ndef test_edge_unicode_characters():\n    assert run_length_encode(\"\u00e4\u00e4\u00e4\u00e4bb\ud83d\ude0a\ud83d\ude0a\") == [\n        ('\u00e4', 4),\n        ('b', 2),\n        ('\ud83d\ude0a', 2)\n    ]\n\ndef test_error_non_string_input_int():\n    with pytest.raises(TypeError):\n        run_length_encode(123)\n\ndef test_error_non_string_input_list():\n    with pytest.raises(TypeError):\n        run_length_encode(['a', 'a'])\n```\n\nNotes:\n- Tests include: normal cases, edge cases (empty string, unicode, all same char), and type\u2011error cases.\n- The error tests expect a TypeError because indexing and len() will fail for invalid types.",
+  "score": 4,
+  "cost": 0.002808,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 320
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 12,
+  "response": "The internet traces back to 1960s US Department of Defense\u2013funded networking research, with ARPANET\u2019s first message sent between UCLA and Stanford Research Institute in 1969. It expanded through the 1970s among universities and research labs, and the 1983 switch to TCP/IP established the technical foundation for the global network. In 1989 Tim Berners-Lee invented HTML, URLs and HTTP at CERN, leading to the World Wide Web, which the 1993 Mosaic browser made accessible and spurred the late-1990s dot-com boom (and 2001 crash), from which Amazon and Google emerged. With the mid-2000s rise of Facebook, Twitter and YouTube, the iPhone\u2019s 2007 introduction of mobile internet and the 2006 launch of AWS cloud services, today\u2019s internet connects over 5 billion people and underpins commerce, communication and entertainment.",
+  "score": 5,
+  "cost": 0.0040832,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 850
+  }
+}

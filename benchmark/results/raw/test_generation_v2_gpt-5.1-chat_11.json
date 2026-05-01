@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 11,
+  "response": "Here are pytest\u2011style unit tests covering happy paths, edge cases, and error cases.\n\nNote: The function assumes both inputs are lists of comparable items. Since it does not explicitly validate input types, tests for error cases focus on type issues that naturally raise Python exceptions.\n\n```python\nimport pytest\n\nfrom your_module import merge_sorted\n\n\ndef test_merge_sorted_happy_path():\n    a = [1, 3, 5]\n    b = [2, 4, 6]\n    assert merge_sorted(a, b) == [1, 2, 3, 4, 5, 6]\n\n\ndef test_merge_sorted_with_duplicates():\n    a = [1, 2, 2]\n    b = [2, 3]\n    assert merge_sorted(a, b) == [1, 2, 2, 2, 3]\n\n\ndef test_merge_sorted_one_empty():\n    assert merge_sorted([], [1, 2, 3]) == [1, 2, 3]\n    assert merge_sorted([1, 2, 3], []) == [1, 2, 3]\n\n\ndef test_merge_sorted_both_empty():\n    assert merge_sorted([], []) == []\n\n\ndef test_merge_sorted_negative_numbers():\n    a = [-5, -1, 0]\n    b = [-3, 2]\n    assert merge_sorted(a, b) == [-5, -3, -1, 0, 2]\n\n\ndef test_merge_sorted_non_numeric_strings():\n    a = [\"a\", \"c\"]\n    b = [\"b\", \"d\"]\n    assert merge_sorted(a, b) == [\"a\", \"b\", \"c\", \"d\"]\n\n\ndef test_merge_sorted_mixed_types_error():\n    # Comparing an int and a string should raise a TypeError\n    a = [1, 2]\n    b = [\"a\", \"b\"]\n    with pytest.raises(TypeError):\n        merge_sorted(a, b)\n\n\ndef test_merge_sorted_non_list_inputs_error():\n    with pytest.raises(TypeError):\n        merge_sorted(\"not a list\", [1, 2])\n    with pytest.raises(TypeError):\n        merge_sorted([1, 2], \"not a list\")\n```\n\nIf you want, I can also generate property\u2011based tests using Hypothesis.",
+  "score": 4,
+  "cost": 0.004072,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 478
+  }
+}

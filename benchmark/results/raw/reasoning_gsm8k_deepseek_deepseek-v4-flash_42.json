@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "The problem states that children stand 8 in a row, with 7 rows for each of 5 different schools. This means each school contributes 8 children per row times 7 rows, which is 56 children per school. Multiplying by 5 schools gives a total of 280 children.\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.00022554,
+  "expected": "280",
+  "tokens": {
+    "input": 91,
+    "output": 380
+  }
+}

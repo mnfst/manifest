@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 17,
+  "response": "Here are pytest\u2011style unit tests covering:\n\n\u2022 Happy path  \n\u2022 Edge cases  \n\u2022 Error cases (invalid input types, unexpected characters)\n\nNote: The function signature requires a string, but we can still test how it behaves when given incorrect types.\n\n```\nimport pytest\n\nfrom yourmodule import is_balanced_parens\n\n\ndef test_happy_simple_balanced():\n    assert is_balanced_parens(\"()\") is True\n    assert is_balanced_parens(\"[]\") is True\n    assert is_balanced_parens(\"{}\") is True\n\n\ndef test_happy_nested_balanced():\n    assert is_balanced_parens(\"({[]})\") is True\n    assert is_balanced_parens(\"[({()})]\") is True\n\n\ndef test_happy_interleaved_balanced():\n    assert is_balanced_parens(\"()[]{}\") is True\n    assert is_balanced_parens(\"{[()()]()}\") is True\n\n\ndef test_unbalanced_wrong_order():\n    assert is_balanced_parens(\"(]\") is False\n    assert is_balanced_parens(\"{[}]\") is False\n    assert is_balanced_parens(\"([)]\") is False\n\n\ndef test_unbalanced_missing_closing():\n    assert is_balanced_parens(\"(\") is False\n    assert is_balanced_parens(\"(((\") is False\n    assert is_balanced_parens(\"{[(\") is False\n\n\ndef test_unbalanced_missing_opening():\n    assert is_balanced_parens(\")\") is False\n    assert is_balanced_parens(\"}}\") is False\n    assert is_balanced_parens(\"]\") is False\n\n\ndef test_edge_empty_string():\n    assert is_balanced_parens(\"\") is True\n\n\ndef test_edge_no_parens_chars():\n    # Should simply ignore all non-bracket characters (current function logic)\n    assert is_balanced_parens(\"abc123\") is True\n\n\ndef test_edge_mixed_with_other_chars():\n    assert is_balanced_parens(\"a(b[c]{d}e)f\") is True\n    assert is_balanced_parens(\"a(b[c]{d}e\") is False\n\n\ndef test_error_non_string_input():\n    # The function expects a string; Python will raise TypeError during iteration\n    with pytest.raises(TypeError):\n        is_balanced_parens(None)\n\n    with pytest.raises(TypeError):\n        is_balanced_parens(123)\n\n    with pytest.raises(TypeError):\n        is_balanced_parens(['(', ')'])\n```\n\nIf you'd like, I can add parametrized tests, property\u2011based tests (hypothesis), or restructure for full coverage reports.",
+  "score": 4,
+  "cost": 0.004544,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 539
+  }
+}

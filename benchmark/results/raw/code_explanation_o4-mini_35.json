@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This is a classic Knuth\u2010Morris\u2010Pratt (KMP) substring search: first it builds the \u201clongest\u2010proper\u2010prefix\u2010which\u2010is\u2010also\u2010suffix\u201d (lps) table for the pattern in O(m) time, then it scans the text in O(n) time using that table to skip over already\u2010matched prefixes and returns the start index of the first match (or \u20131 if none is found).",
+  "score": 5,
+  "cost": 0.0018117,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 366
+  }
+}

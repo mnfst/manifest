@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "In April we crossed 10K MAUs, closed an $8 M Series A term sheet at a $40 M pre-money valuation, hired a VP of Sales, and grew MRR to $85 K (+12% MoM) with a $120 K monthly burn rate and 11 months of runway. Our Series A fundraising round closes on May 10, so please confirm your participation before then.",
+  "score": 5,
+  "cost": 0.0014355,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 300
+  }
+}

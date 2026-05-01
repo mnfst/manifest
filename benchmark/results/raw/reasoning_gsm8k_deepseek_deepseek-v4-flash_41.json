@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let Harald's sales be \\(x\\). Then Marilyn's sales are \\(10x\\). Combined sales: \\(x + 10x = 11x = 88,000\\). Solving: \\(x = 88,000 / 11 = 8,000\\).\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.00010472000000000001,
+  "expected": "8000",
+  "tokens": {
+    "input": 72,
+    "output": 169
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 14,
+  "response": "Sprint #23 for Team Alpha ran from January 15 to 26, during which the team planned 42 story points and delivered 38, just above their average velocity of 36 points. Over the two-week period they completed 8 user stories and fixed 5 bugs, despite encountering 2 blockers. Team satisfaction for the sprint finished at 4.1 out of 5.",
+  "score": 5,
+  "cost": 0.0013805,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 290
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT a.airport_code\nFROM airports a\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM flights f\n    WHERE f.departure_airport = a.airport_code\n       OR f.arrival_airport = a.airport_code\n);\n```",
+  "score": 5,
+  "cost": 0.00010626,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 173
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 25,
+  "response": "groups = []\n    depth = 0\n    current = []\n    for c in paren_string:\n        if c.isspace():\n            continue\n        if c == '(':\n            if depth == 0:\n                current = []\n            depth += 1\n            current.append(c)\n        elif c == ')':\n            depth -= 1\n            current.append(c)\n            if depth == 0:\n                groups.append(''.join(current))\n    return groups",
+  "score": 4,
+  "cost": 0.004323000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 946
+  }
+}

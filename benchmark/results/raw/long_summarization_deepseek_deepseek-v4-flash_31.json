@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "long_summarization",
+  "case": 31,
+  "response": "The EU's General Data Protection Regulation (GDPR), effective May 2018, applies to any organization processing EU residents' data and includes key provisions like the right to erasure, explicit consent, and mandatory breach reporting within 72 hours. Violations can result in fines of up to 4% of global annual revenue or \u20ac20 million, with major penalties including \u20ac1.2 billion against Meta (2023) and \u20ac746 million against Amazon. While GDPR has inspired similar laws worldwide (e.g., California's CCPA, Brazil's LGPD), critics argue it creates compliance burdens that stifle innovation and lead to frustrating cookie consent banners, with enforcement remaining inconsistent. Despite these issues, GDPR established data privacy as a fundamental right and set the global standard for data protection legislation.",
+  "score": 5,
+  "cost": 0.00025886,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 386
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 36,
+  "response": "The internet traces back to the 1960s when the US Department of Defense funded ARPANET, which sent its first message between UCLA and Stanford in 1969 and gradually linked research institutions through the 1970s. The shift to TCP/IP in 1983 and Tim Berners-Lee\u2019s 1989 invention of the World Wide Web\u2014complete with HTML, URLs, and HTTP\u2014paved the way for the 1993 Mosaic browser and mass adoption. After the late-1990s dot-com boom and 2001 crash, survivors like Amazon and Google rose to prominence, while mid-2000s social media (Facebook, Twitter, YouTube) and the 2007 iPhone ushered in mobile ubiquity. The 2006 launch of AWS marked the cloud computing era, and today more than 5 billion people depend on the internet for commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.00407,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 847
+  }
+}

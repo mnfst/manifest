@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "The plague theory was first significantly challenged by British bacteriologist J. F. D. Shrewsbury in 1970.",
+  "score": 5,
+  "cost": 0.0006952000000000001,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 188,
+    "output": 111
+  }
+}

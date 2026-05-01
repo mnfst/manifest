@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "SELECT p.first_name, t.description\nFROM professionals p\nJOIN treatments t ON t.professional_id = p.id;",
+  "score": 4,
+  "cost": 0.000424,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 34
+  }
+}

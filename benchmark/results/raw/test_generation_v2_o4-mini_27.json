@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "Here is an example pytest\u2010style test module covering normal (\u201chappy\u201d) paths, various edge cases, and error cases.  Adjust the import line at the top to match wherever your `interleave` function actually lives (e.g. `from mypackage.mymodule import interleave`).\n\n```python\nimport pytest\n\n# Adjust this import to point to your actual module location:\nfrom interleave import interleave\n\n\n@pytest.mark.parametrize(\"a,b,expected\", [\n    # 1. same length lists\n    ([1, 2, 3], [4, 5, 6], [1, 4, 2, 5, 3, 6]),\n\n    # 2. first list longer than second\n    ([1, 2, 3, 7], [4, 5, 6], [1, 4, 2, 5, 3, 6, 7]),\n\n    # 3. second list longer than first\n    ([1, 2], [4, 5, 6, 7], [1, 4, 2, 5, 6, 7]),\n\n    # 4. both empty\n    ([], [], []),\n\n    # 5. first empty\n    ([], [\"a\", \"b\", \"c\"], [\"a\", \"b\", \"c\"]),\n\n    # 6. second empty\n    ([\"x\", \"y\"], [], [\"x\", \"y\"]),\n\n    # 7. heterogeneous values\n    ([None, True], [\"foo\", False], [None, \"foo\", True, False]),\n\n    # 8. works with other iterables too (string)\n    (\"ABC\", \"123\", [\"A\", \"1\", \"B\", \"2\", \"C\", \"3\"]),\n])\ndef test_interleave_various_lengths_and_types(a, b, expected):\n    result = interleave(list(a), list(b)) if not isinstance(a, list) else interleave(a, b)\n    assert result == expected\n\n\ndef test_input_lists_not_mutated():\n    a = [1, 2, 3]\n    b = [\"x\", \"y\"]\n    a_copy = a.copy()\n    b_copy = b.copy()\n    _ = interleave(a, b)\n    assert a == a_copy, \"interleave should not modify the first input list\"\n    assert b == b_copy, \"interleave should not modify the second input list\"\n\n\n@pytest.mark.parametrize(\"a,b\", [\n    (None, [1, 2, 3]),\n    ([1, 2, 3], None),\n    (123, 456),        # non\u2010iterables\n    ({\"a\": 1}, [\"b\"]), # dict is iterable over keys but slicing will fail\n])\ndef test_interleave_raises_type_error_on_invalid_inputs(a, b):\n    with pytest.raises(TypeError):\n        interleave(a, b)\n```\n\nExplanation of the tests:\n\n1. We parametrize a set of \u201chappy\u2010path\u201d inputs to cover\n   - equal\u2010length lists,\n   - one longer than the other,\n   - empty lists,\n   - mixed data types,\n   - even non\u2010list iterables (strings).\n2. We verify that the input lists are not modified.\n3. We check that passing clearly invalid inputs (e.g. `None`, integers) raises a `TypeError`.",
+  "score": 4,
+  "cost": 0.008668,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 1948
+  }
+}

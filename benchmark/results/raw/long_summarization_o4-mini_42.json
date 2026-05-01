@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 42,
+  "response": "The global food system faces unprecedented strain as the world population is projected to reach 9.7 billion by 2050, necessitating a 60 percent increase in food production amid climate-driven droughts, floods, and temperature extremes. Agriculture already generates roughly 25 percent of greenhouse gas emissions and is compounded by water scarcity (e.g., the rapidly depleting Ogallala Aquifer), soil degradation on 33 percent of arable land, and the loss or waste of one-third of all food produced. Proposed solutions include precision agriculture with AI and sensors, vertical urban farms, alternative proteins (insects and cultured meat), drought-resistant genetically modified crops, and regenerative farming to rebuild soils. Policy reforms on subsidies, trade, and carbon pricing are also critical to scaling these innovations while keeping food affordable for the world\u2019s poorest populations.",
+  "score": 5,
+  "cost": 0.0017468000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 324
+  }
+}

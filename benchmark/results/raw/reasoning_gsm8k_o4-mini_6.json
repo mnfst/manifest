@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Step 1: Determine Ann\u2019s current age.\nAnn is 9 years old.\n\nStep 2: Determine her brother\u2019s current age.\nHer brother is twice her age: 2 \u00d7 9 = 18.\n\nStep 3: Determine her brother\u2019s age in 3 years.\nHer brother\u2019s future age = current age + 3 = 18 + 3 = 21.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0008030000000000001,
+  "expected": "21",
+  "tokens": {
+    "input": 66,
+    "output": 166
+  }
+}

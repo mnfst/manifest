@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "SELECT a.airline_name\nFROM airlines a\nJOIN flights f ON a.airline_id = f.airline_id\nWHERE f.destination_airport = 'AHD';",
+  "score": 5,
+  "cost": 0.000492,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 44
+  }
+}

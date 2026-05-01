@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 9,
+  "response": "{\"name\": \"search_flights\", \"arguments\": {\"origin\": \"New York\", \"destination\": \"London\", \"date\": \"December 15th\", \"passengers\": 2}}",
+  "score": 5,
+  "cost": 3.836e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 41
+  }
+}

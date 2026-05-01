@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Step 1: Identify last year\u2019s enrollment.\nLast year\u2019s enrollment = 50 students.\n\nStep 2: Determine the percentage increase.\nIncrease = 20% of last year\u2019s enrollment.\n\nStep 3: Calculate the numeric increase.\n20% of 50 = 0.20 \u00d7 50 = 10 students.\n\nStep 4: Add the increase to last year\u2019s enrollment.\nNew enrollment = 50 + 10 = 60 students.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.0011572,
+  "expected": "60",
+  "tokens": {
+    "input": 80,
+    "output": 243
+  }
+}

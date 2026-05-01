@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This function computes the maximum value in every contiguous subarray (window) of size `k` using a **monotonic deque** that stores indices of elements in decreasing order, ensuring O(n) time complexity by efficiently removing out-of-window indices and smaller elements.",
+  "score": 5,
+  "cost": 0.00010472000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 155
+  }
+}

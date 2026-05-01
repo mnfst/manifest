@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 15,
+  "response": "max_pf = 1\n    while n % 2 == 0:\n        max_pf = 2\n        n //= 2\n    i = 3\n    while i * i <= n:\n        while n % i == 0:\n            max_pf = i\n            n //= i\n        i += 2\n    if n > 1:\n        max_pf = n\n    return max_pf",
+  "score": 4,
+  "cost": 0.0025498,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 556
+  }
+}

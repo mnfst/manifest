@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "Here are pytest-style unit tests covering happy paths, edge cases, and error cases. No special formatting used.\n\n```python\nimport pytest\nfrom your_module import fizzbuzz\n\ndef test_fizzbuzz_returns_fizzbuzz_for_multiples_of_15():\n    assert fizzbuzz(15) == \"FizzBuzz\"\n    assert fizzbuzz(30) == \"FizzBuzz\"\n\ndef test_fizzbuzz_returns_fizz_for_multiples_of_3_only():\n    assert fizzbuzz(3) == \"Fizz\"\n    assert fizzbuzz(9) == \"Fizz\"\n\ndef test_fizzbuzz_returns_buzz_for_multiples_of_5_only():\n    assert fizzbuzz(5) == \"Buzz\"\n    assert fizzbuzz(20) == \"Buzz\"\n\ndef test_fizzbuzz_returns_number_string_when_not_multiple_of_3_or_5():\n    assert fizzbuzz(1) == \"1\"\n    assert fizzbuzz(7) == \"7\"\n\ndef test_fizzbuzz_edge_case_zero():\n    # 0 is divisible by any nonzero integer, so treat as FizzBuzz\n    assert fizzbuzz(0) == \"FizzBuzz\"\n\ndef test_fizzbuzz_negative_numbers():\n    assert fizzbuzz(-3) == \"Fizz\"\n    assert fizzbuzz(-5) == \"Buzz\"\n    assert fizzbuzz(-15) == \"FizzBuzz\"\n    assert fizzbuzz(-1) == \"-1\"\n\ndef test_fizzbuzz_invalid_input_type():\n    with pytest.raises(TypeError):\n        fizzbuzz(\"abc\")\n\n    with pytest.raises(TypeError):\n        fizzbuzz(None)\n\n    with pytest.raises(TypeError):\n        fizzbuzz(3.5)\n```\n\nIf needed, I can add parameterized tests or additional edge cases.",
+  "score": 4,
+  "cost": 0.003084,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 362
+  }
+}

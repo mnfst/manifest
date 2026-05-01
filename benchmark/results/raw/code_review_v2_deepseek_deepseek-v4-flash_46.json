@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_review_v2",
+  "case": 46,
+  "response": "## Code Review: `format_currency`\n\n### Bugs\n\n1. **Missing decimal formatting**  \n   The function does not round or pad to two decimal places.  \n   - `format_currency(10.5)` \u2192 `\"$10.5\"` (should be `\"$10.50\"`)  \n   - `format_currency(10.999)` \u2192 `\"$10.999\"` (should be `\"$11.00\"`)\n\n2. **No input validation**  \n   If",
+  "score": 3,
+  "cost": 0.0004547200000000001,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 800
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a special coloring book that everyone can see and add to, but no one can erase or change the pictures. Each time someone adds a new picture, it gets locked to the one before it, making a long chain. That way, everyone knows exactly what happened and in what order.",
+  "score": 5,
+  "cost": 5.866000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 100
+  }
+}

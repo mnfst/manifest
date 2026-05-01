@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "moderation_toxigen",
+  "case": 17,
+  "response": "",
+  "score": 0,
+  "cost": 1.8200000000000002e-05,
+  "expected": "safe",
+  "tokens": {
+    "input": 50,
+    "output": 20
+  }
+}

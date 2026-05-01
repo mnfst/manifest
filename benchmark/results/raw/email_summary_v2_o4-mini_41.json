@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The Network Ops team reports that current 1 Gbps links are running at 78% capacity during peak hours and proposes either a one-time $45K upgrade to 10 Gbps with a $2K/month fee or a $15K traffic-shaping and CDN optimization alternative. Given growth projections, they recommend approving the 10 Gbps upgrade now to avoid another capacity crunch in six months.",
+  "score": 5,
+  "cost": 0.0014256000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 297
+  }
+}

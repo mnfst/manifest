@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Melanie started with 18 vacuum cleaners. She sold a third (6) at the green house, then 2 more at the red house, leaving 10. She then sold half of the remaining (5) at the orange house, leaving 5.\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.00023730000000000005,
+  "expected": "18",
+  "tokens": {
+    "input": 95,
+    "output": 400
+  }
+}

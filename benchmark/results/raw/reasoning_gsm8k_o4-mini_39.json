@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "Let the total number of grapes at the beginning be N.\n\n1. Madeline ate 6 grapes.  \n   Remaining grapes: N \u2212 6\n\n2. Her brother used 5 times as many grapes as Madeline did.  \n   Brother\u2019s grapes = 5 \u00d7 6 = 30  \n   Remaining grapes after that: (N \u2212 6) \u2212 30 = N \u2212 36\n\n3. Their mother used the remaining grapes to make 4 pies, at 12 grapes per pie.  \n   Mother\u2019s grapes = 4 \u00d7 12 = 48  \n   This must equal the grapes left:  \n   N \u2212 36 = 48  \n   \n4. Solve for N:  \n   N = 48 + 36  \n   N = 84\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.0023287000000000004,
+  "expected": "84",
+  "tokens": {
+    "input": 105,
+    "output": 503
+  }
+}

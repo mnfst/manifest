@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "the mass of the system",
+  "score": 0,
+  "cost": 6.034e-05,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 159,
+    "output": 68
+  }
+}

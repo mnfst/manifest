@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 38,
+  "response": "max_neg = None\nmin_pos = None\nfor x in lst:\n    if x < 0:\n        if max_neg is None or x > max_neg:\n            max_neg = x\n    elif x > 0:\n        if min_pos is None or x < min_pos:\n            min_pos = x\nreturn (max_neg, min_pos)",
+  "score": 5,
+  "cost": 0.00016674000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 254
+  }
+}

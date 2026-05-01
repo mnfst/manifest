@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 24,
+  "response": "The internet began in the 1960s as a U.S. Department of Defense\u2013funded experiment called ARPANET, first demonstrated in 1969, and slowly expanded through the 1970s to link universities and research labs. The shift to TCP/IP in 1983 and Tim Berners-Lee\u2019s creation of the World Wide Web in 1989\u2014along with the Mosaic browser in 1993\u2014created the modern, user-friendly web. The late-1990s dot-com boom saw huge investments that largely collapsed in the 2001 crash, but survivors such as Amazon and Google became global giants, and mid-2000s platforms like Facebook, Twitter, and YouTube revolutionized online communication. The launch of AWS in 2006 and the iPhone in 2007 ushered in mobile internet and cloud computing, and today more than 5 billion people use the internet for commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.0032604000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 663
+  }
+}

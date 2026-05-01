@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 39,
+  "response": "if x == 0:\n        return \"0\"\n    digits = []\n    while x > 0:\n        digits.append(str(x % base))\n        x //= base\n    return ''.join(reversed(digits))",
+  "score": 5,
+  "cost": 0.0021098000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 449
+  }
+}

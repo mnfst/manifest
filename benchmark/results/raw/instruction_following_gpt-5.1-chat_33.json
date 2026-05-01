@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is about 384,400 kilometers (238,855 miles) from Earth on average.  \n2. It always shows the same face to Earth because it is tidally locked.  \n3. The Moon has no atmosphere, which means there is no weather and no sound can travel there.",
+  "score": 5,
+  "cost": 0.000628,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 72
+  }
+}

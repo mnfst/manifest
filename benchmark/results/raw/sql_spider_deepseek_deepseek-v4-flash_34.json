@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "SELECT * FROM hires;",
+  "score": 5,
+  "cost": 0.00024514000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 421
+  }
+}

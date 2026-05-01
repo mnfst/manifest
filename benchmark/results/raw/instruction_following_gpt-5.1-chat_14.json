@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "This durable, reusable water bottle keeps your drinks cold for hours with double\u2011wall insulation. Its lightweight, leakproof design makes it perfect for workouts, travel, or everyday use. Available in multiple colors, it offers a comfortable grip and a flip-top lid for easy sipping on the go.",
+  "score": 4,
+  "cost": 0.000584,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 68
+  }
+}

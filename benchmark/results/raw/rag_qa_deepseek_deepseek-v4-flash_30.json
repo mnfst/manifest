@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne",
+  "score": 0,
+  "cost": 6.300000000000001e-05,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 246,
+    "output": 51
+  }
+}

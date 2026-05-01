@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test failed to meet its 4-hour RTO target, taking 6 hours and 23 minutes due to a database restore delay. Action items include increasing backup frequency and pre-provisioning a standby database before the next test in October.",
+  "score": 5,
+  "cost": 4.424000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 53
+  }
+}

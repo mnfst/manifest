@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Start at the park entrance. Turn right onto Elm Street. At the next traffic light, turn left onto Maple Avenue. After two blocks, turn right onto Library Drive. The library is immediately on your left.",
+  "score": 5,
+  "cost": 0.00028854,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 510
+  }
+}

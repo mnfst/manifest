@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Lake \u00dcberlingen",
+  "score": 0,
+  "cost": 5.5580000000000007e-05,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 233,
+    "output": 41
+  }
+}

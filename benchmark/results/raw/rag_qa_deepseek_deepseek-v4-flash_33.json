@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 4.088e-05,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 268,
+    "output": 6
+  }
+}

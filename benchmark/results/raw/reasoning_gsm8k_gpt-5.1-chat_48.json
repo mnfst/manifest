@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "He starts with an 8\u2011pound weight.\n\nHe increases it by 50%:\n50% of 8 is 4, so the increased weight is 8 + 4 = 12 pounds.\n\nHe then switches to a weight 2 pounds lighter:\n12 \u2212 2 = 10 pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.000816,
+  "expected": "10",
+  "tokens": {
+    "input": 100,
+    "output": 77
+  }
+}

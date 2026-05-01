@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure",
+  "score": 0,
+  "cost": 4.368000000000001e-05,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 160,
+    "output": 38
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "To find the daily amount for the second half of April:\n\n- April has 30 days \u2192 15 days in each half.\n- Let the first\u2011half daily saving be x.  \n- Second\u2011half daily saving is twice that \u2192 2x.\n- Total savings: 15x + 15(2x) = 45x = 1125.\n- Solve for x: x = 1125 \u00f7 45 = 25.\n- Second\u2011half daily saving = 2x = 50.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.001676,
+  "expected": "50",
+  "tokens": {
+    "input": 98,
+    "output": 185
+  }
+}

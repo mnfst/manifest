@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT a.*\nFROM airports a\nLEFT JOIN flights f1 ON f1.origin_airport_id = a.id\nLEFT JOIN flights f2 ON f2.destination_airport_id = a.id\nWHERE f1.id IS NULL AND f2.id IS NULL;",
+  "score": 5,
+  "cost": 0.000634,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 62
+  }
+}

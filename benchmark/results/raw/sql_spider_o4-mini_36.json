@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT s.name\nFROM students s\nJOIN likes l ON s.student_id = l.liked_student_id\nGROUP BY s.name\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.0022946000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 504
+  }
+}

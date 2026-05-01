@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT s.name\nFROM students s\nJOIN likes l ON s.id = l.student_id\nGROUP BY s.id, s.name\nORDER BY COUNT(l.id) DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 3.584e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 47
+  }
+}

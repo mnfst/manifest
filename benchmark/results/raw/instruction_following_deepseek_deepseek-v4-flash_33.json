@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth's only natural satellite and is about 1/4 the diameter of Earth, making it the fifth-largest moon in the solar system relative to its planet.\n2. The Moon's surface is covered in craters, mountains, and vast plains called maria, which are ancient lava flows, and it has no atmosphere or liquid water.\n3. The Moon is slowly moving away from Earth at a rate of about 3.8 centimeters per year, and it is tidally locked, meaning the same side always faces Earth.",
+  "score": 5,
+  "cost": 7.504e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 128
+  }
+}

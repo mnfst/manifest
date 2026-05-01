@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "test_generation_v2",
+  "case": 40,
+  "response": "Here\u2019s an example pytest module `test_rgb_to_hex.py` that exercises happy\u2010path, edge\u2010case, and error\u2010case behavior. It assumes your function lives in a file called `rgb_to_hex.py` in the same directory.\n\n```python\nimport pytest\nfrom rgb_to_hex import rgb_to_hex\n\n\n@pytest.mark.parametrize(\n    \"r, g, b, expected_hex\",\n    [\n        # Happy\u2010path typical colors\n        (255, 0, 0,   \"#ff0000\"),  # red\n        (0, 255, 0,   \"#00ff00\"),  # green\n        (0, 0, 255,   \"#0000ff\"),  # blue\n        (128, 128, 128, \"#808080\"),  # gray\n\n        # Edge\u2010case bounds\n        (0, 0, 0,     \"#000000\"),\n        (255, 255, 255, \"#ffffff\"),\n        (0, 255, 255, \"#00ffff\"),\n        (255, 0, 255, \"#ff00ff\"),\n        (255, 255, 0, \"#ffff00\"),\n    ]\n)\ndef test_rgb_to_hex_happy_and_edge(r, g, b, expected_hex):\n    \"\"\"\n    Happy\u2010path and edge\u2010case tests: valid inputs at and within bounds\n    should format correctly.\n    \"\"\"\n    assert rgb_to_hex(r, g, b) == expected_hex\n\n\n@pytest.mark.parametrize(\n    \"r, g, b\",\n    [\n        # Negative values\n        (-1, 0, 0),\n        (0, -20, 50),\n        (10, 10, -5),\n\n        # Above\u2010255 values\n        (256, 0, 0),\n        (100, 300, 100),\n        (0, 0, 1000),\n\n        # Mixed bad\n        (-1, 500, -20),\n    ]\n)\ndef test_rgb_to_hex_out_of_range_raises_value_error(r, g, b):\n    \"\"\"\n    Any component outside 0\u2013255 should raise ValueError.\n    \"\"\"\n    with pytest.raises(ValueError) as excinfo:\n        rgb_to_hex(r, g, b)\n    assert \"RGB values must be 0-255\" in str(excinfo.value)\n\n\n@pytest.mark.parametrize(\n    \"r, g, b\",\n    [\n        # Non\u2010integers\n        (1.5, 0, 0),\n        (\"255\", 0, 0),\n        (None, 0, 0),\n        (0, [], 0),\n        (0, 0, {}),\n    ]\n)\ndef test_rgb_to_hex_non_int_raises_type_error(r, g, b):\n    \"\"\"\n    Passing non\u2010int types should eventually blow up\n    (format specifier 'x' only works on ints).\n    \"\"\"\n    with pytest.raises(TypeError):\n        rgb_to_hex(r, g, b)\n```\n\nExplanation of coverage:\n\n\u2022 test_rgb_to_hex_happy_and_edge  \n  - Covers normal colors and all boundary values at 0 and 255.\n\n\u2022 test_rgb_to_hex_out_of_range_raises_value_error  \n  - Ensures any component <0 or >255 triggers your explicit `ValueError`.\n\n\u2022 test_rgb_to_hex_non_int_raises_type_error  \n  - Exercises passing floats, strings, None, lists, etc., which will fail at the formatting step with a `TypeError`.",
+  "score": 4,
+  "cost": 0.0061941,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 1381
+  }
+}

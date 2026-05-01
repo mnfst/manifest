@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "We are told the area is 360 square feet and the length is 3 yards.  \nFirst, convert yards to feet:  \n1 yard = 3 feet, so 3 yards = 9 feet.\n\nArea = length \u00d7 width  \n360 = 9 \u00d7 width  \nwidth = 360 \u00f7 9 = 40 feet.\n\nNow, perimeter = 2 \u00d7 (length + width)  \n= 2 \u00d7 (9 + 40)  \n= 2 \u00d7 49  \n= 98 feet.\n\nANSWER: 98",
+  "score": 5,
+  "cost": 7.126e-05,
+  "expected": "98",
+  "tokens": {
+    "input": 73,
+    "output": 109
+  }
+}

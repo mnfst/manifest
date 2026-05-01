@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 1,
+  "response": "Step by step:\n\n\u2022 Kalinda\u2019s rate: 4 pieces per minute  \n\u2022 Mom\u2019s rate: half of Kalinda\u2019s = 2 pieces per minute  \n\u2022 Combined rate: 4 + 2 = 6 pieces per minute  \n\u2022 Total time to finish 360 pieces: 360 \u00f7 6 = 60 minutes  \n\u2022 Convert to hours: 60 minutes = 1 hour\n\nANSWER: 1",
+  "score": 5,
+  "cost": 0.000954,
+  "expected": "1",
+  "tokens": {
+    "input": 93,
+    "output": 96
+  }
+}

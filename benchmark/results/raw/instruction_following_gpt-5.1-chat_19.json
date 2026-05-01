@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI isn\u2019t here to replace us \u2014 it\u2019s here to amplify what we can do. The real power comes when human creativity and machine intelligence work together. The future isn\u2019t human vs. AI, it\u2019s human *with* AI. \ud83d\ude80",
+  "score": 5,
+  "cost": 0.000468,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 54
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are four words that rhyme with cat:\n\n- hat  \n- bat  \n- mat  \n- sat",
+  "score": 5,
+  "cost": 0.000276,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 30
+  }
+}

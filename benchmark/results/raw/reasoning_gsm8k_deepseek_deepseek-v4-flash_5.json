@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Katelyn initially saw 50 fairies. Then, 25 fairies (half of 50) came from the east and joined them, making a total of 75. After 30 fairies flew away, 45 remain.\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.00020622,
+  "expected": "45",
+  "tokens": {
+    "input": 113,
+    "output": 340
+  }
+}

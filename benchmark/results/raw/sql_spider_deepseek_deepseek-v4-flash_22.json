@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "SELECT name FROM sections ORDER BY name DESC;",
+  "score": 5,
+  "cost": 0.00016506,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 277
+  }
+}

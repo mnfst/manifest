@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 3,
+  "response": "The GDPR, enacted in May 2018, reshaped global data\u2011handling rules by applying to any organization processing EU residents\u2019 data and granting individuals rights such as access, erasure, portability, and explicit\u2011consent requirements. It mandates Data Protection Officers for large\u2011scale data processing, requires breach reporting within 72 hours, and imposes steep penalties of up to 4 percent of global annual revenue or 20 million euros. Major fines include 1.2 billion euros for Meta, 746 million euros for Amazon, and more than 200 million euros for Google. While the regulation has inspired laws like CCPA, LGPD, and India\u2019s DPDP Act, critics argue it burdens small businesses and frustrates users with consent banners, though it remains the global benchmark for data privacy rights.",
+  "score": 5,
+  "cost": 0.00194,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 166
+  }
+}

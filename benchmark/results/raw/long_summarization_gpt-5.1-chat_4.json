@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles have evolved from 1830s prototypes to a modern industry reshaped by Tesla, driven by advances in battery technology and charging networks. Their growth has been supported by government incentives but challenged by environmental concerns over lithium and cobalt mining, as well as issues like range anxiety, charging times, and grid capacity. Legacy automakers such as Ford, GM, and VW are rapidly shifting their lineups toward electric models, while China has become the largest EV producer and market. Future developments such as solid-state batteries promise longer range, faster charging, and reduced environmental impact.",
+  "score": 5,
+  "cost": 0.001256,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 124
+  }
+}

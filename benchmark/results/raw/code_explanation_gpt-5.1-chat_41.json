@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This function computes a CRC\u201132 checksum by iterating through each byte and applying the standard bitwise CRC algorithm using the polynomial 0xEDB88320. It initializes the CRC to all 1s, processes each bit with right shifts and XORs, and then returns the final inverted value.",
+  "score": 5,
+  "cost": 0.00078,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 71
+  }
+}

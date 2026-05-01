@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "data_to_text",
+  "case": 35,
+  "response": "The iPhone 15 Pro, priced at $999, features a 6.1-inch OLED display, the powerful A17 Pro chip, and a 48MP main camera. It offers storage options from 128GB to 1TB, a 3274mAh battery, weighs 187 grams, and holds a rating of 4.6 out of 5.",
+  "score": 5,
+  "cost": 0.00018452,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 304
+  }
+}

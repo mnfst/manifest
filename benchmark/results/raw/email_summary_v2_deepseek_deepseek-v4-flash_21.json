@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team proposes a cleanup sprint to remove 15 fully rolled-out feature flags and archive 8 dead-code flags, which will reduce config complexity and speed up the test suite by ~12%. The action item is to proceed with this cleanup of the 23 flags from releases older than 6 months.",
+  "score": 4,
+  "cost": 4.830000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 62
+  }
+}

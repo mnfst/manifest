@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "P99 latency on /api/v2/search spiked from 200ms to 800ms after Thursday's deploy because a new full-text search query is missing an index. The fix is to add a GIN index on the content column, which will be deployed tonight during the maintenance window.",
+  "score": 5,
+  "cost": 9.758e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 151
+  }
+}

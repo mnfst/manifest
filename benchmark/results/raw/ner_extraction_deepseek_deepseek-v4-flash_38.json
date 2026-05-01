@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "ner_extraction",
+  "case": 38,
+  "response": "{\n  \"persons\": [\"Kamala Harris\"],\n  \"organizations\": [\"General Motors\"],\n  \"locations\": [\"Detroit\"]\n}",
+  "score": 5,
+  "cost": 2.604e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 29
+  }
+}

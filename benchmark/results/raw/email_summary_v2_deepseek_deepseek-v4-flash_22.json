@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines a Japan expansion plan with a timeline from May to August and a $200K budget, covering legal, localization, and hiring costs. CEO approval is required to move forward.",
+  "score": 5,
+  "cost": 7.056e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 103
+  }
+}

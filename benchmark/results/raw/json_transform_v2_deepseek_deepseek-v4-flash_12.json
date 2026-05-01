@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "json_transform_v2",
+  "case": 12,
+  "response": "```json\n{\n  \"total_duration_min\": 15.416666666666666,\n  \"track_count\": 4,\n  \"artists\": {\n    \"Band X\": 2,\n    \"Band Y\": 1,\n    \"Band Z\": 1\n  },\n  \"longest_track\": \"Song C\"\n}\n```",
+  "score": 3,
+  "cost": 0.00034538,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 578
+  }
+}

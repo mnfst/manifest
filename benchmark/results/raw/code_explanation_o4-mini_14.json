@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This function implements Dijkstra\u2019s single\u2010source shortest\u2010path algorithm: it maintains a distance map and a min-heap priority queue, repeatedly extracts the currently closest vertex, \u201crelaxes\u201d its outgoing edges by updating and pushing shorter paths into the heap, and finally returns the shortest distances from the start node to all reachable nodes.",
+  "score": 5,
+  "cost": 0.0013728000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 277
+  }
+}

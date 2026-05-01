@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Not found in context",
+  "score": 5,
+  "cost": 2.5200000000000003e-05,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 160,
+    "output": 5
+  }
+}

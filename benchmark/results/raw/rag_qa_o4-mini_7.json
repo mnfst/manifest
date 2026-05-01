@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "The external force\u2019s magnitude is divided by the total mass of the system.",
+  "score": 2,
+  "cost": 0.0008910000000000001,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 162,
+    "output": 162
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has circulated the draft Q1 board deck showing 127% of the revenue target and 115% NRR, although CAC is up 22%. Please submit your product roadmap section by Wednesday in preparation for next Tuesday\u2019s board meeting.",
+  "score": 5,
+  "cost": 0.0015191000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 324
+  }
+}

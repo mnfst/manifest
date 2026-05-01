@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Dear team, I wanted to let you know that I am moving on from the company and my last day is approaching soon. Working with all of you has been a truly rewarding experience, both professionally and personally. I\u2019m grateful for the support, collaboration, and genuine kindness I\u2019ve experienced here. I will carry these memories and lessons with me into my next chapter. Please keep in touch, and I wish you all continued success and happiness.",
+  "score": 5,
+  "cost": 0.00082,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 98
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "They each used a fraction of a 364\u2011yard skein.\n\nMariah used 1/4 of 364 yards \u2192 364 \u00f7 4 = 91 yards  \nGrandma used 1/2 of 364 yards \u2192 364 \u00f7 2 = 182 yards  \n\nTotal yarn used \u2192 91 + 182 = 273 yards\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.000904,
+  "expected": "273",
+  "tokens": {
+    "input": 100,
+    "output": 88
+  }
+}

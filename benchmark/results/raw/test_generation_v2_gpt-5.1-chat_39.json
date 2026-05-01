@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 39,
+  "response": "Here are pytest-style unit tests. They avoid special formatting but contain valid Python code you can place in a test file.\n\nfrom topological_sort_module import topological_sort\nimport pytest\n\ndef test_happy_path_simple_dag():\n    graph = {\n        \"a\": [\"b\", \"c\"],\n        \"b\": [\"d\"],\n        \"c\": [\"d\"],\n        \"d\": []\n    }\n    result = topological_sort(graph)\n    assert result.index(\"a\") < result.index(\"b\")\n    assert result.index(\"a\") < result.index(\"c\")\n    assert result.index(\"b\") < result.index(\"d\")\n    assert result.index(\"c\") < result.index(\"d\")\n\ndef test_happy_path_multiple_roots():\n    graph = {\n        \"x\": [],\n        \"y\": [\"z\"],\n        \"z\": []\n    }\n    result = topological_sort(graph)\n    assert \"x\" in result\n    assert \"y\" in result\n    assert \"z\" in result\n    assert result.index(\"y\") < result.index(\"z\")\n\ndef test_edge_case_empty_graph():\n    graph = {}\n    result = topological_sort(graph)\n    assert result == []\n\ndef test_edge_case_single_node_no_edges():\n    graph = {\"a\": []}\n    result = topological_sort(graph)\n    assert result == [\"a\"]\n\ndef test_edge_case_self_loop_still_processed():\n    graph = {\"a\": [\"a\"]}\n    result = topological_sort(graph)\n    # No cycle detection is implemented, so it silently returns ['a']\n    assert result == [\"a\"]\n\ndef test_error_case_nonexistent_neighbors_ignored():\n    graph = {\n        \"a\": [\"b\"],\n        # b is not defined; graph.get(\"b\") returns []\n    }\n    result = topological_sort(graph)\n    assert result == [\"a\", \"b\"]\n\ndef test_complex_graph():\n    graph = {\n        \"a\": [\"b\", \"c\"],\n        \"b\": [\"d\", \"e\"],\n        \"c\": [\"f\"],\n        \"d\": [],\n        \"e\": [\"f\"],\n        \"f\": []\n    }\n    result = topological_sort(graph)\n    assert result.index(\"a\") < result.index(\"b\")\n    assert result.index(\"a\") < result.index(\"c\")\n    assert result.index(\"b\") < result.index(\"d\")\n    assert result.index(\"b\") < result.index(\"e\")\n    assert result.index(\"c\") < result.index(\"f\")\n    assert result.index(\"e\") < result.index(\"f\")\n\nIf you want, I can also provide a version that uses fixtures or parametrized tests.",
+  "score": 4,
+  "cost": 0.004592,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 547
+  }
+}

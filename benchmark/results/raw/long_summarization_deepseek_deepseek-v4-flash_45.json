@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "long_summarization",
+  "case": 45,
+  "response": "Quantum computing uses qubits, which can exist in superposition (both 0 and 1 simultaneously), enabling exponential speedups for certain problems compared to classical bits. In 2019, Google claimed quantum supremacy by completing a calculation in 200 seconds that would take a classical supercomputer 10,000 years. However, practical quantum computing faces major hurdles, including qubit fragility requiring near-absolute-zero cooling, high error rates, and the need for millions of qubits for useful applications\u2014current machines have only 100\u20131,000. Despite these challenges, the technology shows promise for fields like drug discovery, cryptography, and financial modeling.",
+  "score": 5,
+  "cost": 0.00011018,
+  "expected": "",
+  "tokens": {
+    "input": 267,
+    "output": 130
+  }
+}

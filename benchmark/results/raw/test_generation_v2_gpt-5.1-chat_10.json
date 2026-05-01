@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 10,
+  "response": "Here are pytest\u2011style unit tests for the function. They include happy path, edge cases, and error cases.\n\n```python\nimport pytest\nfrom your_module import is_valid_email\n\ndef test_valid_email_simple():\n    assert is_valid_email(\"test@example.com\") is True\n\ndef test_valid_email_with_subdomain():\n    assert is_valid_email(\"user@mail.example.org\") is True\n\ndef test_valid_email_with_special_chars():\n    assert is_valid_email(\"first.last+tag_123@example.co\") is True\n\ndef test_invalid_email_missing_at_symbol():\n    assert is_valid_email(\"invalid.email.com\") is False\n\ndef test_invalid_email_missing_domain():\n    assert is_valid_email(\"user@\") is False\n\ndef test_invalid_email_missing_username():\n    assert is_valid_email(\"@example.com\") is False\n\ndef test_invalid_email_invalid_tld():\n    assert is_valid_email(\"user@example.c\") is False\n\ndef test_invalid_email_spaces():\n    assert is_valid_email(\"user name@example.com\") is False\n    assert is_valid_email(\"user@ example.com\") is False\n\ndef test_invalid_email_multiple_at_symbols():\n    assert is_valid_email(\"user@@example.com\") is False\n\ndef test_edge_case_empty_string():\n    assert is_valid_email(\"\") is False\n\ndef test_edge_case_only_whitespace():\n    assert is_valid_email(\"   \") is False\n\ndef test_edge_case_numeric_domain_allowed():\n    # Allowed because regex permits alphanumeric in domain\n    assert is_valid_email(\"user@123domain.com\") is True\n\ndef test_edge_case_unicode_characters_not_allowed():\n    assert is_valid_email(\"us\u00e9r@example.com\") is False\n\ndef test_error_case_non_string_input():\n    with pytest.raises(TypeError):\n        is_valid_email(None)   # type: ignore\n```\n\nReplace `your_module` with the actual module name where the function is defined.",
+  "score": 4,
+  "cost": 0.003292,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 388
+  }
+}

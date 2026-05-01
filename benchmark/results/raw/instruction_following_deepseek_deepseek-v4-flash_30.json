@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Thin, crispy crust, tangy tomato sauce, gooey mozzarella cheese, savory pepperoni, earthy mushrooms, sweet bell peppers, spicy Italian sausage, fresh basil leaves, golden brown edges, hot melted cheese, crispy pepperoni curls, aromatic oregano, garlicky olive oil, flaky sea salt, cracked black pepper, rich marinara, creamy ricotta, smoky bacon bits, tangy pineapple chunks, salty anchovies, zesty red pepper flakes, buttery crust, charred spots, bubbly cheese, stretchy mozzarella strings, fragrant parmesan, herby pesto drizzle, crunchy crust bottom, soft dough interior, vibrant red sauce, white cheese islands, green pepper rings, black olive slices, red onion slivers, juicy tomato chunks, meaty sausage crumbles, spicy jalape\u00f1o rounds, sweet caramelized onions, earthy arugula, tangy balsamic glaze, golden crust edge, cheesy strings, greasy pepperoni, hot steam, delicious aroma.",
+  "score": 5,
+  "cost": 0.0009290400000000001,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 1655
+  }
+}

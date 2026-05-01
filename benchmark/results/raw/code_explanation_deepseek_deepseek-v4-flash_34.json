@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a **MinStack** data structure that supports standard stack operations (push, pop) while also providing constant-time `get_min()` retrieval by maintaining a separate `min_stack` that tracks the current minimum value at each stack level. On each push, it appends the smaller of the new value and the current minimum to `min_stack`, so both stacks stay synchronized and the minimum is always available at the top of `min_stack`.",
+  "score": 5,
+  "cost": 6.734e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 91
+  }
+}

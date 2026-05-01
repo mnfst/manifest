@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Let B be the number of boys.  \nWe are given B = 30.\n\n1. Number of girls G = 3 \u00d7 B = 3 \u00d7 30 = 90.  \n2. Number of nongendered children N = (1/10) \u00d7 B = (1/10) \u00d7 30 = 3.  \n3. Total children T = B + G + N = 30 + 90 + 3 = 123.\n\nANSWER: 123",
+  "score": 4,
+  "cost": 0.0020196000000000003,
+  "expected": "123",
+  "tokens": {
+    "input": 88,
+    "output": 437
+  }
+}

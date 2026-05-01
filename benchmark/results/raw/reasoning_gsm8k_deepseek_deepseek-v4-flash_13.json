@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Janet pays $500 for materials and $800 for construction, totaling $1300. She then pays 10% of this amount for insurance, which is $130. The total amount she pays is $1300 + $130 = $1410.\n\nANSWER: 1410",
+  "score": 5,
+  "cost": 0.00013076000000000003,
+  "expected": "1430",
+  "tokens": {
+    "input": 94,
+    "output": 210
+  }
+}

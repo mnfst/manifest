@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Step 1: Cost of peaches  \n6 pounds \u00d7 $2.00 per pound = $12\n\nStep 2: Cost of plums  \n8 pounds \u00d7 $1.00 per pound = $8\n\nStep 3: Cost of apricots  \n6 pounds \u00d7 $3.00 per pound = $18\n\nStep 4: Add all costs  \n12 + 8 + 18 = 38\n\nANSWER: 38",
+  "score": 5,
+  "cost": 0.001538,
+  "expected": "38",
+  "tokens": {
+    "input": 117,
+    "output": 163
+  }
+}

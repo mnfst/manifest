@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 44,
+  "response": "Here are pytest-style unit tests without special formatting:\n\nfrom pytest import raises\n\nfrom your_module import compose\n\n\ndef test_compose_happy_path():\n    def add1(x): return x + 1\n    def times2(x): return x * 2\n\n    fn = compose(add1, times2)  # means add1(times2(x))\n    assert fn(3) == 7  # times2(3)=6, add1(6)=7\n\n\ndef test_compose_single_function():\n    def square(x): return x * x\n\n    fn = compose(square)\n    assert fn(4) == 16\n\n\ndef test_compose_no_functions():\n    fn = compose()\n    assert fn(10) == 10  # identity behavior\n\n\ndef test_compose_function_order():\n    def to_str(x): return f\"{x}!\"\n    def negate(x): return -x\n\n    fn = compose(to_str, negate)\n    assert fn(5) == \"-5!\"\n\n\ndef test_compose_with_non_numeric():\n    def strip(x): return x.strip()\n    def upper(x): return x.upper()\n\n    fn = compose(strip, upper)\n    assert fn(\"  hi \") == \"HI\"\n\n\ndef test_compose_error_in_function():\n    def boom(x): raise ValueError(\"Bad input\")\n    fn = compose(boom)\n\n    with raises(ValueError):\n        fn(\"anything\")\n\n\ndef test_compose_function_returns_invalid_input_for_next():\n    def f1(x): return None\n    def f2(x): return x + 1  # will error if x is None\n\n    fn = compose(f1, f2)\n    with raises(TypeError):\n        fn(3)\n\n\ndef test_compose_functions_that_mutate():\n    def append_a(lst):\n        lst.append(\"a\")\n        return lst\n    def append_b(lst):\n        lst.append(\"b\")\n        return lst\n\n    fn = compose(append_a, append_b)\n    result = fn([])\n\n    # Both should have been appended in order: append_b runs first\n    assert result == [\"b\", \"a\"]",
+  "score": 4,
+  "cost": 0.004172,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 505
+  }
+}

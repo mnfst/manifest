@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Let's go step by step.\n\n1. Jamaal starts with an 8-pound weight.  \n2. He increases it by 50%.  \n   - 50% of 8 is \\( 8 \\times 0.5 = 4 \\).  \n   - So the new weight is \\( 8 + 4 = 12 \\) pounds.  \n3. That is too heavy, so he uses a weight two pounds lighter.  \n   - \\( 12 - 2 = 10 \\) pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 7.532e-05,
+  "expected": "10",
+  "tokens": {
+    "input": 98,
+    "output": 110
+  }
+}

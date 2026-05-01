@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 23,
+  "response": "The EU\u2019s GDPR, effective May 2018, mandates that any organization processing EU residents\u2019 personal data must obtain explicit consent, grant rights to access, erasure and portability, appoint Data Protection Officers for large\u2010scale processing, and report breaches within 72 hours. Non-compliance can incur fines of up to 4% of annual global revenue or \u20ac20 million\u2014penalties that have seen Meta hit with a \u20ac1.2 billion fine in 2023, Amazon \u20ac746 million, and Google over \u20ac200 million in total. GDPR has inspired similar frameworks worldwide, from California\u2019s CCPA to Brazil\u2019s LGPD and India\u2019s Digital Personal Data Protection Act. Despite criticisms over burdens on small businesses, cookie-consent fatigue, and uneven enforcement across member states, the regulation has enshrined data privacy as a fundamental right and set the global standard.",
+  "score": 5,
+  "cost": 0.0037554,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 777
+  }
+}

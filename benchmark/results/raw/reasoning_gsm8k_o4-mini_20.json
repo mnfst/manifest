@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "Step 1: Determine the daily cost for all fish.  \nEach fish needs \\$1 of food per day. There are 3 fish, so daily cost = 3 \u00d7 \\$1 = \\$3.\n\nStep 2: Determine the number of days in May.  \nMay has 31 days.\n\nStep 3: Calculate the total cost for the month.  \nTotal cost = daily cost \u00d7 number of days = \\$3 \u00d7 31 = \\$93.\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.0014344000000000002,
+  "expected": "93",
+  "tokens": {
+    "input": 72,
+    "output": 308
+  }
+}

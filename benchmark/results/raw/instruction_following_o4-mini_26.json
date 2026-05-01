@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, is the continuous movement of water on, above, and below the surface of the Earth. It is driven primarily by solar energy and gravity, which together power the processes that transfer water through different reservoirs such as the atmosphere, oceans, rivers, lakes, and soil. This cycle ensures the distribution and renewal of Earth\u2019s water resources, making it vital for all forms of life.\n\nThe first major stage of the water cycle is evaporation, where solar energy heats water in oceans, lakes, and rivers, turning it into water vapor. Plants also contribute through transpiration, releasing water vapor from their leaves into the air. These processes lift water from the Earth\u2019s surface into the atmosphere, where it can be transported by air currents over vast distances.\n\nOnce in the atmosphere, water vapor cools and undergoes condensation, forming tiny water droplets or ice crystals that cluster together to create clouds. When these droplets grow large enough, they fall back to the Earth as precipitation in the form of rain, snow, sleet, or hail. Precipitation replenishes water on land and can directly feed rivers, lakes, and groundwater supplies.\n\nAfter precipitation reaches the ground, some water runs off over the land surface into bodies of water, while some infiltrates into the soil and replenishes aquifers. Plants and animals use a portion of this water, and some eventually returns to rivers and oceans through groundwater flow and surface runoff. This continuous circulation of water through evaporation, condensation, precipitation, and collection completes the water cycle.",
+  "score": 3,
+  "cost": 0.0020427,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 460
+  }
+}

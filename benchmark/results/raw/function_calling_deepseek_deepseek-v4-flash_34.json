@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 34,
+  "response": "{\"name\": \"scale_deployment\", \"arguments\": {\"service\": \"web\", \"replicas\": 5}}",
+  "score": 4,
+  "cost": 2.7300000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 26
+  }
+}

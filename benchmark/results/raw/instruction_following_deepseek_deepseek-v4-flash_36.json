@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "- Java\n- C++\n- Ruby\n- Go",
+  "score": 5,
+  "cost": 2.142e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 34
+  }
+}

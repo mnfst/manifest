@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_review_v2",
+  "case": 22,
+  "response": "## Code Review: `send_email` Function\n\n### Overview\nThe function attempts to send an email using Python's `smtplib` library. It constructs a raw email string and sends it via a local SMTP server. The code has several bugs, security vulnerabilities, and lacks robustness.\n\n---\n\n### 1. Missing Import\n**Bug:** The function uses `smtplib.SMTP` but `smtplib` is not imported.\n\n**Fix:** Add `import smtplib` at the top of the file.\n\n---\n\n### 2. Email Header Injection (Critical Security Issue)\n**Problem:**  \nThe `to`, `subject`, and `body` parameters are directly interpolated into the email headers using an f-string. An attacker can inject newline characters (`\\n` or `\\r\\n`) to add arbitrary headers or even send the email to unintended recipients.\n\n**Example Attack:**  \nIf `to` is set to `\"victim@example.com\\nBcc: attacker@evil.com\"`, the resulting message will contain a `Bcc` header, causing the email to be sent to the attacker as well.",
+  "score": 5,
+  "cost": 0.0004629800000000001,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 800
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 37,
+  "response": "It builds a prefix tree (trie) where each inserted word is stored character\u2011by\u2011character, marking word endings with \"#\".  \nThe starts_with method then walks the trie to the prefix node and performs a depth\u2011first search to collect all words that share that prefix.",
+  "score": 4,
+  "cost": 0.000822,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 60
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 37,
+  "response": "Here are pytest\u2011style unit tests (plain text, no special formatting):\n\nimport pytest\nfrom your_module import parse_csv_line\n\ndef test_simple_csv():\n    line = \"a,b,c\"\n    assert parse_csv_line(line) == [\"a\", \"b\", \"c\"]\n\ndef test_quoted_field():\n    line = '\"a,b\",c'\n    assert parse_csv_line(line) == [\"a,b\", \"c\"]\n\ndef test_multiple_quoted_fields():\n    line = '\"x,y\",\"p,q\",\"r\"'\n    assert parse_csv_line(line) == [\"x,y\", \"p,q\", \"r\"]\n\ndef test_empty_fields():\n    line = \"a,,c\"\n    assert parse_csv_line(line) == [\"a\", \"\", \"c\"]\n\ndef test_trailing_empty_field():\n    line = \"a,b,\"\n    assert parse_csv_line(line) == [\"a\", \"b\", \"\"]\n\ndef test_leading_empty_field():\n    line = \",b,c\"\n    assert parse_csv_line(line) == [\"\", \"b\", \"c\"]\n\ndef test_all_empty():\n    line = \",,\"\n    assert parse_csv_line(line) == [\"\", \"\", \"\"]\n\ndef test_quotes_inside_field_do_not_escape():\n    # This implementation toggles in_quotes on every quote, so inner quotes break parsing\n    line = '\"he said \"\"hello\"\"\",world'\n    # According to this code, two consecutive quotes will toggle twice, acting like no quotes\n    # Result becomes: he said \"\"hello\"\", world\n    assert parse_csv_line(line) == ['he said \"\"hello\"\"', \"world\"]\n\ndef test_no_commas():\n    line = \"abc\"\n    assert parse_csv_line(line) == [\"abc\"]\n\ndef test_blank_line():\n    line = \"\"\n    assert parse_csv_line(line) == [\"\"]\n\ndef test_unbalanced_quotes():\n    # The function does not error; it just treats the rest as quoted\n    line = '\"abc,def'\n    assert parse_csv_line(line) == [\"abc,def\"]\n\ndef test_commas_inside_unclosed_quotes():\n    line = '\"a,b,c'\n    assert parse_csv_line(line) == [\"a,b,c\"]\n\nIf you want, I can also add tests checking performance, randomized fuzz tests, or behavior comparisons against Python's csv module.",
+  "score": 4,
+  "cost": 0.004532,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 538
+  }
+}

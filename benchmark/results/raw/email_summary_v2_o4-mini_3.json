@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "March\u2019s onboarding satisfaction dropped to 7.2/10 despite strong scores for the buddy system and on-time IT support, with confusion around benefits deadlines, 3\u20135 day tool access delays, and a missing culture handbook. Lisa\u2019s action items are to fix tool access to meet the one-day target and ensure the culture handbook is distributed promptly.",
+  "score": 5,
+  "cost": 0.0019228000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 409
+  }
+}

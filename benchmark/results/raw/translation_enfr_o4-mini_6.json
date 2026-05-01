@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, rouler sur la Wangan, c\u2019est le diable.",
+  "score": 4,
+  "cost": 0.0032934000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 740
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "The Rhine Bridge is at Arnhem in the Netherlands.",
+  "score": 4,
+  "cost": 0.0009383000000000001,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 225,
+    "output": 157
+  }
+}

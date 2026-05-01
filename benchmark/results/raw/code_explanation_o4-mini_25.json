@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This class implements the Observer (a.k.a. Pub/Sub) pattern by keeping a dictionary that maps event names to lists of subscriber callbacks;  \n\u2022 on(event, fn) registers a listener under that event name,  \n\u2022 emit(event, *args) invokes all listeners for that event with the given arguments,  \n\u2022 off(event, fn) removes a specific listener.",
+  "score": 5,
+  "cost": 0.0013816,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 285
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 41,
+  "response": "Here are pytest\u2011style unit tests covering happy path, edge cases, and error cases:\n\n```python\nimport pytest\n\nfrom your_module import hex_to_rgb\n\n\ndef test_hex_to_rgb_happy_path():\n    assert hex_to_rgb(\"#ffffff\") == (255, 255, 255)\n    assert hex_to_rgb(\"#000000\") == (0, 0, 0)\n    assert hex_to_rgb(\"#1a2b3c\") == (26, 43, 60)\n\n\ndef test_hex_to_rgb_no_hash_prefix():\n    assert hex_to_rgb(\"abcdef\") == (171, 205, 239)\n\n\ndef test_hex_to_rgb_uppercase():\n    assert hex_to_rgb(\"#ABCDEF\") == (171, 205, 239)\n\n\ndef test_hex_to_rgb_mixed_case():\n    assert hex_to_rgb(\"#AaBbCc\") == (170, 187, 204)\n\n\ndef test_hex_to_rgb_invalid_length():\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"#fff\")  # too short\n\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"12345\")  # not 6 chars\n\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"\")  # empty\n\n\ndef test_hex_to_rgb_non_hex_characters():\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"#zzzzzz\")\n\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"ghijkl\")\n\n\ndef test_hex_to_rgb_none_input():\n    with pytest.raises(AttributeError):\n        hex_to_rgb(None)\n```\n\nNotes:\n- The function doesn\u2019t validate input length or characters, so failures occur when `int(..., 16)` raises `ValueError` or when `.lstrip` is called on invalid types.\n- These tests explicitly check for those raised exceptions.",
+  "score": 4,
+  "cost": 0.003146,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 374
+  }
+}

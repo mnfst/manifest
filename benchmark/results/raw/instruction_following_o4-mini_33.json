@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth\u2019s only natural satellite and orbits our planet at an average distance of about 384,400 kilometers.  \n2. It is tidally locked to Earth, meaning the same side (the near side) always faces us.  \n3. The Moon\u2019s surface is covered in a layer of dusty rock and debris called regolith, and features large impact craters and dark plains known as maria.",
+  "score": 5,
+  "cost": 0.0018942,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 424
+  }
+}

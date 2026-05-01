@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "ner_extraction",
+  "case": 40,
+  "response": "{\"persons\":[],\"organizations\":[\"The Reserve Bank of Australia\",\"Goldman Sachs\"],\"locations\":[\"Australia\"]}",
+  "score": 4,
+  "cost": 0.000908,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 96
+  }
+}

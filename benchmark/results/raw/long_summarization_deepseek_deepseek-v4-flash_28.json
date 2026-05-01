@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "long_summarization",
+  "case": 28,
+  "response": "The internet originated from US Department of Defense research in the 1960s, with ARPANET first demonstrated in 1969. Key milestones include the adoption of TCP/IP in 1983, Tim Berners-Lee's invention of the World Wide Web in 1989, and the launch of the Mosaic browser in 1993, which made the web accessible to the public. The dot-com boom of the late 1990s ended in a 2001 crash, but survivors like Amazon and Google became major companies, while social media (mid-2000s) and mobile internet (post-iPhone 2007) further transformed communication. Today, the internet connects over 5 billion people and underpins modern life across commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.00020566000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 290
+  }
+}

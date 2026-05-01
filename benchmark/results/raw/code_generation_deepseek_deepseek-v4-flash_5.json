@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 5,
+  "response": "return max(l)",
+  "score": 5,
+  "cost": 0.00013678,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 217
+  }
+}

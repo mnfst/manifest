@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\n    digit_sum = lambda n: sum(-1 if c == '-' else int(c) for c in str(n))\n    return [num for _, num in sorted(enumerate(nums), key=lambda x: (digit_sum(x[1]), -x[0]))]\n```",
+  "score": 3,
+  "cost": 0.00495488,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 8812
+  }
+}

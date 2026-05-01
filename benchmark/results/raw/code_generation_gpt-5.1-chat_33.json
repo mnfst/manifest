@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 33,
+  "response": "s = sorted([a, b, c])\nreturn s[0] + s[1] > s[2] and s[0]**2 + s[1]**2 == s[2]**2",
+  "score": 3,
+  "cost": 0.000726,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 56
+  }
+}

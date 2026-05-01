@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 36,
+  "response": "{\"name\": \"subscribe\", \"arguments\": {\"email\": \"jane@example.com\", \"list_name\": \"monthly newsletter\"}}",
+  "score": 5,
+  "cost": 0.0005742000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 109
+  }
+}

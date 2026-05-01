@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate melts on your tongue like a warm velvet cloak, wrapping your senses in a gentle embrace. First comes a deep, bittersweet chord\u2014earthy and intense\u2014followed by a soft crescendo of creamy sweetness, like whispered promises of caramel and vanilla dancing together. Each bite is a symphony of contrasts: a faint hint of toasted nuts or fruit, a touch of smoky richness, and an underlying silkiness that lingers long after you swallow. In that moment, chocolate tastes like a familiar hug from an old friend, comforting and endlessly satisfying.",
+  "score": 5,
+  "cost": 0.0008701000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 193
+  }
+}

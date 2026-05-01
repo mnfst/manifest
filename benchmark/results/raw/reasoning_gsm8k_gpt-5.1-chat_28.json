@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let x be the number of people who boarded at the terminal.\n\nAfter first stop: x + 5  \nAfter second stop: x + 5 \u2212 7 + 8 = x + 6  \n\nGiven that there were 20 people heading to the third stop:\nx + 6 = 20  \nx = 14\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.001384,
+  "expected": "14",
+  "tokens": {
+    "input": 108,
+    "output": 146
+  }
+}

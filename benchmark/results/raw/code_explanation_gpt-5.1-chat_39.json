@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "This code implements a classic producer\u2013consumer pattern using a shared queue, where each producer adds items and then signals completion by putting a None sentinel. Each consumer continuously retrieves items, processes them, and stops when it encounters the sentinel, passing it along so other consumers can also exit.",
+  "score": 5,
+  "cost": 0.000734,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 66
+  }
+}

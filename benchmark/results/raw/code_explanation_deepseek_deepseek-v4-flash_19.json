@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This code implements a **sliding window rate limiter** using a list of timestamps. It tracks the times of recent allowed calls, removes those older than the specified `period`, and permits a new call only if the number of remaining timestamps is less than the maximum allowed `calls` per period.",
+  "score": 5,
+  "cost": 0.00012222,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 192
+  }
+}

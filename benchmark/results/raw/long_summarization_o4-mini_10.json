@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 10,
+  "response": "The global food system must produce 60% more food by 2050 to feed an expected 9.7 billion people, yet it is besieged by climate-driven yield losses, water scarcity (as seen in the rapidly depleting Ogallala Aquifer), and soil degradation on 33% of arable land. Agriculture itself generates about 25% of global greenhouse gas emissions and suffers from post-harvest losses that waste roughly one-third of all food. To meet these challenges, stakeholders are exploring AI-powered precision farming, urban vertical agriculture, alternative proteins (insects, cultured meat), drought-resistant GM crops and regenerative soil-building practices, alongside policy reforms in subsidies, trade and carbon pricing. Scaling these solutions while keeping food affordable and accessible to the poorest populations remains the key hurdle.",
+  "score": 5,
+  "cost": 0.0034364000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 708
+  }
+}

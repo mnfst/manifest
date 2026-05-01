@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "Mammals:\n- Elephant\n- Dolphin\n- Tiger\n\nBirds:\n- Eagle\n- Parrot\n- Penguin\n\nFish:\n- Salmon\n- Clownfish\n- Tuna",
+  "score": 5,
+  "cost": 0.000434,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 48
+  }
+}

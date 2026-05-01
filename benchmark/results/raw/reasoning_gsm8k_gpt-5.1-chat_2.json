@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "He sails from 1 PM to 4 PM, which is 3 hours.\n\nAt 10 miles per hour, the distance he travels is:\n3 hours \u00d7 10 mph = 30 miles\n\nHe returns at 6 miles per hour.  \nReturn time = distance \u00f7 speed = 30 \u00f7 6 = 5 hours\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00136,
+  "expected": "5",
+  "tokens": {
+    "input": 88,
+    "output": 148
+  }
+}

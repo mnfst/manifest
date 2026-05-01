@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "SELECT DISTINCT a.airline_name\nFROM airlines a\nJOIN flights f ON a.airline_id = f.airline_id\nWHERE f.destination_airport_code = 'AHD';",
+  "score": 5,
+  "cost": 9.464e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 152
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "French: Plus tu te d\u00e9bats, plus \u00e7a va devenir g\u00eanant pour tout le monde.",
+  "score": 4,
+  "cost": 0.000254,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 22
+  }
+}

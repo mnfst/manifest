@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 8,
+  "response": "The patient is a 45-year-old woman with a body mass index of 27.3, a blood pressure reading of 138/88 mmHg, a total cholesterol level of 225 mg/dL, and a fasting glucose of 110 mg/dL. She does not smoke, exercises twice a week, and has a family history of diabetes on her mother\u2019s side.",
+  "score": 5,
+  "cost": 0.0019525000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 420
+  }
+}

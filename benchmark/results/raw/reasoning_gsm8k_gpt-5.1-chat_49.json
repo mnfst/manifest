@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Step 1: Each of the 3 sisters is 16 years old.  \nTotal age of sisters = 3 \u00d7 16 = 48\n\nStep 2: One brother is 12 years old.\n\nStep 3: The 12\u2011year\u2011old is half the age of the older brother.  \nOlder brother\u2019s age = 2 \u00d7 12 = 24\n\nStep 4: Add all ages together:  \n48 + 12 + 24 = 84\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.001608,
+  "expected": "84",
+  "tokens": {
+    "input": 96,
+    "output": 177
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Ops reports that current 1Gbps links are nearing capacity and recommends upgrading to 10Gbps despite higher costs to avoid short\u2011term congestion issues. An alternative optimization approach exists for $15K, but the suggested action is to proceed with the 10Gbps upgrade.",
+  "score": 5,
+  "cost": 0.000752,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 67
+  }
+}

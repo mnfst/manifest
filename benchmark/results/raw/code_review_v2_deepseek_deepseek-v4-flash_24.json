@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_review_v2",
+  "case": 24,
+  "response": "## Code Review: `download_file` Function\n\n### Bugs\n\n1. **No HTTP status check**  \n   The function does not verify that the request succeeded. If the server returns a 4xx or 5xx status, `response.content` may contain an error page (or be empty), and the file will be written with that content.  \n   **Fix:** Call `response.raise_for_status()` or check `response.status_code == 200` before writing.\n\n2. **No timeout**  \n   `requests.get(url)` can block indefinitely if the server is unresponsive or slow. This can hang the entire application.  \n   **Fix:** Add a timeout parameter, e.g., `requests.get(url, timeout=10)`.\n\n3. **Memory exhaustion for large files**  \n   `response.content` loads the entire response body into memory. For large files (e.g., several GB), this can cause `MemoryError` or swap thrashing.  \n   **Fix:** Use `response.iter_content(chunk_size=8192)` and write in chunks.\n\n4. **No exception handling**  \n   Network errors (DNS failure, connection refused, etc.) or file system errors (permission denied, disk full) will raise unhandled exceptions, crashing the caller.  \n   **Fix:** Wrap the logic in a `try/except` block and handle or re-raise appropriately.\n\n5. **No validation of `dest`**  \n   If `dest` is a directory, `open(dest, 'wb')` will raise `IsADirectoryError`. Also, if the path",
+  "score": 4,
+  "cost": 0.0004571000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 800
+  }
+}

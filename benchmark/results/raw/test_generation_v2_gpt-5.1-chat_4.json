@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 4,
+  "response": "Here are pytest\u2011style unit tests covering happy path, edge cases, and error cases.\n\n```python\nimport pytest\nfrom math import inf, isnan\nfrom your_module import celsius_to_fahrenheit\n\ndef test_happy_path_positive_temperature():\n    assert celsius_to_fahrenheit(25) == 77\n\ndef test_happy_path_negative_temperature():\n    assert celsius_to_fahrenheit(-40) == -40  # Same value in both scales\n\ndef test_edge_case_zero():\n    assert celsius_to_fahrenheit(0) == 32\n\ndef test_edge_case_large_value():\n    assert celsius_to_fahrenheit(1e6) == 1e6 * 9/5 + 32\n\ndef test_edge_case_small_value():\n    assert celsius_to_fahrenheit(-1e6) == -1e6 * 9/5 + 32\n\ndef test_edge_case_inf():\n    assert celsius_to_fahrenheit(inf) == inf\n    assert celsius_to_fahrenheit(-inf) == -inf\n\ndef test_error_case_non_numeric_string():\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(\"abc\")\n\ndef test_error_case_none():\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(None)\n\ndef test_error_case_nan():\n    # nan comparisons are special: result should be nan\n    result = celsius_to_fahrenheit(float(\"nan\"))\n    assert isnan(result)\n```",
+  "score": 4,
+  "cost": 0.0025,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 298
+  }
+}

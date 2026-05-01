@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "Here is a pytest\u2010style test module covering normal cases, edge cases, and error cases. Save it as e.g. `test_snake_to_camel.py` alongside your implementation and run `pytest` to verify.\n\n```python\nimport pytest\nfrom snake_to_camel_module import snake_to_camel  # adjust import as needed\n\n# Happy\u2010path / normal cases\n@pytest.mark.parametrize(\"input_str, expected\", [\n    (\"snake_case\", \"snakeCase\"),\n    (\"multi_word_snake\", \"multiWordSnake\"),\n    (\"alreadycamel\", \"alreadycamel\"),\n    (\"hello_WORLD_testCASE\", \"helloWorldTestcase\"),\n    (\"Here_we_go\", \"HereWeGo\"),\n])\ndef test_snake_to_camel_normal(input_str, expected):\n    result = snake_to_camel(input_str)\n    assert isinstance(result, str)\n    assert result == expected\n\n# Edge cases around underscores and empty string\n@pytest.mark.parametrize(\"input_str, expected\", [\n    (\"\", \"\"),                  # empty string\n    (\"__\", \"\"),                # only underscores\n    (\"____\", \"\"),              # many underscores\n    (\"_leading\", \"Leading\"),   # leading underscore\n    (\"trailing_\", \"trailing\"), # trailing underscore\n    (\"a__b__c\", \"aBC\"),        # consecutive underscores\n])\ndef test_snake_to_camel_edge_cases(input_str, expected):\n    assert snake_to_camel(input_str) == expected\n\n# Error cases: non\u2010string inputs should raise TypeError\n@pytest.mark.parametrize(\"bad_input\", [\n    None,\n    123,\n    3.14,\n    [\"list\", \"of\", \"strings\"],\n    {\"a\": \"b\"},\n])\ndef test_snake_to_camel_type_error(bad_input):\n    with pytest.raises(TypeError):\n        snake_to_camel(bad_input)\n```\n\nExplanation of the coverage:\n\n- test_snake_to_camel_normal: common, expected transformations (including mixed\u2010case parts)\n- test_snake_to_camel_edge_cases: empty strings, only underscores, leading/trailing, repeated underscores\n- test_snake_to_camel_type_error: passing non\u2010string arguments raises a TypeError because `.split()` is not defined on those types",
+  "score": 4,
+  "cost": 0.0069509,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 1562
+  }
+}

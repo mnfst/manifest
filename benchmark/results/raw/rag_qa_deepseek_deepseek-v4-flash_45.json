@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe.",
+  "score": 5,
+  "cost": 6.412e-05,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 218,
+    "output": 60
+  }
+}

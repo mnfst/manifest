@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This function computes a **CRC-32 checksum** using the **bitwise polynomial division algorithm** with the reversed polynomial `0xEDB88320`. It processes each byte of the input data by XORing it with the current CRC value, then iterates 8 times per byte to shift the bits right, conditionally XORing with the polynomial when the least significant bit is 1, and finally returns the bitwise complement of the result.",
+  "score": 5,
+  "cost": 6.748e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 92
+  }
+}

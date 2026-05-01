@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Step 1. Katelyn initially saw 50 fairies.  \nStep 2. Twenty minutes later, \u201cone of her friends saw half as many fairies as Katelyn saw\u201d come from the east and join the group.  Since Katelyn saw 50 originally, half as many is  \n\u200350 \u00f7 2 = 25 new fairies.  \nStep 3. After they joined, the total number was  \n\u200350 + 25 = 75 fairies.  \nStep 4. Ten minutes later, 30 fairies flew away, leaving  \n\u200375 \u2212 30 = 45 fairies remaining.  \n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.006726500000000001,
+  "expected": "45",
+  "tokens": {
+    "input": 115,
+    "output": 1500
+  }
+}

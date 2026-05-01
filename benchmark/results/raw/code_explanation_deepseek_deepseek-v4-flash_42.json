@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an **asynchronous bounded queue** using a **producer-consumer pattern with futures** to coordinate waiting. When the queue is full, `put` suspends by creating a future and adding it to a `_putters` deque, which is resolved when a `get` removes an item; conversely, when the queue is empty, `get` suspends by creating a future added to `_getters`, resolved when a `put` adds an item.",
+  "score": 5,
+  "cost": 0.00016940000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 222,
+    "output": 247
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This class implements the \u201ctwo\u2010stack\u201d or auxiliary\u2010stack pattern to support push, pop and retrieving the minimum in O(1) time: every time you push a value onto the main stack you also push the current minimum (min(new value, prior minimum)) onto a second stack, and on pop you pop from both stacks so that get_min() can simply return the top of the min\u2010stack.",
+  "score": 5,
+  "cost": 0.0025509,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 550
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "function_calling",
+  "case": 17,
+  "response": "{\"name\": \"generate_qr\", \"arguments\": {\"data\": \"https://example.com/signup\"}}",
+  "score": 5,
+  "cost": 0.000438,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 31
+  }
+}

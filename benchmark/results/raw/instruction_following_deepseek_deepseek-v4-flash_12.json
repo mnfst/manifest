@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Think of an API like a waiter at a restaurant.\n\nYou (the user) are sitting at a table. You want food, but you can't just walk into the kitchen and start cooking. The kitchen is a complicated, messy place with its own rules.\n\nSo, you look at the menu (the API's instructions). The menu tells you what you can order, how to ask for it (\"I'll have the burger, please\"), and what you'll get back (a burger on a plate).\n\nYou tell the waiter your order. The waiter takes that order to the kitchen, tells the chefs what to make, and then brings the finished food back to you.\n\nYou never had to touch the stove, chop an onion, or know how the kitchen works. The waiter is the middleman that lets you get what you need from the kitchen in a simple, predictable way.\n\n**In short:** An API is a middleman that lets one piece of software (like a weather app on your phone) ask another piece of software (like a big weather database) for specific information or actions, without the first software needing to know how the second one works on the inside. It's a set of rules for how to ask and what you'll get back.",
+  "score": 5,
+  "cost": 0.00014406,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 253
+  }
+}

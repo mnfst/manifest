@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are four programming languages, excluding Python and JavaScript:\n\n\u2022 Java  \n\u2022 C++  \n\u2022 Go  \n\u2022 Ruby",
+  "score": 5,
+  "cost": 0.000264,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 28
+  }
+}

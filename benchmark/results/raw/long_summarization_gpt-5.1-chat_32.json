@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 32,
+  "response": "The internet began in the 1960s with US Department of Defense\u2013funded networking research, leading to the creation of ARPANET in 1969 and the adoption of TCP/IP in 1983, which formed the internet\u2019s core architecture. Tim Berners-Lee\u2019s 1989 invention of the World Wide Web and the 1993 release of the Mosaic browser opened the internet to mainstream use. After the rapid growth and subsequent crash of the late-1990s dot-com boom, companies like Amazon and Google emerged as long-term winners, while the mid-2000s rise of social media and the 2007 smartphone revolution reshaped global communication. Today, the internet connects more than 5 billion people and supports essential activities across commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.00192,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 162
+  }
+}

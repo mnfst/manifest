@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 20,
+  "response": "roman_numerals = [\n        (1000, \"M\"), (900, \"CM\"), (500, \"D\"), (400, \"CD\"),\n        (100, \"C\"), (90, \"XC\"), (50, \"L\"), (40, \"XL\"),\n        (10, \"X\"), (9, \"IX\"), (5, \"V\"), (4, \"IV\"), (1, \"I\")\n    ]\n    result = []\n    for value, symbol in roman_numerals:\n        count = number // value\n        if count:\n            result.append(symbol * count)\n            number -= value * count\n    return \"\".join(result).lower()",
+  "score": 4,
+  "cost": 0.0033792,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 734
+  }
+}

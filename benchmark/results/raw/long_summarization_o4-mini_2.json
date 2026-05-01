@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "long_summarization",
+  "case": 2,
+  "response": "The global food system faces a squeeze as the world population nears 9.7 billion by 2050, demanding a 60 percent rise in production even as climate change slashes yields through droughts, floods, and heat. Agriculture today generates roughly 25 percent of greenhouse gases, depletes key water sources like the Ogallala Aquifer, and has degraded 33 percent of arable land, while about one-third of all food produced is lost or wasted. Proposed solutions range from AI-driven precision agriculture, vertical urban farms, alternative proteins and genetically modified drought-resistant crops to regenerative practices that rebuild soil health. Policymakers are also urged to reform subsidies, trade rules, and carbon pricing\u2014and the core challenge remains scaling these innovations without pricing out the poorest consumers.",
+  "score": 4,
+  "cost": 0.0019800000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 377
+  }
+}

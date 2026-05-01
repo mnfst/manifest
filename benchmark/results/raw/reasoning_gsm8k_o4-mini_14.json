@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "Step 1: Each duck needs 3.5 pounds per week.  \nStep 2: For 10 ducks, weekly need = 10 \u00d7 3.5 = 35 pounds.  \nStep 3: There are 7 days in a week, so daily need = 35 \u00f7 7 = 5 pounds.  \n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0016192000000000001,
+  "expected": "5",
+  "tokens": {
+    "input": 76,
+    "output": 349
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 6,
+  "response": "freq = {}\n    for num in numbers:\n        freq[num] = freq.get(num, 0) + 1\n    return [num for num in numbers if freq[num] == 1]",
+  "score": 4,
+  "cost": 0.0020845000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 445
+  }
+}

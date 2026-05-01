@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 employee engagement survey shows an overall score of 7.8/10 (above industry average), with team collaboration as the highest area and career growth clarity as the lowest. Proposed actions include implementing quarterly career conversations, an internal mobility program, and mentorship matching, with a town hall scheduled for Friday to discuss.",
+  "score": 5,
+  "cost": 0.00013538000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 214
+  }
+}

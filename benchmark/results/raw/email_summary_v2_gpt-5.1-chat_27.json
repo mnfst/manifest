@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The team successfully shipped the auth redesign on schedule and collaborated well with design, but struggled with excessive context switching and overly long standups. Action items are to limit each developer\u2019s work\u2011in\u2011progress to two items and enforce timeboxed standups with a parking-lot follow\u2011up.",
+  "score": 5,
+  "cost": 0.000752,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 68
+  }
+}

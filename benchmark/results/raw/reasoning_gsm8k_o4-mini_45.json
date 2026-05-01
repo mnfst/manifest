@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "Let\u2019s determine the wheels needed step by step.\n\n1. Wheels needed for the cars  \n   Number of cars = 57  \n   Wheels per car = 4  \n   Total wheels for cars = 57 \u00d7 4 = 228  \n\n2. Wheels needed for the motorcycles  \n   Number of motorcycles = 73  \n   Wheels per motorcycle = 2  \n   Total wheels for motorcycles = 73 \u00d7 2 = 146  \n\n3. Total wheels needed  \n   228 (for cars) + 146 (for motorcycles) = 374  \n\n4. Wheels left over  \n   Starting with 650 wheels, wheels used = 374  \n   Wheels left = 650 \u2212 374 = 276  \n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.0014069,
+  "expected": "276",
+  "tokens": {
+    "input": 99,
+    "output": 295
+  }
+}

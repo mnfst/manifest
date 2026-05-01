@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines the planned Japan launch timeline from May through August and details a $200K budget covering legal setup, localization, and a local hire. It requests CEO approval to move forward with the expansion.",
+  "score": 5,
+  "cost": 0.000598,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 51
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 7,
+  "response": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"6:30 AM\", \"label\": \"Morning Workout\"}}",
+  "score": 5,
+  "cost": 8.512e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 127
+  }
+}

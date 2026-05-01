@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "json_transform_v2",
+  "case": 20,
+  "response": "{\"departments\": {\"eng\": {\"headcount\": 2, \"avg_salary\": 115000, \"employees\": [\"Alice\", \"Bob\"]}, \"sales\": {\"headcount\": 2, \"avg_salary\": 100000, \"employees\": [\"Carol\", \"Dave\"]}}}",
+  "score": 5,
+  "cost": 0.00021462000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 346
+  }
+}

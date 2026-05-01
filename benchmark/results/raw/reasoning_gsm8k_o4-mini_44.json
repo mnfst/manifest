@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Step 1: There are 10 stalls initially with cows and (implicitly) 10 empty stalls, for a total of 20 stalls.  \nStep 2: Mr. Sylas buys 40 cows and distributes them equally among the 20 stalls.  \nStep 3: Each stall receives 40 \u00f7 20 = 2 new cows.  \nStep 4: Every originally occupied stall now has 20 + 2 = 22 cows in it.  \nStep 5: An 8 of those stalls each has 22 cows, so total cows in 8 stalls = 8 \u00d7 22 = 176.\n\nANSWER: 176",
+  "score": 2,
+  "cost": 0.0058377,
+  "expected": "192",
+  "tokens": {
+    "input": 87,
+    "output": 1305
+  }
+}

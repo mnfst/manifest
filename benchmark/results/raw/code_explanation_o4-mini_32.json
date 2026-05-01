@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements the Disjoint-Set Union (Union-Find) data structure for n elements, using path compression in the `find` function and union by rank in the `union` function to merge two sets in nearly constant (amortized inverse\u2013Ackermann) time.",
+  "score": 5,
+  "cost": 0.001353,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 268
+  }
+}

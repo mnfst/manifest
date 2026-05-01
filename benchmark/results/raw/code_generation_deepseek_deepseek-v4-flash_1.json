@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 1,
+  "response": "result = []\nfor group in paren_string.split():\n    depth = max_depth = 0\n    for ch in group:\n        if ch == '(':\n            depth += 1\n            max_depth = max(max_depth, depth)\n        elif ch == ')':\n            depth -= 1\n    result.append(max_depth)\nreturn result",
+  "score": 4,
+  "cost": 5.838000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 68
+  }
+}

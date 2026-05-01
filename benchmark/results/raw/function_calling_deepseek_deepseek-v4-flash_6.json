@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 6,
+  "response": "{\"name\": \"translate\", \"arguments\": {\"text\": \"The meeting has been rescheduled to Monday\", \"target_language\": \"Spanish\"}}",
+  "score": 4,
+  "cost": 3.2340000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 32
+  }
+}

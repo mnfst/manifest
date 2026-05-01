@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "A received 20 votes (20% of 100).  \nB received 30 votes (50% more than 20).  \nThe remaining votes went to C: 100 \u2212 20 \u2212 30 = 50.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00067,
+  "expected": "50",
+  "tokens": {
+    "input": 95,
+    "output": 60
+  }
+}

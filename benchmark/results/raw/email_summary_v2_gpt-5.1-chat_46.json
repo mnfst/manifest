@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 46,
+  "response": "A critical SQL injection vulnerability affects /api/v2/auth/login in versions 3.2.0\u20133.4.1, with a patch already prepared. David recommends reviewing the fix and issuing a hotfix within 24 hours.",
+  "score": 5,
+  "cost": 0.00066,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 58
+  }
+}

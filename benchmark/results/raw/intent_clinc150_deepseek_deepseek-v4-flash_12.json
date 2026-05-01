@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "intent_clinc150",
+  "case": 12,
+  "response": "oil_change_how",
+  "score": 5,
+  "cost": 0.00011998000000000001,
+  "expected": "oil_change_how",
+  "tokens": {
+    "input": 569,
+    "output": 72
+  }
+}

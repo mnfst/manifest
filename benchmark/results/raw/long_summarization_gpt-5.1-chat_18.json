@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 18,
+  "response": "The global food system faces rising strain as the population heads toward 9.7 billion by 2050, driving the need for 60% more food production even as climate change lowers yields through extreme weather. Agriculture contributes about 25% of greenhouse gas emissions, while water scarcity and soil degradation are reducing productivity in key regions such as the Ogallala Aquifer\u2013fed U.S. plains, India, China, and the Middle East. One\u2011third of all food is lost or wasted, further tightening the supply\u2013demand gap. Proposed solutions range from precision agriculture and alternative proteins to drought\u2011resistant crops, regenerative farming, and major policy reforms, but scaling them while keeping food affordable remains the central challenge.",
+  "score": 5,
+  "cost": 0.001776,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 149
+  }
+}

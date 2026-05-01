@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sunlight sparkles.  \nPlant pigments specifically soak photons.  \nPhotosystems, specialized protein platforms, split solution.  \nSplitting produces protons plus surplus.  \nProtons power synthesis.  \nSynthesis produces sugar.",
+  "score": 5,
+  "cost": 0.007058700000000001,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 1599
+  }
+}

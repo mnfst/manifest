@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Step 1: Elaine initially has 20 cards.\n\nStep 2: In the first month, she collects three times her initial amount.\n3 \u00d7 20 = 60 cards collected in month 1.\n\nStep 3: In the second month, she collects 20 fewer than in the first month.\n60 \u2212 20 = 40 cards collected in month 2.\n\nStep 4: In the third month, she collects twice the combined amount of months 1 and 2.\n(60 + 40) \u00d7 2 = 100 \u00d7 2 = 200 cards collected in month 3.\n\nStep 5: Total cards now = initial + month 1 + month 2 + month 3\n= 20 + 60 + 40 + 200 = 320\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.0023463000000000004,
+  "expected": "320",
+  "tokens": {
+    "input": 113,
+    "output": 505
+  }
+}

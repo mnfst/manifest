@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sunlight powers plant's process. Plant's special parts, specifically small structures called \"chloroplasts,\" seize sunlight's energy. Sunlight splits water (H2O) into separate pieces. This step supplies spare protons, plus some oxygen. Oxygen, a secondary product, simply seeps out.\n\nSimultaneously, plant's system snatches carbon dioxide (CO2) from surrounding space. Specific series, sometimes called \"Calvin cycle,\" starts. This sequence uses sunlight's stored power (from previous step) plus protons to stick carbon pieces together. Sugar, specifically simple sugar (glucose), slowly shapes. Plant stores sugar's power.\n\nSo, sunlight's spark starts sugar's synthesis. Plant's process: sunlight plus water plus carbon dioxide produces sugar plus oxygen.",
+  "score": 5,
+  "cost": 0.00037156,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 659
+  }
+}

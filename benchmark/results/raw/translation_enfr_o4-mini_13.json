@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Dis juste \u00e0 Kumagaya que le d\u00e9tective est ici.",
+  "score": 5,
+  "cost": 0.0021516,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 480
+  }
+}

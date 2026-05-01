@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Ann is 9.  \nHer brother is twice her age: 2 \u00d7 9 = 18.  \nIn 3 years, he will be 18 + 3 = 21.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.000564,
+  "expected": "21",
+  "tokens": {
+    "input": 66,
+    "output": 54
+  }
+}

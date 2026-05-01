@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "",
+  "score": 0,
+  "cost": 0.00017738,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 300
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```\ncount = 0\nfor n in arr:\n    if n == 0:\n        s = 0\n    elif n > 0:\n        s = sum(int(d) for d in str(n))\n    else:\n        digits = str(abs(n))\n        if len(digits) == 1:\n            s = -int(digits[0])\n        else:\n            s = -int(digits[0]) + sum(int(d) for d in digits[1:])\n    if s > 0:\n        count += 1\nreturn count\n```",
+  "score": 4,
+  "cost": 0.002862,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 319
+  }
+}

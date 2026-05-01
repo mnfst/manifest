@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 36,
+  "response": "for i in range(n - 1, 0, -1):\n    if n % i == 0:\n        return i",
+  "score": 5,
+  "cost": 2.6880000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 28
+  }
+}

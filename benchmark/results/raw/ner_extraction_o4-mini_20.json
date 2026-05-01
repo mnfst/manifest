@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 20,
+  "response": "{\"persons\":[\"Sundar Pichai\"],\"organizations\":[\"Google\"],\"locations\":[\"Malaysia\"]}",
+  "score": 5,
+  "cost": 0.0011033000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 232
+  }
+}

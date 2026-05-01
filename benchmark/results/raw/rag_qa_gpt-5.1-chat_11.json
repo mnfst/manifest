@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "The Amazon forest stores about 10% of the world's carbon.\n\nIf you need the value in metric tonnes, the context gives 1.1 \u00d7 10\u00b9\u00b9 metric tonnes of carbon.",
+  "score": 4,
+  "cost": 0.000674,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 165,
+    "output": 43
+  }
+}

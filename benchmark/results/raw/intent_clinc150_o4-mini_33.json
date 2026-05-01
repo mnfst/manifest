@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "intent_clinc150",
+  "case": 33,
+  "response": "direct_deposit",
+  "score": 5,
+  "cost": 0.0006622,
+  "expected": "direct_deposit",
+  "tokens": {
+    "input": 514,
+    "output": 22
+  }
+}

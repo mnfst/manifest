@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Each of the 20 stalls gets 2 new cows, so each stall now has 22 cows.  \nEight stalls therefore contain 8 \u00d7 22 = 176 cows.\n\nANSWER: 176",
+  "score": 3,
+  "cost": 0.001086,
+  "expected": "192",
+  "tokens": {
+    "input": 87,
+    "output": 114
+  }
+}

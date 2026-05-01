@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 1,
+  "response": "This function performs a binary search on a sorted list by repeatedly halving the search interval: it compares the target to the middle element and narrows the range until the target is found or the interval is empty. It returns the index of the target if present, or -1 if not found.",
+  "score": 5,
+  "cost": 0.00072,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 63
+  }
+}

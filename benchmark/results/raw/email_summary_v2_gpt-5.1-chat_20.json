@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "A misconfigured log rotation on prod-db-01 triggered a disk space alert early Saturday, requiring manual intervention at 8 AM after automated cleanup failed to fully resolve the issue. No customer impact occurred, but the team should review and fix the log rotation settings following the recent migration.",
+  "score": 5,
+  "cost": 0.000716,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 66
+  }
+}

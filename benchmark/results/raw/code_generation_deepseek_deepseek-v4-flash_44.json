@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 44,
+  "response": "message = message.swapcase()\nvowels = 'aeiouAEIOU'\nresult = []\nfor ch in message:\n    if ch in vowels:\n        if ch.islower():\n            result.append(chr((ord(ch) - ord('a') + 2) % 26 + ord('a')))\n        else:\n            result.append(chr((ord(ch) - ord('A') + 2) % 26 + ord('A')))\n    else:\n        result.append(ch)\nreturn ''.join(result)",
+  "score": 3,
+  "cost": 7.980000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 108
+  }
+}

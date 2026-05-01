@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 23,
+  "response": "cur_min = min_sum = nums[0]\n    for n in nums[1:]:\n        cur_min = min(n, cur_min + n)\n        min_sum = min(min_sum, cur_min)\n    return min_sum",
+  "score": 5,
+  "cost": 0.0015477000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 322
+  }
+}

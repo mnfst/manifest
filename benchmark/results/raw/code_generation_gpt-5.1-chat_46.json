@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 46,
+  "response": "even_vals = [(val, idx) for idx, val in enumerate(arr) if val % 2 == 0]\nif not even_vals:\n    return []\nval, idx = min(even_vals, key=lambda x: (x[0], x[1]))\nreturn [val, idx]",
+  "score": 4,
+  "cost": 0.001206,
+  "expected": "",
+  "tokens": {
+    "input": 343,
+    "output": 65
+  }
+}

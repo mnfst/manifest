@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 45,
+  "response": "return sorted(set(l1) & set(l2))",
+  "score": 5,
+  "cost": 0.0025487,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 543
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave  \nWho kept every bug in a cave  \nHe\u2019d code through the night  \nTill the errors took flight  \nThen his programs would happily behave.",
+  "score": 5,
+  "cost": 0.0013871,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 311
+  }
+}

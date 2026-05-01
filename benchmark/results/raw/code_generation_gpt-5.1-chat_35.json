@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 35,
+  "response": "ua = abs(a) % 10\n    ub = abs(b) % 10\n    return ua * ub",
+  "score": 5,
+  "cost": 0.000538,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 35
+  }
+}

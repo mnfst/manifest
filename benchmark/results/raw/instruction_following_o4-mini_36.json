@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "\u2022 Java  \n\u2022 C++  \n\u2022 Ruby  \n\u2022 Go",
+  "score": 5,
+  "cost": 0.0007216,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 159
+  }
+}

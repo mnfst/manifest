@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "SELECT GovernmentForm, SUM(Population) AS total_population\nFROM country\nGROUP BY GovernmentForm\nHAVING AVG(LifeExpectancy) > 72;",
+  "score": 3,
+  "cost": 0.00017150000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 285
+  }
+}

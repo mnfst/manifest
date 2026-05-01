@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "Q: What is a VPN?  \nA: A VPN, or Virtual Private Network, is a service that creates a secure, encrypted connection between your device and the internet.\n\nQ: What does a VPN do?  \nA: It protects your online activity from being seen by others, such as internet service providers, hackers, or people on public Wi\u2011Fi.\n\nQ: How does a VPN work?  \nA: It routes your internet traffic through a remote server operated by the VPN provider. This hides your real IP address and encrypts your data.\n\nQ: Why do people use a VPN?  \nA: Common reasons include improving privacy, securing data on public networks, hiding IP addresses, and accessing content restricted by region.\n\nQ: Does a VPN make you completely anonymous?  \nA: No. It increases privacy and security but does not provide full anonymity or protect against all online tracking.",
+  "score": 5,
+  "cost": 0.00155,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 189
+  }
+}

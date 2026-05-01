@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "long_summarization",
+  "case": 24,
+  "response": "The internet originated in the 1960s with US Department of Defense research, leading to ARPANET's first message in 1969 and the adoption of TCP/IP in 1983, which formed the modern internet\u2019s foundation. The World Wide Web, created by Tim Berners-Lee in 1989 and popularized by the Mosaic browser in 1993, brought the internet to the public. After the dot\u2011com boom and crash around 2001, major survivors like Amazon and Google became global giants, while social media and smartphones in the mid\u20112000s and 2007 further transformed online communication. Today, the internet, supported by developments like cloud computing, connects over 5 billion people and is central to commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.001896,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 159
+  }
+}

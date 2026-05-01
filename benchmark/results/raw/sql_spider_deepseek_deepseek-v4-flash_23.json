@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "```sql\nSELECT production_code, channel\nFROM tv_shows\nWHERE genre = 'Cartoon'\nORDER BY air_date DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 0.00011886000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 195
+  }
+}

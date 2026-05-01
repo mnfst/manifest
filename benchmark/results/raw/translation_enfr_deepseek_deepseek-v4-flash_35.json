@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[reporter masculin n\u00b01 \u00e0 la t\u00e9l\u00e9] l'accident s'est produit juste apr\u00e8s 10h00.",
+  "score": 5,
+  "cost": 0.00017318000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 299
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "data_to_text",
+  "case": 20,
+  "response": "Flight AA 1234 departs from JFK at 08:30 and arrives at LAX at 11:45, with a total flight time of 5 hours and 15 minutes aboard a Boeing 787. Priced at $289 in Economy class, this route has an on-time performance rate of 82%.",
+  "score": 5,
+  "cost": 5.068000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 67
+  }
+}

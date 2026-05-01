@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 24,
+  "response": "Here are pytest\u2011style unit tests in plain text (no Markdown formatting). You can put them into a test file such as test_retry.py.\n\nfrom retry_module import retry  # adjust import as needed\nimport pytest\n\ndef test_retry_happy_path_first_try():\n    def fn():\n        return \"ok\"\n    assert retry(fn) == \"ok\"\n\ndef test_retry_happy_path_succeeds_after_retries():\n    calls = {\"count\": 0}\n    def fn():\n        calls[\"count\"] += 1\n        if calls[\"count\"] < 3:\n            raise ValueError(\"fail\")\n        return \"success\"\n    assert retry(fn, max_attempts=5) == \"success\"\n    assert calls[\"count\"] == 3\n\ndef test_retry_raises_after_max_attempts():\n    def fn():\n        raise RuntimeError(\"always fails\")\n    with pytest.raises(RuntimeError):\n        retry(fn, max_attempts=3)\n\ndef test_retry_zero_attempts():\n    # edge case: max_attempts = 0 means loop never runs, so fn never called\n    # This should immediately return None because no return is executed.\n    def fn():\n        raise AssertionError(\"fn should never be called\")\n    result = retry(fn, max_attempts=0)\n    assert result is None\n\ndef test_retry_fn_returns_none_is_valid():\n    def fn():\n        return None\n    assert retry(fn, max_attempts=3) is None\n\ndef test_retry_does_not_swallow_non_final_exceptions():\n    # Ensure exceptions prior to last attempt are swallowed\n    # and not re-raised.\n    calls = {\"count\": 0}\n    def fn():\n        calls[\"count\"] += 1\n        if calls[\"count\"] == 1:\n            raise ValueError(\"temp fail\")\n        return \"ok\"\n    assert retry(fn, max_attempts=3) == \"ok\"\n    assert calls[\"count\"] == 2",
+  "score": 4,
+  "cost": 0.003936,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 472
+  }
+}

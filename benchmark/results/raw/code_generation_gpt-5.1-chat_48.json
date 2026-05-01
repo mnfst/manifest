@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 48,
+  "response": "return text == text[::-1]",
+  "score": 5,
+  "cost": 0.000348,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 18
+  }
+}

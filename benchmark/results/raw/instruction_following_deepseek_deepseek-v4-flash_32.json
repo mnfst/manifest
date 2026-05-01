@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Restaurant Name:** *The Gilded Spore*\n**Cuisine:** Modern Mycological (Fungi-focused fine dining)\n**Location:** 12\u00bd Bleak Alley, The Under-Croft District\n**Rating:** \u2605\u2605\u2605\u2606\u2606 (3/5 Stars)\n\n**The Review:**\n\nWalking into *The Gilded Spore* is like stepping into a terrarium designed by a gothic botanist. The walls are lined with living moss, and the chandeliers are made of bioluminescent oyster mushrooms. The ambiance is undeniably unique\u2014intimate, damp, and smelling faintly of earth and truffle oil. It\u2019s the kind of place you go to feel sophisticated while also wondering if you need a tetanus shot.\n\nThe menu is a love letter to mycelium. Every dish, from the amuse-bouche to the dessert, features some form of fungus. I started with the **\"Chanterelle Cappuccino\"** \u2014a savory foam served in a demitasse cup. It was velvety, rich, and genuinely surprising. The texture was flawless, and the earthy notes were balanced with a hint of smoked paprika. A strong start.\n\nFor the main course, I ordered the **\"King Trumpet Steak.\"** The mushroom was grilled to a perfect char, sliced thick, and served with a black garlic jus and a side of fermented potato puree. The flavor was deep and umami-packed, and the texture mimicked a medium-rare steak better than I expected. However, the portion was laughably small for the $48 price tag. I left the table still hungry, which is a cardinal sin for a main course.\n\nThe dessert was the **\"Morel & Honey Panna Cotta.\"** It was a gamble that didn\u2019t quite pay off. The panna cotta itself was silky, but the morel flavor clashed with the sweetness of the honey in a way that felt less \"innovative\" and more \"science experiment gone wrong.\" It was edible, but I wouldn\u2019t order it again.\n\nService was attentive but overly theatrical. Our waiter, dressed in a lab coat, explained the \"life cycle of the dish\" for each course, which felt pretentious after the second explanation. The wine pairing, however, was excellent\u2014a funky natural red that complemented the fungal notes perfectly.\n\n**The Verdict:**\n*The Gilded Spore* is a destination",
+  "score": 4,
+  "cost": 0.00028293999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 500
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "Step 1: Count Anakin\u2019s catches  \nAnakin caught  \n\u2022 10 starfish  \n\u2022 6 seahorses  \n\u2022 3 clownfish  \nTotal for Anakin = 10 + 6 + 3 = 19\n\nStep 2: Determine Locsin\u2019s catches  \nLocsin caught  \n\u2022 Starfish: 10 \u2212 5 = 5  \n\u2022 Seahorses: 6 \u2212 3 = 3  \n\u2022 Clownfish: 3 + 2 = 5  \nTotal for Locsin = 5 + 3 + 5 = 13\n\nStep 3: Total fish caught  \n19 + 13 = 32\n\nANSWER: 32",
+  "score": 5,
+  "cost": 0.001958,
+  "expected": "32",
+  "tokens": {
+    "input": 111,
+    "output": 217
+  }
+}

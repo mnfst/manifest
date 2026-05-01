@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "function_calling",
+  "case": 13,
+  "response": "[\n  {\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}},\n  {\"name\": \"set_thermostat\", \"arguments\": {\"temperature\": 72}}\n]",
+  "score": 4,
+  "cost": 0.001158,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 120
+  }
+}

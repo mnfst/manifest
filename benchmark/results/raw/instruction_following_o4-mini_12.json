@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Think of a restaurant:\n\n  \u2022 You sit at a table and look at the menu.  \n  \u2022 You tell the waiter what you want.  \n  \u2022 The waiter takes your order to the kitchen, then brings your food back.  \n  \u2022 You never need to know how the kitchen works\u2014you just get what you asked for.\n\nAn API works the same way for programs or apps. One program says, \u201cI\u2019d like this,\u201d the API carries that message to another program, and then brings back the answer. You get what you need without ever seeing all the behind-the-scenes steps.",
+  "score": 5,
+  "cost": 0.005146899999999999,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 1165
+  }
+}

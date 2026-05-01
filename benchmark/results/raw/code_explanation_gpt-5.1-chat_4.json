@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements a memoization decorator that caches a function\u2019s results based on its input arguments. It stores each result in a dictionary so repeated calls with the same arguments return the cached value instead of recomputing it.",
+  "score": 5,
+  "cost": 0.000582,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 54
+  }
+}

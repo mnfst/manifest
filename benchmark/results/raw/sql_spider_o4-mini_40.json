@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "SELECT DISTINCT c.make_id, m.make_name\nFROM cars c\nJOIN makes m ON c.make_id = m.make_id\nWHERE c.horsepower > (SELECT MIN(horsepower) FROM cars)\n  AND c.cylinders <= 3;",
+  "score": 5,
+  "cost": 0.0020988,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 455
+  }
+}

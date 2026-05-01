@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 2,
+  "response": "{\"name\": \"search_files\", \"arguments\": {\"directory\": \"src\", \"pattern\": \"*.py\", \"modified_within_days\": 7}}",
+  "score": 5,
+  "cost": 7.812e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 115
+  }
+}

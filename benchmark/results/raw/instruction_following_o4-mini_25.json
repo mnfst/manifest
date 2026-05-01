@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Invitation: Team Meeting on June 25th at 2 PM",
+  "score": 4,
+  "cost": 0.0018535,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 416
+  }
+}

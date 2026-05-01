@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "Tax evasion has grown in Tunisia causing a significant shortfall in terms of public resources, said former head of the interim government Ali Larayedh in June 2013, quoted by the newspaper *Business Flood*.\n\nFrench:\nL\u2019\u00e9vasion fiscale s\u2019est accrue en Tunisie, provoquant un manque \u00e0 gagner important en termes de ressources publiques, a d\u00e9clar\u00e9 l\u2019ancien chef du gouvernement provisoire Ali Larayedh en juin 2013, cit\u00e9 par le journal *Business Flood*.",
+  "score": 5,
+  "cost": 0.000988,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 107
+  }
+}

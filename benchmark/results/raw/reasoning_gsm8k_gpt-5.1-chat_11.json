@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Total burritos = 600  \nBurritos eaten by students = 50 \u00d7 10 = 500  \nBurritos eaten by Mr. George = 20  \nTotal eaten = 500 + 20 = 520  \n\nLeftover burritos = 600 \u2212 520 = 80\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.0008,
+  "expected": "80",
+  "tokens": {
+    "input": 100,
+    "output": 75
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "Here are pytest-style unit tests in plain text (no special formatting):\n\ndef test_interleave_happy_path_equal_lengths():\n    from your_module import interleave\n    assert interleave([1, 2, 3], ['a', 'b', 'c']) == [1, 'a', 2, 'b', 3, 'c']\n\ndef test_interleave_first_longer():\n    from your_module import interleave\n    assert interleave([1, 2, 3, 4], ['a', 'b']) == [1, 'a', 2, 'b', 3, 4]\n\ndef test_interleave_second_longer():\n    from your_module import interleave\n    assert interleave([1], ['a', 'b', 'c']) == [1, 'a', 'b', 'c']\n\ndef test_interleave_one_empty_a():\n    from your_module import interleave\n    assert interleave([], ['a', 'b']) == ['a', 'b']\n\ndef test_interleave_one_empty_b():\n    from your_module import interleave\n    assert interleave([1, 2], []) == [1, 2]\n\ndef test_interleave_both_empty():\n    from your_module import interleave\n    assert interleave([], []) == []\n\ndef test_interleave_non_list_inputs_raise_type_error():\n    from your_module import interleave\n    import pytest\n    with pytest.raises(TypeError):\n        interleave(\"abc\", [1, 2])  # strings are iterables but not lists per type annotation\n    with pytest.raises(TypeError):\n        interleave([1, 2], \"abc\")\n    with pytest.raises(TypeError):\n        interleave(\"abc\", \"xyz\")\n\nNote: The function itself does not explicitly check types, so if you want these TypeError tests to pass, you must wrap calls with explicit type checks or assume the test runner enforces type constraints. If you prefer the function\u2019s current behavior (allowing any iterables), remove this test.",
+  "score": 4,
+  "cost": 0.004096,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 490
+  }
+}

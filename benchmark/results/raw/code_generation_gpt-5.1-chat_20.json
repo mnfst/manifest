@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 20,
+  "response": "```\n    vals = [\n        (1000, \"M\"), (900, \"CM\"), (500, \"D\"), (400, \"CD\"),\n        (100, \"C\"), (90, \"XC\"), (50, \"L\"), (40, \"XL\"),\n        (10, \"X\"), (9, \"IX\"), (5, \"V\"), (4, \"IV\"), (1, \"I\")\n    ]\n    res = []\n    n = number\n    for v, s in vals:\n        while n >= v:\n            res.append(s)\n            n -= v\n    return \"\".join(res).lower()\n```",
+  "score": 4,
+  "cost": 0.001408,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 142
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 9,
+  "response": "total = 0\nfor x in lst:\n    if isinstance(x, int) and x >= 0 and x % 2 != 0:\n        total += x * x\nreturn total",
+  "score": 4,
+  "cost": 9.422e-05,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 125
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "Let's break it down step by step.\n\n**Step 1: Calculate wheels needed for cars**  \nEach car needs 4 wheels.  \n57 cars \u00d7 4 wheels = 228 wheels.\n\n**Step 2: Calculate wheels needed for motorcycles**  \nEach motorcycle needs 2 wheels.  \n73 motorcycles \u00d7 2 wheels = 146 wheels.\n\n**Step 3: Total wheels needed**  \n228 + 146 = 374 wheels.\n\n**Step 4: Subtract from available wheels**  \nHenry has 650 wheels.  \n650 \u2212 374 = 276 wheels left.\n\nANSWER: 276",
+  "score": 5,
+  "cost": 8.246e-05,
+  "expected": "276",
+  "tokens": {
+    "input": 97,
+    "output": 123
+  }
+}

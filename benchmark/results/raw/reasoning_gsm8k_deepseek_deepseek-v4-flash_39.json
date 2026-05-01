@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "Madeline ate 6 grapes. Her brother used 5 times that amount, which is 5 \u00d7 6 = 30 grapes. Their mother used the remaining grapes to make 4 pies, each requiring 12 grapes, so 4 \u00d7 12 = 48 grapes. The total number of grapes at the beginning is 6 + 30 + 48 = 84.\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.00018802000000000003,
+  "expected": "84",
+  "tokens": {
+    "input": 103,
+    "output": 310
+  }
+}

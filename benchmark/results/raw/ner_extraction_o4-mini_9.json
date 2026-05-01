@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 9,
+  "response": "{\"persons\": [], \"organizations\": [\"World Health Organization\"], \"locations\": [\"sub-Saharan Africa\", \"Geneva\"]}",
+  "score": 4,
+  "cost": 0.0008404,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 173
+  }
+}

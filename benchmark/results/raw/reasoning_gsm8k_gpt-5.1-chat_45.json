@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "He needs wheels for:\n- Cars: 57 \u00d7 4 = 228  \n- Motorcycles: 73 \u00d7 2 = 146  \n\nTotal wheels needed: 228 + 146 = 374  \nWheels left: 650 \u2212 374 = 276\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.00127,
+  "expected": "276",
+  "tokens": {
+    "input": 99,
+    "output": 134
+  }
+}

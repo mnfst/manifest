@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "Below is a pytest\u2011style test module covering happy path, edge cases, and error cases.\n\nYou can place this in a file like `test_is_palindrome.py`.\n\n```\nimport pytest\nfrom your_module import is_palindrome\n\n\ndef test_palindrome_basic():\n    assert is_palindrome(\"racecar\") is True\n    assert is_palindrome(\"Madam\") is True\n    assert is_palindrome(\"A man a plan a canal Panama\") is True\n\n\ndef test_non_palindrome_basic():\n    assert is_palindrome(\"hello\") is False\n    assert is_palindrome(\"Python\") is False\n\n\ndef test_empty_string():\n    # By definition, empty string is a palindrome\n    assert is_palindrome(\"\") is True\n\n\ndef test_whitespace_only():\n    # Whitespace becomes empty string after processing\n    assert is_palindrome(\"   \") is True\n\n\ndef test_mixed_case_and_spaces():\n    assert is_palindrome(\"T a C o Ca t\") is True\n\n\ndef test_single_character():\n    assert is_palindrome(\"a\") is True\n    assert is_palindrome(\"Z\") is True\n\n\ndef test_non_alpha_characters():\n    # The function only removes spaces, so punctuation affects result\n    assert is_palindrome(\"!@#\") is False\n    assert is_palindrome(\"a!!a\") is False\n    assert is_palindrome(\"a !! a\") is False  # spaces removed, punctuation remains\n\n\ndef test_error_non_string_input():\n    with pytest.raises(AttributeError):\n        is_palindrome(None)\n    with pytest.raises(AttributeError):\n        is_palindrome(123)\n    with pytest.raises(AttributeError):\n        is_palindrome([\"a\", \"a\"])\n```\n\nIf you'd like, I can extend this to include property-based tests (hypothesis), parameterization, or stricter validation behavior.",
+  "score": 4,
+  "cost": 0.003172,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 381
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "Whenever C\u00e9loron met British merchants or fur-traders, he informed them of the French claim to the territory and ordered them to leave.",
+  "score": 5,
+  "cost": 0.0015697000000000003,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 211,
+    "output": 304
+  }
+}

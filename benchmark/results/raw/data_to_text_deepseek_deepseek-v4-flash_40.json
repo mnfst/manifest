@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "data_to_text",
+  "case": 40,
+  "response": "A 45-year-old female patient with a BMI of 27.3 presents with borderline elevated blood pressure (138/88), high cholesterol (225 mg/dL), and impaired fasting glucose (110 mg/dL), though she does not smoke and exercises twice weekly. Her family history includes diabetes in her mother, placing her at increased risk for metabolic syndrome.",
+  "score": 5,
+  "cost": 9.212e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 142
+  }
+}

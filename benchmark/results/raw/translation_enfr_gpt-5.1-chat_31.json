@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "French: Nous pourrions vous inculper pour racolage.",
+  "score": 2,
+  "cost": 0.000766,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 88
+  }
+}

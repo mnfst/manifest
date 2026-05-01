@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "SELECT COUNT(*)\nFROM cars\nWHERE year = 1980;",
+  "score": 5,
+  "cost": 0.000332,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 24
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "data_to_text",
+  "case": 39,
+  "response": "Apple Inc. (AAPL) shares closed at $185.50, marking a 2.3% gain for the day on a trading volume of 45 million. The company boasts a market capitalization of $2.87 trillion and trades at a price-to-earnings ratio of 28.4 while offering a 0.55% dividend yield. Over the past year, the stock has swung between a low of $155 and a high of $198.",
+  "score": 5,
+  "cost": 0.0020328,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 436
+  }
+}

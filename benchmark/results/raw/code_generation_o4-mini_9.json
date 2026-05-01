@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 9,
+  "response": "return sum(x*x for x in lst if isinstance(x, int) and x >= 0 and x % 2 == 1)",
+  "score": 4,
+  "cost": 0.004338400000000001,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 944
+  }
+}

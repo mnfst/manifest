@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "Below are example pytest-style unit tests covering:\n\n- Happy path (normal sentences)\n- Edge cases (empty string, whitespace-only, single word)\n- Error cases (non-string inputs)\n\n```python\nimport pytest\n\nfrom your_module import reverse_words\n\n\ndef test_reverse_words_happy_path():\n    assert reverse_words(\"hello world\") == \"world hello\"\n    assert reverse_words(\"one two three\") == \"three two one\"\n\n\ndef test_reverse_words_single_word():\n    assert reverse_words(\"hello\") == \"hello\"\n\n\ndef test_reverse_words_empty_string():\n    # split() on empty string returns [], so result should be empty\n    assert reverse_words(\"\") == \"\"\n\n\ndef test_reverse_words_whitespace_only():\n    # split() removes whitespace, so reversing yields empty string\n    assert reverse_words(\"   \") == \"\"\n\n\ndef test_reverse_words_with_extra_spaces():\n    # Extra spaces should be removed by split() and not appear in output\n    assert reverse_words(\"  hello   world  \") == \"world hello\"\n\n\ndef test_reverse_words_unicode():\n    assert reverse_words(\"\ud83d\ude00 emoji test\") == \"test emoji \ud83d\ude00\"\n\n\ndef test_reverse_words_non_string_input():\n    # The function expects a string; passing non-string should raise AttributeError\n    with pytest.raises(AttributeError):\n        reverse_words(None)\n\n    with pytest.raises(AttributeError):\n        reverse_words(123)\n\n    with pytest.raises(AttributeError):\n        reverse_words([\"a\", \"b\"])\n```\n\nLet me know if you want these parameterized or expanded further.",
+  "score": 4,
+  "cost": 0.002588,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 310
+  }
+}

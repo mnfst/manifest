@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The OSS dependency audit scanned 234 packages, uncovering two issues: an AGPL-licensed charting library incompatible with our SaaS model and one unlicensed package. The team recommends replacing the charting library with Apache-licensed Chart.js and removing both problematic packages before the next release.",
+  "score": 5,
+  "cost": 0.0010186000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 205
+  }
+}

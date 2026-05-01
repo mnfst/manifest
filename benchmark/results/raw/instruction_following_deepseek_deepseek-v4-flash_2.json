@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "A haiku is a traditional Japanese poem with three lines and a 5-7-5 syllable structure. I need to write one about programming.\n\nLet me think of programming concepts: code, bugs, debugging, compiling, algorithms, logic, syntax errors, runtime, etc.\n\nPossible haiku:\n\nSyntax error found\nSearching through lines of logic\nA semicolon\n\nLet me count syllables:\nLine 1: Syn-tax er-ror found = 5 syllables\nLine 2: Search-ing through lines of log-ic = 6? Let me recount: Search-ing (2) through (1) lines (1) of (1) log-ic (2) = 7? Actually: Search-ing (2) through (1) lines (1) of (1) log-ic (2) = 2+1+1+1+2 = 7. Yes.\nLine 3: A sem-i-co-lon = 5 syllables? A (1) sem-i (2) co (1) lon (1) = 5. Yes.\n\nThat works. But let me see if I can make it more evocative.\n\nAnother idea:\n\nEndless loops of thought\nDebugging the silent crash\nA single fix works\n\nCount: End-less loops of thought (5) - End-less (2) loops (1) of (1) thought (1) = 5. Debug-ging the si-lent crash (7) - De-bug-ging (3) the (1) si-lent (2) crash (1) = 7. A sin-gle fix works (5) - A (1) sin-gle (2) fix (1) works (1) = 5. Good.\n\nI'll go with the first one as it's classicSyntax error found\u2014\nsearching through lines of logic.\nA semicolon.",
+  "score": 3,
+  "cost": 0.0005033,
+  "expected": "",
+  "tokens": {
+    "input": 11,
+    "output": 896
+  }
+}

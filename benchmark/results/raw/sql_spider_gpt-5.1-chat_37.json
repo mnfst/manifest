@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "SELECT s.song_name, s.release_year\nFROM song s\nJOIN singer g ON s.singer_id = g.singer_id\nWHERE g.age = (SELECT MIN(age) FROM singer);",
+  "score": 4,
+  "cost": 0.001564,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 177
+  }
+}

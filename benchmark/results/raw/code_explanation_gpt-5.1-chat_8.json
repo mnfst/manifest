@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This code implements a debounce decorator: it delays calling the wrapped function until a specified period has passed without any new calls. It uses a threading.Timer to cancel previous scheduled calls and ensure only the final invocation runs after the wait time.",
+  "score": 5,
+  "cost": 0.000652,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 56
+  }
+}

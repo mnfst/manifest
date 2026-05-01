@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 29,
+  "response": "Here are pytest\u2011style unit tests covering happy paths, edge cases, and error cases. No special formatting is used so they are safe for parsers.\n\n```\nimport pytest\nfrom your_module import moving_average\n\ndef test_moving_average_basic():\n    data = [1, 2, 3, 4, 5]\n    assert moving_average(data, 3) == [2.0, 3.0, 4.0]\n\ndef test_moving_average_window_equals_length():\n    data = [10, 20, 30]\n    assert moving_average(data, 3) == [20.0]\n\ndef test_moving_average_window_one():\n    data = [7, 8, 9]\n    assert moving_average(data, 1) == [7.0, 8.0, 9.0]\n\ndef test_moving_average_window_zero():\n    data = [1, 2, 3]\n    assert moving_average(data, 0) == []\n\ndef test_moving_average_negative_window():\n    data = [1, 2, 3]\n    assert moving_average(data, -2) == []\n\ndef test_moving_average_window_larger_than_data():\n    data = [1, 2]\n    assert moving_average(data, 3) == []\n\ndef test_moving_average_empty_data():\n    data = []\n    assert moving_average(data, 1) == []\n\ndef test_moving_average_floats():\n    data = [1.5, 2.5, 3.5]\n    assert moving_average(data, 2) == [2.0, 3.0]\n\ndef test_moving_average_single_element_data():\n    data = [42]\n    assert moving_average(data, 1) == [42.0]\n```",
+  "score": 4,
+  "cost": 0.00317,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 372
+  }
+}

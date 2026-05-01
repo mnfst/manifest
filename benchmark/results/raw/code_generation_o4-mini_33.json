@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 33,
+  "response": "sides = sorted([a, b, c])\n    x, y, z = sides\n    if x <= 0 or x + y <= z:\n        return False\n    return z*z == x*x + y*y",
+  "score": 5,
+  "cost": 0.0026961000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 578
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 5,
+  "response": "```\nm = l[0]\nfor x in l[1:]:\n    if x > m:\n        m = x\nreturn m\n```",
+  "score": 5,
+  "cost": 0.000554,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 41
+  }
+}

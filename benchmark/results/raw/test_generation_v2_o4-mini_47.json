@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "test_generation_v2",
+  "case": 47,
+  "response": "",
+  "score": 1,
+  "cost": 0.008936399999999999,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 2000
+  }
+}

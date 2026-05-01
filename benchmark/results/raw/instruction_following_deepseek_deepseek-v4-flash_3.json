@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE\nGERMANY\nITALY\nSPAIN\nPOLAND",
+  "score": 5,
+  "cost": 2.478e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 40
+  }
+}

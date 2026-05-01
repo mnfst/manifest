@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT m.Name, m.Id, COUNT(mo.Id) AS NumberOfModels\nFROM CarMakers m\nLEFT JOIN Models mo ON m.Id = mo.MakerId\nGROUP BY m.Id, m.Name;",
+  "score": 5,
+  "cost": 3.584e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 45
+  }
+}

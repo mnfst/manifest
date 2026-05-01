@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "golden crust  \ncharred edges  \ntangy tomato sauce  \nrich mozzarella cheese  \nfragrant basil leaves  \nspicy pepperoni slices  \nearthy mushroom pieces  \nfiery chili flakes  \ncreamy ricotta dollops  \nsmoky vegan sausage  \nolive oil glaze  \nbuttery garlic crumbs",
+  "score": 5,
+  "cost": 0.0034650000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 783
+  }
+}

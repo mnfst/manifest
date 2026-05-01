@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "intent_clinc150",
+  "case": 33,
+  "response": "direct_deposit",
+  "score": 5,
+  "cost": 0.00011606000000000001,
+  "expected": "direct_deposit",
+  "tokens": {
+    "input": 573,
+    "output": 64
+  }
+}

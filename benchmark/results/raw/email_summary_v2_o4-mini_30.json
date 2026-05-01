@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X recently launched AI features including auto-categorization at twice our price, yielding a neutral market response while we still hold an advantage in API and integrations. We should fast-track our AI roadmap item to maintain competitiveness.",
+  "score": 5,
+  "cost": 0.0012287,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 256
+  }
+}

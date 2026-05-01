@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "SELECT s.name, s.capacity\nFROM stadium s\nJOIN concert c ON s.stadium_id = c.stadium_id\nWHERE c.concert_date > '2013-12-31'\nGROUP BY s.stadium_id, s.name, s.capacity\nORDER BY COUNT(*) DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 0.000754,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 75
+  }
+}

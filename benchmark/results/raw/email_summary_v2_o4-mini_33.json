@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The People Team reported that the Q1 engagement survey scored 7.8/10\u2014above the industry average\u2014with high marks for team collaboration (8.9/10) and low clarity on career growth (6.1/10). They\u2019re proposing quarterly career conversations, an internal mobility program, and mentorship matching, and will hold a town hall this Friday to discuss next steps.",
+  "score": 5,
+  "cost": 0.0013926000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 288
+  }
+}

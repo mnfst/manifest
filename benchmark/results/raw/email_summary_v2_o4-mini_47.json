@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "The March cohort\u2019s onboarding satisfaction has declined to 7.2/10 from 8.1, with high marks for the buddy system (9.1/10) and timely IT support but confusion over benefits deadlines, tools access delays of 3\u20135 days, and no culture handbook received. Lisa\u2019s priority is to fix tools access processes to meet the one-day target, clarify benefits deadline communications, and ensure the culture handbook is distributed.",
+  "score": 5,
+  "cost": 0.0025828,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 559
+  }
+}

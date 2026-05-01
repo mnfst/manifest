@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 5,
+  "cost": 2.604e-05,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 174,
+    "output": 3
+  }
+}

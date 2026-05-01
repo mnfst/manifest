@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "structured_output",
+  "case": 9,
+  "response": "{\"title\":\"Introduction to Machine Learning\",\"instructor\":\"Dr. Sarah Chen\",\"duration_weeks\":12,\"prerequisites\":[\"Linear Algebra\",\"Python\"],\"level\":\"Intermediate\"}",
+  "score": 5,
+  "cost": 0.0009053,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 183
+  }
+}

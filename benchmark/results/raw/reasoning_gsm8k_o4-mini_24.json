@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Step 1: Calculate the total number of lollipops sold.  \nThere are 30 students, each selling an average of 10 lollipops, so  \ntotal sold = 30 \u00d7 10 = 300 lollipops.\n\nStep 2: Determine the profit per lollipop.  \nSelling price = \\$0.80, cost price = \\$0.50, so  \nprofit per lollipop = \\$0.80 \u2212 \\$0.50 = \\$0.30.\n\nStep 3: Calculate the total profit.  \nTotal profit = number sold \u00d7 profit per lollipop = 300 \u00d7 \\$0.30 = \\$90.\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.0019492,
+  "expected": "90",
+  "tokens": {
+    "input": 120,
+    "output": 413
+  }
+}

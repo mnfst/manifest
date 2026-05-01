@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "Here\u2019s an example pytest\u2010style test module (`test_factorial.py`) that covers\n\n- Happy paths (small and larger inputs)\n- Edge cases (`0` and `1`)\n- Error case (negative input)\n- An overflow/recursion edge case\n\nAdjust the import path of `factorial` to wherever your function actually lives.\n\n```python\nimport pytest\n\n# assume your function is in factorial.py\nfrom factorial import factorial\n\ndef test_factorial_of_zero_returns_one():\n    # edge case: 0! = 1\n    assert factorial(0) == 1\n\ndef test_factorial_of_one_returns_one():\n    # edge case: 1! = 1\n    assert factorial(1) == 1\n\n@pytest.mark.parametrize(\"n, expected\", [\n    (2, 2),     # 2! = 2\n    (3, 6),     # 3! = 6\n    (4, 24),    # 4! = 24\n    (5, 120),   # 5! = 120\n    (10, 3_628_800),  # 10! = 3628800\n    (20, 2_432_902_008_176_640_000),  # 20! \n])\ndef test_factorial_various(n, expected):\n    assert factorial(n) == expected\n\ndef test_factorial_negative_raises_value_error():\n    with pytest.raises(ValueError) as excinfo:\n        factorial(-1)\n    # ensure the message is what we expect\n    assert \"non-negative\" in str(excinfo.value)\n\ndef test_factorial_recursion_overflow():\n    # factorial uses recursion; very large n should eventually blow the recursion limit\n    with pytest.raises(RecursionError):\n        factorial(2000)\n```\n\nExplanation of each section:\n\n1. test_factorial_of_zero_returns_one / test_factorial_of_one_returns_one  \n   Covers the two explicit base cases in the code (`n <= 1`).\n\n2. test_factorial_various  \n   A parametrized \u201chappy path\u201d covering a handful of inputs.\n\n3. test_factorial_negative_raises_value_error  \n   Makes sure the function rejects negative inputs with the correct exception.\n\n4. test_factorial_recursion_overflow  \n   Demonstrates that extremely large inputs will exceed Python\u2019s recursion limit (you can adjust `2000` up or down depending on your environment).",
+  "score": 4,
+  "cost": 0.0066198,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 1484
+  }
+}

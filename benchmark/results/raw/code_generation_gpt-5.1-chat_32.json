@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_generation",
+  "case": 32,
+  "response": "import re\nparts = re.split(r'(\\s+)', s)\nout = []\nfor p in parts:\n    if p.isspace():\n        out.append(p)\n    else:\n        out.append(''.join(sorted(p)))\nreturn ''.join(out)",
+  "score": 5,
+  "cost": 0.001326,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 126
+  }
+}

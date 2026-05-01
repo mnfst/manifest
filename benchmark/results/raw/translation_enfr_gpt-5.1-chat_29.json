@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "French: Et je t\u2019aime bien... m\u00eame si je ne sais pas pourquoi.",
+  "score": 4,
+  "cost": 0.00079,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 90
+  }
+}

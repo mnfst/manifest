@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "function_calling",
+  "case": 47,
+  "response": "{\"name\": \"create_cron\", \"arguments\": {\"schedule\": \"0 0 * * *\", \"command\": \"cleanup\", \"name\": null}}",
+  "score": 4,
+  "cost": 3.248e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 36
+  }
+}

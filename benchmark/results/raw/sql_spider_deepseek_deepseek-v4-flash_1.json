@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(mpg) FROM cars WHERE cylinders = 4;",
+  "score": 5,
+  "cost": 6.678000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 101
+  }
+}

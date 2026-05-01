@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 4,
+  "response": "{\"persons\":[],\"organizations\":[\"Bank of England\",\"European Central Bank\"],\"locations\":[\"Frankfurt\"]}",
+  "score": 5,
+  "cost": 0.0008162,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 168
+  }
+}

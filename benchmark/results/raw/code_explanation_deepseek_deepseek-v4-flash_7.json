@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements a decorator that caches the return values of a function using a Least Recently Used (LRU) eviction policy. It stores results in an `OrderedDict`, moves a key to the end when accessed, and removes the oldest item (first inserted) if the cache exceeds the specified `maxsize`.",
+  "score": 5,
+  "cost": 0.00010038000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 149
+  }
+}

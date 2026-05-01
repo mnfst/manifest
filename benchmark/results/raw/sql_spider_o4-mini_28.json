@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "SELECT nationality\nFROM player\nGROUP BY nationality\nHAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 0.0013673,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 293
+  }
+}

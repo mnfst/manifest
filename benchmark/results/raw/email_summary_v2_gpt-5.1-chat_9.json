@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly ETL job failed due to a Salesforce schema change, causing dashboards to show stale data. Data Engineering has deployed a fix, is running a backfill, and expects full recovery by 4 PM today.",
+  "score": 5,
+  "cost": 0.000606,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 53
+  }
+}

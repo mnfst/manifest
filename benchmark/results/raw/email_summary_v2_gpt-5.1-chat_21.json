@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The platform team proposes a cleanup sprint to remove 15 fully rolled\u2011out feature flags and archive 8 that represent dead code. This effort targets reducing configuration complexity and improving test suite performance by about 12%.",
+  "score": 5,
+  "cost": 0.000614,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 52
+  }
+}

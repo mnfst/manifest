@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Step 1: List the given information.  \n- Adam has 50 points.  \n- Betty has 30% more points than Adam.  \n- Tom has 30 points less than Betty.  \n- Martha has 3 times as many points as Tom.  \n- The class needs 400 points in total to go on the trip.  \n\nStep 2: Compute Betty\u2019s points.  \nBetty = Adam\u2019s points \u00d7 (1 + 30%) = 50 \u00d7 1.30 = 65 points.  \n\nStep 3: Compute Tom\u2019s points.  \nTom = Betty\u2019s points \u2013 30 = 65 \u2013 30 = 35 points.  \n\nStep 4: Compute Martha\u2019s points.  \nMartha = 3 \u00d7 Tom\u2019s points = 3 \u00d7 35 = 105 points.  \n\nStep 5: Sum all the points in the class.  \nTotal = Adam + Betty + Tom + Martha  \nTotal = 50 + 65 + 35 + 105 = 255 points.  \n\nStep 6: Find how many more points are needed to reach 400.  \nMissing = 400 \u2013 Total = 400 \u2013 255 = 145.  \n\nANSWER: 145",
+  "score": 3,
+  "cost": 0.002178,
+  "expected": "145",
+  "tokens": {
+    "input": 144,
+    "output": 459
+  }
+}

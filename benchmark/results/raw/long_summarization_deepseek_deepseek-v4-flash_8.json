@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "The history of AI spans from Alan Turing\u2019s foundational question through two major winters in the 1970s and 1980s to a deep learning resurgence in the 2010s, catalyzed by the pivotal 2017 transformer architecture paper. This led to the scaling hypothesis behind GPT models and an intense race among OpenAI, Google, Anthropic, and Meta, alongside debates over open versus closed source. Key concerns include AI safety issues such as alignment, misuse, and job displacement, prompting regulatory efforts like the EU AI Act and U.S. executive orders. The technology\u2019s economic impact is already reshaping knowledge work, though the text provides no specific numerical figures.",
+  "score": 4,
+  "cost": 0.00024164000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 396
+  }
+}

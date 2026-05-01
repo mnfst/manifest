@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.000396,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 162,
+    "output": 9
+  }
+}

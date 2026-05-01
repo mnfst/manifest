@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT c.name\nFROM countries c\nJOIN car_makers m ON m.country_id = c.id\nGROUP BY c.name\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.0037004,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 823
+  }
+}

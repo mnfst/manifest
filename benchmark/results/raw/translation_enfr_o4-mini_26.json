@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "Au lieu de cela, il a sugg\u00e9r\u00e9 que l\u2019arm\u00e9e devrait jouer un r\u00f4le secondaire dans les op\u00e9rations antiterroristes.",
+  "score": 5,
+  "cost": 0.0030580000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 684
+  }
+}

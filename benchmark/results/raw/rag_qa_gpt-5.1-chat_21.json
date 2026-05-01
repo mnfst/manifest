@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Anaerobic bacteria",
+  "score": 0,
+  "cost": 0.00052,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 204,
+    "output": 14
+  }
+}

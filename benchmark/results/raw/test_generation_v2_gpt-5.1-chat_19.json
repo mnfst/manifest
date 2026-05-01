@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "Here are comprehensive pytest-style unit tests for the `clamp` function, covering happy paths, edge cases, and error cases.\n\n```python\nimport pytest\nfrom math import inf, nan\n\nfrom your_module import clamp\n\n\n# Happy path tests\ndef test_clamp_within_range():\n    assert clamp(5, 0, 10) == 5\n\n\ndef test_clamp_below_range():\n    assert clamp(-1, 0, 10) == 0\n\n\ndef test_clamp_above_range():\n    assert clamp(15, 0, 10) == 10\n\n\n# Edge cases\ndef test_clamp_equal_to_min():\n    assert clamp(0, 0, 10) == 0\n\n\ndef test_clamp_equal_to_max():\n    assert clamp(10, 0, 10) == 10\n\n\ndef test_clamp_min_equals_max():\n    assert clamp(5, 3, 3) == 3\n\n\ndef test_clamp_negative_range():\n    assert clamp(-5, -10, -1) == -5\n\n\ndef test_clamp_on_negative_boundaries():\n    assert clamp(-20, -10, 10) == -10\n    assert clamp(20, -10, 10) == 10\n\n\ndef test_clamp_with_infinity():\n    assert clamp(100, -inf, inf) == 100\n    assert clamp(inf, -100, 100) == 100\n    assert clamp(-inf, -100, 100) == -100\n\n\n# Special float cases\ndef test_clamp_nan_value():\n    result = clamp(nan, 0, 10)\n    assert result != result\n\n\ndef test_clamp_nan_bounds():\n    # Behavior of min/max with NaN: result is NaN\n    assert clamp(5, nan, 10) != clamp(5, nan, 10)\n    assert clamp(5, 0, nan) != clamp(5, 0, nan)\n\n\n# Error cases\ndef test_clamp_min_greater_than_max():\n    # The function does not explicitly guard against this;\n    # the behavior results from normal min/max evaluation.\n    # You may assert expected behavior or assert it's wrong.\n    assert clamp(5, 10, 0) == 10  # max(min_val, min(value, max_val)) \u2192 max(10, 0) = 10\n\n\ndef test_clamp_non_numeric():\n    with pytest.raises(TypeError):\n        clamp(\"a\", 0, 10)\n\n    with pytest.raises(TypeError):\n        clamp(5, \"b\", 10)\n\n    with pytest.raises(TypeError):\n        clamp(5, 0, \"c\")\n```\n\nIf you'd like, I can also generate property-based tests using `hypothesis`.",
+  "score": 4,
+  "cost": 0.004784,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 582
+  }
+}

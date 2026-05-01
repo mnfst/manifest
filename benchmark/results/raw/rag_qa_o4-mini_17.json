@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 17,
+  "response": "Tymnet was an international data communications network headquartered in San Jose, California. It used virtual\u2010call packet\u2010switched technology and supported X.25, SNA/SDLC, BSC, and ASCII interfaces to connect host computers at companies, educational institutions, and government agencies.",
+  "score": 5,
+  "cost": 0.0011462,
+  "expected": "an international data communications network headquartered in San Jose, CA",
+  "tokens": {
+    "input": 222,
+    "output": 205
+  }
+}

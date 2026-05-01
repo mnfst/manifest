@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    n = len(grid)\n    # Precompute positions of each value\n    pos = [None] * (n * n + 1)\n    for i in range(n):\n        for j in range(n):\n            pos[grid[i][j]] = (i, j)\n    \n    # dp[step][i][j] = best path (as list) ending at (i,j) after 'step' steps (0-indexed)\n    # We'll store only the current and next step to save memory\n    # Initialize for step 0: path is just the cell itself\n    dp_prev = [[None for _ in range(n)] for _ in range(n)]\n    for i in range(n):\n        for j in range(n):\n            dp_prev[i][j] = [grid[i][j]]\n    \n    # For each step from 1 to k-1\n    for step in range(1, k):\n        dp_cur = [[None for _ in range(n)] for _ in range(n)]\n        for i in range(n):\n            for j in range(n):\n                best = None\n                for di, dj in [(-1,0),(1,0),(0,-1),(0,1)]:\n                    ni, nj = i + di, j + dj\n                    if 0 <= ni < n and 0 <= nj < n:\n                        candidate = dp_prev[ni][nj] + [grid[i][j]]\n                        if best is None or candidate < best:\n                            best = candidate\n                dp_cur[i][j] = best\n        dp_prev = dp_cur\n    \n    # After k steps, find the lexicographically smallest path among all cells\n    answer = None\n    for i in range(n):\n        for j in range(n):\n            if answer is None or dp_prev[i][j] < answer:\n                answer = dp_prev[i][j]\n    return answer\n```",
+  "score": 4,
+  "cost": 0.00057134,
+  "expected": "",
+  "tokens": {
+    "input": 425,
+    "output": 914
+  }
+}

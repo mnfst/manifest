@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are famously loyal companions to humans, offering unwavering support through every season of life. Their loyal nature makes them excellent family pets, always ready to greet you with a wagging tail. A loyal dog will stay by your side through joy and hardship, never wavering in its devotion. Many stories highlight the loyal bond between dogs and their owners, from rescues to everyday acts of kindness. It is this loyal devotion that endears dogs to people worldwide, cementing their place as humanity's most trusted friends.",
+  "score": 5,
+  "cost": 0.00026320000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 465
+  }
+}

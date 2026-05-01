@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Step 1: Determine how many books Sarah bought in total.  \nTotal spent \u00f7 price per book = number of books  \n300 \u00f7 15 = 20\n\nStep 2: Divide the total books equally among her 4 children.  \n20 books \u00f7 4 children = 5 books per child\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0010428000000000002,
+  "expected": "5",
+  "tokens": {
+    "input": 84,
+    "output": 216
+  }
+}

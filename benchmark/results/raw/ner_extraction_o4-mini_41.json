@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "ner_extraction",
+  "case": 41,
+  "response": "{\"persons\":[\"LeBron James\"],\"organizations\":[\"Los Angeles Lakers\"],\"locations\":[\"Los Angeles\"]}",
+  "score": 5,
+  "cost": 0.0011,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 232
+  }
+}

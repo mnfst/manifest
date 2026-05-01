@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "structured_output",
+  "case": 28,
+  "response": "{\n  \"podcast\": \"The Daily\",\n  \"publisher\": \"The New York Times\",\n  \"episode_title\": \"The AI Race\",\n  \"duration_minutes\": 28,\n  \"release_date\": \"March 15 2024\",\n  \"rating\": 4.8,\n  \"downloads\": \"2.3M\"\n}",
+  "score": 5,
+  "cost": 0.00017486000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 283
+  }
+}

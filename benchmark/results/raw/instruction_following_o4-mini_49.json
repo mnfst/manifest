@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "\u2022 Formal: \u201cGood day, and welcome to [Company Name]. I am ChatBot. How may I assist you today?\u201d  \n\u2022 Casual: \u201cHey there! I\u2019m ChatBot. What can I do for you today?\u201d  \n\u2022 Humorous: \u201cHello, human! Your digital sidekick ChatBot here\u2014ready to save the day (no cape needed). What can I help you with?\u201d",
+  "score": 5,
+  "cost": 0.0041316,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 933
+  }
+}

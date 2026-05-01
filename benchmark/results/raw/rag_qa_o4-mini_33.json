@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "They raised the price in response to American aid to Israel.",
+  "score": 5,
+  "cost": 0.000715,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 270,
+    "output": 95
+  }
+}

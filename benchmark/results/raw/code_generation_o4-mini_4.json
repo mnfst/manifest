@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "code_generation",
+  "case": 4,
+  "response": "if len(l) < 2:\n        return True\n    increasing = all(l[i] <= l[i+1] for i in range(len(l)-1))\n    decreasing = all(l[i] >= l[i+1] for i in range(len(l)-1))\n    return increasing or decreasing",
+  "score": 5,
+  "cost": 0.0030195,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 657
+  }
+}

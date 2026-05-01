@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Step 1: Total burritos ordered = 600  \nStep 2: Burritos given to students = 50 students \u00d7 10 burritos each = 500 burritos  \nStep 3: Burritos eaten by Mr. George = 20 burritos  \nStep 4: Total burritos eaten = 500 + 20 = 520 burritos  \nStep 5: Leftover burritos = 600 \u2212 520 = 80 burritos  \n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.001188,
+  "expected": "80",
+  "tokens": {
+    "input": 100,
+    "output": 245
+  }
+}

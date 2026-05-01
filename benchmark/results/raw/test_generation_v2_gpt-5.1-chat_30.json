@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "Here are pytest\u2011style unit tests covering happy paths, edge cases, and error cases. No special formatting is used.\n\n```\nimport pytest\nfrom your_module import snake_to_camel\n\ndef test_happy_path_simple():\n    assert snake_to_camel(\"hello_world\") == \"helloWorld\"\n\ndef test_happy_path_multiple_parts():\n    assert snake_to_camel(\"this_is_a_test\") == \"thisIsATest\"\n\ndef test_single_word():\n    assert snake_to_camel(\"hello\") == \"hello\"\n\ndef test_empty_string():\n    # split on empty string -> [''], so result should be empty string\n    assert snake_to_camel(\"\") == \"\"\n\ndef test_leading_underscore():\n    # split -> ['', 'hello'] so first element is '' and second gets capitalized\n    assert snake_to_camel(\"_hello\") == \"Hello\"\n\ndef test_trailing_underscore():\n    # split -> ['hello', ''], capitalizing '' gives ''\n    assert snake_to_camel(\"hello_\") == \"hello\"\n\ndef test_multiple_consecutive_underscores():\n    # '' parts become '' and capitalize('') is ''\n    # example: parts = ['hello', '', 'world']\n    assert snake_to_camel(\"hello__world\") == \"helloWorld\"\n\ndef test_only_underscores():\n    # e.g. '__' -> ['', '', ''] -> result is ''\n    assert snake_to_camel(\"__\") == \"\"\n\ndef test_non_string_input_raises():\n    with pytest.raises(AttributeError):\n        snake_to_camel(None)\n\ndef test_numeric_string():\n    assert snake_to_camel(\"value_1\") == \"value1\"\n```",
+  "score": 4,
+  "cost": 0.00291,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 346
+  }
+}

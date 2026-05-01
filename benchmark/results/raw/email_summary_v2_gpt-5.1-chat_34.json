@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The email outlines a plan to migrate from MySQL 5.7 to PostgreSQL 16, with schema conversion and testing in May, a dual-write period in June, and a July cutover using a blue\u2011green deployment with no downtime. Action items include rewriting three stored procedures and utilizing the ready testing environment.",
+  "score": 5,
+  "cost": 0.000738,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 68
+  }
+}

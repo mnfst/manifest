@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "He told any British merchants or fur\u2011traders he met that the territory belonged to France and ordered them to leave.",
+  "score": 0,
+  "cost": 0.000694,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 211,
+    "output": 34
+  }
+}

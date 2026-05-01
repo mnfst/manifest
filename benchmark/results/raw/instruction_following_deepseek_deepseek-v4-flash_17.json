@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| Pros | Cons |\n|------|------|\n| 1. Increased flexibility in work schedule | 1. Feelings of isolation and loneliness |\n| 2. Elimination of daily commute | 2. More distractions at home |\n| 3. Potential cost savings (transport, meals) | 3. Blurred boundaries between work and personal life |",
+  "score": 5,
+  "cost": 0.00012768,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 223
+  }
+}

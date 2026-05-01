@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "SELECT money_rank\nFROM players\nORDER BY height DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 3,
+  "cost": 0.000882,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 93
+  }
+}

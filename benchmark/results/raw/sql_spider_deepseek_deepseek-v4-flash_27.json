@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT c.name\nFROM country c\nJOIN countrylanguage cl1 ON c.code = cl1.countrycode AND cl1.language = 'English'\nJOIN countrylanguage cl2 ON c.code = cl2.countrycode AND cl2.language = 'French';",
+  "score": 5,
+  "cost": 0.00013902,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 231
+  }
+}

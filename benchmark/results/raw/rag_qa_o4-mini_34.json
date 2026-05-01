@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "There are infinitely many primes in each of those progressions.",
+  "score": 4,
+  "cost": 0.0009713,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 247,
+    "output": 159
+  }
+}

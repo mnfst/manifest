@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "V/Line is owned by the Victorian Government.",
+  "score": 5,
+  "cost": 0.000426,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 157,
+    "output": 14
+  }
+}

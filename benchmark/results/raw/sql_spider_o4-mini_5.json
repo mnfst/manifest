@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT a.id, a.name\nFROM airports a\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM flights f\n  WHERE f.departure_airport_id = a.id\n)\nAND NOT EXISTS (\n  SELECT 1\n  FROM flights f\n  WHERE f.arrival_airport_id = a.id\n);",
+  "score": 5,
+  "cost": 0.0029799000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 660
+  }
+}

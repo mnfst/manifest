@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe.",
+  "score": 5,
+  "cost": 0.0009086000000000002,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 222,
+    "output": 151
+  }
+}

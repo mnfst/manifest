@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here are generic, safe directions you can use. They involve **only left and right turns**, with no real\u2011world locations required:\n\nStarting at the park entrance:\n1. Turn right and walk straight until you reach the first intersection.  \n2. Turn left and continue down the street.  \n3. At the next corner, turn right.  \n4. Walk straight for one block, then turn right again.  \n5. Continue until you reach another intersection and turn left.  \n6. The library will be on your right.\n\nIf you'd like a more detailed or more whimsical version, just let me know!",
+  "score": 4,
+  "cost": 0.00111,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 133
+  }
+}

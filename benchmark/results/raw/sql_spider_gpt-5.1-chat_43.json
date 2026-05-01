@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "SELECT COUNT(*) AS car_count\nFROM cars\nWHERE cylinders > 6;",
+  "score": 5,
+  "cost": 0.000344,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 26
+  }
+}

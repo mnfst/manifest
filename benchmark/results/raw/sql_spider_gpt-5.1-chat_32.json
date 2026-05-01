@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT p.first_name, AVG(r.ranking) AS average_ranking\nFROM players p\nJOIN rankings r ON p.player_id = r.player_id\nGROUP BY p.first_name;",
+  "score": 5,
+  "cost": 0.000524,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 47
+  }
+}

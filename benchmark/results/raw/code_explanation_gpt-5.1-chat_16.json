@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "It runs many asynchronous coroutines while enforcing a maximum number running at the same time by wrapping each task with a semaphore. The function then launches them all and returns their results using asyncio.gather.",
+  "score": 5,
+  "cost": 0.000558,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 49
+  }
+}

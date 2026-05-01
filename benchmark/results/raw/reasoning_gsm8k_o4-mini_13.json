@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Let M = cost of material = \\$500  \nLet J = cost of jeweler = \\$800  \nSubtotal before insurance = M + J = \\$500 + \\$800 = \\$1300  \nInsurance = 10% of subtotal = 0.10 \u00d7 \\$1300 = \\$130  \nTotal paid = subtotal + insurance = \\$1300 + \\$130 = \\$1430  \n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.001958,
+  "expected": "1430",
+  "tokens": {
+    "input": 96,
+    "output": 421
+  }
+}

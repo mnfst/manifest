@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs have been loyal companions to humans for thousands of years. Their loyal nature makes them perfect for providing emotional support and friendship. Many breeds are loyal by disposition and will protect their families at any cost. Training a dog fosters an even stronger loyal bond between pet and owner. Whether guiding the blind or playing in the backyard, a dog\u2019s loyal presence can brighten every day. Their loyal instincts also make them excellent working partners in search and rescue missions. It is this loyal devotion that has earned dogs the title of man\u2019s best friend.",
+  "score": 3,
+  "cost": 0.0014190000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 317
+  }
+}

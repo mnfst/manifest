@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The email announces updates to the content moderation policy addressing AI\u2011generated content, including required labeling for AI images, a ban on deepfakes, and disclosure for AI\u2011assisted text. Enforcement begins June 1, and training materials are being prepared.",
+  "score": 5,
+  "cost": 0.000682,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 61
+  }
+}

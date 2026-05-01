@@ -2,11 +2,12 @@
   "model": "o4-mini",
   "task": "function_calling",
   "case": 1,
-  "response": "{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}",
-  "score": 4,
-  "cost": 0.0005456,
+  "response": "{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\", \"units\": \"celsius\"}}",
+  "score": 5,
+  "cost": 0.0008503000000000002,
+  "expected": "",
   "tokens": {
-    "input": 100,
-    "output": 99
+    "input": 93,
+    "output": 170
   }
 }

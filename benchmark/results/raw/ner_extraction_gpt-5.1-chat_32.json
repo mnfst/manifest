@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\"persons\":[\"Serena Williams\"],\"organizations\":[\"ESPY\"],\"locations\":[\"Los Angeles\"]}",
+  "score": 5,
+  "cost": 0.000892,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 94
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "code_generation",
+  "case": 26,
+  "response": "```python\nn = len(l)\nif n < 3:\n    return False\nfor i in range(n - 2):\n    for j in range(i + 1, n - 1):\n        for k in range(j + 1, n):\n            if l[i] + l[j] + l[k] == 0:\n                return True\nreturn False\n```",
+  "score": 4,
+  "cost": 0.00016562000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 195,
+    "output": 247
+  }
+}
