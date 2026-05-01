@@ -2204,6 +2204,41 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].outputPricePerToken).toBe(0.002);
     });
 
+    it('still merges capability flags from models.dev when known-prices wins on pricing', async () => {
+      // Identified by cubic: when known-prices wins, we still want the
+      // reasoning / tool-call flags from models.dev applied — they drive
+      // tier auto-assignment scoring and shouldn't be silently dropped.
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'moonshot-v1-8k',
+        name: 'Moonshot v1 8k',
+        inputPricePerToken: 0.000_000_1, // ignored — known-prices wins
+        outputPricePerToken: 0.000_000_2,
+        contextWindow: 8192,
+        reasoning: true,
+        toolCall: true,
+      });
+
+      const models = [
+        makeModel({
+          id: 'moonshot-v1-8k',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+          capabilityReasoning: false,
+          capabilityCode: false,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // Pricing from known-prices.
+      expect(result[0].inputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      expect(result[0].outputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      // Capabilities still merged from models.dev.
+      expect(result[0].capabilityReasoning).toBe(true);
+      expect(result[0].capabilityCode).toBe(true);
+    });
+
     it('should return model without pricing when no source has data', async () => {
       mockModelsDevSync.lookupModel.mockReturnValue(null);
       mockPricingSync.lookupPricing.mockReturnValue(null);

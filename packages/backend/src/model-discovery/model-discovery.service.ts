@@ -297,13 +297,23 @@ export class ModelDiscoveryService {
     // connection's provider, not the cheapest place the model id happens to
     // appear in upstream catalogs. For models we don't curate (the vast
     // majority), this is a no-op and we fall through to models.dev / OR.
+    //
+    // Even when known-prices wins on pricing we still consult models.dev for
+    // capability flags (reasoning / tool-call) — those drive tier auto-
+    // assignment quality scoring and shouldn't be lost just because we
+    // overrode the price. Mirrors the price-already-set branch above.
     const known = lookupKnownPrice(model.id);
     if (known) {
-      return this.computeScore({
-        ...model,
-        inputPricePerToken: known.input,
-        outputPricePerToken: known.output,
-      });
+      return this.computeScore(
+        this.applyCapabilities(
+          {
+            ...model,
+            inputPricePerToken: known.input,
+            outputPricePerToken: known.output,
+          },
+          providerId,
+        ),
+      );
     }
 
     // Priority 2: models.dev — uses native provider IDs, no normalization needed
