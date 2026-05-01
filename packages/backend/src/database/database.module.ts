@@ -19,6 +19,8 @@ import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
+import { BenchmarkRun } from '../entities/benchmark-run.entity';
+import { BenchmarkColumn } from '../entities/benchmark-column.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -88,6 +90,7 @@ import { RetuneSpecificityMiscategorizedIndex1782000000000 } from './migrations/
 import { AddAgentSoftDelete1782200000000 } from './migrations/1782200000000-AddAgentSoftDelete';
 import { AddModelRouteColumns1783000000000 } from './migrations/1783000000000-AddModelRouteColumns';
 import { DropLegacyRoutingColumns1784000000000 } from './migrations/1784000000000-DropLegacyRoutingColumns';
+import { AddBenchmarkHistory1785000000000 } from './migrations/1785000000000-AddBenchmarkHistory';
 
 const entities = [
   AgentMessage,
@@ -107,6 +110,8 @@ const entities = [
   SpecificityAssignment,
   HeaderTier,
   InstallMetadata,
+  BenchmarkRun,
+  BenchmarkColumn,
 ];
 
 const migrations = [
@@ -177,6 +182,7 @@ const migrations = [
   AddAgentSoftDelete1782200000000,
   AddModelRouteColumns1783000000000,
   DropLegacyRoutingColumns1784000000000,
+  AddBenchmarkHistory1785000000000,
 ];
 
 @Module({

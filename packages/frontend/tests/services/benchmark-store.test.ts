@@ -1,0 +1,283 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const runBenchmarkMock = vi.fn();
+
+vi.mock('../../src/services/api.js', () => ({
+  runBenchmark: (...args: unknown[]) => runBenchmarkMock(...args),
+}));
+
+import { createBenchmarkStore } from '../../src/services/benchmark-store';
+import type { AvailableModel, RoutingProvider } from '../../src/services/api';
+
+function buildModel(overrides: Partial<AvailableModel> = {}): AvailableModel {
+  return {
+    model_name: 'openai/gpt-4o-mini',
+    provider: 'openai',
+    auth_type: 'api_key',
+    input_price_per_token: 0.00000015,
+    output_price_per_token: 0.0000006,
+    context_window: 128_000,
+    capability_reasoning: false,
+    capability_code: true,
+    quality_score: 2,
+    display_name: 'GPT-4o Mini',
+    provider_display_name: 'OpenAI',
+    ...overrides,
+  };
+}
+
+function buildProvider(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
+  return {
+    id: 'p1',
+    provider: 'openai',
+    auth_type: 'api_key',
+    is_active: true,
+    has_api_key: true,
+    connected_at: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+describe('createBenchmarkStore', () => {
+  beforeEach(() => {
+    runBenchmarkMock.mockReset();
+  });
+
+  describe('pickDefaults', () => {
+    it('picks two models from two different providers when available', () => {
+      const store = createBenchmarkStore('demo');
+      store.pickDefaults(
+        [
+          buildModel({ model_name: 'openai/gpt-4o-mini', provider: 'openai' }),
+          buildModel({ model_name: 'anthropic/claude-sonnet-4', provider: 'anthropic' }),
+        ],
+        [
+          buildProvider({ provider: 'openai' }),
+          buildProvider({ id: 'p2', provider: 'anthropic' }),
+        ],
+      );
+      expect(store.columns).toHaveLength(2);
+      const providers = new Set(store.columns.map((c) => c.provider));
+      expect(providers.size).toBe(2);
+    });
+
+    it('falls back to two models from the same provider when only one is connected', () => {
+      const store = createBenchmarkStore('demo');
+      store.pickDefaults(
+        [
+          buildModel({ model_name: 'openai/gpt-4o', display_name: 'GPT-4o' }),
+          buildModel({ model_name: 'openai/gpt-4o-mini', display_name: 'GPT-4o Mini' }),
+        ],
+        [buildProvider({ provider: 'openai' })],
+      );
+      expect(store.columns).toHaveLength(2);
+      expect(new Set(store.columns.map((c) => c.provider))).toEqual(new Set(['openai']));
+    });
+
+    it('picks nothing when no providers are connected', () => {
+      const store = createBenchmarkStore('demo');
+      store.pickDefaults([buildModel()], []);
+      expect(store.columns).toHaveLength(0);
+    });
+
+    it('does not overwrite columns the user already added', () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'GPT-4o Mini');
+      store.pickDefaults([buildModel()], [buildProvider({ provider: 'openai' })]);
+      expect(store.columns).toHaveLength(1);
+    });
+  });
+
+  describe('runAll', () => {
+    it('sets success/error status per column and leaves successful columns intact when others fail', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'GPT-4o Mini');
+      store.addColumn('anthropic/claude-sonnet-4', 'anthropic', 'api_key', 'Claude Sonnet 4');
+      store.setPrompt('hi');
+
+      runBenchmarkMock.mockImplementation((req: { provider: string }) => {
+        if (req.provider === 'openai') {
+          return Promise.resolve({
+            content: 'hello',
+            metrics: { cost: 0.001, inputTokens: 5, outputTokens: 3, durationMs: 120 },
+            headers: { 'x-request-id': 'abc' },
+          });
+        }
+        return Promise.reject(new Error('anthropic provider down'));
+      });
+
+      await store.runAll();
+
+      const [ok, err] = store.columns;
+      expect(ok?.status).toBe('success');
+      expect(ok?.response).toBe('hello');
+      expect(ok?.metrics?.cost).toBe(0.001);
+      expect(err?.status).toBe('error');
+      expect(err?.error).toContain('anthropic provider down');
+    });
+
+    it('is a no-op when prompt is empty', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'GPT-4o Mini');
+      await store.runAll();
+      expect(runBenchmarkMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('removeColumn & replaceColumnModel', () => {
+    it('removes a column by id', () => {
+      const store = createBenchmarkStore('demo');
+      store.pickDefaults(
+        [
+          buildModel({ model_name: 'openai/gpt-4o-mini', provider: 'openai' }),
+          buildModel({ model_name: 'anthropic/claude-sonnet-4', provider: 'anthropic' }),
+        ],
+        [
+          buildProvider({ provider: 'openai' }),
+          buildProvider({ id: 'p2', provider: 'anthropic' }),
+        ],
+      );
+      const id = store.columns[0]!.id;
+      store.removeColumn(id);
+      expect(store.columns).toHaveLength(1);
+    });
+
+    it('replaces a column model and resets its state', () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o', 'openai', 'api_key', 'GPT-4o');
+      const id = store.columns[0]!.id;
+      store.replaceColumnModel(id, 'openai/gpt-4o-mini', 'openai', 'api_key', 'GPT-4o Mini');
+      expect(store.columns[0]!.model).toBe('openai/gpt-4o-mini');
+      expect(store.columns[0]!.status).toBe('idle');
+    });
+  });
+
+  describe('prompt recall', () => {
+    it('recalls the last submitted prompt when requested', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'GPT-4o Mini');
+      runBenchmarkMock.mockResolvedValue({
+        content: 'ok',
+        metrics: { cost: 0, inputTokens: 1, outputTokens: 1, durationMs: 10 },
+        headers: {},
+      });
+      store.setPrompt('first prompt');
+      await store.runAll();
+      store.setPrompt('');
+      store.recallPreviousPrompt();
+      expect(store.prompt()).toBe('first prompt');
+    });
+  });
+
+  describe('requestHeaders propagation', () => {
+    it('passes requestHeaders to every column when runAll is called with them', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      store.addColumn('anthropic/claude-sonnet-4', 'anthropic', 'api_key', 'B');
+      runBenchmarkMock.mockResolvedValue({
+        content: 'ok',
+        metrics: { cost: 0, inputTokens: 1, outputTokens: 1, durationMs: 10 },
+        headers: {},
+      });
+      store.setPrompt('hi');
+
+      await store.runAll({ requestHeaders: { 'HTTP-Referer': 'https://x.com' } });
+
+      const headersPerCall = runBenchmarkMock.mock.calls.map(
+        (c) => (c[0] as { requestHeaders?: Record<string, string> }).requestHeaders,
+      );
+      expect(headersPerCall).toEqual([
+        { 'HTTP-Referer': 'https://x.com' },
+        { 'HTTP-Referer': 'https://x.com' },
+      ]);
+    });
+
+    it('omits requestHeaders from the payload when the map is empty', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      runBenchmarkMock.mockResolvedValue({
+        content: 'ok',
+        metrics: { cost: 0, inputTokens: 1, outputTokens: 1, durationMs: 10 },
+        headers: {},
+      });
+      store.setPrompt('hi');
+      await store.runAll({ requestHeaders: {} });
+      const call = runBenchmarkMock.mock.calls[0][0] as Record<string, unknown>;
+      expect(call.requestHeaders).toBeUndefined();
+    });
+  });
+
+  describe('runId propagation', () => {
+    it('passes the same runId and distinct positions to every column in a single runAll', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      store.addColumn('anthropic/claude-sonnet-4', 'anthropic', 'api_key', 'B');
+      runBenchmarkMock.mockResolvedValue({
+        content: 'ok',
+        metrics: { cost: 0.0001, inputTokens: 1, outputTokens: 1, durationMs: 10 },
+        headers: {},
+      });
+      store.setPrompt('hi');
+      await store.runAll();
+
+      const calls = runBenchmarkMock.mock.calls.map((c) => c[0]) as Array<{
+        runId: string;
+        position: number;
+      }>;
+      expect(calls).toHaveLength(2);
+      expect(calls[0].runId).toBe(calls[1].runId);
+      expect(typeof calls[0].runId).toBe('string');
+      expect(calls[0].runId.length).toBeGreaterThan(0);
+      expect(new Set(calls.map((c) => c.position))).toEqual(new Set([0, 1]));
+    });
+  });
+
+  describe('loadHistoryRun', () => {
+    it('replaces columns and prompt with the historical run data', () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'current');
+      store.loadHistoryRun({
+        id: 'r-1',
+        prompt: 'restored prompt',
+        createdAt: new Date().toISOString(),
+        modelCount: 2,
+        models: ['GPT-4o', 'Claude'],
+        columns: [
+          {
+            id: 'c1',
+            model: 'openai/gpt-4o',
+            provider: 'openai',
+            authType: 'api_key',
+            displayName: 'GPT-4o',
+            status: 'success',
+            content: 'hello',
+            headers: { 'x-request-id': 'abc' },
+            errorMessage: null,
+            metrics: { cost: 0.001, inputTokens: 10, outputTokens: 5, durationMs: 200 },
+            position: 0,
+          },
+          {
+            id: 'c2',
+            model: 'anthropic/claude',
+            provider: 'anthropic',
+            authType: 'api_key',
+            displayName: 'Claude',
+            status: 'error',
+            content: null,
+            headers: null,
+            errorMessage: 'rate limited',
+            metrics: null,
+            position: 1,
+          },
+        ],
+      });
+      expect(store.columns).toHaveLength(2);
+      expect(store.columns[0]!.model).toBe('openai/gpt-4o');
+      expect(store.columns[0]!.response).toBe('hello');
+      expect(store.columns[0]!.metrics?.cost).toBe(0.001);
+      expect(store.columns[1]!.status).toBe('error');
+      expect(store.columns[1]!.error).toBe('rate limited');
+      expect(store.prompt()).toBe('restored prompt');
+    });
+  });
+});
