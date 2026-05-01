@@ -18,15 +18,22 @@ import type {
   CustomProviderData,
 } from '../services/api.js';
 
-function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
+/** @internal Exported for testing only. */
+export function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
     apiModels.find((x) => x.model_name === model) ??
     apiModels.find((x) => x.model_name.startsWith(model + '-'));
   if (m) {
     const dbId = resolveProviderId(m.provider);
-    // Ollama providers keep their DB id to avoid the colon-suffix heuristic in
-    // inferProviderFromModel mis-routing cloud models to local Ollama.
-    if (dbId === 'ollama' || dbId === 'ollama-cloud') return dbId;
+    // OpenRouter is the one provider where the vendor prefix is genuinely the
+    // best attribution: an OR row for `anthropic/claude-…` should show the
+    // Anthropic logo, not the OpenRouter logo. For every other registered
+    // first-party provider the stored `m.provider` is the truth — Groq's
+    // `qwen/qwen3-32b` is being served BY Groq, so it must show the Groq
+    // logo (and use Groq's pricing) regardless of the model-id prefix.
+    if (dbId && dbId !== 'openrouter' && PROVIDERS.find((p) => p.id === dbId)) {
+      return dbId;
+    }
     const prefixId = inferProviderFromModel(m.model_name);
     if (prefixId && PROVIDERS.find((p) => p.id === prefixId)) return prefixId;
     return dbId ?? prefixId;
