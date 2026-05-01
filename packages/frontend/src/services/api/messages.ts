@@ -95,6 +95,7 @@ export function getMessages(
     agent_name?: string;
     cost_min?: string;
     cost_max?: string;
+    routing_tier?: string;
   } = {},
 ) {
   return fetchJson('/messages', params);
