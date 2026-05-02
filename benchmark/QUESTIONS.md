@@ -24,8 +24,8 @@ Graph: Reasoning tier cost-per-correct-answer vs other tiers on GSM8K, ARC, RAG 
 Status: ANSWERABLE. OpenAI has 6 tiers (nano to 5.5 Pro), Mistral has 4, Qwen has 5.
 Graph: Per-provider quality curve (price on X, quality on Y, one line per provider).
 
-**Q5. At the same price tier, which provider wins?**
-Status: ANSWERABLE. Haiku vs GPT-5.4-mini vs Gemini Flash vs Mistral Small etc.
+**Q5. At the same price tier, which model wins?**
+Status: ANSWERABLE. Compare models in the same price range: Haiku 4.5 vs GPT-5.4-mini vs Gemini 2.5 Flash vs Mistral Small, etc. The comparison is between models, not providers. A provider is context, the model is what matters.
 Graph: Head-to-head comparison table at each tier.
 
 ## Structural Questions
