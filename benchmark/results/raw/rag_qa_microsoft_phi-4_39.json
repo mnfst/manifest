@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Packet switching contrasts with circuit switching. Circuit switching pre-allocates dedicated network bandwidth for each communication session, whereas packet switching involves fees per unit of information transmitted.",
+  "score": 5,
+  "cost": 1.1894999999999999e-05,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 150,
+    "output": 33
+  }
+}

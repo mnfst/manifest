@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "long_summarization",
+  "case": 28,
+  "response": "The history of the internet began in the 1960s with US Department of Defense research, evolving from the 1969 ARPANET demonstration to the foundational adoption of TCP/IP protocols in 1983. Key milestones include Tim Berners-Lee\u2019s invention of the World Wide Web in 1989 and the 2007 launch of the iPhone, which transitioned the web into a ubiquitous mobile experience. Despite the 2001 dot-com crash, the digital landscape expanded through the rise of social media, cloud computing, and massive tech giants. Today, the internet serves as a vital global infrastructure that connects over 5 billion people.",
+  "score": 5,
+  "cost": 2.9219999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 344,
+    "output": 143
+  }
+}

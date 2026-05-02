@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Colonialism often means a country taking physical control of another.",
+  "score": 5,
+  "cost": 5.02e-05,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 314,
+    "output": 690
+  }
+}

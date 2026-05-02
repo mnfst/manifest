@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 22,
+  "response": "```python\ncount = 0\nfor bracket in brackets:\n    if bracket == \"<\":\n        count += 1\n    elif bracket == \">\":\n        count -= 1\n    if count < 0:\n        return False\nreturn count == 0\n```",
+  "score": 5,
+  "cost": 0.001383,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 65
+  }
+}

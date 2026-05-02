@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 4,
+  "response": "def monotonic(l: list):\n    return all(x <= y for x, y in zip(l, l[1:]))",
+  "score": 4,
+  "cost": 4.05e-06,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 27
+  }
+}

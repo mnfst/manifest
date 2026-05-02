@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 2,
+  "response": "if not lst:\n    return []\narr = sorted(lst)\nresult = []\nleft, right = 0, len(arr) - 1\nwhile left <= right:\n    result.append(arr[left])\n    left += 1\n    if left <= right:\n        result.append(arr[right])\n        right -= 1\nreturn result",
+  "score": 4,
+  "cost": 4.3100000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 69
+  }
+}

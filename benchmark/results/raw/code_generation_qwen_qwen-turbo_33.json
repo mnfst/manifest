@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 33,
+  "response": "if a**2 + b**2 == c**2 or a**2 + c**2 == b**2 or b**2 + c**2 == a**2:\n    return True\nreturn False",
+  "score": 5,
+  "cost": 6.237e-06,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 43
+  }
+}

@@ -3,11 +3,11 @@
   "task": "extraction_hard_v2",
   "case": 41,
   "response": "{\n  \"name\": \"SARAH CHEN\",\n  \"email\": \"sarah.c@gmail.com\",\n  \"current_role\": {\n    \"title\": \"Lead ML Engineer\",\n    \"company\": \"Anthropic\"\n  },\n  \"education\": [\n    {\n      \"degree\": \"MS Computer Science\",\n      \"institution\": \"Stanford\",\n      \"year\": 2016\n    },\n    {\n      \"degree\": \"BS Mathematics + CS\",\n      \"institution\": \"MIT\",\n      \"year\": 2014\n    }\n  ],\n  \"skills\": [\n    \"PyTorch\",\n    \"JAX\",\n    \"distributed training\",\n    \"transformer architectures\",\n    \"RLHF\"\n  ]\n}",
-  "score": 5,
-  "cost": 4.8899999999999996e-05,
+  "score": 0,
+  "cost": 4.36e-05,
   "expected": "",
   "tokens": {
     "input": 188,
-    "output": 790
+    "output": 684
   }
 }

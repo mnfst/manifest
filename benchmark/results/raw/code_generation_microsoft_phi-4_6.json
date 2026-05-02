@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 6,
+  "response": "```python\n    seen = set()\n    result = []\n    for num in numbers:\n        if num not in seen:\n            seen.add(num)\n            result.append(num)\n    return result\n```",
+  "score": 3,
+  "cost": 1.0205e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 41
+  }
+}

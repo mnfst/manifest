@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 32,
+  "response": "## Step-by-step reasoning:\n\nLet's analyze each option:\n\n**A) Liquid water holds its shape.**\n- This is incorrect. Liquids do NOT hold their shape; they take the shape of their container.\n\n**B) Water changes to a gas as it boils.**\n- This is correct. When water boils (at 100\u00b0C), it undergoes a phase change from liquid to gas (water vapor/steam). This is a well-known property of water.\n\n**C) Ice becomes a liquid when it freezes.**\n- This is incorrect. Freezing is when a liquid becomes a solid. Ice is already solid; it becomes liquid when it *melts*.\n\n**D) Solid ice changes shape with its container.**\n- This is incorrect. Solids maintain their shape and do NOT conform to the shape of their container. It's liquids and gases that take the shape of their container.\n\n**B**",
+  "score": 5,
+  "cost": 0.003405,
+  "expected": "B",
+  "tokens": {
+    "input": 100,
+    "output": 207
+  }
+}

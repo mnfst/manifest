@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 30,
+  "response": "if n <= 0:\n    raise ValueError(\"n must be a positive integer\")\n\ndef is_prime(x: int) -> bool:\n    if x < 2:\n        return False\n    if x in (2, 3):\n        return True\n    if x % 2 == 0 or x % 3 == 0:\n        return False\n    i = 5\n    step = 2\n    while i * i <= x:\n        if x % i == 0:\n            return False\n        i += step\n        step = 6 - step\n    return True\n\ncount = 0\na, b = 0, 1\nwhile True:\n    a, b = b, a + b\n    if is_prime(a):\n        count += 1\n        if count == n:\n            return a",
+  "score": 5,
+  "cost": 8.39e-05,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 178
+  }
+}

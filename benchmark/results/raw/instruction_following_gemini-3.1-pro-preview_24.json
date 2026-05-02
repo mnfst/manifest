@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "Here is a description of a car accident report:\n\n* **Incident Details:** Documents the foundational facts of the crash, including the exact date, time, location, weather/road conditions, and the identifying information of all drivers, passengers, and vehicles involved.\n* **Crash Narrative:** Provides an objective, step-by-step description of how the collision occurred, often accompanied by witness statements and a visual diagram showing the vehicles' directions of travel and points of impact.\n* **Aftermath and Assessment:** Records the extent of property damage, any physical injuries sustained, medical assistance provided at the scene, and the responding officer's determination of fault or citations issued.",
+  "score": 5,
+  "cost": 0.0020575,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 135
+  }
+}

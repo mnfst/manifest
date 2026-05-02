@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "The CPU, or Central Processing Unit, is the primary component of a computer that executes instructions and processes data to perform tasks.",
+  "score": 5,
+  "cost": 2.635e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 508
+  }
+}

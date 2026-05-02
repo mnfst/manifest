@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 38,
+  "response": "negatives = [x for x in lst if x < 0]\n    positives = [x for x in lst if x > 0]\n    \n    a = max(negatives) if negatives else None\n    b = min(positives) if positives else None\n    \n    return (a, b)",
+  "score": 4,
+  "cost": 1.56e-05,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 71
+  }
+}

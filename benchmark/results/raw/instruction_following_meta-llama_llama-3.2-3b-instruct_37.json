@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is like a warm, velvety hug for your taste buds. It's a rich, decadent caress that wraps around your senses, soothing and comforting, like a gentle summer breeze on a lazy afternoon. The sweetness is like a symphony of golden notes, playing a gentle melody that resonates deep within your soul.\n\nAs the flavors unfold, the bitterness of the cocoa notes emerges, like a subtle whisper of a lover's gentle warning, cautioning you to slow down and savor the moment. The acidity and fruitiness of the chocolate dance on your tongue, like a playful sprightly sprite, adding a lively, effervescent quality to the experience.\n\nAnd then, the finish \u2013 oh, the finish! It's like a soft, golden light that lingers on your palate, a warm glow that leaves you feeling cozy and content, like a crackling fire on a winter's night. The aftertaste is like a gentle echo, a soft whisper of the chocolate's presence, reminding you that the experience is over, but the memory will linger, a sweet and satisfying reminder of the joy it brought.",
+  "score": 5,
+  "cost": 1.3004999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 231
+  }
+}

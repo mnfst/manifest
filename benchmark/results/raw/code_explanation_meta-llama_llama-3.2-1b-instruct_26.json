@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code implements the 0/1 Knapsack problem, a classic problem in combinatorial optimization. The algorithm uses dynamic programming to find the maximum value that can be put in a knapsack of limited capacity, given a set of items with weights and values.",
+  "score": 5,
+  "cost": 5.751e-06,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 56
+  }
+}

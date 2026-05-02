@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 5,
+  "response": "return max(l)",
+  "score": 5,
+  "cost": 0.000501,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 9
+  }
+}

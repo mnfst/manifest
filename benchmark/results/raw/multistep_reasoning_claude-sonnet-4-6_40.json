@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 40,
+  "response": "Looking at this question, I need to determine which equipment measures the volume of rain collected in a rain gauge.\n\n- A double pan balance measures **mass/weight**\n- A graduated cylinder measures **volume of liquid**\n- A centimeter ruler measures **length/distance**\n- A thermometer measures **temperature**\n\nSince rain collected in a gauge is a liquid, and we need to measure its **volume**, the appropriate tool is a graduated cylinder.\n\n**B**",
+  "score": 5,
+  "cost": 0.001767,
+  "expected": "B",
+  "tokens": {
+    "input": 84,
+    "output": 101
+  }
+}

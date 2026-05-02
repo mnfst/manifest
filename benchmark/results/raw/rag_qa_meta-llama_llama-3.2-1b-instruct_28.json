@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 6.075e-06,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 219,
+    "output": 6
+  }
+}

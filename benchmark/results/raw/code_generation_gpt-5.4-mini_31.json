@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 31,
+  "response": "return sorted([s for s in lst if len(s) % 2 == 0], key=lambda s: (len(s), s))",
+  "score": 4,
+  "cost": 0.00010379999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 32
+  }
+}

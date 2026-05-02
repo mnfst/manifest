@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "Answer: The show globe was employed until early in the 20th century.",
+  "score": 5,
+  "cost": 8.184000000000002e-06,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 231,
+    "output": 17
+  }
+}

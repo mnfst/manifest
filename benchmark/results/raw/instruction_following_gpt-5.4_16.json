@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the force that pulls things with mass toward each other.\n\nIt is why:\n- objects fall to the ground,\n- the Moon goes around Earth,\n- Earth goes around the Sun,\n- and why you stay standing on the planet instead of floating away.\n\nThe more mass something has, the stronger its gravity. That is why planets, stars, and black holes have such strong gravitational pull. Distance also matters: the farther apart two objects are, the weaker the gravitational pull between them.\n\nAccording to Einstein, gravity is not just a pull, but the bending of space and time caused by mass and energy. Big objects like Earth curve spacetime around them, and smaller objects move along that curve. That is why things fall and why planets orbit stars.\n\nThat is gravity.",
+  "score": 5,
+  "cost": 0.001348,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 162
+  }
+}

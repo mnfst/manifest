@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 6.128999999999999e-06,
+  "expected": "northeast",
+  "tokens": {
+    "input": 221,
+    "output": 6
+  }
+}

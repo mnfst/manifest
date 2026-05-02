@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 6,
+  "response": "This function **recursively flattens a nested list** of arbitrary depth into a single sequence of non-list elements using a generator. It iterates through each item, and if the item is itself a list, it recursively `yield from`s that sublist's flattened results; otherwise, it directly yields the scalar value.",
+  "score": 5,
+  "cost": 0.00132,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 73
+  }
+}

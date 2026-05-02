@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne is called the \"sporting capital of Australia.\"",
+  "score": 5,
+  "cost": 2.98e-05,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 256,
+    "output": 14
+  }
+}

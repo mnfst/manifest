@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "The provided code implements the A* search algorithm, which is used for finding the shortest path from a start node to a goal node in a graph. The algorithm uses a priority queue (managed by the `heapq` module) to explore paths based on their estimated total cost, calculated as the sum of the actual cost from the start node to the current node and a heuristic estimate of the cost from the current node to the goal node. The heuristic function is used to guide the search towards the goal efficiently. The code maintains a set of visited nodes to avoid revisiting them and updates the open set with new paths and costs as it explores neighbors of the current node. If the goal node is reached, the path leading to it is returned; otherwise, the search continues until the open set is empty, returning `None` if no path is found.",
+  "score": 5,
+  "cost": 2.392e-05,
+  "expected": "",
+  "tokens": {
+    "input": 196,
+    "output": 172
+  }
+}

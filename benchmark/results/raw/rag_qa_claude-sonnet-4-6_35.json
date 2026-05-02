@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "Based on the provided context, **Bathocyroe** and **Ocyropsis** escape from danger by **clapping their lobes**, which expels a jet of water that drives them backwards very quickly.",
+  "score": 5,
+  "cost": 0.001608,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 296,
+    "output": 48
+  }
+}

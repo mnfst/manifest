@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "structured_output",
+  "case": 24,
+  "response": "{\"restaurant\":\"Chez Marie\",\"rating\":4.5,\"cuisine\":\"French\",\"price_range\":\"$$$\",\"recommended_dish\":\"duck confit\",\"service_rating\":\"excellent\",\"wait_time_minutes\":15,\"recommended_for\":\"date night\"}",
+  "score": 5,
+  "cost": 0.001158,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 67
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 24,
+  "response": "```python\nimport math\n\ndef triangle_area(a, b, c):\n    if a + b > c and a + c > b and b + c > a:\n        s = (a + b + c) / 2\n        return round(math.sqrt(s * (s - a) * (s - b) * (s - c)), 2)\n    else:\n        return -1\n```",
+  "score": 5,
+  "cost": 1.2393000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 86
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "rag_qa",
+  "case": 17,
+  "response": "Tymnet was an international data communications network headquartered in San Jose, California.",
+  "score": 5,
+  "cost": 0.000596,
+  "expected": "an international data communications network headquartered in San Jose, CA",
+  "tokens": {
+    "input": 222,
+    "output": 19
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "The code defines an asynchronous queue class, `AsyncQueue`, which allows for concurrent producers and consumers using Python's `asyncio` library. The `put` method adds an item to the queue, waiting if the queue is full, while the `get` method retrieves an item, waiting if the queue is empty. This implementation uses a double-ended queue (`collections.deque`) to store items and manage waiting tasks (`_getters` and `_putters`) efficiently, ensuring that producers and consumers can proceed without blocking each other.",
+  "score": 5,
+  "cost": 2.0865e-05,
+  "expected": "",
+  "tokens": {
+    "input": 213,
+    "output": 108
+  }
+}

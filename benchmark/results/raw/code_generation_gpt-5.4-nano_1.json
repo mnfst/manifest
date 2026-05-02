@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 1,
+  "response": "depth = 0\nmax_depths = []\nfor group in paren_string.split():\n    depth = 0\n    max_depth = 0\n    for ch in group:\n        if ch == '(':\n            depth += 1\n            if depth > max_depth:\n                max_depth = depth\n        elif ch == ')':\n            depth -= 1\n    max_depths.append(max_depth)\nreturn max_depths",
+  "score": 5,
+  "cost": 4.97e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 89
+  }
+}

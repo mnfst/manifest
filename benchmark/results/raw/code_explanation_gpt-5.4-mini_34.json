@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a **MinStack**, a stack data structure that supports retrieving the current minimum element in **O(1)** time. It uses a **parallel auxiliary stack** (`min_stack`) to track the minimum value at each depth, so `push`, `pop`, and `get_min` all run in constant time.",
+  "score": 5,
+  "cost": 0.0001185,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 69
+  }
+}

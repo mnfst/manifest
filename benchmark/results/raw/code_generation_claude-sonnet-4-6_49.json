@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 49,
+  "response": "```python\n    if not string:\n        return ''\n    \n    for i in range(len(string)):\n        if is_palindrome(string[i:]):\n            return string + string[:i][::-1]\n    \n    return string + string[:-1][::-1]\n```",
+  "score": 4,
+  "cost": 0.00168,
+  "expected": "",
+  "tokens": {
+    "input": 200,
+    "output": 72
+  }
+}

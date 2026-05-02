@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "About **1.1 \u00d7 10\u00b9\u00b9 metric tonnes of carbon**, which is roughly **10% of the world\u2019s terrestrial carbon stores**, are stored in Amazonian evergreen forests.",
+  "score": 5,
+  "cost": 3.25e-05,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 165,
+    "output": 40
+  }
+}

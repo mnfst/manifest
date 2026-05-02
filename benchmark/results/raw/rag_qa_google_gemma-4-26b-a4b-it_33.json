@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "In response to American aid to Israel.",
+  "score": 5,
+  "cost": 1.7879999999999998e-05,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 289,
+    "output": 9
+  }
+}

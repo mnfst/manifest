@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "\"AI is revolutionizing industries, but what about the impact on jobs? As AI takes over routine tasks, how can we upskill and reskill to stay relevant in the future? #AI #FutureOfWork #Upskilling\"",
+  "score": 5,
+  "cost": 3.6209999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 48
+  }
+}

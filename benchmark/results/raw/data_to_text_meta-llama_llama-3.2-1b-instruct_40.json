@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 40,
+  "response": "Here is the converted paragraph:\n\nThe patient is a 45-year-old female with a Body Mass Index (BMI) of 27.3, indicating a slightly overweight status. Her blood pressure is 138/88, which is within a normal range, and her cholesterol level is 225 mg/dL, which is slightly elevated. She is a non-smoker and has a family history of diabetes, which is a significant concern for her overall health.",
+  "score": 0,
+  "cost": 5.211000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 92
+  }
+}

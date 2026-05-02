@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This implements the classic **sliding window maximum** algorithm using a **monotonic deque** that stores indices of elements in decreasing order. For each window of size `k`, it ejects indices that fall out of the window and pops smaller elements from the back, so the deque front always holds the maximum; once the first full window is reached, it appends that maximum to `result`.",
+  "score": 5,
+  "cost": 4.5400000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 83
+  }
+}

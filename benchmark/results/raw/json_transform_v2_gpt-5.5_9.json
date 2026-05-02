@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "json_transform_v2",
+  "case": 9,
+  "response": "{\"summary\":{\"total\":5,\"by_level\":{\"ERROR\":3,\"WARN\":1,\"INFO\":1}},\"errors\":[{\"msg\":\"timeout\",\"count\":2,\"first_seen\":\"10:00\"},{\"msg\":\"disk full\",\"count\":1,\"first_seen\":\"10:05\"}]}",
+  "score": 5,
+  "cost": 0.002112,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 128
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. **Make it long**: Aim for at least **14\u201316 characters**. Longer passwords are harder to crack.\n\n2. **Use randomness**: Choose a random mix of words or characters, such as a passphrase:  \n   `purple-river-battery-cloud-91`\n\n3. **Avoid personal information**: Do not use names, birthdays, pets, addresses, favorite teams, or anything easy to guess.\n\n4. **Do not reuse passwords**: Every account should have a **unique** password. If one account is breached, reused passwords put other accounts at risk.\n\n5. **Use a password manager**: A password manager can create and store strong, unique passwords for you.\n\n6. **Include variety when needed**: If a site requires it, use uppercase letters, lowercase letters, numbers, and symbols\u2014but length and uniqueness matter more.\n\n7. **Avoid common patterns**: Do not use passwords like `Password123!`, `qwerty`, `letmein`, or simple substitutions like `P@ssw0rd`.\n\n8. **Enable multi-factor authentication**: A strong password is better with an extra layer of protection, such as an authenticator app or security key.\n\n9. **Change passwords after a breach**: You do not need to change strong passwords constantly, but you should change them immediately if an account may be compromised.",
+  "score": 5,
+  "cost": 0.006915,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 341
+  }
+}

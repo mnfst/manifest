@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 20,
+  "response": "if not (1 <= number <= 1000):\n    raise ValueError(\"number must be between 1 and 1000 inclusive\")\n\nthousands = [\"\", \"m\"]\nhundreds = [\"\", \"c\", \"cc\", \"ccc\", \"cd\", \"d\", \"dc\", \"dcc\", \"dccc\", \"cm\"]\ntens = [\"\", \"x\", \"xx\", \"xxx\", \"xl\", \"l\", \"lx\", \"lxx\", \"lxxx\", \"xc\"]\nones = [\"\", \"i\", \"ii\", \"iii\", \"iv\", \"v\", \"vi\", \"vii\", \"viii\", \"ix\"]\n\nt = number // 1000\nh = (number % 1000) // 100\nte = (number % 100) // 10\no = number % 10\n\nreturn (thousands[t] + hundreds[h] + tens[te] + ones[o]).lower()",
+  "score": 5,
+  "cost": 9.36e-05,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 200
+  }
+}

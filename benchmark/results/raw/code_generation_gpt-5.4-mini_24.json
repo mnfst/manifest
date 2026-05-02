@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 24,
+  "response": "if a + b <= c or a + c <= b or b + c <= a:\n    return -1\n\ns = (a + b + c) / 2\narea = (s * (s - a) * (s - b) * (s - c)) ** 0.5\nreturn round(area, 2)",
+  "score": 5,
+  "cost": 0.0001356,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 75
+  }
+}

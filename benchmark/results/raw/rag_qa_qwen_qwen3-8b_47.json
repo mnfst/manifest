@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The context mentions that in the Peruvian Amazon, while many indigenous communities are disappearing, \"others, like the Urarina\" continue to struggle for their cultural survival and forest territories. Thus, the Urarina are explicitly named as another group within the Peruvian Amazon struggling against these challenges. \n\n**Answer:** Urarina",
+  "score": 5,
+  "cost": 7.555000000000001e-05,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 159,
+    "output": 1352
+  }
+}

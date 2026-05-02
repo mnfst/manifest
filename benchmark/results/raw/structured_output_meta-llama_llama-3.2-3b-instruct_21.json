@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 21,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@email.com\",\n  \"phone\": \"555-0123\",\n  \"education\": [\n    {\n      \"degree\": \"BS\",\n      \"school\": \"Computer Science\",\n      \"year\": 2018\n    }\n  ],\n  \"experience\": [\n    {\n      \"company\": \"Google\",\n      \"years\": \"2018-2021\",\n      \"role\": \"SWE\"\n    },\n    {\n      \"company\": \"Meta\",\n      \"years\": \"2021-present\",\n      \"role\": \"Senior SWE\"\n    }\n  ]\n}\n```\n\nNote that I've kept the phone number as a string, as it was in the original text. If you'd like to convert it to a more standard format (e.g. `+1 555-0123`), let me know!",
+  "score": 4,
+  "cost": 1.6625999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 195
+  }
+}

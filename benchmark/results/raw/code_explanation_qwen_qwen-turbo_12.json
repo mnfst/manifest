@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code performs a topological sort on a directed acyclic graph (DAG) using depth-first search (DFS). It visits each node, recursively processes its neighbors, and appends nodes to a stack after all their neighbors have been processed, then returns the reversed stack to produce a valid topological order.",
+  "score": 5,
+  "cost": 5.775000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 62
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "The leader of the Islamist regime in Sudan was Hassan al-Turabi.",
+  "score": 5,
+  "cost": 1.0789999999999998e-05,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 150,
+    "output": 16
+  }
+}

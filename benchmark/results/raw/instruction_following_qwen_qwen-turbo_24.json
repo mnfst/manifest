@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- The accident occurred at 3:15 PM on Main Street, involving a sedan and a delivery van.  \n- No serious injuries were reported, though both vehicles sustained moderate damage.  \n- Police cited the sedan driver for failing to yield at a red light, and the van driver for speeding.",
+  "score": 5,
+  "cost": 2.805e-06,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 61
+  }
+}

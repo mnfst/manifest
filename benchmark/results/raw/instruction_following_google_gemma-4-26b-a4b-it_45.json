@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "To understand the difference between **TCP** (Transmission Control Protocol) and **UDP** (User Datagram Protocol), it is best to think of them as two different ways of delivering a message: **TCP is like a registered letter** (you get confirmation it arrived), while **UDP is like a regular postcard** (you send it and hope for the best).\n\n### The Core Difference\n\n*   **TCP** is a **connection-oriented** protocol. It focuses on **reliability**. It ensures that every single piece of data arrives in the correct order and without errors. If a piece of data is lost, TCP asks for it to be resent.\n*   **UDP** is a **connectionless** protocol. It focuses on **speed**. It sends data as fast as possible without checking if the receiver actually got it. There is no \"handshake\" or confirmation process.\n\n---\n\n### Comparison Table\n\n| Feature | TCP (Transmission Control Protocol) | UDP (User Datagram Protocol) |\n| :--- | :--- | :--- |\n| **Connection Type** | **Connection-oriented:** Requires a \"handshake\" to establish a connection before sending data. | **Connectionless:** Sends data immediately without establishing a formal connection. |\n| **Reliability** | **High:** Guarantees that data reaches the destination. | **Low:** No guarantee that data will arrive (Best-effort delivery). |\n| **Ordering** | **Guaranteed:** Data arrives in the exact order it was sent. | **Not Guaranteed:** Data packets may arrive out of order. |\n| **Error Checking** | **Extensive:** Detects lost or corrupted packets and requests retransmission. | **Basic:** Detects corruption but does not request retransmission of lost data. |\n| **Speed** | **Slower:** Due to the overhead of managing connections and checking for errors. | **Faster:** Very low overhead; no waiting for acknowledgments. |\n| **Flow/Congestion Control** | **Yes:** It slows down data transmission if the network is congested to prevent crashes. | **No:** It keeps sending data at the same rate regardless of network health. |\n| **Data Unit** | Called a **Segment**. | Called a **Datagram**. |\n\n---\n\n### When to use which?\n\n#### Use TCP when accuracy is more important than speed:\n*   **Web Browsing (HTTP/HTTPS",
+  "score": 4,
+  "cost": 3.138e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 500
+  }
+}

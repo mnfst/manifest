@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The SOC 2 Type II compliance audit was completed with no critical findings, but three observations were noted: insufficient access review frequency, lack of incident response plan testing in the past six months, and incomplete vendor risk assessments for two vendors. The Compliance Team requires remediation for these observations within 30 days.",
+  "score": 5,
+  "cost": 1.0789999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 62
+  }
+}

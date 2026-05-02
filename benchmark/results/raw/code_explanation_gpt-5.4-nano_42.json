@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This implements an asyncio-friendly bounded/unbounded queue using `collections.deque` plus two FIFO wait-lists: `_getters` for coroutines waiting to `get()` and `_putters` for coroutines waiting to `put()` when `maxsize` is reached. `put()` blocks via a future until space is available, then enqueues and wakes one waiting getter; `get()` blocks until an item is available, then dequeues and returns it.",
+  "score": 5,
+  "cost": 5.950000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 211,
+    "output": 96
+  }
+}

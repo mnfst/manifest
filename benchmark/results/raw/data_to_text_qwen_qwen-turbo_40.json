@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "data_to_text",
+  "case": 40,
+  "response": "The patient is a 45-year-old female with a BMI of 27.3. Her blood pressure is 138/88 mmHg, cholesterol level is 225 mg/dL, and fasting glucose is 110 mg/dL. She does not smoke, exercises twice a week, and has a family history of diabetes, as her mother has the condition.",
+  "score": 0,
+  "cost": 6.402000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 83
+  }
+}

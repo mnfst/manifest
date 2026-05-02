@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew significantly and became much more interconnected.",
+  "score": 5,
+  "cost": 8.6e-05,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 232,
+    "output": 1488
+  }
+}

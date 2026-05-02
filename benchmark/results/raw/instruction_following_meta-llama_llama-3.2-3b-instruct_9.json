@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "Here are the months of the year that have exactly 30 days:\n\n1. April\n2. June\n3. September\n4. November",
+  "score": 5,
+  "cost": 2.907e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 30
+  }
+}

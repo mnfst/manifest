@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 25,
+  "response": "```python\nimport re\n\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    # Remove spaces from the input string\n    paren_string = paren_string.replace(\" \", \"\")\n    \n    # Find all balanced parentheses groups using regex\n    groups = re.findall(r'\\((?:[^)(](?!\\))|\\(\\))+(?=\\))', paren_string)\n    \n    # Extract the content within each group of parentheses\n    result = []\n    for group in groups:\n        # Strip the outer parentheses\n        content = group[1:-1]\n        result.append(content)\n    \n    return result\n```",
+  "score": 2,
+  "cost": 1.8655e-05,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 127
+  }
+}

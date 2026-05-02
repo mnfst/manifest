@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_explanation",
+  "case": 47,
+  "response": "This code implements the Shunting Yard algorithm, a parsing algorithm used to convert infix notation (a mathematical expression with parentheses) to an equivalent postfix notation (a mathematical expression with operators following their operands).",
+  "score": 5,
+  "cost": 6.642e-06,
+  "expected": "",
+  "tokens": {
+    "input": 206,
+    "output": 40
+  }
+}

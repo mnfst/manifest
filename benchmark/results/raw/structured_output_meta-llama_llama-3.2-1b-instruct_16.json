@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 16,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"artist\": \"Taylor Swift\",\n  \"tour_name\": \"Eras Tour\",\n  \"venue\": \"SoFi Stadium\",\n  \"city\": \"Los Angeles\",\n  \"date\": \"Aug 9 2024\",\n  \"doors_time\": \"5pm\",\n  \"show_time\": \"7pm\",\n  \"price_range\": {\n    \"min\": 89,\n    \"max\": 899\n  },\n  \"seats\": {\n    \"section\": \"234\",\n    \"row\": \"F\",\n    \"numbers\": [12, 13]\n  }\n}\n```\n\nNote that I've used the exact values from the text, including the quotes and the comma-separated values for the price range and seats.",
+  "score": 5,
+  "cost": 8.721e-06,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 163
+  }
+}

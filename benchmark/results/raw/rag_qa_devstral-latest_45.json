@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe was used until the early 20th century.",
+  "score": 5,
+  "cost": 2.6600000000000003e-05,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 221,
+    "output": 15
+  }
+}

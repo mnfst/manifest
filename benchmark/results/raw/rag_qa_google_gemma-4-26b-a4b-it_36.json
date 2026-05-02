@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "gaseous oxygen",
+  "score": 5,
+  "cost": 1.032e-05,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 168,
+    "output": 4
+  }
+}

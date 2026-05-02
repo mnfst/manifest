@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 4,
+  "response": "Gravity and magnetism are both forces that occur naturally in the universe. They are not cycles, states of matter, or forms of energy \u2014 they are forces.\n\n**A**",
+  "score": 5,
+  "cost": 0.000819,
+  "expected": "A",
+  "tokens": {
+    "input": 73,
+    "output": 40
+  }
+}

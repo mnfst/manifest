@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "GERMANY, FRANCE, ITALY, SPAIN, NETHERLANDS",
+  "score": 5,
+  "cost": 1.3000000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 239
+  }
+}

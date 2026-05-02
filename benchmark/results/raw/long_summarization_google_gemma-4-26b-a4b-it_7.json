@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s represent a transformative era in space exploration, driven by a blend of scientific discovery and commercial expansion. Key developments include NASA\u2019s Artemis program and SpaceX\u2019s Starship development, alongside significant international milestones from China and India\u2019s Chandrayaan missions. The landscape is further shaped by the rise of satellite internet constellations, space tourism, and the potential for asteroid mining. However, this rapid growth brings critical challenges, including the limitations of the Outer Space Treaty and the increasing problem of space debris.",
+  "score": 5,
+  "cost": 1.518e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 106
+  }
+}

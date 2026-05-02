@@ -3,7 +3,7 @@
   "task": "extraction_hard_v2",
   "case": 12,
   "response": "{\n  \"tracking_number\": \"1Z999AA10123456784\",\n  \"carrier\": \"UPS Ground\",\n  \"service\": \"Ground\",\n  \"origin\": \"Warehouse #7, Memphis TN\",\n  \"weight_lbs\": 4.2,\n  \"dimensions\": \"12x8x6 in\",\n  \"events\": [\n    {\"timestamp\": \"04/25 18:30\", \"status\": \"Picked up\", \"location\": \"Memphis TN\"},\n    {\"timestamp\": \"04/26 03:15\", \"status\": \"Departed facility\", \"location\": \"Memphis TN\"},\n    {\"timestamp\": \"04/26 14:22\", \"status\": \"In transit\", \"location\": \"Nashville TN\"},\n    {\"timestamp\": \"04/27 06:00\", \"status\": \"Arrived at facility\", \"location\": \"Louisville KY\"},\n    {\"timestamp\": \"04/27 09:45\", \"status\": \"Out for delivery\", \"location\": \"\"},\n    {\"timestamp\": \"04/27 14:12\", \"status\": \"Delivered\", \"location\": \"Lexington KY 40502\"}\n  ],\n  \"delivery\": {\n    \"address\": \"456 Oak Street, Lexington KY 40502\",\n    \"signed_by\": \"FRONT DOOR\",\n    \"on_time\": true\n  }\n}",
-  "score": 4,
+  "score": 0,
   "cost": 3.26e-05,
   "expected": "",
   "tokens": {

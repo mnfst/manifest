@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Based on the provided context, **Prussia** had a Calvinist ruler \u2014 specifically the \"Calvinist Great Elector Frederick William,\" who welcomed Huguenots to help rebuild his war-ravaged and underpopulated country.",
+  "score": 5,
+  "cost": 0.0015,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 230,
+    "output": 54
+  }
+}

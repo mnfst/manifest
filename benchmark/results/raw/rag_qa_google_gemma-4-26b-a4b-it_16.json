@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "The university now owns approximately fifty percent more land in Allston than in Cambridge.",
+  "score": 5,
+  "cost": 1.452e-05,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 225,
+    "output": 17
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "Here are three facts about the moon:\n\n1. The moon is not round in shape, but is actually an ellipsoid, meaning it's slightly flattened at the poles and bulging at the equator.\n\n2. The moon is moving away from the Earth at a rate of about 1.5 inches (3.8 centimeters) per year.\n\n3. The moon has no atmosphere, which means there is no wind, weather, or sound on the moon.",
+  "score": 5,
+  "cost": 6.426e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 95
+  }
+}

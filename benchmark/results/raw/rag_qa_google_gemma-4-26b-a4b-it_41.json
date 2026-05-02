@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1.2719999999999998e-05,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 206,
+    "output": 6
+  }
+}

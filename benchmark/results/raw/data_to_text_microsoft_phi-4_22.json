@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "The production web server, prod-web-01, located in the US East (us-east-1) region, is currently operating with a CPU utilization of 78% and memory usage at 12.4 GB out of a total 16 GB capacity. The disk space is moderately occupied, with 234 GB used out of 500 GB available. Over the past 45 days, the server has maintained a stable uptime and has handled 127 connections, with a P99 latency of 145 milliseconds. Additionally, the server experiences approximately 3 errors per hour, indicating a need for monitoring and potential optimization to maintain performance and reliability.",
+  "score": 0,
+  "cost": 1.5275000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 129
+  }
+}

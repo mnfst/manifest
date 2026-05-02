@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "## Explanation\n\nThis code implements a **Union-Find (Disjoint Set Union) data structure** using two optimizations: **path compression** (in `find`) and **union by rank** (in `union`).\n\nThe `find` function recursively locates the root representative of an element's set while flattening the tree by pointing nodes directly to the root. The `union` function merges two sets by attaching the lower-ranked root under the higher-ranked one, keeping trees shallow to ensure near **O(1) amortized** operations.",
+  "score": 5,
+  "cost": 0.002421,
+  "expected": "",
+  "tokens": {
+    "input": 182,
+    "output": 125
+  }
+}

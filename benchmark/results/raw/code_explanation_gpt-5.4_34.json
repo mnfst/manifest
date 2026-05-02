@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a **Min Stack** using the **auxiliary stack pattern**: alongside the main stack, it keeps a second stack where each entry stores the minimum value seen up to that position. Because of this, `push`, `pop`, and `get_min` all run in **O(1)** time, with `get_min()` returning the current minimum by reading the top of `min_stack`.",
+  "score": 5,
+  "cost": 0.000926,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 86
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "multistep_reasoning",
+  "case": 4,
+  "response": "Gravity is a fundamental interaction that pulls objects with mass toward each other. Magnetism is a physical phenomenon produced by the motion of electric charge, resulting in attractive and repulsive interactions between objects. In physics, both gravity and magnetism (as part of electromagnetism) are classified as fundamental forces of nature. They are not cycles, states of matter, or forms of energy themselves (though they can do work and have associated potential energy). \n\nA",
+  "score": 5,
+  "cost": 0.00148,
+  "expected": "A",
+  "tokens": {
+    "input": 64,
+    "output": 88
+  }
+}

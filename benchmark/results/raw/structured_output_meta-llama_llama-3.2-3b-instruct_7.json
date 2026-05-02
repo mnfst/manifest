@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 7,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"symbol\": \"AAPL\",\n  \"price\": 185.50,\n  \"change_percent\": 2.3,\n  \"volume\": \"45M\",\n  \"high_52w\": 198.0,\n  \"low_52w\": 155.0,\n  \"market_cap\": \"2.87T\"\n}\n```\n\nNote that I've converted the `volume` field to a string as per the original text, but if you'd like to convert it to an integer, you can do so by removing the \"M\" suffix:\n\n```json\n{\n  \"symbol\": \"AAPL\",\n  \"price\": 185.50,\n  \"change_percent\": 2.3,\n  \"volume\": 45000000,\n  \"high_52w\": 198.0,\n  \"low_52w\": 155.0,\n  \"market_cap\": \"2.87T\"\n}\n```",
+  "score": 5,
+  "cost": 1.6575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 207
+  }
+}

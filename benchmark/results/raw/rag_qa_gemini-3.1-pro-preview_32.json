@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "Based on the provided context, **the world's economy** grew significantly as a result of imperialism.",
+  "score": 5,
+  "cost": 0.00088,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 226,
+    "output": 21
+  }
+}

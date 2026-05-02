@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "json_transform_v2",
+  "case": 26,
+  "response": "{\"sensors\":[{\"id\":\"temp_1\",\"avg\":22.42,\"min\":22,\"max\":23.5,\"anomalies\":0},{\"id\":\"temp_2\",\"avg\":20.96,\"min\":21,\"max\":28.5,\"anomalies\":1}]}",
+  "score": 3,
+  "cost": 4.0799999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 65
+  }
+}

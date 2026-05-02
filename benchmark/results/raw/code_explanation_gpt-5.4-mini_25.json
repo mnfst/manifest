@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements a simple **publish\u2013subscribe (observer) pattern** event system: `on` registers callback functions for a named event, and `emit` triggers all callbacks for that event with the provided arguments. `off` removes a previously registered callback from the event\u2019s listener list.",
+  "score": 5,
+  "cost": 0.000108,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 61
+  }
+}

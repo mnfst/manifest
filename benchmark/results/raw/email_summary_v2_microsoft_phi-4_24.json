@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "The Design Team has announced that the updated Design System version 3 is ready for adoption, featuring new color tokens for dark mode, a revised spacing scale with a 4px base, and updated Button and Modal components. They recommend a team-by-team rollout starting with the Settings page and have made a migration tool available to facilitate the transition.",
+  "score": 5,
+  "cost": 1.053e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 69
+  }
+}

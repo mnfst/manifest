@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI is reshaping the future\u2014powering innovations, automating tasks, and unlocking new possibilities. But with great power comes great responsibility. Let's harness AI for good. \ud83d\ude80\ud83e\udd16 #AI #Technology #Innovation",
+  "score": 5,
+  "cost": 2.376e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 46
+  }
+}

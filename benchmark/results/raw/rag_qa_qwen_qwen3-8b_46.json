@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "The other NHL team aside from the Anaheim Ducks in Southern California is the **Los Angeles Kings**.",
+  "score": 5,
+  "cost": 1.4900000000000001e-05,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 119,
+    "output": 179
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "multistep_reasoning",
+  "case": 21,
+  "response": "B",
+  "score": 5,
+  "cost": 0.00054,
+  "expected": "B",
+  "tokens": {
+    "input": 210,
+    "output": 1
+  }
+}

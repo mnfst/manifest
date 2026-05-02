@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 20,
+  "response": "roman = [\n        (1000, 'm'),\n        (900, 'cm'),\n        (500, 'd'),\n        (400, 'cd'),\n        (100, 'c'),\n        (90, 'xc'),\n        (50, 'l'),\n        (40, 'xl'),\n        (10, 'x'),\n        (9, 'ix'),\n        (5, 'v'),\n        (4, 'iv'),\n        (1, 'i'),\n    ]\n    result = []\n    for value, symbol in roman:\n        count, number = divmod(number, value)\n        result.append(symbol * count)\n    return ''.join(result)",
+  "score": 5,
+  "cost": 0.0002052,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 137
+  }
+}

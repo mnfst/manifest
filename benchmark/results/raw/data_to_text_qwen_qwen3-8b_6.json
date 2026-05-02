@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The server **prod-web-01** in the **us-east-1** region is running with **78% CPU usage**, **12.4/16 GB memory**, and **234/500 GB disk space**, having been active for **45 days**. It handles **127 connections**, with a **P99 latency of 145ms** and **3 errors per hour**, indicating stable performance under current load.",
+  "score": 0,
+  "cost": 2.5450000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 394
+  }
+}

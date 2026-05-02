@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "data_to_text",
+  "case": 49,
+  "response": "LeBron James, at the age of 40, had an impressive season with the Los Angeles Lakers during the 2024-25 season. Over 71 games, he averaged 28.4 points per game, showcasing his enduring scoring prowess. Additionally, James contributed significantly on the boards with 7.2 rebounds per game and facilitated play with 8.1 assists per game. His outstanding performance earned him a spot in the All-Star game, highlighting his continued impact and leadership on the court.",
+  "score": 0,
+  "cost": 1.2805e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 102
+  }
+}

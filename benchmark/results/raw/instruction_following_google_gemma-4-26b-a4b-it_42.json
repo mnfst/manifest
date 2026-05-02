@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The afternoon sky, once a bright and seamless blue, bruised rapidly into a heavy shade of charcoal and deep violet. A sudden, unnatural stillness settled over the landscape, as if the world were holding its breath in anticipation.\n\nThen, the first crack of thunder split the silence\u2014a **deafening, bone-shaking boom** that seemed to vibrate through the very floorboards of the house. Almost immediately, the wind arrived, howling through the trees and whipping the leaves into a frantic, silver dance. \n\nThe air grew thick and heavy with the **sharp, metallic scent of ozone**, a precursor to the deluge. Suddenly, the clouds broke. The rain didn't just fall; it descended in heavy, rhythmic sheets, creating a **relentless drumming sound** against the roof that drowned out all other noise. For a few moments, the world was nothing but a blur of gray water and the blinding, jagged white light of lightning tearing through the dark.",
+  "score": 5,
+  "cost": 1.3379999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 198
+  }
+}

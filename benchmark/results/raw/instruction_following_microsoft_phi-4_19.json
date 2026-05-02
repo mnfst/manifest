@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI is transforming our world, from automating tasks to unlocking new possibilities in healthcare, education, and beyond. It's a tool that, when used responsibly, can enhance our lives and solve complex challenges. Let's embrace its potential while ensuring ethical use and inclusivity. #AI #FutureTech #Innovation \ud83e\udd16\u2728",
+  "score": 3,
+  "cost": 5.655e-06,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 68
+  }
+}

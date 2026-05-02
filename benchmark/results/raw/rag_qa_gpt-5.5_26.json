@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "KMJ-TV (now KSEE).",
+  "score": 5,
+  "cost": 0.0012,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 200,
+    "output": 50
+  }
+}

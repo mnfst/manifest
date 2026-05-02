@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated in style with our sleek, insulated water bottle that keeps drinks cold for 24 hours. Featuring a leak-proof design and ergonomic grip, it's perfect for everyday use, workouts, or on the go. Available in a range of vibrant colors to match your personal flair.",
+  "score": 5,
+  "cost": 2.739e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 57
+  }
+}

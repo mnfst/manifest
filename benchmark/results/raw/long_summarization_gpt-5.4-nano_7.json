@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "In the 2020s, space exploration is being driven by major government programs and commercial ventures, including SpaceX\u2019s Starship development and NASA\u2019s Artemis effort to return humans to the Moon. Key scientific progress comes from the James Webb Space Telescope\u2019s discoveries, while other nations expand ambitions through China\u2019s space station and lunar plans and India\u2019s successful Chandrayaan missions. Commercial activity is rapidly growing with satellite internet constellations such as Starlink and OneWeb, plus space tourism by companies like Blue Origin and Virgin Galactic, alongside speculative asteroid mining prospects. However, the Outer Space Treaty\u2019s limitations and the increasing problem of space debris pose major challenges to sustaining these efforts.",
+  "score": 5,
+  "cost": 6.790000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 137
+  }
+}

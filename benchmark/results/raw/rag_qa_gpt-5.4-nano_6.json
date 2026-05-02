@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU article **294**.",
+  "score": 5,
+  "cost": 4.4200000000000004e-05,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 398,
+    "output": 11
+  }
+}

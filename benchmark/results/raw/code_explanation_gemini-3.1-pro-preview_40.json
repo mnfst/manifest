@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements the **Circuit Breaker design pattern** to prevent a system from repeatedly attempting an operation that is likely to fail. It wraps a function call and tracks consecutive exceptions; if failures reach a specified threshold, it \"opens\" the circuit to immediately block further calls for a set timeout period before allowing a \"half-open\" retry to check if the underlying issue has been resolved.",
+  "score": 5,
+  "cost": 0.00174,
+  "expected": "",
+  "tokens": {
+    "input": 228,
+    "output": 78
+  }
+}

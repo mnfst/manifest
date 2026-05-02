@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 37,
+  "response": "This implements a trie (prefix tree): `insert` adds each character of `word` into nested dictionaries and marks the end with a special `'#'`. `starts_with(prefix)` traverses to the node for `prefix`, then uses a depth-first search (DFS) to collect and return all complete words that share that prefix (building them via recursive traversal).",
+  "score": 5,
+  "cost": 4.75e-05,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 76
+  }
+}

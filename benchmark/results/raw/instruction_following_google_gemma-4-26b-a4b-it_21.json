@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Since you didn't specify which park or library, I have provided a generic set of directions. You can apply this logic to any route:\n\n1. Exit the park and turn **right**.\n2. Walk to the first intersection and turn **left**.\n3. Walk to the next intersection and turn **left**.\n4. Walk to the next intersection and turn **right**.\n5. Walk to the final intersection and turn **left**.\n6. The library will be on your **right**.",
+  "score": 4,
+  "cost": 7.619999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 103
+  }
+}

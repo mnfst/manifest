@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign achieved 45,000 impressions, 2,300 clicks with a 5.1% click-through rate, and 187 signups with an 8.1% conversion rate, resulting in a cost per acquisition of $64 per signup. Compared to March, the campaign saw a 1.2 percentage point increase in click-through rate but a 0.8 percentage point decrease in conversion rate, prompting a recommendation for A/B testing the landing page call-to-action to optimize performance.",
+  "score": 5,
+  "cost": 1.495e-05,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 104
+  }
+}

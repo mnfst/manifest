@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP Engineering proposes splitting the Platform team into two separate teams: Infrastructure, focusing on networking, compute, and storage, and Developer Experience, concentrating on CI/CD, tooling, and onboarding, to resolve the bottleneck where Developer Experience work is deprioritized due to infrastructure incidents. A draft organizational chart is attached for review.",
+  "score": 5,
+  "cost": 1.053e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 68
+  }
+}

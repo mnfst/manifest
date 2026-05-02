@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_generation",
+  "case": 3,
+  "response": "return [i * xs[i] for i in range(1, len(xs))]",
+  "score": 4,
+  "cost": 0.001326,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 76
+  }
+}

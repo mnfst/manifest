@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "json_transform_v2",
+  "case": 25,
+  "response": "{\"items\": 3, \"subtotal\": 1136, \"discount_code\": \"SAVE20\", \"member_discount\": true, \"estimated_total\": 908.8}",
+  "score": 4,
+  "cost": 3.46e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 551
+  }
+}

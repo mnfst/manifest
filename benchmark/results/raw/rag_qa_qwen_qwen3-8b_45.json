@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The symbol employed until early in the 20th century was the **show globe**. \n\nAnswer: show globe",
+  "score": 5,
+  "cost": 2.55e-05,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 227,
+    "output": 283
+  }
+}

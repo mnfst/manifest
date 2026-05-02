@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s mark a dynamic era in space exploration, with major advancements in both public and private sectors. Key developments include SpaceX\u2019s Starship, NASA\u2019s Artemis program aiming for a Moon return by 2025, and the James Webb Space Telescope\u2019s groundbreaking discoveries. China is expanding its Tiangong space station and pursuing lunar missions, while India achieved success with Chandrayaan-3. Meanwhile, satellite internet (e.g., Starlink, OneWeb), space tourism (Blue Origin, Virgin Galactic), and asteroid mining are growing, though challenges like space debris and the outdated Outer Space Treaty persist.",
+  "score": 5,
+  "cost": 5.34e-05,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 133
+  }
+}

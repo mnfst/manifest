@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Answer: The northeast border.",
+  "score": 4,
+  "cost": 7.656000000000001e-06,
+  "expected": "northeast",
+  "tokens": {
+    "input": 226,
+    "output": 6
+  }
+}

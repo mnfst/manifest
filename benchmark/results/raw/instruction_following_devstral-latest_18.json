@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "Ah, this is such a delightful challenge! My favorite book is a sweeping, atmospheric tale that blends history, mystery, and a touch of the supernatural. It unfolds in a crumbling, labyrinthine house\u2014one that feels like a character in its own right, with its hidden passages, forgotten wings, and secrets buried in its very walls.\n\nThe story follows a young woman who arrives at this estate under mysterious circumstances, drawn by a sense of both dread and fascination. As she explores the house, she uncovers layers of the past\u2014ghostly echoes of former inhabitants, tragic love stories, and a dark event that haunts the present. The narrative weaves between past and present, revealing how history repeats itself in eerie, inescapable ways.\n\nWhat I love most is the prose\u2014rich, poetic, and dripping with gothic imagery. The author paints every scene with such vivid detail that you can *feel* the cold drafts in the halls, the weight of ancient portraits watching you, and the oppressive silence of a house that remembers too much. There\u2019s a dreamlike quality to it all, where reality and illusion blur, and you\u2019re never quite sure what\u2019s true.\n\nAt its heart, the book is about memory, identity, and the ways the past clings to us. It\u2019s haunting, melancholic, and utterly beautiful\u2014one of those stories that lingers in your mind long after you\u2019ve turned the last page. I could reread it a hundred times and still find new shadows in its corners.\n\n(And if you\u2019ve read it, you\u2019re probably screaming the title in your head right now!)",
+  "score": 5,
+  "cost": 0.0001035,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 340
+  }
+}

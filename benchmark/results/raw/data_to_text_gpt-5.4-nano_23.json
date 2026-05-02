@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "data_to_text",
+  "case": 23,
+  "response": "Apple (AAPL) is trading at $185.50, up 2.3% for the day, with a volume of 45M shares. The market capitalization is $2.87T, the P/E ratio is 28.4, and the dividend yield is 0.55%; it has a 52-week range of $155 to $198.",
+  "score": 0,
+  "cost": 4.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 79
+  }
+}

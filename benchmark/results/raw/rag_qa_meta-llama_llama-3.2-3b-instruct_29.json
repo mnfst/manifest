@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Istanbul.",
+  "score": 5,
+  "cost": 9.384e-06,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 180,
+    "output": 4
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 6,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"summary\": \"App crashes on login when using Face ID on iPhone 14 with iOS 17.2\",\n  \"device\": \"iPhone 14\",\n  \"os_version\": \"iOS 17.2\",\n  \"reproducibility\": \"reproducible\",\n  \"severity\": \"critical\"\n}\n```",
+  "score": 2,
+  "cost": 4.833e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 80
+  }
+}

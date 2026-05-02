@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 13,
+  "response": "count = 0\n    for char in string:\n        count += 1\n    return count",
+  "score": 4,
+  "cost": 3.3e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 20
+  }
+}

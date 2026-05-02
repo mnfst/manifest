@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "structured_output",
+  "case": 7,
+  "response": "```json\n{\n  \"symbol\": \"AAPL\",\n  \"price\": 185.50,\n  \"change_percent\": 2.3,\n  \"volume\": \"45M shares\",\n  \"high_52w\": 198.0,\n  \"low_52w\": 155.0,\n  \"market_cap\": \"$2.87T\"\n}\n```",
+  "score": 5,
+  "cost": 1.248e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 78
+  }
+}

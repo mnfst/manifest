@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 27,
+  "response": "```python\ndef Strongest_Extension(class_name, extensions):\n    def calculate_strength(extension):\n        return sum(1 for char in extension if char.isupper()) - sum(1 for char in extension if char.islower())\n\n    strongest = extensions[0]\n    max_strength = calculate_strength(strongest)\n    for extension in extensions[1:]:\n        strength = calculate_strength(extension)\n        if strength > max_strength:\n            strongest = extension\n            max_strength = strength\n\n    return f\"{class_name}.{strongest}\"\n```",
+  "score": 5,
+  "cost": 2.1471e-05,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 108
+  }
+}

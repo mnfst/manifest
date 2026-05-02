@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This implements a \u201cmin stack\u201d using an auxiliary parallel stack: each pushed value is paired with the minimum value seen up to that stack depth. This lets `push`, `pop`, and `get_min` all run in O(1) time.",
+  "score": 5,
+  "cost": 0.003105,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 125
+  }
+}

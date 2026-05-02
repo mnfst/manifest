@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\ndef count_nums(arr):\n    return sum(1 for num in arr if sum(int(digit) for digit in str(abs(num))) > 0)\n```",
+  "score": 3,
+  "cost": 9.996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 36
+  }
+}

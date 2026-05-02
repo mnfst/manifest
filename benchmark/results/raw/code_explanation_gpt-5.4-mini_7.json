@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code defines a simple **Least Recently Used (LRU) cache decorator** that memoizes function results based on the arguments passed in. It uses an `OrderedDict` to track usage order, moving accessed entries to the end and evicting the least recently used item when the cache exceeds `maxsize`.",
+  "score": 5,
+  "cost": 0.0001149,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 66
+  }
+}

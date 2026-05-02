@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 28,
+  "response": "def get_row(lst, x):\n    if not lst:\n        return []\n    result = []\n    for row in lst:\n        for i, val in enumerate(row):\n            if val == x:\n                result.append((i, len(row) - 1 - i))\n    result.sort(key=lambda x: (x[0], -x[1]))\n    return result",
+  "score": 2,
+  "cost": 1.0016999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 295,
+    "output": 76
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "Not found in context. \n\nThe context mentions several bridges over the Rhine, such as the Rhine bridge at Arnhem, the bridges at Nijmegen, and the Ludendorff Bridge at Remagen, but it does not specify a location for a \"Rhine Bridge\" in general.",
+  "score": 5,
+  "cost": 1.9695e-05,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 240,
+    "output": 63
+  }
+}

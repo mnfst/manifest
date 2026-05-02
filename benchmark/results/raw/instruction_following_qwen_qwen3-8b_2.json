@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Code flows like rivers,  \nLogic weaves through circuits\u2014  \nErrors fade to light.",
+  "score": 5,
+  "cost": 2.505e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 486
+  }
+}

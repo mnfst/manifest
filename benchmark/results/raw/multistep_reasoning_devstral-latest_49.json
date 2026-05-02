@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "multistep_reasoning",
+  "case": 49,
+  "response": "A) The air stays cleaner.",
+  "score": 5,
+  "cost": 1.19e-05,
+  "expected": "A",
+  "tokens": {
+    "input": 95,
+    "output": 8
+  }
+}

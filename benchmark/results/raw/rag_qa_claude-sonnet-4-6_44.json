@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "Based on the provided context, the **Ohio Company of Virginia** was given land by the British government in 1749 for the purpose of developing trade and settlements in the Ohio Country.",
+  "score": 5,
+  "cost": 0.001446,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 277,
+    "output": 41
+  }
+}

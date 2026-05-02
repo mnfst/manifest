@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "long_summarization",
+  "case": 48,
+  "response": "The internet traces back to 1960s U.S. Department of Defense networking research, with ARPANET demonstrated in 1969 via a message from UCLA to Stanford Research Institute. It gradually expanded through the 1970s, and in 1983 adoption of TCP/IP enabled today\u2019s internet architecture, while Tim Berners-Lee created the World Wide Web in 1989 (with HTML, URLs, and HTTP); the Mosaic browser launched in 1993 to make the web widely usable. After the late-1990s dot-com boom and the 2001 crash, surviving companies such as Amazon and Google became major successes, and the mid-2000s rise of social media plus the iPhone (2007) drove mobile web adoption. Cloud computing accelerated with AWS in 2006, and today the internet connects over 5 billion people and supports nearly all aspects of modern life.",
+  "score": 5,
+  "cost": 0.00010520000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 185
+  }
+}

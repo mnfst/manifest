@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "long_summarization",
+  "case": 32,
+  "response": "The internet's history began in the 1960s with US Department of Defense-funded research into computer networking, leading to the creation of ARPANET in 1969. The transition to TCP/IP protocols in 1983 laid the groundwork for the modern internet, and Tim Berners-Lee's invention of the World Wide Web in 1989 introduced HTML, URLs, and HTTP. The dot-com boom of the late 1990s saw significant investment in internet companies, with survivors like Amazon and Google becoming highly valuable. The mid-2000s saw the rise of social media platforms such as Facebook, Twitter, and YouTube, transforming communication. The launch of the iPhone in 2007 and the emergence of cloud computing, notably AWS in 2006, made the internet ubiquitous and mobile. Today, the internet connects over 5 billion people and is integral to commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 3.2695e-05,
+  "expected": "",
+  "tokens": {
+    "input": 320,
+    "output": 183
+  }
+}

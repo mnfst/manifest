@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Lake \u00dcberlingen",
+  "score": 5,
+  "cost": 7.68e-05,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 232,
+    "output": 6
+  }
+}

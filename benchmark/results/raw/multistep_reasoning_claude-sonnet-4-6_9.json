@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 9,
+  "response": "Both students carry the same total mass to the same height (third floor), so the work done against gravity is identical for both: W = mgh.\n\nSince work is the same but Mary takes less time (30 s vs 45 s), Mary's power output is greater:\nP = W/t \u2192 Mary's power = W/30, Roberta's power = W/45\n\nMary has greater power output.\n\n**D**",
+  "score": 5,
+  "cost": 0.001929,
+  "expected": "D",
+  "tokens": {
+    "input": 158,
+    "output": 97
+  }
+}

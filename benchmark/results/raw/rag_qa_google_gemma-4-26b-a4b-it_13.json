@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "the Victorian Government",
+  "score": 5,
+  "cost": 1.0140000000000001e-05,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 165,
+    "output": 4
+  }
+}

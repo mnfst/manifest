@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "json_transform_v2",
+  "case": 25,
+  "response": "```json\n{\n  \"items\": [\n    {\"name\": \"Laptop\", \"price\": 999, \"qty\": 1},\n    {\"name\": \"Mouse\", \"price\": 29, \"qty\": 2},\n    {\"name\": \"Keyboard\", \"price\": 79, \"qty\": 1}\n  ],\n  \"subtotal\": 1157,\n  \"discount_code\": \"SAVE20\",\n  \"member_discount\": true,\n  \"estimated_total\": 1157\n}\n```",
+  "score": 2,
+  "cost": 1.6185e-05,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 105
+  }
+}

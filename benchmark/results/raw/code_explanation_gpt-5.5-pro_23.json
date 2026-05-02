@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 23,
+  "response": "This implements a binary search (\u201clower bound\u201d / `bisect_left`) on a sorted list `a`. It returns the leftmost index where `x` could be inserted while preserving sorted order, i.e. the first index whose value is not less than `x`.",
+  "score": 5,
+  "cost": 0.002895,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 121
+  }
+}

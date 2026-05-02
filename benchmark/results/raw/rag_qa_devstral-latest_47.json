@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The Urarina.",
+  "score": 5,
+  "cost": 1.6800000000000002e-05,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 153,
+    "output": 5
+  }
+}

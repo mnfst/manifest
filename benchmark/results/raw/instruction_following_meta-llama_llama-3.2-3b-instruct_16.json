@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is a force that pulls objects with mass towards each other. It's what keeps you on the ground and what makes things fall towards the center of the Earth. Imagine you're playing tug-of-war with a friend, and you're both holding onto a rope. The force of gravity is like the invisible force that's pulling you both towards the center of the Earth, trying to keep you from running away.\n\nGravity is a result of the way that mass warps the fabric of space and time around it. According to Albert Einstein's theory of general relativity, massive objects like planets and stars create a gravitational field that affects the motion of other objects. The more massive the object, the stronger its gravitational pull.\n\nGravity is also what keeps the Earth's atmosphere stuck to the planet, and what makes things fall towards the ground when you drop them. It's a fundamental force of nature that governs the behavior of everything from the smallest subatomic particles to the largest galaxies.\n\nGravity is a universal force that affects everything with mass or energy, and it's what keeps our universe in a state of balance and order. It's a mysterious and fascinating force that continues to be studied and explored by scientists today.\n\nThat is gravity.",
+  "score": 4,
+  "cost": 1.4381999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 250
+  }
+}

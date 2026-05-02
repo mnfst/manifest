@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 2,
+  "response": "```python\ndef strange_sort_list(lst):\n    if not lst:\n        return lst\n    result = []\n    while lst:\n        result.append(min(lst))\n        lst.remove(min(lst))\n    return result\n```",
+  "score": 3,
+  "cost": 1.0404e-05,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 44
+  }
+}

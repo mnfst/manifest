@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_generation",
+  "case": 39,
+  "response": "if x == 0:\n    return \"0\"\n\nsign = \"\"\nif x < 0:\n    sign = \"-\"\n    x = -x\n\nresult = \"\"\nwhile x:\n    result = str(x % base) + result\n    x //= base\n\nreturn sign + result",
+  "score": 5,
+  "cost": 0.003666,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 275
+  }
+}

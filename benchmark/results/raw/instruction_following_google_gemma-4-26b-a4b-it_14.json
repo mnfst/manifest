@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated all day long with this sleek, vacuum-insulated stainless steel water bottle that keeps drinks ice-cold for 24 hours. Its leak-proof lid and durable, sweat-proof design make it the perfect companion for intense workouts or daily commutes. Lightweight and eco-friendly, it is the ultimate sustainable solution for your hydration needs.",
+  "score": 3,
+  "cost": 5.82e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 70
+  }
+}

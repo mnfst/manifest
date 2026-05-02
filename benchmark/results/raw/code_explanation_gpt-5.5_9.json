@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This defines a Python decorator factory that wraps a function with retry logic: it attempts to call the function up to `max_attempts` times, re-raising the exception on the final failure. Between failures it sleeps using exponential backoff, with delays of `delay * 2^i` seconds.",
+  "score": 5,
+  "cost": 0.001578,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 103
+  }
+}

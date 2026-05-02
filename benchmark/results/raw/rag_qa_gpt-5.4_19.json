@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "communication",
+  "score": 4,
+  "cost": 0.000342,
+  "expected": "communication",
+  "tokens": {
+    "input": 155,
+    "output": 4
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- **Basic Information**: Date, time, location, and weather conditions of the accident, along with the names, contact details, and insurance information of all involved parties.  \n- **Incident Details**: Description of the collision (e.g., collision type, speed, traffic signals), any injuries or property damage, and a summary of witness statements or police reports.  \n- **Aftermath**: Documentation of vehicle damage, citations issued, and next steps (e.g., insurance claims, legal actions) to resolve the incident.",
+  "score": 3,
+  "cost": 1.805e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 341
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_generation",
+  "case": 5,
+  "response": "return max(l)",
+  "score": 5,
+  "cost": 0.001095,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 63
+  }
+}

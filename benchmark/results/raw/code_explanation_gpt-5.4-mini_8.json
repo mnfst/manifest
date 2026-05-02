@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This code implements a **debounce decorator**: it delays calling `fn` until `wait` seconds have passed since the last time the wrapped function was invoked. Each new call cancels the previous timer, so only the **final call in a burst** actually runs, using `threading.Timer` to schedule the deferred execution.",
+  "score": 5,
+  "cost": 0.0001146,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 70
+  }
+}

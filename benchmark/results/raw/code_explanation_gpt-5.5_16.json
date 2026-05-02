@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "This runs a collection of awaitables concurrently using `asyncio.gather`, but wraps each one with an `asyncio.Semaphore` so that at most `limit` coroutines are executing at the same time. It implements a bounded-concurrency / semaphore-throttling pattern for async tasks.",
+  "score": 5,
+  "cost": 0.001293,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 87
+  }
+}

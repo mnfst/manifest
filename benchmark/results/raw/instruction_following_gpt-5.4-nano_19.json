@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI is becoming the ultimate copilot: spotting patterns humans miss, accelerating drafts, and helping us iterate faster. But it\u2019s not magic\u2014best results come from great data, clear goals, and human judgment. #AI #MachineLearning",
+  "score": 5,
+  "cost": 2.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "This code implements a producer-consumer pattern using a shared queue, where multiple producers add items to the queue and multiple consumers process them. Each producer puts its items into the queue and then sends a `None` signal to indicate completion, and each consumer processes items until it receives a `None`, at which point it exits after re-adding the `None` to signal other consumers to stop.",
+  "score": 5,
+  "cost": 6.204e-06,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 79
+  }
+}

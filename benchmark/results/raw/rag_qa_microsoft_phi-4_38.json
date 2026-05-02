@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Nine of the residential houses are located south of Harvard Yard along or near the Charles River.",
+  "score": 5,
+  "cost": 1.82e-05,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 261,
+    "output": 19
+  }
+}

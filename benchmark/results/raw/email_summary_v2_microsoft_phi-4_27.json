@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The Sprint Retrospective notes highlight successful cross-team collaboration and timely completion of the authentication redesign, while identifying issues such as excessive context switching across three projects and prolonged standup meetings. Action items include limiting work in progress (WIP) to two items per developer and timeboxing standups to 15 minutes, with a parking lot for unresolved issues.",
+  "score": 5,
+  "cost": 1.196e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 71
+  }
+}

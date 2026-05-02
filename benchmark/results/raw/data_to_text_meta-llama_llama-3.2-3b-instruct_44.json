@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "Here is the structured data converted into a natural language paragraph:\n\nMassachusetts Institute of Technology (MIT) is the world's top-ranked university, with an impressive 11,500 students and an acceptance rate of just 3.9%. With a tuition fee of $57,590 per year, MIT is a significant investment for students, but its endowment of $24.6 billion and esteemed faculty of 1,069 experts make it a worthwhile one. As a hub for innovation and discovery, MIT has a long history, dating back to its founding in 1861, and has been home to 98 Nobel laureates, a testament to its academic excellence.",
+  "score": 0,
+  "cost": 1.2239999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 135
+  }
+}

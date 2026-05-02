@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 9,
+  "response": "Here is the extracted information in JSON format:\n\n```\n{\n  \"title\": \"Introduction to Machine Learning\",\n  \"instructor\": \"Dr. Sarah Chen\",\n  \"duration_weeks\": 12,\n  \"prerequisites\": [\"Linear Algebra\", \"Python\"],\n  \"level\": \"Intermediate\"\n}\n```\n\nLet me know if you'd like me to make any adjustments!",
+  "score": 5,
+  "cost": 8.771999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 78
+  }
+}

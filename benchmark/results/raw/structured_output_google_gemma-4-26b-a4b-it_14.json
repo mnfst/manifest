@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "structured_output",
+  "case": 14,
+  "response": "```json\n{\n  \"title\": \"The Great Gatsby\",\n  \"author\": \"F. Scott Fitzgerald\",\n  \"year\": 1925,\n  \"genre\": \"literary fiction\",\n  \"pages\": 180,\n  \"isbn\": \"978-0743273565\",\n  \"rating\": 4.2\n}\n```",
+  "score": 5,
+  "cost": 1.0739999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 71
+  }
+}

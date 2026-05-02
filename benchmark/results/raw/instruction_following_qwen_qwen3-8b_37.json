@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is like a velvet storm\u2014sweet as a whispered secret, bitter as the edge of a longing, and smooth as the hush of a forgotten dream, melting over the tongue like liquid gold that lingers, warm and unforgettable.",
+  "score": 5,
+  "cost": 2.8800000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 555
+  }
+}

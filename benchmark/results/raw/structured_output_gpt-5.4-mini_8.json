@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "structured_output",
+  "case": 8,
+  "response": "{\"unit\":\"Apartment 4B\",\"street\":\"123 Main Street\",\"city\":\"San Francisco\",\"state\":\"CA\",\"zip\":\"94105\",\"country\":\"United States\"}",
+  "score": 5,
+  "cost": 6.72e-05,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 36
+  }
+}

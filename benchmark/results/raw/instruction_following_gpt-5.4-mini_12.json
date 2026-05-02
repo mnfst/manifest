@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is a way for two pieces of software to talk to each other.\n\nYou can think of it like a waiter in a restaurant:\n\n- You tell the waiter what you want.\n- The waiter takes your request to the kitchen.\n- The kitchen makes the food.\n- The waiter brings it back to you.\n\nYou do not need to know how the kitchen works. You just use the waiter to get what you want.\n\nSoftware works the same way:\n- One program asks for something.\n- The API carries that request.\n- Another program sends back the answer.\n\nSo, in simple words, an API is a helper that lets different programs share information and work together.",
+  "score": 5,
+  "cost": 0.0001701,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 137
+  }
+}

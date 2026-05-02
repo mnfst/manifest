@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government.",
+  "score": 5,
+  "cost": 0.00037,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 157,
+    "output": 7
+  }
+}

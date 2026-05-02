@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "data_to_text",
+  "case": 4,
+  "response": "Flight AA 1234 offers an Economy class ticket from JFK to LAX for $289. Operated on a Boeing 787, the journey takes 5 hours and 15 minutes, departing at 08:30 and arriving at 11:45. Passengers can also expect a fairly reliable schedule, as this flight boasts an 82% on-time performance record.",
+  "score": 0,
+  "cost": 0.0015475,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 86
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "data_to_text",
+  "case": 0,
+  "response": "Acme Corp, headquartered in Austin, Texas, achieved a strong financial performance this year, generating a total annual revenue of $54.4 million across all four quarters, representing an impressive 18% year-over-year growth. Quarterly revenues were $12.3 million in Q1, $14.1 million in Q2, $11.8 million in Q3, and $16.2 million in Q4, with the fourth quarter marking the strongest period of the year. The company, which employs 342 people, demonstrated consistent revenue momentum despite a slight dip in the third quarter.",
+  "score": 0,
+  "cost": 0.002385,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 136
+  }
+}

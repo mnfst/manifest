@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI isn\u2019t just a tool; it\u2019s a new way of thinking. We are moving from a world where we tell computers *how* to do things, to a world where we tell them *what* we want to achieve. \ud83d\ude80\n\nThe boundary between human creativity and machine intelligence is blurring. #AI #Tech #Future",
+  "score": 5,
+  "cost": 5.279999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 69
+  }
+}

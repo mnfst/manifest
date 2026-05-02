@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 12,
+  "response": "The internet began as a U.S. Department of Defense research project in the 1960s, with ARPANET first demonstrated in 1969 connecting UCLA and Stanford Research Institute. Major milestones included the shift to TCP/IP in 1983, Tim Berners-Lee\u2019s creation of the World Wide Web in 1989, and the 1993 launch of Mosaic, which opened the web to ordinary users. The dot-com boom of the late 1990s fueled huge investment, followed by a 2001 crash, though companies like Amazon and Google survived and grew into giants. Today, boosted by social media, smartphones, and cloud computing, the internet connects over 5 billion people and is central to modern life.",
+  "score": 5,
+  "cost": 0.00027360000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 150
+  }
+}

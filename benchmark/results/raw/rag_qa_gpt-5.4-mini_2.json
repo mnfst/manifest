@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "taking physical control of another country or area",
+  "score": 5,
+  "cost": 0.0001077,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 315,
+    "output": 11
+  }
+}

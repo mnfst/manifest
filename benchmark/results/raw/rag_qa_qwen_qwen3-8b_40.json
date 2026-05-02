@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "France offered full citizenship rights, known as 'assimilation,' which was rare by imperial standards. This approach contrasted with other empires that typically did not extend such rights to colonized populations.",
+  "score": 5,
+  "cost": 2.4050000000000002e-05,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 178,
+    "output": 303
+  }
+}

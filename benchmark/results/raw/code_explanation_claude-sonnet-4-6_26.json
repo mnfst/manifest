@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "## Explanation\n\nThis code solves the **0/1 Knapsack problem** using **bottom-up dynamic programming**, building a 2D table `dp[i][w]` where each cell represents the maximum value achievable using the first `i` items with a weight capacity of `w`.\n\nFor each item, it decides whether to **skip it** (inheriting the previous row's value) or **include it** (if it fits), taking whichever choice yields the higher value \u2014 ultimately returning the optimal total value at `dp[n][capacity]`.",
+  "score": 5,
+  "cost": 0.002424,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 126
+  }
+}

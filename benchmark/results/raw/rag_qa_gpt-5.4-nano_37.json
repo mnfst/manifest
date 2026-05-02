@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Korea bordered Kublai\u2019s western frontier in the west (on Kublai\u2019s northeast border).",
+  "score": 2,
+  "cost": 3.1200000000000006e-05,
+  "expected": "northeast",
+  "tokens": {
+    "input": 216,
+    "output": 24
+  }
+}

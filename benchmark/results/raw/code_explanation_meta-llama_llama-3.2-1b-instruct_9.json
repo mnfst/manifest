@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code defines a decorator function `retry` that attempts to call a function `fn` with a specified number of attempts (`max_attempts`) and a delay between attempts (`delay`). If the function fails, it waits for a specified amount of time before retrying. If all attempts fail, it raises an exception.",
+  "score": 5,
+  "cost": 4.887e-06,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 64
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "json_transform_v2",
+  "case": 18,
+  "response": "```\n{\n  \"product\": \"Widget Pro\",\n  \"avg_rating\": 4,\n  \"review_count\": 5,\n  \"rating_distribution\": {\n    \"1\": 0,\n    \"2\": 1,\n    \"3\": 1,\n    \"4\": 1,\n    \"5\": 1\n  }\n}\n```",
+  "score": 4,
+  "cost": 6.372e-06,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 73
+  }
+}

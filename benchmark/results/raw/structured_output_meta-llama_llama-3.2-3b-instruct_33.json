@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 33,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"username\": \"techguru42\",\n  \"joined_year\": 2020,\n  \"followers\": \"1.2K\",\n  \"following\": 890,\n  \"posts\": 342,\n  \"verified\": true,\n  \"bio\": \"Building the future of AI\"\n}\n```\n\nNote that I've kept the \"followers\" value as a string, as it appears to be a string representation of a number (1.2K). If you'd like to convert it to an integer, you can do so by replacing the \"K\" with a 1000 multiplier, like this:\n\n```json\n{\n  \"username\": \"techguru42\",\n  \"joined_year\": 2020,\n  \"followers\": 1200,\n  \"following\": 890,\n  \"posts\": 342,\n  \"verified\": true,\n  \"bio\": \"Building the future of AI\"\n}\n```",
+  "score": 4,
+  "cost": 1.5861e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 203
+  }
+}

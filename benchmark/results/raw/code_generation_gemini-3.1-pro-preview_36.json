@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 36,
+  "response": "for i in reversed(range(1, n)):\n        if n % i == 0:\n            return i",
+  "score": 5,
+  "cost": 0.0005975,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 26
+  }
+}

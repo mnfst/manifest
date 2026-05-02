@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure.",
+  "score": 5,
+  "cost": 0.000358,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 159,
+    "output": 5
+  }
+}

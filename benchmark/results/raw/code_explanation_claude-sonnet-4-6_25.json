@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "## Explanation\n\nThis implements the **Observer (Pub/Sub) pattern**, maintaining a dictionary that maps event names to lists of subscriber callback functions. The `on` method registers listeners, `emit` triggers all callbacks registered to a given event by iterating and invoking each with the provided arguments, and `off` removes a specific listener from an event's callback list.",
+  "score": 5,
+  "cost": 0.001635,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 80
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements a parameterized decorator that provides a Least Recently Used (LRU) caching mechanism to memoize function results. It utilizes an `OrderedDict` to track access history, moving recently accessed items to the end and evicting the oldest (least recently used) item from the front when the cache exceeds the specified `maxsize`.",
+  "score": 5,
+  "cost": 0.0013575,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 68
+  }
+}

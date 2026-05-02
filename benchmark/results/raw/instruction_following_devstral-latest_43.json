@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that the footprints left by astronauts on the Moon will likely stay there for millions of years? Since the Moon has no atmosphere or weather, there\u2019s no wind or water to erase them\u2014so they\u2019ll remain almost perfectly preserved as a silent testament to human exploration! \ud83c\udf15\ud83d\udc63",
+  "score": 5,
+  "cost": 2.15e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 65
+  }
+}

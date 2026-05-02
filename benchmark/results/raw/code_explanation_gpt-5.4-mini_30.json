@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "This code implements a **Bloom filter**, a probabilistic set-membership data structure that uses multiple hash functions to map each item to several bit positions in a fixed-size bit array. `add()` sets those bits, and `__contains__()` checks them to answer membership queries with **possible false positives but no false negatives**.",
+  "score": 5,
+  "cost": 0.0001299,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 69
+  }
+}

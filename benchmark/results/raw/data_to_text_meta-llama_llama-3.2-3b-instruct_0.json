@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "data_to_text",
+  "case": 0,
+  "response": "Here is the structured data converted into a natural language paragraph:\n\nAcme Corp had a strong year, with revenue reaching $54.4 million across all four quarters, including $12.3 million in Q1, $14.1 million in Q2, $11.8 million in Q3, and $16.2 million in Q4. This represents a 18% year-over-year growth, a testament to the company's success. With a total of 342 employees, Acme Corp is headquartered in Austin, Texas.",
+  "score": 0,
+  "cost": 1.1271e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 109
+  }
+}

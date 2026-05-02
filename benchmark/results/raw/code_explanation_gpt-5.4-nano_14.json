@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This is Dijkstra\u2019s shortest-path algorithm: it maintains a distance map `dist` from `start` and uses a min-priority queue (`pq`) to repeatedly expand the next unprocessed node with the smallest tentative distance. For each edge `(u \u2192 v)` with weight `w`, it relaxes the distance (`d + w`) and pushes updated distances onto the heap, skipping stale heap entries when a better distance has already been found.",
+  "score": 5,
+  "cost": 5.08e-05,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 92
+  }
+}

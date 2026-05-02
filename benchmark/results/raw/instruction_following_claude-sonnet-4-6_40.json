@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are 5 capital cities, each from a different continent:\n\n1. **Ottawa** - Canada (North America)\n2. **Bras\u00edlia** - Brazil (South America)\n3. **Berlin** - Germany (Europe)\n4. **Nairobi** - Kenya (Africa)\n5. **Canberra** - Australia (Oceania)",
+  "score": 5,
+  "cost": 0.001326,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 84
+  }
+}

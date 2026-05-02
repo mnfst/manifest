@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 30,
+  "response": "Here is the extracted information in JSON format:\n\n```\n{\n  \"name\": \"Bitcoin (BTC)\",\n  \"symbol\": \"BTC\",\n  \"price\": 43250.8,\n  \"change_24h_percent\": -1.2,\n  \"market_cap\": \"847000000000\",\n  \"volume_24h\": \"185000000000\",\n  \"circulating_supply\": \"19600000\"\n}\n```\n\nNote that I converted the `market_cap` and `volume_24h` values to strings, as they were originally strings in the text. If you want to convert them to numbers, you can do so by removing the commas and converting them to integers or floats:\n\n```\n{\n  \"name\": \"Bitcoin (BTC)\",\n  \"symbol\": \"BTC\",\n  \"price\": 43250.8,\n  \"change_24h_percent\": -1.2,\n  \"market_cap\": 847000000000,\n  \"volume_24h\": 185000000000,\n  \"circulating_supply\": 19600000\n}\n```",
+  "score": 4,
+  "cost": 1.7646e-05,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 223
+  }
+}

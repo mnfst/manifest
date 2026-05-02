@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This function computes the maximum value in every contiguous subarray (window) of size `k` using a **monotonic decreasing deque**. It stores indices of useful elements, removes indices that fall out of the current window or are smaller than the current number, and uses the front of the deque as the current window\u2019s maximum in **O(n)** time.",
+  "score": 5,
+  "cost": 0.000852,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 76
+  }
+}

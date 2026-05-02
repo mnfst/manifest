@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 12,
+  "response": "```python\nreturn [s for s in strings if substring in s]\n```",
+  "score": 5,
+  "cost": 1.0140000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 17
+  }
+}

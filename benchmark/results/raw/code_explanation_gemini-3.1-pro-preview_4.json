@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements a **decorator** that applies the **memoization** optimization technique to a given function. It uses a closure containing a dictionary to cache the function's return values based on its arguments, preventing redundant calculations by returning the stored result on subsequent calls with the exact same inputs.",
+  "score": 5,
+  "cost": 0.001065,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 58
+  }
+}

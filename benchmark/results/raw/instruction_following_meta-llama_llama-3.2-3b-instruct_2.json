@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Here is a haiku about programming:\n\nCode flows like a stream\n Errors creep in, I debug\n Logic's gentle art",
+  "score": 5,
+  "cost": 2.2439999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 26
+  }
+}

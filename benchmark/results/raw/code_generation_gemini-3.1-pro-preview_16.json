@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    N = len(grid)\n    r1, c1 = next((r, c) for r in range(N) for c in range(N) if grid[r][c] == 1)\n    \n    min_neighbor = min(\n        grid[r1+dr][c1+dc]\n        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        if 0 <= r1+dr < N and 0 <= c1+dc < N\n    )\n    \n    return [1 if i % 2 == 0 else min_neighbor for i in range(k)]\n```",
+  "score": 2,
+  "cost": 0.0035025,
+  "expected": "",
+  "tokens": {
+    "input": 453,
+    "output": 158
+  }
+}

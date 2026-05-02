@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is a natural force that pulls objects toward one another. Every object that has mass \u2014 whether it's a tiny pebble or a massive planet \u2014 produces a gravitational pull. The more mass an object has, and the closer you are to it, the stronger that pull becomes.\n\nHere on Earth, gravity is what keeps your feet on the ground. When you jump up, gravity pulls you back down. It is also what keeps the Moon orbiting around Earth, and what keeps Earth and all the other planets orbiting around the Sun.\n\nThe great scientist Isaac Newton was the first to describe gravity mathematically, realizing that the same force pulling an apple from a tree was the same force holding the Moon in its orbit. Later, Albert Einstein expanded our understanding by describing gravity not just as a force, but as a curvature in space and time. Massive objects like the Sun actually bend the fabric of space around them, and other objects follow those curves \u2014 which is what we experience as gravitational attraction.\n\nIn everyday life, gravity gives us weight, shapes the structure of planets and stars, drives the flow of rivers downhill, and holds entire galaxies together. Without it, the universe as we know it simply could not exist.\n\nThat is gravity.",
+  "score": 5,
+  "cost": 0.004095,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 267
+  }
+}

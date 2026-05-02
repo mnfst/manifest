@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- Date, time, location, weather, road conditions, and vehicles involved.\n- Sequence of events leading to the collision, including direction of travel and impact points.\n- Injuries, damages, witness statements, police response, and insurance details.",
+  "score": 3,
+  "cost": 0.00248,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 119
+  }
+}

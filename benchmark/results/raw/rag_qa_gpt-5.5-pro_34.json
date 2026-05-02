@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Infinitely many primes.",
+  "score": 5,
+  "cost": 0.003005,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 249,
+    "output": 88
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This defines a decorator factory that adds **LRU (Least Recently Used) memoization** to a function, caching results by the function\u2019s `args` in an `OrderedDict`. On a cache hit it marks the entry as recently used with `move_to_end`, and on a miss it computes/stores the result and evicts the least recently used item when the cache exceeds `maxsize`.",
+  "score": 5,
+  "cost": 0.004005,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 170
+  }
+}

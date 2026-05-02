@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 4,
+  "response": "```python\nif not l:\n    return True\n\nincreasing = decreasing = True\nfor i in range(1, len(l)):\n    if l[i] > l[i - 1]:\n        decreasing = False\n    elif l[i] < l[i - 1]:\n        increasing = False\n\nreturn increasing or decreasing\n```",
+  "score": 5,
+  "cost": 1.2740000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 69
+  }
+}

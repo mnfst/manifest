@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "json_transform_v2",
+  "case": 40,
+  "response": "```json\n{\"items\": 4, \"subtotal\": 1136, \"discount_code\": \"SAVE20\", \"member_discount\": true, \"estimated_total\": 908.8}\n```",
+  "score": 4,
+  "cost": 0.001182,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 49
+  }
+}

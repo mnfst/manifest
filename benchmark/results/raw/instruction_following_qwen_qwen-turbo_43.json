@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that if you could somehow survive on Saturn's moon Titan, you could swim in its methane lakes, which are filled with liquid methane and ethane instead of water?",
+  "score": 5,
+  "cost": 2.1450000000000006e-06,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 36
+  }
+}

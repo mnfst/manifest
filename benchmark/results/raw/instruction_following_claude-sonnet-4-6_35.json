@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "# The Last Light\n\nMaya found the old lighthouse abandoned, its lamp dark for thirty years. She climbed the spiral stairs anyway, driven by something she couldn't name. At the top, she discovered a logbook filled with her grandmother's handwriting, entries ending the very day Maya was born. Outside, a storm was rolling in across the black water, and a fishing boat was struggling against the waves. Maya's hands moved without thinking, and somehow she restored the ancient light, sending its beam sweeping across the sea. The boat turned safely toward shore, and Maya understood that some purposes skip a generation before finding their way home.",
+  "score": 5,
+  "cost": 0.002034,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 132
+  }
+}

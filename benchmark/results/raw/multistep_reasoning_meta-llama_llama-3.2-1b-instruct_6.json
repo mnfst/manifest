@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "When a wooden log is burned, it undergoes combustion, which is a chemical reaction that involves the reaction of the wood with oxygen in the air. This reaction breaks down the wood into simpler substances, releasing heat and light energy. Therefore, the correct answer is C) It changes into other types of matter and energy.\n\nThe best answer is C.",
+  "score": 5,
+  "cost": 4.509e-06,
+  "expected": "C",
+  "tokens": {
+    "input": 96,
+    "output": 71
+  }
+}

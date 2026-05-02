@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This code implements a **token bucket rate-limiting algorithm** that restricts a function to be called no more than `calls` times within a sliding window of `period` seconds. The `allow()` function tracks timestamps of recent calls, prunes those older than the current time window, and grants access only if the remaining count is below the limit, otherwise denying it.",
+  "score": 4,
+  "cost": 3.27e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 76
+  }
+}

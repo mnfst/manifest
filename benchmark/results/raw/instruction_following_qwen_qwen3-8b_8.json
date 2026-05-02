@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Blockchain is like a special notebook that everyone shares. When something is written in it, no one can change it, so it stays true forever. It helps make sure everyone agrees on what\u2019s real, like sharing toys or money fairly!",
+  "score": 5,
+  "cost": 3.490000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 674
+  }
+}

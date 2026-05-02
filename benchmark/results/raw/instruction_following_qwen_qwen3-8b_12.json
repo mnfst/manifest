@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is like a helper that allows different tools or services to talk to each other. Imagine you want to order food from a restaurant using your phone. The app on your phone doesn\u2019t know the restaurant\u2019s menu or how to cook the food. Instead, it uses a special helper (the API) to ask the restaurant for the menu, place your order, and get the food ready. You don\u2019t need to understand how the kitchen works\u2014you just use the app, and everything else happens behind the scenes. APIs make it easier for different systems to work together without needing to know all the details of each other.",
+  "score": 5,
+  "cost": 3.775e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 732
+  }
+}

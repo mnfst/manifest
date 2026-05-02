@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "There would be 0 primes in a progression starting with a = 1, 2, 4, 5, 7, or 8.",
+  "score": 2,
+  "cost": 7.695e-06,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 252,
+    "output": 33
+  }
+}

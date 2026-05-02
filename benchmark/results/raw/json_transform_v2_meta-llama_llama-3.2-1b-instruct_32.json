@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "json_transform_v2",
+  "case": 32,
+  "response": "```\n{\"admins\": [\"Alice\", \"Charlie\"], \"users\": [\"Bob\"], \"inactive_count\": 1}\n```",
+  "score": 5,
+  "cost": 4.266e-06,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 26
+  }
+}

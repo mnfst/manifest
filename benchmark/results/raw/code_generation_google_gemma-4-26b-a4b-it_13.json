@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 13,
+  "response": "return len(string)",
+  "score": 5,
+  "cost": 4.74e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 4
+  }
+}

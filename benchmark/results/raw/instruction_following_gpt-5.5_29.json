@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA is a molecule that carries the genetic instructions living things use to grow, function, and reproduce. It is made of two twisted strands containing a code built from four chemical \u201cletters.\u201d",
+  "score": 2,
+  "cost": 0.00054,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 40
+  }
+}

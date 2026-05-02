@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "The context states that the Amazon basin encompasses 7,000,000 square kilometers (2,700,000 sq mi), of which 5,500,000 square kilometers (2,100,000 sq mi) are covered by the rainforest.\n\nAnswer: 5,500,000 square kilometers.",
+  "score": 5,
+  "cost": 1.3629e-05,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 331,
+    "output": 82
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "structured_output",
+  "case": 27,
+  "response": "{\n  \"type\": \"SSH key\",\n  \"bits\": 4096,\n  \"fingerprint\": \"SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8\",\n  \"created\": \"2024-01-15\",\n  \"comment\": \"deploy-key-prod\"\n}",
+  "score": 4,
+  "cost": 4.190000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 78
+  }
+}

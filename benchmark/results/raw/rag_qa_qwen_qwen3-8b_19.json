@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "The context mentions that Europe achieved advancements in communication alongside military technology. \n\nAnswer: Europe advanced in communication technology.",
+  "score": 5,
+  "cost": 1.785e-05,
+  "expected": "communication",
+  "tokens": {
+    "input": 162,
+    "output": 195
+  }
+}

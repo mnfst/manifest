@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "This code implements the QuickSort algorithm, a popular sorting algorithm that uses a divide-and-conquer approach to sort an array of elements. The algorithm works by selecting a pivot element, partitioning the array around it, and recursively sorting the subarrays on either side of the pivot.",
+  "score": 5,
+  "cost": 4.779e-06,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 57
+  }
+}

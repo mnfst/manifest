@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "Answer: 1665",
+  "score": 5,
+  "cost": 1.0692e-05,
+  "expected": "1665",
+  "tokens": {
+    "input": 317,
+    "output": 7
+  }
+}

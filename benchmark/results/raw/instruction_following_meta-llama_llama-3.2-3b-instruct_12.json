@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Imagine you're at a restaurant and you want to order food. You can't just walk into the kitchen and start making your own food, because that's not how it works. Instead, you give your order to the waiter, who takes it to the kitchen staff.\n\nThe waiter is like an intermediary between you and the kitchen. You give them your order, and they take it to the kitchen staff, who then prepare your food according to your request.\n\nAn API (Application Programming Interface) is similar to the waiter. It's a way for different computer systems to communicate with each other. You can think of it as a messenger that helps different systems talk to each other.\n\nImagine you're a company that sells products online, and you want to integrate your website with a social media platform so that customers can share their purchases on Facebook. The API acts as a messenger between your website and the social media platform. You don't need to know how the social media platform works or how to code it yourself. The API takes care of that for you, allowing you to easily share customer data and updates.\n\nIn short, an API is a way for different systems to talk to each other, making it easier to share data, services, and functionality between them.",
+  "score": 3,
+  "cost": 1.4177999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 252
+  }
+}

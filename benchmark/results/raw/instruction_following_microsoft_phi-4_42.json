@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm is a powerful and dynamic weather event that engages all senses, creating a vivid and immersive experience. Visually, the sky darkens as towering cumulonimbus clouds gather, their ominous gray and black hues stretching across the horizon. The clouds are often jagged and uneven, with flashes of lightning illuminating the sky, casting stark shadows and revealing the intricate dance of electric charges within the storm.\n\nAudibly, the thunderstorm is marked by the deep, resonant rumble of thunder, which rolls across the sky like a distant drumbeat. The sound of rain pelting against windows and rooftops adds a rhythmic, percussive element to the storm's symphony, while the occasional crack of thunder punctuates the air with a sharp, startling noise.\n\nTactilely, the air becomes charged with electricity, creating a palpable tension that can be felt in the atmosphere. The wind picks up, sending gusts that whip through hair and clothes, making the sensation of the storm's power tangible. The cool, damp air precedes the rain, and the sudden drop in temperature can be felt as the storm approaches, bringing a refreshing yet chilling breeze.\n\nThese sensory details combine to create the full experience of a thunderstorm, engaging sight, sound, and touch in a powerful display of nature's might.",
+  "score": 5,
+  "cost": 1.8720000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 268
+  }
+}

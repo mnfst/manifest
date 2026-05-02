@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "As the sun set over the small town of Willow Creek, a lone figure emerged from the shadows. The figure, a young woman with piercing green eyes, walked down the main street, her long black hair blowing in the gentle breeze. She wore a worn leather jacket and carried a worn backpack, a far cry from the elegant evening attire she had worn to the town's annual gala just hours before. The townsfolk, who had gathered to watch the spectacle, couldn't help but notice the change in her demeanor, a sense of restlessness that seemed to emanate from her very presence. As she walked, the woman's eyes scanned the streets, taking in the familiar sights and sounds of the town, but her gaze lingered on a small, forgotten alleyway that seemed to call to her. She hesitated for a moment, as if torn between two paths, before disappearing into the darkness, leaving behind only the faint sound of her footsteps echoing through the night.",
+  "score": 2,
+  "cost": 5.832e-06,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 195
+  }
+}

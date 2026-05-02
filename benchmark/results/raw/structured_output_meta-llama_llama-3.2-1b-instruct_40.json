@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 40,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"ticket_id\": 8472,\n  \"priority\": \"High\",\n  \"created\": \"2h ago\",\n  \"user\": \"premium_user@corp.com\",\n  \"category\": \"billing\",\n  \"subject\": \"Double charged for March subscription\",\n  \"assigned_to\": \"Agent Mike\",\n  \"status\": \"in progress\"\n}\n```\n\nNote that I used the following assumptions:\n\n* The \"created\" field is in the format \"X hours ago\" (e.g. \"2h ago\") instead of just \"ago\" to match the format of the original text.\n* The \"status\" field is a string, not an integer.",
+  "score": 4,
+  "cost": 7.236e-06,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 149
+  }
+}

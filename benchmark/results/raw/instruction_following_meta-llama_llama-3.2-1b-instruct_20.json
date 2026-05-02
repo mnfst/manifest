@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Here's an explanation of photosynthesis using only words that start with the letter S or P:\n\n\"Plants produce spectacular solar-powered sustenance, synthesizing spectacular sugars from sunlight, pure precious particles. They process photosynthetic processes, producing spectacularly potent photosynthetic products, which sustain the planet's precious ecosystem. Plants' spectacularly sophisticated structures, such as stomata, facilitate the process, while photosynthetic pigments, like chlorophyll, play a pivotal role.\"",
+  "score": 5,
+  "cost": 3.375e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 98
+  }
+}

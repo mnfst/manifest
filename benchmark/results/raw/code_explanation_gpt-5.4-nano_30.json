@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "This implements a **Bloom filter**: it keeps a boolean bit array of a fixed size and, for each item, uses a set of `num_hashes` hash functions to set the corresponding bits. Membership (`x in filter`) returns `True` only if **all** those bits are set, using a pattern that can yield **false positives** but no false negatives (for items added).",
+  "score": 5,
+  "cost": 4.89e-05,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 83
+  }
+}

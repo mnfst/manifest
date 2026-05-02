@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 41,
+  "response": "result = l[:]\nthird_indices = list(range(0, len(l), 3))\nthird_values = sorted(l[i] for i in third_indices)\nfor i, v in zip(third_indices, third_values):\n    result[i] = v\nreturn result",
+  "score": 5,
+  "cost": 0.0001236,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 57
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm rolls in with dark, heavy clouds that swallow the sunlight and turn the sky nearly black. The wind picks up, cool and sharp against your skin, bending trees and sending leaves skittering across the ground. Suddenly, lightning flashes in bright, jagged streaks, followed by the deep, booming sound of thunder that shakes the air. Rain begins to pour, drumming loudly on rooftops and splashing against windows. The whole storm carries the fresh, earthy smell of wet dirt and grass, making the air feel alive and electric.",
+  "score": 5,
+  "cost": 0.00095,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 114
+  }
+}

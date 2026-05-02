@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "C\u00e9loron handled business on his trip by informing British merchants and fur-traders of the French claims on the territory and telling them to leave. This indicates that he was asserting French territorial claims and discouraging British commercial activities in the area. The context does not provide details on how he managed other aspects of business during the expedition. Therefore, the answer is based on the context provided: C\u00e9loron asserted French territorial claims and instructed British merchants and fur-traders to leave the territory.",
+  "score": 5,
+  "cost": 2.106e-05,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 224,
+    "output": 100
+  }
+}

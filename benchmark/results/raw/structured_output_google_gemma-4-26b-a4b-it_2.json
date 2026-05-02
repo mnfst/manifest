@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "structured_output",
+  "case": 2,
+  "response": "```json\n{\n  \"product\": \"iPhone 15 Pro\",\n  \"price\": 999.0,\n  \"colors\": [\n    \"black titanium\",\n    \"white titanium\",\n    \"blue titanium\"\n  ],\n  \"storage_options\": [\n    \"128GB\",\n    \"256GB\",\n    \"512GB\",\n    \"1TB\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 1.26e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 101
+  }
+}

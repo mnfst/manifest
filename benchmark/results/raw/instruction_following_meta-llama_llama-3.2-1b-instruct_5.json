@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sky is set aflame as the day succumbs to the evening's gentle warmth. Soft, golden hues creep across the horizon, gradually deepening to a rich, burnt orange. The clouds, tinted with shades of coral and salmon, are streaked across the sky like wispy brushstrokes of a master painter. The sun, a burning ember, sinks slowly below the horizon, casting a warm, golden light over the landscape. The air is filled with a soft, serene silence, punctuated only by the occasional chirp of a distant bird. As the sun dips lower, the colors in the sky deepen and intensify, a breathtaking spectacle that seems to stretch on forever.",
+  "score": 3,
+  "cost": 4.455e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 140
+  }
+}

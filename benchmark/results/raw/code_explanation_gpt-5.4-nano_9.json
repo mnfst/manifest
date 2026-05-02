@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This defines a `retry` decorator that wraps a function and, on failure, retries it up to `max_attempts` times. It uses exponential backoff (`delay * 2**i`) between attempts, re-raising the exception only on the final failed attempt.",
+  "score": 5,
+  "cost": 3.46e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 58
+  }
+}

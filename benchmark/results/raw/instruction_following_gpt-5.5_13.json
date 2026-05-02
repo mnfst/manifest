@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "Red, orange, yellow, green, blue, indigo, violet.",
+  "score": 5,
+  "cost": 0.000747,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 58
+  }
+}

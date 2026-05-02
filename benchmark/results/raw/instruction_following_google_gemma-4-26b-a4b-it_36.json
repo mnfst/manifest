@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "1. C++\n2. Java\n3. Rust\n4. Swift",
+  "score": 2,
+  "cost": 2.58e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 17
+  }
+}

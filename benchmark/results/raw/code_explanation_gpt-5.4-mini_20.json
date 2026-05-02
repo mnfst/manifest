@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function splits a single iterable into two lazy iterators using `itertools.tee`: one yields the items for which `predicate(item)` is `True`, and the other yields the items for which it is `False`. It uses the standard **partition/filtering pattern**, with `filter` and `itertools.filterfalse` to produce the two complementary streams.",
+  "score": 5,
+  "cost": 0.00011159999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 76
+  }
+}

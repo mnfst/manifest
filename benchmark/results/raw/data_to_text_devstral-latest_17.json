@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "data_to_text",
+  "case": 17,
+  "response": "In the 2024-25 NBA season, 40-year-old LeBron James continued to dominate for the Lakers, averaging 28.4 points, 7.2 rebounds, and 8.1 assists per game over 71 appearances. His standout performance earned him an All-Star selection, showcasing his enduring elite play even in his 22nd season.",
+  "score": 0,
+  "cost": 3.43e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 83
+  }
+}

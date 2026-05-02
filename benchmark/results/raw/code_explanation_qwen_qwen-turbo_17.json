@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 17,
+  "response": "This code implements the **Chain of Responsibility** design pattern, where a series of handler functions are passed as arguments and processed in order. Each handler attempts to handle a request, and the first one that returns a non-None value is returned; if none handle it, the result is None.",
+  "score": 5,
+  "cost": 4.719e-06,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 59
+  }
+}

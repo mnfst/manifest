@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that a day on Venus is actually longer than a year on Venus? Venus rotates so slowly on its axis that it takes about 243 Earth days to complete one full rotation, but it only takes around 225 Earth days to orbit the Sun \u2014 meaning its day is longer than its year! \ud83e\ude90\u2728",
+  "score": 5,
+  "cost": 0.00117,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 73
+  }
+}

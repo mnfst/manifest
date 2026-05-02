@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Start at the park.\n\n- Turn right and go straight.\n- Turn left at the first corner.\n- Turn right at the next street.\n- Turn left again.\n- The library will be on your right.",
+  "score": 5,
+  "cost": 0.000406,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 45
+  }
+}

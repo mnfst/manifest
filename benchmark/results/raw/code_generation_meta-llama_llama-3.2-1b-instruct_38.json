@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 38,
+  "response": "def largest_smallest_integers(lst):\n    if not lst:\n        return None, None\n    return (max(lst), min([x for x in lst if x > 0]))",
+  "score": 3,
+  "cost": 5.751e-06,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 39
+  }
+}

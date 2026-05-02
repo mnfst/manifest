@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "multistep_reasoning",
+  "case": 22,
+  "response": "B) along a river",
+  "score": 5,
+  "cost": 9.5e-06,
+  "expected": "B",
+  "tokens": {
+    "input": 77,
+    "output": 6
+  }
+}

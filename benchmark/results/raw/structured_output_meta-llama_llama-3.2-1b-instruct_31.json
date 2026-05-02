@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 31,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"from\": {\n    \"name\": \"Acme Inc\",\n    \"address\": \"100 Tech Drive, Austin TX 78701 US\",\n    \"city\": \"Austin\",\n    \"state\": \"TX\",\n    \"zip\": \"78701\"\n  },\n  \"to\": {\n    \"name\": \"John Doe\",\n    \"address\": \"500 Market St, San Francisco CA 94105 US\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"zip\": \"94105\"\n  },\n  \"weight_lbs\": 2.5,\n  \"dimensions\": \"12x8x4 inches\",\n  \"service\": \"Priority Mail\"\n}\n```\n\nNote that I've kept the \"weight\" field as a float, as it's a numerical value, and left the \"dimensions\" field as a string, as it's a descriptive value.",
+  "score": 4,
+  "cost": 9.693e-06,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 196
+  }
+}

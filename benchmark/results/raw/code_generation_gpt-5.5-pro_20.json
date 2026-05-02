@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 20,
+  "response": "numerals = [\n        (1000, \"m\"), (900, \"cm\"), (500, \"d\"), (400, \"cd\"),\n        (100, \"c\"), (90, \"xc\"), (50, \"l\"), (40, \"xl\"),\n        (10, \"x\"), (9, \"ix\"), (5, \"v\"), (4, \"iv\"), (1, \"i\")\n    ]\n    result = \"\"\n    for value, symbol in numerals:\n        while number >= value:\n            result += symbol\n            number -= value\n    return result",
+  "score": 5,
+  "cost": 0.00703,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 317
+  }
+}

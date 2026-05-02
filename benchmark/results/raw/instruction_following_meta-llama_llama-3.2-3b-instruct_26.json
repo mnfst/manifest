@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, is the continuous process by which water is circulated between the Earth's oceans, atmosphere, and land. It begins with evaporation, where the sun's energy heats up water in the oceans, lakes, and rivers, causing it to evaporate into the air as water vapor. This process occurs when the temperature and humidity are high enough to allow water molecules to change from a liquid to a gas state.\n\nAs water vapor rises into the atmosphere, it cools and condenses into tiny droplets, forming clouds. These clouds can grow and become heavy with water, eventually releasing their burden in the form of precipitation, such as rain, snow, sleet, or hail. Precipitation can occur in various forms, depending on the temperature and other atmospheric conditions. For example, warm air can hold more moisture, leading to heavy rainfall, while cold air can cause snow or hail.\n\nOnce the precipitation reaches the ground, it can follow several paths. Some of it may soak into the soil, recharging groundwater aquifers and eventually feeding plants and animals. Other precipitation may flow over the surface as runoff, forming streams, rivers, and lakes. Eventually, this water can make its way back to the oceans, where it can evaporate again, starting the cycle anew.\n\nThe water cycle is an essential process that sustains life on Earth. It helps regulate the planet's climate, influences weather patterns, and supports the growth of plants and animals. Without the water cycle, our planet would be a very different place, with no liquid water to support life as we know it. The water cycle is a continuous and dynamic process that is constantly in motion, with water molecules being cycled between the Earth's systems over and over again.",
+  "score": 5,
+  "cost": 1.9430999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 358
+  }
+}

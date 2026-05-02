@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton\u2019s First Law of Motion connects relative velocities with inertia.",
+  "score": 5,
+  "cost": 3.3e-05,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 270,
+    "output": 15
+  }
+}

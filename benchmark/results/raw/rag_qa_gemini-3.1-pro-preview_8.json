@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "Based on the context provided, the target equated to a reach of **36%** of households in the UK.",
+  "score": 5,
+  "cost": 0.000825,
+  "expected": "36%",
+  "tokens": {
+    "input": 186,
+    "output": 24
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "data_to_text",
+  "case": 12,
+  "response": "The Massachusetts Institute of Technology (MIT) is renowned for its prestigious status, consistently ranking as the top university globally. Founded in 1861, MIT boasts a substantial endowment of $24.6 billion, supporting its extensive operations and research initiatives. With an acceptance rate of just 3.9%, the institution attracts approximately 11,500 students annually, offering a rigorous academic environment with a tuition fee of $57,590 per year. The faculty comprises 1,069 members, including 98 Nobel laureates, reflecting the institution's commitment to excellence and innovation in education and research.",
+  "score": 0,
+  "cost": 1.4560000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 120
+  }
+}

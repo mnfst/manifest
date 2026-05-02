@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrological cycle, is the continuous movement of water on, above, and below the surface of the Earth. This cycle involves several key processes, including evaporation, condensation, precipitation, and runoff. Water evaporates from oceans, lakes, and rivers, turning from liquid into vapor due to heat from the sun. Plants also contribute to this process through transpiration, where water is released from their leaves into the air.\n\nOnce water vapor rises into the atmosphere, it cools and condenses into tiny droplets, forming clouds. This process is called condensation. As more water vapor condenses, the droplets grow larger and heavier. When they become too heavy to stay suspended in the air, they fall back to Earth as precipitation, which can take the form of rain, snow, sleet, or hail.\n\nAfter precipitation reaches the ground, it follows different paths. Some of it flows over the land's surface as runoff, eventually reaching rivers, lakes, and oceans. Some water seeps into the soil, recharging groundwater supplies. This groundwater can later resurface through springs or be taken up by plant roots, continuing the cycle.\n\nThe water cycle is essential for sustaining life on Earth. It distributes fresh water across the planet, supports ecosystems, and influences weather patterns. By recycling water through evaporation, condensation, and precipitation, the cycle ensures that water is continuously available for living organisms. This dynamic process is a fundamental part of Earth's climate system and plays a crucial role in regulating temperature and supporting biodiversity.",
+  "score": 5,
+  "cost": 1.1154e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 314
+  }
+}

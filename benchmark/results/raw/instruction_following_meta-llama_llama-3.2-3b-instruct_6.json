@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "The ocean is vast.",
+  "score": 2,
+  "cost": 1.377e-06,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 6
+  }
+}

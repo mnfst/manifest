@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "In the first month of the Bug Bounty Program, 47 reports were received, with 12 being valid, including 3 critical issues that were patched within 24 hours, resulting in total payouts of $15,000. The critical findings were an IDOR on user profiles, an SSRF via webhook URL, and a JWT secret in the client bundle, and the program's strong ROI suggests it should continue.",
+  "score": 5,
+  "cost": 1.261e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 84
+  }
+}

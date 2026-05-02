@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun slipped behind the horizon, spilling gold and amber across the sky. Wisps of cloud caught the last light like glowing silk, while the sea below turned to glass and evening settled in with a quiet hush.",
+  "score": 5,
+  "cost": 0.01267,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 628
+  }
+}

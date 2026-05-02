@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Full citizenship rights \u2013 \u2018\u2019assimilation\u2019\u2019",
+  "score": 5,
+  "cost": 9.638999999999999e-06,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 178,
+    "output": 11
+  }
+}

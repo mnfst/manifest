@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 14,
+  "response": "def fib(n: int):\n    \"\"\"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21\n    \"\"\"\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a",
+  "score": 5,
+  "cost": 5.709e-06,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 81
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 24,
+  "response": "if not (a > 0 and b > 0 and c > 0):\n    return -1\n\nsides = sorted([a, b, c])\nif sides[0] + sides[1] <= sides[2]:\n    return -1\n\np = (a + b + c) / 2\narea_sq = p * (p - a) * (p - b) * (p - c)\nif area_sq <= 0:\n    return -1\n\narea = area_sq ** 0.5\nreturn round(area, 2)",
+  "score": 5,
+  "cost": 6.360000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 121
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 44,
+  "response": "encoded_chars = []\nvowels = set(\"aeiouAEIOU\")\nfor ch in message:\n    if ch.isalpha():\n        swapped = ch.swapcase()\n        if ch in vowels or swapped in vowels:\n            # Determine original vowel position in alphabet (case-insensitive)\n            lower = swapped.lower()\n            idx = ord(lower) - ord('a')\n            replacement = chr(ord('a') + ((idx + 2) % 26))\n            encoded_chars.append(replacement if swapped.islower() else replacement.upper())\n        else:\n            encoded_chars.append(swapped)\n    else:\n        encoded_chars.append(ch)\nreturn \"\".join(encoded_chars)",
+  "score": 3,
+  "cost": 6.8e-05,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 135
+  }
+}

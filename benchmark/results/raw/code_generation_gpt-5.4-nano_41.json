@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 41,
+  "response": "l_third = [x for i, x in enumerate(l) if i % 3 == 0]\nl_third_sorted = sorted(l_third)\nidx = 0\nres = []\nfor i, x in enumerate(l):\n    if i % 3 == 0:\n        res.append(l_third_sorted[idx])\n        idx += 1\n    else:\n        res.append(x)\nreturn res",
+  "score": 5,
+  "cost": 5.3200000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 87
+  }
+}

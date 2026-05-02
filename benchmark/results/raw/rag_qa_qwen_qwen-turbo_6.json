@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "Answer: TFEU article 294",
+  "score": 5,
+  "cost": 1.3728000000000001e-05,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 406,
+    "output": 10
+  }
+}

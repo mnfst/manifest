@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 2,
+  "response": "```python\nresult = []\nlst = sorted(lst)\nwhile lst:\n    result.append(lst.pop(0))\n    if lst:\n        result.append(lst.pop(-1))\nreturn result\n```",
+  "score": 4,
+  "cost": 0.001368,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 56
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 17,
+  "response": "if not text:\n    return None\nimport hashlib\nhash_object = hashlib.md5(text.encode('utf-8'))\nreturn hash_object.hexdigest()",
+  "score": 5,
+  "cost": 0.0001894,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 3669
+  }
+}

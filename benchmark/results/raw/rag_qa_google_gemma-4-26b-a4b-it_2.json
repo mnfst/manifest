@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Colonialism refers to the process of a country taking physical control of another.",
+  "score": 5,
+  "cost": 1.9739999999999997e-05,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 313,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 22,
+  "response": "balance = 0\n    for char in brackets:\n        if char == '<':\n            balance += 1\n        elif char == '>':\n            balance -= 1\n        if balance < 0:\n            return False\n    return balance == 0",
+  "score": 5,
+  "cost": 1.1459999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 58
+  }
+}

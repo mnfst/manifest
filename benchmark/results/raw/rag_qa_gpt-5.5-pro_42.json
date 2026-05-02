@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "The Moselle.",
+  "score": 4,
+  "cost": 0.003005,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 201,
+    "output": 100
+  }
+}

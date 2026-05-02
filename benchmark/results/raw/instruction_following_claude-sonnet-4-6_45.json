@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "# TCP vs UDP\n\n## Overview\n\n**TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)** are the two core transport layer protocols in the Internet protocol suite. They serve different purposes depending on whether reliability or speed is the priority.\n\n---\n\n## Comparison Table\n\n| Feature | TCP | UDP |\n|---|---|---|\n| **Full Name** | Transmission Control Protocol | User Datagram Protocol |\n| **Connection Type** | Connection-oriented | Connectionless |\n| **Handshake** | 3-way handshake (SYN, SYN-ACK, ACK) | None |\n| **Reliability** | Guaranteed delivery | No guarantee |\n| **Ordering** | Packets arrive in order | No ordering guarantee |\n| **Error Checking** | Yes \u2014 retransmits lost packets | Basic checksum only |\n| **Flow Control** | Yes | No |\n| **Congestion Control** | Yes | No |\n| **Speed** | Slower (more overhead) | Faster (less overhead) |\n| **Header Size** | 20\u201360 bytes | 8 bytes |\n| **Data Boundaries** | Stream-based (no boundaries) | Message-based (discrete packets) |\n| **Broadcast Support** | No | Yes |\n| **Use Case** | Accuracy-critical apps | Speed-critical apps |\n\n---\n\n## When to Use Each\n\n### \u2705 Use TCP when:\n- Data **must arrive completely and correctly**\n- Order of data matters\n- Examples:\n  - Web browsing (HTTP/HTTPS)\n  - Email (SMTP, IMAP)\n  - File transfers (FTP, SFTP)\n  - Database queries\n\n### \u2705 Use UDP when:\n- **Speed matters more** than perfect delivery\n- Some data loss is acceptable\n- Examples:\n  - Video/audio streaming (YouTube, Netflix)\n  - Online gaming\n  - Live broadcasts\n  - DNS lookups\n  - VoIP (Zoom, Skype)\n\n---\n\n## How TCP's 3-Way Handshake Works\n\n```\nClient          Server\n  |                |\n  |--- SYN",
+  "score": 5,
+  "cost": 0.007554,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 500
+  }
+}

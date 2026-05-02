@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 38,
+  "response": "This builds a **consistent hashing ring** by mapping each node to many virtual replicas (`replicas` times) using `hash(f'{node}:{i}')`, then storing the resulting key\u2192node entries in `ring`. The returned `get_node(item)` hashes the item, uses a **binary search** (`bisect`) to find the next ring key clockwise, and returns the corresponding node (wrapping around with `%`), so only a small fraction of items remap when nodes change.",
+  "score": 5,
+  "cost": 5.380000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 102
+  }
+}

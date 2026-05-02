@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Answer: Prussia",
+  "score": 5,
+  "cost": 7.854e-06,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 234,
+    "output": 4
+  }
+}

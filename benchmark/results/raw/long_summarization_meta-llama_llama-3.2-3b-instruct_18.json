@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "long_summarization",
+  "case": 18,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe global food system is facing unprecedented pressure due to a projected 60% increase in food production by 2050 to feed a growing population of 9.7 billion. Climate change, deforestation, and water scarcity are exacerbating the issue, with agriculture contributing 25% of greenhouse gas emissions. To address this, various solutions are being explored, including precision agriculture, vertical farming, alternative proteins, and regenerative farming practices. Implementing these solutions at scale while ensuring food remains affordable and accessible to the poorest populations is a significant challenge.",
+  "score": 5,
+  "cost": 2.1726e-05,
+  "expected": "",
+  "tokens": {
+    "input": 302,
+    "output": 124
+  }
+}

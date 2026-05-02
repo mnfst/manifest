@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 46,
+  "response": "This is the red-black tree insertion fix-up routine for the case where the inserted node\u2019s parent is the left child of its grandparent, using the standard recoloring and rotation cases: recolor when the uncle is red, otherwise rotate to fix \u201ctriangle\u201d/\u201cline\u201d violations. It finishes by forcing the root to black, though the symmetric case where the parent is a right child is omitted.",
+  "score": 4,
+  "cost": 0.00651,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 282
+  }
+}

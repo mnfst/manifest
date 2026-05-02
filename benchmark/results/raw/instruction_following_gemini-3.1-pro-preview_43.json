@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that it rains diamonds on Jupiter and Saturn? Lightning storms in their atmospheres turn methane gas into soot, and as that soot falls toward the planets' cores, extreme pressure and temperatures compress it into chunks of graphite, and eventually, solid diamonds!",
+  "score": 5,
+  "cost": 0.00081,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 51
+  }
+}

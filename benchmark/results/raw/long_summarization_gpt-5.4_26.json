@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "long_summarization",
+  "case": 26,
+  "response": "The global food system faces a major challenge: by 2050, a population of 9.7 billion will require about 60% more food, even as climate change, water scarcity, and soil degradation reduce agricultural productivity. Agriculture also worsens the problem by generating roughly 25% of global greenhouse gas emissions, while 33% of the world\u2019s arable land has been degraded and about one-third of all food is lost or wasted. Key stressed resources include major aquifers such as the Ogallala in the U.S., with similar depletion occurring in India, China, and the Middle East. The main argument is that technological, farming, and policy solutions already exist, but the real challenge is scaling them in ways that keep food affordable and accessible, especially for the poorest populations.",
+  "score": 5,
+  "cost": 0.00188,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 162
+  }
+}

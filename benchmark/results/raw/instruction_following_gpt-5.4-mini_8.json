@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Blockchain is like a special notebook that many people have copies of, and they all agree on what gets written in it. Once something is written, it\u2019s very hard to change, so everyone can trust it like a super-sticky record book.",
+  "score": 5,
+  "cost": 6.87e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 52
+  }
+}

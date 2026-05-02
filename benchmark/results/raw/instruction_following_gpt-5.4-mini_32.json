@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Review: The Lantern Table**\n\nI visited **The Lantern Table** last Friday, and it was a genuinely lovely experience from start to finish. The restaurant has a cozy, slightly upscale atmosphere with warm lighting, quiet music, and just enough buzz to feel lively without being overwhelming. It\u2019s the kind of place that makes you want to settle in and stay awhile.\n\nThe menu is small but thoughtfully curated, and that usually gives me confidence that the kitchen knows what it\u2019s doing. I ordered the roasted garlic mushroom risotto, and it was excellent\u2014creamy, rich, and full of flavor without feeling heavy. My friend got the citrus-glazed salmon, which was cooked perfectly and paired beautifully with seasonal vegetables. We also shared a bread basket with whipped herb butter that was, honestly, hard to stop eating.\n\nService was another highlight. Our server was attentive, friendly, and knowledgeable about the menu without being overbearing. Drinks came quickly, plates were timed well, and we never felt rushed. The only slight downside was that dessert took a bit longer than expected, but the chocolate tart that arrived made the wait worthwhile.\n\nOverall, **The Lantern Table** delivers on atmosphere, food, and service. It feels like a place that cares about the details, and that shows in the dining experience.\n\n**Rating: 4.5 out of 5 stars** \u2b50\u2b50\u2b50\u2b50\u2606",
+  "score": 5,
+  "cost": 0.0003429,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 280
+  }
+}

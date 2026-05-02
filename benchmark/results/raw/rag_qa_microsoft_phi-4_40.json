@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "France offered full citizenship rights, known as \"assimilation,\" which was rare by imperial standards. However, in reality, assimilation was always on the distant horizon.",
+  "score": 5,
+  "cost": 1.365e-05,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 175,
+    "output": 35
+  }
+}

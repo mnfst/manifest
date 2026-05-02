@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Based on the provided context, nine of the residential Houses are located south of Harvard Yard along or near the **Charles River**.",
+  "score": 5,
+  "cost": 0.001266,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 277,
+    "output": 29
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "Here is a 3-4 sentence summary of the key points:\n\nThe 2020s represent a dynamic era in space exploration, driven by both government programs and private industry, with NASA's Artemis program aiming to return humans to the Moon and SpaceX's Starship under development as a next-generation launch vehicle. Major scientific achievements include the James Webb Space Telescope's groundbreaking discoveries, while nations like China and India are asserting growing space ambitions through their respective space stations, lunar programs, and successful Chandrayaan missions. The commercial sector is rapidly expanding, with satellite internet constellations like Starlink and OneWeb reshaping global connectivity, and space tourism ventures from Blue Origin and Virgin Galactic opening access to private citizens, alongside emerging prospects in asteroid mining. However, the industry faces significant challenges, including the inadequacy of the existing Outer Space Treaty framework to govern modern activities and the escalating problem of space debris threatening orbital sustainability.",
+  "score": 5,
+  "cost": 0.00354,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 206
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 31,
+  "response": "```python\n    return sorted([word for word in lst if len(word) % 2 == 0], key=lambda x: (len(x), x))\n```",
+  "score": 5,
+  "cost": 3.2200000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 217,
+    "output": 35
+  }
+}

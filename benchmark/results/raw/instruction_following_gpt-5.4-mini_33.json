@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth\u2019s only natural satellite.  \n2. The Moon\u2019s gravity is about 1/6 of Earth\u2019s gravity.  \n3. The same side of the Moon always faces Earth because it is tidally locked.",
+  "score": 5,
+  "cost": 6.9e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 51
+  }
+}

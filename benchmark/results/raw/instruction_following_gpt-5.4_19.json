@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI won\u2019t replace human creativity\u2014it amplifies it. The real superpower isn\u2019t just automation, but turning ideas into reality faster than ever. The future belongs to people who learn how to build with AI. \ud83d\ude80",
+  "score": 5,
+  "cost": 0.000412,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 47
+  }
+}

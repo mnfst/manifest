@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The Trust & Safety team is updating the content moderation policy to include new rules regarding the labeling and prohibition of AI-generated media. These new regulations will go into effect on June 1, with training materials currently being developed for implementation.",
+  "score": 4,
+  "cost": 9.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 48
+  }
+}

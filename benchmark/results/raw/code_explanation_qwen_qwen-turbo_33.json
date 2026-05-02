@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This code implements the **reservoir sampling** algorithm, which efficiently selects a random sample of `k` elements from a stream of unknown length. It maintains a reservoir of size `k`, and for each element after the first `k`, it replaces a randomly chosen element in the reservoir with a probability of `k/(i+1)` where `i` is the current index.",
+  "score": 5,
+  "cost": 5.808e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 77
+  }
+}

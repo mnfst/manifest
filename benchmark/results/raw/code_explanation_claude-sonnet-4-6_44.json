@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "## Explanation\n\nThis function finds all **connected components** in an undirected graph using **Breadth-First Search (BFS)**. It iterates over every unvisited node, launching a BFS traversal from each one to collect all reachable nodes into a group, and returns a list of these groups \u2014 where each inner list represents one isolated connected component.",
+  "score": 5,
+  "cost": 0.001719,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 82
+  }
+}

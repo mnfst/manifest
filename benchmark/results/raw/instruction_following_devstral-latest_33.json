@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "Here are three interesting facts about the Moon:\n\n1. **The Moon is Earth's only natural satellite** \u2013 It formed about 4.5 billion years ago, likely from debris after a massive collision between Earth and a Mars-sized object called Theia.\n\n2. **The Moon has no atmosphere** \u2013 This means there is no weather, wind, or sound, and its surface is exposed to extreme temperatures, ranging from -173\u00b0C (-280\u00b0F) at night to 127\u00b0C (260\u00b0F) during the day.\n\n3. **The same side of the Moon always faces Earth** \u2013 This is due to tidal locking, where the Moon's rotation period matches its orbital period around Earth (about 27.3 days). The far side, often called the \"dark side,\" is only visible from spacecraft.",
+  "score": 5,
+  "cost": 5.48e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 175
+  }
+}

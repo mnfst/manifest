@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "Here are the animals grouped by category:\n\n**Mammals**\n1. Lion\n2. Koala\n3. Elephant\n\n**Birds**\n1. Eagle\n2. Parrot\n3. Ostrich\n\n**Fish**\n1. Salmon\n2. Tuna\n3. Goldfish",
+  "score": 5,
+  "cost": 4.692e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 62
+  }
+}

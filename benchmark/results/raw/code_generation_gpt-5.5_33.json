@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_generation",
+  "case": 33,
+  "response": "sides = sorted([a, b, c])\nx, y, z = sides\n\nif x <= 0 or x + y <= z:\n    return False\n\nreturn abs(x * x + y * y - z * z) <= 1e-9 * max(1, z * z)",
+  "score": 4,
+  "cost": 0.003453,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 253
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU executes instructions, performs calculations, and coordinates the actions of a computer\u2019s other components.",
+  "score": 3,
+  "cost": 3.12e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 22
+  }
+}

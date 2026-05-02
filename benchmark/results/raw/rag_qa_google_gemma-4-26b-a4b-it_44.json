@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "The Ohio Company of Virginia",
+  "score": 5,
+  "cost": 1.68e-05,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 274,
+    "output": 6
+  }
+}

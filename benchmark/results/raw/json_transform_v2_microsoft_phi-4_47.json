@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "json_transform_v2",
+  "case": 47,
+  "response": "```json\n{\n  \"admins\": [\"Alice\", \"Charlie\"],\n  \"users\": [\"Bob\"],\n  \"inactive_count\": 1\n}\n```",
+  "score": 5,
+  "cost": 1.04e-05,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 32
+  }
+}

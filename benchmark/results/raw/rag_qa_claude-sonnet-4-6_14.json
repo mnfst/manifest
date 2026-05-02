@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "Based on the provided context, Ctenophora live in **marine waters worldwide**.",
+  "score": 5,
+  "cost": 0.001329,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 338,
+    "output": 21
+  }
+}

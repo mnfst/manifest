@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 18,
+  "response": "```python\ndef is_prime(n):\n    if n <= 1:\n        return False\n    if n <= 3:\n        return True\n    if n % 2 == 0 or n % 3 == 0:\n        return False\n    i = 5\n    while i * i <= n:\n        if n % i == 0 or n % (i + 2) == 0:\n            return False\n        i += 6\n    return True\n\nreturn ' '.join(word for word in sentence.split() if is_prime(len(word)))\n```",
+  "score": 4,
+  "cost": 1.9435000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 120
+  }
+}

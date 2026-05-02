@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "The northeast border.",
+  "score": 4,
+  "cost": 0.00281,
+  "expected": "northeast",
+  "tokens": {
+    "input": 218,
+    "output": 86
+  }
+}

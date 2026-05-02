@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This code defines a decorator function `debounce` that delays the execution of a function `fn` by a specified `wait` time before calling it. The `debounced` function returns a new function that wraps the original function, which will only be called after the specified delay.",
+  "score": 4,
+  "cost": 4.4820000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 58
+  }
+}

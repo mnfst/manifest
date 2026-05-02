@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law of Motion.",
+  "score": 5,
+  "cost": 0.00262,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 272,
+    "output": 63
+  }
+}

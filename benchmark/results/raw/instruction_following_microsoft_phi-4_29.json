@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA, or deoxyribonucleic acid, is a molecule that carries the genetic instructions used in the growth, development, functioning, and reproduction of all known living organisms and many viruses. It consists of two long strands forming a double helix, with each strand composed of nucleotides containing a sugar, a phosphate group, and a nitrogenous base.",
+  "score": 2,
+  "cost": 6.24e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 74
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\ndef multiply(a, b):\n    return (a * b) % 10\n```",
+  "score": 3,
+  "cost": 4.212e-06,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 22
+  }
+}

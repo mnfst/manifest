@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements a Least Recently Used (LRU) cache using a combination of an ordered dictionary (`OrderedDict`) and a fixed capacity (`cap`). The `LRUCache` class provides `get` and `put` methods to store and retrieve key-value pairs, with the most recently accessed items being at the end of the ordered dictionary and the least recently used items being at the beginning.",
+  "score": 5,
+  "cost": 1.1526e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 80
+  }
+}

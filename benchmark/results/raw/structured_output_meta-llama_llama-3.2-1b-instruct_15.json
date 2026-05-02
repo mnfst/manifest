@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 15,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"cpu_percent\": 78,\n  \"memory\": {\n    \"used_gb\": 12.4,\n    \"total_gb\": 16\n  },\n  \"disk\": {\n    \"used_gb\": 234,\n    \"total_gb\": 500\n  },\n  \"uptime_days\": 45,\n  \"active_connections\": 127,\n  \"p99_latency_ms\": 145\n}\n```\n\nNote that I've used the following assumptions:\n\n* The \"memory\" and \"disk\" objects are nested under the \"metrics\" object.\n* The \"used_gb\" and \"total_gb\" values are floats, and the \"used_gb\" value is 12.4 and the \"total_gb\" value is 16.\n* The \"uptime_days\" value is an integer.\n* The \"active_connections\" value is an integer.\n* The \"p99_latency_ms\" value is an integer.",
+  "score": 5,
+  "cost": 8.937000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 200
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Cheesy, tangy, crispy crust; aromatic basil; spicy, robust tomato sauce; creamy, rich mozzarella; pepperoni slices; vibrant red pepper; crunchy, green bell pepper; fresh, juicy mushrooms; zesty, spicy sausage; golden, melted cheese; aromatic garlic; fiery, red chili flakes; sweet, caramelized onions; fresh, verdant spinach; zesty, zingy olives; smoky, roasted peppers; crispy, crunchy crust; savory, flavorful toppings; bubbling, molten cheese; spicy, flavorful sauce; diverse, colorful toppings; warm, inviting aroma; delicious, mouthwatering pizza.",
+  "score": 5,
+  "cost": 9.750000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 130
+  }
+}

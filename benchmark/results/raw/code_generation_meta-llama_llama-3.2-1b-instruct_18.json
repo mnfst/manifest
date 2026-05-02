@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 18,
+  "response": "def words_in_sentence(sentence):\n    words = sentence.split()\n    prime_words = [word for word in words if is_prime(len(word))]\n    return ' '.join(prime_words)",
+  "score": 4,
+  "cost": 5.967e-06,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 38
+  }
+}

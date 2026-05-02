@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "json_transform_v2",
+  "case": 43,
+  "response": "```json\n{\"total_credits\": 8000, \"total_debits\": 4500, \"net\": 3500, \"transaction_count\": 5}\n```",
+  "score": 5,
+  "cost": 1.0855e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 37
+  }
+}

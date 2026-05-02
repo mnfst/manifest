@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_generation",
+  "case": 29,
+  "response": "def digit_sum(n):\n    s = str(n)\n    if s[0] == '-':\n        return -int(s[1]) + sum(int(c) for c in s[2:])\n    return sum(int(c) for c in s)\n\nreturn sorted(nums, key=digit_sum)",
+  "score": 3,
+  "cost": 0.00741,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 581
+  }
+}

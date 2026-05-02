@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 8,
+  "response": "from typing import List, Any\n\ndef filter_integers(values: List[Any]) -> List[int]:\n    return [x for x in values if isinstance(x, int)]",
+  "score": 5,
+  "cost": 4.374e-06,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 35
+  }
+}

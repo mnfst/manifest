@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "Here are 3 pros and 3 cons of remote work in a table format:\n\n| **Pros** | **Description** |\n| --- | --- |\n| 1. **Flexibility** | Allows employees to work from anywhere, at any time, as long as they have a stable internet connection. |\n| 2. **Increased productivity** | Without the distractions of a traditional office environment, some people find they are more productive when working remotely. |\n| 3. **Cost savings** | Reduced need for commuting, office space, and other overhead costs can lead to significant cost savings for both employees and employers. |\n\nLet me know if you'd like me to add anything else!",
+  "score": 4,
+  "cost": 4.5089999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 140
+  }
+}

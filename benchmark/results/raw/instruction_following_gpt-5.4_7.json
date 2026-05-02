@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 2\u20133 eggs with a pinch of salt and pepper. Melt butter in a nonstick pan over low heat. Add eggs and stir gently with a spatula until softly set and creamy, 2\u20134 minutes. Remove from heat immediately; serve warm.",
+  "score": 4,
+  "cost": 0.000508,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 58
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew significantly and became much more interconnected.",
+  "score": 5,
+  "cost": 1.512e-05,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 238,
+    "output": 14
+  }
+}

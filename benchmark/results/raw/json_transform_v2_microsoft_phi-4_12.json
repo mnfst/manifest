@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "json_transform_v2",
+  "case": 12,
+  "response": "```json\n{\n  \"total_duration_min\": 1.525,\n  \"track_count\": 4,\n  \"artists\": {\n    \"Band X\": 2,\n    \"Band Y\": 1,\n    \"Band Z\": 1\n  },\n  \"longest_track\": \"Song C\"\n}\n```",
+  "score": 4,
+  "cost": 1.521e-05,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 67
+  }
+}

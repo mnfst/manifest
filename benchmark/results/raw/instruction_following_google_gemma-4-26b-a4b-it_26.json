@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle begins with the process of evaporation, driven primarily by the energy from the sun. As solar radiation warms the surfaces of oceans, lakes, and rivers, liquid water molecules gain enough kinetic energy to transform into water vapor. This invisible gas rises into the atmosphere, carrying moisture from the Earth's surface toward the sky. Plants also contribute to this atmospheric moisture through a process called transpiration, where they release water vapor through their leaves.\n\nOnce the water vapor rises into the cooler regions of the atmosphere, it undergoes condensation. As the temperature drops, the gas loses energy and transitions back into tiny liquid droplets or ice crystals. These particles gather around microscopic bits of dust and salt in the air to form clouds. This stage is crucial because it concentrates the moisture into visible structures that are moved across the globe by atmospheric winds, setting the stage for the next phase.\n\nWhen the water droplets or ice crystals within the clouds become too heavy to remain suspended in the air, they fall back to the Earth's surface through precipitation. Depending on the temperature of the atmosphere and the ground, this can take many forms, including rain, snow, sleet, or hail. Precipitation is the primary mechanism by which water is delivered from the atmosphere back to the terrestrial and aquatic environments, replenishing the planet's freshwater supplies.\n\nAfter reaching the ground, the water follows several paths to complete the cycle. Some of it flows over the land as surface runoff, feeding into streams, rivers, and eventually the oceans. Other portions soak into the soil through infiltration, replenishing groundwater reserves and aquifers. Eventually, this water finds its way back to large bodies of water where the sun can heat it once again, restarting the continuous and endless loop of movement.",
+  "score": 5,
+  "cost": 2.2440000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 350
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\ndef encode(message):\n    vowels = 'aeiou'\n    result = []\n    for char in message:\n        if char.isalpha():\n            if char.lower() in vowels:\n                new_char = chr(((ord(char.lower()) - ord('a') + 2) % 26) + ord('a'))\n                if char.isupper():\n                    new_char = new_char.upper()\n                result.append(new_char)\n            else:\n                result.append(char.swapcase())\n        else:\n            result.append(char)\n    return ''.join(result)\n```",
+  "score": 3,
+  "cost": 1.6445e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 112
+  }
+}

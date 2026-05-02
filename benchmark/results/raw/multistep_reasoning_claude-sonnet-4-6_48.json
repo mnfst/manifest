@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 48,
+  "response": "Looking at this question, I need to determine what information would be most essential for another scientist to continue digging in the exact same location.\n\n- Option A: Knowing the river depth during rain isn't relevant to finding the same dig site.\n- Option B: Distance from a town doesn't precisely identify the exact location.\n- Option C: Accurate notes describing the location would allow the second scientist to find the exact spot where digging was occurring.\n- Option D: Weather records for past months don't help locate the dig site.\n\nThe key need is to find the **same place** \u2014 which requires precise location information.\n\n**C**",
+  "score": 5,
+  "cost": 0.00249,
+  "expected": "C",
+  "tokens": {
+    "input": 140,
+    "output": 138
+  }
+}

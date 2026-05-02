@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Here's an explanation of blockchain that a 5-year-old can understand:\n\nImagine you have a special notebook that lots of people have a copy of, and when you add a new drawing to the notebook, everyone else's notebook gets a copy of the new drawing too. This way, everyone knows what's in the notebook and can agree on what's true. It's like a magic notebook that keeps track of everything, and it's hard for anyone to cheat or change what's written in it!",
+  "score": 5,
+  "cost": 6.527999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 101
+  }
+}

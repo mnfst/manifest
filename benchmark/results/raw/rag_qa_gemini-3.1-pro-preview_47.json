@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The Urarina",
+  "score": 5,
+  "cost": 0.00043,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 148,
+    "output": 4
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Answer: Allan Bloom",
+  "score": 5,
+  "cost": 2.09e-05,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 175,
+    "output": 243
+  }
+}

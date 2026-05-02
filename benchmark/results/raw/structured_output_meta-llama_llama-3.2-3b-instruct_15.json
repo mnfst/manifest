@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 15,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"cpu_percent\": 78,\n  \"memory\": {\n    \"used_gb\": 12.4,\n    \"total_gb\": 16\n  },\n  \"disk\": {\n    \"used_gb\": 234,\n    \"total_gb\": 500\n  },\n  \"uptime_days\": 45,\n  \"active_connections\": 127,\n  \"p99_latency_ms\": 145\n}\n```\n\nNote that I've kept the `memory` and `disk` values in GB, as they were in the original text. If you'd like to convert them to a different unit (e.g. MB, MB, etc.), please let me know!",
+  "score": 5,
+  "cost": 1.4330999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 150
+  }
+}

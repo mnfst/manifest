@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "The high end of the temperature range in winter is 70's.",
+  "score": 4,
+  "cost": 8.262e-06,
+  "expected": "70",
+  "tokens": {
+    "input": 147,
+    "output": 15
+  }
+}

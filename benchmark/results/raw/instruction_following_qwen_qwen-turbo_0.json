@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- Improves cardiovascular health  \n- Enhances mental well-being  \n- Increases muscle strength and flexibility",
+  "score": 5,
+  "cost": 1.419e-06,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 19
+  }
+}

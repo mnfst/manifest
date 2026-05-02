@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Certainly! Here are four programming languages excluding Python and JavaScript:\n\n1. **Java** - A widely-used object-oriented language known for its portability across platforms and its use in enterprise environments.\n2. **C++** - A general-purpose programming language that supports object-oriented programming and is often used for system/software development, game development, and performance-critical applications.\n3. **Ruby** - A dynamic, open-source programming language with a focus on simplicity and productivity, often used in web development.\n4. **Swift** - A powerful and intuitive programming language developed by Apple for iOS and macOS development, known for its safety and performance features.\n\nThese languages offer a variety of features and are used in different contexts across software development.",
+  "score": 5,
+  "cost": 1.0855e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 147
+  }
+}

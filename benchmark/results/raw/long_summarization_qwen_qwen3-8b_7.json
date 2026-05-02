@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "In the 2020s, space exploration has advanced through initiatives like SpaceX's Starship, NASA's Artemis Moon program, and the James Webb Space Telescope's discoveries, alongside China's lunar ambitions and India's Chandrayaan missions. Commercial ventures such as Starlink and OneWeb's satellite constellations, space tourism by Blue Origin and Virgin Galactic, and asteroid mining prospects highlight growing private-sector involvement. However, challenges like the Outer Space Treaty's limitations and the rising threat of space debris underscore the need for international cooperation and sustainable practices.",
+  "score": 5,
+  "cost": 2.7800000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 419
+  }
+}

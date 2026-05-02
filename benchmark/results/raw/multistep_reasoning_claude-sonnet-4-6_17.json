@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 17,
+  "response": "Both voice waves (sound waves) and earthquake waves (seismic waves) are mechanical waves that require a medium to travel through. They are both produced by physical vibrations \u2014 vocal cords vibrating for voice, and tectonic plates/ground vibrating for earthquakes.\n\n- B) Gravity is not the primary mechanism moving these waves.\n- C) Neither are electromagnetic waves; both are mechanical waves.\n- D) They are not the same frequency.\n\n**A**",
+  "score": 5,
+  "cost": 0.001863,
+  "expected": "A",
+  "tokens": {
+    "input": 101,
+    "output": 104
+  }
+}

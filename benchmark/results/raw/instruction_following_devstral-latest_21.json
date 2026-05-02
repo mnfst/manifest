@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here\u2019s a simple set of directions from a park to a library using only left and right turns:\n\n1. **Start at the park entrance.**\n2. **Turn right** onto Main Street.\n3. **Go straight** for two blocks.\n4. **Turn left** onto Oak Avenue.\n5. **Go straight** for one block.\n6. **Turn right** onto Library Lane.\n7. **The library will be on your left.**\n\nWould you like me to adjust the directions for a specific location?",
+  "score": 5,
+  "cost": 3.32e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 104
+  }
+}

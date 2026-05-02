@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "The Ohio Company of Virginia",
+  "score": 5,
+  "cost": 0.00073,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 262,
+    "output": 5
+  }
+}

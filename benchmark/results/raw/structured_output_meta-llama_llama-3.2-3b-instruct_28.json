@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 28,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"podcast\": \"The Daily by The New York Times\",\n  \"episode_title\": \"The AI Race\",\n  \"duration_minutes\": 28,\n  \"release_date\": \"March 15 2024\",\n  \"rating\": 4.8,\n  \"downloads\": \"2.3M\"\n}\n```\n\nNote that I've kept the \"downloads\" value as a string, as per the original text. If you'd like to convert it to an integer, you can do so by removing the \"M\" suffix:\n\n```json\n{\n  \"podcast\": \"The Daily by The New York Times\",\n  \"episode_title\": \"The AI Race\",\n  \"duration_minutes\": 28,\n  \"release_date\": \"March 15 2024\",\n  \"rating\": 4.8,\n  \"downloads\": 2300000\n}\n```",
+  "score": 4,
+  "cost": 1.5912e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 193
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 32,
+  "response": "return ' '.join(''.join(sorted(word)) for word in s.split(' '))",
+  "score": 4,
+  "cost": 0.0007425,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 21
+  }
+}

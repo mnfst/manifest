@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 46,
+  "response": "This function restores **red-black tree invariants after an insertion** using the standard **red-black insertion fix-up algorithm**. It repeatedly handles the classic cases\u2014**recoloring when the uncle is red** and **rotations when the uncle is black**\u2014to eliminate consecutive red nodes and ensure the root stays black.",
+  "score": 5,
+  "cost": 0.00013319999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 68
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "\u201cSmall steps taken daily build the courage to reach extraordinary heights.\u201d",
+  "score": 5,
+  "cost": 0.000954,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 74
+  }
+}

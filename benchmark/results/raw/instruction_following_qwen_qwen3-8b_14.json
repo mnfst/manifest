@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated in style with our sleek, BPA-free stainless steel water bottle, designed to keep your drinks ice-cold for hours. Its ergonomic grip and leak-proof lid make it perfect for workouts, travel, or daily use. A reusable, eco-friendly choice that\u2019s as functional as it is fashionable\u2014because sustainability meets sophistication.",
+  "score": 3,
+  "cost": 1.4550000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 269
+  }
+}

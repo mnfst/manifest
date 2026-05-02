@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "J. F. D. Shrewsbury",
+  "score": 5,
+  "cost": 5.508e-06,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 193,
+    "output": 11
+  }
+}

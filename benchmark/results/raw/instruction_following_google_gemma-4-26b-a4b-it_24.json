@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "* Date, time, and precise location of the collision.\n* Detailed descriptions of all involved vehicles and drivers.\n* Summary of damages, injuries, and eyewitness statements.",
+  "score": 5,
+  "cost": 3.66e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 36
+  }
+}

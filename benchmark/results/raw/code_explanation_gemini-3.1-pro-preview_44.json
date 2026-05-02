@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code identifies and returns all connected components of a given graph by grouping mutually reachable nodes into separate lists. It achieves this by iterating through unvisited vertices and using the **Breadth-First Search (BFS)** algorithm (implemented via a queue) to fully traverse and collect the nodes of each distinct subgraph.",
+  "score": 5,
+  "cost": 0.0012825,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 60
+  }
+}

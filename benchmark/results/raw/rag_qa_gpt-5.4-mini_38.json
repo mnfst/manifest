@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Along or near the Charles River.",
+  "score": 5,
+  "cost": 8.759999999999999e-05,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 252,
+    "output": 10
+  }
+}

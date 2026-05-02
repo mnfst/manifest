@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit is scheduled to begin on January 15, requiring the completion of several financial reconciliation and documentation tasks. A meeting with the Controller will take place next Tuesday to assign specific responsibilities for these pre-audit requirements.",
+  "score": 5,
+  "cost": 9.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 49
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 8,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"unit\": \"4B\",\n  \"street\": \"123 Main Street\",\n  \"city\": \"San Francisco\",\n  \"state\": \"CA\",\n  \"zip\": \"94105\",\n  \"country\": \"United States\"\n}\n```",
+  "score": 5,
+  "cost": 4.0229999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 64
+  }
+}

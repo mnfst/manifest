@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 32,
+  "response": "return ' '.join(''.join(sorted(word)) for word in s.split(' '))",
+  "score": 4,
+  "cost": 7.29e-05,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 21
+  }
+}

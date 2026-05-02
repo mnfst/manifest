@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 47,
+  "response": "```python\ndef string_sequence(n: int) -> str:\n    return ' '.join(str(i) for i in range(n + 1))\n```",
+  "score": 5,
+  "cost": 6.935999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 32
+  }
+}

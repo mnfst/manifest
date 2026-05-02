@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "data_to_text",
+  "case": 7,
+  "response": "AAPL is trading at $185.50, up $2.3% on the day, with volume around 45M shares. The company has a market capitalization of $2.87T and a P/E ratio of 28.4, alongside a dividend yield of 0.55%. Over the past 52 weeks, AAPL has ranged from a low of $155 to a high of $198.",
+  "score": 5,
+  "cost": 4.5600000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 88
+  }
+}

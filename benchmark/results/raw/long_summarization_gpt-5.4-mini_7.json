@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "Space exploration in the 2020s is being driven by a mix of scientific discovery, commercial competition, and geopolitical ambition. Key developments include SpaceX\u2019s Starship, NASA\u2019s Artemis program to return humans to the Moon, the James Webb Space Telescope\u2019s major discoveries, China\u2019s expanding space station and lunar goals, and India\u2019s successful Chandrayaan missions. The sector is also being reshaped by satellite internet constellations like Starlink and OneWeb, emerging space tourism from Blue Origin and Virgin Galactic, and long-term ideas such as asteroid mining. At the same time, challenges like the Outer Space Treaty\u2019s limitations and the growing problem of space debris highlight the need for clearer rules and sustainability in space.",
+  "score": 5,
+  "cost": 0.0002133,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 145
+  }
+}

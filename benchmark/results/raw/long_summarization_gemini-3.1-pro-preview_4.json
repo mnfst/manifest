@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles have evolved dramatically from early experiments in the **1830s** to a modern industry disrupted by Tesla and currently led by China, the world's largest EV market and manufacturer. Driven by government incentives, legacy automakers like Ford, GM, and VW are rapidly transitioning their fleets to remain competitive. However, the widespread adoption of EVs faces significant hurdles, including range anxiety, grid capacity limits, and environmental debates surrounding lithium and cobalt mining. Ultimately, future advancements like solid-state batteries and improved charging infrastructure will be critical to overcoming these technical challenges and securing a sustainable automotive future.",
+  "score": 5,
+  "cost": 0.00212,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 119
+  }
+}

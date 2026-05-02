@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "5,500,000 square kilometres",
+  "score": 5,
+  "cost": 9.93e-05,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 291,
+    "output": 10
+  }
+}

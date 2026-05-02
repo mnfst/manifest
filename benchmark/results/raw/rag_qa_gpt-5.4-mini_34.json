@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Infinitely many primes.",
+  "score": 5,
+  "cost": 8.369999999999999e-05,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 247,
+    "output": 8
+  }
+}

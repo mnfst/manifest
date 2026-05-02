@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "long_summarization",
+  "case": 39,
+  "response": "Implemented in May 2018, the European Union's GDPR transformed global data privacy by mandating explicit user consent, strict data rights, and 72-hour breach reporting for any company handling EU residents' data. The regulation enforces compliance through severe penalties of up to 4% of global annual revenue or \u20ac20 million, which has already resulted in massive levies like Meta's \u20ac1.2 billion fine. Although critics argue these heavy compliance burdens disproportionately harm small businesses, GDPR has successfully established data privacy as a fundamental right and set the definitive blueprint for similar legislation worldwide.",
+  "score": 5,
+  "cost": 0.0025925,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 120
+  }
+}

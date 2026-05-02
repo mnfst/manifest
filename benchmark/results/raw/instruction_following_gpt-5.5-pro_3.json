@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE, GERMANY, ITALY, SPAIN, POLAND",
+  "score": 5,
+  "cost": 0.00106,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 48
+  }
+}

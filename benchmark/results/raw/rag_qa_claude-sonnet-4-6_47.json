@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "Based on the provided context, another group struggling to fight for their cultural survival and the fate of their forested territories is the **Urarina**.",
+  "score": 5,
+  "cost": 0.001014,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 173,
+    "output": 33
+  }
+}

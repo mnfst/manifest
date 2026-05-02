@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are often celebrated for their loyal nature, forming deep bonds with their human companions that can last a lifetime. This loyalty is evident in their unwavering devotion, as they stand by their owners through thick and thin, offering comfort and protection when needed. Many people consider their dogs to be loyal family members, trusting them with their safety and well-being. The loyal behavior of dogs is not just limited to their human families; they also show loyalty to their fellow canines, forming strong social bonds within their packs. This loyalty is a key reason why dogs are such beloved pets, as they consistently demonstrate their commitment and affection. Whether it's a loyal guard dog or a loyal therapy dog, their dedication to their roles highlights the remarkable loyalty that defines these remarkable animals.",
+  "score": 3,
+  "cost": 1.1570000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 155
+  }
+}

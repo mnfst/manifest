@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "KMJ-TV",
+  "score": 5,
+  "cost": 1.2839999999999999e-05,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 209,
+    "output": 5
+  }
+}

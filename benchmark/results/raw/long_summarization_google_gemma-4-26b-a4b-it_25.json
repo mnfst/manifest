@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "long_summarization",
+  "case": 25,
+  "response": "Quantum computing utilizes qubits, which leverage superposition and entanglement to solve specific problems exponentially faster than classical computers. While Google demonstrated this potential in 2019 by completing a task in 200 seconds that would take a supercomputer 10,000 years, the technology faces significant hurdles regarding qubit fragility and high error rates. Current hardware ranges from 100 to 1,000 qubits, but millions may be required to achieve practical, large-scale applications. Despite these technical challenges, the field holds immense promise for advancing industries such as drug discovery, cryptography, and financial modeling.",
+  "score": 5,
+  "cost": 2.454e-05,
+  "expected": "",
+  "tokens": {
+    "input": 284,
+    "output": 125
+  }
+}

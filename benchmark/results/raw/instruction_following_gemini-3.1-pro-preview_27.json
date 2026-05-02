@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "### Mammals\n* Elephant\n* Tiger\n* Kangaroo\n\n### Birds\n* Bald Eagle\n* Penguin\n* Hummingbird\n\n### Fish\n* Great White Shark\n* Clownfish\n* Salmon",
+  "score": 4,
+  "cost": 0.000665,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 41
+  }
+}

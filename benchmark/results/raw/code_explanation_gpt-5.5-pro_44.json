@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This function finds the connected components of a graph represented as an adjacency list using breadth-first search (BFS). It iterates through each unvisited node, performs BFS to collect all reachable nodes into one component, and returns a list of those components.",
+  "score": 5,
+  "cost": 0.003075,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 121
+  }
+}

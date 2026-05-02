@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "This implements the classic **producer\u2013consumer** pattern using a shared queue: multiple producer threads enqueue items and then each producer signals completion by putting a sentinel value (`None`). Each consumer repeatedly dequeues items and processes them until it receives the sentinel, at which point it re-enqueues `None` so that other consumers also eventually terminate.",
+  "score": 5,
+  "cost": 3.8299999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 70
+  }
+}

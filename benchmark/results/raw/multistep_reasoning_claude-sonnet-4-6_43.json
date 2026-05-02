@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "Coal is formed from ancient plant material that accumulated in swampy environments. Over millions of years, the plant remains were buried, compressed, and subjected to heat and pressure, transforming them into coal through a process called coalification.\n\n**D**",
+  "score": 5,
+  "cost": 0.00108,
+  "expected": "D",
+  "tokens": {
+    "input": 90,
+    "output": 54
+  }
+}

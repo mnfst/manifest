@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "1.1 \u00d7 10^11 metric tonnes",
+  "score": 5,
+  "cost": 9.383999999999999e-06,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 173,
+    "output": 11
+  }
+}

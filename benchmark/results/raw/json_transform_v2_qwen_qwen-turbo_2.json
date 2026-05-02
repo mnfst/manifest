@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "json_transform_v2",
+  "case": 2,
+  "response": "{\"admins\": [\"Alice\", \"Charlie\"], \"users\": [\"Bob\"], \"inactive_count\": 1}",
+  "score": 5,
+  "cost": 5.115e-06,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 22
+  }
+}

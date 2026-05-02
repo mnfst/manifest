@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- Improves cardiovascular health (e.g., stronger heart and better circulation).  \n- Builds and maintains muscle and bone strength.  \n- Supports mental health by reducing stress and improving mood.",
+  "score": 5,
+  "cost": 1.7800000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 40
+  }
+}

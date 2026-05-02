@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "- Abuja, Nigeria \u2014 Africa  \n- Ottawa, Canada \u2014 North America  \n- Bras\u00edlia, Brazil \u2014 South America  \n- Tokyo, Japan \u2014 Asia  \n- Canberra, Australia \u2014 Oceania",
+  "score": 5,
+  "cost": 0.001128,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 89
+  }
+}

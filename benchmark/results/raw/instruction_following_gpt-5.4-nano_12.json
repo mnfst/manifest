@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is a simple way for two apps to talk to each other.\n\nThink of it like a waiter in a restaurant: you tell the waiter what you want, the waiter goes to the kitchen to get it, and then brings it back to you. You don\u2019t need to know how the kitchen works\u2014you just tell the waiter what you need.\n\nThat\u2019s what an API does for apps: it helps one app ask for something from another app and get a result back.",
+  "score": 5,
+  "cost": 4.11e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 98
+  }
+}

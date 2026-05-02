@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are 4 programming languages:\n\n1. Java\n2. C++\n3. Ruby\n4. Swift",
+  "score": 5,
+  "cost": 2.3969999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 23
+  }
+}

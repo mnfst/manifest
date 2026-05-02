@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 41,
+  "response": "new = l.copy()\nindices = [i for i in range(len(new)) if i % 3 == 0]\nvalues = [new[i] for i in indices]\nvalues.sort()\nfor i, j in zip(indices, values):\n    new[i] = j\nreturn new",
+  "score": 5,
+  "cost": 8.085000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 187,
+    "output": 58
+  }
+}

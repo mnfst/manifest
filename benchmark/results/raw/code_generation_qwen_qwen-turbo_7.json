@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 7,
+  "response": "for i in range(1, n+1):\n    result *= factorial(i)",
+  "score": 2,
+  "cost": 4.983e-06,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 17
+  }
+}

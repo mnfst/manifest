@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 17,
+  "response": "Tymnet was an international data communications network headquartered in San Jose, CA, utilizing virtual call packet-switched technology. It connected host computers for large companies, educational institutions, and government agencies via interfaces like X.25, SNA/SDLC, BSC, and ASCII. It offered both a public network for dial-up users and private networks for government agencies and major corporations (such as banks and airlines), with gateways linking private networks to the public network and other public networks globally.",
+  "score": 5,
+  "cost": 3.535e-05,
+  "expected": "an international data communications network headquartered in San Jose, CA",
+  "tokens": {
+    "input": 233,
+    "output": 474
+  }
+}

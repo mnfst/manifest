@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "json_transform_v2",
+  "case": 43,
+  "response": "{\"total_credits\": 8000, \"total_debits\": 4500, \"net\": 3500, \"transaction_count\": 5}",
+  "score": 5,
+  "cost": 6.039e-06,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 38
+  }
+}

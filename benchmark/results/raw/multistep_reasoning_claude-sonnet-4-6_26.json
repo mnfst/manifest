@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "Liquid water changing into water vapor is the process where water transitions from liquid phase to gas phase. This occurs when water molecules gain enough energy to escape the liquid surface and become vapor.\n\n**C**",
+  "score": 5,
+  "cost": 0.000888,
+  "expected": "C",
+  "tokens": {
+    "input": 76,
+    "output": 44
+  }
+}

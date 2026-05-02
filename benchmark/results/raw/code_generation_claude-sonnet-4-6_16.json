@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    n = len(grid)\n    \n    # Find position of each value\n    val_to_pos = {}\n    for i in range(n):\n        for j in range(n):\n            val_to_pos[grid[i][j]] = (i, j)\n    \n    def get_neighbors(i, j):\n        neighbors = []\n        for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:\n            ni, nj = i + di, j + dj\n            if 0 <= ni < n and 0 <= nj < n:\n                neighbors.append((ni, nj))\n        return neighbors\n    \n    # For each cell, find the minimum neighbor value\n    # Use BFS/dynamic programming approach\n    # dp[i][j] = minimum path of length k starting from cell (i,j)\n    \n    # We'll use a greedy approach with memoization\n    # At each step, from current cell, choose the neighbor with minimum value\n    # But this greedy doesn't always work for longer paths\n    \n    # Better approach: for each starting cell, compute the minimum path of length k\n    # using dynamic programming\n    \n    # dp[step][i][j] = minimum path list of length 'step' ending at (i,j)\n    # This is too memory intensive, so let's think differently\n    \n    # Since we want lexicographically minimum, at each position we want the smallest value\n    # We can use BFS layer by layer\n    \n    # State: set of (i,j) positions that achieve the current minimum path\n    # Start: all cells are candidates\n    \n    # Initialize: find minimum value in grid\n    min_val = min(grid[i][j] for i in range(n) for j in range(n))\n    \n    # Find all cells with minimum value (should be just one since values are unique)\n    current_cells = set()\n    for i in range(n):\n        for j in range(n):\n            if grid[i][j] == min_val:\n                current",
+  "score": 3,
+  "cost": 0.008886,
+  "expected": "",
+  "tokens": {
+    "input": 462,
+    "output": 500
+  }
+}

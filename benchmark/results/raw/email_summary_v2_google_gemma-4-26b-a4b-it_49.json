@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch is being delayed by two weeks because the payment integration failed PCI compliance. A meeting is scheduled for tomorrow at 10 a.m. to decide between launching without payments or postponing the full launch until May 15.",
+  "score": 4,
+  "cost": 9.539999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 49
+  }
+}

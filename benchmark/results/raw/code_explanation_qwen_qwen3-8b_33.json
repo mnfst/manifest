@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "The code implements **reservoir sampling** to select a random sample of size `k` from a data stream. It ensures each element has an equal probability of being included by iteratively replacing a randomly chosen element in the reservoir with the current item, maintaining uniformity across the stream.",
+  "score": 5,
+  "cost": 2.515e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 408
+  }
+}

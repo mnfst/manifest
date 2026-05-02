@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "data_to_text",
+  "case": 18,
+  "response": "Founded in 1252, Stockholm is the Swedish capital with a population of 1.6 million people living across an area of 188 km\u00b2. The Swedish-speaking city boasts a GDP per capita of $62,000 and experiences seasonal temperature shifts ranging from an average of -3\u00b0C in January to 18\u00b0C in July.",
+  "score": 0,
+  "cost": 1.122e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 78
+  }
+}

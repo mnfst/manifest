@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 43,
+  "response": "if not numbers:\n    return []\nresult = [numbers[0]]\nfor num in numbers[1:]:\n    result.append(delimeter)\n    result.append(num)\nreturn result",
+  "score": 5,
+  "cost": 8.43e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 38
+  }
+}

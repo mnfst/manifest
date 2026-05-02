@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "long_summarization",
+  "case": 23,
+  "response": "The EU\u2019s GDPR, effective May 2018, reshaped personal data rules by applying to any company processing EU residents\u2019 data and granting rights such as access, erasure, portability, and explicit consent. It requires large-scale processors to appoint Data Protection Officers and report breaches within 72 hours, with fines up to 4% of global annual revenue or \u20ac20 million, whichever is higher. Major penalties include \u20ac1.2 billion for Meta, \u20ac746 million for Amazon, and over \u20ac200 million for Google. Although criticized for compliance burdens, cookie-banner frustration, and uneven enforcement, GDPR established privacy as a fundamental right and influenced laws such as California\u2019s CCPA, Brazil\u2019s LGPD, and India\u2019s Digital Personal Data Protection Act.",
+  "score": 5,
+  "cost": 0.002934,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 168
+  }
+}

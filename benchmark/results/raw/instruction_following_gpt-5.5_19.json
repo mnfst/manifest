@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI isn\u2019t replacing imagination\u2014it\u2019s amplifying it. The real opportunity is learning how to ask better questions, build smarter tools, and use them responsibly. #AI",
+  "score": 5,
+  "cost": 0.000666,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 51
+  }
+}

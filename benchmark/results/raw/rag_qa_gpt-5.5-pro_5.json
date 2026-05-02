@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "The Rhine Bridge is at Arnhem.",
+  "score": 4,
+  "cost": 0.002435,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 227,
+    "output": 65
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The audit of 234 open-source packages identified two issues: a charting library using the AGPL license, which is incompatible with the company's SaaS model, and a package with no license. It is recommended to switch to the Apache-licensed Chart.js and remove both problematic packages before the next release.",
+  "score": 5,
+  "cost": 1.1115e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 63
+  }
+}

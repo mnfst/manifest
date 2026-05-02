@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "long_summarization",
+  "case": 40,
+  "response": "The internet began in the 1960s with US Department of Defense-funded research, leading to ARPANET's first message in 1969. Tim Berners-Lee's invention of the World Wide Web in 1989 and the development of web browsers like Mosaic in 1993 made the internet widely accessible. The dot-com boom of the late 1990s was followed by a crash in 2001, but companies like Amazon and Google survived and thrived. Today, the internet connects over 5 billion people and is integral to nearly every aspect of modern life.",
+  "score": 5,
+  "cost": 1.5510000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 340,
+    "output": 130
+  }
+}

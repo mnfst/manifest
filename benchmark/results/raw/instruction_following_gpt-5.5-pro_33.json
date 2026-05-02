@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth\u2019s only natural satellite.\n\n2. The Moon\u2019s gravity causes ocean tides on Earth.\n\n3. The same side of the Moon always faces Earth because it is tidally locked.",
+  "score": 5,
+  "cost": 0.00144,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 65
+  }
+}

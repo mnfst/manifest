@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 16,
+  "response": "n = len(grid)\ncells = [(grid[i][j], i, j) for i in range(n) for j in range(n)]\ncells.sort(key=lambda x: x[0])\n\ndirs = [(1, 0), (-1, 0), (0, 1), (0, -1)]\n\nfrom functools import lru_cache\n\n@lru_cache(None)\ndef can_reach(r, c, steps_remaining):\n    if steps_remaining == 0:\n        return True\n    for dr, dc in dirs:\n        nr, nc = r + dr, c + dc\n        if 0 <= nr < n and 0 <= nc < n and can_reach(nr, nc, steps_remaining - 1):\n            return True\n    return False\n\nbest = []\ncurrent_set = set((r, c) for _, r, c in cells if can_reach(r, c, k - 1))\n\ndef neighbors_of(state_set):\n    out = set()\n    for r, c in state_set:\n        for dr, dc in dirs:\n            nr, nc = r + dr, c + dc\n            if 0 <= nr < n and 0 <= nc < n:\n                out.add((nr, nc))\n    return out\n\nfor step in range(1, k + 1):\n    # Candidate positions for this step (cells we can be on after step-1 moves)\n    candidates = current_set\n    min_val = None\n    chosen_pos = []\n    for r, c in candidates:\n        v = grid[r][c]\n        if min_val is None or v < min_val:\n            min_val = v\n            chosen_pos = [(r, c)]\n        elif v == min_val:\n            chosen_pos.append((r, c))\n    best.append(min_val)\n\n    # Update state set for next step: from chosen positions, move to neighbors\n    if step == k:\n        break\n    next_positions = set()\n    need = k - step  # steps remaining after moving into next cell\n    for r, c in chosen_pos:\n        for dr, dc in dirs:\n            nr, nc = r + dr, c + dc\n            if 0 <= nr < n and 0 <= nc < n and can_reach(nr, nc, need - 1):\n                next_positions.add((nr, nc))\n    current_set = next_positions\n\nreturn best",
+  "score": 3,
+  "cost": 0.0002435,
+  "expected": "",
+  "tokens": {
+    "input": 427,
+    "output": 502
+  }
+}

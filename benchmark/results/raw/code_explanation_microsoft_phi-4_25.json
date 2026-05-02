@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "The provided code defines a simple event handling system using a class called `EventEmitter`. This system allows for registering, emitting, and unregistering event listeners. The `on` method registers a listener function (`fn`) for a specified event by adding it to a list associated with that event in a dictionary (`self._events`). The `emit` method triggers all registered listener functions for a given event, passing any additional arguments (`*args`) to them. The `off` method removes a specific listener function from the list associated with an event, effectively unregistering it. The pattern used here is a basic publish-subscribe model, where events are published and subscribed listeners are notified when events are emitted.",
+  "score": 5,
+  "cost": 1.8265000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 141
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "The code implements the recursive Fibonacci algorithm, which uses divide-and-conquer by breaking the problem into smaller subproblems (n-1 and n-2), resulting in exponential time complexity O(2^n).",
+  "score": 5,
+  "cost": 3.9550000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 727
+  }
+}

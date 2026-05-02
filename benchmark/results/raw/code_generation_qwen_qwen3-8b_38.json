@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 38,
+  "response": "negatives = []\npositives = []\nfor num in lst:\n    if num < 0:\n        negatives.append(num)\n    elif num > 0:\n        positives.append(num)\na = max(negatives) if negatives else None\nb = min(positives) if positives else None\nreturn (a, b)",
+  "score": 5,
+  "cost": 6.025e-05,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 1034
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "long_summarization",
+  "case": 2,
+  "response": "The global food system faces unprecedented pressure due to a projected 9.7 billion population by 2050, requiring a 60% increase in food production, while climate change reduces crop yields through extreme weather and depletes critical water sources like the Ogallala Aquifer. Agriculture contributes 25% of greenhouse gas emissions and has degraded 33% of arable land through intensive farming, compounded by one-third of all food being wasted. Solutions include precision agriculture, alternative proteins, and regenerative practices, alongside policy reforms, but scaling these while ensuring affordability and access for the poorest remains a major challenge.",
+  "score": 5,
+  "cost": 3.725e-05,
+  "expected": "",
+  "tokens": {
+    "input": 304,
+    "output": 441
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "**Q: What is a VPN?**  \nA: A VPN, or **Virtual Private Network**, is a service that creates a secure, encrypted connection between your device and a VPN server.\n\n**Q: What does a VPN do?**  \nA: It **hides your real IP address** and routes your internet traffic through the VPN server, making it harder for websites, apps, and your internet provider to see what you\u2019re doing online.\n\n**Q: Why do people use a VPN?**  \nA: Common reasons include:\n- **Privacy** on public Wi\u2011Fi\n- **Protecting data** with encryption\n- **Accessing region-restricted content**\n- **Keeping browsing more private** from local networks or ISPs\n\n**Q: Does a VPN make me completely anonymous?**  \nA: No. A VPN improves privacy, but it does **not** make you fully anonymous. Websites can still identify you through logins, cookies, browser fingerprinting, and other methods.\n\n**Q: Does a VPN protect me from viruses or scams?**  \nA: Not directly. A VPN helps with **network security and privacy**, but it does **not replace antivirus software** or safe browsing habits.\n\n**Q: Can a VPN slow down my internet?**  \nA: Sometimes, yes. Because your traffic is being encrypted and routed through another server, speeds can be a little slower depending on the VPN and server distance.\n\n**Q: In simple terms, how does a VPN work?**  \nA: Think of it like a **private tunnel** for your internet traffic. Instead of traveling openly, your data goes through an encrypted tunnel to the VPN server, then out to the internet.",
+  "score": 5,
+  "cost": 0.0004245,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 349
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "Mara found a tiny brass door at the base of the old oak after the rain stopped.  \nWhen she opened it, a warm golden light spilled out and a mouse in a velvet coat bowed politely.  \n\u201cYou\u2019re late,\u201d he said, though Mara had never been invited anywhere in her life.  \nStill, she followed him down a staircase that smelled of cinnamon and thunder.  \nAt the bottom, all the lost things she had ever loved were waiting for her.  \nMara smiled, picked up her childhood kite, and finally remembered how to fly.",
+  "score": 5,
+  "cost": 0.001692,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 137
+  }
+}

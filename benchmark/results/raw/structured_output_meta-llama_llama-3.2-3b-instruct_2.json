@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 2,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"product\": \"iPhone 15 Pro\",\n  \"price\": 999.0,\n  \"colors\": [\n    \"black titanium\",\n    \"white titanium\",\n    \"blue titanium\"\n  ],\n  \"storage_options\": [\n    \"128GB\",\n    \"256GB\",\n    \"512GB\",\n    \"1TB\"\n  ]\n}\n```\n\nNote that I've converted the price to a float, as it was specified in the original text as a dollar amount. Let me know if you'd like me to change it to a string instead!",
+  "score": 5,
+  "cost": 1.1322e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 126
+  }
+}

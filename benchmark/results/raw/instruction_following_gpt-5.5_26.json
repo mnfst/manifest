@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle is the continuous movement of water on, above, and below Earth\u2019s surface. It is powered mainly by the Sun, which heats water in oceans, lakes, rivers, and soil. This heat causes evaporation, where liquid water changes into water vapor and rises into the atmosphere.\n\nPlants also add water vapor to the air through a process called transpiration. As water vapor rises, it cools and changes back into tiny liquid droplets or ice crystals. This process is called condensation, and it forms clouds.\n\nWhen the droplets or crystals in clouds become heavy enough, they fall back to Earth as precipitation. Precipitation can be rain, snow, sleet, or hail, depending on the temperature and weather conditions.\n\nAfter water reaches the ground, it may flow over the surface as runoff into rivers, lakes, and oceans. Some water soaks into the ground and becomes groundwater, which can later return to springs, rivers, or the ocean. Then the cycle begins again.",
+  "score": 5,
+  "cost": 0.002775,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 227
+  }
+}

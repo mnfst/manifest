@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "long_summarization",
+  "case": 42,
+  "response": "The global food system faces growing strain as the population is expected to reach 9.7 billion by 2050, requiring a 60% increase in food production. Climate change, water scarcity, and soil degradation are reducing agricultural productivity, while agriculture contributes about 25% of global greenhouse gas emissions. Key pressures include depletion of major aquifers such as the Ogallala, degradation of 33% of arable land, and the loss or waste of roughly one-third of all food produced. Potential solutions include precision agriculture, vertical farming, alternative proteins, drought-resistant crops, regenerative farming, and policy reforms, but they must be scaled while keeping food affordable and accessible.",
+  "score": 5,
+  "cost": 0.002532,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 138
+  }
+}

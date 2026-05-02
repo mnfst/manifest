@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known for their unwavering loyalty to their families, always standing by their side through thick and thin. Their tails wagging furiously with excitement, they are loyal companions that never fail to bring joy to those around them. Whether it's a loyal friend or a loyal pet, dogs have a way of winning hearts with their unwavering devotion. From loyal service dogs to loyal family pets, these animals are truly loyal in every way, always ready to lend a helping paw.",
+  "score": 4,
+  "cost": 3.429e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 100
+  }
+}

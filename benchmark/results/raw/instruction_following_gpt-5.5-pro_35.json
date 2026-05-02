@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "At dawn, Mara found a glass key buried in the ash of yesterday's bonfire. It hummed when she held it, pointing her toward the locked lighthouse that no one in town could enter. Inside, she discovered not dust, but a staircase of stars spiraling into a sky beneath the sea. At the top waited her brother, missing for seven years and still holding the paper kite they had made as children. He smiled sadly and said the key would let only one of them return. Mara pressed it into his hand, then watched the sea-sky close around her like a gentle, shining door.",
+  "score": 5,
+  "cost": 0.00671,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 331
+  }
+}

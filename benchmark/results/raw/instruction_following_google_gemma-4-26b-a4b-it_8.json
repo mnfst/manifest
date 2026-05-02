@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a digital notebook that everyone can see, but no one can erase or change once something is written in it. Every time someone adds a new page, everyone gets a copy to make sure everything stays honest. It\u2019s like a shared game where everyone keeps track of the score together so no one can cheat!",
+  "score": 5,
+  "cost": 5.639999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 64
+  }
+}

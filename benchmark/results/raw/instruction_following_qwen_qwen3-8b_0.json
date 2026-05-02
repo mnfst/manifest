@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- **Improves cardiovascular health** by strengthening the heart and enhancing circulation.  \n- **Boosts mental well-being** through the release of endorphins, reducing stress and anxiety.  \n- **Enhances physical fitness** by increasing strength, endurance, and flexibility.",
+  "score": 5,
+  "cost": 1.5200000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 284
+  }
+}

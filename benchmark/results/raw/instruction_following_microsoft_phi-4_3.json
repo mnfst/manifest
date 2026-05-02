@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE, GERMANY, ITALY, SPAIN, RUSSIA",
+  "score": 5,
+  "cost": 2.4699999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 18
+  }
+}

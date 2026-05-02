@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 36,
+  "response": "This function performs standard (naive) matrix multiplication of an `m \u00d7 n` matrix `A` by an `n \u00d7 p` matrix `B`. It uses three nested loops to compute each output entry as the dot product of a row of `A` and a column of `B`, producing an `m \u00d7 p` result.",
+  "score": 5,
+  "cost": 0.003455,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 143
+  }
+}

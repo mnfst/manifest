@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "Here are three facts about the moon:\n\n1. The moon is the fifth-largest moon in the solar system, with a diameter of approximately 2,159 miles (3,475 kilometers).\n\n2. The moon is moving away from the Earth at a rate of about 1.5 inches (3.8 centimeters) per year.\n\n3. The moon is thought to have formed about 4.5 billion years ago, and is believed to have originated from debris left over from a massive collision between the Earth and a Mars-sized object called Theia.",
+  "score": 5,
+  "cost": 3.888e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 113
+  }
+}

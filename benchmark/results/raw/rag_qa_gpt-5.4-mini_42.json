@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "The Moselle contributes most, with an average discharge of more than 300 m3/s.",
+  "score": 4,
+  "cost": 8.609999999999999e-05,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 199,
+    "output": 22
+  }
+}

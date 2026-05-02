@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "multistep_reasoning",
+  "case": 36,
+  "response": "The momentum of an object is calculated using the formula $ p = m \\times v $, where $ m $ is mass and $ v $ is velocity. \n\nGiven:\n- Mass $ m = 0.15 \\, \\text{kg} $\n- Velocity $ v = 40 \\, \\text{m/s} $\n\nCalculating momentum:\n$$\np = 0.15 \\, \\text{kg} \\times 40 \\, \\text{m/s} = 6.0 \\, \\text{kg} \\cdot \\text{m/s}\n$$\n\nThe correct answer is **C**.\n\nAnswer: C",
+  "score": 5,
+  "cost": 4.57e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 127,
+    "output": 787
+  }
+}

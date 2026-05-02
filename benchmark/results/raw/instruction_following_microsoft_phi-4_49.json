@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Certainly! Here are three different greetings for a chatbot, each with a distinct tone:\n\n**Formal:**\n\"Good day. Welcome to [Company Name]. How may I assist you today?\"\n\n**Casual:**\n\"Hey there! Welcome to [Company Name]. What can I help you with today?\"\n\n**Humorous:**\n\"Hello! I'm not just a chatbot, I'm a chatbot with a sense of humor. How can I make your day a little brighter at [Company Name]?\"",
+  "score": 5,
+  "cost": 8.580000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 106
+  }
+}

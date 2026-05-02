@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Think of an API as a **waiter in a restaurant**. \n\nImagine you are sitting at a table, looking at a menu. You know what you want to eat, but you cannot just walk into the kitchen, open the fridge, and start cooking. The kitchen is a separate area, and you don't know how they organize their ingredients or how they cook the meals. \n\nSo, how do you get your food? You use the waiter. \n\n1. You give your order to the waiter.\n2. The waiter walks to the kitchen and tells the chefs exactly what you want.\n3. The chefs prepare the meal.\n4. The waiter brings the finished meal back to your table.\n\nAn API does the exact same thing, but for the different things you use on your phone or computer. It is simply a **messenger** that takes a request from one place, delivers it to another place, and brings the answer back.\n\n**A Real-World Example:**\nImagine you are using a travel website to find the cheapest flight for a vacation. That travel website does not own any airplanes. To show you the flight times and prices, it needs to ask the airlines (like Delta, United, or Southwest) for their schedules. \n\nThe travel website cannot go directly into the airlines' private filing cabinets to look at their schedules. Instead, the travel website uses an API (the waiter). \n\nThe travel website tells the API, *\"Please ask the airlines for all flights to Hawaii on Friday.\"* The API runs to the airlines, gets the flight times and prices, and carries that information right back to the travel website so you can see it on your screen. \n\nIn short, an API is just a messenger that allows two completely different things to talk to each other and share information, without needing to know how the other one works on the inside.",
+  "score": 5,
+  "cost": 0.005825,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 386
+  }
+}

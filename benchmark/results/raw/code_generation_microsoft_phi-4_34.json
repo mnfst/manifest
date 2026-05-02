@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 34,
+  "response": "```python\nfrom math import sqrt\n\ndef is_prime(num):\n    if num <= 1:\n        return False\n    for i in range(2, int(sqrt(num)) + 1):\n        if num % i == 0:\n            return False\n    return True\n\ndef x_or_y(n, x, y):\n    return x if is_prime(n) else y\n```",
+  "score": 5,
+  "cost": 1.3715000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 81
+  }
+}

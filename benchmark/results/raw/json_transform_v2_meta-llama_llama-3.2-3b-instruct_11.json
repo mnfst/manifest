@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "json_transform_v2",
+  "case": 11,
+  "response": "```json\n{\"sensors\": [{\"id\": \"temp_1\", \"avg\": 22.3, \"min\": 21.0, \"max\": 23.5, \"anomalies\": 0}, {\"id\": \"temp_2\", \"avg\": 21.1, \"min\": 21.0, \"max\": 28.5, \"anomalies\": 0}]}\n```",
+  "score": 3,
+  "cost": 1.2393000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 90
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "Not found in context.",
+  "score": 2,
+  "cost": 1.4900000000000001e-05,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 117,
+    "output": 8
+  }
+}

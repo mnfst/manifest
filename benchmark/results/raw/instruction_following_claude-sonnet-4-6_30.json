@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Here is a pizza described using only adjectives and nouns:\n\nA round, flat, golden crust. Thick, rich, crimson tomato sauce. Generous layers of soft, creamy, white mozzarella. Fragrant, dark, circular pepperoni slices. Fresh, bright, green basil leaves. Tiny, glistening, black olive pieces. A warm, savory, aromatic masterpiece.",
+  "score": 5,
+  "cost": 0.001509,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 96
+  }
+}

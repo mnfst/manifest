@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are 4 words that rhyme with **cat**:\n\n1. Bat\n2. Hat\n3. Mat\n4. Rat",
+  "score": 5,
+  "cost": 3.12e-06,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 28
+  }
+}

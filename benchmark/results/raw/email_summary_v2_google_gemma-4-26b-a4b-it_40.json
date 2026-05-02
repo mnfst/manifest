@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows that most departments met their targets, though Product missed its goal due to delays in the AI feature. To address this, the AI OKR will be carried forward with increased resources, and next quarter's planning begins this Monday.",
+  "score": 5,
+  "cost": 1.0919999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 53
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "multistep_reasoning",
+  "case": 13,
+  "response": "B) Record in a table how each object behaves.",
+  "score": 5,
+  "cost": 1.49e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 113,
+    "output": 12
+  }
+}

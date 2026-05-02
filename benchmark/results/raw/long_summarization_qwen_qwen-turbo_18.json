@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "long_summarization",
+  "case": 18,
+  "response": "The global food system faces significant challenges due to a growing population, climate change, and resource depletion. By 2050, food production must increase by 60%, but factors like water scarcity, soil degradation, and greenhouse gas emissions threaten this goal. Solutions such as precision agriculture, vertical farming, and alternative proteins are being explored, along with policy reforms. However, scaling these innovations while keeping food affordable for the world's poorest remains a major challenge.",
+  "score": 5,
+  "cost": 1.3233e-05,
+  "expected": "",
+  "tokens": {
+    "input": 308,
+    "output": 93
+  }
+}

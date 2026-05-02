@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 29,
+  "response": "The equation for cellular respiration is:\n\n**C\u2086H\u2081\u2082O\u2086 (glucose/sugar) + 6O\u2082 (oxygen) \u2192 6CO\u2082 (carbon dioxide) + 6H\u2082O (water) + ATP (energy)**\n\n- **Reactants (used):** glucose (sugar) and oxygen\n- **Products (waste):** carbon dioxide and water\n- **Purpose:** provides energy (ATP) to cells\n\nThis matches option A.\n\n**A**",
+  "score": 5,
+  "cost": 0.002223,
+  "expected": "A",
+  "tokens": {
+    "input": 161,
+    "output": 116
+  }
+}

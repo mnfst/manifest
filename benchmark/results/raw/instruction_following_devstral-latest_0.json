@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "Here are three key benefits of exercise:\n\n- **Improves physical health**: Strengthens muscles, enhances cardiovascular health, and helps maintain a healthy weight.\n- **Boosts mental well-being**: Reduces stress, anxiety, and depression while improving mood and cognitive function.\n- **Increases energy levels**: Enhances stamina and reduces fatigue, making daily activities easier.",
+  "score": 5,
+  "cost": 2.43e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 76
+  }
+}

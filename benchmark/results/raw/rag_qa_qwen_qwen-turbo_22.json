@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "Answer: The South African Schools Act of 1996",
+  "score": 5,
+  "cost": 5.412000000000001e-06,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 151,
+    "output": 13
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code implements the **0/1 Knapsack problem** using a **dynamic programming** approach. It builds a 2D table to calculate the maximum possible value that can be obtained by selecting a subset of items without exceeding a given weight capacity.",
+  "score": 5,
+  "cost": 1.386e-05,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 51
+  }
+}

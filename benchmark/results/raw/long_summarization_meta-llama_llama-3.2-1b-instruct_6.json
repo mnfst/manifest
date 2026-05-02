@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe shift from remote work to a mainstream practice has been a gradual process, with a significant increase in remote work from less than 5% of workers in 2020 to over 50% in 2022. The COVID-19 pandemic accelerated this trend, with many companies adopting remote work arrangements to mitigate the impact of the pandemic. Research has shown mixed results on productivity, with some studies suggesting that remote work can be effective, while others have found mixed results. The pandemic also led to a shift in the way companies approach office space, with a greater emphasis on hybrid models and geographic arbitrage, where workers move to lower-cost areas.",
+  "score": 4,
+  "cost": 7.938e-06,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 144
+  }
+}

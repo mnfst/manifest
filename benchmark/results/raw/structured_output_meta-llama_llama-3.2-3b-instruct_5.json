@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 5,
+  "response": "Here is the extracted information in JSON format:\n\n```\n{\n  \"name\": \"Spaghetti Carbonara\",\n  \"servings\": 4,\n  \"prep_time_minutes\": 25,\n  \"ingredients\": [\n    {\n      \"item\": \"spaghetti\",\n      \"amount\": \"400g\"\n    },\n    {\n      \"item\": \"guanciale\",\n      \"amount\": \"200g\"\n    },\n    {\n      \"item\": \"eggs\",\n      \"amount\": \"4\"\n    },\n    {\n      \"item\": \"pecorino\",\n      \"amount\": \"100g\"\n    }\n  ]\n}\n```\n\nNote that I've assumed that \"black pepper\" is not an ingredient, as it's not explicitly mentioned as a separate ingredient, but rather as a seasoning. If you'd like to include it as an ingredient, please let me know and I can add it to the JSON.",
+  "score": 5,
+  "cost": 1.5146999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 187
+  }
+}

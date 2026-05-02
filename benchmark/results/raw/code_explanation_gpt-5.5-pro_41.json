@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This computes the standard CRC-32 checksum of `data` using a bit-by-bit, LSB-first algorithm. It uses the reflected CRC-32 polynomial `0xEDB88320` with initial and final XOR value `0xFFFFFFFF`, rather than a lookup-table implementation.",
+  "score": 5,
+  "cost": 0.00312,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 129
+  }
+}

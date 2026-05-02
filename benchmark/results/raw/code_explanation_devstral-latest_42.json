@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous queue (`AsyncQueue`) that allows concurrent producers and consumers to interact safely. It uses a **producer-consumer pattern** with **asynchronous waiting**: when the queue is full (if `maxsize` is set), `put()` operations wait by creating and awaiting futures, and when the queue is empty, `get()` operations do the same. The futures are resolved when space becomes available (for `put`) or when an item is added (for `get`), ensuring thread-safe coordination without blocking.",
+  "score": 5,
+  "cost": 5.3899999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 215,
+    "output": 108
+  }
+}

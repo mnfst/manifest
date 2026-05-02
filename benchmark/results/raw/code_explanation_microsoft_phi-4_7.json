@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "The provided code defines a decorator function `lru_cache` that implements a Least Recently Used (LRU) caching mechanism. It uses an `OrderedDict` to store function call results, ensuring that the most recently accessed items are kept at the end. When the cache exceeds the specified `maxsize`, the least recently used item (the first item in the `OrderedDict`) is removed. This pattern optimizes function calls by storing and reusing results of expensive function calls with the same arguments, thus improving performance for repeated calls.",
+  "score": 5,
+  "cost": 1.4690000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 108
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "structured_output",
+  "case": 29,
+  "response": "{\"bedrooms\":2,\"bathrooms\":1,\"sqft\":850,\"rent_monthly\":2400,\"address\":\"789 Pine St #3\",\"city\":\"Brooklyn\",\"state\":\"NY\",\"zip\":\"11201\",\"available_date\":\"April 1\",\"pets_allowed\":true,\"amenities\":[\"Laundry in-unit\"],\"broker_fee\":false}",
+  "score": 5,
+  "cost": 0.00427,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 176
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Here's a simple explanation:\n\n**Imagine a notebook that thousands of people all have a copy of.** When someone writes something new in it, everyone's notebook updates at the same time, so nobody can secretly erase or change what was written. This makes it really hard for anyone to cheat! \ud83d\udcd3",
+  "score": 5,
+  "cost": 0.001113,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 69
+  }
+}

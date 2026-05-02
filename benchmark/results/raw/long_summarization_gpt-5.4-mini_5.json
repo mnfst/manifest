@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Since Alexander Fleming discovered penicillin in 1928, antibiotics have revolutionized medicine by making surgeries safer and treating once-fatal infections, with a major \u201cgolden age\u201d of antibiotic discovery in the 1950s-60s. However, new antibiotic development has slowed because of poor financial returns, while overuse in medicine and agriculture has accelerated antimicrobial resistance, including dangerous strains like MRSA. The result is a growing global crisis as resistant bacteria spread and existing drugs lose effectiveness. Current responses include research into phage therapy, CRISPR-based methods, and AI-driven antibiotic discovery.",
+  "score": 5,
+  "cost": 0.000186,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 121
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here are the ingredients for a basic salad:\n\n- [ ] Romaine lettuce or mixed greens\n- [ ] Cherry tomatoes\n- [ ] Cucumber\n- [ ] Red onion\n- [ ] Carrots\n- [ ] Bell pepper\n- [ ] Croutons\n- [ ] Shredded cheese\n- [ ] Salad dressing of your choice\n- [ ] Salt and pepper",
+  "score": 5,
+  "cost": 0.001488,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 95
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "Here is the converted text:\n\nThe server, located in the us-east-1 region, is currently running at 78% CPU usage, utilizing 12.4 out of 16 GB of available memory, and has a disk space of 234 out of 500 GB. The server has been up and running for 45 days, with an average of 127 connections and a P99 latency of 145ms. Additionally, the server experiences an average of 3 errors per hour.",
+  "score": 0,
+  "cost": 1.0404e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 100
+  }
+}

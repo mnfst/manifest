@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 46,
+  "response": "This code implements the standard **insertion fixup (rebalancing) algorithm** for a Red-Black Tree to restore its structural properties after a new node is added. It resolves \"double red\" violations (consecutive red nodes) by iteratively applying a specific pattern of node recoloring and tree rotations (left and right) based on the color of the current node's \"uncle\".",
+  "score": 5,
+  "cost": 0.0017075,
+  "expected": "",
+  "tokens": {
+    "input": 221,
+    "output": 77
+  }
+}

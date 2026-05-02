@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "long_summarization",
+  "case": 13,
+  "response": "Quantum computers use qubits, which can exist in multiple states simultaneously through superposition, entanglement, and interference, enabling them to solve certain problems exponentially faster than classical computers. In 2019, Google demonstrated this potential by completing a calculation in 200 seconds that would take a classical supercomputer 10,000 years. However, significant technical hurdles remain, including extreme fragility of qubits, high error rates, and the need for millions of qubits for practical use \u2014 far beyond the current 100\u20131,000 qubit range. Despite these challenges, major companies like IBM, Google, IonQ, and Rigetti are actively developing quantum hardware, with promising applications in drug discovery, cryptography, materials science, and optimization.",
+  "score": 5,
+  "cost": 0.003402,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 165
+  }
+}

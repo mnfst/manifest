@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 22,
+  "response": "depth = 0\n    for b in brackets:\n        if b == '<':\n            depth += 1\n        else:\n            depth -= 1\n        if depth < 0:\n            return False\n    return depth == 0",
+  "score": 5,
+  "cost": 0.001115,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 54
+  }
+}

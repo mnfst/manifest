@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "Based on the provided context, the very first television station to broadcast in Fresno was **KMJ-TV**, which debuted on **June 1, 1953**. It is now known as NBC affiliate KSEE.",
+  "score": 5,
+  "cost": 0.001554,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 248,
+    "output": 54
+  }
+}

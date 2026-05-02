@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 9,
+  "response": "if not lst:\n    return 0\ns = 0\nfor x in lst:\n    if isinstance(x, int) and x >= 0 and x % 2 != 0:\n        s += x * x\nreturn s",
+  "score": 5,
+  "cost": 3.76e-05,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "json_transform_v2",
+  "case": 37,
+  "response": "```json\n{\n  \"company\": \"Acme Corp\",\n  \"age_years\": 8,\n  \"size\": \"medium\",\n  \"total_funding\": 250000000,\n  \"latest_round\": {\n    \"series\": \"B\",\n    \"amount\": 200000000\n  }\n}\n```",
+  "score": 2,
+  "cost": 1.4625e-05,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 66
+  }
+}

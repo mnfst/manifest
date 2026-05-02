@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**4.5/5 stars**\n\nI recently had the pleasure of dining at Bistro Bliss, a cozy and intimate restaurant located in the heart of the city. From the moment I walked in, I was impressed by the warm and inviting atmosphere. The decor was modern and chic, with a hint of rustic charm that added to the overall ambiance.\n\nOur server, Alex, was attentive and knowledgeable, taking the time to explain the daily specials and making recommendations based on our preferences. The menu was diverse and creative, with a focus on locally sourced ingredients and innovative flavor combinations.\n\nWe started with the Fried Cauliflower Bites, which were crispy on the outside and tender on the inside, served with a side of tangy aioli. The main courses were equally impressive, with the Grilled Salmon being a standout. The fish was cooked to perfection, with a beautiful char on the outside and a flaky, moist interior. The accompanying quinoa and roasted vegetables were also delicious, and the flavors complemented the salmon beautifully.\n\nFor dessert, we shared the Chocolate Lava Cake, which was rich and decadent, with a gooey center that was simply irresistible. The service was top-notch, with Alex checking in regularly to ensure that we had everything we needed.\n\nIf I have any criticisms, it's that the prices were a bit higher than I expected, and the portions could have been a bit larger. However, overall, Bistro Bliss is a must-visit for anyone looking for a high-quality dining experience in the city.\n\n**Rating Breakdown:**\n\n* Food: 4.5/5\n* Service: 5/5\n* Ambiance: 4.5/5\n* Value: 4/5\n\n**Recommendation:** If you're looking for a special occasion dinner or a night out with friends, Bistro Bliss is an excellent choice. Be sure to make a reservation in advance, as it can get quite busy.",
+  "score": 5,
+  "cost": 2.1573e-05,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 395
+  }
+}

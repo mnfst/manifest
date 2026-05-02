@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 46,
+  "response": "best_val = None\nbest_idx = -1\n\nfor i, x in enumerate(arr):\n    if x % 2 == 0:\n        if best_val is None or x < best_val:\n            best_val = x\n            best_idx = i\n\nif best_val is None:\n    return []\n\nreturn [best_val, best_idx]",
+  "score": 5,
+  "cost": 0.00127,
+  "expected": "",
+  "tokens": {
+    "input": 343,
+    "output": 73
+  }
+}

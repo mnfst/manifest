@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 30,
+  "response": "def is_prime(x):\n    if x < 2:\n        return False\n    if x == 2:\n        return True\n    if x % 2 == 0:\n        return False\n    i = 3\n    while i * i <= x:\n        if x % i == 0:\n            return False\n        i += 2\n    return True\n\ncount = 0\na, b = 0, 1\nwhile True:\n    a, b = b, a + b\n    if is_prime(a):\n        count += 1\n        if count == n:\n            return a",
+  "score": 3,
+  "cost": 0.001302,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 131
+  }
+}

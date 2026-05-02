@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 5,
+  "response": "This code implements the **Singleton design pattern** by overriding `__new__` so that only one instance of `Singleton` is ever created. On the first construction, it creates and stores the object in `cls._instance`; on later constructions, it returns that same stored instance instead of making a new one.",
+  "score": 5,
+  "cost": 0.00010140000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 66
+  }
+}

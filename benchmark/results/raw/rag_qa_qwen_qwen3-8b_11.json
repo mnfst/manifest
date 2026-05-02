@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "The context states that Amazonian forests account for **10% of the carbon stores in ecosystems**, which is specified as **1.1 \u00d7 10\u00b9\u00b9 metric tonnes of carbon**. Since the question asks for the **amount of the world's carbon** stored in the Amazon forest, the answer refers to the absolute quantity provided in the context. \n\n**Answer:** 1.1 \u00d7 10\u00b9\u00b9 metric tonnes of carbon.",
+  "score": 5,
+  "cost": 0.00010595,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 180,
+    "output": 1939
+  }
+}

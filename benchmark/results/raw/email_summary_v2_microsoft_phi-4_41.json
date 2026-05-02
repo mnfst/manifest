@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The email proposes upgrading the network from 1Gbps to 10Gbps for $45,000 upfront plus $2,000 monthly, to accommodate current capacity usage and projected growth, recommending this upgrade to avoid revisiting the issue in six months. Alternatively, it suggests implementing traffic shaping and CDN optimization for $15,000, but the recommendation leans towards the 10Gbps upgrade due to growth projections.",
+  "score": 5,
+  "cost": 1.3e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 84
+  }
+}

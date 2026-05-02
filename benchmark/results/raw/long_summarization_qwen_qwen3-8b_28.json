@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "long_summarization",
+  "case": 28,
+  "response": "The internet originated in the 1960s with ARPANET, a U.S. Department of Defense-funded project, and evolved through key milestones like the 1983 adoption of TCP/IP protocols, Tim Berners-Lee\u2019s 1989 invention of the World Wide Web, and the 1993 launch of Mosaic, which democratized web access. The dot-com boom of the late 1990s and subsequent crash in 2001 reshaped the landscape, with survivors like Amazon and Google becoming global giants. The rise of social media in the mid-2000s and mobile internet, spurred by the iPhone in 2007, expanded the web\u2019s reach, while cloud computing (e.g., AWS in 2006) further transformed digital infrastructure. Today, the internet connects over 5 billion people, underpinning modern life in commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 4.6450000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 336,
+    "output": 593
+  }
+}

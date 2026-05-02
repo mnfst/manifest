@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 11,
+  "response": "```python\n    if not numbers:\n        return (0, 1)\n    total_sum = sum(numbers)\n    total_product = 1\n    for num in numbers:\n        total_product *= num\n    return (total_sum, total_product)\n```",
+  "score": 5,
+  "cost": 3.03e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 54
+  }
+}

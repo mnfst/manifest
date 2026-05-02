@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This implements a **Union-Find / Disjoint Set Union (DSU)** data structure with **path compression** in `find()` and **union by rank** in `union()`, maintaining connected components among `n` elements. The function returns the two operations (`find` to locate a component\u2019s representative and `union` to merge two components) efficiently.",
+  "score": 5,
+  "cost": 4.6200000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 76
+  }
+}

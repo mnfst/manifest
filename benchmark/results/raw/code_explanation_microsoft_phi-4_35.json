@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "The provided code implements the Knuth-Morris-Pratt (KMP) string searching algorithm, which efficiently finds the first occurrence of a `pattern` within a `text`. The algorithm preprocesses the `pattern` to create a longest prefix suffix (LPS) array, which is used to skip unnecessary comparisons in the `text`. This preprocessing allows the search to run in O(n + m) time, where n is the length of the `text` and m is the length of the `pattern`. If the `pattern` is found, the function returns the starting index of the first occurrence; otherwise, it returns -1.",
+  "score": 5,
+  "cost": 2.0475000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 130
+  }
+}

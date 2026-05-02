@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "json_transform_v2",
+  "case": 11,
+  "response": "```json\n{\"sensors\": [{\"id\": \"temp_1\", \"avg\": 22.42, \"min\": 22.0, \"max\": 23.5, \"anomalies\": 0}, {\"id\": \"temp_2\", \"avg\": 22.56, \"min\": 21.0, \"max\": 28.5, \"anomalies\": 1}]}\n```",
+  "score": 3,
+  "cost": 1.572e-05,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 97
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "The Charles River.",
+  "score": 5,
+  "cost": 0.0006775,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 247,
+    "output": 4
+  }
+}

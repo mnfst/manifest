@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test revealed a gap between the target recovery time objective (RTO) of 4 hours and the actual RTO of 6 hours and 23 minutes, primarily due to the database restore taking longer than expected. It is recommended to increase backup frequency and pre-provision a standby database to address this issue, with the next test scheduled for October.",
+  "score": 5,
+  "cost": 1.2285e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 75
+  }
+}

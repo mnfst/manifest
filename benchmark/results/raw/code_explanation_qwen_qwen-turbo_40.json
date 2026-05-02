@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements a **circuit breaker pattern** that prevents repeated failed calls to a function by tripping a \"circuit\" after a set number of failures. When the circuit is open, it blocks further calls until a timeout period has passed, after which it transitions to a \"half-open\" state to allow a single test call.",
+  "score": 5,
+  "cost": 9.075e-06,
+  "expected": "",
+  "tokens": {
+    "input": 207,
+    "output": 68
+  }
+}

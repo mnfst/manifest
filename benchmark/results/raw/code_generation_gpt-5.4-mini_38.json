@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 38,
+  "response": "negatives = [x for x in lst if isinstance(x, int) and x < 0]\n    positives = [x for x in lst if isinstance(x, int) and x > 0]\n    a = max(negatives) if negatives else None\n    b = min(positives) if positives else None\n    return (a, b)",
+  "score": 5,
+  "cost": 0.0001455,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 78
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "structured_output",
+  "case": 23,
+  "response": "```json\n{\n  \"type\": \"Notification\",\n  \"tracking_number\": \"TRK-99281\",\n  \"status\": \"delivered\",\n  \"delivery_location\": \"front door\",\n  \"delivery_time\": \"2:15 PM\",\n  \"delivery_date\": \"March 12\",\n  \"signed_by\": \"M. Johnson\",\n  \"carrier\": \"FedEx\"\n}\n```",
+  "score": 5,
+  "cost": 3.82e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 89
+  }
+}

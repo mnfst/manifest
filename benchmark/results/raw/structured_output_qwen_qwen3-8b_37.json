@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "structured_output",
+  "case": 37,
+  "response": "{\n  \"serving_size\": \"1 cup (240ml)\",\n  \"calories\": 120,\n  \"fat_g\": 2.0,\n  \"saturated_fat_g\": 0.5,\n  \"sodium_mg\": 150,\n  \"carbs_g\": 22,\n  \"fiber_g\": 3,\n  \"sugar_g\": 12,\n  \"protein_g\": 4\n}",
+  "score": 5,
+  "cost": 4.715000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 791
+  }
+}

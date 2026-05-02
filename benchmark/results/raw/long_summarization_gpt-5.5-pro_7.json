@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "Space exploration in the 2020s is being reshaped by both national programs and private companies: SpaceX is developing Starship, NASA\u2019s Artemis program aims to return astronauts to the Moon, JWST launched in 2021 is transforming astronomy, and China has completed its Tiangong space station while pursuing lunar goals. India\u2019s Chandrayaan-3 made a historic lunar south-pole-region landing in 2023, showing that space leadership is becoming more multipolar. Commercial growth is accelerating through satellite internet constellations like Starlink and OneWeb, space tourism from Blue Origin and Virgin Galactic, and speculative asteroid-mining plans. A major challenge is governance: the 1967 Outer Space Treaty leaves gaps on resource rights, traffic management, and debris, while thousands of satellites and debris objects threaten orbital sustainability.",
+  "score": 5,
+  "cost": 0.018585,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 896
+  }
+}

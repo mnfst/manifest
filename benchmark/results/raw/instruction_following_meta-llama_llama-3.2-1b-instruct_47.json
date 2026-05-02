@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here are the steps to create a good password:\n\n1. **Use a combination of characters**: A good password should include a mix of uppercase and lowercase letters, numbers, and special characters. This makes it more difficult to guess and crack.\n\n2. **Length is key**: The longer the password, the more secure it is. Aim for a minimum of 12 characters, but 16-20 characters is recommended.\n\n3. **Use a mix of character types**: Include a mix of:\n\t* Uppercase letters (A-Z)\n\t* Lowercase letters (a-z)\n\t* Numbers (0-9)\n\t* Special characters (!, @, #, $, etc.)\n\n4. **Avoid common patterns**: Steer clear of patterns like \"qwerty\" or \"123456\", as these are easily guessable.\n\n5. **Don't use easily guessable information**: Avoid using your name, birthdate, or common words that can be easily guessed.\n\n6. **Don't reuse passwords**: Use a unique password for each account. If you have multiple accounts, use a password manager to generate and store unique passwords.\n\n7. **Use a password manager**: Consider using a password manager to generate and store unique, complex passwords for each account.\n\n8. **Avoid using the same password for multiple accounts**: Use a different password for each account, especially for sensitive accounts like banking or email.\n\n9. **Don't share your password**: Never share your password with anyone, and avoid writing it down or sharing it in public.\n\n10. **Change your password regularly**: Change your password every 60-90 days to maintain maximum security.\n\n11. **Use two-factor authentication (2FA)**: Enable 2FA whenever possible to add an extra layer of security to your accounts.\n\n12. **Be cautious with public Wi-Fi**: When using public Wi-Fi, avoid using your password manager or typing in your password directly into the browser. Instead, use a VPN (Virtual Private Network) to encrypt your internet connection.\n\nBy following these steps, you can create a strong and secure password that protects your online identity.",
+  "score": 4,
+  "cost": 1.2203999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 430
+  }
+}

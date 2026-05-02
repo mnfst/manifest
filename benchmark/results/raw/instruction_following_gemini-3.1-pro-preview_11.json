@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Is this a game we are playing? Why do you want me to communicate this way? What kind of questions would you like me to ask? Did you know this is actually quite fun? Are you ready to answer them?",
+  "score": 5,
+  "cost": 0.0006975,
+  "expected": "",
+  "tokens": {
+    "input": 9,
+    "output": 45
+  }
+}

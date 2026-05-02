@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "The code partitions an iterable into two separate iterators: one containing elements that satisfy the predicate and another with elements that do not, using `itertools.tee` to duplicate the input and `filter`/`filterfalse` to split them. This leverages the **partitioning pattern** with functional programming tools.",
+  "score": 5,
+  "cost": 2.1e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 349
+  }
+}

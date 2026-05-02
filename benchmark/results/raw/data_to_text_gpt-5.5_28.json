@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "Founded in 1861, MIT is ranked #1 and enrolls about 11,500 students, with a highly selective acceptance rate of 3.9%. The university charges $57,590 per year in tuition, has a $24.6 billion endowment, employs 1,069 faculty members, and is associated with 98 Nobel laureates.",
+  "score": 5,
+  "cost": 0.001446,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 96
+  }
+}

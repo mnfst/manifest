@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "Another group mentioned in the context that is struggling in the Amazon is the Urarina. They continue to fight for their cultural survival and the fate of their forested territories.",
+  "score": 5,
+  "cost": 1.261e-05,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 158,
+    "output": 36
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Restaurant Review: *The Velvet Vine***\n\n**Rating: \u2b50\u2b50\u2b50\u2b50\u2b50 (5/5)**\n\nTucked away in a quiet corner of the city, *The Velvet Vine* is a hidden gem that feels like stepping into a dream. From the moment you cross the threshold, you're enveloped in a warm, inviting atmosphere that blends rustic charm with modern elegance. The soft lighting, rich wood accents, and the gentle hum of conversation create an ambiance that's both intimate and refined.\n\nThe menu at *The Velvet Vine* is a masterclass in creativity. Each dish is a work of art, not just in presentation but in flavor. I started with the *Roasted Butternut Squash Velout\u00e9*, a silky, comforting soup that was both rich and refreshing. For the main course, I tried the *Herb-Crusted Lamb Loin*, which was cooked to perfection\u2014tender, juicy, and bursting with aromatic herbs. The side of truffle mashed potatoes was an absolute revelation, adding a luxurious touch to an already stellar meal.\n\nWhat truly sets *The Velvet Vine* apart, however, is the service. The staff is knowledgeable, attentive, and genuinely passionate about the food and wine. The sommelier recommended a perfectly paired red wine that complemented the meal without overpowering it. Every detail, from the carefully curated wine list to the thoughtfully designed menu, reflects a deep commitment to quality and experience.\n\nThe dessert menu is equally impressive. I couldn\u2019t resist the *Dark Chocolate Tarte Tatin*, a molten, caramel-drenched masterpiece that was the perfect ending to an unforgettable meal.\n\n*The Velvet Vine* isn\u2019t just a restaurant\u2014it\u2019s an experience. Whether you're celebrating a special occasion or simply looking for a place to unwind with great food and excellent service, this is the place to go. I can\u2019t wait to return and try more of their seasonal offerings.\n\n**Final Verdict: A must-visit for food lovers. 5 stars without a doubt.**",
+  "score": 5,
+  "cost": 1.4553000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 412
+  }
+}

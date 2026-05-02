@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 42,
+  "response": "```python\n    if n > m:\n        return -1\n    avg = round((n + m) / 2)\n    return bin(avg)\n```",
+  "score": 4,
+  "cost": 0.001164,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 40
+  }
+}

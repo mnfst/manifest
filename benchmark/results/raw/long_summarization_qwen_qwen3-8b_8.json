@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Artificial intelligence evolved from Turing's foundational questions through AI winters in the 1970s\u20131980s to a resurgence in the 2010s via deep learning, culminating in the 2017 transformer architecture and models like GPT, driven by the scaling hypothesis. The race between OpenAI, Google, Anthropic, and Meta intensified debates over open vs. closed-source development, while AI safety concerns\u2014such as alignment, misuse, and job displacement\u2014gained urgency. Regulatory efforts, including the EU AI Act and U.S. executive orders, aim to address risks, as AI reshapes knowledge work economies.",
+  "score": 5,
+  "cost": 3.785e-05,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 600
+  }
+}

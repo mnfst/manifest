@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 41,
+  "response": "```python\n    third_elements = sorted([l[i] for i in range(len(l)) if i % 3 == 0])\n    res = list(l)\n    idx = 0\n    for i in range(len(l)):\n        if i % 3 == 0:\n            res[i] = third_elements[idx]\n            idx += 1\n    return res\n```",
+  "score": 4,
+  "cost": 1.7579999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 199,
+    "output": 94
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "The context mentions the Neckar, Main, and Moselle as tributaries of the Rhine in Germany. However, it does not specify which of these tributaries contributes the most. Therefore, the answer is \"Not found in context.\"",
+  "score": 5,
+  "cost": 1.7485e-05,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 218,
+    "output": 51
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "data_to_text",
+  "case": 46,
+  "response": "During Sprint #23, Team Alpha completed 38 out of 42 planned points between January 15 and 26, slightly exceeding their average velocity of 36. The team successfully finished 8 stories and fixed 5 bugs, despite encountering 2 blockers. Overall, the sprint concluded with a satisfaction rating of 4.1/5.",
+  "score": 0,
+  "cost": 1.11e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 76
+  }
+}

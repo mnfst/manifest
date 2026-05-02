@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "json_transform_v2",
+  "case": 32,
+  "response": "{\"admins\": [\"Alice\", \"Charlie\"], \"users\": [\"Bob\"], \"inactive_count\": 1}",
+  "score": 5,
+  "cost": 9.719999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 24
+  }
+}

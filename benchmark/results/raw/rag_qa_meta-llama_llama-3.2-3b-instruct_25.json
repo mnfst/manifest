@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure.",
+  "score": 5,
+  "cost": 8.568e-06,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 165,
+    "output": 3
+  }
+}

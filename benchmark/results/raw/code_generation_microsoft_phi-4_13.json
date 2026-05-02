@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 13,
+  "response": "```python\nlength = 0\nfor char in string:\n    length += 1\nreturn length\n```",
+  "score": 5,
+  "cost": 6.435e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 24
+  }
+}

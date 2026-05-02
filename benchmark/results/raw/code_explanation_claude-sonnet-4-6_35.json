@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "## Explanation\n\nThis implements the **Knuth-Morris-Pratt (KMP) string search algorithm**, which finds the first occurrence of a `pattern` within a `text`, returning its starting index (or `-1` if not found).\n\nIt works in two phases: first, it builds a **Longest Proper Prefix-Suffix (LPS) table** from the pattern, which encodes how far to \"fall back\" on a mismatch to avoid redundant comparisons; then it uses that table to scan the text in a single left-to-right pass, achieving **O(n + m)** time complexity instead of the naive O(n\u00b7m).",
+  "score": 5,
+  "cost": 0.002889,
+  "expected": "",
+  "tokens": {
+    "input": 213,
+    "output": 150
+  }
+}

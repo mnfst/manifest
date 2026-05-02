@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "Hassan al-Turabi",
+  "score": 5,
+  "cost": 5.519999999999999e-05,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 148,
+    "output": 9
+  }
+}

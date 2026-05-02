@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "Based on the provided context, **North America** uses the term to refer to the whole range of educational activity including tertiary (university) level institutions. In contrast, the United Kingdom and Commonwealth countries like Australia and Canada generally restrict the term to primary and secondary educational levels and almost never use it to refer to universities.",
+  "score": 5,
+  "cost": 0.001506,
+  "expected": "North America",
+  "tokens": {
+    "input": 167,
+    "output": 67
+  }
+}

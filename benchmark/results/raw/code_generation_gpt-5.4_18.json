@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 18,
+  "response": "words = sentence.split()\nprime_lengths = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97}\nreturn \" \".join(word for word in words if len(word) in prime_lengths)",
+  "score": 5,
+  "cost": 0.00118,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 103
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Sure! Here are four rhyming words for **\"cat\"**:  \n1. **Hat**  \n2. **Bat**  \n3. **Mat**  \n4. **Sat**  \n\nLet me know if you'd like more examples! \ud83d\ude0a",
+  "score": 5,
+  "cost": 1.3600000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 252
+  }
+}

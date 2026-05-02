@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 25,
+  "response": "current = ''\nresult = []\ndepth = 0\nfor char in paren_string:\n    if char == ' ':\n        continue\n    if char == '(':\n        depth += 1\n    elif char == ')':\n        depth -= 1\n    current += char\n    if depth == 0 and current:\n        result.append(current)\n        current = ''\nreturn result",
+  "score": 4,
+  "cost": 7.524e-06,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 76
+  }
+}

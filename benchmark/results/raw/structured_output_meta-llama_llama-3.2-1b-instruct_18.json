@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 18,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"plan\": \"Pro Plan\",\n  \"price_monthly\": 29.0,\n  \"price_annual\": 348.0,\n  \"start_date\": \"2024-01-01\",\n  \"renewal_date\": \"2025-01-01\",\n  \"payment_method\": \"Visa\",\n  \"card_last4\": \"4242\",\n  \"status\": \"active\"\n}\n```",
+  "score": 5,
+  "cost": 6.102e-06,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 100
+  }
+}

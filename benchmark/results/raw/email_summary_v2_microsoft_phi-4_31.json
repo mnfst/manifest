@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The email proposes introducing a 'Starter' pricing tier at $29/month, positioned between the Free and Pro tiers, to address the 40% of churned users who leave due to pricing. This new tier, offering 5 users, 10K API calls, and email support, is projected to recover 15% of price-churned users, potentially increasing annual recurring revenue by $180K.",
+  "score": 5,
+  "cost": 1.2675000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 84
+  }
+}

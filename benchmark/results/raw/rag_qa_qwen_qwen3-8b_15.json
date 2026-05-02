@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "The central European country with a Calvinist ruler mentioned in the context is **Prussia**. The Calvinist Great Elector Frederick William welcomed Huguenots to rebuild his war-ravaged country. \n\n**Answer:** Prussia.",
+  "score": 5,
+  "cost": 2.655e-05,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 230,
+    "output": 301
+  }
+}

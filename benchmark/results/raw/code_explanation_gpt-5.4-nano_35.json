@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This implements the **Knuth\u2013Morris\u2013Pratt (KMP)** string-matching algorithm: it first builds the **LPS (longest proper prefix which is also a suffix) array** for the pattern to know how far to shift after mismatches, then scans the text using those LPS jumps to find the first occurrence in **O(n+m)** time. It returns the starting index of the first match (or `-1` if the pattern is not found).",
+  "score": 5,
+  "cost": 5.8700000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 101
+  }
+}

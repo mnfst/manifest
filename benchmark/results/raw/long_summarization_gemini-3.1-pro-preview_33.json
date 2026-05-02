@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "long_summarization",
+  "case": 33,
+  "response": "Quantum computing leverages the unique properties of qubits to potentially solve complex problems exponentially faster than classical computers. Highlighting this immense potential, Google claimed quantum supremacy in 2019 by completing a calculation in just 200 seconds that would have taken a classical supercomputer 10,000 years. However, practical implementation faces severe hardware challenges, as current machines only have 100 to 1,000 qubits, while millions are needed to manage high error rates and extreme qubit fragility. Despite these obstacles, major tech companies continue to advance the technology due to its massive potential to revolutionize fields like drug discovery, cryptography, and logistics.",
+  "score": 5,
+  "cost": 0.002675,
+  "expected": "",
+  "tokens": {
+    "input": 272,
+    "output": 133
+  }
+}

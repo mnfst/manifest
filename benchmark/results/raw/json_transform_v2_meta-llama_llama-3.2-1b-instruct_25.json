@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "json_transform_v2",
+  "case": 25,
+  "response": "```\n{\n  \"items\": 6,\n  \"subtotal\": 999,\n  \"discount_code\": \"SAVE20\",\n  \"member_discount\": true,\n  \"estimated_total\": 999\n}\n```",
+  "score": 3,
+  "cost": 4.941e-06,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 44
+  }
+}

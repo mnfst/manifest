@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "structured_output",
+  "case": 15,
+  "response": "{\"cpu_percent\":78,\"memory\":{\"used_gb\":12.4,\"total_gb\":16},\"disk\":{\"used_gb\":234,\"total_gb\":500},\"uptime_days\":45,\"active_connections\":127,\"p99_latency_ms\":145}",
+  "score": 5,
+  "cost": 0.00010769999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 57
+  }
+}

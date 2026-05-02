@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 49,
+  "response": "if string == \"\":\n    return \"\"\nfor i in range(len(string)):\n    if is_palindrome(string[i:]):\n        return string + string[:i][::-1]\nreturn string + string[:-1][::-1]",
+  "score": 4,
+  "cost": 0.00010769999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 47
+  }
+}

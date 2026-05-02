@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "The CPU acts as the primary brain of a computer by fetching, decoding, and executing instructions to process data and manage the operations of all other hardware components.",
+  "score": 3,
+  "cost": 3.2999999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 32
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 3,
+  "response": "```python\ndef derivative(xs: list):\n    return [i * x for i, x in enumerate(xs[1:], 1)]\n```",
+  "score": 4,
+  "cost": 8.873999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 30
+  }
+}

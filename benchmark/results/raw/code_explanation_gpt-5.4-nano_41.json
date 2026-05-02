@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This function computes a CRC-32 checksum using the standard reflected bitwise algorithm (polynomial `0xEDB88320`, i.e., CRC-32/IEEE). It starts with `0xFFFFFFFF`, processes each input byte LSB-first by repeatedly shifting and conditionally XORing with the polynomial for 8 bits, and finally bitwise-inverts the result.",
+  "score": 5,
+  "cost": 4.1800000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 78
+  }
+}

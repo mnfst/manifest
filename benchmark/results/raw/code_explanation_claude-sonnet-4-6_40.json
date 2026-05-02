@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "## Circuit Breaker Pattern\n\nThis code implements the **Circuit Breaker design pattern**, which prevents cascading failures by stopping calls to a failing service after a threshold is reached.\n\nThe breaker tracks three states: **closed** (normal operation), **open** (blocking all calls after `threshold` consecutive failures), and **half-open** (allowing a single test call after the `timeout` period expires to check if the service has recovered).",
+  "score": 5,
+  "cost": 0.002163,
+  "expected": "",
+  "tokens": {
+    "input": 241,
+    "output": 96
+  }
+}

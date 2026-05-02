@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 2,
+  "response": "res, lst = [], sorted(lst)\n    i, j = 0, len(lst) - 1\n    while i <= j:\n        res.append(lst[i])\n        i += 1\n        if i <= j:\n            res.append(lst[j])\n            j -= 1\n    return res",
+  "score": 4,
+  "cost": 0.0015625,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 76
+  }
+}

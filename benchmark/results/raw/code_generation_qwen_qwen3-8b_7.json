@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 7,
+  "response": "result = 1\ncurrent_fact = 1\nfor i in range(1, n+1):\n    current_fact *= i\n    result *= current_fact\nreturn result",
+  "score": 5,
+  "cost": 8.1e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 1490
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom",
+  "score": 5,
+  "cost": 0.001645,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 173,
+    "output": 39
+  }
+}

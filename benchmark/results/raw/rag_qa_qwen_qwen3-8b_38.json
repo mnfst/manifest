@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "The nine residential houses are located along or near the Charles River. \n\n**Answer:** Charles River.",
+  "score": 5,
+  "cost": 2.2200000000000004e-05,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 258,
+    "output": 186
+  }
+}

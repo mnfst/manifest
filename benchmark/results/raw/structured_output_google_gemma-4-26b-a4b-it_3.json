@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "structured_output",
+  "case": 3,
+  "response": "```json\n{\n  \"flight_number\": \"AA123\",\n  \"origin\": \"JFK\",\n  \"destination\": \"LAX\",\n  \"departure\": \"3:45pm\",\n  \"arrival\": \"6:30pm\",\n  \"date\": \"March 5\",\n  \"class\": \"Economy\",\n  \"stops\": 1,\n  \"stop_cities\": [\n    \"Dallas\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 1.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 88
+  }
+}

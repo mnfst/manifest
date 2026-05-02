@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "**Mammals**  \n1. Dog  \n2. Cat  \n3. Whale  \n\n**Birds**  \n1. Sparrow  \n2. Eagle  \n3. Penguin  \n\n**Fish**  \n1. Goldfish  \n2. Shark  \n3. Salmon",
+  "score": 5,
+  "cost": 3.01e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 575
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here are the directions from a park to a library using only left and right turns:\n\n1. From the park, head east on Main St.\n2. Turn left onto Oak St.\n3. Continue on Oak St for 0.2 miles.\n4. Turn right onto Maple St.\n5. Continue on Maple St for 0.1 miles.\n6. Turn left onto Library St.\n7. The library will be on your right.\n\nNote: These directions assume a typical suburban or urban layout with a straight street. The exact route may vary depending on the specific location of the park and library.",
+  "score": 5,
+  "cost": 4.05e-06,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 122
+  }
+}

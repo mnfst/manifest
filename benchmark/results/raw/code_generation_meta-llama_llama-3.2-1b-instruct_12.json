@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 12,
+  "response": "from typing import List\n\ndef filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    return [s for s in strings if substring in s]",
+  "score": 5,
+  "cost": 4.4820000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 37
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "data_to_text",
+  "case": 5,
+  "response": "\"Oppenheimer,\" directed by Christopher Nolan and released in 2023, is a compelling drama and history film with a runtime of 180 minutes. With a budget of $100 million, the movie achieved remarkable success at the box office, grossing $952 million. It received critical acclaim, earning an 8.3 rating on IMDb and a 93% score on Rotten Tomatoes. The film's excellence was recognized with an Oscar for Best Picture, solidifying its status as a standout cinematic achievement.",
+  "score": 0,
+  "cost": 1.3130000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 105
+  }
+}

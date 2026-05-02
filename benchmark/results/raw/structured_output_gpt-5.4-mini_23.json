@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "structured_output",
+  "case": 23,
+  "response": "{\"type\":\"package\",\"tracking_number\":\"TRK-99281\",\"status\":\"delivered\",\"delivery_location\":\"front door\",\"delivery_time\":\"2:15 PM\",\"delivery_date\":\"March 12\",\"signed_by\":\"M. Johnson\",\"carrier\":\"FedEx\"}",
+  "score": 5,
+  "cost": 9.93e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 55
+  }
+}

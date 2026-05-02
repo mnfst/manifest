@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 1,
+  "response": "groups = paren_string.split()\nresult = []\nfor group in groups:\n    current_depth = 0\n    max_depth = 0\n    for c in group:\n        if c == '(':\n            current_depth += 1\n            if current_depth > max_depth:\n                max_depth = current_depth\n        elif c == ')':\n            current_depth -= 1\n    result.append(max_depth)\nreturn result",
+  "score": 5,
+  "cost": 6.65e-05,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 1185
+  }
+}

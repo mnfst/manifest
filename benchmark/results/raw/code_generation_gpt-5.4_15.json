@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 15,
+  "response": "largest = None\n\nwhile n % 2 == 0:\n    largest = 2\n    n //= 2\n\nfactor = 3\nwhile factor * factor <= n:\n    while n % factor == 0:\n        largest = factor\n        n //= factor\n    factor += 2\n\nif n > 1:\n    largest = n\n\nreturn largest",
+  "score": 5,
+  "cost": 0.000828,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 80
+  }
+}

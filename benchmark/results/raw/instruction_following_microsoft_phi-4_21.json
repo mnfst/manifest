@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "To provide accurate directions from a park to a library using only left and right turns, I would need specific locations for both the park and the library. However, I can give you a general approach to creating such directions:\n\n1. **Identify Starting and Ending Points**: Determine the exact addresses or names of the park and the library.\n\n2. **Use a Map**: Open a map application (like Google Maps) and enter the starting point (park) and the destination (library).\n\n3. **Set Navigation Preferences**: In the map app, set the navigation preferences to avoid U-turns and prioritize left and right turns.\n\n4. **Analyze the Route**: Look at the suggested route and note each turn. If the route includes a U-turn or a turn that isn't a left or right, you may need to adjust the route manually.\n\n5. **Adjust the Route**: If necessary, manually adjust the route by adding waypoints or using the map's tools to create a path that only includes left and right turns.\n\n6. **Write Down Directions**: Once you have a suitable route, write down the directions step-by-step, ensuring each instruction is either a left or a right turn.\n\nIf you provide the specific locations, I can help outline a more detailed set of directions.",
+  "score": 2,
+  "cost": 1.833e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 258
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that stores a sorted or organized subset of a table's data, allowing the database engine to locate rows quickly without scanning every record in the table. It works similarly to a book's index, letting the system jump directly to the relevant data location rather than reading through everything sequentially.",
+  "score": 4,
+  "cost": 0.001053,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 66
+  }
+}

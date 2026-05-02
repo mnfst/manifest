@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "Here's a description of my favorite book:\n\nThis book is a thought-provoking and beautifully written novel that explores the complexities of the human condition. It's a story that spans multiple timelines and perspectives, weaving together themes of love, loss, identity, and the power of storytelling.\n\nThe narrative is set in a small, isolated town, where a mysterious event sets off a chain reaction of events that exposes the dark secrets and lies that have been hidden beneath the surface. As the story unfolds, the reader is drawn into a world of intricate relationships, moral dilemmas, and the blurred lines between truth and fiction.\n\nThe writing is lyrical and evocative, with vivid descriptions of the natural world and the inner lives of the characters. The author's use of language is masterful, conjuring a sense of atmosphere and mood that draws the reader in and refuses to let go.\n\nThroughout the book, the author raises important questions about the nature of reality, the power of storytelling, and the human capacity for both good and evil. The characters are multidimensional and relatable, with flaws and strengths that make them feel eerily familiar.\n\nThe book has become a modern classic, widely acclaimed for its originality, depth, and emotional resonance. It's a must-read for anyone who loves literary fiction, mystery, and psychological suspense.\n\nCan you guess which book I'm describing?",
+  "score": 5,
+  "cost": 1.5249e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 277
+  }
+}

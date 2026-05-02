@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Istanbul",
+  "score": 5,
+  "cost": 0.000774,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 174,
+    "output": 21
+  }
+}

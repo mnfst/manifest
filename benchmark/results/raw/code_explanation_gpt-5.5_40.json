@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This implements the **Circuit Breaker** resilience pattern: it calls a function normally while \u201cclosed,\u201d but after a configured number of consecutive failures it \u201copens\u201d and immediately rejects further calls. After the timeout expires, it moves to \u201chalf-open\u201d to allow a trial call; success resets it to closed, while failure increments the failure count and may reopen the circuit.",
+  "score": 5,
+  "cost": 0.002115,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 127
+  }
+}

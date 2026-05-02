@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "The code implements a Union-Find (or Disjoint Set Union, DSU) data structure with path compression and union by rank. It initializes `n` elements, each in its own set, and provides two functions: `find`, which determines the root of an element with path compression to flatten the structure for efficiency, and `union`, which merges two sets by rank to keep the tree shallow, ensuring efficient union and find operations.",
+  "score": 5,
+  "cost": 1.6185000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 89
+  }
+}

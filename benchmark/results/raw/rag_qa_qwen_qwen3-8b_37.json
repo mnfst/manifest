@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "The context states that Kublai Khan secured the \"northeast border\" by installing the prince Wonjong as the ruler of Korea, making it a Mongol tributary state. This indicates that Korea bordered Kublai's territory in the **northeast**.\n\n**Answer:** Northeast.",
+  "score": 5,
+  "cost": 2.3050000000000005e-05,
+  "expected": "northeast",
+  "tokens": {
+    "input": 222,
+    "output": 239
+  }
+}

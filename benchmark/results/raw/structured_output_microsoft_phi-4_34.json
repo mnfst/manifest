@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "structured_output",
+  "case": 34,
+  "response": "To extract the information from the text and return it as valid JSON matching the given schema, we can identify the relevant details from the text and map them to the schema fields. Here's the JSON representation:\n\n```json\n{\n  \"student_id\": \"20240156\",\n  \"course_code\": \"CS301\",\n  \"course_name\": \"Algorithms\",\n  \"score\": 87,\n  \"max_score\": 100,\n  \"grade\": \"A-\",\n  \"semester\": \"Fall 2024\",\n  \"instructor\": \"Prof. Williams\"\n}\n```\n\nThis JSON object captures all the required information from the text provided.",
+  "score": 5,
+  "cost": 1.651e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 133
+  }
+}

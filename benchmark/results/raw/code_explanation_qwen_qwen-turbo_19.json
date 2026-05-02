@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This code implements a **token bucket**-style rate limiter that allows a specified number of calls (`calls`) within a given time `period`. It uses a list to track the timestamps of recent calls, and before allowing a new call, it removes any timestamps that are older than the `period` and checks if the number of remaining calls is below the limit.",
+  "score": 4,
+  "cost": 5.940000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 74
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "5,500,000 square kilometres (2,100,000 sq mi)",
+  "score": 5,
+  "cost": 2.0759999999999998e-05,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 321,
+    "output": 25
+  }
+}

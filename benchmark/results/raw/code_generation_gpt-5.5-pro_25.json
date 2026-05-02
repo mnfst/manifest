@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 25,
+  "response": "groups = []\n    current = []\n    depth = 0\n\n    for ch in paren_string:\n        if ch.isspace():\n            continue\n        if ch == '(':\n            if depth == 0:\n                current = []\n            current.append(ch)\n            depth += 1\n        elif ch == ')':\n            current.append(ch)\n            depth -= 1\n            if depth == 0:\n                groups.append(''.join(current))\n\n    return groups",
+  "score": 4,
+  "cost": 0.0079,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 358
+  }
+}

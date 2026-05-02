@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "The code implements an **async queue** using **cooperative multitasking** with **futures** to block producers (put) and consumers (get) when the queue is full or empty, respectively. It employs a **producer-consumer pattern** with **bounded blocking** (via `maxsize`) and uses **futures** to signal when space becomes available or items are ready, ensuring asynchronous I/O efficiency.",
+  "score": 5,
+  "cost": 2.515e-05,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 289
+  }
+}

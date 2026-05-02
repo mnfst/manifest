@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This code implements the **Sliding Window Maximum** algorithm using a **monotonic deque** (double-ended queue) to maintain indices of elements in decreasing order of value. It efficiently finds the maximum value for every contiguous subarray of size $k$ in $O(n)$ time by ensuring the largest element's index is always at the front of the deque.",
+  "score": 5,
+  "cost": 1.326e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 74
+  }
+}

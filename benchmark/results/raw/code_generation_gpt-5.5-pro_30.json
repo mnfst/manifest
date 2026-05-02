@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 30,
+  "response": "if n <= 0:\n        return None\n\n    small_primes = (\n        2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,\n        41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97\n    )\n\n    def is_prime(x):\n        if x < 2:\n            return False\n        for p in small_primes:\n            if x == p:\n                return True\n            if x % p == 0:\n                return False\n\n        d = x - 1\n        s = 0\n        while d % 2 == 0:\n            s += 1\n            d //= 2\n\n        for base in small_primes:\n            y = pow(base, d, x)\n            if y == 1 or y == x - 1:\n                continue\n            for _ in range(s - 1):\n                y = (y * y) % x\n                if y == x - 1:\n                    break\n            else:\n                return False\n        return True\n\n    count = 0\n    index = 0\n    a, b = 0, 1\n\n    while True:\n        index += 1\n        a, b = b, a + b\n        if (index == 4 or is_prime(index)) and is_prime(a):\n            count += 1\n            if count == n:\n                return a",
+  "score": 3,
+  "cost": 0.280365,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 13986
+  }
+}

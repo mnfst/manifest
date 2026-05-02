@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 2 eggs with salt, pepper, and 1 tablespoon milk. Melt butter in a nonstick pan over low heat. Add eggs; stir gently with a spatula until softly set. Remove from heat slightly early; carryover finishes cooking. Serve warm with toast or herbs.",
+  "score": 3,
+  "cost": 0.000798,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 61
+  }
+}

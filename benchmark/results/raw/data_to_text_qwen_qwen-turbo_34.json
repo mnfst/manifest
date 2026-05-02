@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "data_to_text",
+  "case": 34,
+  "response": "Stockholm, the capital of Sweden, is a city with a population of 1.6 million people, covering an area of 188 km\u00b2. Founded in 1252, it has a GDP per capita of $62,000 and the official language is Swedish. The average temperature in January is -3\u00b0C, while July sees an average of 18\u00b0C.",
+  "score": 0,
+  "cost": 6.27e-06,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 83
+  }
+}

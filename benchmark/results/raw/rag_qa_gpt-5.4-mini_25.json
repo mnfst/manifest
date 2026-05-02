@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure suffered considerably.",
+  "score": 5,
+  "cost": 5.6099999999999995e-05,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 159,
+    "output": 7
+  }
+}

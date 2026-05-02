@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden",
+  "score": 5,
+  "cost": 0.0010975,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 421,
+    "output": 3
+  }
+}

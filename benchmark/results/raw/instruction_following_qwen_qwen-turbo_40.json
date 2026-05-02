@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "1. **Paris** \u2013 France (Europe)  \n2. **Tokyo** \u2013 Japan (Asia)  \n3. **New York City** \u2013 United States (North America)  \n4. **Cairo** \u2013 Egypt (Africa)  \n5. **Canberra** \u2013 Australia (Oceania)",
+  "score": 4,
+  "cost": 2.9370000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 63
+  }
+}

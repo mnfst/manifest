@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 24,
+  "response": "The internet began as a US Department of Defense research project in the 1960s, with ARPANET first demonstrated in 1969, and was transformed into the modern internet by the adoption of TCP/IP in 1983. Tim Berners-Lee invented the World Wide Web in 1989, and the launch of Mosaic in 1993 helped make it widely accessible. The late 1990s dot-com boom led to major investment and a 2001 crash, but companies like Amazon and Google survived and grew into tech giants. Since then, social media, smartphones, and cloud computing have made the internet central to daily life, and it now connects over 5 billion people.",
+  "score": 5,
+  "cost": 0.0002652,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 143
+  }
+}

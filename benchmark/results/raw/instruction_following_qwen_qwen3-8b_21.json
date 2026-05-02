@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here are the directions from the park to the library using only left and right turns:  \n\n1. **Start at the park**.  \n2. **Turn right** onto the first road (e.g., Maple Street).  \n3. **Walk straight** for two blocks.  \n4. **Turn left** onto the next road (e.g., Pine Street).  \n5. **Walk straight** for one block.  \n6. **Turn right** onto the final road (e.g., Birch Avenue).  \n7. **Continue straight** until you see the library on your left.  \n\nLet me know if you need adjustments based on specific landmarks! \ud83d\uddfa\ufe0f",
+  "score": 4,
+  "cost": 5.575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 1090
+  }
+}

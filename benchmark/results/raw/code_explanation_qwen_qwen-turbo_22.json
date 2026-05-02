@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an LRU (Least Recently Used) cache using an `OrderedDict`, which maintains insertion order. When a key is accessed via `get` or updated via `put`, it is moved to the end of the ordered dictionary to mark it as recently used. If the cache exceeds its capacity, the least recently used item (the first item in the ordered dictionary) is removed.",
+  "score": 5,
+  "cost": 7.458e-06,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 79
+  }
+}

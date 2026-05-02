@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Here are a few options:\n\n1. \"Meeting Invitation: Discuss Project X on [Date]\"\n2. \"Collaboration Meeting: Share Ideas and Feedback\"\n3. \"Team Meeting: Agenda for [Date] at [Time]\"\n4. \"Meeting Invitation: Review Project Progress and Goals\"\n5. \"Collaboration Opportunity: Share Thoughts and Ideas\"\n\nLet me know if you'd like me to come up with more options!",
+  "score": 4,
+  "cost": 3.078e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 88
+  }
+}

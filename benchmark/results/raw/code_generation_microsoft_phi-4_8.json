@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 8,
+  "response": "```python\nreturn [value for value in values if isinstance(value, int)]\n```",
+  "score": 5,
+  "cost": 1.0075000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 18
+  }
+}

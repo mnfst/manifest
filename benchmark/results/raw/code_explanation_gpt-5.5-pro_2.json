@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "This implements **quicksort** using a recursive **divide-and-conquer** pattern: it chooses the middle element as a pivot, partitions the array into values less than, equal to, and greater than the pivot, then recursively sorts the left and right partitions. It returns a new sorted list rather than sorting in place.",
+  "score": 5,
+  "cost": 0.00328,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 135
+  }
+}

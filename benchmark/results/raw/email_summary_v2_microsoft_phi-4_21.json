@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team proposes a cleanup sprint to address the complexity of feature flags by removing 15 flags that are fully rolled out and archiving 8 that are dead code, aiming to streamline configurations and improve test suite performance by approximately 12%. The main action items include removing fully rolled-out flags and archiving those that are no longer in use.",
+  "score": 5,
+  "cost": 1.1375e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 70
+  }
+}

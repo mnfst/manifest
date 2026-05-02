@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "The evolution of electric vehicles (EVs) from 19th-century experiments to Tesla's industry disruption highlights persistent technical challenges, including battery limitations, charging infrastructure gaps, and environmental concerns over lithium and cobalt mining. Legacy automakers like Ford, GM, and VW are transitioning fleets toward electrification, while China leads as the world\u2019s largest EV market and manufacturer. Despite advancements, range anxiety, long charging times, and grid capacity issues remain hurdles, with solid-state batteries offering potential breakthroughs. Government incentives and growing consumer demand are accelerating adoption, but sustainability debates over resource extraction persist.",
+  "score": 5,
+  "cost": 2.8050000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 423
+  }
+}

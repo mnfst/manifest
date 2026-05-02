@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\ndef multiply(a, b):\n    a_unit_digit = a % 10\n    b_unit_digit = b % 10\n    return (a_unit_digit * b_unit_digit) % 10\n```",
+  "score": 3,
+  "cost": 9.18e-06,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 46
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 7,
+  "response": "```python\ndef special_factorial(n):\n    from math import factorial\n    result = 1\n    for i in range(1, n + 1):\n        result *= factorial(i)\n    return result\n```",
+  "score": 5,
+  "cost": 1.1245000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 46
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "structured_output",
+  "case": 6,
+  "response": "```json\n{\n  \"type\": \"App crashes\",\n  \"summary\": \"App crashes on login when using Face ID\",\n  \"device\": \"iPhone 14\",\n  \"os_version\": \"iOS 17.2\",\n  \"reproducibility\": \"Reproducible every time\",\n  \"severity\": \"critical\"\n}\n```",
+  "score": 4,
+  "cost": 9.9e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 70
+  }
+}

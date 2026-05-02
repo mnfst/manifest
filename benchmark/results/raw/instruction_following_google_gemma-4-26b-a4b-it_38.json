@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Invalid email or password. Please try again or reset your password.",
+  "score": 4,
+  "cost": 2.6399999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 14
+  }
+}

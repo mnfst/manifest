@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Lettuce\n- [ ] Tomato\n- [ ] Cucumber\n- [ ] Onion\n- [ ] Carrot\n- [ ] Olive oil\n- [ ] Vinegar\n- [ ] Salt\n- [ ] Pepper",
+  "score": 5,
+  "cost": 6.78e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 52
+  }
+}

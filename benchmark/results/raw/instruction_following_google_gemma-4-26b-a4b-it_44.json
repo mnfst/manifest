@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here is a list of ingredients for a basic garden salad:\n\n**Greens (The Base)**\n- [ ] Lettuce (Romaine, Iceberg, or Butter lettuce)\n- [ ] Spinach or Mixed Greens\n\n**Vegetables (The Crunch)**\n- [ ] Tomatoes (Cherry or diced)\n- [ ] Cucumber\n- [ ] Carrots (Shredded or sliced)\n- [ ] Red onion (Thinly sliced)\n- [ ] Bell peppers\n\n**Protein & Extras (Optional)**\n- [ ] Croutons\n- [ ] Cheese (Feta, Parmesan, or Cheddar)\n- [ ] Hard-boiled eggs\n- [ ] Avocado\n\n**Dressing**\n- [ ] Olive oil\n- [ ] Vinegar (Balsamic, Apple Cider, or Red Wine)\n- [ ] Salt and Black pepper",
+  "score": 4,
+  "cost": 1.1999999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 176
+  }
+}

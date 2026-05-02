@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 5,
+  "response": "This code implements the **Singleton design pattern**, ensuring that only one instance of the `Singleton` class is created. It uses the `__new__` method to check if an instance already exists; if not, it creates and stores it, returning the existing instance on subsequent calls.",
+  "score": 5,
+  "cost": 4.554e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 57
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 32,
+  "response": "def anti_shuffle(s):\n    words = s.split()\n    sorted_words = sorted(words)\n    return ' '.join(sorted_words)",
+  "score": 2,
+  "cost": 5.211000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 27
+  }
+}

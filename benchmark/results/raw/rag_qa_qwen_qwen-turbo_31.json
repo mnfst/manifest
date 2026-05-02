@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Answer: Sharia",
+  "score": 5,
+  "cost": 6.0720000000000005e-06,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 181,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 47,
+  "response": "The provided code implements the Shunting Yard algorithm, which is used to convert an infix expression (e.g., \"3 + 4 * 2 / ( 1 - 5 )\") into a postfix expression (also known as Reverse Polish Notation, RPN). The algorithm processes a list of tokens representing the expression, handling operators and parentheses by using a stack to manage operator precedence and associativity, ultimately producing a list of tokens in postfix order.",
+  "score": 5,
+  "cost": 1.9175000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 202,
+    "output": 93
+  }
+}

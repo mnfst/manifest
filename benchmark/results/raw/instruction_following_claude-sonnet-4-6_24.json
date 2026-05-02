@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "Here is a car accident report in exactly 3 bullet points:\n\n\u2022 **Incident Details:** On March 15, 2024, at approximately 2:30 PM, a two-vehicle collision occurred at the intersection of Oak Street and 5th Avenue when a blue sedan ran a red light and struck a white SUV on the passenger side.\n\n\u2022 **Injuries and Damage:** The driver of the SUV sustained minor injuries and was transported to a nearby hospital for evaluation, while the sedan driver was unharmed; both vehicles sustained significant damage and were towed from the scene.\n\n\u2022 **Response and Follow-Up:** Police and emergency services arrived within five minutes, a collision report was filed under case number 2024-0315-CR, and both drivers exchanged insurance information pending further investigation.",
+  "score": 1,
+  "cost": 0.002673,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 174
+  }
+}

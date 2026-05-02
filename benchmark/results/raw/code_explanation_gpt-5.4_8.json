@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This defines a **debounce decorator**: each time the wrapped function is called, it cancels any previously scheduled call and starts a new `threading.Timer` to run the function after `wait` seconds. As a result, during a burst of repeated calls, only the **last call** actually executes once things have been quiet for the delay period.",
+  "score": 5,
+  "cost": 0.000804,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 75
+  }
+}

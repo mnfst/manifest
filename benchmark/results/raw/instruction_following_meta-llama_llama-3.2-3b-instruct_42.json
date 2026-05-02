@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm is a powerful and intense weather phenomenon that can be both awe-inspiring and intimidating. Here's a vivid description of a thunderstorm, incorporating at least three sensory details:\n\nAs the storm approaches, the air is electric with anticipation. The sky darkens, and the wind picks up, rustling the leaves and causing the trees to sway ominously. The first droplets of rain begin to fall, pattering against the pavement and drumming a rhythmic beat on the roof. The sound is like a thousand tiny fingers tapping out a Morse code message, growing louder and more insistent with each passing moment.\n\nAs the storm intensifies, the air is filled with the acrid scent of ozone, a pungent and earthy smell that's both familiar and unsettling. The smell is like a warning, a signal that the storm is about to unleash its full fury. The rain pounds against the skin, cool and refreshing at first, but soon growing heavier and more relentless. The droplets sting and soak through the skin, leaving a tingling sensation that's both exhilarating and uncomfortable.\n\nAs the thunder booms and crackles, the air is filled with a low, rumbling growl that vibrates through every cell in the body. The sound is like a living thing, a primal and ancient power that seems to emanate from the very heart of the storm. The flashes of lightning illuminate the dark sky, casting eerie, flickering shadows on the ground below. The light is blindingly bright, like a thousand tiny suns exploding in rapid succession, each one leaving behind a trail of ionized air that crackles and spits with electricity.\n\nAs the storm reaches its peak, the wind howls and whips through the streets, threatening to upend everything in its path. The rain pounds against the windows, creating a deafening roar that's almost overwhelming. The air is filled with the scent of wet earth and ozone, a primal and intoxicating aroma that's both calming and terrifying. The storm is a force of nature, a display of power and fury that's both beautiful and awe-inspiring.\n\nOverall, a thunderstorm is a multisensory experience that engages the senses in a way that's both thrilling and unsettling. The combination of sound, smell, and sight creates a sensory overload that's both exhilarating and humbling, a reminder of the raw power and beauty of the natural world.",
+  "score": 5,
+  "cost": 2.6264999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 491
+  }
+}

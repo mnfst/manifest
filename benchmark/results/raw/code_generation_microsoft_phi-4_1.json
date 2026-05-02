@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 1,
+  "response": "```python\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    results = []\n    for group in paren_string.split():\n        max_depth = 0\n        current_depth = 0\n        for char in group:\n            if char == '(':\n                current_depth += 1\n                max_depth = max(max_depth, current_depth)\n            elif char == ')':\n                current_depth -= 1\n        results.append(max_depth)\n    return results\n```",
+  "score": 5,
+  "cost": 1.6770000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 99
+  }
+}

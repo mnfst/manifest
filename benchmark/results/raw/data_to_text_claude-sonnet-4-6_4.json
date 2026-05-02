@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "data_to_text",
+  "case": 4,
+  "response": "American Airlines flight AA 1234 departs from JFK at 8:30 AM and arrives at LAX at 11:45 AM, covering the cross-country route in 5 hours and 15 minutes aboard a Boeing 787. Economy class tickets are available for $289, and the flight has an on-time performance rate of 82%.",
+  "score": 5,
+  "cost": 0.001533,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 81
+  }
+}

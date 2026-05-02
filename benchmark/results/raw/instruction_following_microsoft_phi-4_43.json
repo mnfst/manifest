@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that space is completely silent? Sound waves require a medium, like air, to travel through, and since space is a vacuum, there is no medium for sound to travel through. This means that astronauts in space cannot hear sounds as we do on Earth. However, they can hear vibrations through their suits and helmets, which is why you often see them talking with their mouths closed. This is because vibrations can travel through solid materials, allowing them to communicate through the transmission of sound waves through their suits.",
+  "score": 5,
+  "cost": 8.32e-06,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 104
+  }
+}

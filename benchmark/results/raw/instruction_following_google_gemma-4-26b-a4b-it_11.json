@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Why would you want me to do that? Is this a challenge? Do you have a specific topic in mind?",
+  "score": 5,
+  "cost": 2.7e-06,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 24
+  }
+}

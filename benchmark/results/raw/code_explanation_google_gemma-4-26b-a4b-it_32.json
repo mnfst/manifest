@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements the **Disjoint Set Union (DSU)** algorithm, also known as **Union-Find**, to manage and merge disjoint sets. It optimizes performance using **path compression** in the `find` function and **union by rank** in the `union` function to keep the structure efficient.",
+  "score": 5,
+  "cost": 1.494e-05,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 63
+  }
+}

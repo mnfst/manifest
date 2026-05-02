@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "Not found in context. The provided context indicates that the term \"private schools\" is generally restricted to primary and secondary educational levels in the United Kingdom and several other Commonwealth countries, and it is almost never used for universities and other tertiary institutions. The context does not mention any region using the term \"private schools\" to refer to universities.",
+  "score": 5,
+  "cost": 1.4950000000000001e-05,
+  "expected": "North America",
+  "tokens": {
+    "input": 162,
+    "output": 68
+  }
+}

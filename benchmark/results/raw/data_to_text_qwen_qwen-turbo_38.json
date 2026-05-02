@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "The server prod-web-01 is currently operating with a CPU utilization of 78%, 12.4 GB of memory used out of 16 GB, and 234 GB of disk space consumed from a total of 500 GB. It has been up for 45 days, handling 127 active connections, with a P99 latency of 145 milliseconds and an error rate of 3 errors per hour. The server is located in the us-east-1 region.",
+  "score": 0,
+  "cost": 7.491e-06,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 108
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe development of artificial intelligence (AI) has experienced significant ups and downs, including a period of decline in the 1970s and 1980s, followed by a resurgence in the 2010s with the emergence of deep learning. The introduction of the transformer architecture in 2017 marked a major breakthrough, and the field has since seen rapid progress with the development of large language models like GPT. The AI industry is now in a period of intense competition among companies like OpenAI, Google, Anthropic, and Meta, with ongoing debates over the ethics and governance of AI, including concerns over safety, alignment, and regulation. The economic impact of AI on knowledge work is also a pressing issue, with many experts warning of job displacement and the need for new regulations to mitigate its effects.",
+  "score": 5,
+  "cost": 1.6727999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 176
+  }
+}

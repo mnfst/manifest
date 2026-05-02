@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "data_to_text",
+  "case": 25,
+  "response": "Here is the structured data converted into a natural language paragraph:\n\nJapan is a country with a large population of approximately 125 million people, boasting a strong economy with a GDP of $4.2 trillion. The country is experiencing steady growth, with a GDP growth rate of 1.1% and a low unemployment rate of 2.6%. Additionally, Japan has a relatively stable economy, with a debt-to-GDP ratio of 263% and a moderate inflation rate of 3.2%, while its citizens enjoy a high life expectancy of 84.6 years, and the country is a significant player in global trade, with exports valued at $756 billion.",
+  "score": 0,
+  "cost": 1.2444e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 136
+  }
+}

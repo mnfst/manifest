@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated on the go with this sleek, leak-proof water bottle designed for everyday use. Its durable, BPA-free construction keeps drinks fresh, while the easy-grip shape makes it comfortable to carry anywhere. Perfect for workouts, commutes, and travel\u2014simply fill, sip, and repeat.",
+  "score": 5,
+  "cost": 2.7200000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 63
+  }
+}

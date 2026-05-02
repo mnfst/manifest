@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "**Stay hydrated in style with our sleek, durable water bottle!** Made from premium, BPA-free materials, it keeps drinks cold for 24 hours or hot for 12, perfect for workouts, travel, or everyday use. With a leak-proof lid and ergonomic design, it\u2019s your ideal on-the-go companion for all-day refreshment.",
+  "score": 5,
+  "cost": 2.5099999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 78
+  }
+}

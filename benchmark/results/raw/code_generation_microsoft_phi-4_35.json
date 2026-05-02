@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\ndef multiply(a, b):\n    a_unit_digit = abs(a) % 10\n    b_unit_digit = abs(b) % 10\n    return a_unit_digit * b_unit_digit\n```",
+  "score": 5,
+  "cost": 1.2090000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 45
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "The Rhine Bridge refers to several bridges mentioned in the context, located at Arnhem, Nijmegen (over the Waal distributary of the Rhine), and Remagen. These bridges were significant during World War II operations such as Operation Market Garden and the capture of the Ludendorff Bridge. \n\nAnswer: The Rhine Bridge refers to bridges at Arnhem, Nijmegen, and Remagen.",
+  "score": 5,
+  "cost": 6.610000000000001e-05,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 243,
+    "output": 1079
+  }
+}

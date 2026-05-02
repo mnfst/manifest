@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are 4 rhyming words for \"cat\":\n\n1. Hat\n2. Mat\n3. Sat\n4. Rat",
+  "score": 5,
+  "cost": 1.377e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 28
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "In response to American aid to Israel.",
+  "score": 5,
+  "cost": 9.42e-05,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 270,
+    "output": 11
+  }
+}

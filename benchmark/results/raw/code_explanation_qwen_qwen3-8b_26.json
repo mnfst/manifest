@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code solves the **0/1 Knapsack problem** using **dynamic programming** with a 2D DP table. It iteratively computes the maximum value achievable by either including or excluding each item, considering all capacities up to the given limit, and returns the optimal value for the full set of items and full capacity.",
+  "score": 5,
+  "cost": 3.295e-05,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 505
+  }
+}

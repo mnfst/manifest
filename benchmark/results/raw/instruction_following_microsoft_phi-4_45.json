@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "TCP (Transmission Control Protocol) and UDP (User Datagram Protocol) are both core protocols of the Internet Protocol Suite, commonly known as TCP/IP. They serve different purposes and have distinct characteristics. Here's a comparison table to highlight the differences between TCP and UDP:\n\n| Feature               | TCP (Transmission Control Protocol) | UDP (User Datagram Protocol) |\n|-----------------------|-----------------------------------|--------------------------------|\n| **Connection Type**   | Connection-oriented                | Connectionless                  |\n| **Reliability**       | Reliable (guarantees delivery)   | Unreliable (no delivery guarantee) |\n| **Order**             | Maintains order of packets       | Does not maintain order of packets |\n| **Error Checking**    | Error checking and correction   | Basic error checking (checksum)   |\n| **Flow Control**     | Provides flow control          | No flow control                 |\n| **Congestion Control**| Provides congestion control   | No congestion control           |\n| **Speed**             | Slower due to overhead         | Faster due to minimal overhead  |\n| **Use Cases**        | Web browsing, email, file transfer | Streaming, online gaming, VoIP  |\n| **Header Size**       | Larger (20 bytes)               | Smaller (8 bytes)               |\n| **Port Numbers**     | Ports 1-1023 (well-known ports) | Ports 1024-65535 (dynamic ports) |\n| **Handshake**        | Three-way handshake (SYN, SYN-ACK, ACK) | No handshake required          |\n| **Data Integrity**   | Ensures data integrity with acknowledgments | No data integrity assurance beyond checksum |\n\n### Key Differences:\n\n1. **Connection Type**: TCP is connection-oriented, meaning it establishes a connection before data transmission and ensures that the connection is maintained throughout the session. UDP is connectionless, meaning it sends data without establishing a connection.\n\n2. **Reliability**: TCP ensures that data is delivered accurately and in order, using acknowledgments and retransmissions. UDP does not guarantee delivery, order, or error-free transmission, making it less reliable but faster.\n\n3. **Use Cases**: TCP is used for applications where reliability is crucial, such as web browsing, email, and file transfers. UDP is used for applications where speed is more important than reliability, such as streaming media, online gaming, and Voice over IP (VoIP).\n\n4. **Overhead**: TCP has more overhead due",
+  "score": 5,
+  "cost": 3.367e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 500
+  }
+}

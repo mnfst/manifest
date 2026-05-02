@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "data_to_text",
+  "case": 33,
+  "response": "In the 2024-25 season, LeBron James of the Lakers averaged 28.4 points, 7.2 rebounds, and 8.1 assists across 71 games. The 40-year-old was named an All-Star for the season.",
+  "score": 0,
+  "cost": 3.15e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 56
+  }
+}

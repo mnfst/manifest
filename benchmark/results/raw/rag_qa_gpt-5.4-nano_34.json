@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "If \\(q=9\\) and \\(a=1,2,4,5,7,\\) or \\(8\\), then **infinitely many primes** are in that progression.",
+  "score": 5,
+  "cost": 4.15e-05,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 247,
+    "output": 42
+  }
+}

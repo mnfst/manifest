@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Since you didn't specify the topic, here are a few options based on the tone you need:\n\n**Professional/Formal:**\n*   Invitation: [Project Name] Strategy Meeting\n*   Meeting Request: [Topic] Discussion\n*   Scheduled: [Project Name] Weekly Sync\n\n**Casual/Internal:**\n*   Quick sync: [Topic]\n*   Let\u2019s chat about [Topic]\n*   Catch up regarding [Project Name]\n\n**Urgent:**\n*   Urgent: Meeting regarding [Topic]\n*   Action Required: [Project Name] Briefing\n\n**General Template:**\n*   Meeting Invitation: [Topic] | [Date]",
+  "score": 3,
+  "cost": 9.42e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 135
+  }
+}

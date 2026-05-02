@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 21,
+  "response": "This defines a higher-order `pipe` function that returns a new function applying the given functions sequentially from left to right to an input value. It uses the function composition / pipeline pattern, with a closure capturing `fns`.",
+  "score": 5,
+  "cost": 0.002765,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 121
+  }
+}

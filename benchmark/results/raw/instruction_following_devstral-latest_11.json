@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Sure, I can do that! What message would you like me to respond to with questions? Are you looking for a specific tone or style? Should the questions be open-ended or more direct? Let me know how you'd like me to proceed!",
+  "score": 1,
+  "cost": 1.65e-05,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 51
+  }
+}

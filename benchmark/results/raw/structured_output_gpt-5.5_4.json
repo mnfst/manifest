@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "structured_output",
+  "case": 4,
+  "response": "{\"error_code\":503,\"message\":\"Service Unavailable\",\"timestamp\":\"2024-01-15T14:30:00Z\",\"endpoint\":\"/api/v2/users\",\"server\":\"prod-west-2\",\"retry_after_seconds\":30}",
+  "score": 5,
+  "cost": 0.001386,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 90
+  }
+}

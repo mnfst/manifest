@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines the timeline and budget for the Japan expansion, detailing legal setup in May, localization by June, a beta launch in July, and general availability in August, with a total budget of $200K. It requests CEO approval to proceed with the plan.",
+  "score": 5,
+  "cost": 9.75e-06,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 54
+  }
+}

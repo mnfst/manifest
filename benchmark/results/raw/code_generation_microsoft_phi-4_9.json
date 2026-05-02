@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 9,
+  "response": "```python\ndef double_the_difference(lst):\n    return sum(x**2 for x in lst if x > 0 and x % 2 == 1 and isinstance(x, int))\n```",
+  "score": 3,
+  "cost": 1.4625e-05,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 40
+  }
+}

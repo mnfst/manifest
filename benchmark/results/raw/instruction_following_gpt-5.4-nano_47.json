@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. **Make it long**: Aim for at least **12\u201316 characters** (longer is better).  \n2. **Use a passphrase**: Prefer a sequence of **4+ random words** (e.g., \u201c...\u201d), rather than a short password.  \n3. **Use variety**: Include a mix of **uppercase/lowercase letters**, **numbers**, and **symbols** if it fits your passphrase style.  \n4. **Avoid common patterns**: Don\u2019t use things like **\u201cPassword123!\u201d**, repeated characters, or predictable substitutions (e.g., `P@ssw0rd`).  \n5. **Don\u2019t reuse passwords**: Use a **unique** password for every account.  \n6. **Use randomness**: Choose words or characters that aren\u2019t based on personal info (your name, birthday, favorite team).  \n7. **Turn on multi-factor authentication (MFA)**: Pair your password with **2FA/ MFA** for extra protection.  \n8. **Store it securely**: Use a **password manager** instead of reusing or writing passwords in unsafe places.  \n9. **Protect against breaches**: If a service reports a breach, **change your password immediately** there.  \n10. **Stay consistent with your security tools**: Don\u2019t disable security features (like MFA prompts) and follow site guidance for strong passwords.",
+  "score": 5,
+  "cost": 0.00011690000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 288
+  }
+}

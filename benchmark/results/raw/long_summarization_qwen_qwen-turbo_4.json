@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "The text traces the history of electric vehicles from their origins in the 1830s to the present, highlighting Tesla's role in revolutionizing the automotive industry. It discusses key challenges such as battery technology, charging infrastructure, and environmental concerns related to lithium and cobalt mining, while also noting government incentives supporting EV adoption. Major automakers like Ford, GM, and Volkswagen are shifting their production toward electric vehicles, with China emerging as the leading market and manufacturer. The text also addresses issues like range anxiety and charging times, while exploring the potential of solid-state batteries to address these challenges.",
+  "score": 5,
+  "cost": 8.613e-06,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 119
+  }
+}

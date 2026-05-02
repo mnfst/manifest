@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This code implements the **Knuth-Morris-Pratt (KMP) algorithm** for pattern matching, which efficiently searches for a `pattern` within a `text` by precomputing a **Longest Prefix Suffix (LPS) array** to avoid unnecessary comparisons. The LPS array helps skip characters in the text by leveraging previously matched prefixes, ensuring linear time complexity (O(n + m)) where `n` is the text length and `m` is the pattern length. The function returns the starting index of the first occurrence of the pattern or `-1` if not found.",
+  "score": 5,
+  "cost": 5.5299999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 181,
+    "output": 124
+  }
+}

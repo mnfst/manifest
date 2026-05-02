@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This implements a **debounce decorator** that delays execution of a function until a specified `wait` period has elapsed since its last call. Each time the decorated function is invoked, it cancels any pending timer and starts a new one, ensuring the wrapped function `fn` only executes once after the calls stop \u2014 using `threading.Timer` to manage the delayed execution.",
+  "score": 5,
+  "cost": 0.001578,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 81
+  }
+}

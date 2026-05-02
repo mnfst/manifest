@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The entity that owns V/Line is the Victorian Government. \n\nAnswer: Victorian Government.",
+  "score": 5,
+  "cost": 1.86e-05,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 160,
+    "output": 212
+  }
+}

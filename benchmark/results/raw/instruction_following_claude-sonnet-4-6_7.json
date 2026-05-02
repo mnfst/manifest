@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "**Simple Scrambled Eggs**\n\nWhisk 3 eggs with a splash of milk, salt, and pepper. Melt butter in a pan over medium-low heat. Pour in eggs and gently stir, folding slowly until just set. Remove while slightly soft. Serve immediately.",
+  "score": 3,
+  "cost": 0.001095,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 68
+  }
+}

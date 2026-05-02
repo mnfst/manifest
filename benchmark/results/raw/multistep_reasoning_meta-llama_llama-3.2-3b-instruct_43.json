@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "D\n\nExplanation: Coal is formed from plant remains that have been subjected to heat and pressure over millions of years.",
+  "score": 5,
+  "cost": 5.457e-06,
+  "expected": "D",
+  "tokens": {
+    "input": 83,
+    "output": 24
+  }
+}

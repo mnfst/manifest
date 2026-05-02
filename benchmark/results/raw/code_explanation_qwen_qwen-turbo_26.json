@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code implements the **0/1 knapsack problem** using **dynamic programming**, where it builds a 2D table `dp` where `dp[i][w]` represents the maximum value that can be carried in a knapsack of capacity `w` using the first `i` items. It uses a **bottom-up approach** to fill the table by considering whether to include each item or not, based on the capacity constraint.",
+  "score": 5,
+  "cost": 8.217000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 91
+  }
+}

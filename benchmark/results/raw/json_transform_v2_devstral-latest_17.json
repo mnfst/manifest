@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "json_transform_v2",
+  "case": 17,
+  "response": "```json\n{\"admins\": [\"Alice\", \"Charlie\"], \"users\": [\"Bob\"], \"inactive_count\": 1}\n```",
+  "score": 5,
+  "cost": 2.14e-05,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 29
+  }
+}

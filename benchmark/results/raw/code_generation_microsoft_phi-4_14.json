@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 14,
+  "response": "```python\nif n <= 0:\n    return 0\nelif n == 1:\n    return 1\nelse:\n    a, b = 0, 1\n    for _ in range(2, n + 1):\n        a, b = b, a + b\n    return b\n```",
+  "score": 5,
+  "cost": 9.879999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 68
+  }
+}

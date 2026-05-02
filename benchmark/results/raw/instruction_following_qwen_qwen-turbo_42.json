@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm is a powerful and dramatic display of nature's force. The **sight** of dark, churning clouds rolling across the sky, lit by flashes of jagged lightning, creates a sense of urgency and awe. The **sound** of thunder, a deep and rumbling growl that seems to shake the ground, echoes through the air, growing louder as the storm intensifies. Finally, the **smell** of damp earth and ozone fills the air, a sharp, metallic scent that signals the storm's presence and adds to the charged atmosphere. Together, these sensory details make a thunderstorm both thrilling and formidable.",
+  "score": 5,
+  "cost": 5.049e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 128
+  }
+}

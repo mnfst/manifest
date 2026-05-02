@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "structured_output",
+  "case": 15,
+  "response": "To extract the information from the text and return it as valid JSON matching the given schema, we can parse the text as follows:\n\n- **CPU Percent**: Extract the percentage value from \"CPU 78%\". This gives us `78`.\n- **Memory Used and Total**: Extract the values from \"memory 12.4GB/16GB\". This gives us `used_gb` as `12.4` and `total_gb` as `16`.\n- **Disk Used and Total**: Extract the values from \"disk 234GB/500GB\". This gives us `used_gb` as `234` and `total_gb` as `500`.\n- **Uptime Days**: Extract the value from \"uptime 45 days\". This gives us `45`.\n- **Active Connections**: Extract the value from \"127 active connections\". This gives us `127`.\n- **P99 Latency**: Extract the value from \"response time p99 145ms\". This gives us `145`.\n\nHere's the JSON representation:\n\n```json\n{\n  \"cpu_percent\": 78,\n  \"memory\": {\n    \"used_gb\": 12.4,\n    \"total_gb\": 16\n  },\n  \"disk\": {\n    \"used_gb\": 234,\n    \"total_gb\": 500\n  },\n  \"uptime_days\": 45,\n  \"active_connections\": 127,\n  \"p99_latency_ms\": 145\n}\n```\n\nThis JSON matches the schema provided and accurately reflects the extracted information from the text.",
+  "score": 5,
+  "cost": 2.9770000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 317
+  }
+}

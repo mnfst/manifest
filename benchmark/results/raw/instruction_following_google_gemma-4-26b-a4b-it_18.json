@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It is a story about the heavy, often invisible weight of memory and the way it shapes our identity. \n\nSet in a world that feels both intimately familiar and hauntingly surreal, the narrative follows a protagonist who is less a hero and more a vessel for the observations of those around them. The prose is lyrical, almost rhythmic, pulling you into a landscape where the line between the past and the present is perpetually blurred.\n\nAt its core, the book explores the concept of \"the ghost in the machine\"\u2014the idea that we are haunted not by spirits, but by the versions of ourselves we have outgrown and the people we have lost. It deals with the cyclical nature of human error and the quiet, devastating beauty of realizing that some things, once broken, can never be truly mended, only carried.\n\nIt is a book that doesn't just tell a story; it leaves a residue on your skin, making you look at your own history through a slightly more melancholic, yet more compassionate, lens.",
+  "score": 5,
+  "cost": 1.344e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 206
+  }
+}

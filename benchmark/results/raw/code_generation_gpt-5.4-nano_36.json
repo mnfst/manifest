@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 36,
+  "response": "if n <= 1:\n    return 1\nfor d in range(n // 2, 0, -1):\n    if n % d == 0:\n        return d\nreturn 1",
+  "score": 5,
+  "cost": 2.6300000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 45
+  }
+}

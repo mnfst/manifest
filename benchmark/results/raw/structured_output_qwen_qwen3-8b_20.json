@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "structured_output",
+  "case": 20,
+  "response": "{\n  \"items\": [\n    {\n      \"name\": \"pepperoni\",\n      \"size\": \"large\",\n      \"price\": 18.99\n    },\n    {\n      \"name\": \"margherita\",\n      \"size\": \"medium\",\n      \"price\": 14.99\n    },\n    {\n      \"name\": \"Coke\",\n      \"size\": \"2L\",\n      \"price\": 3.99\n    }\n  ],\n  \"delivery_address\": \"456 Oak Ave\",\n  \"special_instructions\": \"ring doorbell twice\",\n  \"total\": 37.97\n}",
+  "score": 4,
+  "cost": 4.855e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 852
+  }
+}

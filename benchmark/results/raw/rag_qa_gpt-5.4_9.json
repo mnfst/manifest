@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "70's",
+  "score": 5,
+  "cost": 0.000324,
+  "expected": "70",
+  "tokens": {
+    "input": 142,
+    "output": 5
+  }
+}

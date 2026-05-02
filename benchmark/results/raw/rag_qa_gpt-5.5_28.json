@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "Whenever C\u00e9loron encountered British merchants or fur traders, he informed them that France claimed the territory and told them to leave.",
+  "score": 5,
+  "cost": 0.001449,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 211,
+    "output": 68
+  }
+}

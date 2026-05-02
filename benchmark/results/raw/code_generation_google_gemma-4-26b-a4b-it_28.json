@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 28,
+  "response": "```python\n    result = []\n    for r_idx, row in enumerate(lst):\n        row_coords = []\n        for c_idx, val in enumerate(row):\n            if val == x:\n                row_coords.append((r_idx, c_idx))\n        # Sort columns in descending order for the current row\n        row_coords.sort(key=lambda coord: coord[1], reverse=True)\n        result.extend(row_coords)\n    # The result is already sorted by rows because we iterate through lst sequentially\n    return result\n```",
+  "score": 3,
+  "cost": 2.6939999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 320,
+    "output": 129
+  }
+}

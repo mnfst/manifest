@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "long_summarization",
+  "case": 16,
+  "response": "The internet began in the 1960s with US Department of Defense-funded research, leading to ARPANET's first message in 1969. The transition to TCP/IP in 1983 laid the groundwork for the modern internet, while Tim Berners-Lee's invention of the World Wide Web in 1989 made it more accessible. The dot-com boom of the late 1990s, followed by the 2001 crash, saw companies like Amazon and Google rise to prominence. Today, the internet connects over 5 billion people and is integral to nearly all aspects of modern life.",
+  "score": 5,
+  "cost": 1.5576e-05,
+  "expected": "",
+  "tokens": {
+    "input": 340,
+    "output": 132
+  }
+}

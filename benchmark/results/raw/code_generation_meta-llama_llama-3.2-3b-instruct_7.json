@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 7,
+  "response": "```python\ndef special_factorial(n):\n    result = 1\n    for i in range(1, n + 1):\n        result *= factorial(i)\n    return result\n\ndef factorial(x):\n    if x == 0:\n        return 1\n    else:\n        return x * factorial(x - 1)\n```",
+  "score": 4,
+  "cost": 1.0199999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 69
+  }
+}

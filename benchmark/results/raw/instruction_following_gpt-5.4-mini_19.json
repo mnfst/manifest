@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI is changing how we work, create, and solve problems\u2014faster than ever. The real opportunity isn\u2019t just smarter machines, but smarter humans using them well. #AI #Innovation",
+  "score": 5,
+  "cost": 5.459999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 41
+  }
+}

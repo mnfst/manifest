@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 0,
+  "response": "def concatenate(strings: List[str]) -> str:\n    return ''.join(strings)",
+  "score": 5,
+  "cost": 5.61e-06,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 17
+  }
+}

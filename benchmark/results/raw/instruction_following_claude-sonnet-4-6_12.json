@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "# What is an API?\n\nThink of an API like a **waiter at a restaurant**.\n\nYou're sitting at a table (that's you, or an app you're using). The kitchen is in the back, full of food and equipment (that's another service or database). You don't just walk into the kitchen and grab what you want \u2014 there's a process.\n\nThe **waiter takes your order**, brings it to the kitchen, and then **delivers the food back to you**.\n\nAn API works the same way:\n\n* You ask for something\n* The API carries that request to another service\n* It brings the answer back to you\n\n---\n\n## A Real Example\n\nWhen you book a flight on a travel website, that site doesn't own all the airline information. Instead, it **asks** the airlines for their prices and schedules behind the scenes, and shows you the results.\n\nThat asking and answering happens through an API.\n\n---\n\n## The Simple Version\n\nAn API is basically a **messenger** that lets two different apps or services talk to each other and share information, without either one needing to know how the other one works on the inside.\n\nIt's the reason your apps can work together smoothly, like when your fitness app shares data with your health app automatically.",
+  "score": 5,
+  "cost": 0.004194,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 275
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:** Hello. How may I assist you today?\n\n**Casual:** Hey there! What can I help you with?\n\n**Humorous:** Greetings, human! I\u2019m powered up and ready to answer questions\u2014no coffee required.",
+  "score": 5,
+  "cost": 0.000816,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 62
+  }
+}

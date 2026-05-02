@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 29,
+  "response": "def digit_sum(n):\n    return sum(int(ch) for ch in str(abs(n)))\n\nreturn sorted(nums, key=digit_sum)",
+  "score": 4,
+  "cost": 0.000532,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 30
+  }
+}

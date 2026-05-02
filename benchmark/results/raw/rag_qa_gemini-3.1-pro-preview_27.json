@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law (or Newton's First Law of Motion)",
+  "score": 5,
+  "cost": 0.0008975,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 269,
+    "output": 15
+  }
+}

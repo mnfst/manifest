@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Here's a attempt at explaining photosynthesis using only words that start with the letter S or P:\n\n\"Sunlight sparks spectacular processes, producing spectacular substances. Plants passionately pursue photons, processing pure water and pure carbon dioxide. Photosynthetic powers propel plants' productivity, producing pleasing products. Pure oxygen is produced, pleasing plants and people. Plants persistently produce plenty, providing plenty of power.\"",
+  "score": 5,
+  "cost": 5.4059999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 79
+  }
+}

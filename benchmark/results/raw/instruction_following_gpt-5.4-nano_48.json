@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Romeo and Juliet, two young lovers from feuding families, meet at a party and quickly fall for each other. Their secret romance is threatened when Romeo kills a rival and is banished, but they marry in secret to stay together. A series of misunderstandings and ill-timed events lead Juliet to fake her death, believing Romeo will come rescue her. However, Romeo learns of her apparent death too late, returns, and takes his own life. Juliet awakens, finds him dead, and dies as well.",
+  "score": 5,
+  "cost": 4.5400000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 107
+  }
+}

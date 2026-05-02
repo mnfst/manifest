@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This implements an LRU (Least Recently Used) cache using an `OrderedDict`: `get` returns the value if present and moves the key to the most-recently-used position, while `put` updates/inserts and evicts the least-recently-used item when the capacity is exceeded (`popitem(last=False)`).",
+  "score": 5,
+  "cost": 4.21e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 70
+  }
+}

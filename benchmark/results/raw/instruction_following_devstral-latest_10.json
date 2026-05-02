@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave,\nWhose code would behave quite depraved.\nWith a bug in his loop,\nHe just sat in a stoop,\nTill his debugger finally saved!",
+  "score": 5,
+  "cost": 1.4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 42
+  }
+}

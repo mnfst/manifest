@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, is the continuous movement of water on, above, and below the surface of the Earth. It is driven by solar energy, which causes water to evaporate from oceans, lakes, and rivers, turning it into water vapor. This process is called evaporation. Plants also contribute to the water cycle through transpiration, where they release water vapor into the atmosphere. The water vapor rises and cools, eventually condensing to form clouds.\n\nOnce the water vapor condenses into clouds, it can be transported by wind over long distances. As the clouds cool further, the water droplets combine and grow, leading to precipitation in the form of rain, snow, sleet, or hail. This precipitation falls back to the Earth's surface, replenishing bodies of water and moistening the soil. Some of the precipitation may also be intercepted by plants or other surfaces before reaching the ground.\n\nWhen precipitation reaches the ground, it can take several paths. Some of it may infiltrate the soil, becoming groundwater, while the rest may run off the surface, eventually flowing into rivers, lakes, or oceans. This surface runoff can also pick up sediments and pollutants, transporting them to larger bodies of water. Groundwater can remain stored for long periods or eventually resurface through springs or seep into bodies of water.\n\nThe water cycle is a closed system, meaning that the total amount of water on Earth remains constant, although it changes form and location. This cycle is essential for maintaining life on Earth, as it distributes water, supports ecosystems, and regulates the climate. Human activities, such as deforestation and pollution, can impact the water cycle, highlighting the importance of sustainable water management practices.",
+  "score": 5,
+  "cost": 0.0001062,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 349
+  }
+}

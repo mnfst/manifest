@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 24,
+  "response": "This is a manual implementation of Python\u2019s `itertools.zip_longest`: it iterates over multiple input iterators in lockstep, yielding a tuple of one item from each on every round. It uses a `while True` loop with `next()`/`StopIteration` handling to detect exhausted iterators, substituting `fillvalue` for those, and stops only when all iterators are exhausted.",
+  "score": 5,
+  "cost": 0.000916,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 85
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 8,
+  "response": "return [value for value in values if type(value) is int]",
+  "score": 5,
+  "cost": 0.025955,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 1266
+  }
+}

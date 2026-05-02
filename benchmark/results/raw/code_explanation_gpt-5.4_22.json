@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an **LRU (Least Recently Used) cache** using Python\u2019s `OrderedDict`, where `get` and `put` both update an item\u2019s recency by moving it to the end. When inserting causes the cache to exceed its capacity, it evicts the **least recently used** item by removing the first entry (`popitem(last=False)`).",
+  "score": 5,
+  "cost": 0.000906,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 78
+  }
+}

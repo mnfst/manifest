@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm rolls in with a dramatic display of nature\u2019s power. The sky darkens to an inky blue-black, split by jagged bolts of lightning that flicker like a strobe, illuminating the landscape in eerie, fleeting flashes. The air grows thick and humid, carrying the sharp, metallic scent of ozone just before the first fat raindrops splatter against the ground with a loud *plink*. Then comes the roar\u2014deep, rumbling thunder that vibrates in your chest, shaking the windows and drowning out all other sounds. The wind howls, whipping tree branches into a frenzy and sending leaves skittering across the pavement like tiny, panicked creatures. As the storm peaks, the rain pours in sheets, drumming against rooftops in a relentless, rhythmic tattoo, while the temperature plummets, leaving the air cool and electric against your skin.",
+  "score": 5,
+  "cost": 5.75e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 186
+  }
+}

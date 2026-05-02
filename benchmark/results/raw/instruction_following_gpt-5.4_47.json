@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. **Make it long**\n   - Use at least **12\u201316 characters**.\n   - Longer passwords are generally harder to crack.\n\n2. **Use a mix of character types**\n   - Include **uppercase letters**, **lowercase letters**, **numbers**, and **symbols**.\n   - Example pattern: `Tree!9River#Moon7`\n\n3. **Avoid common words and predictable patterns**\n   - Don\u2019t use things like `password123`, `qwerty`, or `abc123`.\n   - Avoid obvious substitutions like `P@ssw0rd`.\n\n4. **Don\u2019t use personal information**\n   - Avoid your **name**, **birthday**, **phone number**, pet names, or anything someone could guess from social media.\n\n5. **Make each password unique**\n   - Use a different password for every account.\n   - If one account is hacked, the others stay safer.\n\n6. **Consider using a passphrase**\n   - A passphrase is a string of random words, such as `BlueCandle!River9Tiger`.\n   - It can be easier to remember and still strong if it is long and random.\n\n7. **Use a password manager**\n   - A password manager can generate and store strong, unique passwords for you.\n   - This helps you avoid reusing passwords.\n\n8. **Turn on multi-factor authentication when possible**\n   - Even a strong password is better with an extra layer of security, like a code from your phone or an authenticator app.\n\n9. **Change passwords if they are exposed**\n   - If a site has a data breach or you think your password was stolen, change it immediately.\n\n10. **Store passwords safely**\n   - Don\u2019t write them in an unsecured note or share them with others.\n   - Use a trusted password manager instead.\n\nA good password is **long, unique, hard to guess, and not reused**.",
+  "score": 5,
+  "cost": 0.003154,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 390
+  }
+}

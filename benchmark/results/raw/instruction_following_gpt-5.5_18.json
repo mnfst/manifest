@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "My favorite book is a deceptively simple, beautifully philosophical story about a stranded pilot who meets a mysterious child from another tiny world. Through visits to strange planets and encounters with vain, lonely, and power-hungry adults, it gently explores love, loss, friendship, and the strange things people forget as they grow up.\n\nWhat I love most is how it feels like a children\u2019s tale on the surface, but every rereading reveals something more tender and profound\u2014especially its reminder that the most important things are often invisible.",
+  "score": 5,
+  "cost": 0.002931,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 240
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 31,
+  "response": "def sorted_list_sum(lst):\n    return sorted([word for word in lst if len(word) % 2 == 0], key=lambda x: (len(x), x))",
+  "score": 4,
+  "cost": 1.326e-05,
+  "expected": "",
+  "tokens": {
+    "input": 223,
+    "output": 37
+  }
+}

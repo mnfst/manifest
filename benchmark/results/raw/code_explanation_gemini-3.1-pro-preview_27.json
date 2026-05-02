@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This code finds the maximum value in every contiguous subarray of size `k` within the given `nums` array. It implements the **sliding window** pattern using a **monotonic decreasing deque** to efficiently track the largest elements and discard smaller or out-of-bounds values, achieving an $O(n)$ time complexity.",
+  "score": 5,
+  "cost": 0.0013125,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 65
+  }
+}

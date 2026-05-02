@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "The pathogen that causes gas gangrene and is poisonous to oxygen is **anaerobic bacteria**. \n\n**Answer:** Anaerobic bacteria.",
+  "score": 5,
+  "cost": 2.23e-05,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 211,
+    "output": 235
+  }
+}

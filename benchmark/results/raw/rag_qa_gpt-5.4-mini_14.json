@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "Ctenophora live in **marine waters worldwide**.",
+  "score": 5,
+  "cost": 0.00011070000000000001,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 309,
+    "output": 15
+  }
+}

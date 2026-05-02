@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 38,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"version\": 42,\n  \"name\": \"AddUserPreferences\",\n  \"created\": \"2024-03-15\",\n  \"status\": \"applied\",\n  \"duration_ms\": 340,\n  \"sql\": \"ALTER TABLE users ADD COLUMN preferences JSONB DEFAULT '{}'\"\n}\n```",
+  "score": 5,
+  "cost": 4.806e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 76
+  }
+}

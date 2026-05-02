@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "structured_output",
+  "case": 1,
+  "response": "```json\n{\n  \"title\": \"Q4 Planning\",\n  \"date\": \"Dec 15 2024\",\n  \"time\": \"2pm\",\n  \"attendees\": [\"Alice\", \"Bob\", \"Charlie\"],\n  \"room\": \"301B\"\n}\n```",
+  "score": 5,
+  "cost": 0.001293,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 68
+  }
+}

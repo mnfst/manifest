@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU Article 294.",
+  "score": 5,
+  "cost": 0.00314,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 400,
+    "output": 57
+  }
+}

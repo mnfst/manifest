@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 0,
+  "response": "Marketing exceeded its budget by 15% due to the August campaign, while Engineering is 8% under budget because of delayed hiring. Sarah proposes reallocating $50,000 from Engineering to cover Marketing's overspend and suggests discussing this on Thursday.",
+  "score": 5,
+  "cost": 9.49e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 51
+  }
+}

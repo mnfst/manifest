@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Subject: Farewell and Best Wishes\n\nDear Team,\n\nAs I prepare to move on to new opportunities, I wanted to take a moment to express my heartfelt gratitude for the incredible time I've spent working alongside each of you. Your support, camaraderie, and shared dedication have made this journey truly memorable. I am excited about what the future holds, but I will always cherish the friendships and experiences we've built together. Please keep in touch, and I look forward to hearing about your continued successes. Thank you once again for everything.\n\nWarm regards,\n\n[Your Name]",
+  "score": 5,
+  "cost": 8.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 117
+  }
+}

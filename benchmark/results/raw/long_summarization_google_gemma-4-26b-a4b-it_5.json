@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Since Alexander Fleming\u2019s 1928 discovery of penicillin, antibiotics have revolutionized surgery and disease treatment, particularly during a \"golden age\" of discovery in the 1950s and 60s. However, the medical field now faces a crisis of antimicrobial resistance driven by the rise of bacteria like MRSA and the widespread use of antibiotics in livestock. This crisis is compounded by a decline in new drug development caused by poor financial returns for pharmaceutical companies. To combat this, current research is shifting toward innovative solutions such as phage therapy, CRISPR-based approaches, and AI-driven drug discovery.",
+  "score": 5,
+  "cost": 1.566e-05,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 122
+  }
+}

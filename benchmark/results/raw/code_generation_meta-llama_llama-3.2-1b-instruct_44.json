@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 44,
+  "response": "def encode(message):\n    result = \"\"\n    for char in message:\n        if char.isalpha():\n            if char.isupper():\n                if char in 'AEIOU':\n                    result += chr((ord(char) - ord('A') + 2) % 26 + ord('A'))\n                else:\n                    result += char\n            else:\n                if char in 'AEIOU':\n                    result += chr((ord(char) - ord('a') + 2) % 26 + ord('a'))\n                else:\n                    result += char\n        else:\n            result += char\n    return result",
+  "score": 3,
+  "cost": 7.29e-06,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 125
+  }
+}

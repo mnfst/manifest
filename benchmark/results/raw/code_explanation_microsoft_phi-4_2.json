@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "The provided code implements the Quicksort algorithm, a popular sorting technique that uses a divide-and-conquer approach. It selects a pivot element (in this case, the middle element of the array), partitions the array into three sub-arrays (elements less than the pivot, equal to the pivot, and greater than the pivot), and recursively sorts the sub-arrays before combining them to produce the sorted array.",
+  "score": 5,
+  "cost": 1.2935e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 83
+  }
+}

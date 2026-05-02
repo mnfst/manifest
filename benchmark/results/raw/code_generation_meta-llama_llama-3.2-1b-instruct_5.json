@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 5,
+  "response": "def max_element(l: list) -> int:\n    return max(l)",
+  "score": 5,
+  "cost": 3.618e-06,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 16
+  }
+}

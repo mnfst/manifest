@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "**Crispy crust, golden edges, bubbly cheese, tangy tomato sauce, savory pepperoni, earthy mushrooms, fresh basil, spicy sausage, gooey mozzarella, charred blisters, aromatic oregano, sweet caramelized onions, briny olives, smoky bacon, creamy ricotta, zesty garlic, flaky parmesan, juicy pineapple, chewy dough, rustic charm, hearty toppings, bold flavors, melted perfection, wood-fired aroma, indulgent delight.**",
+  "score": 5,
+  "cost": 3.680000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 117
+  }
+}

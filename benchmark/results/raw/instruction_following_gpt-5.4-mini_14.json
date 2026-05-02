@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay refreshed wherever life takes you with this sleek, durable water bottle designed for everyday hydration. Its leak-proof lid and lightweight, easy-to-carry design make it perfect for workouts, commuting, travel, or the office. Stylish, reusable, and built to last, it\u2019s a simple upgrade for your daily routine.",
+  "score": 4,
+  "cost": 8.52e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 66
+  }
+}

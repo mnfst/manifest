@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Oxygen therapy promotes the body to take up and use gaseous oxygen. This is essential for treating diseases that impair the body's ability to uptake oxygen from the air. Not found in context: specific details on how oxygen therapy promotes uptake beyond the general purpose of increasing oxygen levels in the blood.",
+  "score": 5,
+  "cost": 1.5275000000000002e-05,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 174,
+    "output": 61
+  }
+}

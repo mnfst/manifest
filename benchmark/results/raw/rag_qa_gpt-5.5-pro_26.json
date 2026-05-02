@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "KMJ-TV",
+  "score": 5,
+  "cost": 0.00197,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 202,
+    "output": 48
+  }
+}

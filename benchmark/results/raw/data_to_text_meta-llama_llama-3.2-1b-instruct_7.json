@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 7,
+  "response": "Here is the converted paragraph:\n\nApple (AAPL) stock has seen a 2.3% increase in price over the past day, with a market capitalization of $2.87 trillion. The current price is $185.50, which is a 2.3% gain from the previous day's close. With a 52-week high of $198 and a 52-week low of $155, Apple's stock has been trading steadily throughout the week.",
+  "score": 0,
+  "cost": 5.5619999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 96
+  }
+}

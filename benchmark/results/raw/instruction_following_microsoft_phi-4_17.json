@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| **Pros of Remote Work** | **Cons of Remote Work** |\n|-----------------------|-----------------------|\n| **Flexibility and Work-Life Balance** | **Isolation and Lack of Social Interaction** |\n| Remote work offers flexibility in terms of work hours and location, allowing employees to better balance their personal and professional lives. This can lead to increased job satisfaction and productivity. | Working remotely can lead to feelings of isolation and loneliness, as employees miss out on the social interactions and camaraderie that come with a traditional office environment. |\n| **Cost Savings** | **Communication Challenges** |\n| Remote work can reduce costs for both employers and employees. Employers save on office space, utilities, and other overhead expenses, while employees save on commuting and potentially relocate to areas with lower living costs. | Communication can be more challenging in remote settings, as nuances and non-verbal cues are often lost in virtual meetings. This can lead to misunderstandings and a lack of clarity in discussions. |\n| **Increased Productivity** | **Distractions and Lack of a Dedicated Workspace** |\n| Many employees report higher productivity levels when working remotely due to fewer office-related distractions and a quieter environment. This can lead to more focused work and efficient use of time. | Remote work can sometimes lead to distractions at home, such as family interruptions or household chores, which can disrupt work focus. Additionally, not everyone has a dedicated workspace at home, which can affect productivity. |\n\nThese pros and cons highlight the varied experiences and challenges associated with remote work, reflecting both its benefits and potential drawbacks.",
+  "score": 5,
+  "cost": 2.223e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 319
+  }
+}

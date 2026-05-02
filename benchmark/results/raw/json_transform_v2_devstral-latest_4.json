@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "json_transform_v2",
+  "case": 4,
+  "response": "```json\n{\"event_type\": \"signup\", \"date\": \"2024-03-15\", \"time\": \"14:30\", \"user_id\": \"u_123\", \"attribution\": {\"source\": \"google_ads\", \"platform\": \"mobile\"}}\n```",
+  "score": 4,
+  "cost": 3.4200000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 67
+  }
+}

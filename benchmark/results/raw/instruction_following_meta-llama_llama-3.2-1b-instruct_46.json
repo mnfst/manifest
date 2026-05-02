@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Here is a sample goodbye email to coworkers:\n\nDear Team,\n\nI wanted to take a moment to express my gratitude for the opportunity to work with such a talented and dedicated group of individuals. I'm grateful for the experience and skills I've gained while working with you all. I'll always cherish the memories and friendships I've made during my time here. I wish the company continued success and growth in the future. Thank you again for the opportunity to be a part of this team.\n\nBest regards, [Your Name]",
+  "score": 4,
+  "cost": 3.4289999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 104
+  }
+}

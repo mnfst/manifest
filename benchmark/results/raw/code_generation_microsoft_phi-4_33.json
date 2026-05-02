@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 33,
+  "response": "```python\na, b, c = sorted([a, b, c])\nreturn a**2 + b**2 == c**2\n```",
+  "score": 5,
+  "cost": 1.209e-05,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 32
+  }
+}

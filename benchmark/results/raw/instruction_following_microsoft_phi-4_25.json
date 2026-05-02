@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "\"Invitation: Strategy Meeting on April 15th at 10 AM\"\n\nThis subject line is concise and clearly communicates the purpose and timing of the meeting.",
+  "score": 4,
+  "cost": 3.575e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 33
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This defines a **memoization decorator**: it wraps a function and caches results in a dictionary keyed by the function\u2019s arguments. On later calls with the same arguments, it returns the cached value instead of recomputing the function.",
+  "score": 5,
+  "cost": 0.001317,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 91
+  }
+}

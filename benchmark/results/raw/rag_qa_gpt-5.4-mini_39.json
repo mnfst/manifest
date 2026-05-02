@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Circuit switching",
+  "score": 5,
+  "cost": 4.8899999999999996e-05,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 143,
+    "output": 5
+  }
+}

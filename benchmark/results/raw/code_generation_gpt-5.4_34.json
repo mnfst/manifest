@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 34,
+  "response": "if n < 2:\n    return y\nif n == 2:\n    return x\nif n % 2 == 0:\n    return y\n\ni = 3\nwhile i * i <= n:\n    if n % i == 0:\n        return y\n    i += 2\n\nreturn x",
+  "score": 5,
+  "cost": 0.000786,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 69
+  }
+}

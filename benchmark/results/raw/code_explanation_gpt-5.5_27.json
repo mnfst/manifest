@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This function computes the maximum value in every contiguous subarray of size `k` using the sliding window pattern with a monotonic decreasing deque of indices. The deque removes indices that fall out of the window and pops smaller trailing values so its front always points to the current window\u2019s maximum.",
+  "score": 5,
+  "cost": 0.001542,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 98
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 44,
+  "response": "vowels = 'aeiouAEIOU'\n    result = []\n    for char in message:\n        if char in vowels:\n            # Find the next character in the alphabet\n            # ord(char) + 2 handles the shift\n            # We use swapcase() on the result to ensure the case is swapped as per instructions\n            new_char = chr(ord(char) + 2)\n            result.append(new_char.swapcase())\n        else:\n            result.append(char.swapcase())\n    return \"\".join(result)",
+  "score": 4,
+  "cost": 1.734e-05,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 126
+  }
+}

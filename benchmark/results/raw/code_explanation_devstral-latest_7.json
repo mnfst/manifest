@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements a **Least Recently Used (LRU) cache** decorator using an `OrderedDict` to store function results. When a function is called, it checks if the arguments exist in the cache; if they do, it moves them to the end (marking them as recently used) and returns the cached result. If not, it computes the result, stores it in the cache, and evicts the least recently used entry (the first item) if the cache exceeds `maxsize`. This ensures the cache only retains the most recently accessed items.",
+  "score": 5,
+  "cost": 4.65e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 116
+  }
+}

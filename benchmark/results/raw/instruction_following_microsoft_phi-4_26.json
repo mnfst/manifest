@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrological cycle, is a continuous process that describes the movement of water on, above, and below the surface of the Earth. This cycle is essential for sustaining life, as it distributes water across various ecosystems and replenishes freshwater sources. The water cycle consists of several key stages: evaporation, condensation, precipitation, and collection. Each stage plays a crucial role in the movement and transformation of water, ensuring that it is constantly recycled and available in different forms across the planet.\n\nEvaporation is the first stage of the water cycle, where water from oceans, rivers, lakes, and other bodies of water is transformed into water vapor. This process is driven by the sun's heat, which causes water to evaporate from the surface. Additionally, plants contribute to evaporation through transpiration, releasing water vapor into the atmosphere from their leaves. Together, evaporation and transpiration are referred to as evapotranspiration. As water vapor rises, it cools and eventually condenses to form clouds, marking the transition to the next stage of the cycle.\n\nCondensation occurs when water vapor in the atmosphere cools and changes into liquid water, forming clouds. This process is influenced by temperature and atmospheric pressure, which determine the altitude at which condensation occurs. Clouds, composed of tiny water droplets or ice crystals, are a visible manifestation of this stage. As clouds grow heavier with accumulated water droplets, they eventually lead to precipitation, the third stage of the water cycle. Precipitation includes rain, snow, sleet, or hail, depending on the atmospheric conditions, and it is the primary mechanism through which water returns to the Earth's surface.\n\nOnce precipitation occurs, the water cycle continues with collection, where water gathers in bodies of water such as rivers, lakes, and oceans. Some of the water infiltrates the ground, replenishing groundwater supplies and contributing to soil moisture. This stage also includes runoff, where water flows over the land surface, eventually returning to larger bodies of water. The collected water then evaporates, restarting the cycle. This continuous movement of water through evaporation, condensation, precipitation, and collection ensures the Earth's water resources are constantly replenished and redistributed, maintaining the balance necessary for life and ecosystems.",
+  "score": 5,
+  "cost": 3.1005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 458
+  }
+}

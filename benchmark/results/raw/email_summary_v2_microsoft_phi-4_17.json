@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "The release of v4.2 is being rolled back due to a data corruption bug in the new sync engine, affecting 23 accounts. The recovery plan involves restoring from a pre-release backup, re-running affected transactions, notifying impacted customers, and a hotfix branch has been created.",
+  "score": 5,
+  "cost": 1.0465e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 58
+  }
+}

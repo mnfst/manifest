@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 25,
+  "response": "```python\nfrom typing import List\n\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    result = []\n    current_group = ''\n    group_count = 0\n    for char in paren_string:\n        if char == '(':\n            group_count += 1\n            current_group += char\n        elif char == ')':\n            group_count -= 1\n            current_group += char\n            if group_count == 0:\n                result.append(current_group)\n                current_group = ''\n    return result\n```",
+  "score": 4,
+  "cost": 1.3209e-05,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 108
+  }
+}

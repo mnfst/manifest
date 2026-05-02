@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "structured_output",
+  "case": 20,
+  "response": "{\"items\":[{\"name\":\"pepperoni pizza\",\"size\":\"large\",\"price\":18.99},{\"name\":\"margherita pizza\",\"size\":\"medium\",\"price\":14.99},{\"name\":\"Coke\",\"size\":\"2L\",\"price\":3.99}],\"delivery_address\":\"456 Oak Ave.\",\"special_instructions\":\"ring doorbell twice\",\"total\":37.97}",
+  "score": 4,
+  "cost": 0.0001293,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 80
+  }
+}

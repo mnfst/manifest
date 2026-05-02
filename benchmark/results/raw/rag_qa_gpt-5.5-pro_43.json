@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 43,
+  "response": "Amazonia: Man and Culture in a Counterfeit Paradise",
+  "score": 5,
+  "cost": 0.0029,
+  "expected": "Amazonia: Man and Culture in a Counterfeit Paradise",
+  "tokens": {
+    "input": 248,
+    "output": 83
+  }
+}

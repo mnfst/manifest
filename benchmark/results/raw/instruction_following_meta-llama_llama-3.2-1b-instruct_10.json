@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a Dave, a programmer so fine,\nWhose code was always on his mind.\nHe'd debug with care,\nAnd fix errors with flair,\nAnd his programs would run in a line.",
+  "score": 5,
+  "cost": 1.7279999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 42
+  }
+}

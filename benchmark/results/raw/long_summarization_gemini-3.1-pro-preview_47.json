@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "long_summarization",
+  "case": 47,
+  "response": "Implemented in May 2018, the EU's General Data Protection Regulation (GDPR) mandates strict privacy rules\u2014including explicit consent and 72-hour breach reporting\u2014for any organization handling EU residents' data. To enforce compliance, the GDPR imposes severe penalties of up to \u20ac20 million or 4% of global annual revenue, leading to massive levies like Meta's record \u20ac1.2 billion fine. Despite criticisms that it disproportionately burdens small businesses, the regulation successfully established data privacy as a fundamental right and set the definitive global standard for data protection legislation.",
+  "score": 5,
+  "cost": 0.0025775,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 119
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "data_to_text",
+  "case": 24,
+  "response": "The patient is a 45-year-old female non-smoker who exercises twice a week and has a maternal family history of diabetes. Her physical metrics include a BMI of 27.3 and a blood pressure reading of 138/88. Additionally, her recent laboratory results reveal a cholesterol level of 225 mg/dL and a fasting glucose of 110 mg/dL.",
+  "score": 0,
+  "cost": 0.0015575,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 87
+  }
+}

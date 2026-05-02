@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This function computes the shortest-path distances from `start` to all reachable nodes in a weighted graph using Dijkstra\u2019s algorithm. It uses a min-heap priority queue (`heapq`) to always expand the currently closest node, updating distances when a shorter path is found.",
+  "score": 5,
+  "cost": 0.001104,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 57
+  }
+}

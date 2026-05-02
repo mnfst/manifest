@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave,  \nWhose functions were tidy and brave.  \nHe debugged through the night,  \nTill the code ran just right,  \nAnd his boss said, \u201cThat patch is a rave!\u201d",
+  "score": 5,
+  "cost": 0.000426,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 49
+  }
+}

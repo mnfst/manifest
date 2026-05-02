@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "multistep_reasoning",
+  "case": 36,
+  "response": "To find the momentum of the baseball, we need to multiply its mass by its velocity. The mass of the baseball is given as 0.15 kg, and its velocity is given as 40 m/s.\n\nMomentum = mass x velocity\n= 0.15 kg x 40 m/s\n= 6.0 kg x m/s\n\nThe correct answer is C.",
+  "score": 5,
+  "cost": 1.0250999999999999e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 122,
+    "output": 79
+  }
+}

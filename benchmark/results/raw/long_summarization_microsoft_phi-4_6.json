@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work has evolved from a rare benefit to a widespread practice, with less than 5% of workers fully remote before the pandemic. The forced shift to remote work in 2020, facilitated by tools like Zoom, Slack, and cloud infrastructure, led to mixed productivity outcomes, as evidenced by Stanford's Nick Bloom studies. The return-to-office backlash has prompted many companies to adopt hybrid models, impacting commercial real estate and enabling geographic arbitrage as workers move to lower-cost areas. This shift also affects company culture and junior employee development, while digital nomad visas have emerged to accommodate the growing trend of remote work.",
+  "score": 5,
+  "cost": 1.755e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 124
+  }
+}

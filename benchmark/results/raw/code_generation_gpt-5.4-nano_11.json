@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 11,
+  "response": "total_sum = 0\ntotal_product = 1\nfor n in numbers:\n    total_sum += n\n    total_product *= n\nreturn (total_sum, total_product)",
+  "score": 4,
+  "cost": 3.01e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 40
+  }
+}

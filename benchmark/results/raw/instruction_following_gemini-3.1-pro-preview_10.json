@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a programmer, Dave,\nWhose code would refuse to behave.\nHe hunted the bug\nWith a chug from his mug,\nAnd prayed that his edits would save.",
+  "score": 5,
+  "cost": 0.00063,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 40
+  }
+}

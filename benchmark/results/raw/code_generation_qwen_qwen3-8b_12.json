@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 12,
+  "response": "return [s for s in strings if substring in s]",
+  "score": 5,
+  "cost": 4.3049999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 735
+  }
+}

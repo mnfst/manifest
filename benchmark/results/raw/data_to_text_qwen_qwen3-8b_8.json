@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "data_to_text",
+  "case": 8,
+  "response": "A 45-year-old female patient has a BMI of 27.3, indicating overweight, and elevated blood pressure (138/88 mmHg), which falls within the prehypertensive range. Her cholesterol level is 225 mg/dL (borderline high), and fasting glucose is 110 mg/dL (suggesting prediabetes). She does not smoke, exercises 2 times per week, and has a family history of diabetes (mother), increasing her risk for metabolic conditions.",
+  "score": 0,
+  "cost": 2.6050000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 414
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 46,
+  "response": "min_val = float('inf')\nmin_index = -1\nfor i, val in enumerate(arr):\n    if val % 2 == 0 and val < min_val:\n        min_val = val\n        min_index = i\nif min_index == -1:\n    return []\nreturn [min_val, min_index]",
+  "score": 5,
+  "cost": 1.3794e-05,
+  "expected": "",
+  "tokens": {
+    "input": 352,
+    "output": 66
+  }
+}

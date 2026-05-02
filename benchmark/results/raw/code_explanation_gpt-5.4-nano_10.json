@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This implements the **Sieve of Eratosthenes**: it creates a boolean table of numbers up to `n`, then for each still-marked prime `i` up to `\u221an`, marks all multiples of `i` starting at `i*i` as non-prime. Finally, it returns the list of all indices that remain marked `True`, i.e., all primes \u2264 `n`.",
+  "score": 5,
+  "cost": 4.810000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 87
+  }
+}

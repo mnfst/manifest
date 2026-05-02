@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This implements a minimal `asyncio` producer\u2013consumer FIFO queue using `deque` plus `Future` wait lists: `get()` waits when the queue is empty, and `put()` waits when `maxsize` is reached, waking one blocked getter after adding an item. However, it has a bug for bounded queues: `get()` never wakes a waiting putter after removing an item, so producers blocked on a full queue may never resume.",
+  "score": 4,
+  "cost": 0.007085,
+  "expected": "",
+  "tokens": {
+    "input": 213,
+    "output": 301
+  }
+}

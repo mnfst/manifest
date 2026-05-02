@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\n\"\"\"Sorts items in ascending or descending order.\n\nArgs:\n    items: An iterable of items to sort.\n    key: An optional function used to extract a comparison key from each item.\n    reverse: If True, sorts items in descending order. Defaults to False.\n\nReturns:\n    A list containing the sorted items.\n\nRaises:\n    TypeError: If the items cannot be compared or if `key` is not callable.\n\"\"\"\n```",
+  "score": 5,
+  "cost": 0.002148,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 174
+  }
+}

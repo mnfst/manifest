@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "This code defines an asynchronous function `gather_with_limit` that limits the number of concurrent executions of a list of asynchronous tasks (coroutines) using a semaphore. The semaphore is initialized with a specified `limit`, which controls how many tasks can run simultaneously. Inside `gather_with_limit`, each coroutine is wrapped in a `limited` function that ensures it acquires the semaphore before execution, effectively enforcing the concurrency limit. The function then uses `asyncio.gather` to run all the limited coroutines concurrently, respecting the specified limit. This pattern is useful for managing resource constraints in asynchronous programming.",
+  "score": 5,
+  "cost": 1.4235e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 121
+  }
+}

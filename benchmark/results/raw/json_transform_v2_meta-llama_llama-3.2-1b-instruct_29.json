@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "json_transform_v2",
+  "case": 29,
+  "response": "```\n{\"services\": [{\"name\": \"myapp\", \"host\": \"db.prod.internal\", \"port\": 5432}, {\"name\": \"redis\", \"host\": \"redis.prod.internal\", \"port\": 6379}, {\"name\": \"app\", \"debug\": false, \"log_level\": \"warn\", \"workers\": 4}}, {\"name\": \"app\", \"host\": \"db.prod.internal\", \"port\": 5432}, {\"name\": \"app\", \"host\": \"redis.prod.internal\", \"port\": 6379}]\n```",
+  "score": 1,
+  "cost": 7.101e-06,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 116
+  }
+}

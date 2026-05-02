@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "To form coal, plant remains are subjected to heat and pressure over millions of years. This process is called metamorphism. The heat and pressure cause the plant material to undergo a series of changes, including compaction and cementation, which eventually form coal.\n\nThe best answer is C.",
+  "score": 5,
+  "cost": 3.8070000000000006e-06,
+  "expected": "D",
+  "tokens": {
+    "input": 83,
+    "output": 58
+  }
+}

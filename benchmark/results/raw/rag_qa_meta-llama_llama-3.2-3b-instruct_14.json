@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "Marine waters worldwide.",
+  "score": 5,
+  "cost": 1.6779e-05,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 323,
+    "output": 6
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "The context states that Harvard now owns approximately fifty percent more land in Allston than in Cambridge. However, it does not provide the specific amount of land in either location, so the exact difference in land ownership is not specified. Therefore, the answer is \"Not found in context.\"",
+  "score": 5,
+  "cost": 1.7875e-05,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 218,
+    "output": 57
+  }
+}

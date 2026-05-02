@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Here is a goodbye email to coworkers:\n\n---\n\n**Subject: Farewell and Thank You**\n\nAfter much reflection, I have decided to move on from my position here, and today is my last day. Working alongside each of you has been an incredible experience that I will always treasure. I am grateful for the support, laughter, and teamwork we shared throughout my time here. Please feel free to stay in touch with me at [personal email] or connect with me on LinkedIn. I wish you all continued success and happiness in everything you do!\n\n---",
+  "score": 5,
+  "cost": 0.001884,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 121
+  }
+}

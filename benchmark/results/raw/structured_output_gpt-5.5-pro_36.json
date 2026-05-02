@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "structured_output",
+  "case": 36,
+  "response": "{\"team\":\"Team Alpha\",\"sprint_number\":23,\"dates\":\"Jan 15-26 2024\",\"planned_points\":42,\"completed_points\":38,\"carried_over\":4,\"stories_done\":5,\"stories_incomplete\":1}",
+  "score": 5,
+  "cost": 0.003165,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 127
+  }
+}

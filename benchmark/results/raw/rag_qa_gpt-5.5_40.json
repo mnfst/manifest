@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Full citizenship rights (\u201cassimilation\u201d).",
+  "score": 5,
+  "cost": 0.000987,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 169,
+    "output": 40
+  }
+}

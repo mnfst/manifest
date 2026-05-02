@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Crack 2 eggs into a bowl, whisk until smooth. Add 1 tablespoon of milk and 1 tablespoon of butter. Heat in a non-stick pan over medium heat. Pour in eggs and scramble until cooked through. Serve hot.",
+  "score": 4,
+  "cost": 2.0790000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The P99 latency for the /api/v2/search endpoint increased significantly following Thursday's deployment due to an unindexed full-text search query. To resolve this, the backend team will deploy a GIN index on the content column during tonight's maintenance window.",
+  "score": 5,
+  "cost": 1.0140000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 58
+  }
+}

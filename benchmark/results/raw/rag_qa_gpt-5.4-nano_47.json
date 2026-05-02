@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "Another group is the **Urarina**.",
+  "score": 5,
+  "cost": 2.0600000000000003e-05,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 154,
+    "output": 13
+  }
+}

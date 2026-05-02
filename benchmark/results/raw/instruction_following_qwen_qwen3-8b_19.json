@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "\"What does the future hold for AI? From innovation to ethics, it's a journey of discovery. Let's shape it responsibly, together. #AI\" (142 characters)",
+  "score": 5,
+  "cost": 2.8150000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 541
+  }
+}

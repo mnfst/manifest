@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are 4 rhyming words for 'cat':\n\n1. Bat\n2. Hat\n3. Mat\n4. Rat",
+  "score": 5,
+  "cost": 0.000435,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 27
+  }
+}

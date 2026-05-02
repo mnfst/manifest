@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has attached a draft of the Q1 board deck, highlighting key metrics such as achieving 127% of the revenue target, an NRR of 115%, and a 22% increase in CAC. The CEO requests updates on the product roadmap by Wednesday and notes that the board meeting is scheduled for the following Tuesday.",
+  "score": 5,
+  "cost": 1.04e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 68
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code solves the **0/1 knapsack problem** using **dynamic programming** with a 2D table, where `dp[i][w]` stores the maximum value achievable using the first `i` items and capacity `w`. For each item, it either **excludes** the item or **includes** it if it fits, and returns the best value possible at the full capacity.",
+  "score": 5,
+  "cost": 0.00014580000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 84
+  }
+}

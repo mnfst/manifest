@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Hot, circular dough. Crispy, golden crust. Rich, red tomato sauce. Sweet, aromatic basil. Pungent garlic. Gooey, stretchy mozzarella. Spicy pepperoni discs. Salty black olives. Fresh, green peppers. Earthy mushrooms. Greasy, savory surface. Triangular slices. Delicious, warm meal. Perfect culinary masterpiece.",
+  "score": 5,
+  "cost": 0.0010675,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 69
+  }
+}

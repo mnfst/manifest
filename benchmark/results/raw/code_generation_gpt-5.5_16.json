@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_generation",
+  "case": 16,
+  "response": "n = len(grid)\nif k <= 0:\n    return []\n\nx = y = 0\nfor i in range(n):\n    for j in range(n):\n        if grid[i][j] == 1:\n            x, y = i, j\n            break\n    else:\n        continue\n    break\n\npath = [grid[x][y]]\ndirs = [(1, 0), (-1, 0), (0, 1), (0, -1)]\n\nfor _ in range(k - 1):\n    best_val = float(\"inf\")\n    best_pos = None\n    for dx, dy in dirs:\n        nx, ny = x + dx, y + dy\n        if 0 <= nx < n and 0 <= ny < n and grid[nx][ny] < best_val:\n            best_val = grid[nx][ny]\n            best_pos = (nx, ny)\n    x, y = best_pos\n    path.append(best_val)\n\nreturn path",
+  "score": 3,
+  "cost": 0.009993,
+  "expected": "",
+  "tokens": {
+    "input": 427,
+    "output": 726
+  }
+}

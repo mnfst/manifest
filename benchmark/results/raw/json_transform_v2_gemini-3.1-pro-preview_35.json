@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "json_transform_v2",
+  "case": 35,
+  "response": "{\n  \"departments\": {\n    \"eng\": {\n      \"headcount\": 2,\n      \"avg_salary\": 115000,\n      \"employees\": [\n        \"Alice\",\n        \"Bob\"\n      ]\n    },\n    \"sales\": {\n      \"headcount\": 2,\n      \"avg_salary\": 100000,\n      \"employees\": [\n        \"Carol\",\n        \"Dave\"\n      ]\n    }\n  }\n}",
+  "score": 4,
+  "cost": 0.0021175,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 115
+  }
+}

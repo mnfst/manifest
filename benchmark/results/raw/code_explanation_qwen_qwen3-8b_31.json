@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "The code implements the **A* search algorithm** using a priority queue (min-heap) to explore the shortest path from `start` to `goal` in a graph. It combines the actual cost from the start (`g-cost`) and a heuristic estimate to the goal (`h-cost`) to prioritize nodes with the lowest total estimated cost (`f = g + h`), ensuring efficient pathfinding when the heuristic is admissible.",
+  "score": 5,
+  "cost": 3.685e-05,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 568
+  }
+}

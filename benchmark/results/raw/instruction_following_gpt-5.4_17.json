@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| Pros | Cons |\n|---|---|\n| Flexible schedule and better work-life balance | Can feel isolating or lonely |\n| No commute, saving time and money | Harder to separate work from personal life |\n| Access to a wider range of job opportunities | Communication and collaboration can be more difficult |",
+  "score": 5,
+  "cost": 0.000564,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 65
+  }
+}

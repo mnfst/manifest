@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "Duquesne sent additional French forces under Claude-Pierre Pecaudy de Contrec\u0153ur to relieve Saint-Pierre. The context specifies that Contrec\u0153ur led 500 men south from Fort Venango to relieve Saint-Pierre. Therefore, the answer is 500 men.",
+  "score": 5,
+  "cost": 1.6575000000000003e-05,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 198,
+    "output": 57
+  }
+}

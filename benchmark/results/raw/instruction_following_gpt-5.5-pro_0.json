@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- Improves cardiovascular health\n- Boosts mood and reduces stress\n- Builds strength and endurance",
+  "score": 5,
+  "cost": 0.001,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 45
+  }
+}

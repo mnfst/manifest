@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "TCP and UDP are transport-layer protocols used to send data over IP networks. The main difference is that **TCP prioritizes reliability**, while **UDP prioritizes speed and simplicity**.\n\n| Feature | TCP | UDP |\n|---|---|---|\n| Full name | Transmission Control Protocol | User Datagram Protocol |\n| Connection type | Connection-oriented | Connectionless |\n| Reliability | Reliable: guarantees delivery, retransmits lost packets | Unreliable: no guarantee of delivery |\n| Ordering | Guarantees data arrives in order | Packets may arrive out of order |\n| Error checking | Yes, with recovery | Yes, but no recovery |\n| Speed | Generally slower due to overhead | Generally faster with lower overhead |\n| Overhead | Higher | Lower |\n| Flow control | Yes | No |\n| Congestion control | Yes | No built-in congestion control |\n| Data format | Stream-based | Message/datagram-based |\n| Handshake | Requires setup, e.g. TCP three-way handshake | No handshake |\n| Broadcast/multicast | Not typically used | Supports broadcast and multicast |\n| Common uses | Web browsing, email, file transfers, SSH | Video streaming, online gaming, VoIP, DNS |\n\n### TCP example\nTCP is used when correctness matters more than speed. For example, when downloading a file, every byte must arrive correctly and in order.\n\n### UDP example\nUDP is used when speed matters more than perfect reliability. For example, in a live video call, it is often better to drop a lost packet than to wait for retransmission and cause lag.\n\n**In short:**  \n- Use **TCP** when you need reliability and ordered delivery.  \n- Use **UDP** when you need low latency and can tolerate some packet loss.",
+  "score": 5,
+  "cost": 0.00855,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 423
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "The high end of the temperature range in winter is 70's.",
+  "score": 4,
+  "cost": 1.92e-05,
+  "expected": "70",
+  "tokens": {
+    "input": 144,
+    "output": 16
+  }
+}

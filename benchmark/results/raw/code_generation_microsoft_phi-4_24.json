@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 24,
+  "response": "```python\nimport math\n\ns = (a + b + c) / 2\nif a + b > c and a + c > b and b + c > a:\n    return round(math.sqrt(s * (s - a) * (s - b) * (s - c)), 2)\nelse:\n    return -1\n```",
+  "score": 5,
+  "cost": 1.4755e-05,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 74
+  }
+}

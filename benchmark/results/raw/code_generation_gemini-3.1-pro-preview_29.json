@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\n    def points(n):\n        s = str(n)\n        if s.startswith('-'):\n            return int(s[:2]) + sum(int(d) for d in s[2:])\n        return sum(int(d) for d in s)\n        \n    return sorted(nums, key=points)\n```",
+  "score": 4,
+  "cost": 0.0015625,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 77
+  }
+}

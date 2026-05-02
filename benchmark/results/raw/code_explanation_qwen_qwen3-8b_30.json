@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "The code implements a **Bloom Filter**, a probabilistic data structure that uses multiple hash functions to check if an element might be in a set (with a small false positive rate). It uses **bit arrays** and **hashing** to track elements, where each element is hashed into multiple positions (via `num_hashes` hash functions), and the `add` method marks those positions as True. The `__contains__` method checks if all corresponding positions are True, indicating the element might be present.",
+  "score": 5,
+  "cost": 2.32e-05,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 308
+  }
+}

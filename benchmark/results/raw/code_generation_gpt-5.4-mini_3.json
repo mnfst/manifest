@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 3,
+  "response": "if len(xs) <= 1:\n    return []\nreturn [i * xs[i] for i in range(1, len(xs))]",
+  "score": 4,
+  "cost": 7.98e-05,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 32
+  }
+}

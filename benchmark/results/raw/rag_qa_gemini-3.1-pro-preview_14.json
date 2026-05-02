@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "Based on the provided context, ctenophora live in marine waters worldwide.",
+  "score": 5,
+  "cost": 0.0009475,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 289,
+    "output": 15
+  }
+}

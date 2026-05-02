@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a programmer named Dave,  \nWho debugged through bugs with brave\u2014  \nHe\u2019d trace every line,  \nTill errors all aligned,  \nThen shipped with a grin: \u201cAll good\u2014have!\u201d",
+  "score": 5,
+  "cost": 2.01e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 46
+  }
+}

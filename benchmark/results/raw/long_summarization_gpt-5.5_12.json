@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "long_summarization",
+  "case": 12,
+  "response": "The internet began in the 1960s with US Department of Defense-funded networking research, leading to ARPANET\u2019s first demonstration in 1969 and the adoption of TCP/IP in 1983. Tim Berners-Lee created the World Wide Web in 1989, and the 1993 Mosaic browser helped bring it to ordinary users. The late-1990s dot-com boom and 2001 crash reshaped the industry, with companies like Amazon and Google emerging as major survivors. Since then, social media, smartphones after the 2007 iPhone, cloud computing such as AWS, and global access for over 5 billion people have made the internet central to modern life.",
+  "score": 5,
+  "cost": 0.002832,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 158
+  }
+}

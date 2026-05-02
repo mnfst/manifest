@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements a **Disjoint Set (Union-Find)** data structure using a closure pattern to encapsulate its internal state arrays. It efficiently manages and merges disjoint sets by utilizing the **path compression** optimization in the `find` function and the **union by rank** heuristic in the `union` function.",
+  "score": 5,
+  "cost": 0.001365,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 62
+  }
+}

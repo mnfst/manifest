@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 15,
+  "response": "factor = 2\n    last_factor = 1\n\n    while factor * factor <= n:\n        while n % factor == 0:\n            last_factor = factor\n            n //= factor\n        factor = 3 if factor == 2 else factor + 2\n\n    return n if n > 1 else last_factor",
+  "score": 4,
+  "cost": 0.0001146,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 72
+  }
+}

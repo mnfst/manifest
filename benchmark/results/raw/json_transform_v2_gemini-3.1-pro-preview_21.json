@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "json_transform_v2",
+  "case": 21,
+  "response": "{\n  \"order_id\": \"ORD-001\",\n  \"subtotal\": 109.97,\n  \"discount\": 11.00,\n  \"shipping\": 5.99,\n  \"total\": 104.96,\n  \"item_count\": 3\n}",
+  "score": 4,
+  "cost": 0.0015125,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 76
+  }
+}

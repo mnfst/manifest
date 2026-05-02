@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "The production web server **prod-web-01** in **us-east-1** is running at **78% CPU usage**, with **12.4 GB of memory used out of 16 GB** and **234 GB of disk space consumed from 500 GB**. It has been operational for **45 days**, currently handling **127 active connections**, a **P99 latency of 145ms**, and an average of **3 errors per hour**.",
+  "score": 0,
+  "cost": 4.27e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 105
+  }
+}

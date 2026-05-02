@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "The answer is TFEU Article 294. The context explicitly states that this article defines the \"ordinary legislative procedure\" for most EU acts. \n\n**Answer:** TFEU Article 294.",
+  "score": 5,
+  "cost": 3.25e-05,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 402,
+    "output": 248
+  }
+}

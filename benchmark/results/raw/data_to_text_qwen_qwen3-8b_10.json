@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "data_to_text",
+  "case": 10,
+  "response": "This Thai-inspired Pad Thai recipe takes 15 minutes to prepare and 10 minutes to cook, serving four portions. Each serving provides 380 calories, 22g of protein, 45g of carbohydrates, and 12g of fat, making it a medium-difficulty dish perfect for a flavorful, quick meal.",
+  "score": 0,
+  "cost": 2.39e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 377
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Packet switching contrasts with **circuit switching**.",
+  "score": 5,
+  "cost": 1.95e-05,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 143,
+    "output": 13
+  }
+}

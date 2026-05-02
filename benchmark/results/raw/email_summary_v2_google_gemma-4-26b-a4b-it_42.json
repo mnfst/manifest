@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The customer workshop revealed high satisfaction with the new analytics dashboard but highlighted critical needs for improved bulk importing and SSO functionality. Sales attached a follow-up report detailing these insights and the unexpected interest in turning the internal tool into a standalone product.",
+  "score": 5,
+  "cost": 9.899999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 48
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "\"Invalid email or password. Please try again.\"",
+  "score": 5,
+  "cost": 5.3e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 11
+  }
+}

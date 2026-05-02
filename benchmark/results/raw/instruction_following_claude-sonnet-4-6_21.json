@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here are example directions from a park to a library using only left and right turns:\n\n1. **Start** at the park entrance and head out to the main road.\n2. **Turn right** onto Main Street.\n3. **Turn left** onto Oak Avenue.\n4. **Turn right** onto Elm Street.\n5. **Turn left** onto Library Drive.\n6. **Turn right** into the library parking lot.\n7. **Arrive** at the library on your left.\n\n---\n\n> **Note:** Since you didn't specify a real location, these are **generic example directions**. If you give me a specific park and library, I can try to provide more accurate directions! Keep in mind I recommend using a navigation app like Google Maps for real-time, accurate routing.",
+  "score": 5,
+  "cost": 0.002667,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 173
+  }
+}

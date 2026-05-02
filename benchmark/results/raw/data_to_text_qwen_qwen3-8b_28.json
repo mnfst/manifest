@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "Massachusetts Institute of Technology (MIT), ranked #1 globally, is a prestigious institution with 11,500 students and an ultra-competitive 3.9% acceptance rate. Its annual tuition of $57,590 is supported by a vast endowment of $24.6 billion, while its 1,069 faculty members include 98 Nobel laureates, reflecting its academic excellence since its founding in 1861.",
+  "score": 0,
+  "cost": 2.3899999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 364
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "### TCP vs UDP (Comparison)\n\n| Feature | TCP (Transmission Control Protocol) | UDP (User Datagram Protocol) |\n|---|---|---|\n| Connection | Connection-oriented (establishes a session via handshake) | Connectionless (no handshake) |\n| Delivery guarantee | Reliable, ordered delivery (data is retransmitted if lost; in-order reassembly) | No delivery guarantee; may arrive out of order or not at all |\n| Overhead | Higher (includes connection setup, acknowledgments, sequencing, retransmissions) | Lower (minimal headers and no reliability mechanisms) |\n| Latency | Typically higher due to reliability/ordering and congestion control mechanisms | Typically lower; can send immediately without waiting for acknowledgments |\n| Data ordering | Preserves order | No ordering guarantees |\n| Flow / congestion control | Yes (e.g., flow control and congestion control) | No built-in flow/congestion control (application handles if needed) |\n| Speed / throughput | Generally better for bulk transfer where reliability matters, but may be slower under loss | Generally faster for real-time needs; performance degrades less due to missing guarantees |\n| Typical use cases | Web traffic (HTTP/HTTPS), file transfer (FTP/SFTP), email, SSH | VoIP, online gaming, DNS, streaming, real-time telemetry |\n| Use when | You need correctness and completeness | You need speed and \u201cgood enough\u201d delivery, or you handle reliability in the app |\n\n**In short:** TCP prioritizes *reliability and order*; UDP prioritizes *speed and simplicity*.",
+  "score": 5,
+  "cost": 0.00012880000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 318
+  }
+}

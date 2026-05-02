@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Review: The Lantern Fig**  \n**Rating: 4.5/5 stars**\n\nThe Lantern Fig feels like the kind of restaurant you hope to stumble across by accident and then immediately want to tell everyone about. Tucked onto a quiet corner with warm amber lighting and big windows, it manages to be stylish without feeling stiff. The atmosphere is cozy, a little romantic, and lively enough to feel special without becoming too loud for conversation.\n\nThe menu is creative but not pretentious, with familiar dishes elevated by thoughtful ingredients and careful presentation. I started with the charred carrots with whipped feta and pistachio dust, which were smoky, sweet, and surprisingly memorable. For the main course, the braised short rib over saffron polenta was excellent\u2014tender, rich, and deeply flavorful without being too heavy. The house-made focaccia also deserves a mention: crisp on the outside, airy inside, and served with an herb butter I would gladly have eaten by the spoonful.\n\nDessert was a citrus olive oil cake with honey cream, and it was the perfect ending\u2014light, fragrant, and balanced. The cocktail list was equally strong, especially the fig-and-rosemary gin drink, which felt distinctive without trying too hard.\n\nService was attentive and warm throughout the evening. Staff knew the menu well, made smart recommendations, and struck that ideal balance between checking in and giving us space.\n\nThe only reason I\u2019m not giving The Lantern Fig a full 5 stars is that prices run a little high for the portion sizes, and one side dish arrived only lukewarm. Still, the quality of the food, the inviting atmosphere, and the polished service make it a place I\u2019d happily return to.\n\n**Final verdict: 4.5/5 stars \u2014 a charming, memorable spot with excellent food and just a couple of minor flaws.**",
+  "score": 5,
+  "cost": 0.003062,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 377
+  }
+}

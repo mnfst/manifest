@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a `MinStack` class that keeps track of the minimum value in the stack efficiently. It uses two stacks: one for the main elements and another (`min_stack`) that stores the minimum value up to each corresponding position in the main stack. The `push` method ensures that the `min_stack` always holds the current minimum, allowing `get_min` to return the minimum in constant time.",
+  "score": 5,
+  "cost": 6.897e-06,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 83
+  }
+}

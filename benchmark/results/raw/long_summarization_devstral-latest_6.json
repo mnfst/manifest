@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work shifted from a niche benefit (affecting less than 5% of workers pre-pandemic) to a mainstream practice after the 2020 pandemic forced a global experiment, enabled by tools like Zoom, Slack, and cloud infrastructure. Research, including Stanford\u2019s Nick Bloom\u2019s studies, shows mixed productivity outcomes, while debates over return-to-office policies have led to hybrid models becoming common. The rise of remote work has disrupted commercial real estate, spurred geographic arbitrage (with workers relocating to cheaper areas), and raised concerns about company culture and junior employee development, alongside the growth of digital nomad visas.",
+  "score": 5,
+  "cost": 5.3700000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 130
+  }
+}

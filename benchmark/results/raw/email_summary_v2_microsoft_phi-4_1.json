@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "The server outage was caused by a misconfigured load balancer, resulting in 47 minutes of degraded service affecting 12,000 users. Action items include adding load balancer configuration validation to continuous integration, updating the runbook, and implementing traffic distribution alerts.",
+  "score": 5,
+  "cost": 1.0725000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 53
+  }
+}

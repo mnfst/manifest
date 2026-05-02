@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Oxygen is poisonous to the anaerobic bacteria that cause gas gangrene. Increasing the partial pressure of oxygen helps to kill these bacteria by displacing carbon monoxide from hemoglobin and creating an environment that is toxic to them.",
+  "score": 5,
+  "cost": 1.7160000000000002e-05,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 217,
+    "output": 47
+  }
+}

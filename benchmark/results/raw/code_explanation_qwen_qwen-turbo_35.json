@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This code implements the Knuth-Morris-Pratt (KMP) string matching algorithm, which efficiently searches for a pattern in a text by using a precomputed \"longest prefix suffix\" (LPS) array to avoid unnecessary character comparisons. The algorithm runs in linear time, O(n + m), where n is the text length and m is the pattern length.",
+  "score": 5,
+  "cost": 8.745000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 190,
+    "output": 75
+  }
+}

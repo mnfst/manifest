@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This function implements the **A\\*** **search algorithm** using a **min-heap priority queue** (`heapq`) to always expand the node with the lowest estimated total cost `f(n) = g(n) + h(n)`, where `g(n)` is the path cost so far and `h(n)` is the heuristic estimate to the goal. It tracks visited nodes to avoid reprocessing them, builds paths incrementally, and returns the first path that reaches the goal, or `None` if no path exists.",
+  "score": 5,
+  "cost": 0.001216,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 110
+  }
+}

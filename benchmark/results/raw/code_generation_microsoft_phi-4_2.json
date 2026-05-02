@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 2,
+  "response": "```python\nif not lst:\n    return []\n\nresult = []\nwhile lst:\n    result.append(min(lst))\n    lst.remove(result[-1])\n    if lst:\n        result.append(max(lst))\n        lst.remove(result[-1])\n\nreturn result\n```",
+  "score": 5,
+  "cost": 1.4755e-05,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 51
+  }
+}

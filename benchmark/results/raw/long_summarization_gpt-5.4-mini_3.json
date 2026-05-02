@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 3,
+  "response": "GDPR, which began in May 2018, applies to any organization processing EU residents\u2019 data and gives people rights such as access, erasure, portability, and explicit-consent protections. It also requires breach reporting within 72 hours and can impose fines of up to 4% of global annual revenue or 20 million euros, whichever is higher; major penalties have included Meta\u2019s 1.2 billion-euro fine, Amazon\u2019s 746 million-euro fine, and Google\u2019s fines totaling over 200 million euros. While critics say GDPR creates heavy compliance costs, especially for small businesses, and enforcement is uneven, it has become the global model for privacy laws like California\u2019s CCPA, Brazil\u2019s LGPD, and India\u2019s DPDP Act.",
+  "score": 5,
+  "cost": 0.000279,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 156
+  }
+}

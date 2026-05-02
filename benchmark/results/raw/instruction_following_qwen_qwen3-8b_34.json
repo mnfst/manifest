@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that allows the database to quickly locate specific data rows without scanning the entire table. It is created on one or more columns and stores a sorted copy of the data, enabling faster search, retrieval, and sorting operations.",
+  "score": 4,
+  "cost": 1.83e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 345
+  }
+}

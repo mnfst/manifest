@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code performs a topological sort on a directed graph using a depth-first search (DFS) algorithm. It uses a recursive DFS approach to visit each node in the graph, adding it to a stack when it's finished visiting all its neighbors, and then returns the stack in reverse order to produce the topological ordering of the nodes.",
+  "score": 5,
+  "cost": 9.18e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 68
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Answer: anaerobic bacteria",
+  "score": 5,
+  "cost": 7.293000000000001e-06,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 215,
+    "output": 6
+  }
+}

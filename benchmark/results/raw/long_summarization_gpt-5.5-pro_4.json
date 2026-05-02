@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles have evolved from experiments in the 1830s into a major force reshaping the auto industry, accelerated by Tesla\u2019s disruption and growing government incentives. Key obstacles remain battery performance, charging infrastructure, range anxiety, charging times, grid capacity, and environmental concerns tied to lithium and cobalt mining. Legacy automakers such as Ford, GM, and VW are transitioning their fleets toward EVs, while China has become the world\u2019s largest EV market and manufacturer. Solid-state batteries are presented as a potential breakthrough that could improve range, safety, and charging speed.",
+  "score": 5,
+  "cost": 0.00481,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 207
+  }
+}

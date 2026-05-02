@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 25,
+  "response": "groups = []\n    current = []\n    depth = 0\n\n    for ch in paren_string:\n        if ch == ' ':\n            continue\n        current.append(ch)\n        if ch == '(':\n            depth += 1\n        elif ch == ')':\n            depth -= 1\n        if depth == 0 and current:\n            groups.append(''.join(current))\n            current = []\n\n    return groups",
+  "score": 4,
+  "cost": 0.00014939999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 88
+  }
+}

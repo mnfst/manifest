@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Based on the provided context, France offered **full citizenship rights \u2013 \"assimilation\"** \u2013 which was notable by imperial standards, although the context notes that \"in reality assimilation was always on the distant horizon.\"",
+  "score": 5,
+  "cost": 0.001263,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 181,
+    "output": 48
+  }
+}

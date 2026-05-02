@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's Second Law of Motion",
+  "score": 2,
+  "cost": 7.668e-06,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 277,
+    "output": 7
+  }
+}

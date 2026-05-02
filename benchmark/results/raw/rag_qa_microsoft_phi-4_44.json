@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "The Ohio Company of Virginia was given land by the British government for the purpose of developing trade and settlements in the Ohio Country.",
+  "score": 5,
+  "cost": 1.911e-05,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 268,
+    "output": 26
+  }
+}

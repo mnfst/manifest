@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\n    def digit_sum(n):\n        return sum(int(d) for d in str(abs(n)))\n\n    return sorted(enumerate(nums), key=lambda x: (digit_sum(x[1]), x[0])) \\\n           | [val for idx, val in sorted(enumerate(nums), key=lambda x: (digit_sum(x[1]), x[0]))]\n    # Correction: The above is a bit messy. Let's use a clean version:\n    \n    def get_sum(n):\n        return sum(int(d) for d in str(abs(n)))\n    \n    # We use enumerate to keep track of original indices for stable sorting\n    indexed_nums = list(enumerate(nums))\n    # Sort by digit sum, then by original index\n    indexed_nums.sort(key=lambda x: (get_sum(x[1]), x[0]))\n    \n    return [val for idx, val in indexed_nums]\n```\n\nWait, the prompt asks for **ONLY** the function body. Let me provide the clean, concise version.\n\n```python\n    def digit_sum(n):\n        return sum(int(d) for d in str(abs(n)))\n    \n    return [val for idx, val in sorted(enumerate(nums), key=lambda x: (digit_sum(x[1]), x[0]))]\n```",
+  "score": 3,
+  "cost": 2.9579999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 319
+  }
+}

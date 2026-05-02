@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "The Neckar.",
+  "score": 2,
+  "cost": 1.1118000000000001e-05,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 213,
+    "output": 5
+  }
+}

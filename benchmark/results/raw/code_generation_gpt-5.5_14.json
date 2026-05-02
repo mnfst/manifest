@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_generation",
+  "case": 14,
+  "response": "if n <= 0:\n    return 0\na, b = 0, 1\nfor _ in range(n):\n    a, b = b, a + b\nreturn a",
+  "score": 5,
+  "cost": 0.001521,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 106
+  }
+}

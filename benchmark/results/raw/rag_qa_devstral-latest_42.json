@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "The Moselle contributes the most among the tributaries mentioned, with an average discharge of more than 300 m\u00b3/s (11,000 cu ft/s).",
+  "score": 4,
+  "cost": 3.26e-05,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 212,
+    "output": 38
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 42,
+  "response": "```python\nif n > m:\n    return -1\n\naverage = (n + m) / 2\nrounded_average = round(average)\nbinary_representation = bin(rounded_average)\n\nreturn binary_representation\n```",
+  "score": 4,
+  "cost": 1.5080000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 187,
+    "output": 45
+  }
+}

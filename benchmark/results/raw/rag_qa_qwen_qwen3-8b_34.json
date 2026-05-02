@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Answer: Infinitely many.  \nDirichlet's theorem states that if $ a $ and $ q $ are coprime, the arithmetic progression $ a, a+q, a+2q, \\dots $ contains infinitely many primes. For $ q = 9 $ and $ a = 1, 2, 4, 5, 7, 8 $ (all coprime to 9), the context explicitly confirms that each of these progressions contains infinitely many primes.",
+  "score": 5,
+  "cost": 3.9450000000000003e-05,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 249,
+    "output": 540
+  }
+}

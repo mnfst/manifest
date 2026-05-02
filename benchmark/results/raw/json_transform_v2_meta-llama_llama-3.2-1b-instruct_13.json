@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "json_transform_v2",
+  "case": 13,
+  "response": "```\n{\n  \"total_credits\": 0,\n  \"total_debits\": 0,\n  \"net\": 0,\n  \"transaction_count\": 5\n}\n```",
+  "score": 2,
+  "cost": 4.670999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 39
+  }
+}

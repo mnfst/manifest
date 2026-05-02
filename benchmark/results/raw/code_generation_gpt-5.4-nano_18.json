@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 18,
+  "response": "import math\n\ndef is_prime(n):\n    if n < 2:\n        return False\n    if n == 2:\n        return True\n    if n % 2 == 0:\n        return False\n    r = int(math.isqrt(n))\n    for i in range(3, r + 1, 2):\n        if n % i == 0:\n            return False\n    return True\n\nwords = sentence.split()\nprime_words = [w for w in words if is_prime(len(w))]\nreturn \" \".join(prime_words)",
+  "score": 4,
+  "cost": 6.460000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 117
+  }
+}

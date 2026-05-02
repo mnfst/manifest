@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated on the go with our premium, BPA-free stainless steel water bottle. Advanced double-wall insulation guarantees your favorite beverages stay ice-cold for 24 hours or piping hot for up to 12 hours. Featuring a leak-proof lid and a sleek, sweat-free design, it is the perfect durable companion for your daily adventures.",
+  "score": 3,
+  "cost": 0.0011175,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 72
+  }
+}

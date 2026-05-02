@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Shakespeare\u2019s *Romeo and Juliet* follows two young lovers from feuding families in Verona: the Montagues and Capulets. Romeo and Juliet meet at a party, fall instantly in love, and secretly marry. Their happiness collapses after Romeo kills Juliet\u2019s cousin Tybalt in revenge for Mercutio\u2019s death and is banished. Juliet takes a potion to fake her death, but the message explaining the plan fails to reach Romeo. Believing her truly dead, he kills himself; Juliet wakes, finds him dead, and does the same. Their deaths finally reconcile their families.",
+  "score": 5,
+  "cost": 0.001746,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 139
+  }
+}

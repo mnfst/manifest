@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 20,
+  "response": "def int_to_mini_roman(number):\n    roman_numerals = {'i': 1, 'v': 5, 'x': 10, 'l': 50, 'c': 100, 'd': 500, 'm': 1000}\n    result = ''\n    for value, numeral in sorted(roman_numerals.items(), reverse=True):\n        while number >= value:\n            result += numeral\n            number -= value\n    return result",
+  "score": 3,
+  "cost": 6.291e-06,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 96
+  }
+}

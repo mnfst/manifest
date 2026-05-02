@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Creating a strong password is essential for protecting your online accounts from unauthorized access. Here\u2019s a step-by-step guide to crafting a good password:\n\n### **1. Length Matters**\n   - Aim for **at least 12 characters** (longer is better).\n   - Longer passwords are harder to crack, even if they\u2019re simpler.\n\n### **2. Use a Mix of Character Types**\n   - Include a combination of:\n     - **Uppercase letters** (A-Z)\n     - **Lowercase letters** (a-z)\n     - **Numbers** (0-9)\n     - **Special symbols** (!, @, #, $, etc.)\n\n### **3. Avoid Common Words & Patterns**\n   - Don\u2019t use **dictionary words** (e.g., \"password,\" \"sunshine\").\n   - Avoid **sequential patterns** (e.g., \"123456,\" \"qwerty\").\n   - Steer clear of **personal information** (name, birthdate, pet\u2019s name).\n\n### **4. Make It Unique**\n   - **Never reuse passwords** across different accounts.\n   - If one account is compromised, others remain safe.\n\n### **5. Use a Passphrase (Easier to Remember)**\n   - Combine **random words** (e.g., \"Blue$Elephant!Jump3R\").\n   - Avoid famous quotes or song lyrics.\n\n### **6. Avoid Predictable Substitutions**\n   - Hackers know common replacements (e.g., \"P@ssw0rd\" instead of \"Password\").\n   - Instead, use **random substitutions** (e.g., \"T3rr!ble$un\").\n\n### **7. Consider a Password Manager**\n   - Tools like **Bitwarden, 1Password, or LastPass** generate and store strong passwords securely.\n   - Eliminates the need to remember complex passwords.\n\n### **8. Enable Two-Factor Authentication (2FA)**\n   - Even with a strong password, **2FA adds an extra layer of security**.\n   - Use **authenticator apps (Google Authenticator, Authy)** or **hardware keys**.\n\n### **9. Change Passwords Periodically (If Needed)**\n   - If a service has been breached, **change your password immediately**.\n   - For high-security accounts (banking, email), update every **6-12 months**.\n\n### **10.",
+  "score": 4,
+  "cost": 0.0001515,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 500
+  }
+}

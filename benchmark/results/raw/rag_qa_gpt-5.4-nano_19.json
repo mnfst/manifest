@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1.87e-05,
+  "expected": "communication",
+  "tokens": {
+    "input": 155,
+    "output": 8
+  }
+}

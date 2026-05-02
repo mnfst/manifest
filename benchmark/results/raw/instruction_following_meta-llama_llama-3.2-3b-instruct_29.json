@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA (Deoxyribonucleic acid) is a molecule that contains the genetic instructions used in the development and function of all living organisms, essentially serving as a blueprint for life. It is a long, double-stranded helix made up of nucleotides, which are the building blocks of DNA, that are linked together in a specific sequence to form a unique genetic code.",
+  "score": 1,
+  "cost": 5.3039999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 78
+  }
+}

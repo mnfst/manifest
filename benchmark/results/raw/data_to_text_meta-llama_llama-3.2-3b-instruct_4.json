@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "data_to_text",
+  "case": 4,
+  "response": "Here is the converted paragraph:\n\nI have a flight booked on American Airlines (AA 1234) from John F. Kennedy International Airport (JFK) to Los Angeles International Airport (LAX) departing at 08:30 and arriving at 11:45, with a flight duration of 5 hours and 15 minutes. I will be flying on a Boeing 787 aircraft in economy class, and the total cost of the ticket is $289. The flight is expected to be on-time, with an on-time performance rate of 82%.",
+  "score": 0,
+  "cost": 1.0760999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 112
+  }
+}

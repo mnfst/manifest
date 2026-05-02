@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle is the continuous movement of water through Earth\u2019s atmosphere, surface, and underground. It is powered mainly by the Sun, which heats water in oceans, lakes, rivers, and soil. Because of this cycle, water is constantly changing location and form, moving between liquid, vapor, and ice.\n\nThe cycle begins with evaporation, when liquid water turns into water vapor and rises into the air. Plants also release water vapor through a process called transpiration. As warm, moist air rises and cools, the water vapor changes into tiny droplets or ice crystals, forming clouds in a process called condensation.\n\nWhen the droplets or crystals in clouds become large and heavy enough, they fall back to Earth as precipitation. This can happen as rain, snow, sleet, or hail, depending on temperature conditions in the atmosphere. Some of this water falls directly into oceans and lakes, while some lands on the ground.\n\nAfter precipitation, water may flow over the land as runoff into rivers, lakes, and oceans, or it may soak into the soil as infiltration. Groundwater can move slowly underground and later return to the surface through springs or seep into rivers and oceans. In this way, water is recycled over and over, making the water cycle essential for weather, ecosystems, and life on Earth.",
+  "score": 5,
+  "cost": 0.00213,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 262
+  }
+}

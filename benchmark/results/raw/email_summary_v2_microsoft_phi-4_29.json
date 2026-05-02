@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "The mobile app's crash rate increased to 2.3% due to a null pointer issue in the notification handler on Android 12+, exceeding the 0.5% threshold. The fix has been merged to the main branch, and an emergency release request has been submitted to the Play Store, while iOS remains unaffected.",
+  "score": 5,
+  "cost": 1.053e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 66
+  }
+}

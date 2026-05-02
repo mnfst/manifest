@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 21,
+  "response": "```python\ndef even_odd_palindrome(n):\n    even_count = 0\n    odd_count = 0\n    for i in range(1, n + 1):\n        str_i = str(i)\n        if str_i == str_i[::-1] and i % 2 == 0:\n            even_count += 1\n        elif str_i == str_i[::-1]:\n            odd_count += 1\n    return (even_count, odd_count)\n```",
+  "score": 4,
+  "cost": 1.7595e-05,
+  "expected": "",
+  "tokens": {
+    "input": 247,
+    "output": 98
+  }
+}

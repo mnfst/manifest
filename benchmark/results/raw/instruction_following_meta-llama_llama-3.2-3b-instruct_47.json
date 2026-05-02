@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here are the steps to create a good password:\n\n**Creating a Good Password: A Step-by-Step Guide**\n\n1. **Length**: A good password should be at least 12 characters long. The longer, the better. Aim for 16 characters or more.\n\n2. **Complexity**: Use a mix of:\n\t* Uppercase letters (A-Z)\n\t* Lowercase letters (a-z)\n\t* Numbers (0-9)\n\t* Special characters (!, @, #, $, etc.)\n\n3. **Uniqueness**: Use a unique password for each account. Avoid using the same password for multiple accounts.\n\n4. **Randomness**: Use a random combination of characters, rather than a sequence or pattern. Avoid using easily guessable information such as your name, birthdate, or common words.\n\n5. **Avoid common patterns**: Steer clear of common patterns like:\n\t* Sequential characters (123456 or abcdefg)\n\t* Dictionary words (hello, password, etc.)\n\t* Acronyms (qwerty, etc.)\n\n6. **Don't use easily guessable information**: Avoid using:\n\t* Your name or initials\n\t* Common words or phrases\n\t* Your pet's name or favorite sports team\n\t* Your birthdate or anniversary\n\n7. **Don't reuse old passwords**: If you've used a password in the past, don't reuse it. Use a new, unique password for each account.\n\n8. **Don't share passwords**: Never share your password with anyone, not even with family members or friends.\n\n9. **Use a password manager**: Consider using a password manager to generate and store unique, complex passwords for each of your accounts.\n\n10. **Change your password regularly**: Change your password every 60-90 days, or whenever you suspect that your password has been compromised.\n\nBy following these steps, you can create a strong, unique password that will help protect your online accounts from unauthorized access.",
+  "score": 5,
+  "cost": 2.1674999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 403
+  }
+}

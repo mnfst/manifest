@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 26,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"title\": \"Team standup\",\n  \"recurrence\": \"weekly\",\n  \"time_start\": \"9:00 AM\",\n  \"time_end\": \"9:15 AM\",\n  \"timezone\": \"PST\",\n  \"meeting_link\": \"meet.google.com/abc-defg-hij\",\n  \"organizer\": \"sarah@company.com\"\n}\n```\n\nNote that I made some assumptions about the text to fill in the missing information:\n\n* Recurrence: I assumed it's weekly, as it's a common recurrence pattern for team standups.\n* Timezone: I assumed it's PST (Pacific Standard Time), as it's a common timezone for meetings in the US.\n* Time_start and Time_end: I assumed the time is in 12-hour format, as it's a common format for meetings. If it's in 24-hour format, you can change it to \"09:00\" and \"09:15\" respectively.",
+  "score": 4,
+  "cost": 1.6421999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 210
+  }
+}

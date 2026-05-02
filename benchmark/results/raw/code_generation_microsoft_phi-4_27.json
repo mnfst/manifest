@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 27,
+  "response": "```python\ndef Strongest_Extension(class_name, extensions):\n    strongest_extension = max(extensions, key=lambda ext: sum(1 for c in ext if c.isupper()) - sum(1 for c in ext if c.islower()))\n    return f\"{class_name}.{strongest_extension}\"\n```",
+  "score": 5,
+  "cost": 2.509e-05,
+  "expected": "",
+  "tokens": {
+    "input": 323,
+    "output": 63
+  }
+}

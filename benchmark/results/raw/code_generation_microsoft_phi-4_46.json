@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\ndef pluck(arr):\n    even_nodes = [(value, index) for index, value in enumerate(arr) if value % 2 == 0]\n    if not even_nodes:\n        return []\n    smallest_value, smallest_index = min(even_nodes)\n    return [smallest_value, smallest_index]\n```",
+  "score": 5,
+  "cost": 2.8535e-05,
+  "expected": "",
+  "tokens": {
+    "input": 372,
+    "output": 67
+  }
+}

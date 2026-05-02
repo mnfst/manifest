@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "The code implements an **event emitter** using the **Observer pattern**, where objects register callbacks (`on`) to be notified of specific events. When an event is triggered (`emit`), all registered callbacks for that event are executed with provided arguments. The algorithm uses a dictionary to map events to lists of functions, enabling efficient lookup and invocation.",
+  "score": 5,
+  "cost": 2.565e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 395
+  }
+}

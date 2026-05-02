@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are universally celebrated as man's best friend because they are incredibly loyal creatures. A loyal dog will always wait patiently by the door for its owner to return home, no matter how long the day has been. Throughout history, these loyal companions have worked alongside humans in various roles, from herding sheep to providing vital emotional support. Whether playing energetically in the park or resting quietly at your feet, a loyal pup brings endless joy and comfort to any household. Ultimately, it is easy to see why so many people deeply cherish the fiercely loyal nature of their beloved canine pets.",
+  "score": 4,
+  "cost": 0.0017675,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 115
+  }
+}

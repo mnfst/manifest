@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code performs a **topological sort** of a directed graph using **depth-first search (DFS)**. It visits each node recursively, adds a node to a stack only after all its neighbors are processed, and then reverses the stack to return an ordering where each node appears before its dependents.",
+  "score": 5,
+  "cost": 0.0001086,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 64
+  }
+}

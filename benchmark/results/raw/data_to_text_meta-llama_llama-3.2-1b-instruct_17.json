@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 17,
+  "response": "LeBron James is a dominant force on the court, averaging 28.4 points, 7.2 rebounds, and 8.1 assists per game, while leading the Lakers to a 71- game season. He is a two-time NBA champion and four-time NBA Most Valuable Player, and has been selected to the All-Star team for the 2024-25 season. At 40 years old, James continues to defy the odds with his incredible athleticism and skill, making him one of the most feared players in the league.",
+  "score": 0,
+  "cost": 5.5619999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 111
+  }
+}

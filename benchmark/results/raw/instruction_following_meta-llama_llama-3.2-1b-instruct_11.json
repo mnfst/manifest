@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Are you ready to respond?",
+  "score": 5,
+  "cost": 7.019999999999999e-07,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 7
+  }
+}

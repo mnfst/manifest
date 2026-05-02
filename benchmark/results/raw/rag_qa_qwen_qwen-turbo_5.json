@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "The Rhine Bridge mentioned in the context is at Arnhem.",
+  "score": 5,
+  "cost": 8.613e-06,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 247,
+    "output": 14
+  }
+}

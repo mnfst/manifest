@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "Erg\u00e4nzungsschulen are funded in whole by charging their students tuition fees. They operate outside of government regulation and are not funded by the government.",
+  "score": 5,
+  "cost": 1.222e-05,
+  "expected": "tuition",
+  "tokens": {
+    "input": 155,
+    "output": 33
+  }
+}

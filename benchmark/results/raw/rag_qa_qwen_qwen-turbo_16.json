@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Answer: Fifty percent more land.",
+  "score": 5,
+  "cost": 7.59e-06,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 223,
+    "output": 7
+  }
+}

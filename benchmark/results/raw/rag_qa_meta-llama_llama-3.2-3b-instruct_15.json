@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia.",
+  "score": 5,
+  "cost": 1.1424e-05,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 220,
+    "output": 4
+  }
+}

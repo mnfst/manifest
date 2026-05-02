@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This defines a **debounce decorator**: each time the wrapped function is called, it cancels any pending `threading.Timer` and starts a new one, so `fn` only runs after `wait` seconds have passed without another call. It uses a closure with a mutable `timer` holder to remember and cancel the previous scheduled invocation.",
+  "score": 5,
+  "cost": 0.001758,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 121
+  }
+}

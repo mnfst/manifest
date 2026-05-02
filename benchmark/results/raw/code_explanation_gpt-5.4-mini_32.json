@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code builds a **disjoint-set union (DSU) / Union-Find** data structure for `n` elements, returning two closures: `find`, which identifies an element\u2019s representative with **path compression**, and `union`, which merges two sets using **union by rank**. Together, these optimizations make connectivity checks and merges very efficient, often near-constant amortized time.",
+  "score": 5,
+  "cost": 0.000147,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 83
+  }
+}

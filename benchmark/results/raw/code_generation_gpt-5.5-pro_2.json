@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 2,
+  "response": "sorted_lst = sorted(lst)\n    result = []\n    left, right = 0, len(sorted_lst) - 1\n    take_min = True\n\n    while left <= right:\n        if take_min:\n            result.append(sorted_lst[left])\n            left += 1\n        else:\n            result.append(sorted_lst[right])\n            right -= 1\n        take_min = not take_min\n\n    return result",
+  "score": 5,
+  "cost": 0.006345,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 278
+  }
+}

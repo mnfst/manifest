@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 16,
+  "response": "The distinctive surface-cracking patterns on Europa's icy surface are caused by tidal flexing and tectonic movements. The gravitational pull of Jupiter causes the ice shell to flex, creating stress fractures and the characteristic lineae (cracks and ridges) seen on Europa's surface. These tectonic-like movements in the ice shell are what produce the distinctive cracking patterns that suggest a liquid ocean beneath.\n\n**B**",
+  "score": 5,
+  "cost": 0.001737,
+  "expected": "C",
+  "tokens": {
+    "input": 109,
+    "output": 94
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU article 294",
+  "score": 5,
+  "cost": 0.0001302,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 398,
+    "output": 9
+  }
+}

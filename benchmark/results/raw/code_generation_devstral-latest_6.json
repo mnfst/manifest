@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 6,
+  "response": "```python\n    count = {}\n    for num in numbers:\n        count[num] = count.get(num, 0) + 1\n    return [num for num in numbers if count[num] == 1]\n```",
+  "score": 5,
+  "cost": 2.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 47
+  }
+}

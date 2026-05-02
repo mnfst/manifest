@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA is a molecule that carries the genetic instructions living things use to grow, function, and reproduce. It is made of two long strands twisted into a double helix, with information encoded in the order of its chemical bases.",
+  "score": 2,
+  "cost": 0.00163,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 76
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April, June, September, and November have exactly 30 days.",
+  "score": 2,
+  "cost": 2.47e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 15
+  }
+}

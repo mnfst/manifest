@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "data_to_text",
+  "case": 34,
+  "response": "Stockholm, the capital of Sweden, is a vibrant city with a population of 1.6 million people spread across an area of 188 km\u00b2. Known for its high standard of living, the city boasts a GDP per capita of $62,000, reflecting its strong economy, while its rich history dates back to its founding in 1252. Nestled in a temperate climate, Stockholm experiences average January temperatures of -3\u00b0C and July temperatures of 18\u00b0C, offering a distinct seasonal contrast.",
+  "score": 0,
+  "cost": 2.2950000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 356
+  }
+}

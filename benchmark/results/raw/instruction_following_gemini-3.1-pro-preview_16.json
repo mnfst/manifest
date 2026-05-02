@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is an invisible force that pulls objects toward one another. Everything in the universe that has mass\u2014meaning it is made of matter\u2014has this pulling power. The bigger an object is, the stronger its pull. Because the Earth is incredibly massive, its gravity pulls us down toward its center, which is what keeps our feet firmly on the ground and stops everything from floating away into space. This same invisible pull is what keeps the moon orbiting the Earth and the planets orbiting the sun. That is gravity.",
+  "score": 5,
+  "cost": 0.0016275,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 105
+  }
+}

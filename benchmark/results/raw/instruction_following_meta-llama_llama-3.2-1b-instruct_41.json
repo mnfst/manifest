@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here is a Python function with a docstring in Google style:\n\n```python\ndef sort(arr: list) -> list:\n    \"\"\"\n    Sorts a list of elements in ascending order.\n\n    Args:\n        arr (list): The list to be sorted.\n\n    Returns:\n        list: The sorted list.\n\n    Example:\n        >>> sort([5, 2, 8, 1, 9])\n        [1, 2, 5, 8, 9]\n    \"\"\"\n    return sorted(arr)\n```\n\nNote: In Google style, the `->` is used to indicate the return type of a function.",
+  "score": 5,
+  "cost": 4.185e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 130
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The server prod-web-01 is located in the us-east-1 region and has been running for 45 days. It is utilizing 78% of its CPU, 12.4 GB of its 16 GB memory, and 234 GB of its 500 GB disk space. The server handles 127 connections with a P99 latency of 145ms and reports 3 errors per hour.",
+  "score": 0,
+  "cost": 7.062e-06,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 95
+  }
+}

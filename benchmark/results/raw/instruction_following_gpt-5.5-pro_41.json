@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort(items, key=None, reverse=False):\n    \"\"\"Sorts items and returns them as a new list.\n\n    Args:\n        items: An iterable of items to sort.\n        key: An optional function used to extract a comparison key from each\n            item. Defaults to None.\n        reverse: Whether to sort the items in descending order. Defaults to\n            False.\n\n    Returns:\n        A new list containing the sorted items.\n\n    Raises:\n        TypeError: If the items cannot be compared or if `key` is not callable.\n    \"\"\"\n```",
+  "score": 5,
+  "cost": 0.00691,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 340
+  }
+}

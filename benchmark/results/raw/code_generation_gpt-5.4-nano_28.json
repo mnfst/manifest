@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 28,
+  "response": "result = []\nfor r, row in enumerate(lst):\n    for c in range(len(row) - 1, -1, -1):\n        if row[c] == x:\n            result.append((r, c))\nreturn result",
+  "score": 4,
+  "cost": 4.9e-05,
+  "expected": "",
+  "tokens": {
+    "input": 290,
+    "output": 50
+  }
+}

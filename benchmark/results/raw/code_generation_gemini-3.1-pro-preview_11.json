@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 11,
+  "response": "s = 0\n    p = 1\n    for n in numbers:\n        s += n\n        p *= n\n    return s, p",
+  "score": 3,
+  "cost": 0.0008925,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 34
+  }
+}

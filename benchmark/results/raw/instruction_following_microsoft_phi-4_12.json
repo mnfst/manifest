@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API, or Application Programming Interface, is like a waiter in a restaurant. Imagine you're sitting at a table with a menu of options. You decide what you want to eat, and you tell the waiter your order. The waiter then goes to the kitchen, communicates your order to the chef, and brings back your food.\n\nIn this analogy, you are like a user or a program that wants to use a service. The menu is like the API, which lists all the things you can request. The waiter is like the API itself, taking your request and making sure it gets to the right place. The kitchen and chef are like the system or service that processes your request and prepares the response. Finally, the food that comes back to you is like the result or data you receive after making a request through the API.\n\nAPIs allow different software programs to communicate with each other, enabling them to share data and functionality without needing to know how each other's internal workings operate. This makes it easier for developers to build applications that can interact with other services or systems.",
+  "score": 2,
+  "cost": 1.547e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 216
+  }
+}

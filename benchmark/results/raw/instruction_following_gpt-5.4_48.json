@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Romeo and Juliet, children of feuding families in Verona, meet at a party and fall instantly in love. They secretly marry with Friar Laurence\u2019s help, hoping to unite their families. But violence escalates: Romeo kills Juliet\u2019s cousin Tybalt after Tybalt kills Romeo\u2019s friend Mercutio, and Romeo is banished. To avoid marrying another man, Juliet takes a potion that makes her appear dead, but Romeo never receives the explanation. Believing Juliet truly dead, he kills himself beside her; she awakens, sees Romeo dead, and takes her own life. Their deaths finally reconcile the families.",
+  "score": 5,
+  "cost": 0.001084,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 129
+  }
+}

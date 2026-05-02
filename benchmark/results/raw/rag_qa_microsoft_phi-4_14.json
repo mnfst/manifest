@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "Ctenophora live in marine waters worldwide.",
+  "score": 5,
+  "cost": 2.1645e-05,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 322,
+    "output": 11
+  }
+}

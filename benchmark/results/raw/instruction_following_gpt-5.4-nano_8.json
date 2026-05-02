@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "A blockchain is like a shared notebook that lots of computers help keep. When someone writes a new page of information, everyone checks it, and then the page gets locked so nobody can change old pages.",
+  "score": 5,
+  "cost": 1.93e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 43
+  }
+}

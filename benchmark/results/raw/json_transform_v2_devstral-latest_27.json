@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "json_transform_v2",
+  "case": 27,
+  "response": "```json\n{\n  \"total_duration_min\": 15,\n  \"track_count\": 4,\n  \"artists\": {\n    \"Band X\": 2,\n    \"Band Y\": 1,\n    \"Band Z\": 1\n  },\n  \"longest_track\": \"Song C\"\n}\n```",
+  "score": 5,
+  "cost": 3.6e-05,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 67
+  }
+}

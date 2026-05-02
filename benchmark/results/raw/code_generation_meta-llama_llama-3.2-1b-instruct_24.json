@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 24,
+  "response": "def triangle_area(a, b, c):\n    if a + b > c and a + c > b and b + c > a:\n        return round((a * b + b * c + c * a) / 2, 2)\n    else:\n        return -1",
+  "score": 3,
+  "cost": 5.859e-06,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 60
+  }
+}

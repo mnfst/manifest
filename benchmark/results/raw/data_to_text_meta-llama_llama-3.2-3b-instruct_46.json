@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "data_to_text",
+  "case": 46,
+  "response": "Here is the converted text:\n\nTeam Alpha completed a sprint from January 15th to 26th, achieving a planned goal of 42 points and successfully completing 38 points. During this period, the team maintained an average velocity of 36 points per day, delivering 8 stories and resolving 5 bugs. The team's satisfaction rate was 4.1 out of 5, indicating a high level of satisfaction with the sprint's outcome.",
+  "score": 0,
+  "cost": 9.741e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 91
+  }
+}

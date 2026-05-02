@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "Apple; Banana; Cherry; Date; Fig",
+  "score": 5,
+  "cost": 2.0399999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 12
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 44,
+  "response": "return ''.join(chr(ord(c) + 2) if c in 'aeiouAEIOU' else c for c in message.swapcase())",
+  "score": 4,
+  "cost": 0.000905,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 35
+  }
+}

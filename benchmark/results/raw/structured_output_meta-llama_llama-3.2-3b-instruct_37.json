@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 37,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"serving_size\": \"1 cup (240ml)\",\n  \"calories\": 120,\n  \"fat_g\": 2.0,\n  \"saturated_fat_g\": 0.5,\n  \"sodium_mg\": 150,\n  \"carbs_g\": 22,\n  \"fiber_g\": 3,\n  \"sugar_g\": 12,\n  \"protein_g\": 4\n}\n```\n\nNote that I've used the exact values from the text, including the unit for `sodium_mg` (which is milligrams, not just \"mg\"). Let me know if you'd like me to change it to just \"mg\"!",
+  "score": 5,
+  "cost": 1.5402e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 155
+  }
+}

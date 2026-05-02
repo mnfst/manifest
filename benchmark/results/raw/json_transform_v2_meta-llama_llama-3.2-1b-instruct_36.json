@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "json_transform_v2",
+  "case": 36,
+  "response": "```\n{\n  \"order_id\": \"ORD-001\",\n  \"subtotal\": 29.99,\n  \"discount\": 10,\n  \"shipping\": 5.99,\n  \"total\": 35.98\n}\n```",
+  "score": 3,
+  "cost": 5.184e-06,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 Employee Engagement Survey results indicate an overall engagement score of 7.8/10, above the industry average of 7.2, with team collaboration scoring highest at 8.9/10 and career growth clarity scoring lowest at 6.1/10. The People Team proposes actions such as quarterly career conversations, an internal mobility program, and mentorship matching to address these issues and plans to discuss these findings and proposed actions in a town hall meeting on Friday.",
+  "score": 5,
+  "cost": 1.4235e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 98
+  }
+}

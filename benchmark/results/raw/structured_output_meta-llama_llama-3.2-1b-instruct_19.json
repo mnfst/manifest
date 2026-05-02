@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 19,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"hostname\": \"api.example.com\",\n  \"value\": \"203.0.113.50\",\n  \"ttl_seconds\": 3600,\n  \"created\": \"2024-01-01\",\n  \"modified\": \"2024-06-15\"\n}\n```",
+  "score": 2,
+  "cost": 4.833e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 71
+  }
+}

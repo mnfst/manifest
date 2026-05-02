@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "long_summarization",
+  "case": 34,
+  "response": "The global food system faces a critical challenge as the world population is projected to reach 9.7 billion by 2050, requiring a 60% increase in food production. However, meeting this demand is severely hindered by climate change, water scarcity, the degradation of 33% of arable land, and the fact that agriculture generates 25% of greenhouse gas emissions while one-third of all food is wasted. To combat these compounding crises, experts are pursuing technological and ecological innovations such as AI-driven precision agriculture, alternative proteins, and regenerative farming. Ultimately, the main challenge is implementing these sustainable solutions at a global scale while ensuring food remains affordable and accessible to vulnerable populations.",
+  "score": 5,
+  "cost": 0.002875,
+  "expected": "",
+  "tokens": {
+    "input": 298,
+    "output": 142
+  }
+}

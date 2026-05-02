@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are 5 capital cities, each from a different continent:\n\n1. **Tokyo** (Japan) - Asia\n2. **Paris** (France) - Europe\n3. **Cairo** (Egypt) - Africa\n4. **Buenos Aires** (Argentina) - South America\n5. **Ottawa** (Canada) - North America",
+  "score": 5,
+  "cost": 0.0011025,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 71
+  }
+}

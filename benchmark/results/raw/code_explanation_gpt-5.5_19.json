@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This defines a closure-based sliding window rate limiter: `allow()` keeps a list of recent call timestamps and removes any older than `period` seconds. It returns `True` and records the call if fewer than `calls` have occurred within the current rolling window; otherwise it returns `False`.",
+  "score": 5,
+  "cost": 0.001497,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 100
+  }
+}

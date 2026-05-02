@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here\u2019s a simple checklist for a basic salad:\n\n- [ ] **Greens** (e.g., lettuce, spinach, arugula, or mixed greens)\n- [ ] **Vegetables** (e.g., tomatoes, cucumbers, bell peppers, carrots, red onion)\n- [ ] **Protein** (e.g., grilled chicken, chickpeas, tofu, hard-boiled eggs, or cheese)\n- [ ] **Toppings** (e.g., croutons, nuts, seeds, or dried fruit)\n- [ ] **Dressing** (e.g., olive oil & vinegar, ranch, balsamic, or lemon juice)\n- [ ] **Optional extras** (e.g., avocado, olives, or fresh herbs like parsley or basil)",
+  "score": 5,
+  "cost": 5.31e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 172
+  }
+}

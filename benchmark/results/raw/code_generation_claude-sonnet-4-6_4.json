@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 4,
+  "response": "```python\n    if len(l) <= 1:\n        return True\n    increasing = all(l[i] <= l[i+1] for i in range(len(l)-1))\n    decreasing = all(l[i] >= l[i+1] for i in range(len(l)-1))\n    return increasing or decreasing\n```",
+  "score": 5,
+  "cost": 0.001674,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 86
+  }
+}

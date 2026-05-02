@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    n = len(grid)\n    min_path = None\n\n    for i in range(n):\n        for j in range(n):\n            current_path = [grid[i][j]]\n            stack = [(i, j, current_path)]\n\n            while stack:\n                x, y, path = stack.pop()\n                if len(path) == k:\n                    if min_path is None or path < min_path:\n                        min_path = path.copy()\n                    continue\n                for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:\n                    nx, ny = x + dx, y + dy\n                    if 0 <= nx < n and 0 <= ny < n:\n                        new_path = path.copy()\n                        new_path.append(grid[nx][ny])\n                        stack.append((nx, ny, new_path))\n\n    return min_path\n```",
+  "score": 4,
+  "cost": 9.95e-05,
+  "expected": "",
+  "tokens": {
+    "input": 425,
+    "output": 190
+  }
+}

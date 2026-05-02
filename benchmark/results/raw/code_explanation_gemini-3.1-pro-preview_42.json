@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous, bounded FIFO queue that uses the **waiter pattern** (via `asyncio` Futures) to synchronize producer and consumer coroutines. Specifically, `put` and `get` operations suspend their execution by awaiting dynamically created Futures when the queue is full or empty, keeping them paused until an opposite operation resolves the Future to wake them back up. \n\n*(Note: The provided implementation contains a common bug for this pattern; while `put` correctly wakes up waiting `getters`, `get` forgets to resolve waiting `putters` when an item is removed, which would cause producers to hang indefinitely once the queue reaches `maxsize`).*",
+  "score": 5,
+  "cost": 0.0026475,
+  "expected": "",
+  "tokens": {
+    "input": 243,
+    "output": 136
+  }
+}

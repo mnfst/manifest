@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 36,
+  "response": "Momentum = mass \u00d7 velocity\n= 0.15 kg \u00d7 40 m/s\n= 6.0 kg\u00b7m/s\n\nC",
+  "score": 5,
+  "cost": 0.000978,
+  "expected": "C",
+  "tokens": {
+    "input": 136,
+    "output": 38
+  }
+}

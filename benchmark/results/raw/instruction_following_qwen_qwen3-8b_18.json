@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "My favorite book is a tale of obsession, ambition, and the elusive nature of the American Dream. Set in the glittering yet morally ambiguous world of the 1920s, it follows a wealthy man whose life is consumed by a longing for a past love, now married to a wealthy socialite. The narrative unfolds through the eyes of a narrator who is both a participant and an observer, capturing the extravagance of the era while subtly critiquing its hollow promises. Themes of illusion, class, and the corruption of dreams permeate the story, with vivid imagery\u2014like a green light at the end of a dock\u2014symbolizing hope and unattainable desire. The prose is lyrical yet haunting, blending personal tragedy with a broader commentary on society\u2019s moral decay. It\u2019s a story that lingers, challenging readers to reflect on the cost of chasing perfection.",
+  "score": 5,
+  "cost": 3.825000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 746
+  }
+}

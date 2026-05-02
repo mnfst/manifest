@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 13,
+  "response": "return len(string)",
+  "score": 5,
+  "cost": 0.0002725,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 6
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Based on the provided context, Maududi believed that Muslim society could not be Islamic without **Sharia**.",
+  "score": 5,
+  "cost": 0.000963,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 186,
+    "output": 27
+  }
+}

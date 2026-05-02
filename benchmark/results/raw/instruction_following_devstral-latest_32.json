@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Restaurant Review: The Golden Spoon Bistro**\n\n**Rating: \u2605\u2605\u2605\u2605\u2606 (4/5 Stars)**\n\nNestled in the heart of downtown, *The Golden Spoon Bistro* is a charming little gem that promises a delightful dining experience\u2014and it mostly delivers. From the moment you step inside, the warm ambiance, with its soft lighting and rustic wooden decor, sets the stage for a cozy meal.\n\nThe menu is a thoughtful blend of classic comfort food and modern twists, with dishes that are as visually appealing as they are tasty. I started with the *Truffle Mushroom Soup*, which was rich, creamy, and bursting with earthy flavors\u2014a perfect way to begin the meal. For the main course, I opted for the *Herb-Crusted Salmon*, which was cooked to perfection, flaky and tender, paired with a zesty lemon-dill sauce that elevated every bite. The *Garlic Parmesan Fries* on the side were crispy and addictive, though I wish they had been a bit saltier.\n\nDessert was a highlight\u2014the *Dark Chocolate Lava Cake* was decadent, with a gooey center that oozed warmth, served with a scoop of vanilla bean ice cream. The only minor letdown was the service, which, while friendly, was a bit slow during peak hours.\n\nOverall, *The Golden Spoon Bistro* is a fantastic spot for a relaxed dinner with great food and a lovely atmosphere. With a few tweaks in pacing, it could easily be a five-star experience. I\u2019ll definitely be back to try their famous *Braised Short Ribs*!\n\n**Final Verdict:** A must-visit for food lovers\u2014just bring a little patience!",
+  "score": 5,
+  "cost": 0.000113,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 370
+  }
+}

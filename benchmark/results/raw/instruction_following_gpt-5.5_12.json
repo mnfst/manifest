@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is like a helper that lets two things talk to each other.\n\nImagine you\u2019re at a restaurant:\n\n- You look at a menu.\n- You choose what you want.\n- The waiter takes your request to the kitchen.\n- The kitchen makes it and sends it back.\n\nAn API works in a similar way. It lets one app ask another app for something, like a weather update, a map, or a payment result, and then brings back the answer.\n\nSo, in simple terms:\n\n**An API is a way for different apps or services to ask each other for information or actions.**",
+  "score": 5,
+  "cost": 0.002169,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 176
+  }
+}

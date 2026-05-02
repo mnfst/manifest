@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes rich, smooth, and bittersweet, with a deep roasted sweetness that can melt into creamy warmth on your tongue. It\u2019s like a velvet blanket made of sugar and shadows.",
+  "score": 5,
+  "cost": 0.000669,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 51
+  }
+}

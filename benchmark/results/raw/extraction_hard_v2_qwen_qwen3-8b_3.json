@@ -2,12 +2,12 @@
   "model": "qwen/qwen3-8b",
   "task": "extraction_hard_v2",
   "case": 3,
-  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page fails during payment processing, resulting in a white screen and CORS error.\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout page\",\n    \"Enter card information\",\n    \"Click 'Pay' button\"\n  ],\n  \"expected_behavior\": \"Payment processing should complete successfully with confirmation.\",\n  \"actual_behavior\": \"Payment attempt results in a white screen after 30 seconds with no error message. Console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
-  "score": 5,
-  "cost": 3.5850000000000004e-05,
+  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page is completely broken with CORS error and white screen after payment attempt\",\n  \"steps_to_reproduce\": [\n    \"Add stuff to cart\",\n    \"Go to checkout\",\n    \"Enter card info and hit pay\"\n  ],\n  \"expected_behavior\": \"Payment process should complete successfully\",\n  \"actual_behavior\": \"Spinner for 30 seconds then white screen. No error message. Console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 0,
+  "cost": 2.9650000000000002e-05,
   "expected": "",
   "tokens": {
     "input": 170,
-    "output": 547
+    "output": 423
   }
 }

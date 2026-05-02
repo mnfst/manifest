@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 49,
+  "response": "def make_palindrome(string: str) -> str:\n    \"\"\" Find the shortest palindrome that begins with a supplied string.\n    Algorithm idea is simple:\n    - Find the longest postfix of supplied string that is a palindrome.\n    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.\n    >>> make_palindrome('')\n    ''\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cata')\n    'catac'\n    \"\"\"\n    prefix = ''\n    for i in range(len(string)):\n        prefix += string[i]\n        if string.startswith(prefix):\n            suffix = string[len(prefix):]\n            if suffix == suffix[::-1]:\n                return prefix + suffix\n    return ''",
+  "score": 2,
+  "cost": 9.045e-06,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 157
+  }
+}

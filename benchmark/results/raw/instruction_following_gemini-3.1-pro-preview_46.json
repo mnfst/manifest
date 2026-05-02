@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Hello everyone, I am writing to let you know that Friday will be my last day at the company. I want to thank you all for the incredible support and great memories we have shared over the years. Working alongside such a talented group of people has been a truly rewarding experience. I would love to stay in touch, so please feel free to connect with me on LinkedIn or reach out to my personal email. Wishing you all continued success, I hope our paths cross again in the future.",
+  "score": 5,
+  "cost": 0.0015025,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 98
+  }
+}

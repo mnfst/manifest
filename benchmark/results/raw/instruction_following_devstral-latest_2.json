@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "**Code in silent glow,**\n**bugs like shadows\u2014step by step,**\n**light breaks through at last.**",
+  "score": 5,
+  "cost": 8.8e-06,
+  "expected": "",
+  "tokens": {
+    "input": 10,
+    "output": 26
+  }
+}

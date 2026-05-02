@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here is a sample docstring for a sort function in the Google style:\n\n```python\ndef sort(data, key=None, reverse=False):\n    \"\"\"\n    Sorts the input data in ascending or descending order.\n\n    Args:\n        data (list): The list of elements to be sorted.\n        key (function, optional): A function of one argument that is used to determine the sort order. Defaults to None.\n        reverse (bool, optional): If True, the sort is done in descending order. Defaults to False.\n\n    Returns:\n        list: The sorted list of elements.\n\n    Raises:\n        TypeError: If the input data is not a list.\n\n    Examples:\n        >>> numbers = [4, 2, 9, 6, 1]\n        >>> sorted_numbers = sort(numbers)\n        >>> print(sorted_numbers)\n        [1, 2, 4, 6, 9]\n        >>> sorted_numbers = sort(numbers, reverse=True)\n        >>> print(sorted_numbers)\n        [9, 6, 4, 2, 1]\n    \"\"\"\n    if not isinstance(data, list):\n        raise TypeError(\"Input data must be a list\")\n    return sorted(data, key=key, reverse=reverse)\n```\n\nThis docstring follows the Google style guide for Python docstrings, which includes:\n\n* A brief summary of the function's purpose\n* A description of the function's parameters, including their names, types, and default values\n* A description of the function's return value\n* A description of any exceptions that the function may raise\n* Examples of how to use the function\n\nNote that the docstring is written in the imperative mood, as if the reader is being instructed on how to use the function. This makes it easier to read and understand.",
+  "score": 5,
+  "cost": 1.9838999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 364
+  }
+}

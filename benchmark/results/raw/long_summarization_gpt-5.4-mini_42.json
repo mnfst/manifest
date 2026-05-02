@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 42,
+  "response": "The global food system faces mounting strain from population growth, climate change, water shortages, soil degradation, and food waste, while agriculture also contributes about 25% of global greenhouse gas emissions. By 2050, the world population is expected to reach 9.7 billion, requiring roughly a 60% increase in food production, even as 33% of arable land has been degraded and about one-third of all food is wasted. Proposed solutions include precision agriculture, vertical farming, alternative proteins, drought-resistant crops, and regenerative farming, along with policy reforms on subsidies, trade, and carbon pricing. The main challenge is scaling these changes while keeping food affordable and accessible, especially for the poorest populations.",
+  "score": 5,
+  "cost": 0.0002616,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 145
+  }
+}

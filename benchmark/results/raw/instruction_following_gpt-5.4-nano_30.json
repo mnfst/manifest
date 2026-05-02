@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Cheesy, crispy, golden, bubbling, artisan, wood-fired, thin-crust, pepperoni, mozzarella, basil, garlic, olive, tomato, oregano, spicy, savory, margherita, classic, hearty, sliced, steaming, fragrant, indulgent, hot, chewy, crunchy, rich, flavorful, satisfying, homemade, pizza",
+  "score": 4,
+  "cost": 3.06e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 72
+  }
+}

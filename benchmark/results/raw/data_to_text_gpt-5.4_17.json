@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "data_to_text",
+  "case": 17,
+  "response": "In the 2024\u201325 season, 40-year-old LeBron James played 71 games for the Lakers and continued to perform at an elite level. He averaged 28.4 points, 7.2 rebounds, and 8.1 assists per game, earning another All-Star selection.",
+  "score": 0,
+  "cost": 0.000694,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 64
+  }
+}

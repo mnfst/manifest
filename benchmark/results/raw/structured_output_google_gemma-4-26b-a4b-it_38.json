@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "structured_output",
+  "case": 38,
+  "response": "```json\n{\n  \"version\": 42,\n  \"name\": \"AddUserPreferences\",\n  \"created\": \"2024-03-15\",\n  \"status\": \"applied\",\n  \"duration_ms\": 340,\n  \"sql\": \"ALTER TABLE users ADD COLUMN preferences JSONB DEFAULT '{}'\"\n}\n```",
+  "score": 5,
+  "cost": 1.182e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 82
+  }
+}

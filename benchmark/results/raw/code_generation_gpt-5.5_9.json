@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_generation",
+  "case": 9,
+  "response": "return sum(x * x for x in lst if type(x) is int and x > 0 and x % 2 == 1)",
+  "score": 4,
+  "cost": 0.002628,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 177
+  }
+}

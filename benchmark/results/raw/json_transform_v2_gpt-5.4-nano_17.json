@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "json_transform_v2",
+  "case": 17,
+  "response": "{\"admins\":[\"Alice\",\"Charlie\"],\"users\":[\"Bob\"],\"inactive_count\":1}",
+  "score": 5,
+  "cost": 2.11e-05,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 21
+  }
+}

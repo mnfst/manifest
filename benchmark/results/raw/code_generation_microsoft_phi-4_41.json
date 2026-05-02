@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 41,
+  "response": "```python\nimport itertools\n\ndef sort_third(l: list):\n    indices_div_by_3 = [i for i in range(len(l)) if i % 3 == 0]\n    sorted_values = sorted([l[i] for i in indices_div_by_3])\n    result = list(l)\n    for i, val in zip(indices_div_by_3, sorted_values):\n        result[i] = val\n    return result\n```",
+  "score": 5,
+  "cost": 1.8590000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 194,
+    "output": 92
+  }
+}

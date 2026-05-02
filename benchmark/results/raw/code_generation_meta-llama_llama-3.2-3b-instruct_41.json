@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 41,
+  "response": "```python\ndef sort_third(l: list):\n    return [x for i, x in enumerate(l) if i % 3 != 0] + sorted([x for i, x in enumerate(l) if i % 3 == 0])\n```",
+  "score": 3,
+  "cost": 1.2239999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 54
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU executes instructions, performs calculations, and coordinates the flow of data so a computer can run programs.",
+  "score": 4,
+  "cost": 0.00157,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 74
+  }
+}

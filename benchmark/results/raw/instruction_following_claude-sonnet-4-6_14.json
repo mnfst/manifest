@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "**HydroFlow 32oz Stainless Steel Water Bottle**\n\nStay hydrated in style with our double-walled, vacuum-insulated water bottle that keeps drinks cold for 24 hours or hot for 12. The leak-proof lid and durable stainless steel construction make it perfect for the gym, office, or outdoor adventures. Available in 8 vibrant colors, it's the last water bottle you'll ever need.",
+  "score": 5,
+  "cost": 0.001566,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 100
+  }
+}

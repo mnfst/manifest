@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "Answer: The Victorian Government",
+  "score": 5,
+  "cost": 5.577e-06,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 164,
+    "output": 5
+  }
+}

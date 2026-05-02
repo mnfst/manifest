@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Sure\u2014tell me the **park name** and the **library name (or address/cross streets)**, and I\u2019ll give left/right-only directions.\n\nIn the meantime, here\u2019s a **sample format** (just replace the street names with your route):\n\n1. Leave the park and go to **Main St**.  \n2. **Left**.  \n3. Continue on **Main St** to **2nd Ave**.  \n4. **Right**.  \n5. Continue to **Oak St**.  \n6. **Left**.  \n7. Continue until you reach the library.\n\nWhat park and what library should I use?",
+  "score": 2,
+  "cost": 5.59e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 134
+  }
+}

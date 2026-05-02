@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are inherently loyal companions who show loyalty to their human families. Their loyal nature makes them reliable in times of need, offering unwavering loyalty even when alone. Loyal dogs often stay by their owner's side, demonstrating loyalty through constant companionship. Their loyalty extends beyond daily routines, as they remain loyal during challenges or emergencies. Loyal dogs are trained to obey commands with loyalty, reflecting their deep bond with humans. This loyalty is evident in their protective instincts, where they fiercely defend their loved ones with loyalty. Loyal dogs thrive on trust, maintaining loyalty through consistent care and affection. Their loyalty is a testament to the unconditional love they provide, making them loyal friends for life. Loyal dogs embody the essence of devotion, proving that loyalty is a defining trait of their character. In every action, their loyalty shines through, reinforcing the bond between humans and their loyal canine partners.",
+  "score": 5,
+  "cost": 2.505e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 477
+  }
+}

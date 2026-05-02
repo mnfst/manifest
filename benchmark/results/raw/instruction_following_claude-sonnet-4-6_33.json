@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "Here are 3 facts about the moon:\n\n1. The moon is Earth's only natural satellite, orbiting our planet at an average distance of about 384,400 kilometers (238,855 miles).\n\n2. The moon has no atmosphere, which means it has no weather, no wind, and temperatures can range from extremely hot (127\u00b0C / 260\u00b0F) in direct sunlight to extremely cold (-173\u00b0C / -280\u00b0F) in the dark.\n\n3. The same side of the moon always faces Earth because the moon's rotation period matches its orbital period around Earth, a phenomenon known as **tidal locking**.",
+  "score": 5,
+  "cost": 0.002184,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 140
+  }
+}

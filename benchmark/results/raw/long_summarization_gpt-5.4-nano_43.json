@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "long_summarization",
+  "case": 43,
+  "response": "The EU\u2019s General Data Protection Regulation (GDPR), effective May 2018, reshaped how organizations handle personal data by applying to any company processing EU residents\u2019 data regardless of its location. It guarantees rights such as access, erasure (\u201cright to be forgotten\u201d), and data portability, and requires explicit consent for processing; organizations processing data at scale must appoint Data Protection Officers and report breaches within 72 hours. Penalties can be up to 4% of global annual revenue or \u20ac20 million (whichever is higher), with major fines including Meta\u2019s \u20ac1.2 billion (2023) and Amazon\u2019s \u20ac746 million, while Google faced multiple fines totaling over \u20ac200 million. While GDPR has influenced privacy laws worldwide (e.g., California\u2019s CCPA, Brazil\u2019s LGPD, and India\u2019s act) and established data privacy as a fundamental right, critics say it burdens small businesses, drives cookie-consent frustration, and faces inconsistent enforcement.",
+  "score": 5,
+  "cost": 0.0001086,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 195
+  }
+}

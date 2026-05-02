@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "long_summarization",
+  "case": 15,
+  "response": "The European Union's GDPR, effective since 2018, mandates strict data protection for EU residents, requiring explicit consent, data portability, and breach reporting within 72 hours. Fines of up to 4% of global revenue (or \u20ac20M) have targeted major tech firms like Meta (\u20ac1.2B), Amazon (\u20ac746M), and Google (over \u20ac200M). While GDPR inspired global laws such as California\u2019s CCPA and Brazil\u2019s LGPD, critics argue it imposes disproportionate compliance burdens on small businesses and causes user frustration with cookie banners. Despite enforcement inconsistencies, GDPR established data privacy as a fundamental right and set a global benchmark for data protection.",
+  "score": 5,
+  "cost": 3.78e-05,
+  "expected": "",
+  "tokens": {
+    "input": 320,
+    "output": 436
+  }
+}

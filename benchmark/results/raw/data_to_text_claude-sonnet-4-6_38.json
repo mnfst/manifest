@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "Production web server prod-web-01, located in the us-east-1 region, has been running for 45 days and is currently handling 127 active connections with a P99 latency of 145 milliseconds and a low error rate of 3 per hour. The server's CPU utilization stands at 78%, while memory consumption is at 12.4 out of 16 GB, and disk usage is at 234 out of 500 GB, indicating moderate resource pressure particularly on CPU and memory.",
+  "score": 0,
+  "cost": 0.002121,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 118
+  }
+}

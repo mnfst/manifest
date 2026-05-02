@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This function uses the **Sieve of Eratosthenes** to find all prime numbers up to `n`. It keeps a boolean array of possible primes, then for each prime `i` up to `sqrt(n)`, marks all multiples starting at `i*i` as composite and returns the remaining prime indices.",
+  "score": 5,
+  "cost": 0.003415,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 137
+  }
+}

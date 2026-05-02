@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm rolls in like a dark curtain across the sky, turning the afternoon dim and heavy. The air smells sharp and earthy as rain begins to fall, first in scattered drops and then in a roaring sheet. Thunder crashes overhead, deep enough to tremble in your chest, while bright flashes of lightning split the clouds for an instant. Wind lashes through the trees, cool rain stings your skin, and the pavement glistens under the sudden downpour.",
+  "score": 5,
+  "cost": 0.001425,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 114
+  }
+}

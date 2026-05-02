@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Gaseous oxygen.",
+  "score": 5,
+  "cost": 0.001359,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 161,
+    "output": 73
+  }
+}

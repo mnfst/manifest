@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```python\ndef change_base(x: int, base: int) -> str:\n    if x == 0:\n        return '0'\n    result = ''\n    while x:\n        result = str(x % base) + result\n        x //= base\n    return result\n```",
+  "score": 5,
+  "cost": 5.022e-06,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 59
+  }
+}

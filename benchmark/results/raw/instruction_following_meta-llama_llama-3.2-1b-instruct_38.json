@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "\"Invalid username or password. Please try again with correct credentials.\"",
+  "score": 4,
+  "cost": 1.107e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 14
+  }
+}

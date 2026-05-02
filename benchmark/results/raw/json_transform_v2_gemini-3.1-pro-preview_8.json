@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "json_transform_v2",
+  "case": 8,
+  "response": "{\n  \"rankings\": [\n    {\n      \"name\": \"Ben\",\n      \"average\": 91,\n      \"rank\": 1\n    },\n    {\n      \"name\": \"Ali\",\n      \"average\": 85,\n      \"rank\": 2\n    },\n    {\n      \"name\": \"Cat\",\n      \"average\": 73.33,\n      \"rank\": 3\n    }\n  ],\n  \"class_average\": 83.11\n}",
+  "score": 3,
+  "cost": 0.00209,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 118
+  }
+}

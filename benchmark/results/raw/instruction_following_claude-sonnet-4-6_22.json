@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are among the most loyal companions a person can ever have. From the moment you bring a loyal dog into your home, they dedicate themselves completely to their owner. A loyal dog will wait patiently by the door for hours, simply anticipating your return. Throughout history, humans have relied on loyal dogs for protection, hunting, and emotional support. Whether large or small, every breed has the capacity to be a loyal friend to its family. Scientists have even studied how loyal dogs form deep emotional bonds with their human companions. There is truly no other animal quite as loyal as a dog, making them deserving of their famous title as man's best friend.",
+  "score": 5,
+  "cost": 0.002124,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 137
+  }
+}

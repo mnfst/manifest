@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here are the ingredients for a basic salad:\n\n**Salad Ingredients:**\n\n*   **Protein:**\n    \u2022 1 cup mixed greens (lettuce, spinach, arugula)\n    \u2022 1/2 cup cooked chicken breast, diced\n    \u2022 1/2 cup cooked salmon, diced\n    \u2022 1/2 cup cooked tofu, diced\n*   **Vegetables:**\n    \u2022 1 cup cherry tomatoes, halved\n    \u2022 1 cup cucumber, sliced\n    \u2022 1 cup carrots, peeled and grated\n    \u2022 1 cup bell peppers, sliced\n*   **Dressing:**\n    \u2022 2 tablespoons olive oil\n    \u2022 1 tablespoon lemon juice\n    \u2022 1 teaspoon Dijon mustard\n    \u2022 Salt and pepper to taste\n*   **Cheese (optional):**\n    \u2022 1/4 cup crumbled feta cheese\n    \u2022 1/4 cup crumbled goat cheese\n*   **Nuts and seeds (optional):**\n    \u2022 1/4 cup chopped walnuts\n    \u2022 1/4 cup chopped almonds",
+  "score": 1,
+  "cost": 6.858e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 232
+  }
+}

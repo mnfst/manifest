@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**  \nHello. How may I assist you today?\n\n**Casual:**  \nHey! What can I help you with?\n\n**Humorous:**  \nWell hello there! I\u2019m ready to help\u2014just don\u2019t ask me to do your homework\u2026 unless you want vibes and not answers.",
+  "score": 5,
+  "cost": 2.76e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 63
+  }
+}

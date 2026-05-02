@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "The very first television station to broadcast in Fresno was KMJ-TV.",
+  "score": 5,
+  "cost": 7.524e-06,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 214,
+    "output": 14
+  }
+}

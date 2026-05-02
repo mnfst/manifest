@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Answer: Full citizenship rights \u2013 \u2018assimilation\u2019 \u2013 were offered.",
+  "score": 5,
+  "cost": 6.501e-06,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 182,
+    "output": 15
+  }
+}

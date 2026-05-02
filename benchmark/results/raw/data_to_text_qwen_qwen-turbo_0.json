@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "data_to_text",
+  "case": 0,
+  "response": "Acme Corp reported total revenue of $54.4 million for the year, with quarterly revenues reaching $12.3 million in Q1, $14.1 million in Q2, $11.8 million in Q3, and $16.2 million in Q4, reflecting an 18% year-over-year growth. The company, based in Austin, Texas, employs 342 people and showed strong performance in the fourth quarter. Overall, Acme Corp demonstrated consistent growth throughout the year, with the highest revenue recorded in Q4.",
+  "score": 0,
+  "cost": 7.887000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 118
+  }
+}

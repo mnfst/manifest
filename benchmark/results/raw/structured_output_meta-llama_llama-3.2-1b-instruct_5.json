@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 5,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"name\": \"Spaghetti Carbonara\",\n  \"servings\": 4,\n  \"prep_time_minutes\": 25,\n  \"ingredients\": [\n    {\n      \"item\": \"spaghetti\",\n      \"amount\": \"400g\"\n    },\n    {\n      \"item\": \"guanciale\",\n      \"amount\": \"200g\"\n    },\n    {\n      \"item\": \"eggs\",\n      \"amount\": \"4\"\n    },\n    {\n      \"item\": \"pecorino\",\n      \"amount\": \"100g\"\n    },\n    {\n      \"item\": \"black pepper\",\n      \"amount\": \"\"\n    }\n  ]\n}\n```",
+  "score": 4,
+  "cost": 6.965999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 148
+  }
+}

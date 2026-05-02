@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "L is the class of problems solvable in logarithmic space, and it is known to be within P, but it is not known whether L is strictly contained in P or equal to P.",
+  "score": 4,
+  "cost": 0.002403,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 121,
+    "output": 170
+  }
+}

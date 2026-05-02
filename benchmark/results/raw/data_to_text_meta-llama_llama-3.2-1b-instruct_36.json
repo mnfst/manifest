@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 36,
+  "response": "Here is the converted paragraph:\n\nThe flight AA 1234 departed from John F. Kennedy International Airport (JFK) at 08:30 and arrived at Los Angeles International Airport (LAX) at 11:45, a total travel time of 5 hours and 15 minutes. The Boeing 787 aircraft was used for this flight, and the economy class ticket cost $289. Unfortunately, the flight was not on time, arriving 2 minutes late.",
+  "score": 0,
+  "cost": 5.238e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 95
+  }
+}

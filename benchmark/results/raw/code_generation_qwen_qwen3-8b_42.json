@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n    return -1\navg = (n + m) / 2\nrounded = round(avg)\nreturn bin(rounded)",
+  "score": 3,
+  "cost": 0.00015255000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 2868
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Dear Team,  \nThank you for the incredible experiences and support during my time here\u2014your collaboration made every challenge rewarding. I\u2019ll carry the lessons learned and the camaraderie we built with us as we move forward. While I\u2019m leaving, I hope our paths cross again soon, whether in person or through ongoing connections. Wishing you all the best in your future endeavors. Take care, and thank you for being such a vital part of my journey.  \nWarm regards,  \n[Your Name]",
+  "score": 5,
+  "cost": 1.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 350
+  }
+}

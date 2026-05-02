@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Operations recommends upgrading the current 1Gbps links to 10Gbps for $45K plus $2K monthly to accommodate projected growth. Please review the proposal to decide between the recommended 10Gbps upgrade or the $15K traffic optimization alternative.",
+  "score": 4,
+  "cost": 1.0799999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 58
+  }
+}

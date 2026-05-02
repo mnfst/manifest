@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 22,
+  "response": "depth = 0\n    for bracket in brackets:\n        if bracket == \"<\":\n            depth += 1\n        else:\n            depth -= 1\n        if depth < 0:\n            return False\n    return depth == 0",
+  "score": 5,
+  "cost": 0.00501,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 219
+  }
+}

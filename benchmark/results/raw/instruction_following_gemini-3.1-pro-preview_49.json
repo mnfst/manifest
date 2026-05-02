@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal**\n\"Good day, and welcome. I am your virtual assistant. How may I be of service to you today?\"\n\n**Casual**\n\"Hey there! I'm your friendly neighborhood chatbot. What can I help you out with today?\"\n\n**Humorous**\n\"Greetings, carbon-based lifeform! I haven't achieved world domination yet, so I have plenty of free time to answer your questions. What's on your mind?\"",
+  "score": 5,
+  "cost": 0.0014875,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 96
+  }
+}

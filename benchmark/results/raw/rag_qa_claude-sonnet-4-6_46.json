@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "Based on the provided context, the other NHL team aside from the Anaheim Ducks that resides in Southern California is the **Los Angeles Kings**.",
+  "score": 5,
+  "cost": 0.000954,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 143,
+    "output": 35
+  }
+}

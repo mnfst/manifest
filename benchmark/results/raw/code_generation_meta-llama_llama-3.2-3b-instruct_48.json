@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 48,
+  "response": "def is_palindrome(text: str):\n    text = ''.join(c for c in text if c.isalnum()).lower()\n    return text == text[::-1]",
+  "score": 5,
+  "cost": 7.190999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 34
+  }
+}

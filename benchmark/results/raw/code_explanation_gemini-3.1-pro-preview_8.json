@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This code implements a parameterized **decorator pattern** to apply a **debounce** algorithm to a target function. It uses a multithreaded timer to delay the function's execution, canceling and resetting the countdown on every new call so that the function only actually runs after the specified `wait` time has elapsed without any further invocations.",
+  "score": 5,
+  "cost": 0.0012925,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 68
+  }
+}

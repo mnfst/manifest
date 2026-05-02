@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 2,
+  "response": "if not lst:\n    return []\nlst = sorted(lst)\nresult = []\nleft, right = 0, len(lst) - 1\nwhile left <= right:\n    result.append(lst[left])\n    left += 1\n    if left <= right:\n        result.append(lst[right])\n        right -= 1\nreturn result",
+  "score": 4,
+  "cost": 0.0001293,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 69
+  }
+}

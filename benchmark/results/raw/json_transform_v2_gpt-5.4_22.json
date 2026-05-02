@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "json_transform_v2",
+  "case": 22,
+  "response": "{\"company\":\"Acme Corp\",\"age_years\":11,\"size\":\"medium\",\"total_funding\":25000000,\"latest_round\":{\"series\":\"B\",\"amount\":20000000}}",
+  "score": 4,
+  "cost": 0.000628,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 41
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 36,
+  "response": "if n <= 1:\n    return 0\n\nfor i in range(n // 2, 0, -1):\n    if n % i == 0:\n        return i\n\nreturn 0",
+  "score": 5,
+  "cost": 0.000526,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 45
+  }
+}

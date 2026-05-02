@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "Space exploration in the 2020s is being driven by both government programs and private companies, including SpaceX\u2019s Starship development, NASA\u2019s Artemis effort to return humans to the Moon, and major discoveries from the James Webb Space Telescope. China is expanding its space station and lunar ambitions, while India has strengthened its role through successful Chandrayaan Moon missions. Commercial activity is growing through satellite internet constellations such as Starlink and OneWeb, space tourism ventures like Blue Origin and Virgin Galactic, and long-term interest in asteroid mining. However, this rapid expansion raises major governance and safety concerns, including the limitations of the Outer Space Treaty and the increasing problem of space debris.",
+  "score": 5,
+  "cost": 0.002433,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 170
+  }
+}

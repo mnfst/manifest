@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 45,
+  "response": "Fertilizers contain nutrients like nitrogen and phosphorus. When these enter the ocean via farm runoff, they provide nutrients that stimulate the growth and reproduction of algae, leading to algal blooms (eutrophication).\n\n**C**",
+  "score": 5,
+  "cost": 0.001083,
+  "expected": "C",
+  "tokens": {
+    "input": 91,
+    "output": 54
+  }
+}

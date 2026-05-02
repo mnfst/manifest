@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 25,
+  "response": "result = []\n    current_group = []\n    depth = 0\n    \n    for char in paren_string:\n        if char == ' ':\n            continue\n        \n        if char == '(':\n            depth += 1\n            current_group.append(char)\n        elif char == ')':\n            depth -= 1\n            current_group.append(char)\n            \n        if depth == 0 and current_group:\n            result.append(\"\".join(current_group))\n            current_group = []\n            \n    return result",
+  "score": 4,
+  "cost": 1.464e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 97
+  }
+}

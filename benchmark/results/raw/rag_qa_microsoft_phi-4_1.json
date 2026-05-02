@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "The Great Plague of London occurred in 1665.",
+  "score": 5,
+  "cost": 1.8395e-05,
+  "expected": "1665",
+  "tokens": {
+    "input": 270,
+    "output": 13
+  }
+}

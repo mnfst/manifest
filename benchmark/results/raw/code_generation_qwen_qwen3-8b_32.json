@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 32,
+  "response": "import re\n\ndef anti_shuffle(s):\n    tokens = re.findall(r'\\S+|\\s+', s)\n    processed = []\n    for token in tokens:\n        if token.strip() == '':\n            processed.append(token)\n        else:\n            sorted_token = ''.join(sorted(token))\n            processed.append(sorted_token)\n    return ''.join(processed)",
+  "score": 4,
+  "cost": 0.00030294999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 5896
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "structured_output",
+  "case": 39,
+  "response": "```json\n{\n  \"build_number\": 4521,\n  \"branch\": \"feature/auth-v2\",\n  \"status\": \"failed\",\n  \"failed_stage\": \"test\",\n  \"duration\": \"8m 32s\",\n  \"tests\": {\n    \"passed\": 247,\n    \"failed\": 3,\n    \"skipped\": 0\n  },\n  \"trigger\": \"push\",\n  \"author\": \"alice\"\n}\n```\n\nThis JSON object captures the information from the text according to the specified schema.",
+  "score": 4,
+  "cost": 1.6380000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 111
+  }
+}

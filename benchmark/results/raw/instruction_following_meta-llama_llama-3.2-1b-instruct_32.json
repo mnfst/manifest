@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**The Cozy Cupboard**\n\n**Rating: 4/5 stars**\n\nI recently had the pleasure of dining at The Cozy Cupboard, a quaint little restaurant tucked away in a quiet corner of the city. From the outside, the unassuming facade belies the warm and inviting atmosphere that awaits inside. The moment I stepped through the door, I was enveloped in a cozy and intimate setting that made me feel like I was in for a treat.\n\nThe service was top-notch, with friendly and attentive staff who were happy to answer all my questions and make recommendations. Our server, Emily, was particularly attentive and knowledgeable about the menu, which featured a range of creative and delicious dishes that catered to a variety of tastes.\n\nThe food was, without a doubt, the star of the show. I opted for the pan-seared salmon, which was cooked to perfection and served with a side of roasted vegetables that were cooked to a perfect tender crispiness. The portion sizes were generous, and the flavors were rich and complex, with a nice balance of sweet and savory notes.\n\nThe atmosphere was also noteworthy, with a warm and inviting decor that made me feel like I was in a cozy cabin in the woods. The dim lighting and soft music created a relaxing ambiance that made me feel like I was in for a pleasant evening out.\n\nIf I have any criticisms, it's that the prices were a bit steep, and the portions could be a bit larger. However, considering the high quality of the food and service, I think it's worth the splurge.\n\nOverall, I would highly recommend The Cozy Cupboard to anyone looking for a unique and delicious dining experience. While it may not be the cheapest option, it's definitely worth it for the quality of the food and service.\n\n**Recommended for:** Special occasions, date nights, and anyone looking for a unique dining experience.\n\n**Will I return?:** Absolutely, I'm already planning my next visit!",
+  "score": 5,
+  "cost": 1.1448000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 396
+  }
+}

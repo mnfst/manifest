@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This implements **reservoir sampling** to choose **k items uniformly at random** from a potentially large/unknown-length stream using only **O(k)** memory. It fills the reservoir with the first k elements, then for each subsequent element `item` at position `i` it draws a random index `j` from `[0, i]` and replaces `reservoir[j]` only if `j < k`, ensuring every stream element has equal probability `k/(n)` of being in the final reservoir.",
+  "score": 5,
+  "cost": 5.200000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 107
+  }
+}

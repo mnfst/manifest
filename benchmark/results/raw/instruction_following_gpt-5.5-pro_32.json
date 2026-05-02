@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Review: The Lantern & Fig**  \n**Rating: 4.5/5 stars**\n\nThe Lantern & Fig is a charming little restaurant tucked away on a quiet cobblestone street, and it feels like the kind of place you stumble upon by luck and immediately want to keep secret. The atmosphere is warm and inviting, with soft amber lighting, mismatched vintage chairs, and shelves lined with herbs, cookbooks, and tiny flickering candles.\n\nThe menu is small but thoughtful, focusing on seasonal comfort food with a creative twist. I tried the roasted pear and goat cheese tart to start, which was buttery, delicate, and perfectly balanced between sweet and savory. The standout dish was the rosemary-braised short rib served over parsnip mash\u2014rich, tender, and deeply flavorful. For dessert, the fig honey cake was moist and fragrant, though just a touch sweeter than necessary.\n\nService was friendly without being intrusive, and our server clearly knew the menu well. The pacing between courses was relaxed, making it a great spot for a slow dinner rather than a quick bite.\n\nOverall, The Lantern & Fig is a delightful fictional gem with excellent food, cozy ambiance, and just enough originality to make it memorable. I\u2019d happily return.",
+  "score": 5,
+  "cost": 0.006185,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 303
+  }
+}

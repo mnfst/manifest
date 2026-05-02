@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The Urarina.",
+  "score": 5,
+  "cost": 0.00316,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 156,
+    "output": 119
+  }
+}

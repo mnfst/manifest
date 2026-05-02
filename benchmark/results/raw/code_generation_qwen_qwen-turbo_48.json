@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 48,
+  "response": "text == text[::-1]",
+  "score": 5,
+  "cost": 3.762e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 6
+  }
+}

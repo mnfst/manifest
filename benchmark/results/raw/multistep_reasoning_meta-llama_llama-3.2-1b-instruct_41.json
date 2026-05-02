@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "multistep_reasoning",
+  "case": 41,
+  "response": "The fish population will increase. The pesticide was killing the insect that was a primary food source for the fish. If the pesticide is stopped, the insect population will increase, and the fish will have a new food source.",
+  "score": 5,
+  "cost": 5.2649999999999996e-06,
+  "expected": "A",
+  "tokens": {
+    "input": 150,
+    "output": 45
+  }
+}

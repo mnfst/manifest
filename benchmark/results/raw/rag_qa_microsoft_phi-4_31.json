@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Maududi believed that Muslim society could not be Islamic without Sharia. He also emphasized the need for the establishment of an Islamic state based on the principles of tawhid (unity of God), risala (prophethood), and khilafa (caliphate).",
+  "score": 5,
+  "cost": 1.56e-05,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 183,
+    "output": 57
+  }
+}

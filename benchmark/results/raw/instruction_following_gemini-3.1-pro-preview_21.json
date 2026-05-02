@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Turn right out of the park.\nTurn left at the stop sign.\nTurn right at the coffee shop.\nTurn left at the crosswalk.\nTurn right at the post office.\nTurn left into the library.",
+  "score": 5,
+  "cost": 0.000735,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 46
+  }
+}

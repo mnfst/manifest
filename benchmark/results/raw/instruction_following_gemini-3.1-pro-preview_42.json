@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The afternoon sky bruised into a deep, angry purple, swallowing the sun whole and casting the world in an eerie twilight. A sudden, sharp drop in temperature swept through the yard, raising cold goosebumps on my bare arms. The heavy air carried the distinct, metallic tang of ozone mixed with the rich, earthy scent of dry soil finally drinking in the first drops of moisture. Suddenly, a jagged fork of blinding white lightning fractured the dark horizon, illuminating the violently swaying trees. Seconds later, the tense silence was shattered by a deafening, chest-rattling boom of thunder that seemed to vibrate through the very ground beneath my feet. Then came the rain\u2014a torrential downpour that drummed a frantic, roaring rhythm against the tin roof, washing the landscape in a curtain of relentless gray.",
+  "score": 5,
+  "cost": 0.0024325,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 160
+  }
+}

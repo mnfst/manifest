@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This function implements **reservoir sampling**, an algorithm for selecting **k items uniformly at random from a stream of unknown or very large length** in one pass. It keeps the first `k` items in a reservoir, then for each later item replaces an existing reservoir item with decreasing probability so that every stream element has equal chance to end up in the sample.",
+  "score": 5,
+  "cost": 0.0001176,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 75
+  }
+}

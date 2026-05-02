@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 21,
+  "response": "This implements a **function pipeline** (left-to-right function composition). It returns a new function that takes a single value and passes it sequentially through each provided function, where the output of each function becomes the input to the next.\n\nFor example, `pipe(double, add_one, square)(3)` would compute `square(add_one(double(3)))`.",
+  "score": 5,
+  "cost": 0.001491,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 84
+  }
+}

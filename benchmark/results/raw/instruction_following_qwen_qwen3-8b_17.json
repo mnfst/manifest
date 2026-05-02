@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| **Pros of Remote Work** | **Cons of Remote Work** |\n|--------------------------|--------------------------|\n| **Flexibility**          | **Isolation**            |\n| **Cost Savings**         | **Work-Life Balance**    |\n| **Location Freedom**     | **Distractions**         |\n\n### Explanation:\n- **Flexibility**: Employees can manage their schedules and work hours, leading to better time management.  \n- **Cost Savings**: Reduced commuting expenses, lower office costs, and potential savings on meals and clothing.  \n- **Location Freedom**: Ability to work from anywhere, which can improve quality of life or support remote living.  \n\n- **Isolation**: Lack of in-person interaction may lead to loneliness or reduced team cohesion.  \n- **Work-Life Balance**: Blurred boundaries between work and personal life can cause burnout or overwork.  \n- **Distractions**: Home environments may have interruptions (e.g., family, pets, or household tasks) that reduce productivity.",
+  "score": 5,
+  "cost": 2.415e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 459
+  }
+}

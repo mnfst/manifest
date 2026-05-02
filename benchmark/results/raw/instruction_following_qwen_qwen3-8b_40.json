@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are five capital cities, each from a different continent:\n\n1. **Cairo** (Africa) - Capital of Egypt  \n2. **Beijing** (Asia) - Capital of China  \n3. **Paris** (Europe) - Capital of France  \n4. **Ottawa** (North America) - Capital of Canada  \n5. **Canberra** (Oceania) - Capital of Australia  \n\nNote: Antarctica does not have a recognized capital city, so it is excluded here.",
+  "score": 5,
+  "cost": 3.675e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 713
+  }
+}

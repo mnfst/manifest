@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    rows = len(grid)\n    cols = len(grid[0])\n    \n    # Find the position of the minimum value in the grid to start the search\n    # However, since we need the lexicographically smallest path, \n    # we can't just start from the global minimum. \n    # But wait, the first element of the path is the most significant.\n    # To get the lexicographically smallest path, we must start with the \n    # smallest possible value that can lead to a valid path of length k.\n    # Since k is the number of cells, and we can move to neighbors, \n    # any cell can be a starting point.\n    \n    # To find the lexicographically smallest path, we can use dynamic programming\n    # or a greedy approach with look-ahead.\n    # Let dp[i][j][len] be the lexicographically smallest path of length 'len' \n    # starting from cell (i, j).\n    \n    memo = {}\n\n    def solve(r, c, length):\n        if length == 1:\n            return [grid[r][c]]\n        if (r, c, length) in memo:\n            return memo[(r, c, length)]\n        \n        best_path = None\n        \n        for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:\n            nr, nc = r + dr, c + dc\n            if 0 <= nr < rows and 0 <= nc < cols:\n                suffix = solve(nr, nc, length - 1)\n                current_path = [grid[r][c]] + suffix\n                if best_path is None or current_path < best_path:\n                    best_path = current_path\n        \n        memo[(r, c, length)] = best_path\n        return best_path\n\n    overall_best = None\n    for r in range(rows):\n        for c in range(cols):\n            path = solve(r, c, k)\n            if overall_best is None or path < overall_best:\n                overall_best = path\n                \n    return overall_best\n```",
+  "score": 5,
+  "cost": 5.754e-05,
+  "expected": "",
+  "tokens": {
+    "input": 464,
+    "output": 495
+  }
+}

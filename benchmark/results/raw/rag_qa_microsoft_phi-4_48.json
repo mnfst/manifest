@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "Based on the provided context, the most commonly ascribed attributes of L in relation to P are:\n\n1. It is not known if L is strictly contained in P.\n2. It is not known if L is equal to P.\n\nThe context also mentions that there are many complexity classes between L and P, such as NL and NC, and it is not known if these classes are distinct or equal.",
+  "score": 5,
+  "cost": 1.3260000000000002e-05,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 122,
+    "output": 82
+  }
+}

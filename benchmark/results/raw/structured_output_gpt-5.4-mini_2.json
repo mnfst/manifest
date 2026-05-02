@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "structured_output",
+  "case": 2,
+  "response": "{\"product\":\"iPhone 15 Pro\",\"price\":999.0,\"colors\":[\"black titanium\",\"white titanium\",\"blue titanium\"],\"storage_options\":[\"128GB\",\"256GB\",\"512GB\",\"1TB\"]}",
+  "score": 5,
+  "cost": 8.28e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 46
+  }
+}

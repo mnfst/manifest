@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code finds all **connected components** in a graph by running a **breadth-first search (BFS)** from each unvisited node. It returns a list of components, where each component is the set of nodes reachable from one another through the graph\u2019s edges.",
+  "score": 5,
+  "cost": 0.00010709999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 57
+  }
+}

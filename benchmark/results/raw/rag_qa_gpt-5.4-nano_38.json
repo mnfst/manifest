@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Nine residential houses are located along or near the **Charles River**.",
+  "score": 5,
+  "cost": 3.2e-05,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 252,
+    "output": 17
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Certainly! Here's a list of ingredients for a basic salad using a checkbox format:\n\n- [ ] Lettuce (e.g., romaine, iceberg, spinach)\n- [ ] Tomatoes, diced\n- [ ] Cucumber, sliced\n- [ ] Red onion, thinly sliced\n- [ ] Carrots, shredded or sliced\n- [ ] Bell peppers, sliced\n- [ ] Avocado, sliced or diced\n- [ ] Croutons (optional)\n- [ ] Feta cheese or your choice of cheese (optional)\n- [ ] Olives (optional)\n- [ ] Grilled chicken or tofu (optional)\n- [ ] Olive oil\n- [ ] Lemon juice or vinegar\n- [ ] Salt\n- [ ] Black pepper\n- [ ] Dried herbs (e.g., oregano, basil) or fresh herbs (e.g., parsley, cilantro) (optional)\n\nFeel free to customize the salad with your favorite ingredients!",
+  "score": 5,
+  "cost": 1.3975e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 197
+  }
+}

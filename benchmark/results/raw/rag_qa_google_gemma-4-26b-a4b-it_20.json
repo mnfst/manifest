@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "They are funded in whole by charging their students tuition fees.",
+  "score": 5,
+  "cost": 1.0019999999999999e-05,
+  "expected": "tuition",
+  "tokens": {
+    "input": 154,
+    "output": 13
+  }
+}

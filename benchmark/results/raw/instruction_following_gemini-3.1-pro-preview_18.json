@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It begins with a venue that arrives without warning. No flyers are posted, no announcements are made. It is simply there one morning where an empty field lay the day before\u2014a sprawling, intricate labyrinth of black-and-white striped tents that only opens its gates after nightfall. The air inside smells of caramel, roasting nuts, woodsmoke, and the faint, crackling tang of real magic. \n\nBut this extraordinary place is not merely an entertainment venue; it is a battleground. \n\nAt the heart of the story are two young illusionists, bound together since childhood by a cruel, unbreakable vow made by their respective mentors. They are locked in a lifelong, silent duel of imagination and endurance. However, their weapons are not swords or spells of destruction, but breathtaking feats of creation. One builds a garden made entirely of unmelting ice; the other counters with a vertical maze of clouds or a carousel that seems to come alive. They push the boundaries of reality to outdo one another, using the venue and its performers as their chessboard.\n\nYet, in the process of this beautiful, escalating competition, they commit the ultimate error: through the art they create for one another, they fall deeply, irrevocably in love. \n\nThe tragedy of their situation is that their game is ancient, and it is designed to have only one survivor. As their connection deepens and they refuse to destroy each other, the magical infrastructure of the venue\u2014and the lives of the eccentric performers, clockmakers, and devoted patrons caught in their crossfire\u2014begins to fracture under the weight of their impossible situation.\n\nIt is a story told in highly sensory, dreamlike prose, weaving back and forth through time and across the globe. It\u2019s a tale about the burden of destiny, the ethics of manipulating others for the sake of a game, and the enduring, transformative power of love. Reading it feels less like reading a novel and more like walking through a beautiful, melancholic dream that you never quite want to wake up from.",
+  "score": 5,
+  "cost": 0.00621,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 412
+  }
+}

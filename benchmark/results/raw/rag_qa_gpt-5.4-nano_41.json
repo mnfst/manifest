@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "Duquesne sent additional French forces under Claude-Pierre Pecaudy de Contrec\u0153ur to relieve Saint-Pierre. However, the context does not specify how many men Duquesne sent specifically for that relief. **Not found in context.**",
+  "score": 5,
+  "cost": 3.88e-05,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 184,
+    "output": 51
+  }
+}

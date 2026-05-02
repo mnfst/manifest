@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 46,
+  "response": "best = None\n    best_index = None\n\n    for i, x in enumerate(arr):\n        if x % 2 == 0 and (best is None or x < best):\n            best = x\n            best_index = i\n\n    return [] if best is None else [best, best_index]",
+  "score": 4,
+  "cost": 0.006805,
+  "expected": "",
+  "tokens": {
+    "input": 345,
+    "output": 254
+  }
+}

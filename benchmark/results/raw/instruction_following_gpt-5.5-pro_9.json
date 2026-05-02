@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April, June, September, November",
+  "score": 5,
+  "cost": 0.0011,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 49
+  }
+}

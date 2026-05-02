@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 28,
+  "response": "This computes the **length of the Longest Common Subsequence (LCS)** between sequences `a` and `b` using classic **dynamic programming** with a `(m+1)\u00d7(n+1)` table. It fills `dp[i][j]` so that when characters match it takes `dp[i-1][j-1] + 1`, otherwise it takes the maximum of `dp[i-1][j]` and `dp[i][j-1]`.",
+  "score": 5,
+  "cost": 5.7400000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 104
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 9,
+  "response": "```python\n    return sum(int(x)**2 for x in lst if isinstance(x, (int, float)) and x > 0 and x == int(x) and x % 2 != 0)\n```",
+  "score": 3,
+  "cost": 0.0011975,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 49
+  }
+}

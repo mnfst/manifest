@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "The provided code implements Dijkstra's algorithm, which is used to find the shortest paths from a starting node to all other nodes in a weighted graph with non-negative edge weights. The algorithm uses a priority queue (min-heap) to efficiently select the next node with the smallest tentative distance, updating the shortest known distances to each node as it explores the graph.",
+  "score": 5,
+  "cost": 1.391e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 73
+  }
+}

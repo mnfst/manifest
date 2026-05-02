@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nPrior to the pandemic, remote work was a rare practice, with less than 5% of workers fully working from home. The COVID-19 pandemic accelerated the shift to remote work, with the use of tools like Zoom and Slack enabling a large-scale experiment in remote work. Research by Stanford's Nick Bloom showed mixed results on productivity, but the trend has continued, with many companies adopting hybrid models and the rise of digital nomad visas. The shift to remote work has also had significant impacts on commercial real estate, with some areas experiencing a decline in demand and workers taking advantage of geographic arbitrage to move to lower-cost areas.",
+  "score": 5,
+  "cost": 1.4840999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 141
+  }
+}

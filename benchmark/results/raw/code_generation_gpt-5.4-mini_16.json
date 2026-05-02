@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 16,
+  "response": "n = len(grid)\n    if k <= 0:\n        return []\n    if k == 1:\n        mn = grid[0][0]\n        for row in grid:\n            for v in row:\n                if v < mn:\n                    mn = v\n        return [mn]\n\n    # Precompute neighbors for each cell\n    neighbors = {}\n    for i in range(n):\n        for j in range(n):\n            ns = []\n            if i > 0:\n                ns.append((i - 1, j))\n            if i + 1 < n:\n                ns.append((i + 1, j))\n            if j > 0:\n                ns.append((i, j - 1))\n            if j + 1 < n:\n                ns.append((i, j + 1))\n            neighbors[(i, j)] = ns\n\n    # DP over paths: dp[t][cell] = lexicographically minimal path values of length t+1\n    # ending at cell. We keep only current layer.\n    cur = {}\n    for i in range(n):\n        for j in range(n):\n            cur[(i, j)] = [grid[i][j]]\n\n    for _ in range(1, k):\n        nxt = {}\n        for (i, j), path in cur.items():\n            for ni, nj in neighbors[(i, j)]:\n                cand = path + [grid[ni][nj]]\n                key = (ni, nj)\n                if key not in nxt or cand < nxt[key]:\n                    nxt[key] = cand\n        cur = nxt\n\n    best = None\n    for path in cur.values():\n        if best is None or path < best:\n            best = path\n    return best",
+  "score": 4,
+  "cost": 0.0005685,
+  "expected": "",
+  "tokens": {
+    "input": 427,
+    "output": 367
+  }
+}

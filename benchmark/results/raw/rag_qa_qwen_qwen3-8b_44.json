@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "The Ohio Company of Virginia was given land by the British government for the development of the Ohio Country.",
+  "score": 5,
+  "cost": 2.6200000000000003e-05,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 271,
+    "output": 253
+  }
+}

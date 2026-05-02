@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "The production web server, identified as prod-web-01, is currently operating in the us-east-1 region. It is experiencing a CPU utilization of 78% and is using 12.4 out of 16 GB of available memory. The disk usage stands at 234 GB out of a total 500 GB capacity. The server has been running continuously for 45 days and is handling 127 active connections. The 99th percentile latency is recorded at 145 milliseconds, with an average of 3 errors occurring per hour.",
+  "score": 0,
+  "cost": 1.3585000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 109
+  }
+}

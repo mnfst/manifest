@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 43,
+  "response": "from typing import List\n\ndef intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    return [num for i, num in enumerate(numbers) for _ in range(i % 2) if i % 2 == 0]",
+  "score": 2,
+  "cost": 4.887000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 53
+  }
+}

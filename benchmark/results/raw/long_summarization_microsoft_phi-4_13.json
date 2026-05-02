@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "long_summarization",
+  "case": 13,
+  "response": "Quantum computing offers a fundamentally different approach to computation by utilizing qubits, which can exist in multiple states simultaneously, enabling exponentially faster problem-solving through superposition, entanglement, and interference. Major companies like IBM, Google, IonQ, and Rigetti are developing quantum hardware using various methods, such as superconducting circuits and trapped ions. Google claimed quantum supremacy in 2019 by performing a calculation in 200 seconds that would take a classical supercomputer 10,000 years. Despite challenges like qubit fragility and high error rates, quantum computing holds promise for applications in drug discovery, materials science, cryptography, and optimization problems, with companies exploring quantum algorithms for financial modeling and logistics.",
+  "score": 5,
+  "cost": 2.7560000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 282,
+    "output": 142
+  }
+}

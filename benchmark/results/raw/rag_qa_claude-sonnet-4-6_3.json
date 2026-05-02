@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "Based on the provided context, the leader of the Islamist regime in Sudan was **Hassan al-Turabi**, whose organization was called the **National Islamic Front**.",
+  "score": 5,
+  "cost": 0.001071,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 167,
+    "output": 38
+  }
+}

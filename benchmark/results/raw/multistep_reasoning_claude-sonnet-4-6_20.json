@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 20,
+  "response": "A trade-off means gaining one benefit while sacrificing another feature.\n\n- **A)** Gas mileage increases (benefit) but engine power decreases (sacrifice) \u2014 this is a trade-off.\n- **B)** More efficient engine AND higher performance \u2014 both improve, no trade-off.\n- **C)** Better taste AND same nutritional content \u2014 improvement with no sacrifice.\n- **D)** Better hardware AND same price \u2014 improvement with no sacrifice.\n\n**A**",
+  "score": 5,
+  "cost": 0.002061,
+  "expected": "A",
+  "tokens": {
+    "input": 147,
+    "output": 108
+  }
+}

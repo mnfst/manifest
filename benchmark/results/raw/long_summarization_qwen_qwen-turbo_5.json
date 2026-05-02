@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Antibiotics, beginning with Alexander Fleming's 1928 discovery of penicillin, revolutionized medicine by transforming surgery and treating infectious diseases. The 1950s and 1960s marked a golden age of antibiotic development, but interest declined due to low financial returns, leading to a current crisis of antimicrobial resistance, including dangerous strains like MRSA. The widespread use of antibiotics in agriculture has further contributed to resistance. Researchers are now exploring alternatives such as phage therapy, CRISPR, and AI-driven drug discovery to combat this growing threat.",
+  "score": 5,
+  "cost": 8.811e-06,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 118
+  }
+}

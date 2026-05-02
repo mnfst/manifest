@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Answer: Colonialism often means a country taking physical control of another area and ruling over the areas previously controlled by another nation.",
+  "score": 5,
+  "cost": 1.1319e-05,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 318,
+    "output": 25
+  }
+}

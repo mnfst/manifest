@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is like a rich, velvety blanket that wraps around your tongue, coating it with a deep, satisfying warmth. It's a flavor that's both familiar and comforting, like a warm hug on a cold winter's day. The sweetness is like a gentle rain shower on a spring morning, nourishing and rejuvenating, leaving you feeling refreshed and revitalized.\n\nAs the flavors unfold, the bitterness is like a subtle undertone, a hint of earthy undertones that adds depth and complexity to the overall experience. It's a flavor that's both soothing and stimulating, like a gentle breeze on a summer day, carrying with it the promise of new beginnings and possibilities.\n\nThe aftertaste is like a lingering whisper, a gentle echo of the flavors that linger on the palate, leaving you wanting more. It's a taste that's both indulgent and satisfying, like a decadent dessert that's been savored and enjoyed, leaving you feeling content and full.\n\nIn short, the taste of chocolate is a sensory experience that's both familiar and exciting, a flavor that's both comforting and thrilling, like a warm, fuzzy feeling that wraps around your heart and soul.",
+  "score": 5,
+  "cost": 7.127999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 240
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "This code implements the **quicksort** algorithm, which works by selecting a pivot element, partitioning the array into elements less than, equal to, and greater than the pivot, and recursively sorting the left and right partitions. The algorithm uses a **divide-and-conquer** approach with **partitioning** around a pivot.",
+  "score": 5,
+  "cost": 6.171e-06,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 66
+  }
+}

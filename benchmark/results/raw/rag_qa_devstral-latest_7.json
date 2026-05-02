@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "The magnitude of the external force is divided by the mass of the system.",
+  "score": 5,
+  "cost": 2.0900000000000003e-05,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 161,
+    "output": 16
+  }
+}

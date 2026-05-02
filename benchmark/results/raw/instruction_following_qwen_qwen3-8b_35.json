@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old farmer found a glowing seed in the forest, its light flickering like a dying star. He planted it by the river, and by dawn, a tree erupted, its branches humming with ancient magic. When he whispered his wish for wealth, the tree granted it, but the river ran dry, and his crops withered. Desperate, he begged for rain, but the tree demanded his memories in exchange. Years later, the tree vanished, leaving him with a single, shimmering leaf and the ache of forgotten joy. The forest whispered that some wishes are seeds for something greater.",
+  "score": 5,
+  "cost": 1.43e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 268
+  }
+}

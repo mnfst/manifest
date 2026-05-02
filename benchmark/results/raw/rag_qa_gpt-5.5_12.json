@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "J. F. D. Shrewsbury challenged the plague theory first.",
+  "score": 5,
+  "cost": 0.00138,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 188,
+    "output": 68
+  }
+}

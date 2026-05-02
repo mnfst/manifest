@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 19,
+  "response": "```python\nreturn \"\".join([chr(((ord(ch) - ord(\"a\") - 5) % 26) + ord(\"a\")) for ch in s])\n```",
+  "score": 3,
+  "cost": 1.144e-05,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 37
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements the **Observer pattern** (also known as the publish-subscribe pattern) through an `EventEmitter` class. It allows objects to subscribe (`on`) to named events, trigger all callbacks for an event (`emit`), and unsubscribe (`off`) by removing a specific callback. The `_events` dictionary maps event names to lists of callback functions, enabling loose coupling between event producers and consumers.",
+  "score": 5,
+  "cost": 3.66e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 83
+  }
+}

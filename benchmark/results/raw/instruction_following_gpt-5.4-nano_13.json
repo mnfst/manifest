@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "Red, Orange, Yellow, Green, Blue, Indigo, Violet.",
+  "score": 5,
+  "cost": 8.5e-06,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 17
+  }
+}

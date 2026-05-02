@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "As many of you know, today is my final day with the company. I want to express my sincere gratitude for the support and friendship you have shown me during my time here. It has been a true privilege working alongside such a talented and dedicated team. I will carry many fond memories of our shared successes and challenges with me. Please feel free to stay in touch via LinkedIn or my personal email.",
+  "score": 5,
+  "cost": 6.359999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 81
+  }
+}

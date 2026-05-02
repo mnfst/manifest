@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "Based on the provided context, BSkyB's target was to reach **36%** of households in the UK, which represented an audience of more than 25 million people.",
+  "score": 5,
+  "cost": 0.00117,
+  "expected": "36%",
+  "tokens": {
+    "input": 190,
+    "output": 40
+  }
+}

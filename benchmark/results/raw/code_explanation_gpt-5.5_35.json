@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This function performs substring search using the Knuth-Morris-Pratt (KMP) algorithm. It first builds the pattern\u2019s LPS (longest proper prefix that is also a suffix) table, then scans the text to find the first occurrence of `pattern` in `text`, returning its starting index or `-1` if not found.",
+  "score": 5,
+  "cost": 0.001425,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 73
+  }
+}

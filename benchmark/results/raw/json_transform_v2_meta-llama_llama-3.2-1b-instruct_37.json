@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "json_transform_v2",
+  "case": 37,
+  "response": "```\n{\n  \"company\": \"Acme Corp\",\n  \"age_years\": 10,\n  \"size\": \"large\",\n  \"total_funding\": 15000000,\n  \"latest_round\": {\n    \"series\": \"A\",\n    \"amount\": 5000000\n  }\n}\n```",
+  "score": 2,
+  "cost": 5.913e-06,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 65
+  }
+}

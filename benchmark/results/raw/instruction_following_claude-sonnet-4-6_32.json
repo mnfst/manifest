@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "# Restaurant Review: The Gilded Turnip\n\n### \u2b50\u2b50\u2b50\u2b50\u00bd (4.5/5 Stars)\n\n---\n\nI'll be honest \u2014 when my friend suggested we try a restaurant called **The Gilded Turnip**, I almost said no. The name conjures images of sad root vegetables and disappointing salads. I could not have been more wrong.\n\nTucked into a quiet side street in the arts district, The Gilded Turnip is the kind of place that makes you feel like you've discovered a secret. The interior is warm and intimate, with exposed brick walls, mismatched vintage furniture, and soft candlelight that somehow manages to feel intentional rather than lazy.\n\n**The Food**\n\nWe started with the whipped ricotta crostini drizzled with truffle honey \u2014 simple, elegant, and dangerously easy to finish in under two minutes. My main course, a slow-braised short rib served over saffron polenta, was genuinely outstanding. The meat fell apart at the suggestion of a fork. My dining companion ordered the pan-seared halibut and reported zero complaints.\n\nThe dessert menu is short but confident. The brown butter tart alone is worth the trip.\n\n**The Service**\n\nAttentive without being intrusive. Our server knew the menu inside and out and made recommendations that actually landed.\n\n**The Verdict**\n\nThe Gilded Turnip is the rare restaurant that exceeds its own hype. I'm already planning my return visit.\n\n*\u2014 Visited on a Friday evening, party of two*",
+  "score": 5,
+  "cost": 0.005445,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 358
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 31,
+  "response": "filtered_list = [s for s in lst if len(s) % 2 == 0]\n    return sorted(filtered_list, key=lambda x: (len(x), x))",
+  "score": 4,
+  "cost": 1.734e-05,
+  "expected": "",
+  "tokens": {
+    "input": 244,
+    "output": 45
+  }
+}

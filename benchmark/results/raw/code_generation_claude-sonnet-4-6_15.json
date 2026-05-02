@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 15,
+  "response": "```python\n    i = 2\n    largest = 1\n    while i * i <= n:\n        while n % i == 0:\n            largest = i\n            n //= i\n        i += 1\n    if n > 1:\n        largest = n\n    return largest\n```",
+  "score": 5,
+  "cost": 0.001404,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 72
+  }
+}

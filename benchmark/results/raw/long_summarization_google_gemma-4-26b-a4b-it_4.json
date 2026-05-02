@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "The evolution of electric vehicles has progressed from 1830s experiments to a modern industry disruption led by companies like Tesla. While legacy automakers such as Ford, GM, and VW are transitioning their fleets, the industry must still overcome technical hurdles including range anxiety, charging infrastructure, and the environmental impact of lithium and cobalt mining. China currently dominates the sector as the world's largest manufacturer and market, driving global competition. Future growth depends on addressing grid capacity and the potential development of advanced solid-state batteries.",
+  "score": 5,
+  "cost": 1.416e-05,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 101
+  }
+}

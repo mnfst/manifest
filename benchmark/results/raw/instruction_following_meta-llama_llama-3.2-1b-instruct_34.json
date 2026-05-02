@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that improves the performance of a database by allowing the database to quickly locate specific data by providing an efficient way to access and retrieve data. By creating an index, the database can reduce the time it takes to perform operations such as searching, sorting, and filtering, making it easier to manage and maintain large datasets.",
+  "score": 3,
+  "cost": 2.5379999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 70
+  }
+}

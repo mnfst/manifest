@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated on the go with this sleek, durable water bottle designed to keep drinks fresh wherever your day takes you. Its leak-proof lid, comfortable grip, and reusable design make it perfect for work, workouts, travel, and everyday use.",
+  "score": 5,
+  "cost": 0.00171,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 80
+  }
+}

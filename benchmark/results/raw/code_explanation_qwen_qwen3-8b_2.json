@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "The code implements the **three-way quicksort** algorithm, partitioning the array into three parts: elements less than, equal to, and greater than the pivot (chosen as the middle element). It recursively sorts the left and right partitions and concatenates the results with the middle elements, ensuring efficient handling of duplicates.",
+  "score": 5,
+  "cost": 3.95e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 673
+  }
+}

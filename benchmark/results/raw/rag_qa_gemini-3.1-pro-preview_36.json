@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Based on the provided context, oxygen therapy is used to treat diseases that impair the body's ability to take up **gaseous oxygen** (or **O2**).",
+  "score": 5,
+  "cost": 0.0009375,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 159,
+    "output": 36
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Round, golden pizza: crisp crust, tangy tomato sauce, gooey mozzarella, spicy pepperoni, savory mushrooms, sweet peppers, fresh basil, rich aroma, delicious slices.",
+  "score": 5,
+  "cost": 0.002022,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 164
+  }
+}

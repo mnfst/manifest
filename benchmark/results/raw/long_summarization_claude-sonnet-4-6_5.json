@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Alexander Fleming's 1928 discovery of penicillin launched a medical revolution, transforming previously fatal infections into treatable conditions and making modern surgery possible. The 1950s and 1960s represented a golden age of antibiotic discovery, but new development has since stalled due to poor financial returns for pharmaceutical companies. This has contributed to a growing antimicrobial resistance crisis, driven by the rise of dangerous bacteria like MRSA and the widespread overuse of antibiotics in agricultural livestock. Researchers are now pursuing alternative strategies \u2014 including phage therapy, CRISPR-based approaches, and AI-driven drug discovery \u2014 in an urgent effort to stay ahead of increasingly resistant pathogens.",
+  "score": 5,
+  "cost": 0.002727,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 150
+  }
+}

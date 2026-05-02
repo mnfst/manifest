@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1.0379999999999999e-05,
+  "expected": "North America",
+  "tokens": {
+    "input": 167,
+    "output": 6
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "\"Embrace challenges as opportunities; each step forward is a leap towards your limitless potential.\"",
+  "score": 3,
+  "cost": 2.7300000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 19
+  }
+}

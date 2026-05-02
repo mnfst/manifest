@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 18,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"plan\": \"Pro Plan\",\n  \"price_monthly\": 29.0,\n  \"price_annual\": 348.0,\n  \"start_date\": \"Jan 1 2024\",\n  \"renewal_date\": \"Jan 1 2025\",\n  \"payment_method\": \"Visa\",\n  \"card_last4\": \"4242\",\n  \"status\": \"active\"\n}\n```\n\nNote that I've kept the date format as is, assuming it's in the format \"Month Day Year\". If you need a different format, please let me know!",
+  "score": 5,
+  "cost": 1.3311e-05,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 135
+  }
+}

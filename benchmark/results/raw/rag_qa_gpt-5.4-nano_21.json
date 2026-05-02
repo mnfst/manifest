@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Oxygen is poisonous to the **anaerobic bacteria** that cause gas gangrene.",
+  "score": 5,
+  "cost": 2.8800000000000005e-05,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 204,
+    "output": 21
+  }
+}

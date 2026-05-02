@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 7,
+  "response": "result = 1\nfactorial = 1\nfor i in range(1, n + 1):\n    factorial *= i\n    result *= factorial\nreturn result",
+  "score": 4,
+  "cost": 0.000556,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 38
+  }
+}

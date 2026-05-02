@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "Based on the provided context, when an external force acts on the system, the center of mass will experience an acceleration proportional to the magnitude of the external force divided by the **mass of the system**.",
+  "score": 5,
+  "cost": 0.001176,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 172,
+    "output": 44
+  }
+}

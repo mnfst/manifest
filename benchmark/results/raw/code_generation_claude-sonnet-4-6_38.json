@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 38,
+  "response": "```python\nnegatives = [x for x in lst if x < 0]\n    positives = [x for x in lst if x > 0]\n    \n    a = max(negatives) if negatives else None\n    b = min(positives) if positives else None\n    \n    return (a, b)\n```",
+  "score": 4,
+  "cost": 0.001779,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 82
+  }
+}

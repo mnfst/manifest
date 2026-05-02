@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that improves the speed of data retrieval operations on a database table by allowing quick searches. It works by creating a separate structure that holds a small portion of the table's data, organized in a way that allows for faster search and access, similar to an index in a book, which helps in efficiently locating and accessing the desired rows.",
+  "score": 3,
+  "cost": 6.11e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 74
+  }
+}

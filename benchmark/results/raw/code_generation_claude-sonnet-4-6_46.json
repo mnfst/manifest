@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\n    if not arr:\n        return []\n    \n    even_nodes = [(val, idx) for idx, val in enumerate(arr) if val % 2 == 0]\n    \n    if not even_nodes:\n        return []\n    \n    min_val = min(even_nodes, key=lambda x: (x[0], x[1]))\n    return [min_val[0], min_val[1]]\n```",
+  "score": 5,
+  "cost": 0.002775,
+  "expected": "",
+  "tokens": {
+    "input": 390,
+    "output": 107
+  }
+}

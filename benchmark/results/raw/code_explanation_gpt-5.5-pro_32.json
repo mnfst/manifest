@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This implements a Disjoint Set Union (Union-Find) data structure for `n` elements, returning `find` and `union` functions. It uses path compression in `find` and union by rank in `union` to efficiently track and merge connected components.",
+  "score": 5,
+  "cost": 0.00338,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 129
+  }
+}

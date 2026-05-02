@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "The Amazon basin covers 7,000,000 square kilometers, of which 5,500,000 square kilometers are covered by the rainforest.",
+  "score": 5,
+  "cost": 4.3299999999999995e-05,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 316,
+    "output": 39
+  }
+}

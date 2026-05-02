@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The first month of the bug bounty program yielded 47 reports, including three critical vulnerabilities that were all patched within 24 hours. Due to the strong return on investment, the security team recommends continuing the program.",
+  "score": 5,
+  "cost": 9.96e-06,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 45
+  }
+}

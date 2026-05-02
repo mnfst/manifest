@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "1. **Java**  \n2. **C++**  \n3. **C**  \n4. **Go (Golang)**",
+  "score": 5,
+  "cost": 1.9650000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 372
+  }
+}

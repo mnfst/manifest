@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```python\nif x == 0:\n        return '0'\n    \n    result = ''\n    while x > 0:\n        result = str(x % base) + result\n        x //= base\n    \n    return result\n```",
+  "score": 5,
+  "cost": 0.001335,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 17,
+  "response": "Based on the provided context, Tymnet was an international data communications network headquartered in San Jose, CA that utilized virtual call packet switched technology and used X.25, SNA/SDLC, BSC, and ASCII interfaces to connect host computers (servers) at thousands of large companies, educational institutions, and government agencies.",
+  "score": 5,
+  "cost": 0.00152,
+  "expected": "an international data communications network headquartered in San Jose, CA",
+  "tokens": {
+    "input": 224,
+    "output": 64
+  }
+}

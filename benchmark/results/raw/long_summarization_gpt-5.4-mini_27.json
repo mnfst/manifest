@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 27,
+  "response": "The EU\u2019s GDPR, effective since May 2018, applies to any company handling EU residents\u2019 data and gives people rights like access, erasure, portability, and explicit consent requirements. It also requires breach reporting within 72 hours, Data Protection Officers for large-scale processing, and allows fines of up to 4% of global annual revenue or \u20ac20 million, whichever is higher. Major penalties have included Meta\u2019s \u20ac1.2 billion fine in 2023, Amazon\u2019s \u20ac746 million fine, and Google fines totaling over \u20ac200 million. While critics say it creates compliance burdens and frustration, GDPR has become the global model for privacy law and established data privacy as a fundamental right.",
+  "score": 5,
+  "cost": 0.0002622,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 142
+  }
+}

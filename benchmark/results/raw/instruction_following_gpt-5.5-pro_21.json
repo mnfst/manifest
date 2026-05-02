@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "I\u2019ll need the exact park and library for real directions.  \n\nExample using only left and right turns:\n\n1. Turn right out of the park.  \n2. Turn left at the first corner.  \n3. Turn right at the next corner.  \n4. Turn left at the next corner.  \n5. Turn right into the library entrance.",
+  "score": 1,
+  "cost": 0.022945,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 1141
+  }
+}

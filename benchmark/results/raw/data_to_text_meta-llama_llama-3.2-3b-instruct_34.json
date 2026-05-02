@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "data_to_text",
+  "case": 34,
+  "response": "Here is the converted text:\n\nStockholm, the capital of Sweden, is a thriving city with a population of approximately 1.6 million people, covering an area of 188 square kilometers. The city has a strong economy, with a GDP per capita of $62,000, and is known for its rich history, with its founding dating back to 1252. The city's climate is temperate, with average temperatures ranging from -3\u00b0C in January to 18\u00b0C in July.",
+  "score": 0,
+  "cost": 1.0148999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 101
+  }
+}

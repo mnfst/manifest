@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work shifted from a niche perk to a mainstream work model after the pandemic forced a large-scale experiment in 2020; before then, fewer than 5% of workers were fully remote. Tools like Zoom, Slack, and cloud infrastructure made the transition possible, while research from Stanford\u2019s Nick Bloom found productivity effects were mixed rather than uniformly positive. The change sparked return-to-office backlash and a move toward hybrid models, while also reshaping commercial real estate, enabling workers to relocate to lower-cost areas, and raising concerns about company culture and the development of junior employees. It also helped fuel the rise of digital nomad visas as countries competed for remote workers.",
+  "score": 5,
+  "cost": 0.0002052,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 135
+  }
+}

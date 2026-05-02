@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "The most commonly ascribed attributes of L in relation to P, though unknown, are whether L is strictly contained in P or equal to P.",
+  "score": 5,
+  "cost": 5.148e-06,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 127,
+    "output": 29
+  }
+}

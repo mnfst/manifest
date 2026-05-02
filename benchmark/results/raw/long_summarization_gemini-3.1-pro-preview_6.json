@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Prior to the forced experiment of 2020, less than 5% of employees worked fully remotely, but cloud-based tools like Zoom and Slack quickly transformed this rare perk into a mainstream practice. Although Stanford research by Nick Bloom reveals mixed productivity results, widespread backlash against return-to-office mandates has solidified hybrid work as the new standard. This permanent shift has triggered major economic changes, severely impacting commercial real estate while enabling geographic arbitrage and the creation of digital nomad visas. Nevertheless, organizations continue to grapple with the long-term trade-offs of this flexibility, particularly regarding the erosion of company culture and the professional development of junior employees.",
+  "score": 5,
+  "cost": 0.0023125,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 130
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "This text traces the evolution of artificial intelligence from its theoretical origins through periods of stagnation known as \"AI winters\" to the modern era of deep learning and transformer architecture. It highlights the current technological race between major players like OpenAI and Google, driven by the scaling hypothesis and the transformative power of GPT models. Furthermore, the narrative addresses critical contemporary challenges, including the open versus closed source debate, AI safety and alignment, and the resulting regulatory efforts like the EU AI Act. Ultimately, the text examines the profound economic implications of these advancements on the future of knowledge work.",
+  "score": 5,
+  "cost": 1.6559999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 113
+  }
+}

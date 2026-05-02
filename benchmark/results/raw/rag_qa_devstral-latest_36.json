@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Oxygen therapy promotes the body to take up gaseous oxygen.",
+  "score": 5,
+  "cost": 1.98e-05,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 159,
+    "output": 13
+  }
+}

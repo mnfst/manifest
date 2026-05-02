@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "TCP and UDP are two core transport-layer protocols used to send data over networks.\n\n| Feature | TCP | UDP |\n|---|---|---|\n| Full name | Transmission Control Protocol | User Datagram Protocol |\n| Connection type | Connection-oriented | Connectionless |\n| Reliability | Reliable; guarantees delivery | Unreliable; delivery is not guaranteed |\n| Ordering | Guarantees packets arrive in order | Packets may arrive out of order |\n| Error handling | Detects errors and retransmits lost data | Detects errors, but does not retransmit |\n| Speed | Slower due to reliability checks | Faster due to minimal overhead |\n| Overhead | Higher | Lower |\n| Flow control | Yes | No |\n| Congestion control | Yes | No built-in congestion control |\n| Data delivery | Stream-based | Message/datagram-based |\n| Best for | Accuracy and completeness | Speed and low latency |\n| Common uses | Web browsing, email, file transfer, SSH | Video streaming, online gaming, VoIP, DNS |\n\n### TCP example\nTCP is used when all data must arrive correctly and in order, such as loading a web page or downloading a file.\n\n### UDP example\nUDP is used when speed matters more than perfect delivery, such as live video calls or online games, where a delayed packet may be useless.\n\n### Simple summary\n- **TCP = reliable but slower**\n- **UDP = faster but less reliable**",
+  "score": 5,
+  "cost": 0.003684,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 303
+  }
+}

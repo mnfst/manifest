@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "The provided code defines a `debounce` decorator in Python, which is used to limit the rate at which a function can be executed. It employs a timer to delay the function call by a specified `wait` period. If the decorated function is called again before the timer expires, the previous timer is canceled and reset. This pattern is useful for preventing a function from being called too frequently, such as in response to rapid user input events. The code uses the `threading.Timer` class to manage the delay and cancellation of function calls.",
+  "score": 5,
+  "cost": 1.391e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 110
+  }
+}

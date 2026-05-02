@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Round, flat, golden, crispy, chewy, melted, creamy, red, juicy, fresh, fragrant, green, savory, cheesy, aromatic, buttery, bubbly, crusty, layered, vibrant, cheesy, doughy, tomato-based, herb-strewn, rustic, glossy, plump, puffy, golden, charred, cheesy, tangy, zesty, rich, indulgent, warm, inviting, textured, flavorful, aromatic, cheesy, crusty, saucy, cheesy, melty, gooey, cheesy, cheesy, cheesy.",
+  "score": 4,
+  "cost": 2.0200000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 383
+  }
+}

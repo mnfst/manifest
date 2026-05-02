@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 15,
+  "response": "## Explanation\n\nThis code implements the **merge sort algorithm**, a divide-and-conquer sorting technique that recursively splits an array in half until each sub-array has one element, then repeatedly merges those sub-arrays back together in sorted order by comparing elements pairwise. The result is a fully sorted array with **O(n log n)** time complexity.",
+  "score": 5,
+  "cost": 0.001809,
+  "expected": "",
+  "tokens": {
+    "input": 198,
+    "output": 81
+  }
+}

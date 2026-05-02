@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "long_summarization",
+  "case": 31,
+  "response": "The European Union's General Data Protection Regulation (GDPR), implemented in May 2018, revolutionized data privacy by imposing strict rules on organizations handling EU residents' personal data, regardless of location. Key provisions include rights to data access, erasure, and portability, along with mandatory breach reporting within 72 hours and fines up to 4% of global revenue or \u20ac20 million. Major fines\u2014such as Meta\u2019s \u20ac1.2 billion penalty in 2023\u2014highlight its enforcement, while inspiring similar laws globally (e.g., California\u2019s CCPA). Though criticized for compliance burdens and inconsistent enforcement, GDPR established data privacy as a fundamental right and set a global benchmark for protection.",
+  "score": 5,
+  "cost": 7.73e-05,
+  "expected": "",
+  "tokens": {
+    "input": 326,
+    "output": 149
+  }
+}

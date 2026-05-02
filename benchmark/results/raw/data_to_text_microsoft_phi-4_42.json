@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "data_to_text",
+  "case": 42,
+  "response": "Pad Thai is a classic Thai dish that offers a delightful balance of flavors and textures, perfect for a medium-difficulty cooking challenge. With a preparation time of just 15 minutes and a cooking duration of 10 minutes, this recipe serves four people and provides a nutritious meal with 380 calories per serving. Each serving is packed with 22 grams of protein, 45 grams of carbohydrates, and 12 grams of fat, making it a satisfying and balanced meal. This dish is a great way to enjoy authentic Thai cuisine with a manageable cooking process.",
+  "score": 0,
+  "cost": 1.3585000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 112
+  }
+}

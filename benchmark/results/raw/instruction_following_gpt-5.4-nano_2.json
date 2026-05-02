@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Typing in the dark\u2014  \nErrors bloom, then resolve,  \nCode sings: it runs.",
+  "score": 5,
+  "cost": 1.0100000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 22
+  }
+}

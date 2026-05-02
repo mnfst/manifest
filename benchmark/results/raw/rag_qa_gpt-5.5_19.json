@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Advancements in communication.",
+  "score": 5,
+  "cost": 0.001077,
+  "expected": "communication",
+  "tokens": {
+    "input": 155,
+    "output": 51
+  }
+}

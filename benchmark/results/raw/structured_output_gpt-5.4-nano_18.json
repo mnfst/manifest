@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "structured_output",
+  "case": 18,
+  "response": "```json\n{\n  \"plan\": \"Pro Plan\",\n  \"price_monthly\": 29.0,\n  \"price_annual\": 348.0,\n  \"start_date\": \"2024-01-01\",\n  \"renewal_date\": \"2025-01-01\",\n  \"payment_method\": \"Visa\",\n  \"card_last4\": \"4242\",\n  \"status\": \"active\"\n}\n```",
+  "score": 5,
+  "cost": 4.84e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 91
+  }
+}

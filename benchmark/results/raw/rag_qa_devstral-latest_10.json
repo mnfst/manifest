@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden was formally a royal garden.",
+  "score": 5,
+  "cost": 4.5900000000000004e-05,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 429,
+    "output": 10
+  }
+}

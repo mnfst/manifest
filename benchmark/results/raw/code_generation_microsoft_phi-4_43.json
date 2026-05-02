@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 43,
+  "response": "```python\nresult = []\nfor number in numbers:\n    result.append(number)\n    result.append(delimeter)\nreturn result[:-1] if numbers else []\n```",
+  "score": 4,
+  "cost": 1.0205e-05,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 33
+  }
+}

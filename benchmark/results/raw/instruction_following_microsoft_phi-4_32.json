@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Restaurant Review: The Enchanted Garden**\n\n**Rating: \u2605\u2605\u2605\u2605\u2606 (4 out of 5 stars)**\n\nNestled in the heart of the city, The Enchanted Garden offers a dining experience that is as magical as its name suggests. From the moment you step through its ivy-covered entrance, you are transported to a serene oasis, far removed from the hustle and bustle of urban life.\n\n**Ambiance:**\nThe restaurant's decor is a harmonious blend of rustic charm and modern elegance. Exposed wooden beams meet lush greenery, creating a warm and inviting atmosphere. Soft, ambient lighting and gentle music enhance the tranquil vibe, making it an ideal spot for both romantic dinners and intimate gatherings with friends.\n\n**Cuisine:**\nThe menu at The Enchanted Garden is a delightful fusion of contemporary and traditional dishes, with a strong emphasis on locally sourced, organic ingredients. The chef's creativity shines through in the innovative flavor combinations and artistic presentation of each dish.\n\n**Standout Dishes:**\n- **Truffle Mushroom Risotto:** Creamy and rich, this dish is a symphony of earthy flavors, perfectly balanced with a hint of truffle oil.\n- **Seared Scallops with Citrus Beurre Blanc:** The scallops are cooked to perfection, with a delicate sear that complements the tangy, citrus-infused sauce.\n- **Chocolate Lava Cake:** A decadent dessert that is a must-try. The warm, gooey center oozes out with every bite, paired with a scoop of homemade vanilla bean ice cream.\n\n**Service:**\nThe staff at The Enchanted Garden are attentive and knowledgeable, ensuring a seamless dining experience. They are quick to recommend dishes and accommodate dietary preferences, making guests feel both valued and cared for.\n\n**Value:**\nWhile the prices are on the higher side, the quality of the ingredients and the culinary expertise justify the cost. It's a place where you truly get what you pay for, making it a worthwhile splurge for special occasions.\n\n**Conclusion:**\nThe Enchanted Garden is a hidden gem that offers a unique dining experience. Its enchanting ambiance, exquisite cuisine, and exceptional service make it a standout in the city's culinary scene. While there is always room for improvement, such as expanding the vegetarian options, it remains a top choice for those seeking a memorable meal. Whether you're celebrating a milestone or simply treating yourself, The Ench",
+  "score": 4,
+  "cost": 3.406e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 500
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "structured_output",
+  "case": 11,
+  "response": "{\n  \"name\": \"Maria Rodriguez\",\n  \"date_of_birth\": \"1985-03-22\",\n  \"blood_type\": \"O+\",\n  \"allergies\": [\n    \"penicillin\",\n    \"shellfish\"\n  ],\n  \"medications\": [\n    {\n      \"name\": \"lisinopril\",\n      \"dosage\": \"10mg\",\n      \"frequency\": \"daily\"\n    }\n  ]\n}",
+  "score": 5,
+  "cost": 0.0019325,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 110
+  }
+}

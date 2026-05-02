@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The customer workshop hosted yesterday revealed key feedback from 15 enterprise customers: a demand for improved bulk import capabilities, issues with Single Sign-On (SSO) for five accounts, and appreciation for the new analytics dashboard. Additionally, three customers expressed interest in purchasing the internal tool as a standalone product, prompting a follow-up report from the sales team.",
+  "score": 5,
+  "cost": 1.2025000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 70
+  }
+}

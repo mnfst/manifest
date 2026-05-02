@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code implements a topological sort on a directed acyclic graph (DAG) using depth-first search (DFS). It uses a recursive DFS traversal to visit all nodes in a topological order, where each node is visited before its neighbors.",
+  "score": 4,
+  "cost": 4.374000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 50
+  }
+}

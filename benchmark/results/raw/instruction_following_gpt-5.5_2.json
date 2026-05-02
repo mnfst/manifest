@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Code blooms line by line  \nBugs drift like leaves in moonlight  \nDawn compiles the dream",
+  "score": 5,
+  "cost": 0.000327,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 24
+  }
+}

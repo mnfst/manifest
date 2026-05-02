@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA (deoxyribonucleic acid) is a complex molecule shaped like a double helix that contains the genetic instructions for all living organisms. It acts as a biological blueprint, guiding the development, functioning, and reproduction of cells while passing traits from parents to offspring.",
+  "score": 2,
+  "cost": 0.0008175,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 52
+  }
+}

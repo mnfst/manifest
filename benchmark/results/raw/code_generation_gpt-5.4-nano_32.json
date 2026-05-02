@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 32,
+  "response": "words = s.split(' ')\nresult = []\nfor word in words:\n    if word == '':\n        result.append('')\n    else:\n        result.append(''.join(sorted(word, key=lambda c: ord(c))))\nreturn ' '.join(result)",
+  "score": 4,
+  "cost": 3.63e-05,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 51
+  }
+}

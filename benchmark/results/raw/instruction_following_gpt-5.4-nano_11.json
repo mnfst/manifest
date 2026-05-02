@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "What would you like me to ask you in response?",
+  "score": 4,
+  "cost": 7.000000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 14
+  }
+}

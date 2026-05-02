@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "data_to_text",
+  "case": 20,
+  "response": "Flight AA 1234 is scheduled to travel from John F. Kennedy International Airport (JFK) to Los Angeles International Airport (LAX). The flight is set to depart at 08:30 and arrive at 11:45, with a total duration of 5 hours and 15 minutes. Passengers will be flying on a Boeing 787 aircraft in Economy class, with tickets priced at $289. The flight has an on-time performance rate of 82%.",
+  "score": 0,
+  "cost": 1.2414999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 96
+  }
+}

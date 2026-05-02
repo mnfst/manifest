@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 38,
+  "response": "```python\n    negatives = [x for x in lst if x < 0]\n    positives = [x for x in lst if x > 0]\n    \n    largest_negative = max(negatives) if negatives else None\n    smallest_positive = min(positives) if positives else None\n    \n    return (largest_negative, smallest_positive)\n```",
+  "score": 5,
+  "cost": 1.586e-05,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 74
+  }
+}

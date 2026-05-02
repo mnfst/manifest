@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a significant customer with $450K ARR, is at risk of churning due to unresolved API latency issues and lack of support response. James, the CS Lead, has assigned a dedicated engineer and is seeking an executive sponsor to arrange a call this week to address the concerns.",
+  "score": 5,
+  "cost": 1.066e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 60
+  }
+}

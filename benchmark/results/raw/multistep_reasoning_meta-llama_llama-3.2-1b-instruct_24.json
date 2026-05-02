@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "To answer this question, we need to understand the difference between intrusive and extrusive igneous rocks.\n\nIntrusive igneous rocks are formed below the Earth's surface, resulting from the cooling and solidification of magma or lava. Examples include granite and basalt.\n\nExtrusive igneous rocks, on the other hand, are formed above the Earth's surface, resulting from the rapid cooling and solidification of lava.\n\nGiven that the rock in question is extrusive, we can eliminate options A (intrusive igneous) and C (metamorphic). \n\nBetween B (clastic sedimentary) and D (volcanic), we can eliminate option D (volcanic) because volcanic rocks are typically formed from the cooling and solidification of lava, which is extrusive.\n\nTherefore, the correct answer is B) clastic sedimentary.",
+  "score": 5,
+  "cost": 7.0739999999999995e-06,
+  "expected": "D",
+  "tokens": {
+    "input": 90,
+    "output": 172
+  }
+}

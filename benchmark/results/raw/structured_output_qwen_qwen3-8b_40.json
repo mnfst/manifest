@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "structured_output",
+  "case": 40,
+  "response": "{\n  \"ticket_id\": 8472,\n  \"priority\": \"High\",\n  \"created\": \"2h ago\",\n  \"user\": \"premium_user@corp.com\",\n  \"category\": \"billing\",\n  \"subject\": \"Double charged for March subscription\",\n  \"assigned_to\": \"Agent Mike\",\n  \"status\": \"in progress\"\n}",
+  "score": 4,
+  "cost": 4.6450000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 811
+  }
+}

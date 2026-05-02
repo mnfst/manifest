@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index functions much like the index at the back of a book, allowing the system to locate specific data quickly without having to scan every single row in a table. While it significantly speeds up data retrieval, it requires extra storage space and can slightly slow down write operations like inserts and updates.",
+  "score": 3,
+  "cost": 0.0009175,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 59
+  }
+}

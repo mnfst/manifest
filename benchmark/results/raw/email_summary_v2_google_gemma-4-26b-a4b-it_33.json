@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 employee engagement survey shows a strong overall score of 7.8/10, though career growth clarity was identified as a key area for improvement. To address this, the People Team proposed new career development initiatives and will host a town hall this Friday to discuss them.",
+  "score": 4,
+  "cost": 1.098e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 58
+  }
+}

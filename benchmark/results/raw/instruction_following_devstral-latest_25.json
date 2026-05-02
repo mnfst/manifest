@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "\"Meeting Invitation: [Topic] on [Date/Time]\"",
+  "score": 5,
+  "cost": 6.4000000000000006e-06,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 15
+  }
+}

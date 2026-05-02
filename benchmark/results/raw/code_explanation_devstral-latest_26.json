@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code implements the **0/1 Knapsack problem** using **dynamic programming** with a bottom-up approach. It constructs a 2D table (`dp`) where `dp[i][w]` stores the maximum value achievable with the first `i` items and a knapsack capacity of `w`, iteratively filling the table by either including or excluding each item based on its weight and value. The final result (`dp[n][capacity]`) gives the optimal solution for the given capacity.",
+  "score": 5,
+  "cost": 4.6399999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 103
+  }
+}

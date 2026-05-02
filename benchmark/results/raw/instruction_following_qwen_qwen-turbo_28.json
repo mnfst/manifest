@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Believe in yourself, stay focused, and keep moving forward.",
+  "score": 3,
+  "cost": 1.419e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 13
+  }
+}

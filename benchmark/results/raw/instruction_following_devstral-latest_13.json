@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "The seven colors of the rainbow in order are:\n\n1. **Red**\n2. **Orange**\n3. **Yellow**\n4. **Green**\n5. **Blue**\n6. **Indigo**\n7. **Violet**\n\nThis sequence is often remembered using the acronym **ROYGBIV**.",
+  "score": 5,
+  "cost": 2.03e-05,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 63
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 11,
+  "response": "```python\nsum_result = 0\nproduct_result = 1\n\nfor number in numbers:\n    sum_result += number\n    product_result *= number\n\nreturn (sum_result, product_result)\n```",
+  "score": 4,
+  "cost": 1.3065000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 42
+  }
+}

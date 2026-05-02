@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| | **Pros** | **Cons** |\n|---|---|---|\n| **1** | **Flexibility** \u2013 Employees can set their own schedules and work from any location | **Isolation** \u2013 Lack of in-person interaction can lead to loneliness and disconnection |\n| **2** | **No Commute** \u2013 Saves time and money while reducing stress and carbon footprint | **Distractions at Home** \u2013 Household responsibilities and interruptions can reduce productivity |\n| **3** | **Better Work-Life Balance** \u2013 More time for personal activities and family | **Communication Challenges** \u2013 Collaboration and team coordination can be harder without face-to-face contact |",
+  "score": 5,
+  "cost": 0.002415,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 156
+  }
+}

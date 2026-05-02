@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "A good password is defined by two main characteristics: **complexity** (making it hard for a computer to guess) and **uniqueness** (making it impossible for a breach at one website to compromise your other accounts).\n\nHere are the steps to creating and managing a strong password:\n\n### 1. Prioritize Length Over Complexity\nWhile most people focus on adding special characters, length is actually the most important factor in resisting \"brute-force\" attacks (where computers try millions of combinations per second). \n*   **The Goal:** Aim for at least **12 to 16 characters**. \n*   **The Strategy:** A long string of random words (a \"passphrase\") is often harder for a computer to crack than a short word with complex symbols (e.g., `Correct-Horse-Battery-Staple` is stronger than `P@ss1!`).\n\n### 2. Use a Diverse Character Set\nTo increase the \"entropy\" (randomness) of your password, mix different types of characters. This forces a hacker's software to search through a much larger pool of possibilities.\n*   **Include:** Uppercase letters, lowercase letters, numbers, and special symbols (e.g., `!`, `@`, `#`, `$`, `%`).\n*   **Avoid:** Predictable patterns like `12345`, `qwerty`, or repeating characters like `aaaaa`.\n\n### 3. Eliminate Personal Information\nA password should never contain information that can be found via social media or a quick Google search. If a hacker knows your name, your pet's name, your birthday, or your hometown, they will use those as starting points for their guesses.\n*   **Avoid:** Names of family members, birth years, street names, or your favorite sports teams.\n\n### 4. Ensure Absolute Uniqueness\nThis is the most critical rule for modern security. **Never reuse a password across different websites.** \n*   **The Risk:** If you use the same password for your social media and your bank, a data breach at the social media company gives hackers the \"key\" to your money. \n*   **The Rule:** Every single account must have its own distinct password.\n\n### 5. Use a Password Manager\nBecause it is humanly impossible to remember 50+ unique, 16-character passwords, you should use a",
+  "score": 4,
+  "cost": 3.1440000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 500
+  }
+}

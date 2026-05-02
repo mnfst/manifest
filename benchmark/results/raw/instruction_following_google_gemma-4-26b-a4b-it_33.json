@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth's only natural satellite and is about one-quarter the size of Earth.\n2. The Moon does not have its own light; it shines because it reflects light from the Sun.\n3. Because the Moon has no atmosphere, there is no wind or weather, meaning footprints left by astronauts will remain there for millions of years.",
+  "score": 5,
+  "cost": 6.480000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 75
+  }
+}

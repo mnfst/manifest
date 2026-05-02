@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 24,
+  "response": "if a + b > c and a + c > b and b + c > a:\n    s = (a + b + c) / 2\n    area = (s * (s - a) * (s - b) * (s - c)) ** 0.5\n    return round(area, 2)\nelse:\n    return -1",
+  "score": 5,
+  "cost": 7.788e-06,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 76
+  }
+}

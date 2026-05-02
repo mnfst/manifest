@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate has the rich, velvety taste of a midnight sky\u2014deep, mysterious, and smooth, with a lingering sweetness that lingers like the last note of a soft melody.",
+  "score": 5,
+  "cost": 2.0460000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 37
+  }
+}

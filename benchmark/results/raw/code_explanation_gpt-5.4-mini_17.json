@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 17,
+  "response": "This code builds a **Chain of Responsibility** handler: it returns a function that passes a request through a sequence of handler functions in order. Each handler is tried until one returns a non-`None` result, which is immediately returned; if none handle the request, it returns `None`.",
+  "score": 5,
+  "cost": 9.749999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 62
+  }
+}

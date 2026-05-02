@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1.35e-05,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 117,
+    "output": 6
+  }
+}

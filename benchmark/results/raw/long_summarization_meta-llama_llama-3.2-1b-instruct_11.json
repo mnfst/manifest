@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "long_summarization",
+  "case": 11,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe European Union's General Data Protection Regulation (GDPR) has significantly changed the way organizations handle personal data, applying to any company processing data of EU residents, regardless of location. Key provisions include the right to access, erasure, and data portability, and the requirement for explicit consent before processing. The regulation has been criticized for creating compliance burdens that disproportionately affect small businesses and stifle innovation, but has also set a global standard for data protection legislation. Fines for GDPR violations can reach up to 20 million euros, with major fines totaling over 1.2 billion euros for tech giants like Meta and Amazon.",
+  "score": 4,
+  "cost": 1.2231e-05,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 140
+  }
+}

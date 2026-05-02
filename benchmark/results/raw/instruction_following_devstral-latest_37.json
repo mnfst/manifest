@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate is like a velvety sunset melting on your tongue\u2014rich and deep, with layers of warmth that unfold like the golden hues of dusk. At first, it\u2019s a whisper of sweetness, like the first light of twilight, but then it deepens into a bold, earthy embrace, as if the very essence of cocoa beans has been kissed by fire. The bitterness lingers like the last shadows of day, while the creaminess wraps around you like a cashmere blanket, leaving behind a trail of comfort and craving, like the memory of a perfect evening you never want to end.",
+  "score": 5,
+  "cost": 4.01e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 128
+  }
+}

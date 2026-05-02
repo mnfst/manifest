@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Romeo and Juliet is a tragic play about two young lovers from feuding families, the Montagues and Capulets, in Verona. After meeting and falling deeply in love, they secretly marry with the help of Friar Laurence. A chain of violence and bad timing follows: Romeo kills Juliet\u2019s cousin Tybalt and is banished, while Juliet is pressured to marry another man. Their desperate plan to reunite fails because Romeo never receives the message explaining Juliet\u2019s faked death. Believing her dead, Romeo poisons himself; Juliet awakens, finds him dead, and kills herself. Their deaths end the feud.",
+  "score": 5,
+  "cost": 0.0001626,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 129
+  }
+}

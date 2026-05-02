@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "data_to_text",
+  "case": 2,
+  "response": "Founded in 1252, Stockholm, Sweden, covers an area of 188 square kilometers and is home to 1.6 million Swedish-speaking residents. The prosperous city boasts a strong economy with a GDP per capita of $62,000, alongside a climate that features average temperatures ranging from a chilly -3\u00b0C in January to a mild 18\u00b0C in July.",
+  "score": 0,
+  "cost": 0.0015175,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 85
+  }
+}

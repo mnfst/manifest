@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements a memoization decorator: it wraps a function and caches results in a dictionary keyed by the input arguments, so repeated calls with the same `*args` return the stored value instead of recomputing. The caching follows the \u201cmemoize\u201d pattern to speed up functions with repeated inputs.",
+  "score": 5,
+  "cost": 3.31e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 64
+  }
+}

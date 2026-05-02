@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This defines a simple **sliding-window rate limiter**: it keeps a list of timestamps for recent calls and, on each `allow()` invocation, discards timestamps older than `period`, then allows the call only if fewer than `calls` timestamps remain. It returns `allow`, a closure that maintains this timestamp state across calls.",
+  "score": 5,
+  "cost": 3.79e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 70
+  }
+}

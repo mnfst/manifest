@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 4,
+  "response": "for i in range(1, len(l)):\n    if l[i] > l[i-1]:\n        increasing = True\n    elif l[i] < l[i-1]:\n        increasing = False\n    if i > 1 and ((increasing and l[i] < l[i-1]) or (not increasing and l[i] > l[i-1])):\n        return False\nreturn True",
+  "score": 4,
+  "cost": 6.93e-06,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 82
+  }
+}

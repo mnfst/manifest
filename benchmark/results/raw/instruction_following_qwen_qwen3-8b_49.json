@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal Greeting:**  \n\"Good day! How may I assist you today?\"  \n\n**Casual Greeting:**  \n\"Hey there! What\u2019s on your mind?\" \ud83d\ude0a  \n\n**Humorous Greeting:**  \n\"Ah, a human! Welcome to the realm of chatbots. Don\u2019t worry\u2014I won\u2019t judge your coffee choices. Let\u2019s chat!\" \u2615\ud83e\udd16",
+  "score": 5,
+  "cost": 1.8700000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 347
+  }
+}

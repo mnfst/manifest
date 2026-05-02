@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the force that makes things with mass attract each other. On Earth, it\u2019s what pulls objects toward the ground and keeps us from floating away. It\u2019s also what keeps the Moon orbiting Earth, the planets orbiting the Sun, and stars and galaxies held together.\n\nIn everyday life, gravity is why a dropped ball falls, why water flows downhill, and why you have weight. The more massive an object is, the stronger its gravitational pull. According to Einstein, gravity is also linked to the shape of space and time: big objects bend spacetime, and other objects move along that curved path.\n\nThat is gravity.",
+  "score": 5,
+  "cost": 0.0001686,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 134
+  }
+}

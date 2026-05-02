@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "The code implements the **Sieve of Eratosthenes** algorithm to find all prime numbers up to a given integer `n`. It works by iteratively marking the multiples of each prime starting from 2 (beginning with the square of each prime) as non-prime, leaving only primes unmarked. The result is a list of primes \u2264 `n`.",
+  "score": 5,
+  "cost": 4.490000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 762
+  }
+}

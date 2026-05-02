@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "long_summarization",
+  "case": 23,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe European Union's General Data Protection Regulation (GDPR) took effect in 2018 and sets a global standard for data protection, applying to any company processing data of EU residents. Key provisions include the right to access and erasure of personal data, data portability, and explicit consent before processing, with fines of up to 4% of global annual revenue or 20 million euros for violations. Despite its benefits, GDPR has been criticized for creating compliance burdens for small businesses and stifling innovation, and enforcement remains inconsistent across member states. The regulation has inspired similar laws worldwide, including California's CCPA, Brazil's LGPD, and India's Digital Personal Data Protection Act.",
+  "score": 5,
+  "cost": 2.3715e-05,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 152
+  }
+}

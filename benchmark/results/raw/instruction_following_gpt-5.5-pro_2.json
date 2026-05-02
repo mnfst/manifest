@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Code blooms in moonlight  \nBugs whisper through the deep stack  \nDawn compiles the dream",
+  "score": 5,
+  "cost": 0.003255,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 159
+  }
+}

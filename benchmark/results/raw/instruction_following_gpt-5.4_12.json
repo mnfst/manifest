@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is a way for one app or service to ask another app or service to do something and send back the result.\n\nA simple way to think about it is like a waiter in a restaurant:\n\n- You tell the waiter what you want.\n- The waiter takes your request to the kitchen.\n- The kitchen prepares it.\n- The waiter brings back the result.\n\nYou do not need to know how the kitchen works. You just need to know how to ask for what you want.\n\nIn the same way, an API lets one program ask another program for things like:\n\n- weather information\n- map directions\n- payment handling\n- sending messages\n- looking up account details\n\nWhy it is useful:\n\n- It saves time, because you can use something that already exists.\n- It lets different apps work together.\n- It hides the complicated parts behind a simple way to ask.\n\nExample:\n\nA travel app may want to show the weather in Paris. Instead of collecting weather data itself, it asks a weather service for the current weather in Paris and then shows the answer to the user.\n\nSo, in short: an API is a messenger that lets different software talk to each other in a clear, organized way.",
+  "score": 5,
+  "cost": 0.001998,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 245
+  }
+}

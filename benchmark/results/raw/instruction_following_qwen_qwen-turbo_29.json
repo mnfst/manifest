@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA is a molecule that contains the genetic instructions used in the development and functioning of all known living organisms. It carries the code for building proteins and is passed from parents to offspring.",
+  "score": 2,
+  "cost": 2.0790000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 36
+  }
+}

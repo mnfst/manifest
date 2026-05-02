@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "J. F. D. Shrewsbury.",
+  "score": 5,
+  "cost": 2.4e-05,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 188,
+    "output": 13
+  }
+}

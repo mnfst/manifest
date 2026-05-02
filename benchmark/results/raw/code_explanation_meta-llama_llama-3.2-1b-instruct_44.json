@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code finds all connected components in a graph using a breadth-first search (BFS) algorithm. It starts at each unvisited node and explores all its neighbors, marking each node as visited and adding it to a list of components.",
+  "score": 5,
+  "cost": 4.941e-06,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 48
+  }
+}

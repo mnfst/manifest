@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "Answer: 10%",
+  "score": 5,
+  "cost": 6.27e-06,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 184,
+    "output": 6
+  }
+}

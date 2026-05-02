@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 19,
+  "response": "```python\ndef decode_shift(s: str):\n    return \"\".join([chr(((ord(ch) - 5 - ord(\"a\")) % 26) + ord(\"a\")) for ch in s])\n```",
+  "score": 3,
+  "cost": 8.669999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 44
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_generation",
+  "case": 27,
+  "response": "best = extensions[0]\nbest_strength = sum(1 for c in best if c.isupper()) - sum(1 for c in best if c.islower())\n\nfor ext in extensions[1:]:\n    strength = sum(1 for c in ext if c.isupper()) - sum(1 for c in ext if c.islower())\n    if strength > best_strength:\n        best = ext\n        best_strength = strength\n\nreturn class_name + \".\" + best",
+  "score": 4,
+  "cost": 0.002997,
+  "expected": "",
+  "tokens": {
+    "input": 303,
+    "output": 174
+  }
+}

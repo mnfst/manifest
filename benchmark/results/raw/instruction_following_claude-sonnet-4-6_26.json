@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "# The Water Cycle\n\nThe water cycle, also known as the hydrological cycle, is the continuous movement of water through Earth's systems. It is a closed system, meaning the total amount of water on Earth remains relatively constant \u2014 it simply changes form and location over time. This cycle is driven primarily by energy from the sun and the force of gravity, making it one of the most fundamental processes sustaining life on our planet.\n\nThe cycle begins with **evaporation**, where the sun's heat causes water from oceans, lakes, and rivers to transform into water vapor and rise into the atmosphere. Plants also contribute through a process called **transpiration**, releasing water vapor through their leaves. Together, these two processes are often referred to as evapotranspiration. As warm, moist air rises and cools at higher altitudes, the water vapor undergoes **condensation**, forming tiny water droplets that cluster around dust particles to create clouds and fog.\n\nOnce enough water droplets combine and grow heavy enough, **precipitation** occurs in the form of rain, snow, sleet, or hail, returning water to Earth's surface. Where this water lands determines its next path. Some flows across the land as **surface runoff**, feeding rivers and streams that eventually drain into oceans and lakes. Some water is absorbed into the soil through **infiltration**, replenishing underground aquifers that serve as critical freshwater reserves for both ecosystems and human populations.\n\nFinally, the collected water in oceans, rivers, and groundwater sources begins the cycle again through evaporation. Snow and ice in glaciers may store water for thousands of years before melting and rejoining the cycle, while other water moves through the system in just days. The water cycle plays a vital role in regulating Earth's climate, distributing heat around the planet, shaping landscapes through erosion, and delivering the fresh water that all living organisms depend on for survival.",
+  "score": 5,
+  "cost": 0.006171,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 407
+  }
+}

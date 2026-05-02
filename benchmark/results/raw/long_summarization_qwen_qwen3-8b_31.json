@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "long_summarization",
+  "case": 31,
+  "response": "The European Union's General Data Protection Regulation (GDPR), effective May 2018, mandates strict data protection standards for organizations handling EU residents' data, regardless of their location. Key provisions include rights to access, erasure, and data portability, along with explicit consent requirements and mandatory breach reporting within 72 hours. Fines of up to 4% of global revenue (or \u20ac20 million) have been imposed on major companies like Meta (\u20ac1.2 billion), Amazon (\u20ac746 million), and Google (over \u20ac200 million). While GDPR has inspired global data protection laws (e.g., CCPA, LGPD), critics highlight compliance burdens on small businesses and inconsistent enforcement, though it remains a foundational standard for data privacy worldwide.",
+  "score": 5,
+  "cost": 4.07e-05,
+  "expected": "",
+  "tokens": {
+    "input": 320,
+    "output": 494
+  }
+}

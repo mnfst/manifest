@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an **LRU (Least Recently Used) Cache** using an `OrderedDict` to track access order. The `get` method retrieves a key (returning -1 if missing) and moves it to the end to mark it as recently used, while the `put` method updates or adds a key-value pair, evicting the least recently used item (front of the `OrderedDict`) if the capacity is exceeded. The algorithm ensures O(1) time complexity for both operations by leveraging the ordered dictionary's efficient reordering and deletion.",
+  "score": 5,
+  "cost": 4.959999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 119
+  }
+}

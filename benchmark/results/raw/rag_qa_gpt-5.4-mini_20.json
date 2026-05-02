@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "They are funded in whole by charging their students tuition fees.",
+  "score": 5,
+  "cost": 6e-05,
+  "expected": "tuition",
+  "tokens": {
+    "input": 140,
+    "output": 15
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Review: The Lantern & Ladle (\u26054.5/5)**\n\nTucked into a narrow side street, **The Lantern & Ladle** feels like the kind of place you\u2019d stumble upon on purpose\u2014dim, warm lighting; soft jazz; and the steady hum of a kitchen that knows exactly what it\u2019s doing. The atmosphere strikes a rare balance: intimate without being cramped, lively without being loud.\n\nThe menu reads like comfort food with ambition. I started with the **charred leek and goat cheese tart**, which arrived glossy and steaming, the pastry crisp enough to crack under a fork. The flavor was layered\u2014sweet leeks, tangy cheese, and a smoky note that made me wish I\u2019d ordered two.\n\nFor the main course, I went with the **brown butter chicken with thyme noodles**. The chicken was tender and perfectly browned, the sauce velvety rather than heavy, and the thyme came through in the background like a whisper instead of a shout. The portion was generous but not clumsy; everything felt thoughtfully plated, not just stacked.\n\nDessert was the real showstopper: **dark chocolate bread pudding with orange zest and a salted caramel drizzle**. It tasted like someone made it for a beloved guest\u2014rich, balanced, and a little dramatic in the best way. The caramel didn\u2019t overpower the chocolate; it lifted it.\n\nService was friendly and unhurried. My water stayed filled, my questions were answered without that \u201cscripted\u201d feel, and the staff checked in at the right moments\u2014just enough to feel cared for.\n\nIf there\u2019s a downside, it\u2019s that the most popular dishes can take a bit longer during peak hours, and the restaurant is so cozy you may feel slightly more warmly packed than you\u2019d prefer in the height of summer. Still, the wait felt justified by the quality that arrived on the table.\n\n**Verdict:** **The Lantern & Ladle** is a standout for anyone craving flavorful, comforting food served with care. Not perfect\u2014but close enough that you\u2019ll be thinking about your next visit before you\u2019re even done eating.  \n\n**Rating: \u26054.5/5**",
+  "score": 5,
+  "cost": 0.00017830000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 440
+  }
+}

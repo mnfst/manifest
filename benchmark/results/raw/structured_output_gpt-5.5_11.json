@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "structured_output",
+  "case": 11,
+  "response": "{\"name\":\"Maria Rodriguez\",\"date_of_birth\":\"1985-03-22\",\"blood_type\":\"O+\",\"allergies\":[\"penicillin\",\"shellfish\"],\"medications\":[{\"name\":\"lisinopril\",\"dosage\":\"10mg\",\"frequency\":\"daily\"}]}",
+  "score": 5,
+  "cost": 0.001287,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 79
+  }
+}

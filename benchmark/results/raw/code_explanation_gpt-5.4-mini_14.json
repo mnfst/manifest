@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This is an implementation of **Dijkstra\u2019s shortest-path algorithm** using a **min-heap priority queue** (`heapq`) to repeatedly expand the currently closest node. It computes the minimum distance from `start` to every reachable node in a weighted graph with **nonnegative edge weights**.",
+  "score": 5,
+  "cost": 0.0001164,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 62
+  }
+}

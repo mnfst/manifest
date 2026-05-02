@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here is an example of a Google-style docstring for a generic sorting function. \n\nI have included a dummy function signature (`sort_items`) so you can see how the docstring integrates with the type hints and function definition.\n\n```python\nfrom typing import Iterable, Callable, Any\n\ndef sort_items(items: Iterable[Any], reverse: bool = False, key: Callable = None) -> list:\n    \"\"\"Sorts a collection of items in ascending or descending order.\n\n    This function takes an iterable and returns a new list containing the \n    elements sorted. It performs a stable sort, meaning that when multiple \n    records have the same key, their original relative order is preserved.\n\n    Args:\n        items (Iterable[Any]): The collection of items to be sorted.\n        reverse (bool, optional): If True, sorts the items in descending order. \n            Defaults to False.\n        key (Callable, optional): A function of one argument that is used to \n            extract a comparison key from each element. Defaults to None.\n\n    Returns:\n        list: A new list containing the sorted elements.\n\n    Raises:\n        TypeError: If the elements within the iterable are not mutually comparable \n            (e.g., trying to sort a mix of integers and strings).\n\n    Examples:\n        >>> sort_items([3, 1, 4, 2])\n        [1, 2, 3, 4]\n\n        >>> sort_items(['apple', 'cherry', 'banana'], reverse=True)\n        ['cherry', 'banana', 'apple']\n\n        >>> sort_items([{'id': 2}, {'id': 1}], key=lambda x: x['id'])\n        [{'id': 1}, {'id': 2}]\n    \"\"\"\n    # Function implementation would go here\n    pass\n```\n\n### Key features of the Google Style used here:\n* **Summary Line:** A brief, one-sentence description at the very top.\n* **Extended Description:** A more detailed explanation of the algorithm's behavior (e.g., mentioning it is a \"stable sort\" and returns a \"new list\").\n* **Args:** Lists each argument, its expected type, whether it is optional, and what it does. Notice the 4-space indentation for multi-line descriptions.\n* **Returns:** Specifies the type of the return value and describes it.\n* **Raises:** Documents exceptions that the user should explicitly watch out for.\n* **Examples:** Uses the standard Python `>>>` REPL format, which is great because it can be automatically tested using Python's built-in `doctest` module.",
+  "score": 5,
+  "cost": 0.0086475,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 574
+  }
+}

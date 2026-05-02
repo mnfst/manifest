@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 22,
+  "response": "count = 0\n    for char in brackets:\n        if char == '<':\n            count += 1\n        elif char == '>':\n            count -= 1\n        if count < 0:\n            return False\n    return count == 0",
+  "score": 4,
+  "cost": 5.973000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 52
+  }
+}

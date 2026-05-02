@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\ndef minPath(grid, k):\n    n = len(grid)\n    min_val = float('inf')\n    min_pos = (0, 0)\n    \n    # Find the minimum value in the grid and its position\n    for i in range(n):\n        for j in range(n):\n            if grid[i][j] < min_val:\n                min_val = grid[i][j]\n                min_pos = (i, j)\n    \n    # Determine the minimum neighbor value\n    i, j = min_pos\n    neighbors = []\n    if i > 0:\n        neighbors.append(grid[i-1][j])\n    if i < n-1:\n        neighbors.append(grid[i+1][j])\n    if j > 0:\n        neighbors.append(grid[i][j-1])\n    if j < n-1:\n        neighbors.append(grid[i][j+1])\n    \n    min_neighbor = min(neighbors)\n    \n    # Construct the path\n    path = [min_val] * (k // 2 + 1)\n    path[1::2] = [min_neighbor] * (k // 2)\n    \n    return path\n```",
+  "score": 2,
+  "cost": 4.3485e-05,
+  "expected": "",
+  "tokens": {
+    "input": 428,
+    "output": 241
+  }
+}

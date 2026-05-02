@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "- Rust\n- Go\n- C#\n- Haskell",
+  "score": 5,
+  "cost": 0.00016,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 15
+  }
+}

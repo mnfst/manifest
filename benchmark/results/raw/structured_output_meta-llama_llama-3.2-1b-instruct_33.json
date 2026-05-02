@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 33,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"username\": \"techguru42\",\n  \"joined_year\": 2020,\n  \"followers\": \"1.2K\",\n  \"following\": 890,\n  \"posts\": 342,\n  \"verified\": true,\n  \"bio\": \"Building the future of AI\"\n}\n```",
+  "score": 5,
+  "cost": 4.968e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 76
+  }
+}

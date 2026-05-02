@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "Here is the converted paragraph:\n\nOur server, located in the us-east-1 region, has a 78% CPU utilization, indicating that it is running at a moderate pace. With 12.4 GB of available memory, it has a total of 16 GB of RAM, making it a powerful machine. The server's disk space is currently at 234 GB, with 500 GB available, and it has been up and running for 45 days, with a 145ms uptime.",
+  "score": 0,
+  "cost": 5.535e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 101
+  }
+}

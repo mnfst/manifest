@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It's a story that unfolds in a world where the line between reality and imagination blurs, inviting readers to question what they know about truth and perception. The narrative follows a protagonist who embarks on a journey, not just through physical landscapes, but through the depths of their own mind and the hidden corners of society. Along the way, they encounter a cast of characters who are as enigmatic as they are compelling, each representing different facets of human nature and the struggles we all face.\n\nThe writing is lyrical and atmospheric, painting vivid pictures that linger long after the final page. There's a sense of melancholy and hope intertwined, making the story both heartbreaking and uplifting. Themes of identity, memory, and the search for meaning are explored with depth and nuance, offering insights that feel deeply personal yet universally resonant.\n\nWhat makes this book particularly special is its ability to challenge the reader's assumptions while remaining deeply human. It's a tale that doesn't just tell a story, but invites you to reflect on your own life and the world around you. It's the kind of book that stays with you, shaping the way you see things long after you've finished reading.",
+  "score": 5,
+  "cost": 8.580000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 237
+  }
+}

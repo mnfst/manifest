@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "the mass of the system",
+  "score": 5,
+  "cost": 0.000388,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 162,
+    "output": 8
+  }
+}

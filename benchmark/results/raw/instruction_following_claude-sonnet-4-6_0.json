@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "\u2022 Improves cardiovascular health by strengthening the heart and reducing the risk of heart disease\n\n\u2022 Boosts mental health by releasing endorphins, which can reduce stress, anxiety, and depression\n\n\u2022 Helps maintain a healthy weight by increasing metabolism and burning calories",
+  "score": 5,
+  "cost": 0.00093,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 58
+  }
+}

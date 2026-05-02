@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "data_to_text",
+  "case": 49,
+  "response": "Here is the converted text:\n\nLeBron James had a remarkable season in the 2024-25 season, averaging 28.4 points per game, grabbing 7.2 rebounds, and dishing out 8.1 assists per game. He played in 71 games for the Lakers, and was selected as an All-Star, a testament to his enduring dominance on the court. At the age of 40, James continued to defy expectations, solidifying his status as one of the greatest players in the league.",
+  "score": 0,
+  "cost": 1.0250999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 106
+  }
+}

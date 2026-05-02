@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**  \nHello, and welcome. How may I assist you today?\n\n**Casual:**  \nHey there! What can I help you with?\n\n**Humorous:**  \nHi! I\u2019m your chatbot\u2014part assistant, part caffeine substitute. How can I help?",
+  "score": 5,
+  "cost": 7.68e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 58
+  }
+}

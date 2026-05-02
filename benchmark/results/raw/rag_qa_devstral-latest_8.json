@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "The target percentage of households BSkyB wanted to reach was **36%**.",
+  "score": 5,
+  "cost": 2.3199999999999998e-05,
+  "expected": "36%",
+  "tokens": {
+    "input": 178,
+    "output": 18
+  }
+}

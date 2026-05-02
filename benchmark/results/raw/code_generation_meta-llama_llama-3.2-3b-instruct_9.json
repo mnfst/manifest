@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 9,
+  "response": "```python\ndef double_the_difference(lst):\n    return sum([i**2 for i in lst if isinstance(i, int) and i >= 0])\n```",
+  "score": 2,
+  "cost": 1.0556999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 34
+  }
+}

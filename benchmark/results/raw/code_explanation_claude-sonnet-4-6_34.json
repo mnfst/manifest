@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "## Explanation\n\nThis implements a **Min Stack** data structure using an **auxiliary parallel stack** (`min_stack`) that tracks the current minimum value at every level of the main stack.\n\nOn each `push`, it stores the smaller of the new value or the previous minimum, so `get_min()` always returns the running minimum in **O(1) time** without needing to scan the stack \u2014 and the minimum correctly \"restores\" to the prior value on `pop`.",
+  "score": 5,
+  "cost": 0.002058,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 105
+  }
+}

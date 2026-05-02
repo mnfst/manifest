@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "The basin encompasses 7,000,000 square kilometres, of which 5,500,000 square kilometres are covered by the rainforest. \n\nAnswer: 5,500,000 square kilometers.",
+  "score": 5,
+  "cost": 2.925e-05,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 327,
+    "output": 258
+  }
+}

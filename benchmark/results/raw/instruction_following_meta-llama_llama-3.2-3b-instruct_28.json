@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "\"Believe in yourself, take the leap, and watch your dreams become a reality unfold.\"",
+  "score": 2,
+  "cost": 2.397e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 20
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 22,
+  "response": "count = 0\nfor ch in brackets:\n    if ch == \"<\":\n        count += 1\n    else:\n        count -= 1\n    if count < 0:\n        return False\nreturn count == 0",
+  "score": 5,
+  "cost": 0.000648,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 50
+  }
+}

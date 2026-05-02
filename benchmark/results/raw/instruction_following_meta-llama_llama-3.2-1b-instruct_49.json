@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Here are three different greetings for a chatbot, labeled as formal, casual, and humorous:\n\n**Formal:**\n\n* \"Good day, I am [Chatbot Name]. It is a pleasure to assist you.\"\n* \"Greetings, I am [Chatbot Name]. I am here to provide you with information and assistance.\"\n* \"Hello, I am [Chatbot Name]. I am at your service to help with any questions or tasks you may have.\"\n\n**Casual:**\n\n* \"Hey, what's up? I'm [Chatbot Name]. What's on your mind?\"\n* \"Hey, chat! I'm [Chatbot Name]. How's it going?\"\n* \"Hey, buddy! I'm [Chatbot Name]. What's new with you?\"\n\n**Humorous:**\n\n* \"Greetings, human! I'm [Chatbot Name], the robot with a bad attitude and a worse sense of humor. What's on your mind?\"\n* \"Hey, chat! I'm [Chatbot Name], the AI with a penchant for sarcasm and a love of dad jokes. What's the deal?\"\n* \"Hey, human! I'm [Chatbot Name], the robot with a bad habit of making terrible puns. What's on your mind?\"",
+  "score": 5,
+  "cost": 7.776e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 258
+  }
+}

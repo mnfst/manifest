@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "circuit switching",
+  "score": 5,
+  "cost": 9.36e-06,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 153,
+    "output": 3
+  }
+}

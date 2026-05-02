@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated anywhere with this sleek, durable water bottle designed for everyday use. Made from high-quality, BPA-free materials, it features a leakproof lid and a lightweight design that fits easily in bags, cup holders, and backpacks. Perfect for work, travel, gym sessions, or outdoor adventures.",
+  "score": 5,
+  "cost": 0.000536,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 62
+  }
+}

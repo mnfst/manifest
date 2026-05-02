@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Endless blue waves crash.",
+  "score": 5,
+  "cost": 3.6899999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 720
+  }
+}

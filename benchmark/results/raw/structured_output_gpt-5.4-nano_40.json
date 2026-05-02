@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "structured_output",
+  "case": 40,
+  "response": "```json\n{\n  \"ticket_id\": 8472,\n  \"priority\": \"High\",\n  \"created\": \"2h ago\",\n  \"user\": \"premium_user@corp.com\",\n  \"category\": \"billing\",\n  \"subject\": \"Double charged for March subscription\",\n  \"assigned_to\": \"Agent Mike\",\n  \"status\": \"in progress\"\n}\n```",
+  "score": 4,
+  "cost": 4.34e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 80
+  }
+}

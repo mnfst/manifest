@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "structured_output",
+  "case": 38,
+  "response": "{\"version\":42,\"name\":\"AddUserPreferences\",\"created\":\"2024-03-15\",\"status\":\"applied\",\"duration_ms\":340,\"sql\":\"ALTER TABLE users ADD COLUMN preferences JSONB DEFAULT '{}'\"}",
+  "score": 5,
+  "cost": 8.43e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 46
+  }
+}

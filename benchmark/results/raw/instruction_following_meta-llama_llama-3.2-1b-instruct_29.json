@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA (Deoxyribonucleic acid) is a long, double-stranded molecule that contains the genetic instructions used in the development and function of all living organisms, carrying information in the form of a sequence of four chemical bases - adenine (A), guanine (G), cytosine (C), and thymine (T) - that are arranged in a specific order. This genetic code is used to create the unique characteristics of each individual, including their traits, such as eye color, hair color, and height.",
+  "score": 1,
+  "cost": 3.645e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 109
+  }
+}

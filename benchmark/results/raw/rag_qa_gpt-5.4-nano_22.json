@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "The South African Schools Act of 1996 recognized two categories of schools: **\u201cpublic\u201d** and **\u201cindependent.\u201d**",
+  "score": 5,
+  "cost": 2.6300000000000002e-05,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 143,
+    "output": 30
+  }
+}

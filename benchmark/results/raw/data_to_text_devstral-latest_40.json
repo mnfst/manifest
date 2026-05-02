@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "data_to_text",
+  "case": 40,
+  "response": "A 45-year-old female patient presents with a BMI of 27.3, placing her in the overweight category, and a blood pressure reading of 138/88 mmHg, indicating stage 1 hypertension. Her cholesterol level is elevated at 225 mg/dL, and her fasting glucose is 110 mg/dL, suggesting prediabetes; she does not smoke but exercises only twice weekly, and her mother has a history of diabetes. These factors collectively highlight an increased risk for cardiovascular disease and type 2 diabetes, warranting lifestyle modifications and potential medical intervention.",
+  "score": 0,
+  "cost": 4.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 125
+  }
+}

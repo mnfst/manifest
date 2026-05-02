@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 7,
+  "response": "result = 1\nfor k in range(1, n + 1):\n    fact = 1\n    for i in range(1, k + 1):\n        fact *= i\n    result *= fact\nreturn result",
+  "score": 5,
+  "cost": 3.3e-05,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 51
+  }
+}

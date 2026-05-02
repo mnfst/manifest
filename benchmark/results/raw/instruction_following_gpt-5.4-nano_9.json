@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April  \nJune  \nSeptember  \nNovember",
+  "score": 5,
+  "cost": 6.2e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 10
+  }
+}

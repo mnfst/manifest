@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 22,
+  "response": "def correct_bracketing(brackets: str) -> bool:\n    stack = []\n    for bracket in brackets:\n        if bracket == \"<\":\n            stack.append(bracket)\n        elif bracket == \">\":\n            if not stack:\n                return False\n            stack.pop()\n    return not stack",
+  "score": 5,
+  "cost": 5.0489999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 59
+  }
+}

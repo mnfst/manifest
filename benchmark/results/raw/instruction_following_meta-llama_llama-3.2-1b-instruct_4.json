@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "Here are the translations of \"hello\" in French, Spanish, and German:\n\n1. **French:** Bonjour (pronounced \"bone-JOOR\")\n2. **Spanish:** Hola (pronounced \"OH-lah\")\n3. **German:** Hallo (pronounced \"HA-lo\")\n\nLet me know if you have any other requests!",
+  "score": 4,
+  "cost": 2.754e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 72
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This implements a simple asyncio producer\u2013consumer queue using `deque`s and `Future` objects: `put()` blocks when the bounded queue is full, and `get()` blocks when it is empty, waking waiting consumers when items arrive. However, the implementation is incomplete/buggy because `get()` never wakes queued putters after removing an item, so producers can remain stuck once the queue has been full.",
+  "score": 4,
+  "cost": 0.002853,
+  "expected": "",
+  "tokens": {
+    "input": 211,
+    "output": 185
+  }
+}

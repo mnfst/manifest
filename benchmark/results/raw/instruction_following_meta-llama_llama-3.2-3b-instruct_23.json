@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "Here are 5 fruits in alphabetical order, separated by semicolons:\n\nApple; Banana; Cherry; Grape; Orange",
+  "score": 5,
+  "cost": 2.5499999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 25
+  }
+}

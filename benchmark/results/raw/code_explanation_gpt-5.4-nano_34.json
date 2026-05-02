@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This implements a **Min Stack** using two parallel stacks: `stack` stores all pushed values, and `min_stack` stores the **minimum value so far** at each depth. On `push`, it appends `min(val, current_min)`; on `pop`, it removes from both stacks, and `get_min()` returns the latest minimum in `min_stack`.",
+  "score": 5,
+  "cost": 4.35e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 79
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden.",
+  "score": 5,
+  "cost": 0.003715,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 423,
+    "output": 80
+  }
+}

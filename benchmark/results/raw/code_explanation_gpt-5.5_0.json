@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "This function computes the nth Fibonacci number using a naive recursive algorithm: it returns `n` for the base cases `0` and `1`, otherwise it sums `fibonacci(n-1)` and `fibonacci(n-2)`. This pattern has exponential time complexity because it repeatedly recomputes the same subproblems.",
+  "score": 5,
+  "cost": 0.001383,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 100
+  }
+}

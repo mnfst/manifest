@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 39,
+  "response": "digits = \"0123456789\"\nif x == 0:\n    return \"0\"\n\nneg = x < 0\nx = -x if neg else x\n\nres = []\nwhile x > 0:\n    x, rem = divmod(x, base)\n    res.append(digits[rem])\nres_str = \"\".join(reversed(res))\nreturn \"-\" + res_str if neg else res_str",
+  "score": 5,
+  "cost": 4.6200000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 85
+  }
+}

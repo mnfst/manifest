@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This lazily partitions an iterable into two independent iterators using the `itertools.tee` + filtering pattern: the first yields items where `predicate(item)` is true, and the second yields items where it is false via `itertools.filterfalse`. It preserves the original order within each output stream, with `tee` buffering as needed if the two iterators are consumed at different rates.",
+  "score": 5,
+  "cost": 0.00587,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 276
+  }
+}

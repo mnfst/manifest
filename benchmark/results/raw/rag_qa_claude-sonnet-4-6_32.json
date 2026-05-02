@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "Based on the provided context, the world's **economy** grew significantly and became much more interconnected as a result of imperialism, making the many imperial powers rich and prosperous.",
+  "score": 5,
+  "cost": 0.001308,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 236,
+    "output": 40
+  }
+}

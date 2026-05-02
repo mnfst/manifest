@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This performs a **depth-first search (DFS) topological sort** on a directed acyclic graph: it recursively visits nodes, then appends each node to a stack **after exploring all its outgoing neighbors** (postorder). Finally, it returns the reverse of that stack (`stack[::-1]`), producing an ordering where every edge `u \u2192 v` places `u` before `v`.",
+  "score": 5,
+  "cost": 4.4200000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 84
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a programmer named Dave,  \nWho spent hours in his code's grave.  \nHe debugged with a fervent gaze,  \nAnd found a new flaw\u2014  \nNow his code's perfect, no more to save!",
+  "score": 5,
+  "cost": 0.00012140000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 2409
+  }
+}

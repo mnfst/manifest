@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that space is completely silent because there is no atmosphere to transmit sound waves?",
+  "score": 5,
+  "cost": 2.9399999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 19
+  }
+}

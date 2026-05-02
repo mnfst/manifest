@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 43,
+  "response": "Answer: Amazonia: Man and Culture in a Counterfeit Paradise",
+  "score": 5,
+  "cost": 9.273e-06,
+  "expected": "Amazonia: Man and Culture in a Counterfeit Paradise",
+  "tokens": {
+    "input": 268,
+    "output": 13
+  }
+}

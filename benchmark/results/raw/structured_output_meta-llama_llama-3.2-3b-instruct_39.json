@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 39,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"build_number\": 4521,\n  \"branch\": \"feature/auth-v2\",\n  \"status\": \"failed\",\n  \"failed_stage\": \"test\",\n  \"duration\": \"8m 32s\",\n  \"tests\": {\n    \"passed\": 247,\n    \"failed\": 3,\n    \"skipped\": 0\n  },\n  \"trigger\": \"push from @alice\"\n}\n```\n\nNote that I've assumed the `duration` field is a string in the format \"Xm Ys\", where X is the minutes and Y is the seconds. If the duration is in a different format, please let me know and I'll adjust the JSON accordingly.",
+  "score": 5,
+  "cost": 1.4891999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 155
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Plants perform photosynthesis. \n\nSolar power strikes plant pigments. \nPhotons spark powerful processes. \nStems suck soil precipitation. \nStomata swallow stale sighs. \n\nSunlight splits particles. \nPlastids synthesize sweet sugar. \nPlants push pure puffs. \n\nSugar sustains sprouting saplings. \nPhotosynthesis preserves planet.",
+  "score": 5,
+  "cost": 0.0011475,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 74
+  }
+}

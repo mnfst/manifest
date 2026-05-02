@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a magical chain of Lego blocks where each block holds a special secret. Once a new block is snapped on, it can never be taken off, and all your friends get an exact copy of the whole chain. This way, everyone always agrees on what the secrets are and nobody can ever cheat!",
+  "score": 5,
+  "cost": 0.000945,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 60
+  }
+}

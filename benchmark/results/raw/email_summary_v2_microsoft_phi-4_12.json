@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The email updates on the current engineering hiring status, noting that there are four open positions, including two backend roles, one frontend role, and one machine learning role, with 23 candidates in the pipeline and five in the final rounds. It highlights a concern regarding the lack of strong candidates for the frontend position, which has been open for 60 days, and recommends considering expanding the search to remote candidates or adjusting the compensation band to attract better candidates.",
+  "score": 5,
+  "cost": 1.261e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 91
+  }
+}

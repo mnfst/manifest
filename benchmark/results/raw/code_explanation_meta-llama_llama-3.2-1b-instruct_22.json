@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements a Least Recently Used (LRU) cache data structure in Python. \n\nHere's a breakdown of what it does:\n\n- It creates an ordered dictionary (`OrderedDict`) to store key-value pairs, where the order of the keys is the order in which they were last accessed. This is the LRU algorithm, which means that the least recently accessed items are the first ones to be evicted when the cache is full. \n\n- The `get` method checks if the key is in the cache. If it is, it moves the key to the end of the dictionary to mark it as recently used. If it's not, it returns -1. \n\n- The `put` method adds a new key-value pair to the cache. If the key already exists, it moves the key to the end of the dictionary to mark it as recently used. If the cache is full, it removes the least recently used item (the first item in the dictionary) before adding the new",
+  "score": 5,
+  "cost": 9.342000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 200
+  }
+}

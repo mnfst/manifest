@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "1. French: **bonjour le monde**\n2. Spanish: **hola mundo**\n3. German: **hallo Welt**",
+  "score": 5,
+  "cost": 4.23e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 29
+  }
+}

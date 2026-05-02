@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "long_summarization",
+  "case": 15,
+  "response": "Implemented in May 2018, the EU's General Data Protection Regulation (GDPR) established data privacy as a fundamental right by granting residents rights such as data portability and the \"right to be forgotten.\" The regulation applies globally to any company processing EU resident data and mandates strict protocols, including reporting data breaches within 72 hours. Non-compliance carries heavy penalties, with fines reaching up to 4% of global annual revenue or 20 million euros, as evidenced by massive penalties issued to tech giants like Meta and Amazon. While critics argue the law creates compliance burdens for small businesses, GDPR has set a global standard that has inspired similar legislation in regions like California and Brazil.",
+  "score": 5,
+  "cost": 2.8199999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 329,
+    "output": 141
+  }
+}

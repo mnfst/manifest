@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 15,
+  "response": "This code implements **merge sort**, a recursive divide-and-conquer sorting algorithm: it splits the input list into halves until each sublist has at most one element, then merges the sorted halves back together. The `merge` function combines two sorted lists by repeatedly taking the smaller front element, producing a fully sorted list.",
+  "score": 5,
+  "cost": 0.001284,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 67
+  }
+}

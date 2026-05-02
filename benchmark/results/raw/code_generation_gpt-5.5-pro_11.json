@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 11,
+  "response": "total = 0\n    product = 1\n    for number in numbers:\n        total += number\n        product *= number\n    return total, product",
+  "score": 3,
+  "cost": 0.003715,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 150
+  }
+}

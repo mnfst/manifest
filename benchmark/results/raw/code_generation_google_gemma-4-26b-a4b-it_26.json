@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 26,
+  "response": "```python\n    n = len(l)\n    for i in range(n):\n        for j in range(i + 1, n):\n            for k in range(j + 1, n):\n                if l[i] + l[j] + l[k] == 0:\n                    return True\n    return False\n```",
+  "score": 5,
+  "cost": 1.854e-05,
+  "expected": "",
+  "tokens": {
+    "input": 230,
+    "output": 79
+  }
+}

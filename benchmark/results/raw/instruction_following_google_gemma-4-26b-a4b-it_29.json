@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA is a molecule that carries the genetic instructions used in the growth, development, functioning, and reproduction of all known living organisms. It is shaped like a double helix and acts as a biological blueprint stored within the cells of an organism.",
+  "score": 2,
+  "cost": 4.2e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 48
+  }
+}

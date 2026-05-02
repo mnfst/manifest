@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Silent code whispers  \nLoops weave through the midnight screen  \nBugs flee at sunrise",
+  "score": 5,
+  "cost": 0.000178,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 19
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "This defines an async helper that runs many coroutines concurrently but caps the maximum number of in-flight tasks at `limit` using an `asyncio.Semaphore`. It wraps each coroutine so it acquires the semaphore before awaiting, then uses `asyncio.gather` to await all results.",
+  "score": 5,
+  "cost": 3.27e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 61
+  }
+}

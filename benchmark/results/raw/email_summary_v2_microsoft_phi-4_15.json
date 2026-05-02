@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "The legal team has approved updates to the terms, including the addition of an arbitration clause for the enterprise tier and a revision of data retention from 180 days to 90 days. These changes must be implemented before the EU launch on May 1, and the final version of the terms will be prepared today.",
+  "score": 5,
+  "cost": 1.1050000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 63
+  }
+}

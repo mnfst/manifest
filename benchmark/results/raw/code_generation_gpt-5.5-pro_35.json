@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 35,
+  "response": "return (abs(a) % 10) * (abs(b) % 10)",
+  "score": 5,
+  "cost": 0.005495,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 242
+  }
+}

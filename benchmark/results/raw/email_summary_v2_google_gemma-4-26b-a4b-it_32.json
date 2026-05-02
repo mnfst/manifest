@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "The SSL certificate for api.company.com is set to expire in seven days because a DNS migration caused the auto-renewal to fail. DevOps will re-add the necessary CNAME record today to resolve the issue and ensure successful renewal.",
+  "score": 5,
+  "cost": 1.0019999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 49
+  }
+}

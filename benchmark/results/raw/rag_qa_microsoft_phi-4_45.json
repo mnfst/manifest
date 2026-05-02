@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe was employed until early in the 20th century.",
+  "score": 5,
+  "cost": 1.599e-05,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 231,
+    "output": 15
+  }
+}

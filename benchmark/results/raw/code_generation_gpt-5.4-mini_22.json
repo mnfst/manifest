@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 22,
+  "response": "balance = 0\n    for ch in brackets:\n        if ch == \"<\":\n            balance += 1\n        else:\n            balance -= 1\n        if balance < 0:\n            return False\n    return balance == 0",
+  "score": 5,
+  "cost": 0.00010079999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 53
+  }
+}

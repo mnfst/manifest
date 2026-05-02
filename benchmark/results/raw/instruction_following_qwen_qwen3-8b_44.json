@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Lettuce (e.g., romaine, spinach, or mixed greens)  \n- [ ] Tomatoes  \n- [ ] Cucumbers  \n- [ ] Carrots (grated or sliced)  \n- [ ] Bell peppers (red, yellow, or green)  \n- [ ] Onions (red or green, sliced)  \n- [ ] Avocado (optional)  \n- [ ] Grilled chicken (optional)  \n- [ ] Tuna or canned fish (optional)  \n- [ ] Chickpeas or beans (optional)  \n- [ ] Cheese (e.g., feta, crumbled, or shredded)  \n- [ ] Nuts or seeds (e.g., almonds, walnuts, or sunflower seeds)  \n- [ ] Croutons (optional)  \n- [ ] Olive oil  \n- [ ] Vinegar or lemon juice (for dressing)  \n- [ ] Salt and pepper (to taste)  \n- [ ] Herbs (e.g., parsley, cilantro, or dill)",
+  "score": 5,
+  "cost": 2.62e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 505
+  }
+}

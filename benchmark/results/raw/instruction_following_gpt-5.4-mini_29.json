@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA, or deoxyribonucleic acid, is the molecule that carries the genetic instructions used to build and maintain living things. It is made of two strands twisted into a double helix and stores information in the sequence of its chemical bases.",
+  "score": 2,
+  "cost": 6.96e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 53
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 20,
+  "response": "```python\n    if not 1 <= number <= 1000:\n        return \"\"\n\n    val = [\n        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),\n        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),\n        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')\n    ]\n\n    roman_num = []\n    for i, (value, symbol) in enumerate(val):\n        while number >= value:\n            roman_num.append(symbol)\n            number -= value\n        if number == 0:\n            break\n\n    return ''.join(roman_num)\n```",
+  "score": 5,
+  "cost": 6.78e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 179
+  }
+}

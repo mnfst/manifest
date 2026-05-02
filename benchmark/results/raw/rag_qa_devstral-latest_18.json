@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom",
+  "score": 5,
+  "cost": 1.82e-05,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 170,
+    "output": 4
+  }
+}

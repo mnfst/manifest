@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is a complex journey that begins with a sharp, sophisticated bitterness, reminiscent of roasted earth and dark fruit. As it melts, this intensity softens into a velvety sweetness, releasing deep notes of caramel, vanilla, and toasted nuts.\n\nTo experience true chocolate is **to listen to a symphony played in slow motion**; it starts with the heavy, grounding bass of cocoa, builds into a melodic swell of creaminess, and leaves a lingering, resonant chord of sweetness on the palate.",
+  "score": 5,
+  "cost": 7.619999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 101
+  }
+}

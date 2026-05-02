@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "bat, hat, mat, rat",
+  "score": 5,
+  "cost": 0.000116,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 10
+  }
+}

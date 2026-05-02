@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "The provided code implements the Sieve of Eratosthenes algorithm, which is used to find all prime numbers up to a given integer \\( n \\). The algorithm works by initially assuming all numbers from 0 to \\( n \\) are prime (except 0 and 1, which are explicitly marked as non-prime). It then iteratively marks the multiples of each prime number starting from 2 as non-prime. The code optimizes the process by only marking multiples starting from \\( i^2 \\) and iterating up to the square root of \\( n \\) for marking non-prime numbers. Finally, it returns a list of numbers that remain marked as prime.",
+  "score": 5,
+  "cost": 1.9370000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 139
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 9,
+  "response": "total = 0\nfor num in lst:\n    if isinstance(num, int) and num >= 0:\n        if num % 2 == 1:\n            total += num ** 2\nreturn total",
+  "score": 4,
+  "cost": 9.43e-05,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 1714
+  }
+}

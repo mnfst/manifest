@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Taking physical control of another country or area.",
+  "score": 5,
+  "cost": 0.001677,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 315,
+    "output": 61
+  }
+}

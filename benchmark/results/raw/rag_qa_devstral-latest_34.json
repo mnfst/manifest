@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "If q=9 and a=1,2,4,5,7, or 8, there are infinitely many primes in the progression.",
+  "score": 5,
+  "cost": 3.3700000000000006e-05,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 244,
+    "output": 31
+  }
+}

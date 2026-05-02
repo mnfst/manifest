@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "structured_output",
+  "case": 6,
+  "response": "{\"type\":\"bug report\",\"summary\":\"App crashes on login when using Face ID on iPhone 14 with iOS 17.2.\",\"device\":\"iPhone 14\",\"os_version\":\"iOS 17.2\",\"reproducibility\":\"every time\",\"severity\":\"critical\"}",
+  "score": 5,
+  "cost": 0.000102,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 61
+  }
+}

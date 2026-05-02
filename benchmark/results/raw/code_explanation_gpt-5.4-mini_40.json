@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements the **Circuit Breaker** resilience pattern around a function call: it tracks consecutive failures, and after a threshold is reached it \u201copens\u201d the circuit to block further calls for a timeout period. If the timeout expires, it allows a trial call in a **half-open** state, and on success resets back to **closed**; on failure, it increments the failure count again and may reopen the circuit.",
+  "score": 5,
+  "cost": 0.0001647,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 88
+  }
+}

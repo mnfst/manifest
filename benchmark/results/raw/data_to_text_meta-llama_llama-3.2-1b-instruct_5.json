@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 5,
+  "response": "Oppenheimer, directed by Christopher Nolan, is a biographical drama film released in 2023, with a runtime of 180 minutes. The movie is based on the life of J. Robert Oppenheimer, a renowned physicist who played a crucial role in the development of the atomic bomb during World War II. The film grossed over $952 million at the box office and received widespread critical acclaim, earning 93% on Rotten Tomatoes, with an impressive 8.3 out of 10 rating on IMDB.",
+  "score": 0,
+  "cost": 5.67e-06,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 109
+  }
+}

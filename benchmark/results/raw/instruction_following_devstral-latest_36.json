@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are four programming languages that are not Python or JavaScript:\n\n1. **Java** \u2013 A versatile, object-oriented language widely used in enterprise applications, Android development, and large-scale systems.\n2. **C#** \u2013 Developed by Microsoft, it\u2019s commonly used for Windows applications, game development (Unity), and backend services.\n3. **Rust** \u2013 A systems programming language focused on performance and memory safety, often used for low-level programming and web assembly.\n4. **Go (Golang)** \u2013 Created by Google, it\u2019s known for its simplicity, concurrency support, and use in cloud services and backend development.",
+  "score": 5,
+  "cost": 4.1e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 131
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are 4 rhyming words for **cat**:\n\n- **bat**\n- **hat**\n- **mat**\n- **rat**",
+  "score": 5,
+  "cost": 4.3799999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 32
+  }
+}

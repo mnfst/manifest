@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 23,
+  "response": "```python\n    min_sum = float('inf')\n    current_sum = 0\n    for num in nums:\n        current_sum = min(current_sum + num, num)\n        min_sum = min(min_sum, current_sum)\n    return min_sum\n```",
+  "score": 5,
+  "cost": 0.00131,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 67
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 5,
+  "response": "This code implements the **Singleton design pattern** by overriding Python's `__new__` method to restrict class instantiation to exactly one object. It checks if an instance already exists, creating and storing a new one if it doesn't, and returning that same shared instance on all subsequent calls.",
+  "score": 5,
+  "cost": 0.001085,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 60
+  }
+}

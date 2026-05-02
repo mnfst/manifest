@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Here's a fun fact about space:\n\nDid you know that there is a giant storm on Jupiter that has been raging for at least 187 years? The Great Red Spot, a persistent anticyclonic storm on Jupiter, has been continuously observed since 1831 and is so large that three Earths could fit inside it!",
+  "score": 5,
+  "cost": 4.844999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 67
+  }
+}

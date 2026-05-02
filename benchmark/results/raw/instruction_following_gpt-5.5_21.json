@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "From the park entrance:\n\n1. Turn right onto Oak Street.  \n2. Turn left onto Maple Avenue.  \n3. Turn right onto Pine Road.  \n4. Turn left onto Library Lane.  \n5. Turn right into the library parking lot.",
+  "score": 5,
+  "cost": 0.001893,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 152
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "C\u00e9loron handled business on the trip by informing British merchants or fur-traders of the French claims on the territory and telling them to leave.",
+  "score": 5,
+  "cost": 3.1e-05,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 217,
+    "output": 31
+  }
+}

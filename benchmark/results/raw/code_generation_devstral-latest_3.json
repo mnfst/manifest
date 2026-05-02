@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 3,
+  "response": "```python\n    return [xs[i] * i for i in range(1, len(xs))]\n```",
+  "score": 5,
+  "cost": 2.11e-05,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 24
+  }
+}

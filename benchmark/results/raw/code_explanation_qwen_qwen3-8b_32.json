@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "The code implements the **Union-Find (Disjoint Set Union)** data structure with **path compression** (in `find`) and **union by rank** (in `union`), optimizing for nearly constant-time operations. It efficiently manages dynamic connectivity by merging sets and finding roots, commonly used in algorithms like Kruskal's for minimum spanning trees or cycle detection.",
+  "score": 5,
+  "cost": 3.125e-05,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 464
+  }
+}

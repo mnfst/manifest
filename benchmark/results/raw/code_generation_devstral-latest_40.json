@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 40,
+  "response": "```python\n    if a < 0:\n        a = -a\n    root = round(a ** (1/3))\n    return root ** 3 == a\n```",
+  "score": 4,
+  "cost": 2.69e-05,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 38
+  }
+}

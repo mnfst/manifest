@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU (central processing unit) executes instructions from programs by performing arithmetic, logic, and control operations to process data and coordinate the work of a computer.",
+  "score": 5,
+  "cost": 1.5200000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 34
+  }
+}

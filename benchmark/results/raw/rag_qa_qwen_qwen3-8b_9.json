@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "The high end of the temperature range in winter in Southern California is the 70s. \n\n**Answer:** 70s",
+  "score": 4,
+  "cost": 4.685e-05,
+  "expected": "70",
+  "tokens": {
+    "input": 148,
+    "output": 789
+  }
+}

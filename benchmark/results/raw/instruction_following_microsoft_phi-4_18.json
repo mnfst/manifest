@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "My favorite book is a captivating narrative that explores themes of identity, memory, and the complexities of human relationships. Set in a small town, the story follows a protagonist who is a writer grappling with a mysterious block. As they delve into their past, they uncover memories and secrets that challenge their understanding of themselves and their relationships with others.\n\nThe narrative is rich with introspection and philosophical musings, weaving a tapestry of interconnected stories and characters that reflect the protagonist's journey. The book is known for its lyrical prose and intricate structure, where the past and present intertwine seamlessly, creating a hauntingly beautiful exploration of the mind and the nature of storytelling itself.\n\nThe story unfolds through a series of interconnected vignettes, each revealing a layer of the protagonist's life and the lives of those around them. It's a tale that resonates deeply with readers, inviting them to ponder the nature of memory and the stories we tell ourselves to make sense of our lives.\n\nThis book is a profound meditation on the art of writing and the human experience, offering a unique blend of narrative and meta-narrative that leaves a lasting impression. Its themes of self-discovery and the power of storytelling make it a timeless piece that continues to inspire and provoke thought long after the final page is turned.",
+  "score": 5,
+  "cost": 1.7939999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 258
+  }
+}

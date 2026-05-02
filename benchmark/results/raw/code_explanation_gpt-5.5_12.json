@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This function performs a depth-first-search-based topological sort on a directed graph, appending each node to a stack after visiting all of its neighbors and then reversing the stack. It returns an ordering where each node appears before the nodes it points to, assuming the graph is a DAG; it does not detect cycles.",
+  "score": 5,
+  "cost": 0.001578,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 105
+  }
+}

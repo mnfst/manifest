@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 39,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"build_number\": 4521,\n  \"branch\": \"feature/auth-v2\",\n  \"status\": \"failed\",\n  \"failed_stage\": \"test\",\n  \"duration\": \"8m 32s\",\n  \"tests\": {\n    \"passed\": 247,\n    \"failed\": 3,\n    \"skipped\": 0\n  },\n  \"trigger\": \"@alice\"\n}\n```\n\nNote that I've kept the trailing whitespace in the \"duration\" field, as it's a string. If you'd like to remove it, you can use the `trim()` method to remove it.",
+  "score": 5,
+  "cost": 7.452e-06,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 139
+  }
+}

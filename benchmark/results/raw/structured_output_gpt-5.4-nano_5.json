@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "structured_output",
+  "case": 5,
+  "response": "```json\n{\n  \"name\": \"Spaghetti Carbonara\",\n  \"servings\": 4,\n  \"prep_time_minutes\": 25,\n  \"ingredients\": [\n    {\n      \"item\": \"spaghetti\",\n      \"amount\": \"400g\"\n    },\n    {\n      \"item\": \"guanciale\",\n      \"amount\": \"200g\"\n    },\n    {\n      \"item\": \"eggs\",\n      \"amount\": \"4\"\n    },\n    {\n      \"item\": \"pecorino\",\n      \"amount\": \"100g\"\n    },\n    {\n      \"item\": \"black pepper\",\n      \"amount\": \"\"\n    }\n  ]\n}\n```",
+  "score": 4,
+  "cost": 6.69e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 141
+  }
+}

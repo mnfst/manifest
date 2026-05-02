@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "structured_output",
+  "case": 27,
+  "response": "To extract the information from the text and return it as valid JSON matching the given schema, we can identify the relevant details as follows:\n\n- **Type**: The type of SSH key is \"RSA\".\n- **Bits**: The number of bits is \"4096\".\n- **Fingerprint**: The fingerprint is \"SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8\".\n- **Created**: The creation date is \"2024-01-15\".\n- **Comment**: The comment associated with the key is \"deploy-key-prod\".\n\nHere's the JSON representation:\n\n```json\n{\n  \"type\": \"RSA\",\n  \"bits\": 4096,\n  \"fingerprint\": \"SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8\",\n  \"created\": \"2024-01-15\",\n  \"comment\": \"deploy-key-prod\"\n}\n```",
+  "score": 5,
+  "cost": 2.1579999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 215
+  }
+}

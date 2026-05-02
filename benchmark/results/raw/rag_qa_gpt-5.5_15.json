@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia",
+  "score": 5,
+  "cost": 0.001086,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 214,
+    "output": 37
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "OPEC raised the price of oil to $5.11 in response to American aid to Israel, which triggered a collective OPEC response aimed at exerting economic and political pressure.",
+  "score": 5,
+  "cost": 2.775e-05,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 280,
+    "output": 275
+  }
+}

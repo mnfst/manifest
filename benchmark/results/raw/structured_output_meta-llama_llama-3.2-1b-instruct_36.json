@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 36,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"team\": \"Team Alpha\",\n  \"sprint_number\": 23,\n  \"dates\": \"Jan 15-26 2024\",\n  \"planned_points\": 42,\n  \"completed_points\": 38,\n  \"carried_over\": 4,\n  \"stories_done\": 5,\n  \"stories_incomplete\": 1\n}\n```\n\nNote that I've kept the quotes around the string values as they are, since they are strings. If you want to remove the quotes, you can use the `str.replace()` method to remove them, like this:\n\n```\n{\n  \"team\": \"Team Alpha\",\n  \"sprint_number\": 23,\n  \"dates\": \"Jan 15-26 2024\",\n  \"planned_points\": 42,\n  \"completed_points\": 38,\n  \"carried_over\": 4,\n  \"stories_done\": 5,\n  \"stories_incomplete\": 1\n}\n```",
+  "score": 5,
+  "cost": 9.261e-06,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 214
+  }
+}

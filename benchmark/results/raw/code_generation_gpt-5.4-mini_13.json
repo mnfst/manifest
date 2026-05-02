@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 13,
+  "response": "return len(string)",
+  "score": 5,
+  "cost": 3.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 8
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "long_summarization",
+  "case": 46,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe global food system faces unprecedented pressure due to population growth, climate change, and water scarcity, leading to a 60% increase in food production needed by 2050. Agriculture contributes to 25% of greenhouse gas emissions, and soil degradation and water scarcity affect many regions. To address these challenges, solutions such as precision agriculture, vertical farming, and regenerative farming practices are being explored, but policy changes, including subsidies, trade, and carbon pricing, are also necessary to drive transformation. Implementing these solutions at scale will require significant investment and cooperation to ensure food remains affordable and accessible to the world's poorest populations.",
+  "score": 5,
+  "cost": 1.1934e-05,
+  "expected": "",
+  "tokens": {
+    "input": 302,
+    "output": 140
+  }
+}

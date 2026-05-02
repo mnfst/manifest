@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is tidally locked to Earth, meaning it rotates on its axis at the exact same rate that it orbits our planet. Because of this, we always see the exact same side of the Moon from Earth.\n\n2. The gravity on the Moon is only about one-sixth of the gravity on Earth. This is why Apollo astronauts were able to easily bound and leap across the lunar surface despite wearing massive, heavy spacesuits.\n\n3. The Moon is slowly drifting away from Earth. Every year, it moves approximately 3.8 centimeters (1.5 inches) further away from our planet due to the transfer of energy from Earth's ocean tides.",
+  "score": 5,
+  "cost": 0.0020925,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 136
+  }
+}

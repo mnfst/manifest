@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrological cycle, is a continuous process that moves water throughout Earth\u2019s ecosystems. It begins with **evaporation**, where the sun\u2019s heat warms water in oceans, lakes, and rivers, turning it into water vapor. This process is driven by solar energy and is essential for redistributing water across the planet. Additionally, **transpiration** plays a role, as plants absorb water from the soil and release it into the atmosphere through their leaves. Together, evaporation and transpiration contribute to the movement of water into the air, forming the basis for cloud formation.  \n\nAs water vapor rises, it cools and undergoes **condensation**, transforming back into liquid or solid form. This cooling occurs when the vapor reaches cooler altitudes, leading to the formation of clouds. The process is influenced by temperature changes and atmospheric conditions, with condensation being critical for creating the precipitation that sustains life. Clouds can vary in size and density, and their development often results in **precipitation**\u2014the release of water in the form of rain, snow, sleet, or hail. This stage is vital for replenishing freshwater sources and nourishing ecosystems.  \n\nPrecipitation delivers water to Earth\u2019s surface, where it either flows into bodies of water like rivers, lakes, and oceans or infiltrates the ground to become groundwater. This **collection** phase ensures that water is stored and redistributed across different environments. Some of the water may also run off into streams and eventually return to oceans, while other portions are absorbed by plants or stored in glaciers and ice caps. These reservoirs act as temporary storage units, maintaining the balance of the cycle.  \n\nThe water cycle is a dynamic system that connects all parts of Earth, from the atmosphere to the biosphere and geosphere. It is driven by solar energy and gravity, ensuring that water is constantly recycled and available for living organisms. Human activities, such as deforestation and pollution, can disrupt this natural process, highlighting the importance of preserving water resources. Ultimately, the cycle sustains life by regulating climate, providing fresh water, and maintaining the planet\u2019s ecological balance.",
+  "score": 4,
+  "cost": 4.13e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 806
+  }
+}

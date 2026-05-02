@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "**Scrambled Eggs Recipe**\n\n**Ingredients:**\n- 4 eggs\n- 1 tablespoon butter\n- Salt and pepper to taste\n- Optional: 1 tablespoon milk or cream\n\n**Instructions:**\n1. Crack eggs into a bowl; whisk with salt and pepper.\n2. Melt butter in a non-stick pan over medium heat.\n3. Pour eggs into pan; stir gently with a spatula.\n4. Cook until softly set; remove from heat. Serve immediately. Enjoy!",
+  "score": 2,
+  "cost": 8.190000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 103
+  }
+}

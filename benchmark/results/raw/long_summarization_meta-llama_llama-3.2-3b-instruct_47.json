@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "long_summarization",
+  "case": 47,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe European Union's General Data Protection Regulation (GDPR) took effect in 2018 and sets a global standard for data protection, requiring organizations to handle personal data of EU residents with transparency, consent, and security. Key provisions include the right to access and erasure of personal data, data portability, and explicit consent before processing. The regulation imposes significant fines, including a 1.2 billion euro fine on Meta in 2023, and has inspired similar laws worldwide, such as California's CCPA and India's Digital Personal Data Protection Act. Despite some criticisms, GDPR has established data privacy as a fundamental right and has set a global benchmark for data protection legislation.",
+  "score": 5,
+  "cost": 2.3664e-05,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 151
+  }
+}

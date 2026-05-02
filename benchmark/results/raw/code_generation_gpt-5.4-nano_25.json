@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 25,
+  "response": "s = ''.join(paren_string.split())\nres: List[str] = []\nstack = []\nstart = None\n\nfor i, ch in enumerate(s):\n    if ch == '(':\n        if not stack:\n            start = i\n        stack.append('(')\n    elif ch == ')':\n        if stack:\n            stack.pop()\n        if not stack and start is not None:\n            res.append(s[start:i+1])\n            start = None\n\nreturn res",
+  "score": 5,
+  "cost": 5.2600000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 95
+  }
+}

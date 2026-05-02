@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This implements the **Circuit Breaker pattern** for wrapping unreliable function calls: it tracks consecutive failures, and once they reach a threshold, it **opens** the circuit to immediately block further calls for a timeout period. After that timeout, it moves to **half-open** to test one call; if the call succeeds it resets to **closed**, and if it fails it records the failure and can reopen the circuit.",
+  "score": 5,
+  "cost": 0.001082,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 86
+  }
+}

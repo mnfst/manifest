@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "The code implements **Dijkstra's algorithm** using a **priority queue (min-heap)** to find the shortest path from a start node to all other nodes in a weighted graph with non-negative edge weights. It processes nodes in order of increasing distance from the start, updating shortest paths dynamically and avoiding revisiting nodes with already finalized distances.",
+  "score": 5,
+  "cost": 3.55e-05,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 568
+  }
+}

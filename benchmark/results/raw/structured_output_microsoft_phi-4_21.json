@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "structured_output",
+  "case": 21,
+  "response": "To extract the information from the text and return it as valid JSON matching the given schema, we can break down the text as follows:\n\n- **Name**: Jane Doe\n- **Email**: jane@email.com\n- **Phone**: 555-0123\n- **Education**: \n  - Degree: BS\n  - School: MIT\n  - Year: 2018\n- **Experience**:\n  - Company: Google\n  - Years: 2018-2021\n  - Role: SWE\n  - Company: Meta\n  - Years: 2021-present\n  - Role: Senior SWE\n\nHere's the JSON representation:\n\n```json\n{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@email.com\",\n  \"phone\": \"555-0123\",\n  \"education\": [\n    {\n      \"degree\": \"BS\",\n      \"school\": \"MIT\",\n      \"year\": 2018\n    }\n  ],\n  \"experience\": [\n    {\n      \"company\": \"Google\",\n      \"years\": \"2018-2021\",\n      \"role\": \"SWE\"\n    },\n    {\n      \"company\": \"Meta\",\n      \"years\": \"2021-present\",\n      \"role\": \"Senior SWE\"\n    }\n  ]\n}\n```\n\nThis JSON structure matches the schema provided and includes all the extracted information from the text.",
+  "score": 5,
+  "cost": 2.7495e-05,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 289
+  }
+}

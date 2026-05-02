@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X recently launched AI features, including auto-categorization, which our product lacks, although their pricing is significantly higher than ours. To maintain our competitive edge, it is recommended to fast-track our AI roadmap item focusing on enhancing our API and integration capabilities.",
+  "score": 5,
+  "cost": 1.0140000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 54
+  }
+}

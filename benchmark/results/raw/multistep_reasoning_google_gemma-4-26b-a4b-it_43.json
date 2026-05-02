@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "To determine the correct answer, let's evaluate each option based on geological processes:\n\n*   **A) Seas that have evaporated:** The evaporation of seas typically leads to the formation of **evaporites**, such as rock salt (halite) or gypsum, not coal.\n*   **B) Natural gas subjected to heat:** Natural gas is a hydrocarbon that is often found alongside coal, but it is a product of the same organic decomposition process, not the precursor to coal. Heating natural gas does not create coal.\n*   **C) Melted and cooled metamorphic rock:** This describes the formation of **igneous rock** (magma/lava cooling into rock). Metamorphic rocks are formed by heat and pressure acting on existing rocks, but they are not the source of coal.\n*   **D) Plant remains decomposed under pressure:** Coal is a sedimentary rock specifically formed from the accumulation of organic matter, primarily terrestrial plant debris (like ferns, trees, and mosses) in swampy environments. Over millions of years, as these layers are buried, the weight of overlying sediment creates high pressure and heat, driving out water and gases and concentrating carbon. This process is known as **coalification**.\n\nConclusion: Coal is formed from the accumulation and decomposition of plant matter under pressure.\n\nAnswer: D",
+  "score": 5,
+  "cost": 2.1479999999999998e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 88,
+    "output": 270
+  }
+}

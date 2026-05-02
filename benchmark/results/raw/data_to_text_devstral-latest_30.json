@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "data_to_text",
+  "case": 30,
+  "response": "During Sprint #23, Team Alpha worked from January 15 to 26, completing 38 out of 42 planned points, slightly above their average velocity of 36. They delivered 8 stories, fixed 5 bugs, and encountered 2 blockers, with a team satisfaction rating of 4.1 out of 5.",
+  "score": 0,
+  "cost": 3.24e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 74
+  }
+}

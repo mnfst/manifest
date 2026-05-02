@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew significantly.",
+  "score": 5,
+  "cost": 0.00261,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 226,
+    "output": 74
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "long_summarization",
+  "case": 3,
+  "response": "The European Union's General Data Protection Regulation (GDPR), which became effective in May 2018, established strict rules for handling personal data, applying to any organization processing data of EU residents. Key requirements include the right to access, erase, and transfer data, along with explicit consent and the appointment of Data Protection Officers for large-scale processing. Violations can result in significant fines\u2014up to 4% of global revenue or 20 million euros\u2014and major tech companies like Meta, Amazon, and Google have been heavily penalized. While GDPR has influenced data protection laws globally, critics argue it imposes heavy compliance costs and hinders innovation, though it has reinforced data privacy as a fundamental right.",
+  "score": 5,
+  "cost": 1.5378e-05,
+  "expected": "",
+  "tokens": {
+    "input": 324,
+    "output": 142
+  }
+}

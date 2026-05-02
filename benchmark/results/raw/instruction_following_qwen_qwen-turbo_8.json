@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "A blockchain is like a special notebook that everyone in a group shares. When someone writes something in it, everyone checks it and adds it to their own notebook so no one can change it later. It helps keep things fair and safe!",
+  "score": 5,
+  "cost": 2.475e-06,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 47
+  }
+}

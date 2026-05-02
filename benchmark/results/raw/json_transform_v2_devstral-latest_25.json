@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "json_transform_v2",
+  "case": 25,
+  "response": "```json\n{\"items\": 4, \"subtotal\": 1186, \"discount_code\": \"SAVE20\", \"member_discount\": true, \"estimated_total\": 1186}\n```",
+  "score": 3,
+  "cost": 2.86e-05,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 48
+  }
+}

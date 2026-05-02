@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 7,
+  "response": "def special_factorial(n):\n    result = 1\n    for i in range(1, n + 1):\n        result *= i\n    return result",
+  "score": 2,
+  "cost": 4.455e-06,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 34
+  }
+}

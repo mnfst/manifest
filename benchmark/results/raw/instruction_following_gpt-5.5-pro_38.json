@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Invalid credentials. Please try again.",
+  "score": 5,
+  "cost": 0.0025,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 119
+  }
+}

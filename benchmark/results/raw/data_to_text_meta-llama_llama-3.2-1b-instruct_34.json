@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 34,
+  "response": "Stockholm is the capital and largest city of Sweden, with a population of approximately 1.6 million people, covering an area of 188 square kilometers. The country's GDP per capita is around $62,000, and it is known for its stunning natural beauty, with an average January temperature of -3\u00b0C and July temperatures ranging from 18\u00b0C. Stockholm is a hub for innovation and culture, with a rich history dating back to 1252.",
+  "score": 0,
+  "cost": 5.183999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 94
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "5,500,000",
+  "score": 5,
+  "cost": 1.5962999999999996e-05,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 307,
+    "output": 6
+  }
+}

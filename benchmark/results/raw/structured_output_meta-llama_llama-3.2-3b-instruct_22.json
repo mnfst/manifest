@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 22,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"activity\": \"run\",\n  \"distance_km\": 5,\n  \"duration\": \"24:30\",\n  \"avg_pace\": \"4:54/km\",\n  \"heart_rate\": {\n    \"avg_bpm\": 155,\n    \"max_bpm\": 178\n  },\n  \"calories\": 380,\n  \"date\": \"Monday March 4\"\n}\n```\n\nNote that I've assumed the \"date\" field is in the format \"Day of the week Month Day\", as it seems to be the case based on the text. If the format is different, please let me know and I'll adjust accordingly.",
+  "score": 5,
+  "cost": 1.4126999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 147
+  }
+}

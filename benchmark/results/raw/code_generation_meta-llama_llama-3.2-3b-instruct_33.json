@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 33,
+  "response": "```python\nimport math\n\ndef right_angle_triangle(a, b, c):\n    return math.isclose(math.sqrt(a**2 + b**2), c) or math.isclose(math.sqrt(b**2 + c**2), a) or math.isclose(math.sqrt(c**2 + a**2), b)\n```",
+  "score": 5,
+  "cost": 1.0760999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 67
+  }
+}

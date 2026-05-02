@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "\"AI isn\u2019t just the future\u2014it\u2019s reshaping the present. From healthcare to creativity, it\u2019s a tool with limitless potential. But with great power comes great responsibility. How will we use it? #AI #TechForGood\"",
+  "score": 5,
+  "cost": 1.7e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 51
+  }
+}

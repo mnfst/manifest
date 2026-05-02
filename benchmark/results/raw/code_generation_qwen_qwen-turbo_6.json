@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 6,
+  "response": "seen = set()\nresult = []\nfor num in numbers:\n    if num not in seen:\n        seen.add(num)\n        result.append(num)\nreturn result",
+  "score": 4,
+  "cost": 5.016e-06,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 31
+  }
+}

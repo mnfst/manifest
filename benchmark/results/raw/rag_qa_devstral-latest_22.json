@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "The South African Schools Act of 1996 recognized two types of schools: \"public\" (state-controlled) and \"independent\" (which includes traditional private schools and schools which are privately governed).",
+  "score": 5,
+  "cost": 2.71e-05,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 142,
+    "output": 43
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "What message would you like me to respond to?  \nCould you clarify the context or content of the message?  \nWhat specific questions do you have in mind?  \nAre you looking for guidance on how to phrase your questions?  \nWhat topic or subject are you interested in discussing?  \nDo you need help formulating your own questions?",
+  "score": 5,
+  "cost": 3.615e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 707
+  }
+}

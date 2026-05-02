@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "At dusk, Mara found a brass key buried in the flowerpot outside her apartment.  \nWhen she tried it on her own door, the lock clicked open to a hallway that should not have existed.  \nPortraits along the walls turned their heads to watch her pass, smiling as if they recognized her.  \nAt the end stood a cradle, and inside it slept a child clutching a note with Mara\u2019s handwriting.  \nThe note said, \u201cTake her home before the hallway remembers you.\u201d  \nSo Mara lifted the baby, and the door behind her vanished with a sigh like someone disappointed to lose.",
+  "score": 5,
+  "cost": 0.001024,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 124
+  }
+}

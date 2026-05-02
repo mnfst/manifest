@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Golden crust. Tangy tomato sauce. Melted mozzarella cheese. Savory pepperoni slices. Fragrant basil leaves. Hot, greasy, delicious masterpiece.",
+  "score": 5,
+  "cost": 3.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 31
+  }
+}

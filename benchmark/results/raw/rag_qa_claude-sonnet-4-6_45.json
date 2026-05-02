@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "Based on the provided context, the **show globe** was the symbol that was used until the early 20th century.",
+  "score": 5,
+  "cost": 0.001128,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 236,
+    "output": 28
+  }
+}

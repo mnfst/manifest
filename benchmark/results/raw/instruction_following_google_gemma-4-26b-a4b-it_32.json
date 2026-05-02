@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Restaurant Review: The Gilded Root**\n**Rating: \u2605\u2605\u2605\u2605\u2606 (4/5 Stars)**\n\nNestled in a cobblestone alleyway that seems to exist only when the fog rolls in, *The Gilded Root* is not your typical dining establishment. It is less of a restaurant and more of a sensory fever dream.\n\nUpon entering, the first thing you notice is the atmosphere. The interior is designed to mimic the inside of a massive, ancient hollowed-out oak tree. Bioluminescent moss clings to the ceiling, casting a soft, emerald glow over velvet-lined booths, and the air smells faintly of cedarwood and rain. It is intimate, slightly eerie, and undeniably magical.\n\nThe menu is \"elemental,\" a concept that sounds pretentious on paper but proves to be quite revolutionary in practice. Chef Elara Vance focuses on ingredients that feel as though they were plucked directly from a mythic forest.\n\nI began my meal with the *Whispering Embers*\u2014a dish of smoked heirloom carrots served atop a bed of edible ash (actually dehydrated black garlic and leek powder). The carrots were tender, sweet, and carried a deep, campfire smokiness that lingered beautifully on the palate.\n\nFor the main course, I opted for the *Midnight Risotto*. The rice was stained a deep, velvety violet using butterfly pea flower and infused with truffle oil and wild chanterelles. It was rich, earthy, and incredibly comforting. However, the portion was somewhat modest for the price point, leaving me wishing for just a few more spoonfuls of that creamy, purple perfection.\n\nThe service was impeccable, though a bit theatrical. Our server, dressed in linen robes, didn't just take orders; he spoke of the ingredients as if they were old friends. While a little \"extra\" for some, it added to the immersive experience.\n\nThe only reason *The Gilded Root* falls short of a perfect five stars is the acoustics. Because of the organic, curved walls, sound tends to bounce in strange ways. When the neighboring table laughed, it sounded as if they were whispering directly into my ear, which broke the spell of the tranquil ambiance.\n\n**The Verdict:**\n*The Gilded Root* is a destination for those looking to escape reality for an hour or two. It is expensive, and the portions may leave the hungriest diners wanting more, but the flavors are as enchanting as the decor. Go for",
+  "score": 4,
+  "cost": 3.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 500
+  }
+}

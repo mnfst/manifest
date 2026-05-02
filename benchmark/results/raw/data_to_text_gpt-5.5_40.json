@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "data_to_text",
+  "case": 40,
+  "response": "The patient is a 45-year-old female with a BMI of 27.3, blood pressure of 138/88 mmHg, total cholesterol of 225 mg/dL, and fasting glucose of 110 mg/dL. She does not smoke, exercises twice per week, and has a family history of diabetes in her mother.",
+  "score": 5,
+  "cost": 0.001377,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 91
+  }
+}

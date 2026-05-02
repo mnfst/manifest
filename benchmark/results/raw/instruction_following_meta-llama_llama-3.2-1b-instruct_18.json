@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "I'd be delighted to! Here's a description of a book that I think is a masterpiece:\n\nThis book is a sweeping epic that spans centuries, continents, and cultures, weaving together the threads of human experience in a rich tapestry of love, loss, and transformation. It's a story of two souls who find each other in a world of darkness and despair, and the power of love to overcome even the most daunting obstacles.\n\nThe narrative is a masterful blend of historical fiction, fantasy, and romance, with a dash of science fiction and adventure thrown in for good measure. The writing is lyrical and evocative, with vivid descriptions of landscapes, characters, and emotions that will transport you to another time and place.\n\nThe story is a deeply personal and introspective exploration of the human condition, tackling themes of identity, morality, and the search for meaning in a chaotic world. It's a book that will make you laugh, cry, and think, and one that will stay with you long after you finish reading it.\n\nI think you'll find yourself drawn into the world of this book, and I hope you'll be surprised by the depth and complexity of its characters, the twists and turns of its plot, and the way it will stay with you long after you finish reading it.",
+  "score": 5,
+  "cost": 7.668e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 262
+  }
+}

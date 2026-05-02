@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "data_to_text",
+  "case": 14,
+  "response": "During Sprint Team Alpha #23, which ran from January 15th to 26th, the team aimed to complete 42 points but successfully delivered 38 points. The average velocity for the sprint was 36 points, indicating a steady pace in achieving their goals. Throughout the sprint, the team completed 8 user stories and resolved 5 bugs, while also addressing 2 blockers that could have impeded progress. The sprint concluded with a satisfaction rating of 4.1 out of 5, reflecting a positive overall experience despite the challenges faced.",
+  "score": 0,
+  "cost": 1.3715e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 112
+  }
+}

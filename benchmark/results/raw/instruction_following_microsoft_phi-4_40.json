@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Certainly! Here are five capital cities, each from a different continent:\n\n1. **North America** - Ottawa, Canada\n2. **South America** - Bras\u00edlia, Brazil\n3. **Europe** - Berlin, Germany\n4. **Africa** - Nairobi, Kenya\n5. **Asia** - Tokyo, Japan\n\nThese cities represent the capitals of their respective countries and are located on different continents.",
+  "score": 5,
+  "cost": 6.825e-06,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 84
+  }
+}

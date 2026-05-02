@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "Hassan al-Turabi.",
+  "score": 5,
+  "cost": 4.401000000000001e-06,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 154,
+    "output": 9
+  }
+}

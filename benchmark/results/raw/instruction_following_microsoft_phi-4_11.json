@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Sure, I can do that! What would you like to know about the message? Are there specific details or context you want to explore? What questions do you have in mind?",
+  "score": 2,
+  "cost": 3.3800000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 37
+  }
+}

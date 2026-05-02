@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "json_transform_v2",
+  "case": 30,
+  "response": "```\n{\"full_name\": \"Jane Doe\", \"contact\": {\"email\": \"jane.doe@email.com\", \"phone\": \"+1-555-0123\"}, \"metadata\": {\"age\": 32}}\n```",
+  "score": 5,
+  "cost": 8.007e-06,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 46
+  }
+}

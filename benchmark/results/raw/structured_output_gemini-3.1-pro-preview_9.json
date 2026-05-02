@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "structured_output",
+  "case": 9,
+  "response": "{\n  \"title\": \"Introduction to Machine Learning\",\n  \"instructor\": \"Dr. Sarah Chen\",\n  \"duration_weeks\": 12,\n  \"prerequisites\": [\n    \"Linear Algebra\",\n    \"Python\"\n  ],\n  \"level\": \"Intermediate\"\n}",
+  "score": 5,
+  "cost": 0.0011875,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 65
+  }
+}

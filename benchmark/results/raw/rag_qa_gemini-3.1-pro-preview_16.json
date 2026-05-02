@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Approximately fifty percent more.",
+  "score": 5,
+  "cost": 0.0006075,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 213,
+    "output": 5
+  }
+}

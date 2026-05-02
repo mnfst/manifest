@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "long_summarization",
+  "case": 39,
+  "response": "The European Union's General Data Protection Regulation (GDPR), effective since May 2018, significantly reshaped data privacy laws by applying to any organization processing data of EU residents, regardless of location. Key provisions include rights to access, erasure, data portability, and explicit consent requirements, with mandatory Data Protection Officers for large-scale data processing and a 72-hour window for reporting data breaches. Violations can result in substantial fines, up to 4% of global annual revenue or 20 million euros, with notable fines imposed on tech giants like Meta, Amazon, and Google. While GDPR has inspired similar laws globally, such as California's CCPA and Brazil's LGPD, critics argue it imposes heavy compliance burdens, particularly on small businesses, and has led to inconsistent enforcement across EU member states. Nonetheless, GDPR has established data privacy as a fundamental right and set a global standard for data protection legislation.",
+  "score": 5,
+  "cost": 3.2370000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 314,
+    "output": 184
+  }
+}

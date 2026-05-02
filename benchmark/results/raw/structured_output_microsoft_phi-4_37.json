@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "structured_output",
+  "case": 37,
+  "response": "To extract the information from the text and return it as valid JSON matching the given schema, we can parse the text as follows:\n\n- **Serving size**: \"1 cup (240ml)\"\n- **Calories**: 120\n- **Fat (g)**: 2.0\n- **Saturated fat (g)**: 0.5\n- **Sodium (mg)**: 150\n- **Carbs (g)**: 22\n- **Fiber (g)**: 3\n- **Sugar (g)**: 12\n- **Protein (g)**: 4\n\nHere's the JSON representation:\n\n```json\n{\n  \"serving_size\": \"1 cup (240ml)\",\n  \"calories\": 120,\n  \"fat_g\": 2.0,\n  \"saturated_fat_g\": 0.5,\n  \"sodium_mg\": 150,\n  \"carbs_g\": 22,\n  \"fiber_g\": 3,\n  \"sugar_g\": 12,\n  \"protein_g\": 4\n}\n```",
+  "score": 5,
+  "cost": 2.4829999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 228
+  }
+}

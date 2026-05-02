@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "\"Waves whisper ancient secrets always.\"",
+  "score": 4,
+  "cost": 4e-06,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 9
+  }
+}

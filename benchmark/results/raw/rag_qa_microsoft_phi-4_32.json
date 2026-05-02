@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "As a result of imperialism, the world's economy grew significantly and became much more interconnected in the decades before World War I. This growth made the many imperial powers rich and prosperous.",
+  "score": 5,
+  "cost": 1.6835e-05,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 222,
+    "output": 37
+  }
+}

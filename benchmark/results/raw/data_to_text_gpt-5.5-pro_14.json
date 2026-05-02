@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "data_to_text",
+  "case": 14,
+  "response": "Team Alpha completed Sprint #23 from Jan 15\u201326, delivering 38 of the planned 42 points, which was above their average velocity of 36. The team finished 8 stories, fixed 5 bugs, and encountered 2 blockers during the sprint. Overall satisfaction was strong at 4.1 out of 5.",
+  "score": 5,
+  "cost": 0.002585,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 105
+  }
+}

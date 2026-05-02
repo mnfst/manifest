@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "Here is the converted paragraph:\n\nThe Massachusetts Institute of Technology (MIT) is a world-renowned university that is ranked #1 in the world, with an acceptance rate of 3.9%. With a student body of 11,500, MIT is one of the largest and most prestigious institutions of higher education in the United States. Founded in 1861, MIT is a private research university that is known for its academic excellence, innovative research, and commitment to fostering a diverse and inclusive community.",
+  "score": 0,
+  "cost": 5.5619999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 101
+  }
+}

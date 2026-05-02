@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "structured_output",
+  "case": 21,
+  "response": "{\"name\":\"Jane Doe\",\"email\":\"jane@email.com\",\"phone\":\"555-0123\",\"education\":[{\"degree\":\"BS Computer Science\",\"school\":\"MIT\",\"year\":2018}],\"experience\":[{\"company\":\"Google\",\"years\":\"2018-2021\",\"role\":\"SWE\"},{\"company\":\"Meta\",\"years\":\"2021-present\",\"role\":\"Senior SWE\"}]}",
+  "score": 5,
+  "cost": 0.00377,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 157
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Logic turns to code,\nHunting bugs into the night,\nFinally it runs.",
+  "score": 5,
+  "cost": 0.000275,
+  "expected": "",
+  "tokens": {
+    "input": 8,
+    "output": 17
+  }
+}

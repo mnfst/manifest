@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "multistep_reasoning",
+  "case": 29,
+  "response": "Step 1:  The process of respiration is the process by which cells convert food into energy.\nStep 2:  The products of respiration are carbon dioxide and water.\nStep 3:  The reactants of respiration are oxygen and glucose.\nStep 4:  The products of respiration are carbon dioxide and water.\nStep 5:  The correct answer is the one that states that oxygen and carbon dioxide are the products of respiration.\n\nThe correct answer is C.",
+  "score": 5,
+  "cost": 6.911999999999999e-06,
+  "expected": "A",
+  "tokens": {
+    "input": 155,
+    "output": 101
+  }
+}

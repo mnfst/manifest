@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "data_to_text",
+  "case": 9,
+  "response": "Japan is home to 125 million people who enjoy an impressive life expectancy of 84.6 years. Economically, the nation generates a GDP of $4.2 trillion with a modest growth rate of 1.1%, bolstered by $756 billion in exports. While Japan maintains a low unemployment rate of 2.6% and an inflation rate of 3.2%, it faces significant fiscal pressure from a massive debt-to-GDP ratio of 263%.",
+  "score": 0,
+  "cost": 0.0017875,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 102
+  }
+}

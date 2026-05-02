@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 49,
+  "response": "for i in range(len(string), 0, -1):\n    if is_palindrome(string[-i:]):\n        prefix = string[:-i]\n        return string + prefix[::-1]\nreturn string",
+  "score": 4,
+  "cost": 0.00011025,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 2030
+  }
+}

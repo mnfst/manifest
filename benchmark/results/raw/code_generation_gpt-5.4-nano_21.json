@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 21,
+  "response": "if n <= 0:\n    return (0, 0)\n\ndef is_palindrome(x):\n    s = str(x)\n    return s == s[::-1]\n\neven = 0\nodd = 0\nfor i in range(1, n + 1):\n    if is_palindrome(i):\n        if i % 2 == 0:\n            even += 1\n        else:\n            odd += 1\nreturn (even, odd)",
+  "score": 4,
+  "cost": 6.290000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 241,
+    "output": 97
+  }
+}

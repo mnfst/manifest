@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "The pathogen that causes gas gangrene is anaerobic bacteria, and oxygen is poisonous to them.",
+  "score": 5,
+  "cost": 2.61e-05,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 201,
+    "output": 20
+  }
+}

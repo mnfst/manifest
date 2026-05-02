@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "The target percentage of households BSkyB wanted to reach was **36%**. \n\n**Answer:** 36%",
+  "score": 5,
+  "cost": 2.3350000000000002e-05,
+  "expected": "36%",
+  "tokens": {
+    "input": 182,
+    "output": 285
+  }
+}

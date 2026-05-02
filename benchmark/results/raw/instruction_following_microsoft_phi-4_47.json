@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Creating a strong password is crucial for protecting your online accounts and personal information. Here are some steps to help you create a good password:\n\n1. **Length Matters**: Aim for at least 12-16 characters. Longer passwords are generally more secure because they are harder to crack.\n\n2. **Use a Mix of Characters**: Incorporate a combination of uppercase letters, lowercase letters, numbers, and special characters (e.g., !, @, #, $, %, ^, &, *) to increase complexity.\n\n3. **Avoid Common Words and Phrases**: Do not use easily guessable words, phrases, or common substitutions (like \"password\" or \"123456\"). Avoid using dictionary words, as these can be quickly guessed by automated tools.\n\n4. **Avoid Personal Information**: Do not use easily accessible personal information such as your name, birthdate, or address. This information can often be found on social media or other public records.\n\n5. **Use Passphrases**: Consider using a passphrase, which is a sequence of random words or a sentence. For example, \"BlueSky!Coffee2023\" is more secure than \"BlueSky2023!\" because it is longer and less predictable.\n\n6. **Avoid Reusing Passwords**: Use a unique password for each of your accounts. Reusing passwords across multiple sites increases the risk that if one account is compromised, others will be too.\n\n7. **Consider a Password Manager**: Use a reputable password manager to generate and store complex passwords. This allows you to use strong, unique passwords for each account without having to remember them all.\n\n8. **Enable Two-Factor Authentication (2FA)**: Whenever possible, enable 2FA for an additional layer of security. This requires a second form of verification, such as a code sent to your phone, in addition to your password.\n\n9. **Regularly Update Passwords**: Change your passwords periodically, especially if you suspect any account may have been compromised. However, avoid changing them too frequently, as this can lead to weaker passwords if you start reusing them.\n\n10. **Be Wary of Phishing Attempts**: Be cautious of emails or messages asking for your password. Legitimate organizations will not ask for your password via email or text.\n\nBy following these steps, you can significantly enhance the security of your online accounts and protect your personal information from unauthorized access.",
+  "score": 5,
+  "cost": 3.2370000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 480
+  }
+}

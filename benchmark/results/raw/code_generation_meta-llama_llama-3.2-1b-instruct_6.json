@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 6,
+  "response": "from typing import List\n\ndef remove_duplicates(numbers: List[int]) -> List[int]:\n    seen = set()\n    result = []\n    for num in numbers:\n        if num not in seen:\n            seen.add(num)\n            result.append(num)\n    return result",
+  "score": 4,
+  "cost": 4.670999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 53
+  }
+}

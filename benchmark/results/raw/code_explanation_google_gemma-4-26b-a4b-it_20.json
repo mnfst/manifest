@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function splits an iterable into two separate iterators based on a boolean condition. It uses the `itertools.tee` pattern to create two independent clones of the input, then applies `filter` and `filterfalse` to return one iterator containing elements that satisfy the predicate and another containing those that do not.",
+  "score": 5,
+  "cost": 8.82e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 64
+  }
+}

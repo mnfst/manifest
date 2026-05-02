@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Based on the provided context, the **Moselle** is highlighted as contributing an average discharge of more than **300 m\u00b3/s (11,000 cu ft/s)**, making it the tributary specifically noted for its contribution among those mentioned (Neckar, Main, and Moselle). However, the context does not provide discharge figures for the Neckar and Main for a direct comparison, so it cannot be definitively confirmed that the Moselle contributes the most among all tributaries.",
+  "score": 4,
+  "cost": 0.00231,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 225,
+    "output": 109
+  }
+}

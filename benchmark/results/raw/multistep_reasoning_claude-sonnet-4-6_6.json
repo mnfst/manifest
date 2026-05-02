@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "## Step-by-Step Reasoning:\n\nWhen a wooden log burns, it undergoes a **chemical reaction** (combustion). Let's analyze each option:\n\n**A) It is completely destroyed.**\n- Matter cannot be destroyed (Law of Conservation of Mass). The atoms in the wood are rearranged, not destroyed. \u274c\n\n**B) It is completely changed into heat energy.**\n- Not all the wood converts to heat energy. Products like ash, carbon dioxide, water vapor, and smoke are produced. \u274c\n\n**C) It changes into other types of matter and energy.**\n- Combustion is a chemical change where wood reacts with oxygen to produce new substances (CO\u2082, water vapor, ash, smoke) AND releases energy (heat and light). This correctly describes what happens. \u2705\n\n**D) It physically changes into the gaseous phase.**\n- Burning is a **chemical** change, not merely a physical phase change. \u274c\n\n## Final Answer:\n\n**C**",
+  "score": 5,
+  "cost": 0.003627,
+  "expected": "C",
+  "tokens": {
+    "input": 99,
+    "output": 222
+  }
+}

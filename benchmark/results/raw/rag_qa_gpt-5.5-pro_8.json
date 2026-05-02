@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "36% of households in the UK.",
+  "score": 5,
+  "cost": 0.00313,
+  "expected": "36%",
+  "tokens": {
+    "input": 174,
+    "output": 113
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 27,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"type\": \"SSH key\",\n  \"bits\": 4096,\n  \"fingerprint\": \"nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8\",\n  \"created\": \"2024-01-15\",\n  \"comment\": \"deploy-key-prod\"\n}\n```\n\nLet me know if you need any further assistance!",
+  "score": 4,
+  "cost": 1.1015999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 101
+  }
+}

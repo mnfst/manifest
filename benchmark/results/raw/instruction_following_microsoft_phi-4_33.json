@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. **Size and Distance**: The Moon is Earth's only natural satellite and is about one-quarter the diameter of Earth. It orbits our planet at an average distance of approximately 384,400 kilometers (238,855 miles).\n\n2. **Surface Features**: The Moon's surface is covered with craters, mountains, and vast, dark plains known as \"maria\" (singular: \"mare\"), which are basaltic plains formed by ancient volcanic eruptions. The most famous feature is the Tycho Crater, which is about 85 kilometers (53 miles) in diameter.\n\n3. **Lunar Phases**: The Moon goes through a cycle of phases each month, from new moon to full moon and back again, due to its orbit around Earth and the relative positions of the Earth, Moon, and Sun. This cycle takes about 29.5 days, known as a synodic month.",
+  "score": 5,
+  "cost": 1.3715000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 184
+  }
+}

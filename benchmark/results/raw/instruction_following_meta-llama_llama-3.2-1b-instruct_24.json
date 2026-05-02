@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "Here are three bullet points that describe a car accident report:\n\n\u2022 **Incident Details**: The accident occurred on [Date] at approximately [Time] on [Location]. The vehicle involved was a [Make and Model] with [License Plate Number]. The driver, [Name], was traveling in the [Direction] direction on [Road Name] when the accident occurred.\n\n\u2022 **Injuries and Damage**: The driver sustained minor injuries, including [list the injuries, e.g. cuts, bruises, etc.]. The vehicle sustained significant damage, including [list the type of damage, e.g. front end damage, scratches, etc.].\n\n\u2022 **Police and Medical Involvement**: The police were called to the scene and responded to the accident. The driver was transported to [Hospital Name] for treatment. The police officer on the scene took statements from the driver and witnesses, and collected evidence from the scene, including photos and videos.",
+  "score": 3,
+  "cost": 5.751e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 190
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This implements a **retry decorator with exponential backoff** \u2014 it wraps a function to automatically re-execute it up to `max_attempts` times if it raises an exception. Each retry waits progressively longer (`delay * 2^i`: 1s, 2s, 4s...) before retrying, and re-raises the exception if all attempts are exhausted.",
+  "score": 5,
+  "cost": 0.001689,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 86
+  }
+}

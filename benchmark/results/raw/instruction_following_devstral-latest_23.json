@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "Apple; Banana; Cherry; Date; Elderberry",
+  "score": 5,
+  "cost": 5.5e-06,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 12
+  }
+}

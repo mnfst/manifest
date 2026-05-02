@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here are the directions:\n\n1. From the park, head left onto the main road.\n2. Continue on the main road for 2 blocks.\n3. Turn right onto a side street.\n4. Walk straight on the side street for 1 block.\n5. Turn left onto another side street.\n6. Continue on this side street for 1 block.\n7. Turn right onto the main road again.\n8. Walk straight on the main road for 2 blocks.\n9. Turn left onto the street that leads to the library.",
+  "score": 5,
+  "cost": 7.037999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 110
+  }
+}

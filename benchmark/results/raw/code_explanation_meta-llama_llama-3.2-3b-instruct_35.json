@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "**KMP (Knuth-Morris-Pratt) String Search Algorithm**\n\nThis code implements the KMP algorithm, a linear-time string searching algorithm that efficiently searches for a pattern within a text. The algorithm uses a preprocessing step to build a lookup table (`lps`) that stores the longest proper prefix which is also a suffix for each substring of the pattern, allowing it to skip unnecessary comparisons during the search process.",
+  "score": 5,
+  "cost": 1.3974e-05,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 85
+  }
+}

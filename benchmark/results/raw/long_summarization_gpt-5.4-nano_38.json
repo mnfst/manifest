@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "long_summarization",
+  "case": 38,
+  "response": "The global food system faces unprecedented stress from population growth, climate change, resource limits, and waste. By 2050 the world\u2019s population is projected to reach 9.7 billion, requiring about a 60% increase in food production, while climate change and water scarcity reduce yields in many major farming regions. Agriculture also contributes roughly 25% of greenhouse gas emissions, and soil degradation has reduced productivity on 33% of the world\u2019s arable land; additionally, about one-third of produced food is lost or wasted between farm and fork. Proposed responses include precision agriculture (AI/sensors), vertical farming, alternative proteins, drought-resistant genetic modification, and regenerative farming, alongside policy reforms\u2014though the key challenge is scaling these solutions affordably for the world\u2019s poorest.",
+  "score": 5,
+  "cost": 9.240000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 158
+  }
+}

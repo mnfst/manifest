@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This implements a lazy \u201cpartition\u201d pattern: it duplicates the input iterable with `itertools.tee`, then returns two iterators\u2014one yielding items where `predicate(item)` is true, and one yielding items where it is false via `itertools.filterfalse`. It does not eagerly build lists; values are produced on demand.",
+  "score": 5,
+  "cost": 0.0021,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 158
+  }
+}

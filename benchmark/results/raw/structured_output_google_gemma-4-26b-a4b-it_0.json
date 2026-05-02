@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "structured_output",
+  "case": 0,
+  "response": "```json\n{\n  \"name\": \"John Smith\",\n  \"age\": 32,\n  \"job_title\": \"software engineer\",\n  \"company\": \"Google\",\n  \"location\": {\n    \"city\": \"Mountain View\",\n    \"state\": \"CA\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 9.719999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 72
+  }
+}

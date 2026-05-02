@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Photosynthesis: plants, phytoplankton, plus some protists process sunshine. Sunlight powers pigment proteins. Pigments split plant sap, producing power particles plus spare stuff. Plants pull sky stuff, producing sweet sugars. Sugars store sun power, support plant parts, provide sustenance.",
+  "score": 5,
+  "cost": 0.007023,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 580
+  }
+}

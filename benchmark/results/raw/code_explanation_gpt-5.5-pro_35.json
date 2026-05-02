@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This implements Knuth\u2013Morris\u2013Pratt (KMP) substring search: it first builds the pattern\u2019s LPS/partial-match table, then scans the text while using that table to skip redundant comparisons after mismatches. It returns the starting index of the first match, or `-1` if the pattern is not found.",
+  "score": 5,
+  "cost": 0.005805,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 244
+  }
+}

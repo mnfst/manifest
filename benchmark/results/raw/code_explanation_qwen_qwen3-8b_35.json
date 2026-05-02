@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "The code implements the **Knuth-Morris-Pratt (KMP)** algorithm for string matching, using a **Longest Prefix Suffix (LPS)** array to avoid redundant character comparisons. It efficiently searches for a pattern within a text by leveraging the LPS array to determine how much to shift the pattern when a mismatch occurs, ensuring linear time complexity $O(n + m)$, where $n$ is the text length and $m$ is the pattern length.",
+  "score": 5,
+  "cost": 3.8100000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 576
+  }
+}

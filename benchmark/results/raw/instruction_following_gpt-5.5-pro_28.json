@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Every small step forward proves your courage is stronger than your fear.",
+  "score": 4,
+  "cost": 0.00196,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 92
+  }
+}

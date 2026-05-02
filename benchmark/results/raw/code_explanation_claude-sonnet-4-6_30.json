@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "## Bloom Filter Implementation\n\nThis code implements a **Bloom filter** \u2014 a probabilistic data structure that efficiently tests whether an element is a member of a set, using a fixed-size bit array and multiple hash functions.\n\nWhen an item is **added**, all `num_hashes` hash positions are set to `True`; when **checking membership**, it returns `True` only if *all* corresponding bit positions are set \u2014 meaning it guarantees **no false negatives** but can produce **false positives** (an item may appear present when it was never added).",
+  "score": 5,
+  "cost": 0.002433,
+  "expected": "",
+  "tokens": {
+    "input": 191,
+    "output": 124
+  }
+}

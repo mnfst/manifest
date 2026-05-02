@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Sure, but could you clarify something first \u2014 what message are you referring to? Did you forget to include it, or would you like me to respond to something specific? Is there a particular topic you'd like to explore through questions?",
+  "score": 1,
+  "cost": 0.000813,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 51
+  }
+}

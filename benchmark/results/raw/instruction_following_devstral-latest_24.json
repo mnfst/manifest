@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- **Incident Details**: Date, time, and location of the accident, along with weather and road conditions.\n- **Parties Involved**: Names, contact information, and insurance details of drivers, passengers, and witnesses.\n- **Damage and Injuries**: Description of vehicle damage, injuries sustained, and any police or medical reports filed.",
+  "score": 5,
+  "cost": 2.26e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 70
+  }
+}

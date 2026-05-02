@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "structured_output",
+  "case": 5,
+  "response": "{\n  \"name\": \"Spaghetti Carbonara\",\n  \"servings\": 4,\n  \"prep_time_minutes\": 25,\n  \"ingredients\": [\n    {\n      \"item\": \"spaghetti\",\n      \"amount\": \"400g\"\n    },\n    {\n      \"item\": \"guanciale\",\n      \"amount\": \"200g\"\n    },\n    {\n      \"item\": \"eggs\",\n      \"amount\": \"4\"\n    },\n    {\n      \"item\": \"pecorino\",\n      \"amount\": \"100g\"\n    },\n    {\n      \"item\": \"black pepper\",\n      \"amount\": \"\"\n    }\n  ]\n}",
+  "score": 4,
+  "cost": 0.0027925,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 168
+  }
+}

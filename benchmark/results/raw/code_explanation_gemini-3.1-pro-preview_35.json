@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This code implements the **Knuth-Morris-Pratt (KMP) string searching algorithm** to find the starting index of the first occurrence of a `pattern` within a `text` (returning `-1` if not found). It optimizes the search by first precomputing a Longest Prefix Suffix (LPS) array, which allows the algorithm to bypass redundant character comparisons by knowing exactly where to resume matching after a mismatch occurs.",
+  "score": 5,
+  "cost": 0.0018425,
+  "expected": "",
+  "tokens": {
+    "input": 203,
+    "output": 89
+  }
+}

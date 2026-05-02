@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "long_summarization",
+  "case": 18,
+  "response": "The global food system faces immense pressure as the world population is projected to reach 9.7 billion by 2050, necessitating a 60% increase in food production. This challenge is compounded by climate change, water scarcity, and the fact that intensive farming has already degraded 33% of the world's arable land, while one-third of all food produced is wasted. To address these issues, various technological and ecological solutions are being explored, such as precision agriculture, vertical farming, and regenerative practices. Ultimately, the goal is to implement these transformations at scale while ensuring food remains affordable and accessible to the world's most vulnerable populations.",
+  "score": 5,
+  "cost": 2.6699999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 310,
+    "output": 135
+  }
+}

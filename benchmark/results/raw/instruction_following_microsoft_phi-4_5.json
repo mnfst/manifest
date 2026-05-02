@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "As the sun begins its descent towards the horizon, the sky transforms into a canvas of vibrant hues. The sky is painted with shades of orange, pink, and purple, creating a gradient that stretches from the zenith to the horizon. The fading light casts a warm glow, illuminating the clouds with a golden sheen, while the edges of the clouds are tinged with a soft, golden hue, creating a silhouette effect against the darker sky.\n\nThe sun itself appears as a glowing orb, its edges softening into a gentle blur as it nears the horizon. The light dims, casting elongated shadows that stretch across the landscape, adding depth and contrast to the scene. The air is filled with a serene calm, as the day transitions into night, and the sky is dotted with stars that begin to twinkle, heralding the arrival of twilight.\n\nThe landscape below is bathed in the warm, fading light, with silhouettes of trees and buildings standing stark against the vibrant sky. The gentle breeze carries the scent of the evening, and the world seems to pause, appreciating the quiet majesty of the moment. The sunset is a symphony of colors and light, a natural spectacle that marks the end of one day and the beginning of another.",
+  "score": 5,
+  "cost": 1.7875e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 254
+  }
+}

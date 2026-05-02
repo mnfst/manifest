@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Here is a description of a pizza using only adjectives and nouns:\n\nCheesy, saucy, crispy, cheesy, melty, gooey, savory, meaty, flavorful, crunchy, golden, bubbly, cheesy, delicious, hot, steaming, aromatic, cheesy, savory, meaty, flavorful, cheesy, crispy, crunchy, golden, delicious.",
+  "score": 4,
+  "cost": 5.0999999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 76
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "The code defines a function `connected_components` that identifies all connected components in an undirected graph represented as an adjacency list. It uses a Breadth-First Search (BFS) algorithm to explore each component, starting from unvisited nodes, and collects nodes into separate lists for each connected component. The function returns a list of these components, where each component is a list of nodes that are connected to each other.",
+  "score": 5,
+  "cost": 1.4040000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 85
+  }
+}

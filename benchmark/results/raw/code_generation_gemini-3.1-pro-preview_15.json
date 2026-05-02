@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 15,
+  "response": "i = 2\n    while i * i <= n:\n        while n % i == 0:\n            n //= i\n            if n == 1:\n                return i\n        i += 1\n    return n",
+  "score": 3,
+  "cost": 0.001045,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 52
+  }
+}

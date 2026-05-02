@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Golden crust, melted mozzarella, tangy tomato sauce, fragrant basil, savory pepperoni, stretchy cheese, blistered edges, warm slices, rich aroma, irresistible comfort",
+  "score": 5,
+  "cost": 0.000324,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 36
+  }
+}

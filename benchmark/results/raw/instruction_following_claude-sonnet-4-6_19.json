@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "Here's a tweet about AI:\n\n\"AI won't replace humans \u2014 but humans who *use* AI will replace those who don't. The real skill isn't competing with the technology. It's learning how to think alongside it. \ud83e\udd16\ud83d\udca1 #AI #FutureOfWork\"",
+  "score": 5,
+  "cost": 0.001065,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 67
+  }
+}

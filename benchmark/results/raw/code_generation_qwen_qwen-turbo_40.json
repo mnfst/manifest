@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 40,
+  "response": "def iscube(a):\n    '''\n    Write a function that takes an integer a and returns True \n    if this ingeger is a cube of some integer number.\n    Note: you may assume the input is always valid.\n    Examples:\n    iscube(1) ==> True\n    iscube(2) ==> False\n    iscube(-1) ==> True\n    iscube(64) ==> True\n    iscube(0) ==> True\n    iscube(180) ==> False\n    '''\n    n = round(a ** (1/3))\n    return n ** 3 == a or (n - 1) ** 3 == a or (n + 1) ** 3 == a",
+  "score": 4,
+  "cost": 9.9e-06,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 150
+  }
+}

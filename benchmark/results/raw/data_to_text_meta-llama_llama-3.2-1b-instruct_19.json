@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 19,
+  "response": "The iPhone 15 Pro is a high-end smartphone that features a 6.1-inch OLED display, a powerful A17 Pro chip, and a 48MP main camera. It comes in various storage options, including 128GB, 256GB, 512GB, and 1TB, and has a battery life of up to 3274mAh. With a weight of just 187g, this phone is designed to be lightweight and portable, making it easy to carry around.",
+  "score": 0,
+  "cost": 5.643e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 101
+  }
+}

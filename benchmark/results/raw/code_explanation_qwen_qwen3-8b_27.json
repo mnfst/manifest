@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "The code implements the **sliding window maximum** algorithm using a **deque (double-ended queue)** to efficiently track the maximum value in each window of size `k`. It maintains the deque to store indices of elements in decreasing order, ensuring the front of the deque always holds the index of the maximum value for the current window. As the window slides, outdated indices are removed from the front, and smaller elements are removed from the back to preserve the order. The result is a list of maximum values for each window. \n\n**Key pattern**: **Monotonic deque** (maintains elements in decreasing order) for O(n) time complexity.",
+  "score": 5,
+  "cost": 3.345e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 544
+  }
+}

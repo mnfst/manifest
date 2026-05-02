@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Review: The Copper Lantern**\n\n**Rating: 4.5/5 stars**\n\nThe Copper Lantern is a cozy fictional bistro tucked away on a quiet cobblestone street, and it feels like the kind of place you stumble upon once and immediately want to keep secret. The atmosphere is warm and inviting, with soft amber lighting, mismatched vintage chairs, and the smell of fresh bread drifting from the open kitchen.\n\nThe menu is small but creative. I tried the rosemary mushroom tart to start, followed by the honey-glazed duck with roasted root vegetables. Both dishes were beautifully presented and full of flavor, especially the duck, which was tender with just the right balance of sweetness and richness. The standout dessert was the lavender cr\u00e8me br\u00fbl\u00e9e\u2014delicate, fragrant, and perfectly crisp on top.\n\nService was friendly and attentive without feeling rushed. The only slight drawback was that the dining room became a bit noisy once it filled up, but it also added to the lively charm of the place.\n\nOverall, The Copper Lantern is a delightful spot for a relaxed dinner, a date night, or anyone looking for thoughtful food in a charming setting. Highly recommended.",
+  "score": 5,
+  "cost": 0.003105,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 253
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. **Make it long**  \n   Use at least **12\u201316 characters**. Longer passwords are harder to crack.\n\n2. **Use a mix of characters**  \n   Include **uppercase letters, lowercase letters, numbers, and symbols** when possible.\n\n3. **Avoid personal information**  \n   Do not use names, birthdays, pet names, phone numbers, or addresses.\n\n4. **Avoid common words and patterns**  \n   Stay away from passwords like `password123`, `qwerty`, `abc123`, or `111111`.\n\n5. **Use a passphrase**  \n   A strong option is a phrase made of several random words, such as:  \n   `River!Candle7Mountain$Cloud`\n\n6. **Make it unique for each account**  \n   Do not reuse the same password across multiple websites or apps.\n\n7. **Use a password manager**  \n   A password manager can create and store strong, unique passwords for you.\n\n8. **Enable two-factor authentication**  \n   Add extra protection by using a code, app, or security key along with your password.",
+  "score": 5,
+  "cost": 0.003003,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 246
+  }
+}

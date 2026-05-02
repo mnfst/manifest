@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "json_transform_v2",
+  "case": 29,
+  "response": "```json\n{\n  \"services\": [\n    {\n      \"name\": \"myapp\",\n      \"host\": \"db.prod.internal\",\n      \"port\": 5432\n    },\n    {\n      \"name\": \"redis\",\n      \"host\": \"redis.prod.internal\",\n      \"port\": 6379\n    }\n  ],\n  \"app_settings\": {\n    \"debug\": false,\n    \"log_level\": \"warn\",\n    \"workers\": 4\n  }\n}\n```",
+  "score": 5,
+  "cost": 1.7219999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 125
+  }
+}

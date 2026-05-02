@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\n    count = 0\n    for num in arr:\n        if num > 0:\n            count += 1\n        else:\n            digits = [int(d) for d in str(abs(num))]\n            if digits:\n                digits[0] = -digits[0]\n            if sum(digits) > 0:\n                count += 1\n    return count\n```",
+  "score": 4,
+  "cost": 0.001941,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 95
+  }
+}

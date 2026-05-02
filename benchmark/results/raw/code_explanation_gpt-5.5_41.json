@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This computes a CRC-32 checksum over `data` using the bit-by-bit reflected CRC algorithm with the standard reversed polynomial `0xEDB88320`. It initializes and final-XORs with `0xFFFFFFFF`, processes each byte LSB-first, and conditionally XORs the polynomial when the shifted-out bit is 1.",
+  "score": 5,
+  "cost": 0.001506,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 99
+  }
+}

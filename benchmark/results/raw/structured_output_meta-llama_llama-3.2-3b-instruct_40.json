@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 40,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"ticket_id\": 8472,\n  \"priority\": \"High\",\n  \"created\": \"2h ago\",\n  \"user\": \"premium_user@corp.com\",\n  \"category\": \"billing\",\n  \"subject\": \"Double charged for March subscription\",\n  \"assigned_to\": \"Agent Mike\",\n  \"status\": \"in progress\"\n}\n```\n\nNote that I've kept the \"created\" field as \"2h ago\" since it's a relative time, rather than a specific date and time. If you'd like to convert it to a specific date and time, please let me know and I can update the JSON accordingly.",
+  "score": 4,
+  "cost": 1.3463999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 145
+  }
+}

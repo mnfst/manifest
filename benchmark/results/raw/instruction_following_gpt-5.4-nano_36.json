@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "- Java  \n- C#  \n- C++  \n- Ruby",
+  "score": 5,
+  "cost": 8.400000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 16
+  }
+}

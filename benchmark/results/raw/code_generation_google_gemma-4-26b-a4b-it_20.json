@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 20,
+  "response": "val_map = [\n        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),\n        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),\n        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')\n    ]\n    roman = \"\"\n    for val, symbol in val_map:\n        while number >= val:\n            roman += symbol\n            number -= val\n    return roman",
+  "score": 5,
+  "cost": 1.854e-05,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 145
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "Here's a comparison table explaining the key differences between **TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)**:\n\n| **Feature**               | **TCP**                                      | **UDP**                                      |\n|--------------------------|----------------------------------------------|----------------------------------------------|\n| **Connection-Oriented**  | Yes (establishes a connection before data transfer) | No (connectionless, sends data directly)     |\n| **Reliability**          | Reliable (guarantees data delivery)           | Unreliable (no guarantees for delivery)      |\n| **Data Order**           | Ensures data is received in the correct order | Does not guarantee order                      |\n| **Error Checking**       | Includes error detection and correction      | Basic error checking (checksum only)         |\n| **Flow Control**         | Yes (manages data flow to prevent overload)  | No                                         |\n| **Congestion Control**  | Yes (adjusts transmission rates)             | No                                         |\n| **Speed**                | Slower (due to overhead and reliability)     | Faster (minimal overhead)                    |\n| **Header Size**          | Larger (20\u201360 bytes)                         | Smaller (8 bytes)                            |\n| **Retransmission**       | Retransmits lost packets                     | Drops lost packets                           |\n| **Use Cases**            | Web browsing, email, file transfers           | Streaming, gaming, DNS, VoIP, real-time apps |\n| **Examples**             | HTTP, FTP, SMTP, SSH                         | DNS, UDP-based streaming, online gaming      |\n\n### Key Differences Summary:\n- **TCP** prioritizes **reliability** and **accuracy**, making it ideal for critical data transfers (e.g., emails, files).  \n- **UDP** prioritizes **speed** and **low latency**, making it suitable for real-time applications (e.g., video calls, gaming).  \n\nChoose TCP for applications where data integrity is vital, and UDP for scenarios where speed and efficiency are more critical.",
+  "score": 5,
+  "cost": 5.365e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 1054
+  }
+}

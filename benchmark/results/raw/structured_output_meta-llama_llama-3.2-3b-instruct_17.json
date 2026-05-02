@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 17,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"message\": \"fix(auth): resolve session timeout on mobile browsers\",\n  \"type\": \"commit\",\n  \"scope\": \"fix/session-timeout\",\n  \"author\": \"@jdoe\",\n  \"branch\": \"fix/session-timeout\",\n  \"files_changed\": 3,\n  \"insertions\": 47,\n  \"deletions\": 12,\n  \"pr_number\": 892\n}\n```\n\nNote that I've added the `type` field, which is implied by the context of the text, but not explicitly mentioned. If you want to exclude it, you can simply remove it.",
+  "score": 4,
+  "cost": 1.377e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 140
+  }
+}

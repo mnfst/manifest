@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "This code implements a basic **producer-consumer pattern** using a shared queue for inter-thread/process communication. Each producer enqueues its items and then a `None` **sentinel** to signal completion, while each consumer keeps consuming until it sees `None`, then re-enqueues the sentinel so other consumers can also terminate.",
+  "score": 5,
+  "cost": 0.0001125,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 68
+  }
+}

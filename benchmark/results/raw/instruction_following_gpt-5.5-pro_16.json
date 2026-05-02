@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the attraction between things that have mass or energy. It pulls objects toward each other: it keeps you on the ground, makes dropped objects fall, holds the Moon in orbit around Earth, and keeps planets moving around the Sun.\n\nNewton described gravity as a force pulling masses together. Einstein described it more deeply: massive objects bend space and time, and other objects move along those curves. That is gravity.",
+  "score": 5,
+  "cost": 0.00318,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 152
+  }
+}

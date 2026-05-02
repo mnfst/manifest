@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "The city in Victoria called the \"sporting capital of Australia\" is Melbourne. This is mentioned in the context provided, where it describes Melbourne as home to a number of museums, art galleries, and theatres, and also as the \"sporting capital of Australia.\"",
+  "score": 5,
+  "cost": 2.015e-05,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 255,
+    "output": 55
+  }
+}

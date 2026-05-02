@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne",
+  "score": 5,
+  "cost": 8.039999999999999e-05,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 248,
+    "output": 5
+  }
+}

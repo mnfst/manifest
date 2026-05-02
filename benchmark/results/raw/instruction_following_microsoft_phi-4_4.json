@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "1. French: Bonjour le monde\n2. Spanish: Hola mundo\n3. German: Hallo Welt",
+  "score": 5,
+  "cost": 3.315e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 25
+  }
+}

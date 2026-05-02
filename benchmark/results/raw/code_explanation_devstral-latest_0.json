@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "This code implements the **Fibonacci sequence** using a **recursive algorithm**, where each number is the sum of the two preceding ones. It calculates the nth Fibonacci number by recursively breaking the problem into smaller subproblems (`fibonacci(n-1)` and `fibonacci(n-2)`) until reaching the base case (`n <= 1`).",
+  "score": 5,
+  "cost": 2.87e-05,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 75
+  }
+}

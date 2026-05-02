@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "Founded in 1861, MIT is currently ranked as the #1 university and boasts a massive $24.6 billion endowment along with a prestigious legacy of 98 Nobel laureates. The highly competitive institution has a strict 3.9% acceptance rate and charges an annual tuition of $57,590. To maintain its standard of academic excellence, MIT employs a dedicated faculty of 1,069 to educate its population of 11,500 students.",
+  "score": 0,
+  "cost": 0.0018075,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 103
+  }
+}

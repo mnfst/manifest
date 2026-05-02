@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "structured_output",
+  "case": 8,
+  "response": "To extract the information from the provided text and return it as valid JSON matching the given schema, we can identify the components as follows:\n\n- **Unit**: \"Apartment 4B\"\n- **Street**: \"123 Main Street\"\n- **City**: \"San Francisco\"\n- **State**: \"CA\"\n- **Zip**: \"94105\"\n- **Country**: \"United States\"\n\nHere's the JSON representation:\n\n```json\n{\n  \"unit\": \"Apartment 4B\",\n  \"street\": \"123 Main Street\",\n  \"city\": \"San Francisco\",\n  \"state\": \"CA\",\n  \"zip\": \"94105\",\n  \"country\": \"United States\"\n}\n```",
+  "score": 5,
+  "cost": 1.4755e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 142
+  }
+}

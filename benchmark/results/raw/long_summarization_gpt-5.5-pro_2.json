@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "long_summarization",
+  "case": 2,
+  "response": "The global food system must feed a projected 9.7 billion people by 2050, requiring about 60% more food, while climate change, water scarcity, and soil degradation threaten production. Agriculture also drives roughly 25% of greenhouse gas emissions, and intensive farming has reduced productivity on 33% of arable land, while about one-third of all food is lost or wasted. Major water sources such as the Ogallala Aquifer, along with aquifers in India, China, and the Middle East, are being depleted faster than they recharge. Potential solutions include precision agriculture, vertical farming, alternative proteins, drought-resistant crops, regenerative farming, and policy reforms, but the central challenge is scaling them while keeping food affordable and accessible.",
+  "score": 5,
+  "cost": 0.00621,
+  "expected": "",
+  "tokens": {
+    "input": 294,
+    "output": 237
+  }
+}

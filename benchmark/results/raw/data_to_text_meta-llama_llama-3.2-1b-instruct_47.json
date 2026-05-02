@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 47,
+  "response": "Taylor Swift's highly anticipated album \"Midnights\" was released in October 2022, marking her tenth studio album. With 13 tracks, the album features a mix of pop and synth-pop sounds, showcasing Swift's signature storytelling ability. The album debuted at number one on the US Billboard 200 chart and has been certified 10x Platinum by the RIAA, with over 1.58 million first-week sales.",
+  "score": 0,
+  "cost": 5.103e-06,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 88
+  }
+}

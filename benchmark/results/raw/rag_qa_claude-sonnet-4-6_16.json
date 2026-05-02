@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Based on the provided context, Harvard owns approximately **fifty percent more** land in Allston than in Cambridge.",
+  "score": 5,
+  "cost": 0.001086,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 232,
+    "output": 26
+  }
+}

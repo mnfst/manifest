@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew significantly and became much more interconnected as a result of imperialism.",
+  "score": 5,
+  "cost": 2.9e-05,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 233,
+    "output": 19
+  }
+}

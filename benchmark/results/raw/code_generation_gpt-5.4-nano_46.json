@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 46,
+  "response": "if not arr:\n    return []\nmin_even = None\nmin_index = -1\nfor i, v in enumerate(arr):\n    if v % 2 == 0:\n        if min_even is None or v < min_even:\n            min_even = v\n            min_index = i\nreturn [min_even, min_index] if min_even is not None else []",
+  "score": 5,
+  "cost": 6.59e-05,
+  "expected": "",
+  "tokens": {
+    "input": 343,
+    "output": 79
+  }
+}

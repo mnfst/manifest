@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 22,
+  "response": "stack = 0\nfor ch in brackets:\n    if ch == \"<\":\n        stack += 1\n    elif ch == \">\":\n        stack -= 1\n        if stack < 0:\n            return False\nreturn stack == 0",
+  "score": 5,
+  "cost": 3.3600000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 53
+  }
+}

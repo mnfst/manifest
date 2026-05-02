@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Rating: \u2b50\u2b50\u2b50\u2b50\u2b50 (5/5)**  \n\n**The Velvet Fork \u2013 A Culinary Masterpiece in the Heart of Downtown**  \n\nNestled in the bustling heart of downtown, *The Velvet Fork* is a dining experience that transcends the ordinary. From the moment you step through its sleek, glass entrance, you\u2019re enveloped in a world where modern elegance meets intimate charm. The ambiance is a masterclass in subtlety\u2014soft lighting, curated art, and the faint hum of jazz create a serene yet vibrant atmosphere.  \n\nThe menu, a fusion of French and Asian influences, is a revelation. Each dish is a testament to the chef\u2019s artistry. The **\"Wagyu Beef with Miso Glaze\"** was a standout, its tender meat balanced by the umami depth of the glaze and the crispness of pickled daikon. For dessert, the **\"Matcha Tiramisu\"** redefined the classic\u2014creamy mascarpone layered with vibrant matcha custard, topped with a delicate chiffon foam. Presentation is impeccable, with each plate feeling like a work of art.  \n\nService is equally exceptional. The staff is attentive without being intrusive, and the sommelier\u2019s recommendations for wine pairings elevated the meal to new heights. While the price point is steep, the quality and creativity justify every penny.  \n\n**Verdict:** *The Velvet Fork* is a rare gem\u2014a restaurant that delights the senses and leaves you longing for your next visit. Whether you\u2019re celebrating a special occasion or simply craving culinary magic, this is a destination worth every star.",
+  "score": 5,
+  "cost": 4.215000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 818
+  }
+}

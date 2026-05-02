@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "data_to_text",
+  "case": 39,
+  "response": "Here is the converted text:\n\nApple's stock, ticker symbol AAPL, is currently trading at $185.50, representing a 2.3% increase from the previous day. The stock has seen significant volume, with 45 million shares changing hands, and has a market capitalization of over $2.87 trillion. With a price-to-earnings ratio of 28.4 and a dividend yield of 0.55%, investors are also keeping an eye on the stock's performance, which has ranged from a high of $198 to a low of $155 over the past 52 weeks.",
+  "score": 0,
+  "cost": 1.1934e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 124
+  }
+}

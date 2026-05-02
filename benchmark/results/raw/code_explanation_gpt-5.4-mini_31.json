@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This function implements the **A\\*** search algorithm to find the lowest-cost path from `start` to `goal` in a weighted graph, using a heuristic to prioritize nodes that seem closer to the goal. It keeps a priority queue ordered by **f(n) = g(n) + h(n)**, where `g(n)` is the path cost so far and `h(n)` is the heuristic estimate, and returns the first path that reaches the goal.",
+  "score": 5,
+  "cost": 0.0001656,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 96
+  }
+}

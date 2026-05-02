@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "The Amazon forest stores about 10% of the world's carbon in ecosystems.",
+  "score": 5,
+  "cost": 2.2899999999999998e-05,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 175,
+    "output": 18
+  }
+}

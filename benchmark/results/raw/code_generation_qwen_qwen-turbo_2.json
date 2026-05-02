@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 2,
+  "response": "sorted_lst = sorted(lst)\nresult = []\nwhile sorted_lst:\n    result.append(sorted_lst.pop(0))\n    if sorted_lst:\n        result.append(sorted_lst.pop())\nreturn result",
+  "score": 4,
+  "cost": 6.501000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 36
+  }
+}

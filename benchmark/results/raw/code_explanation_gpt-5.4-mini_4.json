@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code defines a **memoization decorator**: it wraps a function `f` and stores results in a dictionary keyed by the input arguments, so repeated calls with the same arguments return the cached result instead of recomputing it. It uses the **wrapper closure pattern** with a function-level cache to optimize recursive or expensive function calls.",
+  "score": 5,
+  "cost": 0.0001077,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 71
+  }
+}

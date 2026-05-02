@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "The annual performance review cycle begins on May 1, with a new competency framework being implemented this year. Managers are required to complete a training session on April 30 to prepare for the review process, which includes self-reviews due by May 15, manager reviews by May 22, calibration by May 28, and final delivery by June 5.",
+  "score": 5,
+  "cost": 1.0984999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 73
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 22,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"activity\": \"5km run\",\n  \"distance_km\": 5,\n  \"duration\": \"24:30\",\n  \"avg_pace\": \"4:54/km\",\n  \"heart_rate\": {\n    \"avg_bpm\": 155,\n    \"max_bpm\": 178\n  },\n  \"calories\": 380,\n  \"date\": \"Monday March 4\"\n}\n```\n\nNote that I've used double quotes around the \"activity\" and \"date\" fields to match the schema.",
+  "score": 5,
+  "cost": 6.777e-06,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 121
+  }
+}

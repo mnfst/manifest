@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 1,
+  "response": "Quantum computing is a new computing model that uses qubits, superposition, entanglement, and interference to potentially solve certain problems exponentially faster than classical computers. Major players like IBM, Google, IonQ, and Rigetti are developing hardware through approaches such as superconducting circuits, trapped ions, photonics, and topological qubits. Google claimed quantum supremacy in 2019 by completing a task in 200 seconds that would have taken a classical supercomputer 10,000 years, but practical use is still limited by fragile qubits, high error rates, and the need for millions of qubits for useful applications. Even so, the technology shows promise in areas like drug discovery, materials science, cryptography, optimization, finance, and logistics.",
+  "score": 5,
+  "cost": 0.00026759999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 276,
+    "output": 154
+  }
+}

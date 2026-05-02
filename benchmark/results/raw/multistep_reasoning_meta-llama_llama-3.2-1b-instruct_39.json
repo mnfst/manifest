@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "multistep_reasoning",
+  "case": 39,
+  "response": "To lose the least amount of mass, the atom would lose a neutron. \n\nStep by step:\n\n1. A neutron has a mass of approximately 1 atomic mass unit (amu).\n2. A proton has a mass of approximately 1.007276 amu.\n3. An electron has a mass of approximately 0.00055 amu.\n4. The mass of a nucleus is the sum of the masses of the protons and neutrons it contains.\n5. Since a neutron has a smaller mass than a proton, losing a neutron would result in a smaller mass.\n\nTherefore, the atom would lose the least amount of mass if it lost a neutron.",
+  "score": 5,
+  "cost": 5.724000000000001e-06,
+  "expected": "D",
+  "tokens": {
+    "input": 77,
+    "output": 135
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 23,
+  "response": "This function performs **binary search** on a sorted array `a` to find the leftmost index where value `x` can be inserted while maintaining sorted order. It repeatedly halves the search space by comparing the midpoint value to `x`, returning the index of the first element that is **greater than or equal to** `x`.",
+  "score": 4,
+  "cost": 0.001395,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 72
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "To write a Google-style docstring, you need to include specific sections: a **summary line**, an **Args** section, a **Returns** section, and (optionally) a **Raises** or **Examples** section.\n\nHere is a template for a generic sort function.\n\n```python\ndef sort_elements(elements, reverse=False, key=None):\n    \"\"\"Sorts a list of elements in ascending or descending order.\n\n    This function takes an iterable and returns a new list containing the \n    elements sorted based on the provided key and direction.\n\n    Args:\n        elements (list): A list of comparable elements (e.g., integers, strings) \n            to be sorted.\n        reverse (bool, optional): If True, the list is sorted in descending \n            order. Defaults to False.\n        key (callable, optional): A function that serves as a key for the \n            sort comparison (e.g., `key=len` or `key=str.lower`). \n            Defaults to None.\n\n    Returns:\n        list: A new list containing all items from the original iterable \n            in sorted order.\n\n    Raises:\n        TypeError: If the elements in the list are not comparable with \n            each other.\n\n    Examples:\n        >>> sort_elements([3, 1, 4, 2])\n        [1, 2, 3, 4]\n        >>> sort_elements(['apple', 'Banana', 'cherry'], key=str.lower)\n        ['apple', 'Banana', 'cherry']\n        >>> sort_elements([1, 2, 3], reverse=True)\n        [3, 2, 1]\n    \"\"\"\n    return sorted(elements, reverse=reverse, key=key)\n```\n\n### Key Rules for Google Style:\n\n1.  **Summary Line:** A concise one-line summary of what the function does, ending in a period.\n2.  **Description:** A more detailed explanation (if necessary) separated from the summary by a blank line.\n3.  **Args Section:**\n    *   List each parameter by name.\n    *   Include the type in parentheses: `name (type): description`.\n    *   If a parameter is optional, note the default value.\n4",
+  "score": 5,
+  "cost": 3.162e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 500
+  }
+}

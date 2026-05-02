@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "Here's a limerick about Dave:\n\nA programmer named Dave wrote some code,\nThat caused the whole server to explode,\nHe stared at the screen,\nNot sure what it'd mean,\nThen blamed it on \"bugs in the road.\"",
+  "score": 5,
+  "cost": 0.000906,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 57
+  }
+}

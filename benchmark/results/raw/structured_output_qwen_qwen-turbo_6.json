@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "structured_output",
+  "case": 6,
+  "response": "{\n  \"type\": \"Bug report\",\n  \"summary\": \"App crashes on login when using Face ID on iPhone 14 with iOS 17.2\",\n  \"device\": \"iPhone 14\",\n  \"os_version\": \"iOS 17.2\",\n  \"reproducibility\": \"Reproducible every time\",\n  \"severity\": \"critical\"\n}",
+  "score": 5,
+  "cost": 6.006000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 80
+  }
+}

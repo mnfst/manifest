@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code creates a **Disjoint Set Union (DSU)**, also called **Union-Find**, data structure for tracking which of `n` elements belong to the same connected group. It uses **path compression** in `find` and **union by rank** in `union` to make repeated merge and lookup operations very efficient, near constant time on average.",
+  "score": 5,
+  "cost": 0.000932,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 77
+  }
+}

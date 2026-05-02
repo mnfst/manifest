@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 31,
+  "response": "```python\n    lst = [s for s in lst if len(s) % 2 == 0]\n    return sorted(lst, key=lambda x: (len(x), x))\n```",
+  "score": 5,
+  "cost": 0.001476,
+  "expected": "",
+  "tokens": {
+    "input": 247,
+    "output": 49
+  }
+}

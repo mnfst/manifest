@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 9,
+  "response": "```python\n    return sum(i**2 for i in lst if isinstance(i, (int, float)) and not isinstance(i, bool) and i > 0 and i % 2 != 0 and i == int(i))\n```",
+  "score": 3,
+  "cost": 0.0015,
+  "expected": "",
+  "tokens": {
+    "input": 195,
+    "output": 61
+  }
+}

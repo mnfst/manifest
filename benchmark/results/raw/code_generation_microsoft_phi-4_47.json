@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 47,
+  "response": "```python\nreturn ' '.join(str(i) for i in range(n + 1))\n```",
+  "score": 5,
+  "cost": 7.865e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 21
+  }
+}

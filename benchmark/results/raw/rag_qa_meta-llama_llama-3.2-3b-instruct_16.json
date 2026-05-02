@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Approximately fifty percent.",
+  "score": 5,
+  "cost": 1.1627999999999998e-05,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 222,
+    "output": 6
+  }
+}

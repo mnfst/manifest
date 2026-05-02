@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "json_transform_v2",
+  "case": 21,
+  "response": "```json\n{\"order_id\": \"ORD-001\", \"subtotal\": 89.97, \"discount\": 8.997, \"shipping\": 5.99, \"total\": 86.973, \"item_count\": 3}\n```",
+  "score": 4,
+  "cost": 3.3799999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 64
+  }
+}

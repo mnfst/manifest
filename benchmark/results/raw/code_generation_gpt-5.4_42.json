@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n    return -1\navg = (n + m) / 2\nreturn bin(round(avg))",
+  "score": 3,
+  "cost": 0.000574,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 29
+  }
+}

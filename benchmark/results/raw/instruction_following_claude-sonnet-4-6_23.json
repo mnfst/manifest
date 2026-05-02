@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "Here are 5 fruits in alphabetical order:\n\nApple; Banana; Cherry; Date; Elderberry",
+  "score": 5,
+  "cost": 0.000477,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 27
+  }
+}

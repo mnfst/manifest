@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "Answer: J. F. D. Shrewsbury",
+  "score": 5,
+  "cost": 1.9700000000000005e-05,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 201,
+    "output": 193
+  }
+}

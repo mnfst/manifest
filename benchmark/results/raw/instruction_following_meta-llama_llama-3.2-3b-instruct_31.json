@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 31,
+  "response": "Here are the first 10 prime numbers separated by commas:\n\n2, 3, 5, 7, 11, 13, 17, 19, 23, 29",
+  "score": 4,
+  "cost": 3.2129999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 41
+  }
+}

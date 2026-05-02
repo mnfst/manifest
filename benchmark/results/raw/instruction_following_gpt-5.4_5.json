@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun drifted toward the horizon like a glowing coin slipping into water, casting long bands of amber, gold, and violet across the sky. Clouds caught the fading light at their edges, turning soft and luminous, while the land below grew dim and quiet. The air seemed to pause as daylight thinned, leaving behind a warm glow that slowly gave way to deep blue evening.",
+  "score": 5,
+  "cost": 0.000672,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 79
+  }
+}

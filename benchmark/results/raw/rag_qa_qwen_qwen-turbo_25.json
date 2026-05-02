@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Answer: Infrastructure suffered considerably for Warsaw when it had an Eastern Bloc economy.",
+  "score": 5,
+  "cost": 5.973000000000001e-06,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 166,
+    "output": 15
+  }
+}

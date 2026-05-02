@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort_items(items, key=None, reverse=False):\n    \"\"\"Sorts a sequence and returns the sorted result.\n\n    Args:\n        items: The sequence of items to sort.\n        key: Optional function that is used to extract a comparison key from\n            each item. Defaults to None.\n        reverse: If True, sorts the items in descending order. Defaults to\n            False.\n\n    Returns:\n        A new list containing the sorted items.\n\n    Raises:\n        TypeError: If `items` is not iterable or contains elements that cannot\n            be compared.\n\n    Examples:\n        >>> sort_items([3, 1, 2])\n        [1, 2, 3]\n        >>> sort_items([\"apple\", \"pear\", \"fig\"], key=len)\n        ['fig', 'pear', 'apple']\n        >>> sort_items([3, 1, 2], reverse=True)\n        [3, 2, 1]\n    \"\"\"\n```\n\nIf you want, I can also make it:\n- more generic,\n- for an in-place sort function,\n- or tailored to a specific language/function signature.",
+  "score": 5,
+  "cost": 0.001912,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 234
+  }
+}

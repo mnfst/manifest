@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "structured_output",
+  "case": 37,
+  "response": "{\"serving_size\":\"1 cup (240ml)\",\"calories\":120,\"fat_g\":2.0,\"saturated_fat_g\":0.5,\"sodium_mg\":150,\"carbs_g\":22,\"fiber_g\":3,\"sugar_g\":12,\"protein_g\":4}",
+  "score": 5,
+  "cost": 0.000812,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 66
+  }
+}

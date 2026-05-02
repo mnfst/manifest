@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "The code performs a **depth-first search (DFS)**-based topological sort on a directed acyclic graph (DAG), using a recursive approach to process nodes and push them onto a stack. The final result is the reversed stack, which represents a valid topological order where each node appears before its dependencies.",
+  "score": 5,
+  "cost": 1.885e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 268
+  }
+}

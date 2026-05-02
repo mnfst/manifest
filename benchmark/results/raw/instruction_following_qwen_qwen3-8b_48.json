@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Romeo and Juliet, from feuding families, meet at a party, fall in love, and secretly marry. Tybalt's murder by Romeo leads to his banishment. Juliet fakes her death to avoid marrying Paris, but Romeo, unaware, drinks poison. She awakens, kills herself, and the families reconcile too late, ending in tragedy.",
+  "score": 5,
+  "cost": 1.735e-05,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 317
+  }
+}

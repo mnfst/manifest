@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "- Ottawa, Canada \u2014 North America  \n- Bras\u00edlia, Brazil \u2014 South America  \n- Paris, France \u2014 Europe  \n- Cairo, Egypt \u2014 Africa  \n- Tokyo, Japan \u2014 Asia",
+  "score": 5,
+  "cost": 0.00251,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 120
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "The other NHL team in Southern California aside from the Anaheim Ducks is the Los Angeles Kings. \n\nLos Angeles Kings are mentioned in the context as part of the professional sports teams in Southern California.",
+  "score": 5,
+  "cost": 1.0595000000000001e-05,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 124,
+    "output": 39
+  }
+}

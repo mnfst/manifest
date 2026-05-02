@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 2,
+  "response": "sorted_lst = sorted(lst)\nresult = []\nleft, right = 0, len(sorted_lst) - 1\nwhile left <= right:\n    result.append(sorted_lst[left])\n    left += 1\n    if left <= right:\n        result.append(sorted_lst[right])\n        right -= 1\nreturn result",
+  "score": 5,
+  "cost": 0.00011125,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 2068
+  }
+}

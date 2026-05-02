@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "data_to_text",
+  "case": 27,
+  "response": "Founded in 2022, DataFlow AI is a data infrastructure startup operating with a team of 18 people. The company is currently generating $120K in Monthly Recurring Revenue (MRR) and growing at a rapid rate of 25% month-over-month. Backed by notable investors Sequoia and YC, DataFlow AI recently secured $8.5M in Series A funding, bringing its total valuation to $42M.",
+  "score": 0,
+  "cost": 0.001695,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 96
+  }
+}

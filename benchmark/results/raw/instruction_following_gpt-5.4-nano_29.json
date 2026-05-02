@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA (deoxyribonucleic acid) is the molecule that stores genetic instructions in living organisms, arranged as a double helix of nucleotide \u201cbuilding blocks.\u201d These instructions guide how cells function and produce proteins.",
+  "score": 2,
+  "cost": 2.04e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 46
+  }
+}

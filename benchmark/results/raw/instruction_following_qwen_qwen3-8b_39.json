@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "**Q: What is a VPN?**  \n**A: A VPN (Virtual Private Network) is a service that creates a secure, encrypted connection over the internet, allowing users to access the web privately and safely. It masks the user\u2019s IP address, encrypts data, and routes internet traffic through a remote server, making it difficult for hackers, ISPs, or governments to track online activity or intercept sensitive information. This helps protect privacy, bypass geo-restrictions, and securely access networks from public or untrusted locations.**",
+  "score": 5,
+  "cost": 2.8250000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 543
+  }
+}

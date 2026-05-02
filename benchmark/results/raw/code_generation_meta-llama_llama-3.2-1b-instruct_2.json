@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 2,
+  "response": "def strange_sort_list(lst):\n    if not lst:\n        return lst\n    min_val = min(lst)\n    return strange_sort_list([x for x in lst if x != min_val]) + [min_val] + strange_sort_list([x for x in lst if x != min_val])",
+  "score": 2,
+  "cost": 5.967000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 61
+  }
+}

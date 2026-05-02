@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "structured_output",
+  "case": 28,
+  "response": "```json\n{\n  \"podcast\": \"The Daily by The New York Times\",\n  \"publisher\": \"The New York Times\",\n  \"episode_title\": \"The AI Race\",\n  \"duration_minutes\": 28,\n  \"release_date\": \"2024-03-15\",\n  \"rating\": 4.8,\n  \"downloads\": \"2.3M\"\n}\n```",
+  "score": 4,
+  "cost": 4.46e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 83
+  }
+}

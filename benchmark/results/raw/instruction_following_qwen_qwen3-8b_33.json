@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth's only natural satellite and the fifth-largest moon in the solar system.  \n2. It has no atmosphere, leading to extreme temperature fluctuations and no weather.  \n3. The Moon's surface is covered with craters, mountains, and vast dark plains called \"maria,\" formed by ancient volcanic activity.",
+  "score": 5,
+  "cost": 2.68e-05,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 508
+  }
+}

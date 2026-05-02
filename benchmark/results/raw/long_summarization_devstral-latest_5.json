@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Alexander Fleming\u2019s 1928 discovery of penicillin revolutionized medicine, enabling life-saving surgeries and treatments for once-deadly infections, with the 1950s\u201360s marking a \"golden age\" of antibiotic development. However, declining financial incentives led to a sharp drop in new antibiotics, while overuse in healthcare and agriculture (e.g., 70% of U.S. antibiotics are used in livestock) fueled antimicrobial resistance, giving rise to threats like MRSA. Today, resistant infections kill over 1.2 million people annually, prompting urgent research into alternatives such as phage therapy, CRISPR-based tools, and AI-driven drug discovery to combat the crisis. The text highlights both antibiotics' transformative legacy and the pressing need for innovation to address resistance.",
+  "score": 5,
+  "cost": 6.17e-05,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 161
+  }
+}

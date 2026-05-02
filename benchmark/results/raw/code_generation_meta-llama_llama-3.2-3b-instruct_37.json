@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 37,
+  "response": "```python\ndef triangle_area(a, h):\n    return 0.5 * a * h\n```",
+  "score": 5,
+  "cost": 5.3549999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 23
+  }
+}

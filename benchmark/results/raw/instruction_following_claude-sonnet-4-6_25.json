@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Here is an email subject line for a meeting invitation:\n\n**\"Team Meeting Invitation: Please Join Us This Week\"**",
+  "score": 2,
+  "cost": 0.000504,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 29
+  }
+}

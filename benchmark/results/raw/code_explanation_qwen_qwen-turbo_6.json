@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 6,
+  "response": "This code defines a recursive generator function that flattens a nested list by yielding each individual element, using a depth-first traversal approach. It checks if an item is a list and, if so, recursively flattens it; otherwise, it yields the item directly.",
+  "score": 5,
+  "cost": 4.026e-06,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 52
+  }
+}

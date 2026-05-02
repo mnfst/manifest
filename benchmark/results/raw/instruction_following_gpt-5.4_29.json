@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA (deoxyribonucleic acid) is the molecule in living things that stores the genetic instructions for building, running, and reproducing cells. It is shaped like a double helix and is passed from parents to offspring.",
+  "score": 3,
+  "cost": 0.00044,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 50
+  }
+}

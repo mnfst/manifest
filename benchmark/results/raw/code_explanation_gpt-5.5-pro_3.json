@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 3,
+  "response": "This defines a higher-order function that composes unary functions using `reduce` (a left fold), returning a new function. For example, `compose(f, g, h)(x)` computes `f(g(h(x)))`, so the functions are applied right-to-left.",
+  "score": 5,
+  "cost": 0.00658,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 313
+  }
+}

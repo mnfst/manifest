@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom.",
+  "score": 5,
+  "cost": 1.9900000000000003e-05,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 171,
+    "output": 7
+  }
+}

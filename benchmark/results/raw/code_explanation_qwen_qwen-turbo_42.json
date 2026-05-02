@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous queue using a deque, where the `put` method blocks when the queue is full by waiting on a future in `_putters`, and the `get` method blocks when the queue is empty by waiting on a future in `_getters`. It uses a producer-consumer pattern with asynchronous waiting and signaling.",
+  "score": 5,
+  "cost": 9.405e-06,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 67
+  }
+}

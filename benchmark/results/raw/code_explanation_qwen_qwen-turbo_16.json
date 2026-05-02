@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "This code limits the number of concurrently running asynchronous tasks by using a semaphore with a specified `limit`. It wraps each coroutine in a function that acquires the semaphore before running the coroutine, ensuring that no more than `limit` tasks run at the same time. The `asyncio.gather` function then collects the results of all the wrapped coroutines.",
+  "score": 5,
+  "cost": 5.379e-06,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 71
+  }
+}

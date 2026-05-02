@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI isn\u2019t magic\u2014it\u2019s a multiplier. The real breakthrough comes when human curiosity, judgment, and creativity guide the tools we build.",
+  "score": 5,
+  "cost": 0.0014,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 65
+  }
+}

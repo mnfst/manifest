@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```python\n    if x == 0:\n        return '0'\n    digits = []\n    while x > 0:\n        digits.append(str(x % base))\n        x = x // base\n    return ''.join(reversed(digits))\n```",
+  "score": 5,
+  "cost": 2.84e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 53
+  }
+}

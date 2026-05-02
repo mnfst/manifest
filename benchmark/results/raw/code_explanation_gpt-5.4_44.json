@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This function finds all **connected components** in a graph by repeatedly running a **breadth-first search (BFS)** from each unvisited node. It keeps a global `visited` set so each node is processed once, and each BFS collects all nodes reachable from its start node into one component, returning a list of those components.",
+  "score": 5,
+  "cost": 0.000818,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 70
+  }
+}

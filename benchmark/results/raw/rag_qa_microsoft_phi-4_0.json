@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "A small fraction of the cold water flow from Lake Constance is diverted off the island of Mainau into Lake \u00dcberlingen.",
+  "score": 5,
+  "cost": 1.7355e-05,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 241,
+    "output": 26
+  }
+}

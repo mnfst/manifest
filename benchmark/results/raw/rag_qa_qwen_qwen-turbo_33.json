@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "OPEC raised the price of oil to $5.11 a barrel in response to American aid to Israel.",
+  "score": 5,
+  "cost": 1.0131e-05,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 284,
+    "output": 23
+  }
+}

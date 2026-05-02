@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "In the heart of the bustling city, Emma found solace in the quiet corners of the library, where the scent of old books and the soft hum of whispered conversations enveloped her. One rainy afternoon, she stumbled upon a dusty, forgotten manuscript tucked away in a forgotten corner, its pages filled with tales of a forgotten world. As she read, the words seemed to dance off the pages, weaving a story of a mysterious land where time flowed differently, and people lived in harmony with nature. Intrigued, Emma decided to delve deeper, spending her evenings unraveling the secrets of the manuscript, discovering hidden maps and cryptic notes scribbled in the margins. The more she read, the more she felt connected to the world within the manuscript, as if the stories were calling her to explore their truths. Eventually, Emma realized that the manuscript was not just a story, but a guide to a hidden realm, inviting her to embark on a journey beyond the pages, into a world where imagination and reality intertwined.",
+  "score": 1,
+  "cost": 1.443e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 205
+  }
+}

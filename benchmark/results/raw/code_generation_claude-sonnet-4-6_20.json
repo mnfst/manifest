@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 20,
+  "response": "```python\n    val = [\n        1000, 900, 500, 400,\n        100, 90, 50, 40,\n        10, 9, 5, 4,\n        1\n    ]\n    syms = [\n        'M', 'CM', 'D', 'CD',\n        'C', 'XC', 'L', 'XL',\n        'X', 'IX', 'V', 'IV',\n        'I'\n    ]\n    result = ''\n    for i in range(len(val)):\n        while number >= val[i]:\n            result += syms[i]\n            number -= val[i]\n    return result.lower()\n```",
+  "score": 4,
+  "cost": 0.003084,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 174
+  }
+}

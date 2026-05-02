@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 24,
+  "response": "if a + b <= c or a + c <= b or b + c <= a:\n    return -1\ns = (a + b + c) / 2\narea = math.sqrt(s * (s - a) * (s - b) * (s - c))\nreturn round(area, 2)",
+  "score": 4,
+  "cost": 0.00023425000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 4529
+  }
+}

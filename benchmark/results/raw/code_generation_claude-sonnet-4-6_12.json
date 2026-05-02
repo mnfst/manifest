@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 12,
+  "response": "return [s for s in strings if substring in s]",
+  "score": 5,
+  "cost": 0.000663,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 15
+  }
+}

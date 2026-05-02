@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "data_to_text",
+  "case": 1,
+  "response": "LeBron James, 40, had an outstanding 2024-25 season with the Lakers, averaging 28.4 points, 7.2 rebounds, and 8.1 assists per game over 71 contests. He was named an All-Star, showcasing his continued dominance on the court. His impressive stats highlight his elite performance and leadership for the team.",
+  "score": 0,
+  "cost": 6.006000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 80
+  }
+}

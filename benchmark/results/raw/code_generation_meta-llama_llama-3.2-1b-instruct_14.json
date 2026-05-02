@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 14,
+  "response": "def fib(n: int) -> int:\n    if n <= 1:\n        return n\n    a, b = 0, 1\n    for _ in range(2, n + 1):\n        a, b = b, a + b\n    return b",
+  "score": 5,
+  "cost": 3.969e-06,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 59
+  }
+}

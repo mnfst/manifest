@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan, with a population of 125 million, has a GDP of $4.2 trillion, reflecting a modest 1.1% growth rate. The country maintains low unemployment (2.6%) and moderate inflation (3.2%), while its debt-to-GDP ratio stands at 263%, highlighting significant fiscal obligations. Life expectancy in Japan is 84.6 years, and its exports reach $756 billion, underscoring its strong economic and global trade position.",
+  "score": 0,
+  "cost": 2.6000000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 408
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Imagine you are sitting at a table in a **restaurant**.\n\nYou are the customer. You want to order a meal from the kitchen, but you can\u2019t just walk into the kitchen and start shouting at the chefs or grabbing ingredients yourself. There is a barrier between you and the food.\n\nTo get what you want, you need a **messenger**.\n\nThat messenger is the **waiter**.\n\n1.  **The Request:** You look at the menu and tell the waiter, \"I would like the cheeseburger.\"\n2.  **The Delivery:** The waiter takes your specific request, walks into the kitchen, and tells the chefs exactly what to do.\n3.  **The Response:** Once the food is ready, the waiter picks it up and brings it back to your table.\n\nIn this scenario, the **API is the waiter**.\n\nIn the digital world, an API is the middleman that allows two different systems to talk to each other. One system (you) asks for something, the API carries that request to another system (the kitchen), and then the API brings the answer (the food) back to you.\n\n**A real-world example:**\nWhen you use a travel website to compare flight prices, the website doesn't own the airplanes. Instead, it uses an **API** to \"ask\" United, Delta, and American Airlines for their prices. The airlines send the prices back through the API, and the website shows them all to you in one place.",
+  "score": 4,
+  "cost": 2.0099999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 309
+  }
+}

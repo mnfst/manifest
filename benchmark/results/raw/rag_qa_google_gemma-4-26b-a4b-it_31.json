@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 5,
+  "cost": 1.092e-05,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 179,
+    "output": 3
+  }
+}

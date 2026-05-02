@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 6,
+  "response": "Here is the extracted information in JSON format:\n\n```\n{\n  \"type\": \"bug report\",\n  \"summary\": \"App crashes on login when using Face ID on iPhone 14 with iOS 17.2\",\n  \"device\": \"iPhone 14\",\n  \"os_version\": \"iOS 17.2\",\n  \"reproducibility\": \"every time\",\n  \"severity\": \"critical\"\n}\n```\n\nNote that I've added quotes around the `type` field to make it a string, as per the schema. Let me know if you'd like me to make any changes!",
+  "score": 5,
+  "cost": 1.1322e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 123
+  }
+}

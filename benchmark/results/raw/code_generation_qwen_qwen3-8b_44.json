@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 44,
+  "response": "result = []\n    vowels = {'a', 'e', 'i', 'o', 'u'}\n    for char in message:\n        swapped = char.swapcase()\n        if swapped.lower() in vowels:\n            lower_char = swapped.lower()\n            position = ord(lower_char) - ord('a')\n            new_position = position + 2\n            new_letter = chr(ord('a') + new_position)\n            if swapped.isupper():\n                new_char = new_letter.upper()\n            else:\n                new_char = new_letter.lower()\n            result.append(new_char)\n        else:\n            result.append(swapped)\n    return ''.join(result)",
+  "score": 3,
+  "cost": 0.0003052500000000001,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 5963
+  }
+}

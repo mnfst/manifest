@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA (deoxyribonucleic acid) is a molecule composed of nucleotides that stores genetic instructions for building and maintaining an organism. It forms a double-helix structure and is located in the cell nucleus, directing protein synthesis through genes.",
+  "score": 2,
+  "cost": 1.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 213
+  }
+}

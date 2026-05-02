@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "long_summarization",
+  "case": 2,
+  "response": "The global food system faces significant challenges due to a projected 60% increase in food demand by 2050, driven by a population rise to 9.7 billion, while climate change, water scarcity, and soil degradation threaten productivity. Agriculture contributes about 25% of greenhouse gas emissions, and one-third of food is wasted, worsening the crisis. Innovative solutions like precision agriculture, vertical farming, and alternative proteins are being explored, alongside policy reforms. The key challenge is scaling these solutions to ensure food security and affordability for all, especially the poorest populations.",
+  "score": 5,
+  "cost": 1.3992000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 308,
+    "output": 116
+  }
+}

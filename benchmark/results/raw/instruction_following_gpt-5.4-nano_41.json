@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort(items, *, key=None, reverse=False):\n    \"\"\"Sort a collection of items.\n\n    This function returns a new list containing the elements from `items` in\n    sorted order.\n\n    Args:\n        items: An iterable of elements to be sorted.\n        key: Optional function of one argument that is used to extract a\n            comparison key from each element. If not provided, the elements\n            themselves are compared.\n        reverse: If True, sorts the items in descending order.\n\n    Returns:\n        A new list containing the sorted elements.\n\n    Raises:\n        TypeError: If the elements cannot be compared, or if `key` is not\n            callable.\n    \"\"\"\n```",
+  "score": 5,
+  "cost": 6.0400000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 146
+  }
+}

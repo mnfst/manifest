@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure in Warsaw suffered considerably during its time as an Eastern Bloc economy.",
+  "score": 5,
+  "cost": 2.2700000000000003e-05,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 159,
+    "output": 17
+  }
+}

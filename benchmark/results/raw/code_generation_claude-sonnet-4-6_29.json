@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\n    def digit_sum(n):\n        s = str(n)\n        if s[0] == '-':\n            digits = [int(d) for d in s[1:]]\n            digits[0] = -digits[0]\n        else:\n            digits = [int(d) for d in s]\n        return sum(digits)\n    \n    return sorted(nums, key=lambda x: digit_sum(x))\n```",
+  "score": 4,
+  "cost": 0.002112,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 108
+  }
+}

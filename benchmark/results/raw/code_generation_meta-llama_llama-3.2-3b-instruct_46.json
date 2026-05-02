@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\ndef pluck(arr):\n    even_nodes = [(node, i) for i, node in enumerate(arr) if node % 2 == 0]\n    if not even_nodes:\n        return []\n    return [min(even_nodes, key=lambda x: (x[0], x[1]))]\n```",
+  "score": 3,
+  "cost": 2.1164999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 348,
+    "output": 67
+  }
+}

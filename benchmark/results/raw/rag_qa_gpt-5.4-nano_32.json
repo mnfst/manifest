@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world\u2019s economy grew significantly on a global scale and became much more interconnected in the decades before World War I as a result of imperialism.",
+  "score": 5,
+  "cost": 3.52e-05,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 224,
+    "output": 32
+  }
+}

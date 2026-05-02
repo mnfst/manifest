@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 45,
+  "response": "This code implements a middleware pipeline using the chain-of-responsibility pattern: functions are registered in `_stack`, then executed in order with a shared `context`. Each middleware receives a `next()` callback that recursively calls the next function in the chain, allowing it to pass control onward or stop the chain early.",
+  "score": 5,
+  "cost": 0.000732,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 65
+  }
+}

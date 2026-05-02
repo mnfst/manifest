@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The garden that was formally only for royalty is the **Saxon Garden**. The context explicitly states, \"The Saxon Garden, covering the area of 15.5 ha, was formally a royal garden.\" No other garden in the text is described with this specific exclusivity. \n\n**Answer:** Saxon Garden.",
+  "score": 5,
+  "cost": 3.475e-05,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 434,
+    "output": 261
+  }
+}

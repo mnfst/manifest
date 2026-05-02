@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Leafy greens (lettuce or spinach)  \n- [ ] Cherry tomatoes  \n- [ ] Cucumber  \n- [ ] Red onion  \n- [ ] Carrots (shredded)  \n- [ ] Olive oil  \n- [ ] Vinegar (balsamic or red wine)  \n- [ ] Salt  \n- [ ] Black pepper",
+  "score": 5,
+  "cost": 3.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 75
+  }
+}

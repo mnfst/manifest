@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Answer: Melbourne",
+  "score": 5,
+  "cost": 8.778e-06,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 263,
+    "output": 3
+  }
+}

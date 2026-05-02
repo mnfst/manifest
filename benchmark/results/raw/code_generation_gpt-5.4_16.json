@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 16,
+  "response": "n = len(grid)\npos = [None] * (n * n + 1)\nfor i in range(n):\n    for j in range(n):\n        pos[grid[i][j]] = (i, j)\n\nif k == 1:\n    return [1]\n\ndef neighbors(i, j):\n    if i > 0:\n        yield i - 1, j\n    if i + 1 < n:\n        yield i + 1, j\n    if j > 0:\n        yield i, j - 1\n    if j + 1 < n:\n        yield i, j + 1\n\nreachable = {(i, j) for i in range(n) for j in range(n)}\nans = []\n\nfor step in range(k):\n    best_val = None\n    next_reachable = set()\n\n    for i, j in reachable:\n        v = grid[i][j]\n        if best_val is None or v < best_val:\n            best_val = v\n            next_reachable = {(i, j)}\n        elif v == best_val:\n            next_reachable.add((i, j))\n\n    ans.append(best_val)\n\n    if step == k - 1:\n        break\n\n    expanded = set()\n    for i, j in next_reachable:\n        for ni, nj in neighbors(i, j):\n            expanded.add((ni, nj))\n    reachable = expanded\n\nreturn ans",
+  "score": 3,
+  "cost": 0.003214,
+  "expected": "",
+  "tokens": {
+    "input": 427,
+    "output": 295
+  }
+}

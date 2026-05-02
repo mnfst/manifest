@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Here is a pizza description using only adjectives and nouns:\n\nA round, cheesy, saucy, crispy, golden, bubbly, flavorful, savory, tangy, crunchy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy, soft, fluffy, fragrant, aromatic, spicy, sweet, savory, crunchy, crispy, cheesy, bubbly, flavorful, tangy",
+  "score": 2,
+  "cost": 1.4147999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 500
+  }
+}

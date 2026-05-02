@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 32,
+  "response": "```python\n    words = s.split(' ')\n    ordered_words = [''.join(sorted(word)) for word in words]\n    return ' '.join(ordered_words)\n```",
+  "score": 4,
+  "cost": 2.74e-05,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 37
+  }
+}

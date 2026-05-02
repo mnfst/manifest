@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "\"\"\"Sorts a list in ascending order.\n\nArgs:\n    arr (list): A list of elements to be sorted. Elements must be comparable.\n\nReturns:\n    list: A new list containing the sorted elements in ascending order. The original list is not modified.\n\nExamples:\n    >>> sort([3, 1, 2])\n    [1, 2, 3]\n\"\"\"",
+  "score": 5,
+  "cost": 5.3500000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 1048
+  }
+}

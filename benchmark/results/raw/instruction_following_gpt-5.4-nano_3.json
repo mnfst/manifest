@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "GERMANY, FRANCE, ITALY, SPAIN, NORWAY",
+  "score": 5,
+  "cost": 9.4e-06,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 19
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe 2020s have seen significant advancements in space exploration, with notable developments in the development of SpaceX's Starship, NASA's Artemis program to return to the Moon, and the launch of the James Webb Space Telescope. Other countries, including China and India, have also made strides in space exploration, with China's space station and lunar ambitions, and India's successful Chandrayaan missions. The decade has also seen the growth of satellite internet constellations, space tourism ventures, and asteroid mining prospects. However, the increasing presence in space also raises concerns about the problem of space debris and the limitations of the Outer Space Treaty.",
+  "score": 5,
+  "cost": 1.4330999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 143
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "\"Every small step forward is a victory\u2014keep going, you're closer than you think.\"",
+  "score": 5,
+  "cost": 8.1e-06,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 20
+  }
+}

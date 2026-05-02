@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 29,
+  "response": "if not nums:\n    return []\ndecorated = [(sum(int(c) for c in str(abs(n)) if c.isdigit()), i, n) for i, n in enumerate(nums)]\ndecorated.sort(key=lambda x: (x[0], x[1]))\nreturn [n for _, _, n in decorated]",
+  "score": 5,
+  "cost": 4.1800000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 68
+  }
+}

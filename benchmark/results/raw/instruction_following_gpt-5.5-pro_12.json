@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is like a restaurant menu.\n\nThe menu tells you what you can order. You don\u2019t need to know how the kitchen makes the food\u2014you just choose something from the menu, ask for it, and get it back.\n\nAn API works the same way: it lets one thing ask another thing for help or information in a clear, agreed-upon way.\n\nExample: a weather tool might let another tool ask, \u201cWhat\u2019s the weather in London?\u201d and then send back the answer.",
+  "score": 5,
+  "cost": 0.007465,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 368
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 15,
+  "response": "def largest_prime_factor(n: int) -> int:\n    i = 2\n    while i * i <= n:\n        if n % i:\n            i += 1\n        else:\n            n //= i\n    return n",
+  "score": 4,
+  "cost": 3.996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 49
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Certainly! Here are four words that rhyme with \"cat\":\n\n- Bat\n- Hat\n- Mat\n- Rat\n\nThese words all share a similar ending sound with \"cat.\"",
+  "score": 5,
+  "cost": 3.6400000000000007e-06,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 37
+  }
+}

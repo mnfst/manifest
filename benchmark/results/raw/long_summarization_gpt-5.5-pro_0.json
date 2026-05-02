@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "long_summarization",
+  "case": 0,
+  "response": "The internet began with 1960s U.S. Defense Department networking research, leading to ARPANET\u2019s first 1969 demonstration between UCLA and Stanford Research Institute. Its modern foundation emerged with TCP/IP in 1983, followed by Tim Berners-Lee\u2019s 1989 invention of the World Wide Web and Mosaic\u2019s 1993 browser, which helped bring it to ordinary users. After the late-1990s dot-com boom and 2001 crash, companies like Amazon and Google became dominant, while social media, smartphones after the 2007 iPhone, and cloud computing such as AWS reshaped internet use. Today, the internet connects over 5 billion people and supports much of modern commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.00669,
+  "expected": "",
+  "tokens": {
+    "input": 314,
+    "output": 256
+  }
+}

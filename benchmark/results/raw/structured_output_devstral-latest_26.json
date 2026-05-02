@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "structured_output",
+  "case": 26,
+  "response": "```json\n{\n  \"title\": \"Team standup\",\n  \"recurrence\": \"weekdays\",\n  \"time_start\": \"09:00:00\",\n  \"time_end\": \"09:15:00\",\n  \"timezone\": \"PST\",\n  \"meeting_link\": \"meet.google.com/abc-defg-hij\",\n  \"organizer\": \"sarah@company.com\"\n}\n```",
+  "score": 5,
+  "cost": 3.93e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 94
+  }
+}

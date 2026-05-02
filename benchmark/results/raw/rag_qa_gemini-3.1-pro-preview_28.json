@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "Based on the provided context, whenever C\u00e9loron encountered British merchants or fur-traders, he informed them of the French claims on the territory and told them to leave.",
+  "score": 5,
+  "cost": 0.00107,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 218,
+    "output": 35
+  }
+}

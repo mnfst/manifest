@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This function implements the **Knuth\u2013Morris\u2013Pratt (KMP) string-search algorithm** to find the first occurrence of `pattern` in `text`. It first builds an **LPS (longest proper prefix which is also suffix)** table for the pattern, then uses that table during the search to skip redundant comparisons instead of restarting from scratch, returning the match\u2019s starting index or `-1` if no match exists.",
+  "score": 5,
+  "cost": 0.001102,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 92
+  }
+}

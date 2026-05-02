@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "## Explanation\n\nThis implements **Dijkstra's shortest path algorithm**, which finds the minimum-cost distance from a `start` node to all reachable nodes in a weighted graph. It uses a **min-heap (priority queue)** to greedily process the nearest unvisited node first, relaxing neighboring edge weights and skipping stale heap entries via the `if d > dist.get(u)` check.",
+  "score": 5,
+  "cost": 0.001935,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 95
+  }
+}

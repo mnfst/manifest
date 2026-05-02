@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements a bounded asynchronous FIFO queue using `asyncio`, with separate wait lists for blocked producers (`_putters`) and consumers (`_getters`). It uses a classic producer-consumer coordination pattern: `put()` waits when the queue is full, `get()` waits when it is empty, and each operation wakes a waiting task by completing its `Future`.",
+  "score": 5,
+  "cost": 0.0001557,
+  "expected": "",
+  "tokens": {
+    "input": 211,
+    "output": 77
+  }
+}

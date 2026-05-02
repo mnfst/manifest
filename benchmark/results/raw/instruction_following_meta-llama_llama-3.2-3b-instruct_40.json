@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are 5 capital cities, each from a different continent:\n\n1. Asia: Tokyo, Japan\n2. Africa: Cairo, Egypt\n3. Europe: Paris, France\n4. North America: Washington, D.C., USA\n5. South America: Bras\u00edlia, Brazil",
+  "score": 5,
+  "cost": 4.284e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 59
+  }
+}

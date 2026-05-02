@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 25,
+  "response": "from typing import List\n\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    stack = []\n    result = []\n    for char in paren_string:\n        if char == '(':\n            stack.append(char)\n        elif char == ')':\n            if stack:\n                stack.pop()\n            else:\n                result.append(char)\n    return result",
+  "score": 2,
+  "cost": 5.994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 71
+  }
+}

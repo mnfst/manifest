@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Here is the converted paragraph:\n\nJapan is a country with a population of 125 million people, a GDP of $4.2 trillion, and a growth rate of 1.1%. The country also has a relatively high unemployment rate of 2.6%, a moderate inflation rate of 3.2%, and a significant debt-to-GDP ratio of 263%. Additionally, Japan has a life expectancy of 84.6 years, and its exports are valued at $756 billion.",
+  "score": 0,
+  "cost": 5.615999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 100
+  }
+}

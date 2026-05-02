@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 1,
+  "response": "levels = []\n    current = 0\n    for ch in paren_string:\n        if ch == '(':\n            current += 1\n        elif ch == ')':\n            current -= 1\n        elif ch == ' ':\n            if current == 0:\n                continue\n        # track max per group by splitting on spaces\n    for group in paren_string.split():\n        depth = 0\n        max_depth = 0\n        for ch in group:\n            if ch == '(':\n                depth += 1\n                if depth > max_depth:\n                    max_depth = depth\n            else:\n                depth -= 1\n        levels.append(max_depth)\n    return levels",
+  "score": 4,
+  "cost": 0.00021389999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 143
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 36,
+  "response": "d = 2\n    while d * d <= n:\n        if n % d == 0:\n            return n // d\n        d += 1\n    return 1",
+  "score": 3,
+  "cost": 0.050245,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 2491
+  }
+}

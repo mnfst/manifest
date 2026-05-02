@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "structured_output",
+  "case": 0,
+  "response": "To extract the information from the text and return it as valid JSON matching the given schema, we can parse the text as follows:\n\n- **Name**: \"John Smith\"\n- **Age**: 32\n- **Job Title**: \"software engineer\"\n- **Company**: \"Google\"\n- **Location**: \n  - **City**: \"Mountain View\"\n  - **State**: \"CA\"\n\nHere's the JSON representation:\n\n```json\n{\n  \"name\": \"John Smith\",\n  \"age\": 32,\n  \"job_title\": \"software engineer\",\n  \"company\": \"Google\",\n  \"location\": {\n    \"city\": \"Mountain View\",\n    \"state\": \"CA\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 1.4950000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 145
+  }
+}

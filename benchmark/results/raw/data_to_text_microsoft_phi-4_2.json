@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "data_to_text",
+  "case": 2,
+  "response": "Stockholm, the capital city of Sweden, boasts a population of approximately 1.6 million people and spans an area of 188 square kilometers. Founded in 1252, Stockholm is known for its rich history and vibrant culture, with Swedish being the primary language spoken. The city experiences an average temperature of -3\u00b0C in January and warms up to about 18\u00b0C in July. With a GDP per capita of $62,000, Stockholm is one of the most prosperous cities in Sweden, reflecting its economic significance and quality of life.",
+  "score": 0,
+  "cost": 1.352e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 111
+  }
+}

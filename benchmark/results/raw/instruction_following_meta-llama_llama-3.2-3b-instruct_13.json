@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "Here are the 7 colors of the rainbow, in order:\n\n1. Red\n2. Orange\n3. Yellow\n4. Green\n5. Blue\n6. Indigo\n7. Violet",
+  "score": 5,
+  "cost": 3.2639999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 42
+  }
+}

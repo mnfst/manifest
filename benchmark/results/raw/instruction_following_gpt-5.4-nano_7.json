@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 2 eggs with a splash of milk, salt, and pepper. Heat a nonstick pan on low, melt 1 tsp butter, pour eggs in. Stir gently until soft curds form. Remove from heat, fold in cheese or herbs if desired, and serve immediately.",
+  "score": 3,
+  "cost": 2.6600000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 61
+  }
+}

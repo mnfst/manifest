@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This implements **reservoir sampling**: it keeps a uniform random sample of `k` items from a stream whose total length may be unknown. The first `k` items fill the reservoir, and each later item replaces a random existing item with probability `k/(i+1)`, ensuring every stream item has equal chance of being included.",
+  "score": 5,
+  "cost": 0.00329,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 141
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code implements a parameterized decorator that automatically retries a failing function up to a specified number of times. It uses an **exponential backoff** algorithm, doubling the wait time between each subsequent retry attempt before ultimately raising the exception if all attempts fail.",
+  "score": 5,
+  "cost": 0.001055,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 50
+  }
+}

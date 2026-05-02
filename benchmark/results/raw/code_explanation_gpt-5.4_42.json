@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements a simple `asyncio`-based producer\u2013consumer queue using a FIFO `deque` plus two wait lists of `Future` objects to coordinate blocked producers and consumers. `put()` waits with backpressure when the queue reaches `maxsize`, `get()` waits when the queue is empty, and each side wakes the other by resolving the oldest waiting future, following an event-driven blocking queue pattern.",
+  "score": 5,
+  "cost": 0.00111,
+  "expected": "",
+  "tokens": {
+    "input": 211,
+    "output": 86
+  }
+}

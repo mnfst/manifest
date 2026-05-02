@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 17,
+  "response": "import hashlib\n\nif not text:\n    return None\nreturn hashlib.md5(text.encode()).hexdigest()",
+  "score": 5,
+  "cost": 4.719e-06,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 20
+  }
+}

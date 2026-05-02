@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 2\u20133 eggs with a pinch of salt and a splash of milk. Melt butter in a nonstick pan over low heat. Add eggs and stir gently until soft curds form. Remove before fully set; they\u2019ll finish cooking off heat. Serve immediately.",
+  "score": 3,
+  "cost": 7.619999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 58
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "Here are three benefits of exercise:\n\n\u2022 **Improves Mental Health**: Regular exercise has been shown to reduce symptoms of anxiety and depression, improve mood, and even reduce the risk of developing mental health disorders.\n\u2022 **Boosts Physical Health**: Exercise can help improve cardiovascular health, increase strength and flexibility, and reduce the risk of chronic diseases such as heart disease, diabetes, and some types of cancer.\n\u2022 **Increases Energy and Productivity**: Exercise can increase energy levels and reduce fatigue, allowing individuals to feel more alert and focused, and improve overall productivity and performance in daily activities.",
+  "score": 4,
+  "cost": 7.139999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 117
+  }
+}

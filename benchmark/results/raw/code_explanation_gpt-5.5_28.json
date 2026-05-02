@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 28,
+  "response": "This function computes the length of the **longest common subsequence (LCS)** between strings/sequences `a` and `b`. It uses a **dynamic programming** table where `dp[i][j]` stores the LCS length for prefixes `a[:i]` and `b[:j]`, building the answer in `O(mn)` time.",
+  "score": 5,
+  "cost": 0.00159,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 93
+  }
+}

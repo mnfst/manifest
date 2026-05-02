@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "The high end of the temperature range in winter is 70 degrees.",
+  "score": 5,
+  "cost": 1.027e-05,
+  "expected": "70",
+  "tokens": {
+    "input": 143,
+    "output": 15
+  }
+}

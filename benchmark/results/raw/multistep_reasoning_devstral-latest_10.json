@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "multistep_reasoning",
+  "case": 10,
+  "response": "A) Traits from two parents are combined.",
+  "score": 5,
+  "cost": 1.1899999999999998e-05,
+  "expected": "A",
+  "tokens": {
+    "input": 86,
+    "output": 11
+  }
+}

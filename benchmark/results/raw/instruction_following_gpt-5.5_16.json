@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the force of attraction between things that have mass. It is what pulls objects toward Earth, keeps the Moon orbiting Earth, and keeps planets orbiting the Sun.\n\nThe more massive something is, the stronger its gravity. Earth has much more mass than a person or a ball, so its gravity pulls things downward toward its center. That is why when you drop something, it falls.\n\nModern physics also explains gravity as the bending of space and time. Massive objects like planets and stars curve the space around them, and other objects move along those curves.\n\nThat is gravity.",
+  "score": 5,
+  "cost": 0.001842,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 147
+  }
+}

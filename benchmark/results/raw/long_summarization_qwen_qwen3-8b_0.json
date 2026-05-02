@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "long_summarization",
+  "case": 0,
+  "response": "The internet originated in the 1960s with ARPANET, a U.S. Department of Defense project, and expanded through the 1970s. The adoption of TCP/IP protocols in 1983 and Tim Berners-Lee's invention of the World Wide Web in 1989 laid the groundwork for its growth, accelerated by the 1993 launch of Mosaic, which made the web accessible to the public. The dot-com boom of the late 1990s saw both failures and successes, with companies like Amazon and Google rising to prominence. Today, the internet connects over 5 billion people, transforming commerce, communication, and entertainment globally.",
+  "score": 5,
+  "cost": 4.135e-05,
+  "expected": "",
+  "tokens": {
+    "input": 336,
+    "output": 491
+  }
+}

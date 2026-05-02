@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code solves the classic **0/1 Knapsack problem**, calculating the maximum total value of items that can be packed into a container without exceeding its weight capacity. It uses a **bottom-up dynamic programming** approach, constructing a 2D table to systematically evaluate and store the optimal maximum value for incrementally larger subsets of items and weight limits.",
+  "score": 5,
+  "cost": 0.00147,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 70
+  }
+}

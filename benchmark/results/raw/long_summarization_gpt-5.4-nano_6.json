@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Before the pandemic, remote work was uncommon, with fewer than 5% of workers fully remote. In 2020 it became a forced mainstream experiment enabled by tools like Zoom and Slack and backed by cloud infrastructure, though productivity studies (including Stanford\u2019s Nick Bloom research) found mixed results. As companies pushed return-to-office policies, backlash grew and hybrid models became more common, alongside concerns about commercial real estate and \u201cgeographic arbitrage\u201d as workers moved to lower-cost areas. Remote work also reshaped company culture and slowed or changed junior employee development, while \u201cdigital nomad\u201d visas emerged to formalize cross-border remote work.",
+  "score": 5,
+  "cost": 6.64e-05,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 130
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government owns V/Line.",
+  "score": 5,
+  "cost": 2.01e-05,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 157,
+    "output": 11
+  }
+}

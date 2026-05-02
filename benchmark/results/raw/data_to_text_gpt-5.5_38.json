@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "Server prod-web-01 in the us-east-1 region has been up for 45 days and is currently running at 78% CPU utilization, with memory usage at 12.4 of 16 GB and disk usage at 234 of 500 GB. It is handling 127 active connections, with a P99 latency of 145 ms and 3 errors per hour.",
+  "score": 5,
+  "cost": 0.001509,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 101
+  }
+}

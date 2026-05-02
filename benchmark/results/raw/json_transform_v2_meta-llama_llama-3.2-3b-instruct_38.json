@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "json_transform_v2",
+  "case": 38,
+  "response": "```\n{\"rankings\": [{\"name\": \"Ali\", \"average\": 84.33333333333333, \"rank\": 1}, {\"name\": \"Ben\", \"average\": 90.0, \"rank\": 2}, {\"name\": \"Cat\", \"average\": 76.66666666666667, \"rank\": 3}], \"class_average\": 86.66666666666667}\n```",
+  "score": 5,
+  "cost": 1.0914e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 89
+  }
+}

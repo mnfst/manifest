@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "In the 2020s, space exploration has advanced significantly both scientifically and commercially. SpaceX is developing the Starship, aiming to revolutionize space travel, while NASA's Artemis program seeks to return humans to the Moon. The James Webb Space Telescope is expected to make groundbreaking discoveries, enhancing our understanding of the universe. China is building a space station and pursuing lunar missions, while India has successfully conducted Chandrayaan missions to explore the Moon. The era is marked by growing satellite internet constellations like Starlink and OneWeb, expanding global connectivity. Space tourism is emerging through companies like Blue Origin and Virgin Galactic, and asteroid mining is being explored as a potential resource. However, challenges persist, such as the limitations imposed by the Outer Space Treaty and the increasing problem of space debris, which pose regulatory and environmental concerns.",
+  "score": 5,
+  "cost": 1.9825000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 166
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- On April 14, 2026, at approximately 3:20 PM, a rear-end collision occurred on Main Street near 5th Avenue involving a white sedan and a red pickup truck.  \n- The sedan was stopped at a traffic light when the pickup failed to stop in time and struck the rear of the sedan; both vehicles sustained moderate front and rear damage, and no visible skid marks were reported.  \n- Two drivers reported minor neck pain, refused immediate ambulance transport, and the vehicles were towed; the investigation cited inattentive driving as the primary cause, and traffic was temporarily delayed.",
+  "score": 1,
+  "cost": 5.22e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 126
+  }
+}

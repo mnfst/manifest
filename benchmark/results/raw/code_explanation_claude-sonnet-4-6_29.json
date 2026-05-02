@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 29,
+  "response": "This implements **function currying** by using Python's `inspect` module to determine the target function's parameter count, then returning a wrapper that accumulates arguments across multiple calls until the required number is reached, at which point the original function is invoked. For example, a function `add(a, b, c)` wrapped with `curry` can be called as `curry(add)(1)(2)(3)` or `curry(add)(1, 2)(3)`, etc.",
+  "score": 5,
+  "cost": 0.001917,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 107
+  }
+}

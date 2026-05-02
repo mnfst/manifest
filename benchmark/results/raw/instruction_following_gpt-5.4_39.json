@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "**Q: What is a VPN?**  \n**A:** A VPN, or **Virtual Private Network**, is a service that creates a secure connection between your device and the internet.\n\n**Q: What does a VPN do?**  \n**A:** A VPN mainly does two things:\n1. **Encrypts your internet traffic** so others can\u2019t easily see what you\u2019re doing online.\n2. **Hides your IP address** by routing your traffic through a VPN server.\n\n**Q: How does encryption help?**  \n**A:** Encryption scrambles your data so that if someone intercepts it, they can\u2019t easily read it. This is especially useful on public Wi-Fi.\n\n**Q: What does hiding your IP address do?**  \n**A:** Your IP address can reveal your general location and identify your connection. A VPN replaces it with the IP address of the VPN server, making your traffic appear to come from somewhere else.\n\n**Q: Does a VPN make you completely anonymous?**  \n**A:** No. A VPN improves privacy, but it does **not** make you completely anonymous. Websites, accounts you log into, cookies, and the VPN provider itself may still track activity.\n\n**Q: Why do people use a VPN?**  \n**A:** Common reasons include:\n- Protecting data on public Wi-Fi\n- Improving privacy from internet providers\n- Accessing services from another region\n- Connecting securely to a work or school network\n\n**Q: Does a VPN make internet faster?**  \n**A:** Usually not. A VPN often **slows your connection slightly** because your data has to be encrypted and routed through another server.\n\n**Q: Is using a VPN always enough for security?**  \n**A:** No. A VPN is just one tool. Good security also includes using strong passwords, enabling multi-factor authentication, keeping software updated, and being careful about scams and malware.",
+  "score": 5,
+  "cost": 0.003174,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 392
+  }
+}

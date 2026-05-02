@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 36,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"team\": \"Team Alpha\",\n  \"sprint_number\": 23,\n  \"dates\": \"Jan 15-26 2024\",\n  \"planned_points\": 42,\n  \"completed_points\": 38,\n  \"carried_over\": 4,\n  \"stories_done\": 5,\n  \"stories_incomplete\": 1\n}\n```\n\nLet me know if you'd like me to make any adjustments!",
+  "score": 5,
+  "cost": 1.1883e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 104
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun begins its final descent, a heavy sphere of molten gold sinking toward the distant horizon. As it drops lower, the sky ignites in a brilliant display of tangerine and deep magenta. Wisps of clouds catch the fading light, glowing like embers of copper and peach against the encroaching twilight. Long, dark silhouettes of trees stretch across the cooling earth, their shadows lengthening as the light softens. In its final moments, the blazing orb slips beneath the edge of the world, leaving behind a bruised canopy of violet and indigo that slowly surrenders to the quiet dark.",
+  "score": 3,
+  "cost": 0.0017475,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 114
+  }
+}

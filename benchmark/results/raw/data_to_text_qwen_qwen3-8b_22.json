@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "Server prod-web-01 is running with 78% CPU usage, 12.4/16 GB of memory, and 234/500 GB of disk space, having been operational for 45 days. It handles 127 active connections with a P99 latency of 145ms and reports 3 errors per hour, located in the us-east-1 region.",
+  "score": 0,
+  "cost": 2.54e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 393
+  }
+}

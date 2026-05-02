@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "infrastructure",
+  "score": 5,
+  "cost": 9.78e-06,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 161,
+    "output": 2
+  }
+}

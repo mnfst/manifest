@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 23,
+  "response": "Here is the extracted information in JSON format:\n\n```\n{\n  \"type\": \"delivery\",\n  \"tracking_number\": \"TRK-99281\",\n  \"status\": \"delivered\",\n  \"delivery_location\": \"front door\",\n  \"delivery_time\": \"2:15 PM\",\n  \"delivery_date\": \"March 12\",\n  \"signed_by\": \"M. Johnson\",\n  \"carrier\": \"FedEx\"\n}\n```\n\nNote that I've assumed the \"type\" field should be \"delivery\" based on the context of the text, but if you'd like to change it to something else, please let me know!",
+  "score": 5,
+  "cost": 1.2546e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 131
+  }
+}

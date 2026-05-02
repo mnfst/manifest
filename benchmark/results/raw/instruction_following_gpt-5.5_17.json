@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| Pros of Remote Work | Cons of Remote Work |\n|---|---|\n| Greater flexibility in schedule and location | Can lead to isolation or loneliness |\n| No commute, saving time and money | Communication and collaboration can be harder |\n| Better work-life balance for many people | More distractions at home or difficulty separating work from personal life |",
+  "score": 5,
+  "cost": 0.000918,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 71
+  }
+}

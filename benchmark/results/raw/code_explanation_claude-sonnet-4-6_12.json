@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "## Explanation\n\nThis function performs a **topological sort** on a directed acyclic graph (DAG) using **depth-first search (DFS)**. It recursively visits each unvisited node, fully exploring all its dependencies before appending the node to a stack, then returns the stack in reverse order \u2014 ensuring every node appears before any node it has an edge pointing to.",
+  "score": 5,
+  "cost": 0.001662,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 84
+  }
+}

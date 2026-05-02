@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Silent screens glow blue  \nLoops weave logic through the night  \nBugs sleep, then awake",
+  "score": 5,
+  "cost": 2.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 21
+  }
+}

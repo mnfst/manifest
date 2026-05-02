@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "## Explanation\n\nThis code implements the **A\\* pathfinding algorithm**, which finds the shortest path between a `start` node and a `goal` node in a weighted graph. It uses a **min-heap (priority queue)** to greedily explore nodes ordered by `f(n) = g(n) + h(n)`, where `g(n)` is the actual cost from the start and `h(n)` is a heuristic estimate of the remaining cost to the goal, returning the optimal path as a list of nodes (or `None` if unreachable).",
+  "score": 5,
+  "cost": 0.002598,
+  "expected": "",
+  "tokens": {
+    "input": 206,
+    "output": 132
+  }
+}

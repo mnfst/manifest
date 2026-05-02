@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "long_summarization",
+  "case": 20,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe history of the internet began in the 1960s with the US Department of Defense's funding of computer networking research, which led to the development of ARPANET, the precursor to the modern internet. The transition to TCP/IP protocols in 1983 and the invention of the World Wide Web by Tim Berners-Lee in 1989 laid the foundation for the modern internet. The late 1990s saw the rise of the dot-com boom, followed by the emergence of social media and mobile internet, which transformed the way people communicate and access information. Today, the internet connects over 5 billion people and underpins virtually every aspect of modern life.",
+  "score": 5,
+  "cost": 2.3766e-05,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 149
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 3,
+  "response": "return [i * xs[i] for i in range(1, len(xs))]",
+  "score": 3,
+  "cost": 1.068e-05,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 21
+  }
+}

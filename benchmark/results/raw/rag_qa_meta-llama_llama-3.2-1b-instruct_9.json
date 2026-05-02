@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "70's",
+  "score": 5,
+  "cost": 4.05e-06,
+  "expected": "70",
+  "tokens": {
+    "input": 147,
+    "output": 3
+  }
+}

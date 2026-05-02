@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Anaerobic bacteria.",
+  "score": 5,
+  "cost": 0.000472,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 204,
+    "output": 8
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The thunderstorm arrives with a **roar** that shakes the air, like a distant beast awakening. **Lightning** splits the sky in jagged streaks, casting fleeting shadows that dance across the landscape. The **rain** lashes against the roof in a relentless rhythm, each drop a sharp *plink* followed by a **crash** of thunder that reverberates in the chest. The air smells of **ozone**\u2014a sharp, metallic tang\u2014mingling with the **wet earth** as the storm pours down, cooling the skin and filling the world with a primal, electric energy.",
+  "score": 5,
+  "cost": 3.35e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 649
+  }
+}

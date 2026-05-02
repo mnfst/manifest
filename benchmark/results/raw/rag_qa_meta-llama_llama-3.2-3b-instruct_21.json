@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Anaerobic bacteria",
+  "score": 5,
+  "cost": 1.1169000000000001e-05,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 214,
+    "output": 5
+  }
+}

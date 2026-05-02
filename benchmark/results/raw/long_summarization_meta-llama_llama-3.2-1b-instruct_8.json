@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe development of artificial intelligence (AI) has undergone significant transformations over the past few decades, from Turing's original question to the current transformer architecture. The 2017 paper on transformer architecture marked a major milestone in AI research, while the rise of deep learning in the 2010s led to a resurgence in AI research. The debate between open-source and closed-source AI has been ongoing, with companies like OpenAI, Google, Anthropic, and Meta competing for dominance. The AI landscape is also marked by concerns about AI safety, regulation, and the impact on knowledge work, with various attempts at regulation and the potential for job displacement.",
+  "score": 4,
+  "cost": 7.964999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 143
+  }
+}

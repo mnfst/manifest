@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- Date, time, and location of the accident, along with weather and road conditions.\n- Names of drivers, vehicles involved, insurance details, and any injuries or property damage.\n- Description of how the accident happened, witness statements, and officer\u2019s findings or diagram.",
+  "score": 3,
+  "cost": 0.000492,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 57
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 38,
+  "response": "largest = None\nsmallest = None\n\nfor x in lst:\n    if x < 0:\n        if largest is None or x > largest:\n            largest = x\n    elif x > 0:\n        if smallest is None or x < smallest:\n            smallest = x\n\nreturn (largest, smallest)",
+  "score": 5,
+  "cost": 4.41e-05,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 67
+  }
+}

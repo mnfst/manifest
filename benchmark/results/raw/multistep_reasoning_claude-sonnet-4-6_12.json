@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "## Step-by-step reasoning:\n\nThe question asks about the effect the **hydrosphere** (water systems) has on the **lithosphere** (Earth's rocky crust/surface).\n\n- **Option A: Erosion of rocks** \u2014 Water (hydrosphere) physically and chemically breaks down and wears away rocks (lithosphere) through erosion. This is a well-known interaction between water and rock.\n\n- **Option B: Evaporation of water** \u2014 This is a process within the hydrosphere/atmosphere interaction, not an effect on the lithosphere.\n\n- **Option C: Heating of the core** \u2014 The hydrosphere does not heat Earth's core. The core is heated by internal processes.\n\n- **Option D: Melting of the crust** \u2014 This is related to geothermal/tectonic processes, not a direct effect of the hydrosphere on the lithosphere.\n\nThe clearest and most direct effect of the hydrosphere on the lithosphere is **erosion of rocks**.\n\n**A**",
+  "score": 5,
+  "cost": 0.003747,
+  "expected": "A",
+  "tokens": {
+    "input": 89,
+    "output": 232
+  }
+}

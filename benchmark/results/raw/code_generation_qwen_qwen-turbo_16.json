@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 16,
+  "response": "def minPath(grid, k):\n    from heapq import heappush, heappop\n    import itertools\n\n    N = len(grid)\n    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n    min_heap = []\n\n    for i in range(N):\n        for j in range(N):\n            heappush(min_heap, (grid[i][j], i, j, [grid[i][j]]))\n\n    while min_heap:\n        val, x, y, path = heappop(min_heap)\n        if len(path) == k:\n            return path\n        for dx, dy in directions:\n            nx, ny = x + dx, y + dy\n            if 0 <= nx < N and 0 <= ny < N:\n                new_path = path + [grid[nx][ny]]\n                heappush(min_heap, (new_path[0], nx, ny, new_path))",
+  "score": 4,
+  "cost": 2.0955000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 433,
+    "output": 202
+  }
+}

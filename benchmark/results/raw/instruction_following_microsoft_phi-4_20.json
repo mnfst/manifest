@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Photosynthesis is a process plants perform to produce sustenance. Sunlight powers this process, providing energy. Plants possess structures called chloroplasts, where photosynthesis primarily occurs. Sunlight strikes chlorophyll, a pigment in chloroplasts, sparking energy absorption. This energy splits water (H\u2082O) sourced from soil, releasing oxygen (O\u2082) as a byproduct. Simultaneously, plants pull carbon dioxide (CO\u2082) from the surrounding air. Using sunlight-powered energy, plants synthesize glucose (C\u2086H\u2081\u2082O\u2086), a sugar serving as sustenance. This synthesis supports plant growth and sustains ecosystems. Photosynthesis plays a pivotal role in sustaining life on Earth, supplying oxygen and forming the foundation of food chains.",
+  "score": 2,
+  "cost": 1.1504999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 154
+  }
+}

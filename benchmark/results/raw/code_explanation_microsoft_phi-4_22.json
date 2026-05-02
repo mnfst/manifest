@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "The code defines a class `LRUCache` that implements a Least Recently Used (LRU) cache using an `OrderedDict` from Python's `collections` module. The LRU cache maintains a fixed capacity (`cap`) and ensures that the least recently accessed item is removed when the cache exceeds this capacity. The `get` method retrieves the value associated with a given key and moves the key to the end of the cache to mark it as recently used. The `put` method inserts or updates a key-value pair, also moving the key to the end of the cache if it already exists, and removes the least recently used item (the first item in the `OrderedDict`) if the cache exceeds its capacity.",
+  "score": 5,
+  "cost": 2.1190000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 146
+  }
+}

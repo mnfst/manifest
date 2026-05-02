@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 33,
+  "response": "def right_angle_triangle(a, b, c):\n    return a**2 + b**2 == c**2",
+  "score": 4,
+  "cost": 4.5359999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 24
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "Based on the provided context, **J. F. D. Shrewsbury**, a British bacteriologist, was the first to significantly challenge the plague theory in **1970**, when he noted that the reported mortality rates in rural areas during the 14th-century pandemic were inconsistent with modern bubonic plague.",
+  "score": 5,
+  "cost": 0.001641,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 202,
+    "output": 69
+  }
+}

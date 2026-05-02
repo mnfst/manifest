@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 6,
+  "response": "from collections import Counter\ncounts = Counter(numbers)\nreturn [n for n in numbers if counts[n] == 1]",
+  "score": 5,
+  "cost": 6.809999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 28
+  }
+}

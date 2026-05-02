@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "- Cairo \u2014 Africa  \n- Paris \u2014 Europe  \n- Tokyo \u2014 Asia  \n- Canberra \u2014 Australia/Oceania  \n- Bras\u00edlia \u2014 South America",
+  "score": 5,
+  "cost": 0.000288,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 31
+  }
+}

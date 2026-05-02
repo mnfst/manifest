@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible force that pulls two objects toward each other. The bigger an object is, the stronger its gravitational pull. For example, Earth\u2019s gravity keeps us on the ground and holds the moon in orbit. The farther apart two objects are, the weaker the pull between them. This force is what makes things fall, keeps planets moving around the sun, and shapes the universe. That is gravity.",
+  "score": 5,
+  "cost": 2.8200000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 86
+  }
+}

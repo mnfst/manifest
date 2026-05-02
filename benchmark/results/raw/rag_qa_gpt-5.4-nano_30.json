@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne.",
+  "score": 5,
+  "cost": 2.7200000000000004e-05,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 248,
+    "output": 6
+  }
+}

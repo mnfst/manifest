@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 32,
+  "response": "Acme Corp, a leading provider of innovative solutions, reported a significant revenue increase in Q1, Q2, Q3, and Q4, with a total revenue of $54.4 million. The company's revenue growth rate of 18% year-over-year is a testament to its commitment to delivering exceptional value to its customers. With a strong financial performance, Acme Corp continues to expand its operations, adding 342 new employees to its team in the past year.",
+  "score": 0,
+  "cost": 5.643e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 97
+  }
+}

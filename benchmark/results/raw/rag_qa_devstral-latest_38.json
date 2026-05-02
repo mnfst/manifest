@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "The nine residential houses are located along or near the Charles River.",
+  "score": 5,
+  "cost": 3e-05,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 258,
+    "output": 14
+  }
+}

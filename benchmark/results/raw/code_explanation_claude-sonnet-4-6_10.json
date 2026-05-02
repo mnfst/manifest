@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "## Explanation\n\nThis function implements the **Sieve of Eratosthenes** algorithm to find all prime numbers up to `n`. It works by initializing a boolean array assuming all numbers are prime, then iteratively marking the multiples of each prime (starting from its square) as non-prime, and finally returning all indices still marked `True`.",
+  "score": 5,
+  "cost": 0.001665,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 79
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Not found in context.",
+  "score": 2,
+  "cost": 8.721e-06,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 317,
+    "output": 6
+  }
+}

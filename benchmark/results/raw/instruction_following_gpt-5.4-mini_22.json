@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are loyal companions that bring joy to many homes. A loyal dog often greets its owner with excitement and affection. People value loyal pets because they offer comfort, friendship, and a loyal sense of trust. Whether playing in the yard or resting nearby, a loyal dog is always a loyal presence in daily life.",
+  "score": 4,
+  "cost": 8.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 66
+  }
+}

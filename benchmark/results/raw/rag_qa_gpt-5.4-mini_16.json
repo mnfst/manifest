@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Approximately fifty percent more land.",
+  "score": 5,
+  "cost": 7.589999999999999e-05,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 217,
+    "output": 9
+  }
+}

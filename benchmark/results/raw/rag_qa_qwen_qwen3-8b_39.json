@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Packet Switching contrasts with **circuit switching**.",
+  "score": 5,
+  "cost": 1.425e-05,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 146,
+    "output": 139
+  }
+}

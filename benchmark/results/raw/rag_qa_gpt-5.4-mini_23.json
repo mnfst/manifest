@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "The mortgage banker.",
+  "score": 5,
+  "cost": 6.75e-05,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 197,
+    "output": 7
+  }
+}

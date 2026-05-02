@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\n    if not arr:\n        return []\n\n    min_even = None\n    min_index = -1\n\n    for index, value in enumerate(arr):\n        if value % 2 == 0:\n            if min_even is None or value < min_even:\n                min_even = value\n                min_index = index\n\n    if min_even is not None:\n        return [min_even, min_index]\n    else:\n        return []\n```",
+  "score": 5,
+  "cost": 6.41e-05,
+  "expected": "",
+  "tokens": {
+    "input": 347,
+    "output": 98
+  }
+}

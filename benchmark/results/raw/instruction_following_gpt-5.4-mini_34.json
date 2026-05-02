@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that helps the database find rows faster, much like an index in a book helps you locate information quickly. It speeds up queries that search, sort, or join on indexed columns, but it can also add extra storage and slow down writes because the index must be updated too.",
+  "score": 3,
+  "cost": 8.340000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 65
+  }
+}

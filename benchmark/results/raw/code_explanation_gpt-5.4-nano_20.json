@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function uses the \u201cpartitioning by predicate\u201d pattern: it duplicates the input iterator with `itertools.tee`, then returns a pair of iterators\u2014one yielding items where `predicate(item)` is true (`filter(predicate, t1)`) and the other yielding items where it\u2019s false (`itertools.filterfalse(predicate, t2)`).",
+  "score": 5,
+  "cost": 3.6e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 73
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 26,
+  "response": "```python\ndef triples_sum_to_zero(l: list):\n    seen = set()\n    for num in l:\n        if -num in seen:\n            return True\n        seen.add(num)\n    return False\n```",
+  "score": 2,
+  "cost": 1.2239999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 195,
+    "output": 45
+  }
+}

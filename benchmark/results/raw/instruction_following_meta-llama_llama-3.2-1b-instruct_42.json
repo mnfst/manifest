@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The sky was a deep, foreboding grey, with clouds that seemed to swirl and twist in every direction, like a living, breathing entity. The air was electric with anticipation, heavy with the scent of ozone and wet earth. As the first droplets began to fall, the sound of raindrops hitting the pavement and leaves created a rhythmic drumbeat that vibrated through every cell of my body.\n\nThe first drops hit the ground with a loud, sharp crackle, like a gunshot, and I felt the cool water soak into my skin, refreshing and invigorating. The sound was almost musical, a soothing melody that seemed to match the beat of my heart. As the storm intensified, the rain grew heavier, drumming against the windows and roof, creating a relentless, pulsing rhythm that seemed to match the pounding of my heart.\n\nThe air was filled with the scent of wet earth and ozone, a pungent, acrid smell that was both earthy and electric. The smell was so intense that it made my eyes water, and I felt a shiver run down my spine as the storm intensified. The wind howled and whistled, creating a mournful, wailing sound that seemed to come from all directions at once.\n\nAs the storm raged on, the lightning flashed across the sky, casting eerie, flickering shadows on the ground. The light was so bright that it was almost blinding, and I felt a sudden, jolt of fear as the thunder boomed and crackled, making me jump. The sound was like a physical presence, a living, breathing entity that seemed to shake the very foundations of the earth.\n\nAs the storm reached its peak, the thunder boomed and rumbled, creating a deafening roar that seemed to shake the air from my lungs. The lightning flashed again and again, casting an otherworldly glow over the landscape, and I felt a sense of awe and wonder at the raw power of the storm. It was as if the very fabric of reality was being torn apart, revealing a hidden world of primal, elemental forces that lay just beneath the surface.",
+  "score": 5,
+  "cost": 1.2312e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 432
+  }
+}

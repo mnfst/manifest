@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:** Hello, and welcome. How may I assist you today?\n\n**Casual:** Hi there! What can I help you with today?\n\n**Humorous:** Hey! I\u2019m your friendly chatbot sidekick\u2014ready to help faster than you can say \u201cbeep boop.\u201d",
+  "score": 5,
+  "cost": 0.000536,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 61
+  }
+}

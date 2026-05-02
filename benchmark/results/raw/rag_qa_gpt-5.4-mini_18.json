@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom",
+  "score": 5,
+  "cost": 5.85e-05,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 171,
+    "output": 6
+  }
+}

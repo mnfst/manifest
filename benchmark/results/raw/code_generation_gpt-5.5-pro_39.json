@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 39,
+  "response": "if x == 0:\n        return \"0\"\n\n    sign = \"\"\n    if x < 0:\n        sign = \"-\"\n        x = -x\n\n    result = \"\"\n    while x:\n        x, digit = divmod(x, base)\n        result = str(digit) + result\n\n    return sign + result",
+  "score": 5,
+  "cost": 0.01618,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 778
+  }
+}

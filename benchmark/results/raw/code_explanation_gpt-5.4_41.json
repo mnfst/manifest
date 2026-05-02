@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This function computes the **CRC-32 checksum** of a byte sequence using the standard **bitwise shift/XOR algorithm** with the reversed polynomial `0xEDB88320`. It starts from `0xFFFFFFFF`, processes each byte one bit at a time by conditionally XORing with the polynomial when the low bit is set, and then finalizes by XORing the result with `0xFFFFFFFF`.",
+  "score": 5,
+  "cost": 0.0009,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 86
+  }
+}

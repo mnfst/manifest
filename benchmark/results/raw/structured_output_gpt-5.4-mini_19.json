@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "structured_output",
+  "case": 19,
+  "response": "{\"type\":\"A\",\"hostname\":\"api.example.com\",\"value\":\"203.0.113.50\",\"ttl_seconds\":3600,\"created\":\"2024-01-01\",\"modified\":\"2024-06-15\"}",
+  "score": 5,
+  "cost": 8.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 48
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_generation",
+  "case": 28,
+  "response": "result = []\nfor i, row in enumerate(lst):\n    for j in range(len(row) - 1, -1, -1):\n        if row[j] == x:\n            result.append((i, j))\nreturn result",
+  "score": 4,
+  "cost": 0.002346,
+  "expected": "",
+  "tokens": {
+    "input": 290,
+    "output": 123
+  }
+}

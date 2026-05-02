@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "multistep_reasoning",
+  "case": 48,
+  "response": "C.  If the river bed is in a dry river bed, it is not flooded. The other choices are irrelevant to the situation.",
+  "score": 5,
+  "cost": 8.312999999999998e-06,
+  "expected": "C",
+  "tokens": {
+    "input": 134,
+    "output": 29
+  }
+}

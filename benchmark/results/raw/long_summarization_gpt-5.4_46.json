@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "long_summarization",
+  "case": 46,
+  "response": "The global food system faces mounting strain as the population is projected to reach 9.7 billion by 2050, requiring about 60% more food production. This challenge is intensified by climate change, water scarcity, soil degradation, and food waste: agriculture produces roughly 25% of greenhouse gas emissions, 33% of the world\u2019s arable land has lost productivity, and about one-third of all food is wasted. The text argues that feeding the future sustainably will require a combination of technological, agricultural, and policy solutions, including AI-driven precision farming, vertical farming, alternative proteins, drought-resistant crops, regenerative agriculture, and reforms to subsidies and carbon pricing. The central challenge is scaling these solutions while keeping food affordable and accessible, especially for the poorest populations.",
+  "score": 5,
+  "cost": 0.00184,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 157
+  }
+}

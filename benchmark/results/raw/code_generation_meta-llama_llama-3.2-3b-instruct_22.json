@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 22,
+  "response": "```python\ndef correct_bracketing(brackets: str):\n    stack = []\n    bracket_map = {\")\": \"(\", \">\": \"<\", \"}\": \"{\", \"]\": \"[\"}\n    for bracket in brackets:\n        if bracket in bracket_map.values():\n            stack.append(bracket)\n        elif bracket in bracket_map.keys():\n            if not stack or stack.pop() != bracket_map[bracket]:\n                return False\n    return not stack\n```",
+  "score": 2,
+  "cost": 1.122e-05,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 92
+  }
+}

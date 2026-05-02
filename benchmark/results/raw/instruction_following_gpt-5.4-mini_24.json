@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- On the evening of May 1, a two-vehicle collision occurred at the intersection of Oak Street and 5th Avenue after one driver failed to stop at a red light.  \n- Police and emergency responders arrived within minutes, and one person was treated at the scene for minor injuries before being transported to a nearby hospital for evaluation.  \n- Traffic was delayed for about 45 minutes while investigators documented the crash, and both vehicles were later towed from the intersection.",
+  "score": 2,
+  "cost": 0.000123,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 98
+  }
+}

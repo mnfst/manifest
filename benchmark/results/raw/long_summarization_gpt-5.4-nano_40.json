@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "long_summarization",
+  "case": 40,
+  "response": "The internet\u2019s history traces back to the 1960s, when the U.S. Department of Defense funded networking research that led to ARPANET\u2019s first 1969 test message from UCLA to Stanford Research Institute. In 1983, switching to TCP/IP enabled the modern internet, and in 1989 Tim Berners-Lee created the World Wide Web (HTML, URLs, HTTP), with Mosaic launching in 1993 to broaden access. After the late-1990s dot-com boom and the 2001 crash (many companies failed, but survivors like Amazon and Google thrived), social media in the mid-2000s and mobile internet after Apple\u2019s iPhone launch in 2007 reshaped communication, while cloud computing took off with AWS in 2006. Today, the internet reaches over 5 billion people and supports nearly all areas of modern life, including commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.00010680000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 189
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "multistep_reasoning",
+  "case": 35,
+  "response": "The correct answer is B) The college could limit access to parking lots during busy hours, hire security officers to help restrict parking, and then gather parking data.\n\nExplanation: The universal systems model is a framework for analyzing and solving complex problems. In this case, the problem is the lack of parking spaces on campus. The universal systems model involves gathering data, analyzing it, and then using the information to make decisions. The correct answer, B, describes the steps involved in the universal systems model: gather data, analyze it, and then use the information to make decisions.",
+  "score": 5,
+  "cost": 8.397000000000001e-06,
+  "expected": "C",
+  "tokens": {
+    "input": 196,
+    "output": 115
+  }
+}

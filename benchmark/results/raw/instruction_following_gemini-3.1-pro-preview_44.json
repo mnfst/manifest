@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here are the ingredients for a basic salad:\n\n- [ ] Mixed greens (or romaine lettuce/spinach)\n- [ ] Cherry tomatoes\n- [ ] Cucumber\n- [ ] Carrots\n- [ ] Red onion\n- [ ] Croutons\n- [ ] Salad dressing (e.g., vinaigrette, ranch, or olive oil & vinegar)\n- [ ] Salt and black pepper (to taste)",
+  "score": 5,
+  "cost": 0.00132,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 86
+  }
+}

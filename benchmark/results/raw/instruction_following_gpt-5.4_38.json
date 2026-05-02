@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Login failed. Please check your email and password and try again.",
+  "score": 3,
+  "cost": 0.000172,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 44,
+  "response": "result = []\nvowels = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w'}\n\nfor ch in message:\n    swapped = ch.swapcase()\n    lower = swapped.lower()\n    if lower in vowels:\n        new_char = vowels[lower]\n        if swapped.isupper():\n            result.append(new_char.upper())\n        else:\n            result.append(new_char)\n    else:\n        result.append(swapped)\n\nreturn ''.join(result)",
+  "score": 4,
+  "cost": 0.001136,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 107
+  }
+}

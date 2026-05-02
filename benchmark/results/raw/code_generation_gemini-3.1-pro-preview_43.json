@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 43,
+  "response": "if not numbers:\n        return []\n    result = []\n    for n in numbers[:-1]:\n        result.append(n)\n        result.append(delimeter)\n    result.append(numbers[-1])\n    return result",
+  "score": 5,
+  "cost": 0.00114,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 54
+  }
+}

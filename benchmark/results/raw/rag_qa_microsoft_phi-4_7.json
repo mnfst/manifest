@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "The magnitude of the external force is divided by the mass of the system.",
+  "score": 5,
+  "cost": 1.17e-05,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 164,
+    "output": 16
+  }
+}

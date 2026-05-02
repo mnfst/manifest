@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "Arnhem.",
+  "score": 5,
+  "cost": 0.001371,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 225,
+    "output": 58
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "The Ohio Company of Virginia.",
+  "score": 5,
+  "cost": 0.001209,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 259,
+    "output": 36
+  }
+}

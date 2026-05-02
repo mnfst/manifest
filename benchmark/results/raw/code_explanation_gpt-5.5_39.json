@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "This implements the producer\u2013consumer pattern using a shared queue: producers enqueue work items and then a `None` sentinel (\u201cpoison pill\u201d) to signal completion. Consumers repeatedly dequeue and process items; when one sees the sentinel, it re-enqueues it so other consumers can stop, then exits.",
+  "score": 5,
+  "cost": 0.002181,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 156
+  }
+}

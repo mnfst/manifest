@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Photosynthesis: sun-powered plant sugar synthesis. Plants possess special pigments; pigments snare sunlight. Plants sip soil solution, plus pull stale sky particles past plant pores. Sunlight powers sugar production. Plants store sugar, spend sugar, plus spill spare sky particles.",
+  "score": 5,
+  "cost": 0.064195,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 3204
+  }
+}

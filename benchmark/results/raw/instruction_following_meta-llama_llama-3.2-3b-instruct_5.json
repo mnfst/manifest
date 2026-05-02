@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "As the day's final moments unfold, the sky transforms into a kaleidoscope of warm hues, a gentle blend of soft pinks, golden yellows, and deep oranges. The sun, a burning ember, slowly dips below the horizon, casting a warm glow over the landscape. The colors deepen and intensify, a breathtaking display of nature's artistry, as the light dances across the clouds, creating an ever-changing tapestry of shades and tones.\n\nThe sky is set aflame, a fiery blaze that slowly fades as the sun disappears beneath the waves. The stars begin to twinkle like diamonds scattered across the velvet expanse, and the world is bathed in a soft, ethereal light, as if the very fabric of day and night is being woven together in a majestic display of celestial wonder.",
+  "score": 3,
+  "cost": 9.638999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 164
+  }
+}

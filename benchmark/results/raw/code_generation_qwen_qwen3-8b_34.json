@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 34,
+  "response": "if n < 2:\n    return y\nif n == 2:\n    return x\nif n % 2 == 0:\n    return y\nmax_divisor = int(n**0.5) + 1\nfor i in range(3, max_divisor, 2):\n    if n % i == 0:\n        return y\nreturn x",
+  "score": 5,
+  "cost": 8.470000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1571
+  }
+}

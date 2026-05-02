@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 35,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"product\": \"Samsung 65-inch TV\",\n  \"model\": \"QN65S95D\",\n  \"serial_number\": \"SN-2024-XYZ789\",\n  \"duration_years\": 2,\n  \"purchase_date\": \"2024-03-01\",\n  \"covers\": [\"manufacturer defects\"],\n  \"excludes\": [\"accidental damage\"]\n}\n```\n\nNote that I've used single quotes around the strings and double quotes around the arrays, as per the schema you provided. Let me know if you have any further requests!",
+  "score": 4,
+  "cost": 1.2902999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 126
+  }
+}

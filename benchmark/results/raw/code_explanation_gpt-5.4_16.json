@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "This function runs a collection of coroutines concurrently but caps how many can execute at the same time using an `asyncio.Semaphore`. It wraps each coroutine in a helper that acquires the semaphore before awaiting it, then uses `asyncio.gather` to schedule them all and return their results in order.",
+  "score": 5,
+  "cost": 0.000686,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 65
+  }
+}

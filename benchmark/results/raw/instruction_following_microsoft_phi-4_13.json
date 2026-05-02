@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "The seven colors of the rainbow in order are:\n\n1. Red\n2. Orange\n3. Yellow\n4. Green\n5. Blue\n6. Indigo\n7. Violet\n\nThese colors are often remembered by the acronym ROYGBIV.",
+  "score": 5,
+  "cost": 4.615e-06,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 53
+  }
+}

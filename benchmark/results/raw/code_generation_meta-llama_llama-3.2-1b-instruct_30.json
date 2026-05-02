@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 30,
+  "response": "def prime_fib(n: int) -> int:\n    a, b = 0, 1\n    while a < n:\n        a, b = b, a + b\n    for i in range(a, n + 1):\n        if a <= i <= b and is_prime(i):\n            return i\n    return None",
+  "score": 2,
+  "cost": 5.508e-06,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 71
+  }
+}

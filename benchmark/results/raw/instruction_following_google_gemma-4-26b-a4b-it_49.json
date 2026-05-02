@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Here are three different greetings for a chatbot:\n\n**Formal**\n\"Welcome to [Company Name] Support. How may I assist you with your inquiries today?\"\n\n**Casual**\n\"Hey there! \ud83d\udc4b I'm your virtual assistant. What can I help you find today?\"\n\n**Humorous**\n\"Beep boop! \ud83e\udd16 I\u2019ve finished my digital coffee and I'm ready to help. What's on your mind?\"",
+  "score": 5,
+  "cost": 7.5600000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 95
+  }
+}

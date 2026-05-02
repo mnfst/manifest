@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "Apple; Banana; Cherry; Date; Elderberry",
+  "score": 5,
+  "cost": 2.22e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 11
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "*Romeo and Juliet* is a tragic love story set in Verona, where two feuding families, the Montagues and Capulets, reignite their ancient grudge. Romeo, a Montague, sneaks into a Capulet ball and falls in love with Juliet, a Capulet. They secretly marry, but Juliet\u2019s parents force her to wed Count Paris. To escape, Juliet fakes her death with a potion, but Romeo, unaware of the plan, poisons himself beside her. Juliet awakens, finds Romeo dead, and stabs herself. Their deaths finally reconcile the warring families, ending the feud at the cost of the young lovers\u2019 lives.",
+  "score": 5,
+  "cost": 4.45e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 140
+  }
+}

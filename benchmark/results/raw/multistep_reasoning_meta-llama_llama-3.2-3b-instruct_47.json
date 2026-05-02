@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "multistep_reasoning",
+  "case": 47,
+  "response": "A\n\nThe best answer is A.",
+  "score": 5,
+  "cost": 8.466e-06,
+  "expected": "A",
+  "tokens": {
+    "input": 157,
+    "output": 9
+  }
+}

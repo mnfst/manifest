@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "structured_output",
+  "case": 30,
+  "response": "```json\n{\n  \"name\": \"Bitcoin\",\n  \"symbol\": \"BTC\",\n  \"price\": 43250.8,\n  \"change_24h_percent\": -1.2,\n  \"market_cap\": \"$847B\",\n  \"volume_24h\": \"$18.5B\",\n  \"circulating_supply\": \"19.6M BTC\"\n}\n```",
+  "score": 5,
+  "cost": 1.182e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 78
+  }
+}

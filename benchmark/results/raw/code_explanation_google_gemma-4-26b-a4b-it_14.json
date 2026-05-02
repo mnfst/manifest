@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This code implements **Dijkstra's algorithm** using a **priority queue** (min-heap) to find the shortest paths from a starting node to all other reachable nodes in a weighted graph. It iteratively relaxes edges by updating the minimum distance to each neighbor and pushing those improvements into the heap to ensure the most efficient paths are processed first.",
+  "score": 5,
+  "cost": 1.416e-05,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 71
+  }
+}

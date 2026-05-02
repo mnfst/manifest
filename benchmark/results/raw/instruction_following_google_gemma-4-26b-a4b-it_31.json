@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 31,
+  "response": "2, 3, 5, 7, 11, 13, 17, 19, 23, 29",
+  "score": 5,
+  "cost": 2.76e-06,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 28
+  }
+}

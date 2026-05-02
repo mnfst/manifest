@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "J. F. D. Shrewsbury",
+  "score": 5,
+  "cost": 1.194e-05,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 189,
+    "output": 10
+  }
+}

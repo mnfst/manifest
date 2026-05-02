@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes like a soft, dark velvet curtain melting across your tongue\u2014rich, smooth, and deep. It\u2019s sweet, but often with a gentle bitterness underneath, like a warm conversation with a mysterious ending. Depending on the kind, it can feel creamy and mellow or bold and roasted, with hints of caramel, coffee, nuts, or fruit lingering after each bite.",
+  "score": 5,
+  "cost": 0.000654,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 77
+  }
+}

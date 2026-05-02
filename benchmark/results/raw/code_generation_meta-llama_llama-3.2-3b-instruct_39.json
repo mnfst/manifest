@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```python\ndef change_base(x: int, base: int):\n    digits = []\n    while x:\n        digits.append(int(x % base))\n        x //= base\n    return ''.join(map(str, digits[::-1]))\n```",
+  "score": 4,
+  "cost": 8.924999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 48
+  }
+}

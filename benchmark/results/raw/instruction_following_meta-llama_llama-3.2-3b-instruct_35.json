@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "As the sun set over the ocean, a lone seagull soared overhead, its cries echoing through the salty air. A young couple, hand in hand, walked along the beach, feeling the warm sand between their toes. They had been together for five years, and every summer they returned to this spot, reliving memories of their first date. The couple's laughter and chatter filled the air as they strolled, watching the waves roll in and out. As the stars began to twinkle in the night sky, they found a quiet spot to sit and share a kiss, the sound of the waves their lullaby. In this moment, they knew their love would last a lifetime.",
+  "score": 2,
+  "cost": 8.211e-06,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 140
+  }
+}

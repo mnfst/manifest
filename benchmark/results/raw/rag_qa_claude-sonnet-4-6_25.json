@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Based on the provided context, **infrastructure** in Warsaw suffered considerably during its time as an Eastern Bloc economy.",
+  "score": 5,
+  "cost": 0.000909,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 173,
+    "output": 26
+  }
+}

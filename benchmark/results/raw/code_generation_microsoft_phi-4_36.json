@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 36,
+  "response": "```python\nif n <= 1:\n    return 1\n\nfor i in range(n // 2, 0, -1):\n    if n % i == 0:\n        return i\n```\n\nThis function iterates from `n // 2` down to `1` and returns the largest divisor of `n` that is smaller than `n`. If `n` is less than or equal to `1`, it returns `1` as the largest divisor.",
+  "score": 5,
+  "cost": 1.2414999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 100
+  }
+}

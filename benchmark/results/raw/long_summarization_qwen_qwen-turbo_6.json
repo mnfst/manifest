@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work transitioned from a rare perk to a mainstream practice, with less than 5% of workers fully remote before the pandemic. The sudden shift in 2020, enabled by tools like Zoom and Slack, led to mixed productivity outcomes, as noted in studies by Stanford's Nick Bloom. While some companies faced backlash over return-to-office mandates, hybrid models and geographic arbitrage became common, affecting real estate, company culture, and employee development. Digital nomad visas also emerged, reflecting the growing global flexibility of remote work.",
+  "score": 5,
+  "cost": 8.613e-06,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 108
+  }
+}

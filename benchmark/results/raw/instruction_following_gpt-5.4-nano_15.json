@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are four rhyming words for **\u201ccat\u201d**:\n\n- **bat**\n- **hat**\n- **sat**\n- **fat**",
+  "score": 5,
+  "cost": 1.5000000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 33
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "infinitely many prime numbers",
+  "score": 5,
+  "cost": 1.56e-05,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 254,
+    "output": 6
+  }
+}

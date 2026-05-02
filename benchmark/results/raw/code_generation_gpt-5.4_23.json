@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_generation",
+  "case": 23,
+  "response": "min_ending = nums[0]\nmin_so_far = nums[0]\n\nfor num in nums[1:]:\n    min_ending = min(num, min_ending + num)\n    min_so_far = min(min_so_far, min_ending)\n\nreturn min_so_far",
+  "score": 5,
+  "cost": 0.00071,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 59
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "data_to_text",
+  "case": 8,
+  "response": "The patient is a 45-year-old female with a BMI of 27.3 and mildly elevated blood pressure at 138/88 mmHg, along with borderline high cholesterol of 225 mg/dL and a fasting glucose level of 110 mg/dL, which falls in the pre-diabetic range. She is a non-smoker who exercises twice per week and has a family history of diabetes on her mother's side. Overall, her profile suggests several metabolic risk factors that may warrant closer monitoring and lifestyle intervention.",
+  "score": 0,
+  "cost": 0.002211,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 125
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "This code defines an asynchronous function `gather_with_limit` that takes a list of coroutines (`coros`) and a limit on the number of concurrent executions. It uses a `Semaphore` to limit the number of concurrent executions, and then uses `asyncio.gather` to run each coroutine in parallel, waiting for the semaphore to release before proceeding to the next coroutine.",
+  "score": 4,
+  "cost": 4.509e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 76
+  }
+}

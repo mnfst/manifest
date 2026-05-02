@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Once a rare perk enjoyed by less than 5% of the workforce, remote work transitioned into a mainstream practice following the forced global experiment of 2020. Enabled by digital tools like Zoom and Slack, this shift has sparked complex debates regarding productivity, company culture, and the professional development of junior employees. The movement has driven significant societal changes, including the rise of hybrid models, the emergence of digital nomad visas, and geographic arbitrage as workers relocate to lower-cost areas. Consequently, these trends are reshaping major economic sectors, most notably impacting the stability of commercial real estate.",
+  "score": 5,
+  "cost": 1.65e-05,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 118
+  }
+}

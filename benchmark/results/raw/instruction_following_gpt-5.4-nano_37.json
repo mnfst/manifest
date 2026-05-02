@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes like a warm, velvety hug from a midnight sky\u2014its first bite is a smooth rush of sweetness, then a deeper wave of bitterness that turns slowly into a rich, cocoa-like glow, like a melody resolving into comfort.",
+  "score": 5,
+  "cost": 2.27e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The text surveys the major scientific, commercial, and geopolitical trends shaping space exploration in the 2020s. It highlights SpaceX\u2019s Starship development, NASA\u2019s Artemis program to return humans to the Moon, the James Webb Space Telescope\u2019s discoveries, China\u2019s space station and lunar ambitions, and India\u2019s successful Chandrayaan missions as key milestones in national and international space efforts. It also covers the rapid growth of satellite internet constellations such as Starlink and OneWeb, the rise of space tourism through Blue Origin and Virgin Galactic, and emerging long-term opportunities like asteroid mining. Finally, it argues that these advances are happening alongside major policy and sustainability challenges, especially the Outer Space Treaty\u2019s limitations and the growing threat of space debris.",
+  "score": 5,
+  "cost": 0.00147,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 151
+  }
+}

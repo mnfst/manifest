@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This code implements the Sieve of Eratosthenes algorithm to find all prime numbers up to a given number `n`. It marks non-prime numbers by iterating through each number starting from 2, and for each prime number, it marks its multiples as non-prime.",
+  "score": 5,
+  "cost": 6.501e-06,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 57
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Sure \u2014 here are 4 programming languages:\n\n- Java\n- C++\n- Rust\n- Go",
+  "score": 5,
+  "cost": 3.36e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 23
+  }
+}

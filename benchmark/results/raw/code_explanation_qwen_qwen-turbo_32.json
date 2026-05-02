@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements the **Union-Find** (also known as **Disjoint Set Union**, or DSU) data structure using **path compression** and **union by rank** to efficiently manage and merge disjoint sets. The `find` function uses path compression to flatten the structure, and the `union` function merges sets by rank to keep the tree shallow, ensuring near-constant time complexity for each operation.",
+  "score": 5,
+  "cost": 8.184000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 83
+  }
+}

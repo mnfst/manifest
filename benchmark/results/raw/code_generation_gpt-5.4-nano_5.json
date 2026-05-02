@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 5,
+  "response": "if not l:\n    raise ValueError(\"max_element() arg is an empty list\")\nm = l[0]\nfor x in l[1:]:\n    if x > m:\n        m = x\nreturn m",
+  "score": 5,
+  "cost": 3.0500000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 48
+  }
+}

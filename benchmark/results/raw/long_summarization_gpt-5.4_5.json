@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Antibiotics transformed medicine after Fleming\u2019s 1928 discovery of penicillin, making surgery far safer and turning once-deadly bacterial infections into treatable illnesses, especially during the \u201cgolden age\u201d of antibiotic discovery in the 1950s\u201360s. The main argument is that this success is now threatened by antimicrobial resistance, as bacteria such as MRSA and other drug-resistant strains have evolved faster than new antibiotics are being developed. New antibiotic pipelines have slowed largely because drug companies see poor financial returns, while widespread use of antibiotics in livestock has further accelerated resistance. In response, researchers are exploring alternatives and complements to traditional antibiotics, including phage therapy, CRISPR-based treatments, and AI-assisted drug discovery.",
+  "score": 5,
+  "cost": 0.001456,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 148
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "France offered full citizenship rights, known as \"assimilation,\" to its colonies, which was rare by imperial standards.",
+  "score": 5,
+  "cost": 2.45e-05,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 170,
+    "output": 25
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "multistep_reasoning",
+  "case": 33,
+  "response": "To determine the composition of an unknown substance, the best question to ask is: \"Has the sample ever been melted?\" This question helps to identify the substance's state of matter, which is a fundamental property that can be used to determine its composition. The other options are not relevant to determining the composition of an unknown substance.",
+  "score": 5,
+  "cost": 4.293e-06,
+  "expected": "D",
+  "tokens": {
+    "input": 93,
+    "output": 66
+  }
+}

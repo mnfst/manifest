@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index acts like a pointer system that allows the engine to locate specific rows without scanning every single record in a table. By organizing data in a structured format, it significantly accelerates data retrieval speeds at the cost of additional storage space.",
+  "score": 3,
+  "cost": 4.08e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 48
+  }
+}

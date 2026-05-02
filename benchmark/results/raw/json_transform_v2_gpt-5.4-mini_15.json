@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "json_transform_v2",
+  "case": 15,
+  "response": "{\"full_name\":\"Jane Doe\",\"contact\":{\"email\":\"jane.doe@email.com\",\"phone\":\"+1-555-0123\"},\"metadata\":{\"age\":32}}",
+  "score": 5,
+  "cost": 7.59e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 37
+  }
+}

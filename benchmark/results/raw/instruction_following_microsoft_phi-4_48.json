@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "\"Romeo and Juliet,\" a tragedy by William Shakespeare, revolves around two young lovers from feuding families in Verona\u2014the Montagues and the Capulets. Romeo Montague and Juliet Capulet meet at a party and fall in love, secretly marrying with the help of Friar Laurence. After Romeo kills Juliet's cousin Tybalt in a duel, he is banished. Juliet's parents arrange her marriage to Paris, prompting her to take a potion that simulates death to escape with Romeo. However, miscommunication leads Romeo to believe she is truly dead, prompting him to poison himself. Upon awakening to find Romeo dead, Juliet stabs herself, uniting them in death. Their tragic demise ultimately reconciles their families, ending the feud.",
+  "score": 3,
+  "cost": 1.1765e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 154
+  }
+}

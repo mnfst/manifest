@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\nimport heapq\nn = len(grid)\nheap = []\nfor i in range(n):\n    for j in range(n):\n        heapq.heappush(heap, ( [grid[i][j]], (i, j) ))\nwhile heap:\n    path, (i, j) = heapq.heappop(heap)\n    if len(path) == k:\n        return path\n    for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:\n        ni, nj = i + dx, j + dy\n        if 0 <= ni < n and 0 <= nj < n:\n            new_path = path + [grid[ni][nj]]\n            heapq.heappush(heap, (new_path, (ni, nj)))\n```",
+  "score": 3,
+  "cost": 0.0004127,
+  "expected": "",
+  "tokens": {
+    "input": 429,
+    "output": 7825
+  }
+}

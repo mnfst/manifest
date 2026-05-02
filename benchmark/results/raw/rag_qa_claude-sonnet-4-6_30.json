@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Based on the provided context, **Melbourne** is the city in Victoria that is described as the \"sporting capital of Australia.\"",
+  "score": 5,
+  "cost": 0.001188,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 256,
+    "output": 28
+  }
+}

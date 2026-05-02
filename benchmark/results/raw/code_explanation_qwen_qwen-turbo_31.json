@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This code implements the A\\* search algorithm, which uses a priority queue to explore the most promising paths first by combining the actual cost from the start (`cost`) with a heuristic estimate to the goal (`heuristic(neighbor, goal)`). It keeps track of visited nodes to avoid cycles and returns the shortest path from `start` to `goal` once the goal is reached.",
+  "score": 5,
+  "cost": 8.25e-06,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 77
+  }
+}

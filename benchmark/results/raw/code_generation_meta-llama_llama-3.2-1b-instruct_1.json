@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 1,
+  "response": "from typing import List\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    stack = []\n    levels = []\n    for char in paren_string:\n        if char == '(':\n            stack.append(len(stack) + 1)\n        elif char == ')':\n            stack.pop()\n            levels.append(len(stack) - 1)\n    return levels",
+  "score": 3,
+  "cost": 6.021e-06,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 75
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 33,
+  "response": "```python\n    sides = sorted([a, b, c])\n    return sides[0]**2 + sides[1]**2 == sides[2]**2\n```",
+  "score": 5,
+  "cost": 1.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 40
+  }
+}

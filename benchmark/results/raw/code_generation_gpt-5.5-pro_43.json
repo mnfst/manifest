@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 43,
+  "response": "result = []\nfor i, number in enumerate(numbers):\n    if i > 0:\n        result.append(delimeter)\n    result.append(number)\nreturn result",
+  "score": 5,
+  "cost": 0.004675,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 201
+  }
+}

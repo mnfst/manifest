@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements a **memoization decorator** that caches the results of a function call using a dictionary keyed by the function's arguments. When the decorated function is called, it returns the cached result if the same arguments were used before, otherwise it computes, stores, and returns the new result \u2014 avoiding redundant calculations.",
+  "score": 5,
+  "cost": 0.001326,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 71
+  }
+}

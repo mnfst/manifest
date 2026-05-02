@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This implements the **circuit breaker** pattern: it tracks consecutive failures (`failures`) and, after reaching a configurable `threshold`, moves from **closed** to **open** so further calls fail fast with `\"Circuit open\"` until `timeout` seconds have passed. After the timeout it enters **half-open**, allowing the next call through; if that call succeeds it resets to **closed**, and if it fails it increments failures again and (re)opens once the threshold is hit.",
+  "score": 5,
+  "cost": 6.010000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 101
+  }
+}

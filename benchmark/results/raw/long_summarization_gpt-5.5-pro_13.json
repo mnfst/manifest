@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "long_summarization",
+  "case": 13,
+  "response": "Quantum computers use qubits\u2014unlike classical bits\u2014that can leverage superposition, entanglement, and interference to solve certain problems much faster than classical machines. Major players including IBM, Google, IonQ, and Rigetti are pursuing hardware based on superconducting circuits, trapped ions, photonics, and topological qubits; in 2019, Google claimed quantum supremacy with a 200-second calculation said to take a classical supercomputer 10,000 years. Practical systems still face serious hurdles, including fragile qubits, near-absolute-zero cooling, high error rates, and the need for many physical qubits per logical qubit. Current machines have about 100\u20131000 qubits, while useful applications may require millions, but quantum computing remains promising for drug discovery, materials science, cryptography, optimization, finance, and logistics.",
+  "score": 5,
+  "cost": 0.00705,
+  "expected": "",
+  "tokens": {
+    "input": 278,
+    "output": 283
+  }
+}

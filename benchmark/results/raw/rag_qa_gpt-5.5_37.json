@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Korea bordered Kublai's territory on the northeast border.",
+  "score": 5,
+  "cost": 0.001392,
+  "expected": "northeast",
+  "tokens": {
+    "input": 216,
+    "output": 62
+  }
+}

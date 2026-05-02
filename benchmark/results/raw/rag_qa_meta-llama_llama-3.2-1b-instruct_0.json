@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Not found in context.",
+  "score": 2,
+  "cost": 6.7770000000000005e-06,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 245,
+    "output": 6
+  }
+}

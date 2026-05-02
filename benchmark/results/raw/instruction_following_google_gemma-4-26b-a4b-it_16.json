@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is an invisible force that pulls objects toward each other. Anything that has mass\u2014which is basically the amount of \"stuff\" inside an object\u2014has gravity. The more mass an object has, the stronger its pull. This is why the Earth pulls on you, keeping your feet on the ground, and why the Sun pulls on the planets, keeping them in orbit. Even though you can't see it, gravity is constantly working to bring things together. That is gravity.",
+  "score": 5,
+  "cost": 7.619999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 99
+  }
+}

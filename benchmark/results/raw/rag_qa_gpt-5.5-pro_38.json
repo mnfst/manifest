@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "the Charles River",
+  "score": 5,
+  "cost": 0.00269,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 254,
+    "output": 71
+  }
+}

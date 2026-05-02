@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "The code defines a `MinStack` class that maintains a stack data structure with an additional stack to track the minimum element. The class uses two stacks: `stack` for storing all elements and `min_stack` for storing the minimum elements. When a new value is pushed onto the stack, it is added to both `stack` and `min_stack`. The `min_stack` keeps the minimum value at the top by comparing the new value with the current minimum (the last element of `min_stack`) and pushing the smaller of the two. When popping, both stacks remove their top elements, ensuring that the minimum value is updated correctly. The `get_min` method returns the current minimum value from `min_stack` without removing it. This pattern allows efficient retrieval of the minimum element in constant time.",
+  "score": 5,
+  "cost": 2.106e-05,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 163
+  }
+}

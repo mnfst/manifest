@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "structured_output",
+  "case": 23,
+  "response": "```json\n{\n  \"type\": \"Notification\",\n  \"tracking_number\": \"TRK-99281\",\n  \"status\": \"delivered\",\n  \"delivery_location\": \"front door\",\n  \"delivery_time\": \"2:15 PM\",\n  \"delivery_date\": \"March 12\",\n  \"signed_by\": \"M. Johnson\",\n  \"carrier\": \"FedEx\"\n}\n```",
+  "score": 5,
+  "cost": 0.001908,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 102
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal Greeting:**  \n\"Good day! How may I assist you today?\"\n\n**Casual Greeting:**  \n\"Hey there! What's up?\"\n\n**Humorous Greeting:**  \n\"Hello! I'm not a robot... probably. How can I help you?\"",
+  "score": 5,
+  "cost": 2.904e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 57
+  }
+}

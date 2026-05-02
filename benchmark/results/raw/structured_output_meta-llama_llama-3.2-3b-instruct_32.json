@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 32,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"image\": \"nginx:1.25-alpine\",\n  \"status\": \"running\",\n  \"ports\": \"80:8080\",\n  \"cpu_percent\": 0.5,\n  \"memory\": {\n    \"used_mb\": 24,\n    \"limit_mb\": 128\n  },\n  \"created\": \"3 days ago\",\n  \"network\": \"bridge\"\n}\n```\n\nNote that I've kept the `created` field as a string, as it appears to be a human-readable timestamp. If you'd like to convert it to a more machine-readable format (e.g. Unix timestamp), let me know!",
+  "score": 5,
+  "cost": 1.3565999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 144
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This implements the **0/1 knapsack** dynamic programming algorithm: it builds a DP table `dp[i][w]` storing the maximum value achievable using the first `i` items with total weight at most `w`. It iterates over items and capacities, deciding for each item whether to **exclude** it (`dp[i-1][w]`) or **include** it (`dp[i-1][w-weights[i-1]] + values[i-1]`), and returns `dp[n][capacity]`.",
+  "score": 5,
+  "cost": 5.940000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 111
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The email updates the content moderation policy to address AI-generated content, introducing new rules that require labeling of AI-generated images, prohibit deepfakes, and allow AI-assisted text with mandatory disclosure. Enforcement of these updated rules begins on June 1, with training materials being prepared to ensure compliance.",
+  "score": 5,
+  "cost": 1.0855e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 60
+  }
+}

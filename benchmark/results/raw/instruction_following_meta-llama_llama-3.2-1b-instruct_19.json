@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "\"AI is transforming industries, but also raises questions about job displacement, bias, and accountability. As we harness its power, let's ensure it serves humanity, not just profits. #AIethics #FutureOfWork\"",
+  "score": 5,
+  "cost": 1.836e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 45
+  }
+}

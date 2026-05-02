@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Photosynthesis is a process. Plants perform it. They use sunlight, water, and sulfur dioxide to produce sugar and starch. The process starts in cells. Sunlight provides energy. Plants take in sulfur dioxide from the air. They absorb water through roots. Chlorophyll in cells captures sunlight. The sulfur dioxide and water combine. Sugar and starch are stored. Oxygen is released.",
+  "score": 1,
+  "cost": 0.00011545,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 2285
+  }
+}

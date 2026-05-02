@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 35,
+  "response": "return (abs(a) % 10) * (abs(b) % 10)",
+  "score": 5,
+  "cost": 0.0007225,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 23
+  }
+}

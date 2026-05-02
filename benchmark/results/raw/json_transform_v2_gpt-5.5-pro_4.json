@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "json_transform_v2",
+  "case": 4,
+  "response": "{\"event_type\":\"signup\",\"date\":\"2024-03-15\",\"time\":\"14:30\",\"user_id\":\"u_123\",\"attribution\":{\"source\":\"google_ads\",\"platform\":\"mobile\"}}",
+  "score": 4,
+  "cost": 0.002795,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 106
+  }
+}

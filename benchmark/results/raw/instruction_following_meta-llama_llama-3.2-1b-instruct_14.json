@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Here is a product description for a water bottle:\n\nStay hydrated on-the-go with our durable and BPA-free water bottle, designed to keep your drinks cold for hours. Made from high-quality, shatter-resistant Tritan material, this bottle is perfect for daily use and can withstand even the most enthusiastic water enthusiasts. With its leak-proof lid and spill-proof design, you can enjoy your favorite drinks without worrying about spills or messes.",
+  "score": 2,
+  "cost": 3.051e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 88
+  }
+}

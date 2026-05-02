@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Introducing the EcoHydrate Water Bottle, designed for both sustainability and convenience. Crafted from durable, BPA-free stainless steel with a sleek, insulated design, it ensures your beverages remain at the perfect temperature for hours. The bottle features a leak-proof, easy-to-open cap and a comfortable, ergonomic grip, making it ideal for on-the-go hydration. With its sleek, minimalist aesthetic and a lifetime warranty, the EcoHydrate Water Bottle is the perfect companion for your active lifestyle, combining eco-friendly materials with practical functionality.",
+  "score": 2,
+  "cost": 8.449999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 109
+  }
+}

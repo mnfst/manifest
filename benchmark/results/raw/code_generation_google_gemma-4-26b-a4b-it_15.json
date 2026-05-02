@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 15,
+  "response": "i = 2\nwhile i * i <= n:\n    if n % i:\n        i += 1\n    else:\n        n //= i\nreturn n",
+  "score": 5,
+  "cost": 7.74e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 34
+  }
+}

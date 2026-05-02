@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "HERE ARE 5 COUNTRIES IN EUROPE:\n\n1. FRANCE\n2. SPAIN\n3. ITALY\n4. GERMANY\n5. SWEDEN",
+  "score": 5,
+  "cost": 3.213e-06,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 39
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 14,
+  "response": "Here is the extracted information in JSON format:\n\n```\n{\n  \"title\": \"The Great Gatsby\",\n  \"author\": \"F. Scott Fitzgerald\",\n  \"year\": 1925,\n  \"genre\": \"literary fiction\",\n  \"pages\": 180,\n  \"isbn\": \"978-0743273565\",\n  \"rating\": 4.2\n}\n```\n\nNote that I've removed the \"Book:\" prefix from the title, as it's not a standard field in JSON. Let me know if you'd like me to add it back in!",
+  "score": 5,
+  "cost": 1.1781e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 119
+  }
+}

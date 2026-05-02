@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "The code identifies all connected components in an undirected graph using **Breadth-First Search (BFS)**, where each component is a list of nodes reachable from a starting node. It iterates through all nodes, applying BFS to unvisited nodes to group them into separate components, ensuring each node is processed exactly once.",
+  "score": 5,
+  "cost": 3.38e-05,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 544
+  }
+}

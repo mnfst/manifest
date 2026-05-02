@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "long_summarization",
+  "case": 34,
+  "response": "The global food system faces significant challenges due to a projected population increase to 9.7 billion by 2050, necessitating a 60% rise in food production. Climate change is reducing crop yields through extreme weather events, while agriculture contributes approximately 25% of greenhouse gas emissions. Water scarcity, exemplified by the depletion of the Ogallala Aquifer, and soil degradation affecting 33% of arable land further exacerbate the situation. To address these pressures, solutions such as precision agriculture, vertical farming, alternative proteins, drought-resistant crops, and regenerative farming practices are being explored. Policy changes in subsidies, trade, and carbon pricing are also considered crucial for transforming the food system. The key challenge lies in scaling these solutions while ensuring food remains affordable and accessible to the world's poorest populations.",
+  "score": 5,
+  "cost": 3.0550000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 164
+  }
+}

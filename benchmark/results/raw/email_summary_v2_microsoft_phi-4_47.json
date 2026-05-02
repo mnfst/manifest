@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "The March cohort's onboarding satisfaction score decreased to 7.2/10, with the buddy system and timely IT support being positive aspects, but issues included confusion about benefits deadlines, delayed tools access, and missing culture handbooks. The priority action item is to address and expedite tools access to meet the 1-day target.",
+  "score": 5,
+  "cost": 1.1765e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 68
+  }
+}

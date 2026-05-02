@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate is like a symphony of flavors, where each note plays a distinct yet harmonious role. The initial taste is a rich, velvety melody that envelops your senses, akin to a warm embrace on a cool evening. As it lingers, the sweetness dances like a gentle crescendo, balanced by the subtle bitterness that adds depth and complexity, much like the deep undertones of a cello. The finish is a lingering whisper, a delicate aftertaste that leaves you yearning for the next note in this exquisite culinary composition.",
+  "score": 5,
+  "cost": 8.515e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 111
+  }
+}

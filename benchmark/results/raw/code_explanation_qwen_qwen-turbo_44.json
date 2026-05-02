@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code finds all connected components in an undirected graph using Breadth-First Search (BFS). It iterates through each node, and if the node hasn't been visited, it starts a BFS to explore all reachable nodes, grouping them into a component.",
+  "score": 5,
+  "cost": 6.237e-06,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 53
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "### Mammals\n1. **Elephant** - Known for their large size and intelligence, elephants are herbivorous and are found in Africa and Asia.\n2. **Dolphin** - These marine mammals are known for their playful behavior and high intelligence, living in oceans worldwide.\n3. **Kangaroo** - Native to Australia, kangaroos are marsupials known for their powerful hind legs and ability to hop.\n\n### Birds\n1. **Eagle** - Known for their keen eyesight and powerful build, eagles are birds of prey found in various habitats around the world.\n2. **Penguin** - Flightless birds native to the Southern Hemisphere, penguins are adapted to life in the water with their streamlined bodies.\n3. **Parrot** - Known for their bright colors and ability to mimic sounds, parrots are found in tropical and subtropical regions.\n\n### Fish\n1. **Salmon** - Anadromous fish known for their ability to swim upstream to spawn, salmon are found in the Northern Hemisphere.\n2. **Clownfish** - Recognizable by their bright orange color and white stripes, clownfish live in warm waters of the Pacific and Indian Oceans.\n3. **Tuna** - Fast-swimming, migratory fish found in the Atlantic, Pacific, and Indian Oceans, known for their importance in commercial fishing.",
+  "score": 4,
+  "cost": 2.0085e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 283
+  }
+}

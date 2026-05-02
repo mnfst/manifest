@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Here are 3 different chatbot greetings:\n\n**Formal:**\n\"Good day. I am here to assist you with any questions or concerns you may have. Please describe how I can be of service, and I will do my best to provide accurate and helpful information.\"\n\n**Casual:**\n\"Hey there! \ud83d\udc4b Great to see you! What's on your mind today? I'm here to help with whatever you need \u2014 just ask away!\"\n\n**Humorous:**\n\"Oh, a visitor! Don't worry, I don't bite \u2014 mostly because I don't have teeth. \ud83d\ude04 I *do* have answers though, so go ahead and throw your questions at me. I've had my coffee... well, metaphorically speaking.\"",
+  "score": 5,
+  "cost": 0.002595,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 167
+  }
+}

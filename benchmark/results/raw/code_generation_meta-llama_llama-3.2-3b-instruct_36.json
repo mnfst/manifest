@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 36,
+  "response": "def largest_divisor(n: int) -> int:\n    for i in range(n - 1, 1, -1):\n        if n % i == 0:\n            return i",
+  "score": 5,
+  "cost": 6.527999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 40
+  }
+}

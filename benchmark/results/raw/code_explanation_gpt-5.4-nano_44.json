@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code finds all connected components in a graph using a **breadth-first search (BFS)**: for each unvisited node, it performs BFS to traverse all reachable nodes, collects them into a `component`, and repeats until every node is visited. The result is a list of lists, where each inner list contains the nodes in one connected component.",
+  "score": 5,
+  "cost": 4.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 74
+  }
+}

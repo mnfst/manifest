@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "The high end of the temperature range in winter is 70.",
+  "score": 5,
+  "cost": 5.478e-06,
+  "expected": "70",
+  "tokens": {
+    "input": 152,
+    "output": 14
+  }
+}

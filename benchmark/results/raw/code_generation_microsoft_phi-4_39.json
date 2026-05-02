@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```python\ndef change_base(x: int, base: int):\n    if base < 2 or base > 9:\n        raise ValueError(\"Base must be between 2 and 9\")\n    \n    result = []\n    while x > 0:\n        result.append(str(x % base))\n        x //= base\n    \n    return ''.join(result[::-1])\n```",
+  "score": 4,
+  "cost": 1.3975e-05,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 75
+  }
+}

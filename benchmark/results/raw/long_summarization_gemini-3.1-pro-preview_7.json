@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The **2020s** mark a transformative era for the science and business of space exploration, driven by a powerful combination of ambitious national programs and booming private enterprise. Scientific and exploratory milestones are being achieved globally through NASA's Artemis lunar return, the James Webb Space Telescope's discoveries, and advancing space missions from China and India. Simultaneously, the commercial sector is rapidly expanding via SpaceX's Starship development, massive satellite internet constellations, and emerging space tourism ventures. However, this unprecedented growth highlights a critical underlying argument: our rapid expansion into space is outpacing current regulations, exposing the limitations of the Outer Space Treaty and exacerbating the escalating threat of space debris.",
+  "score": 5,
+  "cost": 0.0023775,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 136
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code finds all connected components in an undirected graph using a **Breadth-First Search (BFS)** algorithm. It iterates through each node, initiates BFS for unvisited nodes to explore all reachable nodes, and groups them into separate components, returning a list of these components.",
+  "score": 5,
+  "cost": 3.15e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 62
+  }
+}

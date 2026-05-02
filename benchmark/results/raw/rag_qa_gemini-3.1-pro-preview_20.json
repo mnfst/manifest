@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "Based on the provided context, Erg\u00e4nzungsschulen are funded in whole by charging their students tuition fees.",
+  "score": 5,
+  "cost": 0.000685,
+  "expected": "tuition",
+  "tokens": {
+    "input": 142,
+    "output": 22
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly ETL job failed due to a schema change in Salesforce, causing dashboards to display stale data since yesterday. A fix has been deployed, and a backfill is in progress, with full recovery expected by 4 PM today.",
+  "score": 5,
+  "cost": 9.23e-06,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 49
+  }
+}

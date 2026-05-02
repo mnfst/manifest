@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 24,
+  "response": "if a + b <= c or a + c <= b or b + c <= a:\n        return -1\n    s = (a + b + c) / 2\n    return round((s * (s - a) * (s - b) * (s - c)) ** 0.5, 2)",
+  "score": 5,
+  "cost": 0.01065,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 494
+  }
+}

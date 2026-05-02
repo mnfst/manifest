@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law of Motion",
+  "score": 5,
+  "cost": 9.18e-05,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 270,
+    "output": 9
+  }
+}

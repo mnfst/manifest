@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is about 384,400 km (238,900 miles) away from Earth on average.  \n2. One day on the Moon (from one sunrise to the next) lasts about 29.5 Earth days.  \n3. The Moon doesn\u2019t produce its own light\u2014it reflects sunlight.",
+  "score": 5,
+  "cost": 2.9000000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 66
+  }
+}

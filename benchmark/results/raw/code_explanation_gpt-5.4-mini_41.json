@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This function computes the **CRC-32 checksum** of the input `data` using the standard **bitwise, reflected polynomial algorithm** with polynomial `0xEDB88320`. It initializes the CRC to `0xFFFFFFFF`, processes each byte and bit by shifting right and conditionally XORing the polynomial, then returns the final value after a last XOR with `0xFFFFFFFF`.",
+  "score": 5,
+  "cost": 0.000129,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 81
+  }
+}

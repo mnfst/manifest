@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. **Make it long**  \n   Aim for at least **12\u201316 characters** or more. Longer passwords are much harder to guess or crack.\n\n2. **Use a mix of character types**  \n   Include **uppercase letters, lowercase letters, numbers, and symbols** when allowed. A varied password is harder to attack.\n\n3. **Avoid personal information**  \n   Don\u2019t use your name, birthday, pet\u2019s name, address, or anything easy to find on social media.\n\n4. **Don\u2019t use common words or patterns**  \n   Avoid passwords like **password123**, **qwerty**, or simple sequences like **abcde** and **12345**.\n\n5. **Make it unique for every account**  \n   Reusing passwords is risky. If one account is breached, others can be compromised too.\n\n6. **Use a passphrase if possible**  \n   A phrase made of several unrelated words can be both strong and easier to remember, like a random string of words.\n\n7. **Change it if it\u2019s exposed**  \n   If a password is leaked, shared, or used on a suspicious site, replace it immediately.\n\n8. **Store it safely**  \n   Use a **password manager** to generate and save strong passwords instead of writing them down or reusing weak ones.",
+  "score": 5,
+  "cost": 0.00032910000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 270
+  }
+}

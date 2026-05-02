@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Antibiotics began with Alexander Fleming\u2019s 1928 discovery of penicillin and went on to transform surgery and disease treatment, especially during the \u201cgolden age\u201d of antibiotic discovery in the 1950s\u201360s. However, new antibiotic development slowed as companies found poor financial returns, contributing to the rise of resistant pathogens such as MRSA and other resistant bacteria. Additional drivers include the use of antibiotics in livestock, which can accelerate resistance in the broader environment. Today, researchers are pursuing alternatives and new strategies\u2014such as phage therapy, CRISPR-based approaches, and AI-driven drug discovery\u2014to address the current crisis of antimicrobial resistance.",
+  "score": 5,
+  "cost": 6.680000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 133
+  }
+}

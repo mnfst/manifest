@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne",
+  "score": 5,
+  "cost": 0.00065,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 254,
+    "output": 1
+  }
+}

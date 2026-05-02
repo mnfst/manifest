@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "# Photosynthesis Plainly Stated\n\nPlants perform photosynthesis, producing sustenance.\n\nSunlight strikes plant surfaces. Specifically, sunlight penetrates special pigmented structures \u2014 **chloroplasts** \u2014 *sorry*, plant plastids!\n\nPlants possess pigments (specifically, **phyll** pigments). Such pigments seize photons, powering subsequent processes.\n\nPlants pull **CO2** \u2014 *sorry* \u2014 plants pull **carbon** \u2014 *problematic*... \n\nPlants sip surrounding **substances**: specifically, plants pull **pure** sky-sourced **particles** plus **soil**-sourced **supplies**.\n\nPhotosynthesis proceeds **stepwise**:\n\n**Step Primo:** Sunlight splits **special** pools \u2014 specifically, **pure** **H2O** \u2014 *problematic again*...\n\nLet me simplify:\n\n---\n\n**Sunlight powers plants.**\n\nPlants **soak** sunlight. Plants **sip** soil-supplied **sustenance**. Plants **pull** sky **particles**.\n\nPhotons **strike** plant **surfaces**, **sparking** **special** **processes** **producing** **sugar**.\n\n**Sugar** **sustains** plants. **Surplus** **sugar** **supports** **surrounding** **species**.\n\n**Photosynthesis** = **Sunlight** + **Soil** + **Sky** \u2192 **Sustenance**\n\n**Pretty spectacular, plants!**\n\n---\n\n*(This constraint was surprisingly strict \u2014 several scientific symbols stubbornly resisted substitution!)*",
+  "score": 3,
+  "cost": 0.005265,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 346
+  }
+}

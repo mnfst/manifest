@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a **MinStack** that supports push, pop, and constant-time minimum value retrieval using an auxiliary stack (`min_stack`). The `min_stack` keeps track of the current minimum value at each level of the main stack by storing the minimum between the new value and the previous minimum (or just the new value if the stack is empty). This ensures `get_min()` always returns the minimum in O(1) time.",
+  "score": 5,
+  "cost": 3.84e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 89
+  }
+}

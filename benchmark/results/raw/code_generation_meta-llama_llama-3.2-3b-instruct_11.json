@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 11,
+  "response": "```python\nfrom typing import List, Tuple\n\n\ndef sum_product(numbers: List[int]) -> Tuple[int, int]:\n    sum_val = sum(numbers)\n    product_val = 1\n    for num in numbers:\n        product_val *= num\n    return sum_val, product_val\n```",
+  "score": 4,
+  "cost": 1.0506e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 60
+  }
+}

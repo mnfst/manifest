@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "multistep_reasoning",
+  "case": 21,
+  "response": "B",
+  "score": 5,
+  "cost": 1.0760999999999999e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 209,
+    "output": 2
+  }
+}

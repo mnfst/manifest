@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. **Length**: Use a password that is at least 12 characters long. Longer passwords are harder to crack through brute-force attacks.  \n2. **Complexity**: Include a mix of uppercase letters, lowercase letters, numbers, and special symbols (e.g., !, @, #). Avoid predictable patterns like \"123456\" or \"abcd123\".  \n3. **Avoid Common Words**: Steer clear of dictionary words, common phrases, or easily guessable terms (e.g., \"password,\" \"admin,\" or \"123456\").  \n4. **No Personal Information**: Avoid including personal details like your name, birthdate, or addresses, which can be found online.  \n5. **Uniqueness**: Use a different password for each account. Reusing passwords increases the risk of multiple accounts being compromised if one password is stolen.  \n6. **Memorability vs. Security**: Balance memorability with security. A password that is too complex to remember might lead to writing it down or using weak alternatives.  \n7. **Use a Password Manager**: Store and manage passwords securely with a reputable password manager, which can generate and store unique, strong passwords for you.  \n8. **Avoid Default or Simple Patterns**: Avoid default passwords provided by services (e.g., \"admin\" or \"guest\") and steer clear of simple patterns like alternating characters (e.g., \"Aa1!Aa1!\").  \n\nBy following these steps, you create a password that is both secure and practical to use.",
+  "score": 5,
+  "cost": 4.190000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 819
+  }
+}

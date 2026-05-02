@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 4,
+  "response": "n = len(l)\nif n <= 2:\n    return True\n\ndirection = 0  # 0 unknown, 1 increasing, -1 decreasing\nprev = l[0]\n\nfor curr in l[1:]:\n    if curr == prev:\n        continue\n    new_dir = 1 if curr > prev else -1\n    if direction == 0:\n        direction = new_dir\n    elif new_dir != direction:\n        return False\n    prev = curr if curr != prev else prev\n\nreturn True",
+  "score": 4,
+  "cost": 5.5700000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 110
+  }
+}

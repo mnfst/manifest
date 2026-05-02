@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "multistep_reasoning",
+  "case": 3,
+  "response": "The correct answer is A) the list of energy-saving tips to follow.\n\nThe reason is that the list of energy-saving tips is a variable that the students can control, and the investigation is to compare their actual bills to the predicted bills. The list of tips is not a variable that is outside of their control, and therefore, it is the uncontrollable factor in the investigation.",
+  "score": 5,
+  "cost": 6.102e-06,
+  "expected": "B",
+  "tokens": {
+    "input": 149,
+    "output": 77
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Keep going\u2014small, steady steps today build the extraordinary future you deserve.",
+  "score": 5,
+  "cost": 0.000188,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 18
+  }
+}

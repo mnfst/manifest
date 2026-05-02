@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 45,
+  "response": "This code implements the **middleware pattern** (a variant of the Chain of Responsibility) to sequentially process a `context` object through a stack of registered functions. It uses a recursive `dispatch` function to pass a `next` callback to each middleware, allowing each function to control when\u2014or if\u2014the subsequent function in the chain is executed.",
+  "score": 5,
+  "cost": 0.0013475,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 70
+  }
+}

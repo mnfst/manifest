@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Golden crust, tangy tomato sauce, creamy mozzarella, spicy pepperoni, earthy mushrooms, sweet peppers, fresh basil, savory aroma, crisp edges, gooey center.",
+  "score": 5,
+  "cost": 0.00778,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 384
+  }
+}

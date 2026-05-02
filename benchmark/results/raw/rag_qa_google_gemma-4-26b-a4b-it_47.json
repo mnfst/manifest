@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "the Urarina",
+  "score": 5,
+  "cost": 9.9e-06,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 160,
+    "output": 5
+  }
+}

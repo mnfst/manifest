@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "If I had to choose one, it would be a sweeping, dreamlike novel about a family and a village that seem trapped in cycles of memory, love, ambition, and loss. Ordinary life and impossible events sit side by side so naturally that magic feels like weather. What I love most is its atmosphere: lush, strange, funny, tragic, and deeply haunted by the idea that history repeats until someone finally learns how to remember it differently.",
+  "score": 5,
+  "cost": 0.011975,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 594
+  }
+}

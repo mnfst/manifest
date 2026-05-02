@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "structured_output",
+  "case": 9,
+  "response": "{\n  \"title\": \"Introduction to Machine Learning\",\n  \"instructor\": \"Dr. Sarah Chen\",\n  \"duration_weeks\": 12,\n  \"prerequisites\": [\"Linear Algebra\", \"Python\"],\n  \"level\": \"Intermediate\"\n}",
+  "score": 5,
+  "cost": 3.29e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 566
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 22,
+  "response": "```python\n    count = 0\n    for bracket in brackets:\n        if bracket == \"<\":\n            count += 1\n        else:\n            count -= 1\n        if count < 0:\n            return False\n    return count == 0\n```",
+  "score": 5,
+  "cost": 2.9e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 56
+  }
+}

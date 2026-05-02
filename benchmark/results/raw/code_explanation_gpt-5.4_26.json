@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This function solves the **0/1 Knapsack problem** using **bottom-up dynamic programming**. It builds a 2D table `dp[i][w]` where each entry stores the maximum value achievable using the first `i` items with capacity `w`, choosing for each item whether to skip it or include it (if it fits), and returns the optimal value for the full capacity.",
+  "score": 5,
+  "cost": 0.000964,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 83
+  }
+}

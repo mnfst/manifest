@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 43,
+  "response": "if not numbers:\n        return []\n    result = [numbers[0]]\n    for num in numbers[1:]:\n        result.append(delimeter)\n        result.append(num)\n    return result",
+  "score": 4,
+  "cost": 3.3400000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 543
+  }
+}

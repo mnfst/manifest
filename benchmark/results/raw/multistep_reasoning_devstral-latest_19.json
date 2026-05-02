@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "D",
+  "score": 5,
+  "cost": 1e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 94,
+    "output": 2
+  }
+}

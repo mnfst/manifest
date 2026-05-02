@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 14,
+  "response": "if n == 1 or n == 2:\n    return 1\na, b = 1, 1\nfor _ in range(3, n+1):\n    a, b = b, a + b\nreturn b",
+  "score": 5,
+  "cost": 0.0001139,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 2190
+  }
+}

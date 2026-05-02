@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that there is a giant storm on Jupiter that's been raging for centuries? The Great Red Spot, a persistent anticyclonic storm on Jupiter, has been continuously observed since 1831 and is larger than Earth in diameter!",
+  "score": 5,
+  "cost": 2.106e-06,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 50
+  }
+}

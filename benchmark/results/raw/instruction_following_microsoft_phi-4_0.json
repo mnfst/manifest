@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- **Improved Physical Health**: Regular exercise strengthens the cardiovascular system, enhances muscle strength, boosts endurance, and helps maintain a healthy weight, reducing the risk of chronic diseases such as heart disease, diabetes, and certain cancers.\n\n- **Mental Health Benefits**: Exercise is known to reduce symptoms of depression and anxiety, improve mood, and enhance overall mental well-being. It stimulates the release of endorphins, which are natural mood lifters, and can also improve sleep quality.\n\n- **Increased Energy Levels**: Engaging in regular physical activity can lead to increased energy levels and improved stamina. Exercise enhances the efficiency of the cardiovascular system, allowing more oxygen and nutrients to reach tissues and organs, which helps in maintaining higher energy levels throughout the day.",
+  "score": 2,
+  "cost": 1.092e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 149
+  }
+}

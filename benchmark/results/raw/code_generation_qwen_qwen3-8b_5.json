@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 5,
+  "response": "return max(l)",
+  "score": 5,
+  "cost": 4.195e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 719
+  }
+}

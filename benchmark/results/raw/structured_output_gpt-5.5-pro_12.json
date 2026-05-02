@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "structured_output",
+  "case": 12,
+  "response": "{\"title\":\"Senior DevOps Engineer\",\"company\":\"Stripe\",\"location\":\"US\",\"remote\":true,\"salary_range\":{\"min\":180000,\"max\":220000},\"requirements\":{\"min_years\":5,\"skills\":[\"Kubernetes\",\"AWS\",\"Terraform\"]},\"benefits\":[\"unlimited PTO\",\"401k match\"]}",
+  "score": 5,
+  "cost": 0.00423,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 179
+  }
+}

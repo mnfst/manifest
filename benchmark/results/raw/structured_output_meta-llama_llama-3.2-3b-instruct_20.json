@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 20,
+  "response": "Here is the extracted information in JSON format:\n\n```\n{\n  \"items\": [\n    {\n      \"name\": \"large pepperoni\",\n      \"size\": \"large\",\n      \"price\": 18.99\n    },\n    {\n      \"name\": \"medium margherita\",\n      \"size\": \"medium\",\n      \"price\": 14.99\n    },\n    {\n      \"name\": \"2L Coke\",\n      \"size\": \"2L\",\n      \"price\": 3.99\n    }\n  ],\n  \"delivery_address\": \"456 Oak Ave\",\n  \"special_instructions\": \"ring doorbell twice\",\n  \"total\": 37.97\n}\n```\n\nNote that I calculated the total by adding up the prices of the items: `18.99 + 14.99 + 3.99 = 37.97`.",
+  "score": 5,
+  "cost": 1.4891999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 177
+  }
+}

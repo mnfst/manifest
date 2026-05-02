@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 29,
+  "response": "def digit_sum(n):\n        s = str(abs(n))\n        total = sum(int(ch) for ch in s)\n        if n < 0:\n            total -= 2 * int(s[0])\n        return total\n\n    return sorted(nums, key=digit_sum)",
+  "score": 3,
+  "cost": 0.0144,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 683
+  }
+}

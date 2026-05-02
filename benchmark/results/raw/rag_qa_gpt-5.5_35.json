@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "Bathocyroe and Ocyropsis escape danger by clapping their lobes, expelling a jet of water that drives them backwards very quickly.",
+  "score": 5,
+  "cost": 0.001197,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 267,
+    "output": 33
+  }
+}

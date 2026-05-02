@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 37,
+  "response": "```python\nreturn 0.5 * a * h\n```",
+  "score": 5,
+  "cost": 6.565e-06,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 15
+  }
+}

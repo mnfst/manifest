@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 15,
+  "response": "largest_prime = -1\n    while n % 2 == 0:\n        largest_prime = 2\n        n = n // 2\n    i = 3\n    while i * i <= n:\n        while n % i == 0:\n            largest_prime = i\n            n = n // i\n        i += 2\n    if n > 1:\n        largest_prime = n\n    return largest_prime",
+  "score": 4,
+  "cost": 0.00012265,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 2351
+  }
+}

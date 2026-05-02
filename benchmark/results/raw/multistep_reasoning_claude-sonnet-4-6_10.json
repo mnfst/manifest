@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 10,
+  "response": "Looking at this question step by step:\n\nSexual reproduction involves two parents, each contributing genetic material. The combination of genes from two different individuals, along with processes like crossing over during meiosis, creates offspring with unique genetic combinations not identical to either parent.\n\nAsexual reproduction involves only one parent, producing offspring that are genetically identical (clones) to the parent.\n\nOption A states that traits from two parents are combined \u2014 this is the key mechanism that increases genetic diversity in sexual reproduction.\n\nOption B is irrelevant \u2014 the number of organisms reproducing doesn't affect genetic diversity per offspring.\n\nOption C is about environment, which affects phenotype but not genetic diversity from reproduction itself.\n\nOption D is incorrect \u2014 identical parents would reduce diversity, not increase it.\n\n**A**",
+  "score": 5,
+  "cost": 0.002802,
+  "expected": "A",
+  "tokens": {
+    "input": 99,
+    "output": 167
+  }
+}

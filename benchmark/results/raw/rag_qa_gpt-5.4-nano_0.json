@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "A small fraction of the flow is diverted off the island of Mainau into **Lake \u00dcberlingen**.",
+  "score": 5,
+  "cost": 3.2800000000000004e-05,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 232,
+    "output": 24
+  }
+}

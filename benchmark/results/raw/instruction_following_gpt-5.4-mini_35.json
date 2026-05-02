@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "At dusk, Mara found a silver key tucked beneath the last loose brick of her garden wall.  \nIt opened not a door in her house, but a small wooden gate hidden behind the ivy at the back of her yard.  \nBeyond the gate lay a train platform glowing softly under a moon that seemed larger than memory.  \nA conductor in a coat of stars tipped his hat and asked if she was finally ready to go home.  \nMara, who had spent years feeling lost in the only place she knew, smiled and stepped onto the waiting train.  \nBy morning, her garden was ordinary again, except for the footprints leading from the wall to the gate and back.",
+  "score": 5,
+  "cost": 0.0001704,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 138
+  }
+}

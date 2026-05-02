@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 48,
+  "response": "```python\ntext = text.lower()\ntext = ''.join(filter(str.isalnum, text))\nreturn text == text[::-1]\n```",
+  "score": 5,
+  "cost": 9.49e-06,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 28
+  }
+}

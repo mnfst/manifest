@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle describes how water moves continuously through Earth\u2019s atmosphere, land, and oceans. Because the Sun provides energy, water is always changing states\u2014evaporating, condensing, and falling back to the surface. No step truly \u201cends\u201d; the same water is reused over and over in different forms.\n\nFirst, evaporation occurs when the Sun heats oceans, lakes, rivers, and even moist soil, turning liquid water into water vapor. Transpiration adds vapor from plants, and together these processes are often called evapotranspiration. Warmer air can hold more water vapor, so this vapor rises upward into the atmosphere.\n\nAs the vapor rises, it cools and condenses into tiny droplets or ice crystals, forming clouds. When droplets combine and become heavy enough, precipitation happens: water falls as rain, snow, sleet, or hail. This water returns to Earth\u2019s surface, where it collects in oceans, rivers, lakes, and groundwater.\n\nAfter precipitation, water can run off into streams and rivers, which eventually flow back to the oceans. Some water soaks into the ground through infiltration, replenishing groundwater, while some may be temporarily stored in glaciers and ice caps. Over time, the cycle continues as water heats again and evaporates, repeating the journey.",
+  "score": 5,
+  "cost": 0.00010530000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 259
+  }
+}

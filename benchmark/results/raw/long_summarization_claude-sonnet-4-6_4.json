@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Here is a 3-4 sentence summary of the key points:\n\nElectric vehicles have a history dating back to the 1830s, but Tesla's modern disruption has accelerated the industry's transformation, prompting legacy automakers like Ford, GM, and Volkswagen to aggressively transition their fleets toward electrification. The widespread adoption of EVs faces significant technical and infrastructure hurdles, including range anxiety, lengthy charging times, grid capacity limitations, and the environmental concerns surrounding the mining of critical materials like lithium and cobalt, though next-generation solid-state batteries hold promise for addressing many of these challenges. China has emerged as the world's dominant force in the EV market, leading both in manufacturing capacity and consumer adoption, while governments globally are deploying financial incentives to accelerate the transition away from combustion engines. The overall environmental benefit of EVs remains a nuanced debate, as the full lifecycle impact depends heavily on the energy sources used for both electricity generation and raw material extraction.",
+  "score": 5,
+  "cost": 0.00363,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 212
+  }
+}

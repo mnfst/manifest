@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "long_summarization",
+  "case": 1,
+  "response": "Quantum computing offers a fundamentally different approach to computation by using qubits, which can exist in multiple states simultaneously, enabling the solving of certain problems exponentially faster than classical computers. Major players like IBM, Google, IonQ, and Rigetti are developing quantum hardware using various technologies, such as superconducting circuits and trapped ions. In 2019, Google achieved quantum supremacy by completing a task in 200 seconds that would take a classical supercomputer 10,000 years. However, challenges such as qubit fragility, high error rates, and the need for extensive error correction remain, with current machines having 100-1,000 qubits, while millions may be necessary for practical applications. Despite these hurdles, quantum computing holds potential for fields like drug discovery, cryptography, and optimization.",
+  "score": 5,
+  "cost": 2.847e-05,
+  "expected": "",
+  "tokens": {
+    "input": 277,
+    "output": 161
+  }
+}

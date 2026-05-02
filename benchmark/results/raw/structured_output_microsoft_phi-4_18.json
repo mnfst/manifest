@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "structured_output",
+  "case": 18,
+  "response": "To extract the information from the text and return it as valid JSON matching the given schema, we can parse the text as follows:\n\n- **plan**: \"Pro Plan\"\n- **price_monthly**: 29.0 (since $29/month is the monthly price)\n- **price_annual**: 348.0 (since $348/year is the annual price)\n- **start_date**: \"Jan 1 2024\"\n- **renewal_date**: \"Jan 1 2025\"\n- **payment_method**: \"Visa\"\n- **card_last4**: \"4242\"\n- **status**: \"active\"\n\nHere's the JSON representation:\n\n```json\n{\n  \"plan\": \"Pro Plan\",\n  \"price_monthly\": 29.0,\n  \"price_annual\": 348.0,\n  \"start_date\": \"Jan 1 2024\",\n  \"renewal_date\": \"Jan 1 2025\",\n  \"payment_method\": \"Visa\",\n  \"card_last4\": \"4242\",\n  \"status\": \"active\"\n}\n```",
+  "score": 5,
+  "cost": 2.3205e-05,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 225
+  }
+}

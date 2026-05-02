@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This defines a **debounce decorator**: each call cancels any pending `threading.Timer` and starts a new one, so `fn` only runs after no calls have occurred for `wait` seconds. It implements a **trailing-edge debounce** pattern using a closure (`timer`) to store the current timer between calls.",
+  "score": 5,
+  "cost": 0.00348,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 148
+  }
+}

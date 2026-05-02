@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "## Explanation\n\nThis function implements the **Quicksort algorithm** using a **divide-and-conquer** approach, selecting the **middle element as the pivot** and partitioning the array into three sublists: elements less than, equal to, and greater than the pivot. It then **recursively sorts** the left and right partitions and concatenates them with the middle elements to produce a fully sorted array.",
+  "score": 5,
+  "cost": 0.001767,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 91
+  }
+}

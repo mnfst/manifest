@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 23,
+  "response": "The EU\u2019s GDPR, in force since May 2018, applies to any company handling EU residents\u2019 data and requires rights like access, erasure, portability, explicit consent, DPOs for large-scale processing, and breach notification within 72 hours. Violations can cost up to 4% of global annual revenue or 20 million euros, and major fines have hit Meta (1.2 billion euros), Amazon (746 million euros), and Google (over 200 million euros total). The law has influenced privacy rules worldwide, including California\u2019s CCPA, Brazil\u2019s LGPD, and India\u2019s DPDP Act. While critics say GDPR adds heavy compliance burdens and inconsistent enforcement, it established data privacy as a fundamental right and a global standard.",
+  "score": 5,
+  "cost": 0.00027659999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 154
+  }
+}

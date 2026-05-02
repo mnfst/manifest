@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 6,
+  "response": "seen = set()\nresult = []\nfor n in numbers:\n    if n not in seen:\n        seen.add(n)\n        result.append(n)\n    else:\n        while result and result[-1] != n:\n            pass\n        # remove first occurrence if we encounter a duplicate later\n        # (convert to two-pass approach to keep order and remove all duplicates)\n# Two-pass approach to ensure all duplicates are removed\ncounts = {}\nfor n in numbers:\n    counts[n] = counts.get(n, 0) + 1\nreturn [n for n in numbers if counts[n] == 1]",
+  "score": 3,
+  "cost": 6.230000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 127
+  }
+}

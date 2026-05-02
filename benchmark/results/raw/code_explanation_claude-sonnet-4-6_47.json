@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 47,
+  "response": "## Explanation\n\nThis function implements **Dijkstra's Shunting Yard algorithm** to convert a tokenized infix expression (e.g., `3 + 4 * 2`) into **Reverse Polish Notation (RPN/postfix order)**, where operators follow their operands (e.g., `3 4 2 * +`).\n\nIt uses two structures \u2014 an output queue and an operator stack \u2014 processing numbers directly to output while holding operators back until a lower-or-equal precedence operator or closing parenthesis forces them to flush, correctly handling both **operator precedence** (`*`/`/` before `+`/`-`) and **parenthesized sub-expressions**.",
+  "score": 5,
+  "cost": 0.003159,
+  "expected": "",
+  "tokens": {
+    "input": 243,
+    "output": 162
+  }
+}

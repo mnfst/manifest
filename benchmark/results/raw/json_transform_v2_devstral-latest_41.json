@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "json_transform_v2",
+  "case": 41,
+  "response": "```json\n{\"sensors\": [{\"id\": \"temp_1\", \"avg\": 22.42, \"min\": 22.0, \"max\": 23.5, \"anomalies\": 1}, {\"id\": \"temp_2\", \"avg\": 22.56, \"min\": 21.0, \"max\": 28.5, \"anomalies\": 1}]}\n```",
+  "score": 3,
+  "cost": 4.5299999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 99
+  }
+}

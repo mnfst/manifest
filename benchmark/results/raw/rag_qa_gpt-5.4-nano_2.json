@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Colonialism often means a country taking physical control of another.",
+  "score": 5,
+  "cost": 3.79e-05,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 315,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "rag_qa",
+  "case": 17,
+  "response": "Tymnet",
+  "score": 1,
+  "cost": 6.399e-06,
+  "expected": "an international data communications network headquartered in San Jose, CA",
+  "tokens": {
+    "input": 233,
+    "output": 4
+  }
+}

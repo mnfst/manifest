@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 31,
+  "response": "return sorted([x for x in lst if len(x) % 2 == 0], key=lambda x: (len(x), x))",
+  "score": 4,
+  "cost": 0.0010775,
+  "expected": "",
+  "tokens": {
+    "input": 233,
+    "output": 33
+  }
+}

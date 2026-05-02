@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "data_to_text",
+  "case": 24,
+  "response": "The patient is a 45-year-old female with a BMI of 27.3, indicating she is slightly overweight. Her blood pressure is 138/88, which is in the high-normal range, and her cholesterol level is 225 mg/dL, which is considered borderline high. Her fasting glucose level is 110 mg/dL, suggesting a potential risk for prediabetes. She does not smoke and exercises twice a week. Additionally, there is a family history of diabetes, as her mother has the condition.",
+  "score": 0,
+  "cost": 1.3195e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 106
+  }
+}

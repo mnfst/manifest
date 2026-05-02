@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "The high end of the temperature range in winter is **70\u00b0F**.",
+  "score": 5,
+  "cost": 2.1400000000000002e-05,
+  "expected": "70",
+  "tokens": {
+    "input": 142,
+    "output": 18
+  }
+}

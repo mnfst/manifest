@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "1. FRANCE\n2. GERMANY\n3. ITALY\n4. SPAIN\n5. SWEDEN",
+  "score": 5,
+  "cost": 2.88e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 23
+  }
+}

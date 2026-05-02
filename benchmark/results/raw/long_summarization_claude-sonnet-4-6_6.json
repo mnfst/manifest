@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Before the COVID-19 pandemic, fewer than 5% of workers were fully remote, but the forced experiment of 2020 rapidly normalized remote work through tools like Zoom, Slack, and cloud infrastructure. Research from Stanford economist Nick Bloom yielded mixed productivity findings, complicating corporate decisions about whether to maintain remote arrangements or mandate returns to the office. The resulting tension gave rise to hybrid work models, while also triggering significant side effects including declining commercial real estate values, geographic arbitrage as workers relocated to lower-cost areas, and concerns about company culture and junior employee development. Governments have responded to this shift by introducing digital nomad visas, reflecting how remote work has fundamentally restructured not just where people work, but how economies and societies organize themselves around labor.",
+  "score": 5,
+  "cost": 0.002952,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 165
+  }
+}

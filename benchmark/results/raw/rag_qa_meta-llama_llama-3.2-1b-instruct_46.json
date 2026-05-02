@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "Not found in context.",
+  "score": 2,
+  "cost": 3.456e-06,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 122,
+    "output": 6
+  }
+}

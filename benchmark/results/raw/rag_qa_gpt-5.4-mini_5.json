@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "The context does not specify a single location for \u201cthe Rhine Bridge.\u201d It mentions a bridge at Arnhem crossing the Rhine, but if you mean that one, it is in Arnhem.",
+  "score": 4,
+  "cost": 0.0001143,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 225,
+    "output": 39
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "The Ohio Company of Virginia.",
+  "score": 5,
+  "cost": 1.3871999999999999e-05,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 265,
+    "output": 7
+  }
+}

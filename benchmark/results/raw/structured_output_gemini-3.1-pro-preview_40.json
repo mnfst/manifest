@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "structured_output",
+  "case": 40,
+  "response": "{\n  \"ticket_id\": 8472,\n  \"priority\": \"High\",\n  \"created\": \"2h ago\",\n  \"user\": \"premium_user@corp.com\",\n  \"category\": \"billing\",\n  \"subject\": \"Double charged for March subscription\",\n  \"assigned_to\": \"Agent Mike\",\n  \"status\": \"in progress\"\n}",
+  "score": 4,
+  "cost": 0.0016125,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 88
+  }
+}

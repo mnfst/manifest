@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "## Explanation\n\nThis code implements an **async producer-consumer queue** using Python's `asyncio` futures as a coroutine synchronization mechanism.\n\nWhen the queue is full, `put()` suspends the calling coroutine by creating and awaiting a pending `Future` (stored in `_putters`); similarly, `get()` suspends when the queue is empty via `_getters`. Each operation then **wakes up a waiting coroutine on the opposite side** by resolving its future (`set_result(None)`) once the blocking condition is resolved \u2014 mirroring the behavior of `asyncio.Queue` from the standard library.",
+  "score": 5,
+  "cost": 0.002949,
+  "expected": "",
+  "tokens": {
+    "input": 258,
+    "output": 145
+  }
+}

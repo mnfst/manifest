@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Circuit Switching.",
+  "score": 5,
+  "cost": 7.905e-06,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 149,
+    "output": 6
+  }
+}

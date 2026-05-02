@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 4,
+  "response": "```python\ndef monotonic(l: list):\n    return all(l[i] <= l[i+1] for i in range(len(l)-1)) or all(l[i] >= l[i+1] for i in range(len(l)-1))\n```",
+  "score": 5,
+  "cost": 8.975999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 53
+  }
+}

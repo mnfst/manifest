@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This code splits an iterable into two separate iterables using the `itertools.tee` function. It returns a tuple where the first element contains items that satisfy the given `predicate` (using `filter`), and the second element contains items that do not satisfy the predicate (using `itertools.filterfalse`).",
+  "score": 5,
+  "cost": 4.554e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 63
+  }
+}

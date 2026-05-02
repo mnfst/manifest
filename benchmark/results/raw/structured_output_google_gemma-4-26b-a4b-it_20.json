@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "structured_output",
+  "case": 20,
+  "response": "```json\n{\n  \"items\": [\n    {\n      \"name\": \"pepperoni pizza\",\n      \"size\": \"large\",\n      \"price\": 18.99\n    },\n    {\n      \"name\": \"margherita pizza\",\n      \"size\": \"medium\",\n      \"price\": 14.99\n    },\n    {\n      \"name\": \"Coke\",\n      \"size\": \"2L\",\n      \"price\": 3.99\n    }\n  ],\n  \"delivery_address\": \"456 Oak Ave\",\n  \"special_instructions\": \"ring doorbell twice\",\n  \"total\": 37.97\n}\n```",
+  "score": 5,
+  "cost": 1.704e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 159
+  }
+}

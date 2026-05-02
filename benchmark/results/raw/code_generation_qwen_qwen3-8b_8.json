@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 8,
+  "response": "[value for value in values if isinstance(value, int)]",
+  "score": 5,
+  "cost": 0.00012175,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 2310
+  }
+}

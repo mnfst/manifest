@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew significantly and became much more interconnected.",
+  "score": 5,
+  "cost": 8.4e-05,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 224,
+    "output": 14
+  }
+}

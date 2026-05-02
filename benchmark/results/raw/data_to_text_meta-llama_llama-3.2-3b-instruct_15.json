@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "data_to_text",
+  "case": 15,
+  "response": "Here is the converted text:\n\nTaylor Swift's album \"Midnights\" was released in October 2022 and is a genre-bending blend of pop and synth-pop. The album boasts 13 tracks and a total runtime of 44 minutes, and has been a massive commercial success, selling over 1.58 million copies in its first week and racking up an impressive 3.4 billion streams on Spotify. The album also took home the Grammy Award for Album of the Year.",
+  "score": 0,
+  "cost": 1.0250999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 100
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 29,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"bedrooms\": 2,\n  \"bathrooms\": 1,\n  \"sqft\": 850,\n  \"rent_monthly\": 2400,\n  \"address\": \"789 Pine St #3, Brooklyn NY 11201\",\n  \"city\": \"Brooklyn\",\n  \"state\": \"NY\",\n  \"zip\": \"11201\",\n  \"available_date\": \"April 1\",\n  \"pets_allowed\": true,\n  \"amenities\": [\"laundry in-unit\"],\n  \"broker_fee\": false\n}\n```\n\nNote that I've used the following assumptions:\n\n* The \"amenities\" field is a list of strings, so I've used an array of strings.\n* The \"broker_fee\" field is a boolean, so I've used a boolean value \"false\".",
+  "score": 4,
+  "cost": 9.018e-06,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 179
+  }
+}

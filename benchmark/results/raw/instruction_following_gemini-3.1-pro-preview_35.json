@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "Elara waited on the roof until the meteor shower began. When the brightest star finally plummeted toward the horizon, she reached out with her silver net. The celestial ember hissed as it tangled in the mesh, glowing with a warm, pulsing light. Carefully, she transferred the captured star into a glass mason jar. She screwed the lid on tight and placed it on her nightstand. For the first time in years, she slept without fearing the dark.",
+  "score": 5,
+  "cost": 0.0013775,
+  "expected": "",
+  "tokens": {
+    "input": 11,
+    "output": 90
+  }
+}

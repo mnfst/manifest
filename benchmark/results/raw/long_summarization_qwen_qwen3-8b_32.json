@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "long_summarization",
+  "case": 32,
+  "response": "The internet originated in the 1960s with ARPANET, a U.S. Department of Defense project, and evolved through the 1970s with early networking. The adoption of TCP/IP in 1983 and Tim Berners-Lee\u2019s invention of the World Wide Web in 1989 laid the groundwork for modern internet infrastructure, while Mosaic (1993) made it accessible to the public. The dot-com boom of the late 1990s saw explosive growth, followed by a crash in 2001, but survivors like Amazon and Google became global giants. Today, the internet connects over 5 billion people, shaping commerce, communication, and entertainment through mobile access, social media, and cloud computing.",
+  "score": 5,
+  "cost": 4.245e-05,
+  "expected": "",
+  "tokens": {
+    "input": 336,
+    "output": 513
+  }
+}

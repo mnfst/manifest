@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU article 294",
+  "score": 5,
+  "cost": 2.424e-05,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 399,
+    "output": 5
+  }
+}

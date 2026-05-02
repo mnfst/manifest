@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here's a function docstring written in **Google style** for a sort function:\n\n```python\ndef sort(arr):\n    \"\"\"\n    Sorts a list in ascending order using the built-in sort algorithm.\n\n    Args:\n        arr (list): A list of elements that are comparable (e.g., integers, strings).\n\n    Returns:\n        list: A new list containing all elements from `arr` in ascending order.\n\n    Example:\n        >>> sort([3, 1, 4, 2])\n        [1, 2, 3, 4]\n\n    Note:\n        This function does not modify the original list; it returns a new sorted list.\n    \"\"\"\n    return sorted(arr)\n```\n\n### Explanation of the Google style elements:\n\n- **Function description**: A brief summary of what the function does.\n- **Args**: Describes the parameters.\n- **Returns**: Describes what the function returns.\n- **Example**: Shows a usage example with expected output.\n- **Note**: Additional information about behavior (e.g., non-destructive).",
+  "score": 5,
+  "cost": 7.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 214
+  }
+}

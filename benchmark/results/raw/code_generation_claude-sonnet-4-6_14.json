@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 14,
+  "response": "if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        return fib(n - 1) + fib(n - 2)",
+  "score": 5,
+  "cost": 0.00105,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 51
+  }
+}

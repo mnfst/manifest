@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Oxygen therapy promotes the body to **take up gaseous oxygen**.",
+  "score": 5,
+  "cost": 2.33e-05,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 161,
+    "output": 18
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Project Update Meeting Invitation",
+  "score": 5,
+  "cost": 9.8e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 7
+  }
+}

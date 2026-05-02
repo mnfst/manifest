@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "Answer: The world's economy grew on a global scale as a result of imperialism.",
+  "score": 5,
+  "cost": 8.349000000000001e-06,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 236,
+    "output": 17
+  }
+}

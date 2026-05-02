@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Here is a 3-4 sentence summary of the key points:\n\nArtificial intelligence has evolved from Alan Turing's foundational questions through cycles of hype and disillusionment, including two major \"AI winters\" in the 1970s and 1980s, before experiencing a dramatic resurgence driven by deep learning breakthroughs in the 2010s and the landmark 2017 \"Attention Is All You Need\" transformer architecture paper. The scaling hypothesis behind OpenAI's GPT models has fueled an intense competitive race among major players \u2014 OpenAI, Google, Anthropic, and Meta \u2014 sparking a central debate between open-source and closed-source development approaches. This rapid progress has raised serious safety concerns around alignment, misuse, and large-scale job displacement in knowledge work, prompting regulatory responses such as the EU AI Act and U.S. executive orders aimed at managing the technology's risks. The economic implications for knowledge workers remain profound, as AI systems increasingly automate tasks once considered exclusively within the domain of human expertise.",
+  "score": 5,
+  "cost": 0.003915,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 229
+  }
+}

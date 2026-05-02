@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "structured_output",
+  "case": 6,
+  "response": "```json\n{\n  \"type\": \"Bug report\",\n  \"summary\": \"App crashes on login when using Face ID\",\n  \"device\": \"iPhone 14\",\n  \"os_version\": \"iOS 17.2\",\n  \"reproducibility\": \"every time\",\n  \"severity\": \"critical\"\n}\n```",
+  "score": 5,
+  "cost": 3.15e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 73
+  }
+}

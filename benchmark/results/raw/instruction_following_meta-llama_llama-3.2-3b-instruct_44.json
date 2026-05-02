@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here are the ingredients for a basic salad:\n\n**Leafy Greens:**\n[ ] Lettuce ( Romaine, Iceberg, or your preferred type)\n\n**Vegetables:**\n\n[ ] Cherry tomatoes\n[ ] Cucumber\n[ ] Carrots\n[ ] Bell peppers\n[ ] Onions\n\n**Protein:**\n\n[ ] Grilled chicken\n[ ] Canned tuna\n[ ] Hard-boiled eggs\n[ ] Tofu\n[ ] Beans (black, kidney, or cannellini)\n\n**Cheese:**\n\n[ ] Cheddar\n[ ] Feta\n[ ] Parmesan\n[ ] Goat cheese\n[ ] Mozzarella\n\n**Crunchy Toppings:**\n\n[ ] Croutons\n[ ] Nuts (walnuts, almonds, or pecans)\n[ ] Seeds (pumpkin, sunflower, or sesame)\n\n**Dressing:**\n\n[ ] Vinaigrette\n[ ] Ranch\n[ ] Caesar\n[ ] Greek yogurt-based dressing\n[ ] Olive oil and lemon juice\n\n**Optional:**\n\n[ ] Avocado\n[ ] Sprouts (alfalfa or broccoli)\n[ ] Fresh herbs (parsley, basil, or cilantro)\n[ ] Grilled or roasted vegetables (zucchini, eggplant, or sweet potatoes)",
+  "score": 5,
+  "cost": 1.4738999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 267
+  }
+}

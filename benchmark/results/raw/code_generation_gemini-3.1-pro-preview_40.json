@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_generation",
+  "case": 40,
+  "response": "a = abs(a)\n    return int(round(a ** (1. / 3))) ** 3 == a",
+  "score": 4,
+  "cost": 0.00079,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 28
+  }
+}

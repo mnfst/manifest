@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This implements a DFS-based topological sort for a directed graph: it recursively visits each node\u2019s neighbors, then appends the node after all descendants have been processed. Reversing that postorder stack produces a topological ordering, assuming the graph is a DAG; it does not detect cycles.",
+  "score": 5,
+  "cost": 0.00324,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 135
+  }
+}

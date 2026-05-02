@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "The March cohort's satisfaction score decreased to 7.2/10, with the buddy system and IT support being positively rated. Key issues include confusion about benefits deadlines and delayed access to tools, with a priority action item to fix tools access, as highlighted by Lisa.",
+  "score": 5,
+  "cost": 1.1245000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 55
+  }
+}

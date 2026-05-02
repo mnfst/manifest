@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "The first significant challenge to the plague theory was made by British bacteriologist J. F. D. Shrewsbury in 1970.",
+  "score": 5,
+  "cost": 2.83e-05,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 193,
+    "output": 30
+  }
+}

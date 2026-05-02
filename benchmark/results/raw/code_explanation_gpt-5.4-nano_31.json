@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This is an implementation of the **A\\*** search algorithm using a priority queue (`heapq`) where the priority is `g(n) + h(n)` (path cost so far plus the provided heuristic to the goal). It expands the lowest-priority node, avoids revisiting nodes via a `visited` set, and returns the full path once the `goal` is dequeued (otherwise it returns `None`).",
+  "score": 5,
+  "cost": 5.160000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 87
+  }
+}

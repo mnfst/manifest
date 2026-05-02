@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Here is a product description for a water bottle:\n\nStay hydrated on-the-go with our BPA-free water bottle, designed to keep you refreshed and energized throughout the day. Made from durable, shatter-resistant materials, this bottle is perfect for daily commutes, workouts, or outdoor adventures. With a leak-proof lid and easy-to-clean design, you can enjoy your favorite drinks without the hassle.",
+  "score": 3,
+  "cost": 5.405999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 81
+  }
+}

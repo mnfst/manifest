@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "data_to_text",
+  "case": 12,
+  "response": "Founded in 1861, MIT is the #1 ranked university, hosting 11,500 students and supported by a faculty of 1,069 and an endowment of $24.6 billion. The institution maintains an elite academic standard with 98 Nobel laureates and a highly selective 3.9% acceptance rate. Annual tuition for students is set at $57,590.",
+  "score": 0,
+  "cost": 1.2419999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 90
+  }
+}

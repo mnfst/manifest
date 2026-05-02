@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 31,
+  "response": "return sorted([s for s in lst if len(s) % 2 == 0], key=lambda x: (len(x), x))",
+  "score": 4,
+  "cost": 3.46e-05,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 32
+  }
+}

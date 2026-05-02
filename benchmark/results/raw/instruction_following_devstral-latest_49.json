@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Here are three different greetings for a chatbot, each with a distinct tone:\n\n### **Formal:**\n*\"Good day! How may I assist you today? Please feel free to ask any questions or share your needs, and I\u2019ll do my best to provide a helpful response.\"*\n\n### **Casual:**\n*\"Hey there! \ud83d\ude0a What\u2019s up? Let me know how I can help\u2014whether it\u2019s answering a question, solving a problem, or just chatting!\"*\n\n### **Humorous:**\n*\"Greetings, human! \ud83e\udd16 (Or should I say\u2026 *fellow carbon-based lifeform*?) Ready to make magic happen? Or at least answer your questions. Your call!\"*",
+  "score": 5,
+  "cost": 4.5799999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 145
+  }
+}

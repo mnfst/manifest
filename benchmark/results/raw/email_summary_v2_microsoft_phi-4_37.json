@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo has expressed interest in acquiring our machine learning team for $15 million, which the CEO believes is too low. The CEO recommends either countering the offer or declining politely and suggests discussing the response with the board before proceeding.",
+  "score": 5,
+  "cost": 9.75e-06,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 47
+  }
+}

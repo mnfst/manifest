@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "## Code Explanation\n\nThis function computes the **nth Fibonacci number** using **recursive decomposition**, where each call breaks the problem into two smaller subproblems until reaching the base cases (`n = 0` returns `0`, `n = 1` returns `1`).\n\n> **Note:** This is a naive recursive implementation with **O(2\u207f) time complexity**, since it recalculates the same subproblems repeatedly \u2014 making it inefficient for large values of `n` compared to memoized or iterative approaches.",
+  "score": 5,
+  "cost": 0.002073,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 124
+  }
+}

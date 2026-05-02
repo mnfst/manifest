@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "long_summarization",
+  "case": 18,
+  "response": "The global food system must produce 60% more food by 2050 to feed a projected population of 9.7 billion, while climate change, water scarcity, and soil degradation threaten agricultural productivity. Agriculture also drives environmental harm, contributing about 25% of greenhouse gas emissions, depleting key water sources like the Ogallala Aquifer, and degrading 33% of arable land. Roughly one-third of all food is lost or wasted, worsening the pressure on supply. Potential solutions include precision agriculture, vertical farming, alternative proteins, drought-resistant crops, regenerative farming, and policy reforms, but the central challenge is scaling them while keeping food affordable and accessible.",
+  "score": 5,
+  "cost": 0.002544,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 139
+  }
+}

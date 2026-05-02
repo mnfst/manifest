@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "Here is a comparison table between TCP (Transmission Control Protocol) and UDP (User Datagram Protocol):\n\n| **Feature** | **TCP** | **UDP** |\n| --- | --- | --- |\n| **Connection-oriented** | Yes | No |\n| **Reliable** | Yes | No |\n| **Ordered delivery** | Yes | No |\n| **Error detection and correction** | Yes (using checksum) | No |\n| **Flow control** | Yes (using windowing) | No |\n| **Segmentation and reassembly** | Yes | No |\n| **Latency** | Higher | Lower |\n| **Throughput** | Lower | Higher |\n| **Error tolerance** | High | Low |\n| **Use cases** | File transfers, email, web browsing, streaming video | Online gaming, VoIP, video conferencing, streaming media |\n| **Packet loss** | Tolerates some packet loss | Sensitive to packet loss |\n| **Packet duplication** | Prevents packet duplication | Allows packet duplication |\n| **Flow control** | Regulates data flow to prevent congestion | No flow control |\n| **Security** | More secure due to checksum and sequence numbers | Less secure due to lack of checksum and sequence numbers |\n\nHere's a brief explanation of each feature:\n\n**TCP (Transmission Control Protocol)**\n\n* Establishes a connection between two endpoints before data is sent.\n* Ensures reliable delivery of data by using sequence numbers, checksums, and acknowledgments.\n* Provides flow control to prevent congestion and packet loss.\n* More secure due to checksums and sequence numbers.\n\n**UDP (User Datagram Protocol)**\n\n* Does not establish a connection before sending data.\n* Does not guarantee delivery of data, but can be faster and more efficient.\n* Does not provide error detection or correction, and is more sensitive to packet loss.\n* Less secure due to lack of checksums and sequence numbers.\n\nWhen to use TCP:\n\n* When reliability is crucial, such as in file transfers, email, and web browsing.\n* When data is sensitive and requires guaranteed delivery.\n\nWhen to use UDP:\n\n* When speed and efficiency are more important than reliability, such as in online gaming, VoIP, and streaming media.\n* When packet loss is not critical, and the application can handle it.\n\nIn summary, TCP is a connection-oriented protocol that provides reliable delivery of data, but is slower and more secure. UDP is a connectionless protocol that is faster and more efficient, but less",
+  "score": 4,
+  "cost": 2.6622e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 500
+  }
+}

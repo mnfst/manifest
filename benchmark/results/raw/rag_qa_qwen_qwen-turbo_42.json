@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Answer: The Moselle",
+  "score": 4,
+  "cost": 7.689e-06,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 228,
+    "output": 5
+  }
+}

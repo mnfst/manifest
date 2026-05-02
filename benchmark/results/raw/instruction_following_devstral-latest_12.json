@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is like a waiter in a restaurant.\n\nImagine you're at a restaurant. You (the customer) don't go into the kitchen to cook your food. Instead, you tell the waiter what you want, and they bring it to you. The waiter is the middleman between you and the kitchen.\n\nAn API works the same way. It's a middleman that lets different software programs talk to each other. You ask for something (like weather information or a map), and the API goes and gets it for you from another program or service, then brings it back. You don\u2019t need to know how the other program works\u2014you just ask, and the API handles the rest.",
+  "score": 5,
+  "cost": 4.3799999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 140
+  }
+}

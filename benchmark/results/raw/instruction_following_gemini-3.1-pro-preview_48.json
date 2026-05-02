@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, the Montague and Capulet families are locked in a bitter feud. Despite this, Romeo and Juliet meet and fall deeply in love, marrying in secret. Their happiness is shattered when Romeo is banished for killing Juliet\u2019s cousin. To escape an arranged marriage, Juliet fakes her death with a sleeping potion. Tragically, Romeo never receives the message explaining her plan. Believing Juliet is truly dead, he poisons himself in her tomb. Awakening to find him dead, a heartbroken Juliet stabs herself. Their tragic double suicide finally prompts the grieving families to end their ancient rivalry.",
+  "score": 5,
+  "cost": 0.00181,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 117
+  }
+}

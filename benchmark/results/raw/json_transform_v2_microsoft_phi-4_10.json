@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "json_transform_v2",
+  "case": 10,
+  "response": "```json\n{\n  \"items\": 4,\n  \"subtotal\": 1136,\n  \"discount_code\": \"SAVE20\",\n  \"member_discount\": true,\n  \"estimated_total\": 908.8\n}\n```",
+  "score": 4,
+  "cost": 1.1894999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 48
+  }
+}

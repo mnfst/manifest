@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "data_to_text",
+  "case": 33,
+  "response": "LeBron James, 40, is set to play for the Lakers during the 2024-25 season, averaging 28.4 points, 7.2 rebounds, and 8.1 assists in 71 games. As an All-Star, he continues to showcase his elite skills despite his age, maintaining a dominant presence on the court.",
+  "score": 0,
+  "cost": 2.34e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 370
+  }
+}

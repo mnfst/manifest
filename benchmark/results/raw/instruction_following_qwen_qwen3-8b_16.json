@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible force that pulls objects with mass toward each other. It\u2019s why things fall to the ground when dropped and why planets orbit the sun. The more mass an object has, the stronger its gravitational pull, and the closer objects are, the stronger the force between them. That is gravity.",
+  "score": 5,
+  "cost": 2.045e-05,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 380
+  }
+}

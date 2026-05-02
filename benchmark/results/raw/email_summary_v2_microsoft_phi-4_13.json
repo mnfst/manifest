@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success Team reported positive Q1 statistics, with an increase in NPS to 62, a rise in support CSAT to 4.3/5, and a decrease in churn rate to 1.2%. They highlighted top feature requests including SSO, custom dashboards, and API rate limit increase, and noted three enterprise expansions in the pipeline totaling $800K.",
+  "score": 5,
+  "cost": 1.3065000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 79
+  }
+}

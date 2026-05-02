@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 5.544000000000001e-06,
+  "expected": "North America",
+  "tokens": {
+    "input": 163,
+    "output": 5
+  }
+}

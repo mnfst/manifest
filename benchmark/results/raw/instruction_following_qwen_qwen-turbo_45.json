@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "**TCP (Transmission Control Protocol) vs. UDP (User Datagram Protocol)**\n\nBoth TCP and UDP are **transport layer protocols** used in the **Internet Protocol Suite (TCP/IP)** to enable communication between devices over a network. However, they differ significantly in how they handle data transmission.\n\n---\n\n### **Key Differences Between TCP and UDP**\n\n| Feature | **TCP (Transmission Control Protocol)** | **UDP (User Datagram Protocol)** |\n|--------|----------------------------------------|----------------------------------|\n| **Connection Type** | **Connection-oriented** \u2013 establishes a connection before transferring data | **Connectionless** \u2013 no connection is established before sending data |\n| **Reliability** | **Reliable** \u2013 ensures data is delivered in order and without errors | **Unreliable** \u2013 data may be lost, duplicated, or arrive out of order |\n| **Flow Control** | **Yes** \u2013 controls the rate of data transmission to prevent congestion | **No** \u2013 no built-in flow control |\n| **Congestion Control** | **Yes** \u2013 manages network congestion | **No** \u2013 no built-in congestion control |\n| **Error Checking** | **Yes** \u2013 checks for errors and retransmits lost packets | **Yes** \u2013 checks for errors, but does not retransmit lost packets |\n| **Ordering of Data** | **Yes** \u2013 guarantees data arrives in the same order it was sent | **No** \u2013 data may arrive out of order |\n| **Speed** | **Slower** \u2013 due to overhead from connection setup and reliability features | **Faster** \u2013 minimal overhead, no connection setup |\n| **Header Size** | **Larger** (20 bytes) | **Smaller** (8 bytes) |\n| **Use Cases** | Web browsing (HTTP), email (SMTP), file transfer (FTP), etc. | Real-time applications (VoIP, streaming, online gaming), DNS queries, etc. |\n| **Data Integrity** | **Guaranteed** \u2013 data is retransmitted if lost or corrupted | **Not guaranteed** \u2013 data may be lost or corrupted |\n| **Re-transmission** | **Yes** \u2013 retransmits lost packets | **No** \u2013 no re-transmission of lost packets |\n\n---\n\n### **Summary of Use Cases**\n\n- **Use TCP when**:\n  - Data integrity is critical (e.g., file transfers, web pages, email).\n  - You need guaranteed delivery and ordered data.\n  - You",
+  "score": 5,
+  "cost": 1.7259000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 500
+  }
+}

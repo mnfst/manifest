@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk two eggs with a pinch of salt. Melt a pat of butter in a skillet over medium-low heat. Pour in the eggs. Stir gently with a spatula to form soft curds. Remove from heat just before they look fully cooked. Serve immediately with black pepper.",
+  "score": 3,
+  "cost": 0.000885,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 56
+  }
+}

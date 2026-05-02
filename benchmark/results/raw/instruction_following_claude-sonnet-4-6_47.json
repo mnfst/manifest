@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "# What Makes a Good Password\n\n1. **Make it long** - Use at least 12 characters. Longer passwords are significantly harder to crack.\n\n2. **Mix character types** - Combine uppercase letters, lowercase letters, numbers, and special symbols (like !, @, #, $).\n\n3. **Avoid obvious words** - Do not use your name, birthday, pet's name, or common words like \"password\" or \"hello.\"\n\n4. **Avoid predictable patterns** - Sequences like \"1234,\" \"abcd,\" or \"aaaa\" are easy to guess.\n\n5. **Make it unique** - Use a different password for every account so one breach does not compromise others.\n\n6. **Avoid personal information** - Do not include your phone number, address, or other details someone could look up.\n\n7. **Consider a passphrase** - A string of random words like \"BlueCarpetRiverSock7!\" is both long and memorable.\n\n8. **Do not reuse old passwords** - Recycling passwords increases your risk if old data is leaked.\n\n9. **Use a password manager** - This lets you create and store complex, unique passwords without needing to memorize them all.\n\n10. **Enable two-factor authentication** - This adds a second layer of security beyond just the password itself.",
+  "score": 5,
+  "cost": 0.004512,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 297
+  }
+}

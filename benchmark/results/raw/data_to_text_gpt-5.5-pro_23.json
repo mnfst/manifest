@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "data_to_text",
+  "case": 23,
+  "response": "AAPL is trading at $185.50, up 2.3% on the day, with trading volume of 45 million shares. The company has a market cap of $2.87 trillion, a P/E ratio of 28.4, and a dividend yield of 0.55%. Over the past 52 weeks, the stock has ranged from a low of $155 to a high of $198.",
+  "score": 0,
+  "cost": 0.00425,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 186
+  }
+}

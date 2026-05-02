@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 43,
+  "response": "GDPR, which took effect in May 2018, applies to any organization processing EU residents\u2019 data and introduced major rights such as access, erasure, portability, and explicit consent requirements. It also requires Data Protection Officers for large-scale processing, 72-hour breach reporting, and allows fines up to 4% of global annual revenue or \u20ac20 million, with major penalties including Meta\u2019s \u20ac1.2 billion fine in 2023, Amazon\u2019s \u20ac746 million fine, and Google\u2019s fines exceeding \u20ac200 million. The law has influenced privacy regulations worldwide, including California\u2019s CCPA, Brazil\u2019s LGPD, and India\u2019s Digital Personal Data Protection Act. While critics say it creates compliance burdens, especially for small businesses, GDPR is widely seen as establishing privacy as a fundamental right and a global standard.",
+  "score": 5,
+  "cost": 0.000291,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 166
+  }
+}

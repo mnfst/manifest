@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe discovery of penicillin by Alexander Fleming in 1928 revolutionized the treatment of bacterial infections, transforming surgery and disease treatment. The 1950s-60s saw a \"golden age\" of antibiotic discovery, but the financial returns from developing new antibiotics have been poor, leading to a decline in new antibiotic development. The overuse and misuse of antibiotics, particularly in agriculture, has contributed to the rise of antibiotic-resistant bacteria, including MRSA, and the current crisis of antimicrobial resistance. Researchers are now exploring alternative approaches, including phage therapy, CRISPR-based methods, and AI-driven drug discovery, to combat this growing threat.",
+  "score": 5,
+  "cost": 1.4738999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 146
+  }
+}

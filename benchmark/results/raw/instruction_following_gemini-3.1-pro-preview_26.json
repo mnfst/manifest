@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, is the continuous movement of water on, above, and below the surface of the Earth. This vital process is primarily driven by the energy from the sun, which heats up water bodies such as oceans, lakes, and rivers. As the water warms, it undergoes evaporation, transforming from a liquid state into water vapor and rising into the atmosphere. Additionally, plants contribute to this upward movement through a process called transpiration, releasing water vapor from their leaves into the air.\n\nOnce the water vapor ascends high into the atmosphere, it encounters cooler temperatures that cause it to undergo condensation. During this phase, the invisible water vapor cools and changes back into tiny liquid water droplets or ice crystals. These microscopic droplets clump together around tiny particles of dust, smoke, or salt in the air to form visible clouds. As more and more water vapor condenses, these clouds grow larger and denser, setting the stage for the next phase of the cycle.\n\nWhen the water droplets within the clouds combine and become too heavy to remain suspended in the air, they fall back to the Earth as precipitation. Depending on the atmospheric temperature and conditions, this precipitation can take several forms, including rain, snow, sleet, or hail. This crucial step is nature's way of delivering freshwater to different parts of the globe, replenishing terrestrial environments and providing the necessary hydration for ecosystems, agriculture, and human survival.\n\nAfter precipitation reaches the Earth's surface, the water is collected and routed in various ways to keep the cycle going. Some of it soaks deep into the ground through infiltration, replenishing underground aquifers and becoming groundwater. The rest flows over the land as surface runoff, eventually making its way into streams, rivers, lakes, and ultimately back into the oceans. From these collection points, the sun will eventually heat the water again, restarting the endless, life-sustaining loop of the water cycle.",
+  "score": 4,
+  "cost": 0.00585,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 388
+  }
+}

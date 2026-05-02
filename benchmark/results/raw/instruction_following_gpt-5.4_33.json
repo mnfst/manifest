@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth\u2019s only natural satellite.\n\n2. It takes about 27.3 days for the Moon to orbit Earth.\n\n3. The Moon\u2019s gravity causes most of Earth\u2019s ocean tides.",
+  "score": 5,
+  "cost": 0.000412,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 45
+  }
+}

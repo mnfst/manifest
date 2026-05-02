@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "A small fraction of the cold water flow from Lake Constance goes to Lake \u00dcberlingen. \n\nAnswer: Lake \u00dcberlingen.",
+  "score": 5,
+  "cost": 2.125e-05,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 242,
+    "output": 183
+  }
+}

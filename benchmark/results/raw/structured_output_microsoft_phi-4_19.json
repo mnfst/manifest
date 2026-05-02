@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "structured_output",
+  "case": 19,
+  "response": "To extract the information from the text and return it as valid JSON matching the given schema, we can parse the text as follows:\n\n- **Type**: The type of DNS record is \"A\".\n- **Hostname**: The hostname is \"api.example.com\".\n- **Value**: The value is \"203.0.113.50\".\n- **TTL Seconds**: The TTL is \"3600\" seconds.\n- **Created**: The creation date is \"2024-01-01\".\n- **Modified**: The last modified date is \"2024-06-15\".\n\nHere's the JSON representation:\n\n```json\n{\n  \"type\": \"A\",\n  \"hostname\": \"api.example.com\",\n  \"value\": \"203.0.113.50\",\n  \"ttl_seconds\": 3600,\n  \"created\": \"2024-01-01\",\n  \"modified\": \"2024-06-15\"\n}\n```\n\nNote: The TTL value is converted from a string to an integer for the \"ttl_seconds\" field.",
+  "score": 5,
+  "cost": 2.0995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 212
+  }
+}

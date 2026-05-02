@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Answer: Oxygen.",
+  "score": 5,
+  "cost": 2.125e-05,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 169,
+    "output": 256
+  }
+}

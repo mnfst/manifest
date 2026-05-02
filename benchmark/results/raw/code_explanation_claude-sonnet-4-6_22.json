@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "## LRU Cache Implementation\n\nThis code implements a **Least Recently Used (LRU) Cache** using Python's `OrderedDict`, which maintains insertion order. On every `get` or `put` operation, the accessed key is moved to the end of the dictionary, so the **least recently used item always remains at the front** and is evicted first via `popitem(last=False)` when the cache exceeds its capacity.",
+  "score": 5,
+  "cost": 0.002019,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 98
+  }
+}

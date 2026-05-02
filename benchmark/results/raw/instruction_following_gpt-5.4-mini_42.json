@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm rolls in like a heavy curtain, darkening the sky and filling the air with the smell of rain and wet earth. Wind pushes against trees and rattles windows, while flashes of lightning briefly turn everything bright white. Thunder follows with a deep, rumbling boom that seems to shake the ground. Raindrops hit rooftops and pavement with a sharp, steady patter, and the cool, damp air feels electric and alive.",
+  "score": 5,
+  "cost": 0.00011609999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 92
+  }
+}

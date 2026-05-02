@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 3,
+  "response": "```python\nreturn [i * xs[i] for i in range(1, len(xs))]\n```",
+  "score": 4,
+  "cost": 1.0529999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 22
+  }
+}

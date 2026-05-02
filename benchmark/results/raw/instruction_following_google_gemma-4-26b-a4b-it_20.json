@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Plants process sunlight. Sunlight powers photosynthesis. Plants swallow solar particles, plus protons, plus phosphates. Plants produce sugar, plus pure, sweet, sparkling substances. Plants produce precious, pure, super, stable, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized, sparkling, pure, sweet, soft, small, splendid, super-sized",
+  "score": 2,
+  "cost": 3.162e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 500
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "OPEC raised the price of oil to $5.11 in response to American aid to Israel during the October 1973 oil embargo. This action was part of a collective response to the economic and political objectives related to the situation. The context indicates that the price increase was triggered by the decision to provide $2.2 billion in emergency aid to Israel by the United States. This decision led to a collective OPEC response, including the price increase.",
+  "score": 5,
+  "cost": 2.3984999999999998e-05,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 277,
+    "output": 92
+  }
+}

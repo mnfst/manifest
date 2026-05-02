@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\nfrom collections import deque\n\ndef minPath(grid, k):\n    n = len(grid)\n    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]\n    queue = deque([(i, j, set()) for i in range(n) for j in range(n)])\n    visited = set((i, j) for i in range(n) for j in range(n))\n    while queue:\n        x, y, path = queue.popleft()\n        if len(path) == k:\n            return list(path)\n        for dx, dy in directions:\n            nx, ny = x + dx, y + dy\n            if 0 <= nx < n and 0 <= ny < n and (nx, ny) not in visited:\n                visited.add((nx, ny))\n                queue.append((nx, ny, path | {grid[nx][ny]}))\n```",
+  "score": 2,
+  "cost": 3.1926e-05,
+  "expected": "",
+  "tokens": {
+    "input": 432,
+    "output": 194
+  }
+}

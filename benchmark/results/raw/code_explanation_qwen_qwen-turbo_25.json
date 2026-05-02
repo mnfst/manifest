@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements a basic **event emitter** pattern, where objects can register listeners (callbacks) for specific events and trigger those listeners when the event is emitted. It uses a dictionary to map event names to lists of callback functions, and provides methods to add (`on`), remove (`off`), and trigger (`emit`) events.",
+  "score": 5,
+  "cost": 6.237e-06,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 67
+  }
+}

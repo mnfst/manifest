@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "France offered **full citizenship rights\u2014\u201cassimilation\u201d** (though it was only really on the distant horizon).",
+  "score": 5,
+  "cost": 2.7300000000000003e-05,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 169,
+    "output": 26
+  }
+}

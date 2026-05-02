@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 46,
+  "response": "David has identified a critical SQL injection vulnerability in the `/api/v2/auth/login` endpoint, affecting versions 3.2.0 to 3.4.1, with a CVSS score of 9.8. He recommends parameterizing the query in `auth_controller.py` at line 142 and suggests reviewing and implementing the patch within 24 hours.",
+  "score": 5,
+  "cost": 1.2025000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 75
+  }
+}

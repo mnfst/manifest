@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia had a Calvinist ruler, the Great Elector Frederick William, who welcomed Huguenots to help rebuild his country.",
+  "score": 5,
+  "cost": 1.586e-05,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 216,
+    "output": 28
+  }
+}

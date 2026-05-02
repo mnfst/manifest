@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Full citizenship rights \u2013 \u2018\u2019assimilation\u2019\u2019 \u2013 were offered, although in reality assimilation was always on the distant horizon.",
+  "score": 5,
+  "cost": 1.212e-05,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 175,
+    "output": 27
+  }
+}

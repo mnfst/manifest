@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 22,
+  "response": "Ferns require moist, humid environments with adequate water and typically some shade. \n\n- A desert is too dry and hot for ferns.\n- Along a river provides moisture, humidity, and shade \u2014 ideal conditions for ferns.\n- The bottom of an ocean is saltwater and too deep for ferns (they are land plants).\n- A prairie is too dry and open/sunny for most ferns.\n\n**B**",
+  "score": 5,
+  "cost": 0.001677,
+  "expected": "B",
+  "tokens": {
+    "input": 84,
+    "output": 95
+  }
+}

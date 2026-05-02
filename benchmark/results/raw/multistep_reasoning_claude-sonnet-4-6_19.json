@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "The planets revolve around the Sun due to gravitational attraction. The Sun contains about 99.8% of the total mass of the solar system, making it by far the strongest gravitational source. Gravity is the force that keeps planets in their orbits.\n\n**D**",
+  "score": 5,
+  "cost": 0.001233,
+  "expected": "D",
+  "tokens": {
+    "input": 106,
+    "output": 61
+  }
+}

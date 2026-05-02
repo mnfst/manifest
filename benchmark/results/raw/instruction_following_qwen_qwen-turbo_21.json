@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Sure! Here are directions from a park to a library using only left and right turns. Please note that these directions are hypothetical since I don't know the specific locations of the park and library. You can adjust them based on your actual starting and ending points.\n\n---\n\n**Start at the Park:**\n\n1. Turn **right** onto Main Street.\n2. Continue on Main Street for 2 blocks.\n3. Turn **left** onto Pine Avenue.\n4. Drive straight for 1 block.\n5. Turn **right** onto Oak Road.\n6. Continue on Oak Road for 3 blocks.\n7. Turn **left** onto Maple Street.\n8. The library will be on your **right**, at the end of Maple Street.\n\n---\n\nLet me know the names of the park and library, and I can tailor the directions more precisely for you.",
+  "score": 4,
+  "cost": 6.633e-06,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 172
+  }
+}

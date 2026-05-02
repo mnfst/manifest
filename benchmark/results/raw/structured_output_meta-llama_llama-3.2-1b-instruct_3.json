@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 3,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"flight_number\": \"AA123\",\n  \"origin\": \"JFK\",\n  \"destination\": \"LAX\",\n  \"departure\": \"3:45pm\",\n  \"arrival\": \"6:30pm\",\n  \"date\": \"March 5\",\n  \"class\": \"Economy\",\n  \"stops\": 1,\n  \"stop_cities\": [\"Dallas\"]\n}\n```\n\nNote that I've used the exact text as provided in the original text, without any modifications.",
+  "score": 5,
+  "cost": 6.21e-06,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 114
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 13,
+  "response": "This implements a simple Observer pattern: `subscribe(fn)` registers callback functions in a list, and `notify(*args)` iterates over that list, calling each registered observer with the provided arguments.",
+  "score": 5,
+  "cost": 2.5399999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 42
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "In April, the company achieved a 10K monthly active user milestone, closed a Series A funding round of $8 million at a $40 million pre-money valuation, and hired a VP of Sales. Current metrics show a monthly recurring revenue of $85K with a 12% month-over-month increase, a burn rate of $120K/month, and an 11-month runway post-funding, with the fundraising process closing on May 10.",
+  "score": 5,
+  "cost": 1.287e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 92
+  }
+}

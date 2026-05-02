@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known for their loyal nature, forming strong bonds with their human families and remaining faithful companions. A loyal dog's tail will often wag excitedly at the sound of its owner's voice, signaling its eagerness to please. Loyal dogs are also quick to defend their pack, using their sharp instincts to protect their loved ones from harm. Whether they're big or small, dogs are loyal friends who bring joy and comfort to our lives. Loyal dogs are also highly trainable, making them valuable assets in search and rescue missions, guiding their handlers through challenging terrain with unwavering loyalty.",
+  "score": 3,
+  "cost": 7.5479999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 121
+  }
+}

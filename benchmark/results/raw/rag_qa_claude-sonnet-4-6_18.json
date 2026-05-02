@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Based on the provided context, **Allan Bloom** wrote \"The Closing of the American Mind.\" He is described as a political philosopher, literary critic, and author of the New York Times bestseller \"The Closing of the American Mind.\"",
+  "score": 5,
+  "cost": 0.001392,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 199,
+    "output": 53
+  }
+}

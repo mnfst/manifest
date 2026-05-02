@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "The presence of the mortgage banker is highly likely even in small projects.",
+  "score": 5,
+  "cost": 2.5000000000000005e-05,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 202,
+    "output": 16
+  }
+}

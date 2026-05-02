@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 17,
+  "response": "This implements the Chain of Responsibility pattern: it returns a `handle(request)` function that iterates through the provided `handlers`, calling each with `request` until one returns a non-`None` result, which is then returned immediately; if all return `None`, it returns `None`.",
+  "score": 5,
+  "cost": 3.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 62
+  }
+}

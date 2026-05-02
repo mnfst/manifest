@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "1. Fran\u00e7ais: Bonjour le monde  \n2. Espagnol: Hola mundo  \n3. Allemand: Hallo Welt",
+  "score": 5,
+  "cost": 1.9140000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 27
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law of Motion connects relative velocities with inertia. It states that objects continue to move in a state of constant velocity unless acted upon by an external net force, and it makes rest physically indistinguishable from non-zero constant velocity, thereby directly connecting inertia with the concept of relative velocities.",
+  "score": 5,
+  "cost": 2.1645000000000004e-05,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 273,
+    "output": 60
+  }
+}

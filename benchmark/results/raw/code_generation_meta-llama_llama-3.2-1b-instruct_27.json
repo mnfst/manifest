@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 27,
+  "response": "def Strongest_Extension(class_name, extensions):\n    max_strength = 0\n    strongest_extension = \"\"\n    for ext in extensions:\n        strength = (len(ext.upper()) - len(ext.lower())) / 2\n        if strength > max_strength:\n            max_strength = strength\n            strongest_extension = ext\n    return class_name + strongest_extension",
+  "score": 2,
+  "cost": 1.0395e-05,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 72
+  }
+}

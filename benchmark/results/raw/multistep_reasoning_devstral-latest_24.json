@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "To determine the correct answer, let's analyze the question step by step:\n\n1. **Extrusive Igneous Rock**: This type of rock forms from lava that cools and solidifies on the Earth's surface. It is characterized by fine-grained or glassy textures due to rapid cooling.\n\n2. **Options Analysis**:\n   - **A) Intrusive Igneous**: Intrusive igneous rocks form from magma that cools slowly beneath the Earth's surface, resulting in coarse-grained textures. This is not the same as extrusive igneous, so this option is incorrect.\n   - **B) Clastic Sedimentary**: Clastic sedimentary rocks are formed from the accumulation and lithification of rock fragments (clasts). This is unrelated to igneous processes, so this option is incorrect.\n   - **C) Metamorphic**: Metamorphic rocks form from the transformation of existing rocks due to heat and pressure. This is not the same as extrusive igneous, so this option is incorrect.\n   - **D) Volcanic**: Volcanic rocks are a subset of extrusive igneous rocks, as they form from lava erupted from volcanoes. Thus, this is a correct categorization for the same rock.\n\n3. **Conclusion**: The only accurate alternative categorization for an extrusive igneous rock is \"volcanic,\" as it is a specific type of extrusive igneous rock.\n\nFinal answer: D",
+  "score": 5,
+  "cost": 9.88e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 85,
+    "output": 301
+  }
+}

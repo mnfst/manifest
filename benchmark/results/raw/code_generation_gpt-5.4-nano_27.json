@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 27,
+  "response": "best_ext = None\nbest_strength = None\n\nfor ext in extensions:\n    cap = sum(1 for ch in ext if 'A' <= ch <= 'Z')\n    sm = sum(1 for ch in ext if 'a' <= ch <= 'z')\n    strength = cap - sm\n    if best_strength is None or strength > best_strength:\n        best_strength = strength\n        best_ext = ext\n\nreturn f\"{class_name}.{best_ext}\"",
+  "score": 5,
+  "cost": 6.95e-05,
+  "expected": "",
+  "tokens": {
+    "input": 303,
+    "output": 98
+  }
+}

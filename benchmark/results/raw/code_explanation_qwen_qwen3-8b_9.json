@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "The code defines a retry decorator that implements **exponential backoff** to retry a function up to `max_attempts` times, doubling the delay between attempts using `2^i` (where `i` is the attempt index). If the function raises an exception, it waits increasingly longer before retrying, and raises the exception on the final attempt if failure persists.",
+  "score": 5,
+  "cost": 2.295e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 345
+  }
+}

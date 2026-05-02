@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known for being loyal companions to their owners, and their loyal nature makes them trusted members of many families. A loyal dog will always greet you with excitement and remain loyal even in difficult times. The loyal bond between a dog and its human is one of the most rewarding relationships in the world. Many people value the loyal presence of a dog, as they offer unconditional love and loyal protection. Training a dog can strengthen the loyal connection, as trust and loyalty grow through time and care. No matter the situation, a loyal dog will stand by your side, never failing to show their loyal devotion.",
+  "score": 4,
+  "cost": 4.9170000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 121
+  }
+}

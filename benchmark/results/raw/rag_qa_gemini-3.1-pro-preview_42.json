@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.000605,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 212,
+    "output": 5
+  }
+}

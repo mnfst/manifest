@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Korea bordered the northeast of Kublai's territory. Kublai secured the northeast border by installing the hostage prince Wonjong as the ruler of Korea, making it a Mongol tributary state in 1259.",
+  "score": 5,
+  "cost": 1.768e-05,
+  "expected": "northeast",
+  "tokens": {
+    "input": 225,
+    "output": 47
+  }
+}

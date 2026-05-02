@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code computes a topological ordering of a directed acyclic graph (DAG), returning a linear sequence of nodes where every parent node appears before its dependencies. It achieves this by using a **Depth-First Search (DFS)** algorithm with a **post-order traversal**, pushing nodes onto a stack only after all their neighbors have been fully explored, and finally reversing the stack to produce the correct order.",
+  "score": 5,
+  "cost": 0.0014875,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 79
+  }
+}

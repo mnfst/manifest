@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 40,
+  "response": "if a == 0:\n    return True\n    n = round(abs(a) ** (1 / 3))\n    return n ** 3 == abs(a) or (-n) ** 3 == a",
+  "score": 2,
+  "cost": 9.75e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 46
+  }
+}

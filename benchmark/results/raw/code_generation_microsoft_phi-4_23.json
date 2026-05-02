@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 23,
+  "response": "```python\nimport sys\n\ndef minSubArraySum(nums):\n    min_sum = sys.maxsize\n    current_sum = 0\n    start = 0\n\n    for end in range(len(nums)):\n        current_sum += nums[end]\n        while current_sum > 0:\n            min_sum = min(min_sum, current_sum)\n            current_sum -= nums[start]\n            start += 1\n        min_sum = min(min_sum, current_sum)\n\n    return min_sum\n```",
+  "score": 3,
+  "cost": 1.4755e-05,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 99
+  }
+}

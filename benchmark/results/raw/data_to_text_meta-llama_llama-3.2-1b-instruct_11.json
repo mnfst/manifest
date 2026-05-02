@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 11,
+  "response": "Here is the converted paragraph:\n\nDataFlow AI is a startup that was founded in 2022 and is currently in the Series A stage, with a valuation of $42 million. The company has a team of 18 people and generates $120,000 in monthly recurring revenue (MRR). With a growth rate of 25% month-over-month, DataFlow AI is poised for significant expansion in the data infrastructure sector.",
+  "score": 0,
+  "cost": 5.211000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 86
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "The law that connects relative velocities with inertia is **Newton's First Law of Motion**. The context explicitly states that this law \"directly connects inertia with the concept of relative velocities\" by equating rest with non-zero constant velocity, making them physically indistinguishable. \n\n**Answer:** Newton's First Law of Motion.",
+  "score": 5,
+  "cost": 2.7700000000000002e-05,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 274,
+    "output": 280
+  }
+}

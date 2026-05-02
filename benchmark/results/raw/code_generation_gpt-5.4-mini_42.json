@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n        return -1\n    avg = (n + m) // 2 if (n + m) % 2 == 0 else round((n + m) / 2)\n    return bin(avg)",
+  "score": 3,
+  "cost": 0.00011489999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 53
+  }
+}

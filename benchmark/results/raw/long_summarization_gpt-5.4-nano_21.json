@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "long_summarization",
+  "case": 21,
+  "response": "Quantum computing differs from classical computing by using qubits that can exist in superposition (both 0 and 1 at once), leveraging entanglement and interference to achieve exponential speedups for certain problems. IBM, Google, and startups such as IonQ and Rigetti are building hardware using approaches like superconducting circuits, trapped ions, photonics, and topological qubits; in 2019 Google claimed \u201cquantum supremacy,\u201d completing a task in 200 seconds that it said would take a classical supercomputer 10,000 years. However, practical use is hindered by fragility of qubits (requiring cooling near absolute zero) and high error rates, since error correction needs many physical qubits per logical qubit\u2014current systems have only about 100\u20131,000 qubits, while millions may be required. Despite these obstacles, quantum computing may help with drug discovery, materials science, cryptography, and optimization, and companies are already testing quantum algorithms for areas like finance and logistics.",
+  "score": 5,
+  "cost": 0.00011,
+  "expected": "",
+  "tokens": {
+    "input": 276,
+    "output": 206
+  }
+}

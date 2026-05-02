@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Artificial intelligence has evolved dramatically from Alan Turing's foundational theories, overcoming the funding \"winters\" of the 1970s and 1980s to achieve a massive resurgence through deep learning in the 2010s. The pivotal 2017 transformer architecture paper accelerated this growth, validating the scaling hypothesis and igniting a fierce development race among tech giants like OpenAI, Google, Anthropic, and Meta. However, this rapid advancement has sparked intense debates over open-source access and raised critical safety concerns regarding AI alignment, misuse, and the economic disruption of knowledge work. Consequently, global authorities are now attempting to manage these risks through landmark regulations like the EU AI Act and recent US executive orders.",
+  "score": 5,
+  "cost": 0.0026125,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 149
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 49,
+  "response": "if not string:\n    return \"\"\n\ni = 0\nn = len(string)\n\nfor k in range(n - 1, -1, -1):\n    suffix = string[k:]\n    if suffix == suffix[::-1]:\n        i = k\n        break\n\nprefix = string[:i]\nreturn string + prefix[::-1]",
+  "score": 4,
+  "cost": 4.51e-05,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 70
+  }
+}

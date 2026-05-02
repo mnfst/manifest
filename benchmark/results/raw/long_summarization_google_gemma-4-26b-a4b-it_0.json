@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "long_summarization",
+  "case": 0,
+  "response": "The history of the internet began in the 1960s with US Department of Defense research, evolving from the 1969 ARPANET demonstration to the establishment of TCP/IP protocols in 1983. The invention of the World Wide Web in 1989 and the 1993 launch of the Mosaic browser transitioned the technology from research institutions to the general public. Following the dot-com boom and the rise of mobile and social media, the internet has become a ubiquitous force in modern life. Today, this global network connects over 5 billion people and underpins nearly every aspect of contemporary commerce and communication.",
+  "score": 5,
+  "cost": 2.6159999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 123
+  }
+}

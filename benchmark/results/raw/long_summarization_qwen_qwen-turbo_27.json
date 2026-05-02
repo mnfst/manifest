@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "long_summarization",
+  "case": 27,
+  "response": "The European Union's General Data Protection Regulation (GDPR), which became effective in May 2018, established strict rules for handling personal data, applying to any organization processing data of EU residents, regardless of location. Key requirements include data access, erasure, portability, explicit consent, and mandatory breach reporting within 72 hours, with potential fines of up to 4% of global revenue or 20 million euros. Major tech companies like Meta, Amazon, and Google have faced significant penalties, with Meta receiving a 1.2 billion euro fine in 2023. While GDPR has inspired similar data protection laws globally, it has also faced criticism for imposing compliance burdens on small businesses and causing user frustration through excessive cookie consent requests.",
+  "score": 5,
+  "cost": 1.5774000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 324,
+    "output": 154
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s have seen rapid advancements in space exploration, with SpaceX developing the Starship for deep-space missions, and NASA's Artemis program aiming to return humans to the Moon by 2025. The James Webb Space Telescope has made groundbreaking discoveries about the early universe, while China continues to expand its space presence with a space station and lunar ambitions. Meanwhile, companies like SpaceX and OneWeb are deploying satellite internet constellations, and space tourism is becoming more accessible through companies like Blue Origin and Virgin Galactic. However, challenges such as space debris and the limitations of the Outer Space Treaty raise concerns about the sustainability and regulation of space activities.",
+  "score": 5,
+  "cost": 9.075e-06,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 134
+  }
+}

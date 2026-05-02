@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 17,
+  "response": "This implements the **Chain of Responsibility** pattern: it builds a single handler that passes a request through each provided handler in order. The first handler to return a non-`None` result \u201chandles\u201d the request, and if none do, the wrapper returns `None`.",
+  "score": 5,
+  "cost": 0.003075,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 134
+  }
+}

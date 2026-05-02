@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are loyal companions who thrive on trust, routine, and affection. They are loyal animals that bond deeply with their families and learn to recognize familiar voices and footsteps. With loyal instincts, many dogs help protect their homes and guide people through everyday challenges. Whether playing fetch or simply resting nearby, dogs stay loyal in ways that make them feel like true members of the household. Their loyal nature, combined with intelligence and curiosity, helps them adapt to training and grow into dependable partners.",
+  "score": 5,
+  "cost": 4.1400000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 98
+  }
+}

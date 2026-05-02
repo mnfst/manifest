@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "structured_output",
+  "case": 1,
+  "response": "```json\n{\n  \"title\": \"Q4 Planning\",\n  \"date\": \"Dec 15 2024\",\n  \"time\": \"2pm\",\n  \"attendees\": [\"Alice\", \"Bob\", \"Charlie\"],\n  \"room\": \"301B\"\n}\n```",
+  "score": 5,
+  "cost": 3.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 60
+  }
+}

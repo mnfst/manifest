@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "# A Thunderstorm\n\nThe sky darkens like a bruise spreading across the horizon, deep purple and charcoal gray swallowing the last pale light of afternoon.\n\nThe first thing you notice is the **smell** \u2014 that sharp, electric scent of ozone cutting through the humid air, clean and metallic, arriving before any rain or thunder announces itself.\n\nThen comes the **sound**. A low rumble begins somewhere far away, rolling across the sky like something massive shifting overhead. It builds slowly, then cracks \u2014 a sudden, splitting boom that you feel as much as hear, vibrating in your chest and rattling the windows in their frames.\n\nWhen the rain finally arrives, it doesn't ease in gently. It **hits** all at once \u2014 cold drops striking your skin like small thrown stones, soaking through fabric in seconds. The ground releases the warm, earthy smell of wet soil, rich and alive.\n\nLightning tears a white seam across the clouds, illuminating everything in a brief, frozen moment \u2014 the bent trees, the empty street, the silver curtain of falling rain.\n\nThen darkness again, and the storm settles into a steady roar, the kind that makes the whole world feel smaller, closer, and strangely safe if you're watching from inside.",
+  "score": 5,
+  "cost": 0.004227,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 277
+  }
+}

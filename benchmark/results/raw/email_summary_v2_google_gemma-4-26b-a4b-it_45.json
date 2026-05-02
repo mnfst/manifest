@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 45,
+  "response": "A misconfigured load balancer caused a 47-minute service degradation affecting 12,000 users. To prevent recurrence, the team must add configuration validation to the CI, update the runbook, and implement traffic distribution alerts.",
+  "score": 5,
+  "cost": 9.899999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements the **Circuit Breaker pattern**, which prevents repeated calls to a failing function by tracking failures and temporarily blocking further attempts after a threshold is reached. It has three states: *closed* (normal operation), *open* (blocking calls after too many failures), and *half-open* (allowing limited retries after a timeout period). The `call` method wraps a function (`fn`), tracks failures, and transitions between states based on failure counts and elapsed time.",
+  "score": 5,
+  "cost": 5.05e-05,
+  "expected": "",
+  "tokens": {
+    "input": 205,
+    "output": 100
+  }
+}

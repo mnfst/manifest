@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function splits a single iterable into **two separate iterators** \u2014 one containing elements that satisfy the predicate and one containing elements that don't \u2014 using `itertools.tee` to duplicate the iterable so it can be consumed twice without exhausting the original. It's essentially a **partition pattern**, similar to splitting a collection into \"truthy\" and \"falsy\" subsets based on a condition.",
+  "score": 5,
+  "cost": 0.001602,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 89
+  }
+}

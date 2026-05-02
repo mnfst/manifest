@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a stack data structure that supports retrieving the minimum element in constant $O(1)$ time. It achieves this by using an **auxiliary stack pattern**, maintaining a parallel `min_stack` that records the current minimum value at each corresponding depth of the main stack.",
+  "score": 5,
+  "cost": 0.0012225,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 56
+  }
+}

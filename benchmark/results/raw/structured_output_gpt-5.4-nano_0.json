@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "structured_output",
+  "case": 0,
+  "response": "```json\n{\n  \"name\": \"John Smith\",\n  \"age\": 32,\n  \"job_title\": \"software engineer\",\n  \"company\": \"Google\",\n  \"location\": {\n    \"city\": \"Mountain View\",\n    \"state\": \"CA\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 3.27e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 62
+  }
+}

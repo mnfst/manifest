@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 3,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"flight_number\": \"AA123\",\n  \"origin\": \"JFK\",\n  \"destination\": \"LAX\",\n  \"departure\": \"3:45pm\",\n  \"arrival\": \"6:30pm\",\n  \"date\": \"March 5\",\n  \"class\": \"Economy\",\n  \"stops\": 1,\n  \"stop_cities\": [\"Dallas\"]\n}\n```\n\nNote that I've kept the \"departure\" and \"arrival\" times in their original format, as they are not standard date/time formats. If you'd like to convert them to a standard format (e.g. ISO 8601), please let me know!",
+  "score": 5,
+  "cost": 1.3463999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 148
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a programmer named Dave,  \nWhose code was as sharp as a blade.  \nHe debugged with a flair,  \nIn his comfy chair,  \nAnd his algorithms never did fade.  \n\nWith coffee in hand, he'd sit late,  \nIn his room with the door firmly closed.  \nHis logic was tight,  \nIn the glow of his light,  \nAnd his bugs were always opposed.  \n\nOne day, with a bug he was vexed,  \nBut his mind was as quick as a fox.  \nHe wrote with such grace,  \nIn his virtual space,  \nAnd his code was as smooth as a box.  \n\nHis colleagues would say with a smile,  \n\"Dave's the best, he's worth every dime!\"  \nWith a keyboard as his sword,  \nHe'd conquer each word,  \nIn the realm of the digital clime.  \n\nSo here's to Dave, the coder so keen,  \nWhose skills are unmatched and supreme.  \nWith a mind full of tricks,  \nAnd a knack for the clicks,  \nHe's the king of the programming dream.",
+  "score": 2,
+  "cost": 1.586e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 226
+  }
+}

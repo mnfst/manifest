@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 40,
+  "response": "```python\nimport math\n\ndef iscube(a):\n    return round(math.pow(a, 1/3)) ** 3 == a\n```",
+  "score": 4,
+  "cost": 9.026999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 31
+  }
+}

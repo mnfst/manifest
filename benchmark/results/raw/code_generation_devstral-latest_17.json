@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_generation",
+  "case": 17,
+  "response": "```python\n    import hashlib\n    if not text:\n        return None\n    return hashlib.md5(text.encode()).hexdigest()\n```",
+  "score": 5,
+  "cost": 2.1200000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 32
+  }
+}

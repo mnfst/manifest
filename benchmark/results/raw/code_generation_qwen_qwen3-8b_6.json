@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_generation",
+  "case": 6,
+  "response": "counts = {}\nfor num in numbers:\n    counts[num] = counts.get(num, 0) + 1\nduplicates = {num for num, cnt in counts.items() if cnt > 1}\nreturn [num for num in numbers if num not in duplicates]",
+  "score": 5,
+  "cost": 0.0001146,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 2175
+  }
+}

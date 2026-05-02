@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "J. F. D. Shrewsbury in 1970.",
+  "score": 5,
+  "cost": 1.0659e-05,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 193,
+    "output": 16
+  }
+}

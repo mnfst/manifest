@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "## Explanation\n\nThis function finds the **maximum value in every sliding window of size `k`** across the input array using a **monotonic deque (double-ended queue)** pattern.\n\nThe deque stores indices in decreasing order of their corresponding values, so the front always holds the index of the current window's maximum \u2014 expired indices (outside the window) are removed from the front, and smaller elements are removed from the back before inserting a new index, maintaining the monotonic invariant.\n\n### Example\n```python\nnums = [1, 3, -1, -3, 5, 3, 6, 7], k = 3\n# Output: [3, 3, 5, 5, 6, 7]\n```\n\n### Key Operations\n| Operation | Purpose |\n|---|---|\n| `dq.popleft()` | Evict indices no longer in the",
+  "score": 5,
+  "cost": 0.003462,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 200
+  }
+}

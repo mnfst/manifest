@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law",
+  "score": 5,
+  "cost": 1.7219999999999998e-05,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 281,
+    "output": 6
+  }
+}

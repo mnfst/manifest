@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "Los Angeles Kings",
+  "score": 5,
+  "cost": 4.23e-05,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 117,
+    "output": 6
+  }
+}

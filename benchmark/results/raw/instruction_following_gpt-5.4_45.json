@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "Here\u2019s a concise comparison of **TCP vs UDP**:\n\n| Feature | TCP (Transmission Control Protocol) | UDP (User Datagram Protocol) |\n|---|---|---|\n| Connection type | **Connection-oriented** | **Connectionless** |\n| Reliability | **Reliable**: ensures delivery, ordering, and error checking | **Unreliable**: no guarantee of delivery or order |\n| Data ordering | Preserves packet order | Packets may arrive out of order |\n| Error handling | Retransmits lost packets | No retransmission built in |\n| Speed | Usually **slower** due to overhead | Usually **faster** due to lower overhead |\n| Header size | Larger | Smaller |\n| Flow control | Yes | No |\n| Congestion control | Yes | No |\n| Use cases | Web browsing, email, file transfer | Streaming, gaming, VoIP, DNS |\n| Example protocols | HTTP/HTTPS, FTP, SMTP | DNS, DHCP, RTP |\n\n## In simple terms\n- **TCP** is like a **phone call**: connection is established, data is checked, and everything arrives in order.\n- **UDP** is like **sending postcards**: fast, lightweight, but some may get lost or arrive out of order.\n\n## When to use which\n- Use **TCP** when **accuracy and reliability** matter.\n- Use **UDP** when **speed and low latency** matter more than perfect delivery.\n\nIf you want, I can also give you a **real-world analogy** version or a **networking interview-style answer**.",
+  "score": 5,
+  "cost": 0.0026,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 321
+  }
+}

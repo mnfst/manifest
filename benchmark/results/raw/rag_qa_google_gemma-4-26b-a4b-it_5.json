@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "at Arnhem",
+  "score": 5,
+  "cost": 1.4459999999999999e-05,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 238,
+    "output": 3
+  }
+}

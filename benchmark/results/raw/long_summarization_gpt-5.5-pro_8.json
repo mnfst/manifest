@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "AI has evolved from Turing\u2019s foundational question through setbacks in the AI winters of the 1970s and 1980s to a major resurgence driven by deep learning in the 2010s. The 2017 transformer architecture paper enabled modern large language models, including GPT, and strengthened the scaling hypothesis that bigger models trained on more data can yield major performance gains. This sparked intense competition among OpenAI, Google, Anthropic, and Meta, alongside debates over open versus closed-source AI development. The field now faces major concerns around alignment, misuse, job displacement, regulation such as the EU AI Act and U.S. executive orders, and broad economic effects on knowledge work.",
+  "score": 5,
+  "cost": 0.007605,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 343
+  }
+}

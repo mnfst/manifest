@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "The code implements an **LRU (Least Recently Used) cache** using an `OrderedDict`, where accessed items are moved to the end to mark them as recently used, and the oldest item (first in the OrderedDict) is evicted when the cache exceeds `maxsize`. This follows the LRU algorithm for efficient memory management.",
+  "score": 5,
+  "cost": 2.8e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 441
+  }
+}

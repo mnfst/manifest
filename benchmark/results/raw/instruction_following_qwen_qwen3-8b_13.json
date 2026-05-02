@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "The seven colors of the rainbow in order are:  \n**Red, Orange, Yellow, Green, Blue, Indigo, Violet**.  \n\nThis sequence is based on the traditional spectrum of visible light, often remembered by the acronym **ROYGBIV**.",
+  "score": 5,
+  "cost": 2.26e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 433
+  }
+}

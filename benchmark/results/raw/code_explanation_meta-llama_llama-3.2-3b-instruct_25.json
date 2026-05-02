@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements a basic event emitter class in Python, which allows objects to register and emit events with associated callback functions. The `on` method adds a callback function to a specific event, the `emit` method triggers all registered callbacks for a given event with the provided arguments, and the `off` method removes a callback function from an event.",
+  "score": 5,
+  "cost": 9.791999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 71
+  }
+}

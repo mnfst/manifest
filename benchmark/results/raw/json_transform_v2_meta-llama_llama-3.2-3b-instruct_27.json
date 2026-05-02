@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "json_transform_v2",
+  "case": 27,
+  "response": "```\n{\"total_duration_min\": 945, \"track_count\": 4, \"artists\": {\"name\": \"Band X, Band Y, Band Z\", \"artist_count\": 3}, \"longest_track\": \"Song C\"}\n```",
+  "score": 2,
+  "cost": 1.0608e-05,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 51
+  }
+}

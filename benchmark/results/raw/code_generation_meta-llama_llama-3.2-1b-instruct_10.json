@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 10,
+  "response": "def count_nums(arr):\n    count = 0\n    for num in arr:\n        if num < 0:\n            sign = -1\n        else:\n            sign = 1\n        sum = 0\n        for digit in str(abs(num)):\n            sum += int(digit)\n        if sum > 0:\n            count += 1\n    return count",
+  "score": 4,
+  "cost": 6.399000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 77
+  }
+}

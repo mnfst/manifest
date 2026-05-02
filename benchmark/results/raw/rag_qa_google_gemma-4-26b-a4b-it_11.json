@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "Amazonian evergreen forests account for 10% of the carbon stores in ecosystems\u2014of the order of 1.1 \u00d7 1011 metric tonnes of carbon.",
+  "score": 5,
+  "cost": 1.3439999999999998e-05,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 187,
+    "output": 37
+  }
+}

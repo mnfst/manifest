@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 12,
+  "response": "return [s for s in strings if substring in s]",
+  "score": 5,
+  "cost": 9.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 13
+  }
+}

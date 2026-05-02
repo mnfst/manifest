@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\ndef count_nums(arr):\n    def sum_of_digits(n):\n        total = 0\n        negative = n < 0\n        n = abs(n)\n        while n:\n            total += n % 10\n            n //= 10\n        if negative:\n            total -= 2 * (abs(n) % 10)\n        return total\n\n    return sum(1 for num in arr if sum_of_digits(num) > 0)\n```",
+  "score": 3,
+  "cost": 1.6380000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 96
+  }
+}

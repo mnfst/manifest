@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 3.03e-05,
+  "expected": "North America",
+  "tokens": {
+    "input": 159,
+    "output": 447
+  }
+}

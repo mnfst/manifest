@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "Here\u2019s a grouped list of 3 mammals, 3 birds, and 3 fish with headers:\n\n### **Mammals**\n1. Lion\n2. Dolphin\n3. Kangaroo\n\n### **Birds**\n1. Eagle\n2. Penguin\n3. Hummingbird\n\n### **Fish**\n1. Salmon\n2. Clownfish\n3. Great White Shark",
+  "score": 4,
+  "cost": 2.6799999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 82
+  }
+}

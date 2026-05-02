@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function splits a single input iterable into two lazy streams using the iterator-duplication pattern with `itertools.tee`: one stream yields items where `predicate(item)` is true, and the other yields items where it is false. It uses `filter` and `itertools.filterfalse` to perform the two-way partition without eagerly consuming the whole iterable.",
+  "score": 5,
+  "cost": 0.000736,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 75
+  }
+}

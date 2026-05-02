@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "code_generation",
+  "case": 18,
+  "response": "```python\n    words = sentence.split()\n    result = []\n    \n    for word in words:\n        n = len(word)\n        if n < 2:\n            continue\n        is_prime = True\n        for i in range(2, int(n**0.5) + 1):\n            if n % i == 0:\n                is_prime = False\n                break\n        if is_prime:\n            result.append(word)\n    \n    return ' '.join(result)\n```",
+  "score": 5,
+  "cost": 0.002433,
+  "expected": "",
+  "tokens": {
+    "input": 201,
+    "output": 122
+  }
+}

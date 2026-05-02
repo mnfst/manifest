@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This code implements the **Sieve of Eratosthenes** algorithm to find all prime numbers up to a given integer `n`. It works by iteratively marking the multiples of each discovered prime number as non-prime, starting from the square of each prime, until it returns a list of all remaining unmarked numbers.",
+  "score": 5,
+  "cost": 1.35e-05,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 64
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "To determine the correct categorization of the rock, let's analyze the options step by step:\n\n1. **Extrusive Igneous Rock**: This type of rock forms from magma that cools and solidifies on the Earth's surface. Common examples include basalt and obsidian.\n\n2. **Intrusive Igneous Rock**: This rock forms from magma that cools and solidifies beneath the Earth's surface. Examples include granite and diorite. Since the rock is already categorized as extrusive, it cannot be accurately categorized as intrusive.\n\n3. **Clastic Sedimentary Rock**: These rocks are formed from fragments of other rocks that have been transported, deposited, and lithified. Examples include sandstone and shale. Extrusive igneous rocks are not clastic sedimentary rocks.\n\n4. **Metamorphic Rock**: These rocks form from the transformation of existing rock types due to heat, pressure, and chemical processes. Extrusive igneous rocks are not metamorphic rocks.\n\n5. **Volcanic Rock**: This is a broader category that includes extrusive igneous rocks, as they form from volcanic activity. Extrusive igneous rocks are indeed volcanic rocks.\n\nGiven these analyses, the correct categorization for the rock, besides being extrusive igneous, is volcanic. Therefore, the final answer is:\n\nD) volcanic.",
+  "score": 5,
+  "cost": 2.3855e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 95,
+    "output": 272
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sunlight strikes plants.  \nSprouting shoots spread \u09aa\u09be\u09a4terns?",
+  "score": 3,
+  "cost": 0.000178,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 17
+  }
+}

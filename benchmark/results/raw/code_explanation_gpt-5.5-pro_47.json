@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 47,
+  "response": "This implements Dijkstra\u2019s **shunting-yard algorithm**, converting an infix token stream into **postfix / Reverse Polish notation (RPN)**. It uses an output list and an operator stack to handle parentheses and operator precedence, treating `+`, `-`, `*`, and `/` as left-associative.",
+  "score": 5,
+  "cost": 0.00415,
+  "expected": "",
+  "tokens": {
+    "input": 202,
+    "output": 157
+  }
+}

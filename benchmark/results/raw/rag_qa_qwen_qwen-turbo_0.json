@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Answer: Lake \u00dcberlingen",
+  "score": 5,
+  "cost": 8.283e-06,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 246,
+    "output": 5
+  }
+}

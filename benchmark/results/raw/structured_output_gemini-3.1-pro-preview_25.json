@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "structured_output",
+  "case": 25,
+  "response": "{\n  \"status_code\": 200,\n  \"status_text\": \"OK\",\n  \"content_type\": \"application/json\",\n  \"payload_size_kb\": 1.2,\n  \"latency_ms\": 45,\n  \"rate_limit\": {\n    \"remaining\": 98,\n    \"total\": 100\n  },\n  \"request_id\": \"abc-123-def\"\n}",
+  "score": 5,
+  "cost": 0.00194,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 107
+  }
+}

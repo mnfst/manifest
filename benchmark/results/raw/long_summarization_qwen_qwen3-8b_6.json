@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work transitioned from a rare perk (less than 5% of workers fully remote pre-pandemic) to a mainstream practice, accelerated by the 2020 pandemic and enabled by tools like Zoom, Slack, and cloud infrastructure. Productivity studies, such as Stanford\u2019s Nick Bloom research, showed mixed results, prompting debates over hybrid models and return-to-office policies. This shift disrupted commercial real estate, allowed geographic arbitrage, and raised concerns about company culture and junior employee development, while also spurring the rise of digital nomad visas.",
+  "score": 5,
+  "cost": 2.83e-05,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 417
+  }
+}

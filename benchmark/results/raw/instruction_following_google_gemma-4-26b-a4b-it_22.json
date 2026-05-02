@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Every dog is known for being a remarkably loyal companion to its human family. This loyal nature ensures that they will stay by your side through both good and bad times. Even when you are feeling down, a loyal pet will offer comfort with a gentle nudge or a wagging tail. Because they are so loyal, these animals form deep emotional bonds that are difficult to break. Ultimately, the world is a much brighter place thanks to such loyal creatures.",
+  "score": 5,
+  "cost": 7.139999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 90
+  }
+}

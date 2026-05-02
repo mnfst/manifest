@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April, June, September, November.",
+  "score": 5,
+  "cost": 1.6200000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 299
+  }
+}

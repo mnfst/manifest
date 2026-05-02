@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_generation",
+  "case": 43,
+  "response": "if not numbers:\n    return []\nresult: List[int] = []\nfor i, x in enumerate(numbers):\n    if i > 0:\n        result.append(delimeter)\n    result.append(x)\nreturn result",
+  "score": 5,
+  "cost": 3.09e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 45
+  }
+}

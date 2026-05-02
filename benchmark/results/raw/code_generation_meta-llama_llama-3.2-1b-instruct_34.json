@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 34,
+  "response": "def x_or_y(n, x, y):\n    if n > 1:\n        for i in range(2, n):\n            if (n % i == 0 and i != n) or (n % i == 0 and i != 1):\n                return i\n    return x",
+  "score": 2,
+  "cost": 4.9950000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 63
+  }
+}

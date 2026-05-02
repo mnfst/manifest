@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 30,
+  "response": "```python\ndef is_prime(num):\n    if num < 2:\n        return False\n    for i in range(2, int(num**0.5) + 1):\n        if num % i == 0:\n            return False\n    return True\n\ndef fibonacci(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\ndef prime_fib(n):\n    count, index = 0, 1\n    while count < n:\n        fib_number = fibonacci(index)\n        if is_prime(fib_number):\n            count += 1\n        index += 1\n    return fibonacci(index - 1)\n```",
+  "score": 3,
+  "cost": 1.9045e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 152
+  }
+}

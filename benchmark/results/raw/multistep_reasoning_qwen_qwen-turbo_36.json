@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "multistep_reasoning",
+  "case": 36,
+  "response": "To find the momentum of the baseball, we use the formula for momentum:\n\n$$\n\\text{Momentum} = \\text{mass} \\times \\text{velocity}\n$$\n\nGiven:\n- Mass of the baseball = 0.15 kg\n- Velocity of the baseball = 40 m/s\n\nNow calculate:\n\n$$\n\\text{Momentum} = 0.15 \\, \\text{kg} \\times 40 \\, \\text{m/s} = 6.0 \\, \\text{kg} \\cdot \\text{m/s}\n$$\n\nThus, the correct answer is:\n\n**C) 6.0 kg x m/s**",
+  "score": 5,
+  "cost": 9.042e-06,
+  "expected": "C",
+  "tokens": {
+    "input": 131,
+    "output": 143
+  }
+}

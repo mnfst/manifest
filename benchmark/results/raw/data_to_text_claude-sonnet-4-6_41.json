@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan is a highly developed nation with a population of 125 million people and a GDP of $4.2 trillion, growing at a modest rate of 1.1%, with notably low unemployment at 2.6% and an inflation rate of 3.2%. The country carries a substantial public debt burden of 263% of GDP, though it remains a major global exporter with $756 billion in exports. Japan also boasts one of the world's highest life expectancies at 84.6 years, reflecting its strong healthcare system and high standard of living.",
+  "score": 0,
+  "cost": 0.002172,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 123
+  }
+}

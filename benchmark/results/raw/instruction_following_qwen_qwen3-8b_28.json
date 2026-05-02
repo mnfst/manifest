@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "\"Chase your dreams with courage, and success will follow your footsteps.\"",
+  "score": 4,
+  "cost": 1.5550000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 285
+  }
+}

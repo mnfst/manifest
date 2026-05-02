@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "C\u00e9loron handled business on his trip by informing British merchants and fur-traders of the French claims to the territory and instructing them to leave. The context specifies that he confronted these traders to assert French sovereignty over the Ohio Country. \n\n**Answer:** C\u00e9loron informed British merchants and fur-traders of the French claims to the territory and told them to leave.",
+  "score": 5,
+  "cost": 3.345e-05,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 225,
+    "output": 444
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Maududi believed that Muslim society could not be Islamic without Sharia.",
+  "score": 5,
+  "cost": 2.2e-05,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 172,
+    "output": 16
+  }
+}

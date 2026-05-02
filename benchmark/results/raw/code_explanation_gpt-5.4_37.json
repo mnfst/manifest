@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "code_explanation",
+  "case": 37,
+  "response": "This code implements a **trie (prefix tree)** using nested dictionaries, where `insert` adds each word character-by-character and marks the end with `'#'`. The `starts_with` method first walks to the node matching the given prefix, then uses **depth-first search (DFS)** to collect and return all complete words stored under that prefix.",
+  "score": 5,
+  "cost": 0.000934,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 74
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This defines a simple **event-emitter (publish/subscribe) pattern**: `on(event, fn)` registers callback functions in a per-event list, and `emit(event, *args)` iterates through that list and invokes each callback with the given arguments. `off(event, fn)` removes a previously registered callback from the event\u2019s list.",
+  "score": 5,
+  "cost": 4.08e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 73
+  }
+}

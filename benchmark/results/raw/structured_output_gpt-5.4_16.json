@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "structured_output",
+  "case": 16,
+  "response": "{\"artist\":\"Taylor Swift\",\"tour_name\":\"Eras Tour\",\"venue\":\"SoFi Stadium\",\"city\":\"Los Angeles\",\"date\":\"2024-08-09\",\"doors_time\":\"5:00 PM\",\"show_time\":\"7:00 PM\",\"price_range\":{\"min\":89,\"max\":899},\"seats\":{\"section\":\"234\",\"row\":\"F\",\"numbers\":[12,13]}}",
+  "score": 5,
+  "cost": 0.000958,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 81
+  }
+}

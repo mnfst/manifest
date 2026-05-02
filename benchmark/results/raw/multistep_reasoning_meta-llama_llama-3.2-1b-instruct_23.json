@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "multistep_reasoning",
+  "case": 23,
+  "response": "To determine which step should come first, we need to consider the purpose of the investigation. The purpose is to see which brand of light bulb lasts the longest. This requires collecting data, which is the process of making observations and measurements. Therefore, the step that should come first is making a table for recording data.\n\nThe best answer is C.",
+  "score": 5,
+  "cost": 4.644e-06,
+  "expected": "C",
+  "tokens": {
+    "input": 102,
+    "output": 70
+  }
+}

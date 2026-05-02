@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "V/Line is now owned by the Victorian Government.",
+  "score": 5,
+  "cost": 1.1570000000000001e-05,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 166,
+    "output": 12
+  }
+}

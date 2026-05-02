@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work shifted from a rare perk\u2014used fully by less than 5% of workers pre-pandemic\u2014to a mainstream practice after the forced experiment of 2020, enabled by Zoom, Slack, and cloud infrastructure. Research, including Stanford economist Nick Bloom\u2019s studies, shows mixed productivity results, helping fuel debates and return-to-office backlash. Many companies have settled on hybrid models, while remote work has reshaped commercial real estate demand and enabled geographic arbitrage as workers move to lower-cost areas. The shift has also raised concerns about company culture and junior employee development, even as digital nomad visas have emerged to support location-independent work.",
+  "score": 5,
+  "cost": 0.00527,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 227
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It\u2019s a short, sharp story about a person stranded in the world in a way that feels both ordinary and deeply unsettling. The writing is plain on the surface, but every sentence seems to carry a hidden weight. What I love most is how it turns a single emotional and social rupture into a whole universe of tension.\n\nThe atmosphere is sparse and claustrophobic, yet the book keeps expanding in meaning the more you sit with it. It\u2019s not really interested in spectacle; instead, it lingers on discomfort, absurdity, and the strange logic people use to explain what they can\u2019t face. That makes it feel surprisingly modern, even though it\u2019s been around for a long time.\n\nI admire how little it explains. The story doesn\u2019t try to rescue you with easy answers or neat moral lessons. Instead, it asks you to live inside ambiguity, which is what makes it so powerful and memorable.\n\nIf you want, I can describe another favorite book, but make it sound like a mystery, a tragedy, or a comedy.",
+  "score": 5,
+  "cost": 0.0002571,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 210
+  }
+}

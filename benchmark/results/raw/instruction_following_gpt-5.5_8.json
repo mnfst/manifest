@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "A blockchain is like a notebook that lots of people share, and everyone gets a copy. When someone writes something new in it, everyone checks it and adds it to their copy, so it\u2019s very hard for anyone to cheat or erase it.",
+  "score": 5,
+  "cost": 0.000687,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 52
+  }
+}

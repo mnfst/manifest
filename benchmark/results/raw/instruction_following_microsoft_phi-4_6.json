@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Vast ocean whispers secrets.",
+  "score": 3,
+  "cost": 1.625e-06,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 7
+  }
+}

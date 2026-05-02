@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "\"Login failed: Incorrect username or password. Please try again or reset your password.\"",
+  "score": 3,
+  "cost": 2.665e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 18
+  }
+}

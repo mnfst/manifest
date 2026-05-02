@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "What would you like to discuss?",
+  "score": 4,
+  "cost": 0.00192,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 92
+  }
+}

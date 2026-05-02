@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "long_summarization",
+  "case": 12,
+  "response": "Originating in the 1960s as a US military project and expanding with the 1969 ARPANET launch and 1989 invention of the World Wide Web, the internet has evolved from a niche research network into a ubiquitous global infrastructure. Its public accessibility and commercial power exploded through the 1990s dot-com boom, the rise of social media, and the 2007 smartphone revolution. Today, this foundational technology connects over 5 billion people worldwide, underpinning virtually every aspect of modern commerce, communication, and daily life.",
+  "score": 5,
+  "cost": 0.002615,
+  "expected": "",
+  "tokens": {
+    "input": 332,
+    "output": 119
+  }
+}

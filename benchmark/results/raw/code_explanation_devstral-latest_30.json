@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "This code implements a **Bloom filter**, a space-efficient probabilistic data structure that tests whether an element is a member of a set. It uses **multiple hash functions** (via `_hashes`) to map an item to several positions in a bit array (`self.bits`), setting those bits to `True` when adding (`add`) and checking if all corresponding bits are `True` for membership (`__contains__`). The trade-off is a small false-positive rate (no false negatives).",
+  "score": 5,
+  "cost": 4.6299999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 101
+  }
+}

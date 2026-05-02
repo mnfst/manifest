@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This function implements the **Sieve of Eratosthenes** to find all prime numbers from `0` to `n`. It marks multiples of each prime starting at `i*i` as non-prime in a boolean array, then returns the indices that remain `True` as the list of primes.",
+  "score": 5,
+  "cost": 0.0001191,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 66
+  }
+}

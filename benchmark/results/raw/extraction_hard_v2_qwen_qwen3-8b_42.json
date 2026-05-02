@@ -2,12 +2,12 @@
   "model": "qwen/qwen3-8b",
   "task": "extraction_hard_v2",
   "case": 42,
-  "response": "{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"],\n  \"decisions\": [\n    \"Decided to push the recommendation engine to Q3 since data pipeline won't be ready until June.\",\n    \"Agreed to allocate 20% of sprint capacity to tech debt.\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"have onboarding mockups\",\n      \"deadline\": \"2026-04-18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"send updated roadmap\",\n      \"deadline\": \"2026-04-13\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"needs analytics dashboard\",\n      \"deadline\": \"before May board meeting\"\n    }\n  ]\n}",
-  "score": 4,
-  "cost": 0.00012460000000000002,
+  "response": "{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"],\n  \"decisions\": [\n    \"Decided to push the recommendation engine to Q3 since data pipeline won't be ready until June.\",\n    \"Agreed to allocate 20% of sprint capacity to tech debt.\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"have onboarding mockups\",\n      \"deadline\": \"2026-04-18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"send updated roadmap\",\n      \"deadline\": \"2026-04-13\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"needs analytics dashboard\",\n      \"deadline\": \"2026-05-01\"\n    }\n  ]\n}",
+  "score": 0,
+  "cost": 0.00015745,
   "expected": "",
   "tokens": {
     "input": 178,
-    "output": 2314
+    "output": 2971
   }
 }

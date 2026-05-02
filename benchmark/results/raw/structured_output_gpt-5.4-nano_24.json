@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "structured_output",
+  "case": 24,
+  "response": "```json\n{\n  \"restaurant\": \"Chez Marie\",\n  \"rating\": 4.5,\n  \"cuisine\": \"French\",\n  \"price_range\": \"$$$\",\n  \"recommended_dish\": \"duck confit\",\n  \"service_rating\": \"excellent\",\n  \"wait_time_minutes\": 15,\n  \"recommended_for\": \"date night\"\n}\n```",
+  "score": 5,
+  "cost": 4.3400000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 79
+  }
+}

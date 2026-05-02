@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 23,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"tracking_number\": \"TRK-99281\",\n  \"status\": \"delivered\",\n  \"delivery_location\": \"front door\",\n  \"delivery_time\": \"2:15 PM\",\n  \"delivery_date\": \"March 12\",\n  \"signed_by\": \"M. Johnson\",\n  \"carrier\": \"FedEx\"\n}\n```",
+  "score": 4,
+  "cost": 5.372999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 84
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "long_summarization",
+  "case": 24,
+  "response": "The internet traces its roots to 1960s U.S. Department of Defense networking research, leading to ARPANET\u2019s first 1969 demonstration between UCLA and Stanford Research Institute. It expanded in the 1970s, adopted TCP/IP in 1983 to form the modern internet\u2019s foundation, and then advanced further when Tim Berners-Lee created the World Wide Web at CERN in 1989 (with HTML, URLs, and HTTP). The 1993 release of Mosaic helped ordinary users access the web, followed by the late-1990s dot-com boom and the 2001 crash (with key survivors like Amazon and Google later thriving). In the mid-2000s social media and post-2007 smartphones made internet use more social and mobile, cloud computing accelerated after AWS launched in 2006, and today the internet connects over 5 billion people and supports nearly all areas of modern life.",
+  "score": 5,
+  "cost": 0.00010680000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 189
+  }
+}

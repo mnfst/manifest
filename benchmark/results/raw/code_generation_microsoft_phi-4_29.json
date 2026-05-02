@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\ndef order_by_points(nums):\n    def digit_sum(n):\n        return sum(int(digit) for digit in str(abs(n))\n\n    nums_with_index = [(num, i) for i, num in enumerate(nums)]\n    nums_with_index.sort(key=lambda x: (digit_sum(x[0]), x[1])\n    return [num for num, _ in nums_with_index]\n```",
+  "score": 3,
+  "cost": 1.599e-05,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 82
+  }
+}

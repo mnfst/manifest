@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here is an example of a Google style docstring for a sort function:\n\n```python\ndef sort(data, reverse=False, key=None):\n    \"\"\"Sorts a list of elements in ascending or descending order.\n\n    This function sorts a list of elements using the built-in sorted()\n    function. The list can be sorted in ascending or descending order,\n    and a custom key function can be provided to determine the sort order.\n\n    Args:\n        data (list): The list of elements to be sorted.\n        reverse (bool, optional): If True, the list will be sorted in\n            descending order. Defaults to False.\n        key (callable, optional): A function that takes a single argument\n            and returns a value to be used for sorting purposes. Defaults\n            to None.\n\n    Returns:\n        list: A new sorted list of elements.\n\n    Raises:\n        TypeError: If the data argument is not a list, or if the elements\n            in the list are not comparable.\n\n    Examples:\n        >>> sort([3, 1, 2])\n        [1, 2, 3]\n        >>> sort([3, 1, 2], reverse=True)\n        [3, 2, 1]\n        >>> sort(['banana', 'apple', 'cherry'], key=len)\n        ['apple', 'banana', 'cherry']\n    \"\"\"\n```\n\nThe key sections of a Google style docstring are:\n\n- **Summary**: A brief one-line description of the function.\n- **Description**: A more detailed description of the function.\n- **Args**: A list of arguments with their types and descriptions.\n- **Returns**: A description of the return value and its type.\n- **Raises**: A list of exceptions that can be raised by the function.\n- **Examples**: Example usage of the function.",
+  "score": 5,
+  "cost": 0.006333,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 418
+  }
+}

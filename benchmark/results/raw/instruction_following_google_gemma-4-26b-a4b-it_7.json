@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk two eggs with a splash of milk and a pinch of salt. Melt butter in a non-stick pan over medium-low heat. Pour in the eggs. Gently stir with a spatula until soft curds form. Remove from heat while slightly moist. Serve immediately.",
+  "score": 2,
+  "cost": 5.16e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 56
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Dear team, thank you for the support, collaboration, and kindness you have shown me during my time here.  \nI\u2019ve learned a great deal from working alongside such talented and dedicated colleagues, and I will always appreciate the experiences we\u2019ve shared.  \nWhile I\u2019m excited for what comes next, I will miss the friendships, laughter, and teamwork that made each day enjoyable.  \nPlease stay in touch, and I hope our paths cross again in the future.  \nWishing you all continued success and the very best ahead.",
+  "score": 5,
+  "cost": 0.000135,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 108
+  }
+}

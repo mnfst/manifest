@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 49,
+  "response": "def make_palindrome(string: str) -> str:\n    if not string:\n        return ''\n    for i in range(len(string), 0, -1):\n        if string.startswith(string[-i:]):\n            return string + string[:i-1][::-1]",
+  "score": 4,
+  "cost": 1.1934e-05,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 56
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 32,
+  "response": "```python\ndef anti_shuffle(s):\n    words = s.split()\n    sorted_words = [''.join(sorted(word)) for word in words]\n    return ' '.join(sorted_words)\n```",
+  "score": 4,
+  "cost": 1.4235e-05,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 40
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "structured_output",
+  "case": 25,
+  "response": "{\"status_code\":200,\"status_text\":\"OK\",\"content_type\":\"application/json\",\"payload_size_kb\":1.2,\"latency_ms\":45,\"rate_limit\":{\"remaining\":98,\"total\":100},\"request_id\":\"abc-123-def\"}",
+  "score": 5,
+  "cost": 0.003305,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 135
+  }
+}

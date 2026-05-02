@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "data_to_text",
+  "case": 18,
+  "response": "Stockholm, the capital city of Sweden, was founded in 1252 and covers an area of 188 km\u00b2, home to a population of approximately 1.6 million people who primarily speak Swedish. The city boasts a strong economy with a GDP per capita of $62,000, making it one of the wealthiest cities in Europe. Stockholm experiences cold winters with average January temperatures of -3\u00b0C, while summers are mild and pleasant, with average July temperatures reaching 18\u00b0C.",
+  "score": 0,
+  "cost": 0.001911,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 107
+  }
+}

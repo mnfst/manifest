@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave,  \nWho taught stubborn servers to behave.  \nWith a bug in his loop,  \nHe survived on cold soup,  \nAnd pushed one last patch, bold and brave.",
+  "score": 5,
+  "cost": 0.001655,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 78
+  }
+}

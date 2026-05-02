@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "structured_output",
+  "case": 7,
+  "response": "Here is the extracted information in valid JSON format:\n\n```\n{\n  \"symbol\": \"AAPL\",\n  \"price\": 185.50,\n  \"change_percent\": 2.3,\n  \"volume\": 45000000,\n  \"high_52w\": 198,\n  \"low_52w\": 155,\n  \"market_cap\": \"2.87T\"\n}\n```",
+  "score": 4,
+  "cost": 5.427e-06,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 83
+  }
+}

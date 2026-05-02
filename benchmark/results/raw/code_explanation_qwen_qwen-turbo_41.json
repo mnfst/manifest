@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This code calculates the CRC-32 checksum of the input `data` using the standard CRC-32 algorithm, which processes each byte and applies a polynomial division using the 32-bit polynomial 0xEDB88320. It initializes the CRC with 0xFFFFFFFF, processes each bit of the byte, and finally inverts the result to produce the final CRC-32 value.",
+  "score": 5,
+  "cost": 6.468e-06,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 82
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "data_to_text",
+  "case": 25,
+  "response": "Japan, a nation of approximately 125 million people, boasts a substantial economy with a GDP of $4.2 trillion, though growth remains modest at 1.1%, while unemployment stays remarkably low at 2.6% and inflation sits at 3.2%. The country carries a notably high public debt-to-GDP ratio of 263%, yet maintains strong trade activity with $756 billion in exports. Japan also stands out for its exceptional quality of life, reflected in one of the world's highest life expectancies of 84.6 years.",
+  "score": 0,
+  "cost": 0.002157,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 122
+  }
+}

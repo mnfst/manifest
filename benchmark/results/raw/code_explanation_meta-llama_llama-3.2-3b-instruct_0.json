@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "This code implements the recursive Fibonacci sequence algorithm, which calculates the `n`-th Fibonacci number by recursively adding the two preceding numbers in the sequence (i.e., `fibonacci(n-1)` and `fibonacci(n-2)`) until it reaches the base case where `n` is 0 or 1.",
+  "score": 5,
+  "cost": 6.833999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 67
+  }
+}

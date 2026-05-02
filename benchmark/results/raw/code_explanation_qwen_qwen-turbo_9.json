@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code defines a decorator named `retry` that wraps a function to retry it up to `max_attempts` times if it raises an exception, with the delay between retries doubling each time (exponential backoff). The pattern used is the **retry pattern with exponential backoff**.",
+  "score": 5,
+  "cost": 5.775000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 57
+  }
+}

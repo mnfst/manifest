@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "json_transform_v2",
+  "case": 46,
+  "response": "```\n{\n  \"2024-01-15\": {\n    \"total\": 305.50,\n    \"categories\": {\n      \"food\": 120.50,\n      \"transport\": 45.00\n    }\n  },\n  \"2024-01-16\": {\n    \"total\": 230.50,\n    \"categories\": {\n      \"food\": 200.00,\n      \"transport\": 30.00\n    }\n  }\n}\n```",
+  "score": 2,
+  "cost": 7.128e-06,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 98
+  }
+}

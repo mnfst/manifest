@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old lighthouse keeper found a sealed bottle washed up on the shore, its message inside still legible after a century. He read it aloud, and the storm that had raged for days suddenly calmed, as if the sea itself had heard. Curious, he followed the directions in the note to a hidden cave beneath the cliffs. Inside, he discovered a map leading to a treasure long thought lost. As he stepped into the cave's depths, the light from his lantern flickered, revealing a room filled with gold and glowing crystals. When he emerged, the village had changed\u2014no one remembered the lighthouse, and the map was gone, leaving only the bottle in his hands.",
+  "score": 5,
+  "cost": 5.346e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 140
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 14,
+  "response": "Here is the converted paragraph:\n\nTeam Alpha #23 had a sprint that lasted from January 15th to 26th, with a total planned points of 42. During this period, they completed 38 points, with a velocity average of 36. The team also fixed 5 bugs and resolved 2 blockers, resulting in a satisfaction rating of 4.1 out of 5.",
+  "score": 0,
+  "cost": 4.887000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 81
+  }
+}

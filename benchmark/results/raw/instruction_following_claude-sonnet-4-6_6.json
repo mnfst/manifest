@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "\"Waves crash the shore.\"",
+  "score": 5,
+  "cost": 0.000204,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 10
+  }
+}

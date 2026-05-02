@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_explanation",
+  "case": 17,
+  "response": "This code defines a higher-order function `chain_of_responsibility` that takes a variable number of handlers as arguments. It returns a new function `handle` that applies each handler in sequence to a given `request`, returning the result of the first handler that returns a non-`None` value, or `None` if all handlers return `None`. This is an implementation of the Chain of Responsibility design pattern, where each handler is responsible for handling a specific aspect of the request, and the responsibility is delegated to the next handler in the chain if the current one cannot handle it.",
+  "score": 5,
+  "cost": 1.0301999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 119
+  }
+}

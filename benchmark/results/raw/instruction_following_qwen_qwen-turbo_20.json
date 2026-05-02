@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sure! Here's an explanation of photosynthesis using only words starting with **S** or **P**:\n\n\"Plants absorb sunlight, sending signals to cells. Special structures, such as chloroplasts, store solar energy. Photosynthesis starts, producing sugar and oxygen. Sunlight, water, and carbon dioxide supply necessary parts. Plants store surplus sugar, sustaining life. Simple process, powerful results. Plants provide, supporting all life forms.\"",
+  "score": 5,
+  "cost": 3.861e-06,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 89
+  }
+}

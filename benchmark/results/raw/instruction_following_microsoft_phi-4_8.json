@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a blockchain as a special kind of notebook where everyone writes down what they do, like trading toys or sharing snacks. Each page in the notebook is a list of all the things that happened, and once it's written, it can't be changed or erased. This makes it super safe and fair, because everyone can see what's written and nobody can cheat!",
+  "score": 5,
+  "cost": 6.305000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 74
+  }
+}

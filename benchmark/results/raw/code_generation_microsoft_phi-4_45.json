@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 45,
+  "response": "```python\nreturn sorted(set(l1) & set(l2))\n```",
+  "score": 5,
+  "cost": 1.053e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 16
+  }
+}

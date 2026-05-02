@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "The server prod-web-01, located in the us-east-1 region, has been running continuously with an uptime of 45 days. Currently, it is operating at 78% CPU capacity, utilizing 12.4 out of 16 GB of memory, and consuming 234 out of 500 GB of available disk space. In terms of network performance, the system is actively handling 127 connections with a P99 latency of 145ms and logging just 3 errors per hour.",
+  "score": 5,
+  "cost": 0.002005,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 115
+  }
+}

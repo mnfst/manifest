@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n    return -1\naverage = (n + m) / 2\nrounded = round(average)\nreturn bin(rounded)",
+  "score": 4,
+  "cost": 7.2270000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 187,
+    "output": 32
+  }
+}

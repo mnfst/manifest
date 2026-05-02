@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 46,
+  "response": "def pluck(arr):\n    if not arr:\n        return []\n    min_val = min(arr)\n    min_idx = arr.index(min_val)\n    return [min_val, min_idx]",
+  "score": 2,
+  "cost": 1.0448999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 348,
+    "output": 39
+  }
+}

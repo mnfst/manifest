@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "They escape danger by clapping their lobes, which expels water and drives them backwards very quickly.",
+  "score": 5,
+  "cost": 0.00010889999999999999,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 267,
+    "output": 24
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 11,
+  "response": "Here is the extracted information in JSON format:\n\n```\n{\n  \"name\": \"Maria Rodriguez\",\n  \"date_of_birth\": \"1985-03-22\",\n  \"blood_type\": \"O+\",\n  \"allergies\": [\"penicillin\", \"shellfish\"],\n  \"medications\": [\n    {\n      \"name\": \"lisinopril\",\n      \"dosage\": \"10mg\",\n      \"frequency\": \"daily\"\n    }\n  ]\n}\n```\n\nNote that I've kept the dosage and frequency as strings, as they were in the original text. If you'd like to convert them to numeric values, please let me know!",
+  "score": 5,
+  "cost": 1.3107e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 136
+  }
+}

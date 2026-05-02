@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "Here is a car accident report in exactly 3 bullet points:\n\n\u2022 **Incident Details**: On [Date] at approximately [Time], a collision occurred between two vehicles on [Location]. The incident involved a [Make and Model] driven by [Driver's Name] and a [Make and Model] driven by [Driver's Name of other vehicle].\n\n\u2022 **Accident Description**: The vehicles were traveling in opposite directions when they collided, resulting in damage to both vehicles. The [Make and Model] sustained [type of damage, e.g. front end damage] and the [Make and Model] sustained [type of damage, e.g. rear end damage]. No injuries were reported.\n\n\u2022 **Investigation**: The accident was investigated by [Name of Investigator] and the following evidence was collected: [list any evidence collected, e.g. photos of the vehicles, witness statements, police report]. The incident is currently under review and further investigation is pending.",
+  "score": 4,
+  "cost": 1.1118e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 195
+  }
+}

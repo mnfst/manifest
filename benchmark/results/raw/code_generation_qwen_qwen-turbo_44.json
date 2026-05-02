@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 44,
+  "response": "def encode(message):\n    vowels = 'aeiou'\n    result = ''\n    for char in message:\n        if char.isalpha():\n            if char.lower() in vowels:\n                index = vowels.index(char.lower())\n                shifted = (index + 2) % 5\n                new_char = vowels[shifted].upper() if char.isupper() else vowels[shifted]\n                result += new_char\n            else:\n                result += char.swapcase()\n        else:\n            result += char\n    return result",
+  "score": 3,
+  "cost": 8.283000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 105
+  }
+}

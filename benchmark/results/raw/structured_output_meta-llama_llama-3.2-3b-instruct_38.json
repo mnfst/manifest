@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "structured_output",
+  "case": 38,
+  "response": "Here is the extracted information in JSON format:\n\n```json\n{\n  \"version\": 42,\n  \"name\": \"AddUserPreferences\",\n  \"created\": \"2024-03-15\",\n  \"status\": \"applied\",\n  \"duration_ms\": 340,\n  \"sql\": \"ALTER TABLE users ADD COLUMN preferences JSONB DEFAULT '{}'\"\n}\n```\n\nNote that I've assumed the version number is an integer, as it's likely a database version number. If it's not an integer, please let me know and I'll adjust the schema accordingly.",
+  "score": 5,
+  "cost": 1.1169000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 117
+  }
+}

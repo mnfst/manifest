@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay refreshed all day with this sleek, durable water bottle designed to keep drinks cold or hot for hours. Its leak-proof lid, easy-carry design, and BPA-free materials make it perfect for work, workouts, travel, and everyday hydration.",
+  "score": 5,
+  "cost": 0.000888,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 69
+  }
+}

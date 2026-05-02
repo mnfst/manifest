@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "Here\u2019s a comparison table explaining the key differences between **TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)**:\n\n| Feature                | **TCP (Transmission Control Protocol)**                          | **UDP (User Datagram Protocol)**                          |\n|------------------------|---------------------------------------------------------------|---------------------------------------------------------|\n| **Connection Type**     | Connection-oriented (requires handshake: SYN, SYN-ACK, ACK)    | Connectionless (no handshake, sends data immediately)    |\n| **Reliability**         | Reliable (guarantees delivery, error-checking, retransmission) | Unreliable (no guarantee of delivery, no error recovery) |\n| **Ordering**            | Ensures data is received in the correct order                 | No ordering; packets may arrive out of order or be lost  |\n| **Flow Control**        | Yes (adjusts transmission speed to avoid overwhelming receiver) | No (sender sends data at full speed)                    |\n| **Congestion Control**  | Yes (slows down transmission if network is congested)          | No (no congestion management)                            |\n| **Overhead**            | Higher (due to headers, acknowledgments, and control mechanisms) | Lower (minimal headers, no extra mechanisms)            |\n| **Speed**               | Slower (due to reliability checks)                             | Faster (no overhead for reliability)                    |\n| **Use Cases**           | Web browsing (HTTP/HTTPS), email (SMTP), file transfer (FTP), SSH, databases | Video streaming, VoIP, online gaming, DNS, live broadcasts |\n| **Error Handling**      | Detects and retransmits lost packets                           | No error recovery (lost packets are ignored)            |\n| **Header Size**         | 20\u201360 bytes (variable)                                         | 8 bytes (fixed)                                          |\n| **Example Protocols**   | HTTP, HTTPS, FTP, SMTP, Telnet                                 | DNS, DHCP, VoIP (SIP/RTP), TFTP, QUIC (HTTP/3)          |\n\n### **Key Takeaways:**\n- **Use TCP** when reliability and ordered delivery are critical (e.g., web pages, emails, file transfers).\n- **Use UDP** when speed and low latency are more important than reliability (e.g., video calls, live streams, gaming).",
+  "score": 4,
+  "cost": 0.0001514,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 500
+  }
+}

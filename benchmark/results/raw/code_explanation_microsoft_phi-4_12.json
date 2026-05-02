@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "The provided code implements a topological sort using a depth-first search (DFS) algorithm on a directed graph. It aims to order the nodes such that for every directed edge from node A to node B, A appears before B in the ordering. The function `dfs` recursively visits each node, marking it as visited and exploring its neighbors. If a neighbor hasn't been visited, the function calls itself recursively on that neighbor. After visiting all neighbors, the node is added to a stack. The final topological order is obtained by reversing the stack, ensuring that nodes are listed in a sequence where each node precedes its dependencies. This approach is particularly useful for scheduling tasks, ordering courses, or resolving dependencies in systems.",
+  "score": 5,
+  "cost": 1.781e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 145
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "code_generation",
+  "case": 29,
+  "response": "def order_by_points(nums):\n    return sorted(nums, key=lambda x: (sum(int(d) for d in str(abs(x))), nums.index(x)))",
+  "score": 4,
+  "cost": 6.237e-06,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 31
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are five capital cities, each from a different continent:\n\n1. **Africa** \u2013 **Nairobi** (Kenya)\n2. **Asia** \u2013 **Tokyo** (Japan)\n3. **Europe** \u2013 **Paris** (France)\n4. **North America** \u2013 **Ottawa** (Canada)\n5. **South America** \u2013 **Lima** (Peru)\n\n*(Note: Australia/Oceania could also be included, with **Canberra** as an example, but since the question specifies five continents, I\u2019ve excluded it here.)*",
+  "score": 5,
+  "cost": 3.74e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 119
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave,  \nWho made every bug misbehave.  \nWith coffee at night,  \nHe\u2019d debug by moonlight,  \nThen push one last patch and feel brave.",
+  "score": 5,
+  "cost": 0.000735,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 57
+  }
+}

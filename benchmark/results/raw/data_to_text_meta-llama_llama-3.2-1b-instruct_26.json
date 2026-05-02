@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "data_to_text",
+  "case": 26,
+  "response": "Here is the converted paragraph:\n\nThis Pad Thai recipe is a quick and delicious dish that can be prepared in just 15 minutes. It serves 4 people and is a great option for a healthy meal, with approximately 380 calories per serving. This Thai-inspired stir-fry is made with a combination of protein-rich ingredients, including chicken, shrimp, and tofu, and is cooked in a flavorful sauce with a balance of carbs, protein, and fat.",
+  "score": 0,
+  "cost": 5.103e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 92
+  }
+}

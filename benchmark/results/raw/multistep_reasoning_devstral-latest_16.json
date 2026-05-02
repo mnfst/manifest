@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "multistep_reasoning",
+  "case": 16,
+  "response": "B) tectonic movements",
+  "score": 5,
+  "cost": 1.15e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 97,
+    "output": 6
+  }
+}

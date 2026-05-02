@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "To answer this question, let's break it down step by step.\n\nAn **extrusive igneous rock** is formed when magma cools and solidifies **on the Earth's surface**. Examples include basalt and pumice. The key characteristic of extrusive igneous rocks is that they cool quickly, which results in small crystals or even a glassy texture.\n\nNow, let's evaluate the options:\n\n**A) intrusive igneous:**  \nThis is incorrect. Intrusive igneous rocks form when magma cools **below the surface**, which is the opposite of extrusive. So, a rock cannot be both extrusive and intrusive.\n\n**B) clastic sedimentary:**  \nThis is incorrect. Clastic sedimentary rocks are formed from the accumulation and cementation of fragments of pre-existing rocks. This is a different type of rock altogether and not related to igneous rocks.\n\n**C) metamorphic:**  \nThis is incorrect. Metamorphic rocks are formed from the transformation of existing rocks due to heat and pressure. This process is unrelated to the cooling of magma, so a rock cannot be both extrusive igneous and metamorphic.\n\n**D) volcanic:**  \nThis is correct. The term \"volcanic\" is often used to describe extrusive igneous rocks because they form from volcanic activity (i.e., magma erupting onto the surface). So, a rock that is extrusive igneous can also be accurately called volcanic.\n\n### Final Answer: D",
+  "score": 5,
+  "cost": 1.2837e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 91,
+    "output": 298
+  }
+}

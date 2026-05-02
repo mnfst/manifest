@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "Not found in context.",
+  "score": 1,
+  "cost": 1.1700000000000001e-05,
+  "expected": "36%",
+  "tokens": {
+    "input": 174,
+    "output": 6
+  }
+}

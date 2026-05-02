@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "Urarina.",
+  "score": 5,
+  "cost": 8.517e-06,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 162,
+    "output": 5
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "long_summarization",
+  "case": 24,
+  "response": "The internet began in the 1960s with US Department of Defense networking research, and ARPANET was first demonstrated in 1969 with a message sent from UCLA to Stanford Research Institute. A major turning point came in 1983 with the adoption of TCP/IP, followed by Tim Berners-Lee\u2019s invention of the World Wide Web in 1989 and the launch of Mosaic in 1993, which made the web widely accessible. The main argument is that the internet evolved through key technical and commercial milestones\u2014from the dot-com boom and 2001 crash to social media, smartphones after the iPhone\u2019s 2007 launch, and cloud computing with AWS in 2006\u2014into a central part of daily life. Today, it connects over 5 billion people and supports commerce, communication, and entertainment worldwide.",
+  "score": 5,
+  "cost": 0.001976,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 169
+  }
+}

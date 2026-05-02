@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden.",
+  "score": 5,
+  "cost": 2.2389e-05,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 433,
+    "output": 6
+  }
+}

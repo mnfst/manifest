@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sky warms into a deep gradient as the sun sinks low, its light fading from blazing gold to smoky amber. Wisps of cloud catch the glow and turn luminous at their edges, while the horizon darkens into velvety dusk. Silhouettes sharpen along the shoreline and rooftops, and the air cools as the day slides quietly into night.",
+  "score": 5,
+  "cost": 3.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 75
+  }
+}

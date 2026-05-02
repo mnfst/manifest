@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 49,
+  "response": "patient care rounds drug product selection",
+  "score": 5,
+  "cost": 7.701e-06,
+  "expected": "patient care rounds drug product selection",
+  "tokens": {
+    "input": 144,
+    "output": 7
+  }
+}

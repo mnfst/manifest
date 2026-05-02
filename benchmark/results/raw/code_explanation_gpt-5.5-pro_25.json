@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This implements a simple EventEmitter using the observer/pub-sub pattern: callbacks are registered per event name with `on`, and `emit` calls all registered callbacks for that event with the provided arguments. `off` removes a previously registered callback from an event\u2019s listener list.",
+  "score": 5,
+  "cost": 0.00403,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 172
+  }
+}

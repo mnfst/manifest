@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Plants synthesize sugar.  \nSunshine supplies power.  \nSunlight strikes pigments.  \nPhotosystems split water.  \nProtons surge.  \nScission spawns electrons.  \nStroma stores products.  \nATP and NADPH support synthesis.  \nStarch and sugars are produced.  \nPhotosynthesis sustains plant survival.",
+  "score": 5,
+  "cost": 9.51e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 74
+  }
+}

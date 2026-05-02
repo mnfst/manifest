@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\ndef encode(message):\n    vowels = 'aeiouAEIOU'\n    encoded_message = ''\n    for char in message:\n        if char in vowels:\n            index = (vowels.index(char) + 2) % 26\n            encoded_message += chr(ord('a') + index)\n        else:\n            encoded_message += char\n    return encoded_message\n```",
+  "score": 2,
+  "cost": 1.1475e-05,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 80
+  }
+}

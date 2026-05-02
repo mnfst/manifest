@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "long_summarization",
+  "case": 15,
+  "response": "The EU\u2019s GDPR, in force since May 2018, set a global standard for data protection by giving EU residents rights like access, erasure, portability, and requiring explicit consent for data processing, with breach reporting due within 72 hours. It applies to any company handling EU residents\u2019 data and can impose penalties of up to 4% of global annual revenue or 20 million euros, whichever is higher. Major fines have been levied on tech companies, including Meta\u2019s 1.2 billion euro fine in 2023, Amazon\u2019s 746 million euro fine, and Google fines totaling over 200 million euros. While critics say GDPR is burdensome and inconsistently enforced, it has inspired similar laws worldwide and established privacy as a fundamental right.",
+  "score": 5,
+  "cost": 0.000279,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 156
+  }
+}

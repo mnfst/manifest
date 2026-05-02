@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes like a warm, velvety melody that melts across your tongue\u2014sweet, rich, and a little bitter at the edges, like a cozy evening wrapped in a silky blanket.",
+  "score": 5,
+  "cost": 5.49e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 41
+  }
+}

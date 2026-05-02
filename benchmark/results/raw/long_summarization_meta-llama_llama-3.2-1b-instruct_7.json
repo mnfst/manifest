@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe 2020s are shaping up to be a significant decade for space exploration, with several key initiatives underway. SpaceX is developing its Starship spacecraft, while NASA's Artemis program aims to return humans to the Moon. China's space station and lunar ambitions are also on the rise, as are India's Chandrayaan missions. Additionally, satellite internet constellations like Starlink and OneWeb are being launched, and space tourism is becoming a growing industry with companies like Blue Origin and Virgin Galactic.",
+  "score": 4,
+  "cost": 6.858e-06,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 116
+  }
+}

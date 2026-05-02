@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is a midnight waltz played across your palate. \n\nIt begins with a bold, earthy bitterness\u2014the deep, resonant opening notes of a cello\u2014grounding the flavor in the rich, roasted essence of the cocoa bean. As it warms and melts, the tempo shifts. A sweeping, creamy sweetness steps in, swirling together with the dark cocoa to create a perfectly balanced harmony. It coats the tongue in edible velvet, releasing complex, whispering undertones of vanilla, caramel, and sometimes a hint of dark fruit. Long after it has melted away, it leaves behind a lingering, decadent warmth, like the echo of music in a grand, dimly lit ballroom.",
+  "score": 5,
+  "cost": 0.00209,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 137
+  }
+}

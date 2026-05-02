@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Ocean waves whisper timeless secrets.",
+  "score": 1,
+  "cost": 1.5599999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 9
+  }
+}

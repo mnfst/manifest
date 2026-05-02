@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "data_to_text",
+  "case": 46,
+  "response": "Team Alpha completed Sprint #23, which ran from January 15\u201326, finishing 38 of the 42 planned story points \u2014 slightly above their average velocity of 36 \u2014 while successfully delivering 8 user stories and resolving 5 bugs. The team encountered 2 blockers during the sprint, which may have contributed to the 4-point shortfall against the planned capacity. Overall, the sprint reflected strong performance, with a team satisfaction score of 4.1 out of 5.",
+  "score": 0,
+  "cost": 0.002001,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 111
+  }
+}

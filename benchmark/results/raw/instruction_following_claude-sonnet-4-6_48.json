@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, two young lovers, Romeo Montague and Juliet Capulet, fall deeply in love despite their families' bitter rivalry. They secretly marry with the help of Friar Lawrence, but tragedy follows when Romeo kills Juliet's cousin Tybalt and is banished. Friar Lawrence devises a plan for Juliet to fake her death, but the message fails to reach Romeo. Believing Juliet truly dead, Romeo poisons himself at her tomb. Juliet awakens, finds Romeo dead, and kills herself with his dagger. Their deaths ultimately reconcile the feuding families.",
+  "score": 5,
+  "cost": 0.002145,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 137
+  }
+}

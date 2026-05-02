@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "The Los Angeles Kings.",
+  "score": 5,
+  "cost": 6.527999999999999e-06,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 122,
+    "output": 6
+  }
+}

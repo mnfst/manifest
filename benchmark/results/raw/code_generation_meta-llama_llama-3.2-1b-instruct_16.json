@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_generation",
+  "case": 16,
+  "response": "def minPath(grid, k):\n    n = len(grid)\n    visited = [[False for _ in range(n)] for _ in range(n)]\n    queue = [(0, 0, [grid[0][0]])]\n    visited[0][0] = True\n    while queue:\n        x, y, path = queue.pop(0)\n        if len(path) == k:\n            return path\n        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:\n            nx, ny = x + dx, y + dy\n            if 0 <= nx < n and 0 <= ny < n and not visited[nx][ny] and grid[nx][ny] < grid[x][y]:\n                queue.append((nx, ny, path + [grid[nx][ny]]))\n                visited[nx][ny] = True",
+  "score": 2,
+  "cost": 1.6902000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 432,
+    "output": 194
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In the tragic play Romeo and Juliet by William Shakespeare, two young lovers from feuding families, the Montagues and the Capulets, fall in love at a ball. Romeo, a Montague, falls for Juliet, a Capulet, and they exchange vows of love. However, their families' hatred for each other makes their love impossible. When Romeo kills Juliet's cousin Tybalt in a duel, he is banished from Verona. Juliet fakes her own death to avoid marrying another, but Romeo believes she is really dead and poisons himself in her tomb. Juliet awakens to find Romeo dead and stabs herself with his dagger to join him in death.",
+  "score": 4,
+  "cost": 4.562999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 138
+  }
+}

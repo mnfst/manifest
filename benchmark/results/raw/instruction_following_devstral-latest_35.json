@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "**The Last Light**\n\nThe old lighthouse keeper had sworn he\u2019d never leave his post, but the storm raging outside made him question that vow for the first time in forty years. As waves crashed against the cliffs, the beacon flickered\u2014once, twice\u2014then died, plunging the coast into darkness. Below, a ship\u2019s distress horn wailed, lost in the howling wind, and his hands trembled as he fumbled with the rusted generator. Just as the light sputtered back to life, a shadow moved in the corner of the room, tall and silent, watching. The keeper\u2019s breath caught\u2014no one else was supposed to be there\u2014but when he turned, the figure was gone. By dawn, the storm had passed, the ship was safe, and the lighthouse stood empty, its door swinging slowly in the breeze.",
+  "score": 5,
+  "cost": 5.38e-05,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 175
+  }
+}

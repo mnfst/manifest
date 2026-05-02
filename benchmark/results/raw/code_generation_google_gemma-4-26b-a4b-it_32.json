@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_generation",
+  "case": 32,
+  "response": "```python\n    words = s.split(' ')\n    result = []\n    for word in words:\n        result.append(''.join(sorted(word)))\n    return ' '.join(result)\n```",
+  "score": 4,
+  "cost": 1.38e-05,
+  "expected": "",
+  "tokens": {
+    "input": 182,
+    "output": 48
+  }
+}

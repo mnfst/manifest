@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Lettuce or mixed greens\n- [ ] Tomato\n- [ ] Cucumber\n- [ ] Carrot\n- [ ] Red onion\n- [ ] Salad dressing\n- [ ] Salt and pepper",
+  "score": 5,
+  "cost": 0.000618,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 47
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm rolls in like a dark curtain, swallowing the last patch of daylight. The air turns heavy and electric, tinged with the sharp, metallic smell of rain before it falls. Wind tugs at tree branches and makes the streetlights flicker through a gray, churning sky. Then the first drops hit\u2014cool and loud\u2014spattering across pavement with a crisp, staccato rhythm.\n\nMoments later, thunder cracks overhead, a deep, rolling boom that you feel in your chest more than you hear. Lightning flashes white-blue across the clouds, briefly illuminating rooftops and leaves as if the world has been startled awake. Rain thickens into a steady roar, drumming on windows and turning the air slick and steaming. Through it all, the thunder keeps answering the lightning, one violent rhythm after another, until the storm finally begins to ease, leaving behind a fresh, rain-soaked hush.",
+  "score": 5,
+  "cost": 7.670000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 187
+  }
+}

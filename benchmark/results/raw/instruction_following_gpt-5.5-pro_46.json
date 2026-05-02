@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Hi everyone, as I prepare to leave [Company], I want to thank you for the support, collaboration, and friendship you\u2019ve shared with me. I\u2019m grateful for the projects we tackled together and for the many lessons I\u2019ll carry into my next chapter. It has been a privilege to work alongside such talented and thoughtful people. Please keep in touch at [email/LinkedIn], and I hope our paths cross again soon. Wishing you all continued success and happiness.",
+  "score": 5,
+  "cost": 0.0063,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 310
+  }
+}

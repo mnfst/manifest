@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The email reports a significant increase in P99 latency for the /api/v2/search endpoint following Thursday's deployment, attributed to a new full-text search query not utilizing the index. The proposed fix involves adding a GIN index on the content column, with the deployment scheduled for tonight during the maintenance window.",
+  "score": 5,
+  "cost": 1.0725000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 62
+  }
+}

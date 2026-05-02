@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Answer: Newton's First Law of Motion",
+  "score": 5,
+  "cost": 9.438e-06,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 278,
+    "output": 8
+  }
+}

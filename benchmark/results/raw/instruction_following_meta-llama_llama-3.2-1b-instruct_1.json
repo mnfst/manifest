@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU (Central Processing Unit) is the primary component of a computer that executes instructions and performs calculations, managing the flow of data and control signals between different parts of the computer.",
+  "score": 2,
+  "cost": 1.593e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 37
+  }
+}

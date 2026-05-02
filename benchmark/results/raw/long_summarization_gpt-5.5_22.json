@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "long_summarization",
+  "case": 22,
+  "response": "The global food system faces major strain as the population is projected to reach 9.7 billion by 2050, requiring a 60% increase in food production while climate change reduces yields. Agriculture contributes about 25% of greenhouse gas emissions, and key resources are under threat, including water supplies such as the Ogallala Aquifer and soils, with 33% of arable land degraded. The problem is worsened by food waste, with roughly one-third of all food lost or wasted. Proposed solutions include precision agriculture, vertical farming, alternative proteins, drought-resistant crops, regenerative farming, and policy reforms, but the central challenge is scaling them while keeping food affordable and accessible.",
+  "score": 5,
+  "cost": 0.002748,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 156
+  }
+}

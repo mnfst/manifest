@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 5,
+  "cost": 1.735e-05,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 177,
+    "output": 170
+  }
+}

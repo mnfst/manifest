@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "code_generation",
+  "case": 15,
+  "response": "```python\ndef largest_prime_factor(n: int):\n    factor = 2\n    while factor * factor <= n:\n        if n % factor:\n            factor += 1\n        else:\n            n //= factor\n    return n\n```",
+  "score": 4,
+  "cost": 9.49e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 51
+  }
+}

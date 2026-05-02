@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code identifies all connected components in an undirected graph by iterating through every node and initiating a **Breadth-First Search (BFS)** for any node not yet visited. It returns a list of lists, where each sub-list contains the nodes belonging to a single isolated subgraph.",
+  "score": 5,
+  "cost": 1.14e-05,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 59
+  }
+}

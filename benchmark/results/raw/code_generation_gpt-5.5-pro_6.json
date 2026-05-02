@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "code_generation",
+  "case": 6,
+  "response": "counts = {}\n    for n in numbers:\n        counts[n] = counts.get(n, 0) + 1\n    return [n for n in numbers if counts[n] == 1]",
+  "score": 5,
+  "cost": 0.004665,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 204
+  }
+}

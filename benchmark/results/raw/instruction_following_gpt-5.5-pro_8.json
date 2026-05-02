@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "A blockchain is like a special notebook that many people share, where everyone writes down what happens and nobody can secretly erase it. Each new page is linked to the page before it, so everyone can check that the story stays honest.",
+  "score": 5,
+  "cost": 0.001695,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 79
+  }
+}

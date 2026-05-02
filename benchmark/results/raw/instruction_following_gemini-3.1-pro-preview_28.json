@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Every small step you take today brings you closer to your biggest dreams.",
+  "score": 4,
+  "cost": 0.0002575,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 14
+  }
+}

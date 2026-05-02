@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product launch is delayed due to payment integration not meeting PCI compliance, requiring an additional two weeks. The team must decide between launching without payment features and updating terms and conditions or delaying the full launch to May 15, with a meeting scheduled for tomorrow at 10 am to discuss options.",
+  "score": 5,
+  "cost": 1.04e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 59
+  }
+}
