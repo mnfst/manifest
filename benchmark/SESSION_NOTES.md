@@ -3,7 +3,7 @@
 Notes that don't fit in formal documentation but matter for continuity.
 Read this file at the start of any new session to avoid repeating mistakes.
 
-Last updated: 2026-04-30
+Last updated: 2026-05-02
 
 ## Working with the user
 
@@ -90,13 +90,40 @@ These are gut-level observations, not formal findings:
 5. Gemini (direct): works, free tier rate-limits 2.0-flash
 6. Moonshot (direct): works after endpoint fix
 7. OpenRouter: works but slow on expensive models (Qwen Max)
-8. Azure: down for the entire session, never recovered
+8. Azure: was down for 2 days, came back on day 3. Works but use --delay 3.
+
+## Session 2 notes (2026-05-01 to 2026-05-02)
+
+**GPT-5.5 Pro requires /v1/responses API.** Not a chat model in the traditional
+sense. Added call_openai_responses() to handle it. It works but is slow (reasoning
+model, minutes per request on complex tasks).
+
+**GPT-5.5 Pro scores 0/5 on reasoning tasks via judge.** Same bug pattern as Opus.
+The model answers correctly but the judge cannot parse the verbose format. Scores
+4.9/5 on RAG QA where format is simpler. Raw responses saved for rescoring.
+
+**Nemotron Super 120B scores 0.9/5 on sentiment.** Despite being 120B params (MoE).
+Likely a format compliance issue, not quality. Needs raw response inspection.
+
+**OpenAI API key was present from day 1.** The user thought he added it later, but
+it was in .env since the beginning with free tier credits.
+
+**Fireworks has $50/month credits but limited model selection.** Only DeepSeek V4 Pro
+visible. Not worth integrating as a separate provider since we have OpenRouter.
+
+**User wants Scope Guard (QUESTIONS.md).** Every action must answer one of the 15
+listed questions. If not, do not do it. Prevents scope creep.
+
+**User wants top 5 best cost-quality ratio per use case.** Not just cheapest, not
+just best quality. Best ratio = quality high enough AND cheapest among those.
 
 ## What the next session should do first
 
 1. Run `/taskbench` to load full context
-2. Read this file
-3. Check if Azure is back (test DeepSeek-V3.2)
-4. Create and run the 2 remaining tasks (extraction_hard_v2, multistep_reasoning)
-5. Regenerate analysis (Pareto plots, heatmaps) on v2 data only
-6. Update FINDINGS.md with final numbers
+2. Read this file and QUESTIONS.md (scope guard)
+3. Finish batch 2 (11 models, most at 2-16/21 tasks)
+4. Rescore GPT-5.5 Pro and Nemotron on tasks where they score 0 (format bug)
+5. Regenerate analysis (Pareto plots, heatmaps) on v2 data only, filtering out v1
+6. Generate top 5 cost-quality ratio tables per use case
+7. Update FINDINGS.md with final numbers
+8. Write the paper

@@ -1,6 +1,6 @@
 # TaskBench Limitations
 
-Last updated: 2026-04-29
+Last updated: 2026-05-02
 
 This document lists every known limitation of the benchmark, with honest
 assessments of impact and mitigations. Written to prepare for reviewer
@@ -171,3 +171,56 @@ provide a richer picture than either alone.
 **Should you worry?** Use the native metric (accuracy, F1, exact match) for
 correctness. Use the judge score for "usable quality" (format, concision).
 They measure different things.
+
+## 11. OpenAI Responses API Fragmentation
+
+**The issue:** GPT-5.5 Pro requires the /v1/responses API, not /v1/chat/completions.
+This is a different request/response format. Our runner handles both, but it means
+GPT-5.5 Pro is not directly comparable to other models at the API level.
+
+**Impact:** The Responses API may handle prompts differently (input as string vs
+messages array). Output format includes structured items instead of simple content.
+This could affect scoring if the response parsing is not identical.
+
+**Mitigation:** The call_openai_responses function normalizes output to the same
+format as chat completions before scoring. We verified manually that responses are
+correctly extracted.
+
+**Should you worry?** Only if you are comparing API compatibility. For cost-quality
+comparisons, the normalization makes results comparable.
+
+## 12. Micro Tier Format Compliance
+
+**The issue:** Some micro/cheap models (Nemotron Super 120B, Llama-3.2-1B) score
+near 0 on exact-match tasks not because they cannot do the task, but because they
+do not follow the instruction to respond with ONLY the label. They wrap answers in
+explanations or use different formatting.
+
+**Impact:** Exact-match scores for some micro models may understate their actual
+capability. The model "knows" the answer but does not comply with the format
+constraint.
+
+**Mitigation:** We apply strip_thinking() and check for label presence in the
+response (not strict equality). But some models still fail format compliance.
+Raw responses are saved for manual inspection.
+
+**Should you worry?** If you plan to use micro models in production, format
+compliance matters. A model that cannot follow "respond with ONLY X" will cause
+parsing failures in automated pipelines. The low score reflects real-world usability,
+not just benchmark artifact.
+
+## 13. Asymmetric Model Coverage Across Providers
+
+**The issue:** Not all providers have models at every price tier. Anthropic has no
+Micro model. xAI has no Micro. Some providers have only 1-2 models. This means
+cross-provider comparisons are not symmetric at every tier.
+
+**Impact:** We cannot say "Provider X is better than Provider Y across all tiers"
+because some tiers are missing for some providers.
+
+**Mitigation:** We document empty cells as informative (the provider does not
+compete at that price point). Comparisons are made between models that exist, not
+hypothetical ones.
+
+**Should you worry?** No. The benchmark compares models, not providers. If a
+provider does not have a cheap model, that is data about their strategy.

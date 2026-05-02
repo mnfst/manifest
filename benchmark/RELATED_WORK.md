@@ -1,6 +1,6 @@
 # TaskBench: Related Work and Positioning
 
-Last updated: 2026-04-29
+Last updated: 2026-05-02
 
 This document positions TaskBench relative to existing LLM benchmarks. Written
 to prepare for reviewer comments, paper introduction, and audience questions
@@ -110,6 +110,6 @@ model should I use for THIS specific API call, considering cost."
 
 "TaskBench is the first benchmark that systematically answers: for each
 production LLM task, which model delivers acceptable quality at the lowest
-cost? We test 30 models from 7 providers across 16 production tasks and find
+cost? We test 55 models from 13 providers across 21 production tasks and find
 that economy models ($0.10-0.15/M tokens) match premium models ($5-15/M) on
 12 of 16 tasks."

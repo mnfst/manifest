@@ -1,6 +1,6 @@
 # TaskBench Methodology
 
-Last updated: 2026-04-29
+Last updated: 2026-05-02
 
 This document records every methodological decision made during the TaskBench benchmark.
 It serves three purposes: (1) reproducibility for the arXiv paper, (2) continuity
@@ -435,6 +435,38 @@ To reproduce the exact benchmark:
 4. Use the exact prompt templates in TASK_DEFS
 5. Use gpt-4o-mini as the LLM judge with the exact rubric prompts
 6. Run with `--skip-azure` if Azure is unavailable (Azure models are supplementary)
+
+## 11b. Methodology Changes Log
+
+Changes made during the benchmark execution:
+
+1. **Judge max_tokens: 5 → 20** (2026-04-30). The judge was truncating its own
+   response on long evaluations. Increasing to 20 fixed extraction_hard_v2 scoring
+   (0/5 → 4.3-4.5/5 for all models).
+
+2. **Judge context window: 500 → 2000 chars** (2026-04-30). The judge was receiving
+   truncated prompts for tasks with long inputs (extraction_hard_v2 schemas).
+
+3. **Added call_openai_responses()** (2026-05-01). GPT-5.5 Pro and GPT-5 Pro use
+   OpenAI's /v1/responses API instead of /chat/completions. New caller normalizes
+   output to the same format for consistent scoring.
+
+4. **Tier classification principle** (2026-05-01). Models are classified by their
+   actual price and declared capabilities, not assigned to tiers to fill a symmetric
+   grid. Empty cells in the tier grid are informative data about provider strategy,
+   not gaps to fill.
+
+5. **Added --delay flag** (2026-05-01). Configurable delay between model runs for
+   gentle usage of rate-limited providers (Azure).
+
+6. **Cost-per-correct-answer metric** (2026-05-02). For exact-match tasks, "correct"
+   means the model's response contains the expected label. For LLM-judged tasks,
+   "correct" means score >= 4 out of 5. Cost-per-correct = total cost / number correct.
+
+7. **Scale: 55 models, 13 providers** (2026-05-02). Expanded from initial 17 models
+   and 4 providers. Added GPT-5.x family, Claude Sonnet 4.6, Gemini 3.1 Pro, Devstral,
+   Llama 3.2 1B/3B, Qwen-Turbo/3-8B/Max/Plus/Coder, Gemma-4, Phi-4, Nemotron Super,
+   DeepSeek V4 Pro/Flash, Llama-4-Maverick, Grok-4-fast/Code, Seed 2.0 Mini.
 
 ## 12. Decisions We Made and Why (FAQ)
 

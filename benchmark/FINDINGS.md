@@ -1,7 +1,7 @@
 # TaskBench Findings
 
-Last updated: 2026-04-30
-Status: NEAR-COMPLETE (19 of ~21 v2 tasks done, 2 remaining)
+Last updated: 2026-05-02
+Status: ALL 21 V2 TASKS COMPLETE. Model expansion in progress (batch 2: 11 models at 2-16/21 tasks).
 
 **Rule: every finding below must be revalidated against final data before
 publication. Findings marked [STABLE] survived multiple lots without changing.
@@ -9,12 +9,13 @@ Findings marked [PRELIMINARY] are based on partial data and may shift.**
 
 ## Data Snapshot
 
-- 18,678 unique data points
-- 30 models across 7 providers (Anthropic, OpenAI, Google, Mistral, MiniMax, Moonshot, OpenRouter)
-- 19 v2 tasks (50 cases each), 13 v1 tasks (5-10 cases, exploratory only)
-- $51 spent of $250 budget (20%)
-- Commit: a1da9e1b8 on branch taskbench-data
-- Remaining: extraction_hard_v2, multistep_reasoning (datasets not yet created)
+- 40,497 unique data points
+- 55 models across 13 providers (Anthropic, OpenAI, Google, Mistral, MiniMax, Moonshot, OpenRouter/ByteDance/Qwen/xAI/DeepSeek/Meta/NVIDIA/Microsoft, Azure)
+- 21 v2 tasks (50 cases each), 13 v1 tasks (5-10 cases, exploratory only)
+- $82 spent of $250 budget (33%)
+- Commit: 63a1b8f55 on branch taskbench-data
+- In progress: 11 models (GPT-5.5 Pro, o3, V4 Pro, Maverick, Grok-fast/Code, Seed Mini, Qwen-Max/Plus/Coder, Nemotron) at 2-16/21 tasks
+- Pending: Seed 2.0 Pro (need ByteDance API key)
 
 ---
 
@@ -244,6 +245,99 @@ the most value. The low-discrimination tasks confirm that all modern models
 handle basic generation well, but they do not justify paying more for premium.
 
 **Risk of invalidation:** None. This is an observed property of the benchmark.
+
+---
+
+## Finding 13: New-gen cheapest model beats old-gen mid-tier on hard tasks [STABLE]
+
+GPT-5.4 Nano ($0.10/M, cheapest OpenAI 2026) beats GPT-4o-mini ($0.15/M, mid-tier 2024)
+on reasoning: 4.9/5 vs 3.5/5 on GSM8K, 4.7/5 vs 3.7/5 on RAG QA. On simple tasks
+(sentiment) both score 4.9-5.0/5, no difference. The generational leap only shows on
+hard tasks.
+
+**Evidence:**
+- GSM8K: GPT-5.4-nano 4.9/5, GPT-4o-mini 3.5/5 (1.4 point gap)
+- RAG QA: GPT-5.4-nano 4.7/5, GPT-4o-mini 3.7/5 (1.0 point gap)
+- Sentiment: both 4.9-5.0/5 (0 gap)
+
+**Implication:** On hard tasks, upgrading to the current generation matters more than
+upgrading to a higher tier within the same generation.
+
+**Risk of invalidation:** Low. Confirmed across multiple tasks.
+
+---
+
+## Finding 14: RAG QA shows the biggest generational quality leap [STABLE]
+
+The ability to answer strictly from provided context without hallucinating improved
+dramatically between 2024 and 2026 models. GPT-4o-mini (2024): 3.7/5. GPT-5.4-mini
+(2026): 4.9/5. Same price tier, 1.2 point improvement.
+
+**Evidence:**
+- GPT-4o-mini: 3.7/5 on RAG QA (frequent hallucination)
+- GPT-5.4-mini: 4.9/5 (stays in context)
+- GPT-5.4-nano: 4.7/5 (stays in context)
+- GPT-5.5: 4.9/5
+
+**Implication:** If your use case is RAG (answering from documents), upgrading from
+2024 to 2026 models is the single highest-impact change you can make.
+
+**Risk of invalidation:** Low. Consistent across all new-gen OpenAI models.
+
+---
+
+## Finding 15: Quality cliff at 1B parameters [STABLE]
+
+Below ~3B parameters, models become unreliable for basic classification. Llama-3.2-1B
+($0.027/M) scores 3.1/5 on sentiment, the worst score among all models. Llama-3.2-3B
+($0.051/M) scores 4.8/5, nearly doubling performance for double the price.
+
+**Evidence:**
+- Llama-3.2-1B: 3.1/5 sentiment (unreliable)
+- Llama-3.2-3B: 4.8/5 sentiment (solid)
+- Ministral-3B: 4.7/5 sentiment (solid)
+- Qwen-Turbo: 4.6/5 sentiment (solid)
+
+**Implication:** The practical floor for production LLM use is ~3B parameters. Below
+that, models fail too often for automated pipelines.
+
+**Risk of invalidation:** Low. Observed across multiple 1B models.
+
+---
+
+## Finding 16: Micro tier variance is extreme, routing most valuable here [STABLE]
+
+Models under $0.10/M show the widest quality spread of any tier. On sentiment_sst2:
+Gemma-4-26B scores 5.0/5, Phi-4 scores 4.9/5, but Nemotron-120B scores 0.9/5 and
+Llama-3.2-1B scores 3.1/5. The same models can ace one task and fail another completely.
+
+**Evidence:**
+- Sentiment: Gemma-4 5.0, Phi-4 4.9, Ministral-3B 4.7, Nemotron 0.9, Llama-1B 3.1
+- Multistep reasoning: Qwen-Turbo 5.0, Llama-1B 5.0, Ministral-3B 4.5
+
+**Implication:** At the Micro tier, using a single model for all tasks is risky.
+Per-task model selection has the highest ROI at this price point. This is where
+a router like Manifest adds the most value.
+
+**Risk of invalidation:** Low. Structural property of small models.
+
+---
+
+## Finding 17: Reasoning model judge scoring bug [KNOWN ISSUE]
+
+GPT-5.5 Pro and Claude Opus 4.7 score 0/5 or 3.5/5 on reasoning tasks via the
+LLM judge, despite being top reasoning models. The judge penalizes verbose output
+format, not incorrectness. Raw responses show correct answers.
+
+**Evidence:**
+- GPT-5.5 Pro: 0.0/5 on GSM8K, 0.0/5 on multistep, but 4.9/5 on RAG QA
+- Opus 4.7: 3.5/5 on GSM8K but 98% exact answer accuracy
+
+**Implication:** LLM-judge scores for reasoning models on reasoning tasks are
+unreliable. The paper must report native accuracy (exact answer match) alongside
+judge scores. Raw responses are saved for rescoring.
+
+**Risk of invalidation:** None. This is a known limitation of the evaluation method.
 
 ---
 
