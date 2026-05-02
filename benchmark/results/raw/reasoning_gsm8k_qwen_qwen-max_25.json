@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "To solve the problem, we need to follow these steps:\n\n1. Determine the amount of the loan John gets.\n2. Calculate the amount he uses to pay off his debts.\n3. Subtract the amount used to pay off debts from the total loan amount to find the leftover money.\n\nStep 1: Determine the amount of the loan.\n- The house is worth $250,000.\n- The loan is worth 40% of the house value.\n- Calculate 40% of $250,000:\n  \\[\n  250,000 \\times 0.40 = 100,000\n  \\]\n  So, the loan amount is $100,000.\n\nStep 2: Calculate the amount he uses to pay off his debts.\n- John uses 60% of the loan to pay off his debts.\n- Calculate 60% of $100,000:\n  \\[\n  100,000 \\times 0.60 = 60,000\n  \\]\n  So, the amount used to pay off debts is $60,000.\n\nStep 3: Subtract the amount used to pay off debts from the total loan amount to find the leftover money.\n- Total loan amount: $100,000\n- Amount used to pay off debts: $60,000\n- Calculate the leftover money:\n  \\[\n  100,000 - 60,000 = 40,000\n  \\]\n\nANSWER: 40000",
+  "score": 0,
+  "cost": 0.0016005600000000002,
+  "expected": "40,000",
+  "tokens": {
+    "input": 111,
+    "output": 357
+  }
+}

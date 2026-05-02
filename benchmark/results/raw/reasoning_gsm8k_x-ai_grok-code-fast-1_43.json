@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Martha is 4 years younger than Mike, who is 24 years old. So, Martha's age is 24 - 4 = 20 years old.\n\nJeff is 10 years older than Martha. So, Jeff's age is 20 + 10 = 30 years old.\n\nANSWER: 30",
+  "score": 0,
+  "cost": 0.00024200000000000003,
+  "expected": "30",
+  "tokens": {
+    "input": 282,
+    "output": 232
+  }
+}

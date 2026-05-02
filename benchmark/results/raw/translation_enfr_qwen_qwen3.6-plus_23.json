@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les d\u00e9versoirs capables d'\u00e9vacuer les \u00e9v\u00e9nements de crue postul\u00e9s sont soit int\u00e9gr\u00e9s \u00e0 la structure du barrage, soit construits sous forme d'ouvrages distincts.",
+  "score": 4,
+  "cost": 0.004056,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 3106
+  }
+}

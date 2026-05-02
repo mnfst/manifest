@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "T'es pas \u00e0 la DGA. Faut juste zoomer et fermer ta gueule.\n\nExplanation: \n- \"You ain't\" is translated to \"T'es pas\" to maintain the informal tone.\n- \"DGA\" is kept as it is, assuming it's an acronym that is understood in the same context in French.\n- \"Just zoom in\" is translated to \"Faut juste zoomer\" to keep the imperative tone.\n- \"shut the fuck up\" is translated to \"fermer ta gueule\" which is a more informal and stronger expression, maintaining the tone and emphasis of the original text.\n\nAlternative translation with a more formal tone for \"shut the fuck up\" could be \"et la fermer\", but \"fermer ta gueule\" is used here to maintain the same level of informality and emphasis as the original text.",
+  "score": 4,
+  "cost": 0.00011279999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 177
+  }
+}

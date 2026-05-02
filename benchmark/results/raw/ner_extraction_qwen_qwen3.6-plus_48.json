@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "ner_extraction",
+  "case": 48,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"TSMC\", \"Department of Commerce\"],\n  \"locations\": [\"Phoenix\", \"Arizona\"]\n}",
+  "score": 5,
+  "cost": 0.0012285,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 925
+  }
+}

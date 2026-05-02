@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "La r\u00e9pression de ce genre, ainsi que les arrestations op\u00e9r\u00e9es ces derni\u00e8res semaines \u00e0 l'encontre de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser des soi-disantes fausses informations, ont avec raison \u00e9veill\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 4,
+  "cost": 0.0012272000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 3041
+  }
+}

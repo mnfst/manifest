@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'\u00e9tendue de la longueur non support\u00e9e qui se d\u00e9veloppe suite \u00e0 l'\u00e9rosion de creusement a une influence significative sur la r\u00e9ponse en flexion du syst\u00e8me tuyau-sol.",
+  "score": 4,
+  "cost": 0.0007402,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 1826
+  }
+}

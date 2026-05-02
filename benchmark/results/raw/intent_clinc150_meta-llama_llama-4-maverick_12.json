@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "intent_clinc150",
+  "case": 12,
+  "response": "oil_change_how",
+  "score": 5,
+  "cost": 9.209999999999999e-05,
+  "expected": "oil_change_how",
+  "tokens": {
+    "input": 594,
+    "output": 5
+  }
+}

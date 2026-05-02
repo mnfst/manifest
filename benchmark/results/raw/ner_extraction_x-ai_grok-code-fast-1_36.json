@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "{\"persons\": [\"Warren Buffett\"], \"organizations\": [\"Bank of America\", \"SEC\"], \"locations\": []}",
+  "score": 5,
+  "cost": 0.00018559999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 268,
+    "output": 165
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, ce diable conduit sur Wangan.",
+  "score": 4,
+  "cost": 4.32e-06,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 13
+  }
+}

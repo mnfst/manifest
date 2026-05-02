@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 49,
+  "response": "{\"persons\":[\"Pope Francis\"],\"organizations\":[],\"locations\":[\"St. Peter Square\",\"Vatican\"]}",
+  "score": 4,
+  "cost": 0.0001964,
+  "expected": "",
+  "tokens": {
+    "input": 222,
+    "output": 190
+  }
+}

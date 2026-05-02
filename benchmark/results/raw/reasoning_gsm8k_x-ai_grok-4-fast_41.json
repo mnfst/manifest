@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Marilyn's sales = 10 \u00d7 Harald's sales  \nLet Harald's sales = H  \nThen Marilyn's sales = 10H  \nTotal sales: H + 10H = 11H = 88,000  \nH = 88,000 \u00f7 11 = 8,000  \n\nANSWER: 8000",
+  "score": 0,
+  "cost": 0.0002308,
+  "expected": "8000",
+  "tokens": {
+    "input": 222,
+    "output": 233
+  }
+}

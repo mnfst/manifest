@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Le programme de nutrition urbaine de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et promeut le cr\u00e9dit en faveur des groupes de femmes qui commercialisent des aliments.",
+  "score": 5,
+  "cost": 0.00076647,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 429
+  }
+}

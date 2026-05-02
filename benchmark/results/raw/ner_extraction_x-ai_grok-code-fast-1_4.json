@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 4,
+  "response": "{\"persons\": [], \"organizations\": [\"Bank of England\", \"European Central Bank\"], \"locations\": [\"Frankfurt\"]}",
+  "score": 4,
+  "cost": 0.0001736,
+  "expected": "",
+  "tokens": {
+    "input": 268,
+    "output": 150
+  }
+}

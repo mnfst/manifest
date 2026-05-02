@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Last year: 50 students.  \n20% increase: 20% of 50 = 0.20 \u00d7 50 = 10 students.  \nThis year: 50 + 10 = 60 students.  \n\nANSWER: 60",
+  "score": 0,
+  "cost": 0.00018240000000000002,
+  "expected": "60",
+  "tokens": {
+    "input": 276,
+    "output": 159
+  }
+}

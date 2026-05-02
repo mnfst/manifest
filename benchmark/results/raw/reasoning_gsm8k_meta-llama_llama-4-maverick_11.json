@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "To solve this problem, let's break it down into steps.\n\n1. **Total burritos ordered**: George ordered 600 burritos.\n\n2. **Burritos given to students**: There were 50 students, and each was given 10 burritos. So, the total number of burritos given to students = 50 students * 10 burritos/student = 500 burritos.\n\n3. **Burritos eaten by Mr. George**: Mr. George ate 20 burritos.\n\n4. **Total burritos consumed**: To find the total number of burritos consumed, we add the burritos eaten by the students and Mr. George. Total consumed = 500 burritos (by students) + 20 burritos (by Mr. George) = 520 burritos.\n\n5. **Leftover burritos**: To find the number of leftover burritos, we subtract the total burritos consumed from the total burritos ordered. Leftover burritos = Total burritos ordered - Total burritos consumed = 600 - 520 = 80 burritos.\n\nTherefore, the total number of leftover burritos from the picnic is 80.\n\nANSWER: 80",
+  "score": 0,
+  "cost": 0.00015839999999999997,
+  "expected": "80",
+  "tokens": {
+    "input": 104,
+    "output": 238
+  }
+}

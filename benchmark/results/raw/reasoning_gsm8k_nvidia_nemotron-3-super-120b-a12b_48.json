@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "We need to parse the problem: Jamaal is at the gym. He has been using an 8-pound weight. He increases the weight that he uses by 50%. It turns out to be too heavy, so he uses a weight two pounds lighter than that. What is the weight, in pounds, that he now uses?\n\nInterpretation: Starting weight = 8 lbs. He increases the weight by 50%: increase of 50% of 8 = 0.5 * 8 = 4 lbs. So new weight = 8 + 4 = 12 lbs. Then he finds it too heavy, so he uses a weight two pounds lighter? Wait, let me think:  \nA, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z",
+  "score": 1,
+  "cost": 2.8619999999999997e-05,
+  "expected": "10",
+  "tokens": {
+    "input": 115,
+    "output": 203
+  }
+}

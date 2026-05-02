@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 46,
+  "response": "{\"persons\":[\"Liang Rubo\"],\"organizations\":[\"ByteDance\",\"Senate Commerce Committee\",\"TikTok\"],\"locations\":[\"Washington\"]}",
+  "score": 5,
+  "cost": 0.0002534,
+  "expected": "",
+  "tokens": {
+    "input": 223,
+    "output": 261
+  }
+}

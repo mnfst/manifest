@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "J'ai l'impression que ma bite n'est pas assez grosse pour toi.",
+  "score": 5,
+  "cost": 0.00043587,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 242
+  }
+}

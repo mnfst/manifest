@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Si le revenu et/ou la situation professionnelle d'une personne change, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle, auquel cas il y aura une nouvelle \u00e9valuation.",
+  "score": 5,
+  "cost": 0.00033900000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 203,
+    "output": 373
+  }
+}

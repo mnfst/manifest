@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Fran\u00e7ais : \u00ab Et il a dit : \u201cBien s\u00fbr.\u201d Et j\u2019ai dit : \u201cEh bien, je me demande o\u00f9 \u00e7a va \u00eatre.\u201d \u00bb",
+  "score": 5,
+  "cost": 0.002058,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 246
+  }
+}

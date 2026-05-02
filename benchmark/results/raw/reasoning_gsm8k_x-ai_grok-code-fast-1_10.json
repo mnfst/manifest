@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "- Low setting: 1 liter per day.  \n- Medium setting: Twice as much as low, so 2 liters per day.  \n- High setting: Twice as much as medium, so 4 liters per day.  \n\n- 3 days on low: 3 days \u00d7 1 liter/day = 3 liters.  \n- 3 days on medium: 3 days \u00d7 2 liters/day = 6 liters.  \n- 5 days on high: 5 days \u00d7 4 liters/day = 20 liters.  \n\n- Total water removed: 3 + 6 + 20 = 29 liters.  \n\nANSWER: 29",
+  "score": 0,
+  "cost": 0.0003328,
+  "expected": "29",
+  "tokens": {
+    "input": 396,
+    "output": 317
+  }
+}

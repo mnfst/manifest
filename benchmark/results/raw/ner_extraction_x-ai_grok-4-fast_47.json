@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "{\"persons\":[\"Alain Aspect\"],\"organizations\":[\"Universite Paris-Saclay\"],\"locations\":[\"Stockholm\"]}",
+  "score": 5,
+  "cost": 0.0002464,
+  "expected": "",
+  "tokens": {
+    "input": 224,
+    "output": 252
+  }
+}

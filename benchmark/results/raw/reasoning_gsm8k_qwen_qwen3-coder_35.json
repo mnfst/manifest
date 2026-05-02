@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "I need to calculate the total cost of Winston's fruit purchase by finding the cost of each type of fruit and adding them together.\n\nLet me break this down step by step:\n\n**Peaches:**\n- Price: $2.00 per pound\n- Quantity: 6 pounds\n- Cost: 6 \u00d7 $2.00 = $12.00\n\n**Plums:**\n- Price: $1.00 per pound\n- Quantity: 8 pounds\n- Cost: 8 \u00d7 $1.00 = $8.00\n\n**Apricots:**\n- Price: $3.00 per pound\n- Quantity: 6 pounds\n- Cost: 6 \u00d7 $3.00 = $18.00\n\n**Total cost:**\n$12.00 + $8.00 + $18.00 = $38.00\n\nANSWER: 38",
+  "score": 5,
+  "cost": 0.00020394,
+  "expected": "38",
+  "tokens": {
+    "input": 127,
+    "output": 200
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "intent_clinc150",
+  "case": 16,
+  "response": "order_checks",
+  "score": 5,
+  "cost": 0.0002306,
+  "expected": "order_checks",
+  "tokens": {
+    "input": 713,
+    "output": 110
+  }
+}

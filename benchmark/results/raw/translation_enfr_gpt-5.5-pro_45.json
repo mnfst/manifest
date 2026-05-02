@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "L\u2019\u00e9vasion fiscale s\u2019est accrue en Tunisie, entra\u00eenant un manque \u00e0 gagner important en mati\u00e8re de ressources publiques, a d\u00e9clar\u00e9 en juin 2013 l\u2019ancien chef du gouvernement provisoire Ali Larayedh, cit\u00e9 par le journal *Business Flood*.",
+  "score": 5,
+  "cost": 0.0044,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 203
+  }
+}

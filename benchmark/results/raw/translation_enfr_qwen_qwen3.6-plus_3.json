@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n'y a pas d'autre explication \u00e0 la dotation parcimonieuse de 10 ou 12 millions d'ECU, qui, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 des moyens modernes n\u00e9cessaires \u00e0 l'exercice d'une fonction de surveillance dans le secteur de la p\u00eache.",
+  "score": 5,
+  "cost": 0.004446975000000001,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 3400
+  }
+}

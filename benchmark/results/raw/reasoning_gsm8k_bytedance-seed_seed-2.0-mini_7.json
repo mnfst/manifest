@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Let's solve this problem step by step:\n\n### Step 1: Calculate the total cost of the plates\nA dozen equals 12, so half a dozen plates is \\( 6 \\) plates. Each plate costs $6000, so total plate cost is:\n\\(6 \\times 6000 = 36000\\) dollars.\n\n### Step 2: Find the total cost of the twenty dozen cups\nThe problem states twenty dozen cups cost $1200 less than the total plate cost. First, calculate how many cups are in twenty dozen: \\(20 \\times12 = 240\\) cups.\nTotal cost of all cups = Total plate cost - 1200 = \\(36000 -1200 = 34800\\) dollars.\n\n### Step3: Calculate the cost per cup\nDivide the total cost of the cups by the total number of cups to get the cost per individual cup:\n\\(34800 \\div 240 =145\\) dollars per cup.\n\nANSWER: 145",
+  "score": 0,
+  "cost": 0.0010455,
+  "expected": "145",
+  "tokens": {
+    "input": 123,
+    "output": 2583
+  }
+}

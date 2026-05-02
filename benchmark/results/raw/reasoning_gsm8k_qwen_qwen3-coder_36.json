@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "I need to track Elaine's Pokemon card collection month by month.\n\nLet me start with what I know:\n- Initial cards: 20\n\nMonth 1:\n- She collected three times her initial number\n- Cards collected in Month 1 = 3 \u00d7 20 = 60\n- Total after Month 1 = 20 + 60 = 80\n\nMonth 2:\n- She collected 20 fewer cards than in Month 1\n- Cards collected in Month 2 = 60 - 20 = 40\n- Total after Month 2 = 80 + 40 = 120\n\nMonth 3:\n- She collected twice the combined number from Months 1 and 2\n- Combined cards from Months 1 and 2 = 60 + 40 = 100\n- Cards collected in Month 3 = 2 \u00d7 100 = 200\n- Total after Month 3 = 120 + 200 = 320\n\nLet me verify this step by step:\n- Initial: 20 cards\n- Month 1: +60 cards (3 \u00d7 20)\n- Month 2: +40 cards (60 - 20)\n- Month 3: +200 cards (2 \u00d7 (60 + 40))\n- Total: 20 + 60 + 40 + 200 = 320 cards\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.00031394,
+  "expected": "320",
+  "tokens": {
+    "input": 119,
+    "output": 327
+  }
+}

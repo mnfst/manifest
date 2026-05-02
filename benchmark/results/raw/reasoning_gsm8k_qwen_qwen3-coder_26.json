@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "I need to find how much money Mitchell made and compare it to Liam's earnings.\n\nLet me calculate Mitchell's total earnings:\n- Mitchell sold 21 lemonades\n- Each lemonade cost $4\n- Mitchell's total earnings = 21 \u00d7 $4 = $84\n\nNow I'll compare their earnings:\n- Liam made $63\n- Mitchell made $84\n- The difference = $84 - $63 = $21\n\nTherefore, Mitchell made $21 more than Liam.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.00012364,
+  "expected": "21",
+  "tokens": {
+    "input": 110,
+    "output": 113
+  }
+}

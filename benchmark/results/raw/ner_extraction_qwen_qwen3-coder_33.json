@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "ner_extraction",
+  "case": 33,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"International Monetary Fund\"],\n  \"locations\": [\"Latin America\"]\n}",
+  "score": 5,
+  "cost": 3.6740000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 24
+  }
+}

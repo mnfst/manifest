@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "ner_extraction",
+  "case": 1,
+  "response": "{\"persons\": [\"Biden\", \"Macron\"], \"organizations\": [\"NATO\"], \"locations\": [\"White House\"]}",
+  "score": 5,
+  "cost": 0.0009846,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 2433
+  }
+}

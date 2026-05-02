@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "intent_clinc150",
+  "case": 24,
+  "response": "We need to classify the user message into one of the intents. The message: \"my bill",
+  "score": 0,
+  "cost": 5.3729999999999995e-05,
+  "expected": "report_fraud",
+  "tokens": {
+    "input": 577,
+    "output": 20
+  }
+}

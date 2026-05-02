@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sentiment_sst2",
+  "case": 48,
+  "response": "We need to output only the label: positive\nWe need to output only the sentiment? The user",
+  "score": 0,
+  "cost": 9.45e-06,
+  "expected": "negative",
+  "tokens": {
+    "input": 85,
+    "output": 20
+  }
+}

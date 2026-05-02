@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "I need to find the total number of children in the drill.\n\nLet me break down the information given:\n- Children stand 8 in a row\n- There are 7 rows\n- This arrangement is for 5 different schools\n\nFirst, let me find how many children are in one school's formation:\n- Number of children in one row = 8\n- Number of rows = 7\n- Children per school = 8 \u00d7 7 = 56\n\nNow, let me find the total number of children from all schools:\n- Number of schools = 5\n- Children per school = 56\n- Total children = 5 \u00d7 56 = 280\n\nTherefore, there can be 280 children in the drill.\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.00016566,
+  "expected": "280",
+  "tokens": {
+    "input": 97,
+    "output": 164
+  }
+}

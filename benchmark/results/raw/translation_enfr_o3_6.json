@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, c\u2019est ce d\u00e9mon qui d\u00e9vale la Wangan.",
+  "score": 4,
+  "cost": 0.001868,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 225
+  }
+}

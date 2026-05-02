@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime bien... m\u00eame si je ne sais pas pourquoi. \n\nAlternatively, a more informal translation could be: \nEt je t'aime bien... m\u00eame si je sais pas pourquoi.\n\nOr, using a more casual tone:\nEt je t'appr\u00e9cie... sans trop savoir pourquoi.\n\nHowever, the most suitable translation depends on the context and the level of formality desired. The first translation maintains a neutral tone and is suitable for most situations.",
+  "score": 4,
+  "cost": 6.225e-05,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 94
+  }
+}

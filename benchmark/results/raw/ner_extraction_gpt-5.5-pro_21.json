@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "{\"persons\":[\"Picasso\",\"Monet\"],\"organizations\":[\"The Metropolitan Museum of Art\"],\"locations\":[\"New York\"]}",
+  "score": 5,
+  "cost": 0.00289,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 126
+  }
+}

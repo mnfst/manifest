@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Sais-tu d\u2019o\u00f9 vient l\u2019argent ?",
+  "score": 5,
+  "cost": 0.001306,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 155
+  }
+}

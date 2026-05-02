@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "I need to find how many pounds of insects a flock of 10 ducks needs per day.\n\nLet me break this down step by step:\n\nStep 1: Find how many pounds of insects one duck needs per day.\n- Each duck needs 3.5 pounds per week\n- There are 7 days in a week\n- So one duck needs 3.5 \u00f7 7 = 0.5 pounds per day\n\nStep 2: Find how many pounds of insects 10 ducks need per day.\n- One duck needs 0.5 pounds per day\n- Ten ducks need 10 \u00d7 0.5 = 5 pounds per day\n\nTherefore, a flock of ten ducks needs 5 pounds of insects per day.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00015751999999999997,
+  "expected": "5",
+  "tokens": {
+    "input": 80,
+    "output": 159
+  }
+}

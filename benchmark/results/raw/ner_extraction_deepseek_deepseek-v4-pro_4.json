@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "ner_extraction",
+  "case": 4,
+  "response": "{\"persons\": [], \"organizations\": [\"Bank of England\", \"European Central Bank\"], \"locations\": [\"Frankfurt\"]}",
+  "score": 4,
+  "cost": 0.00023229,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 116
+  }
+}

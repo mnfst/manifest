@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "international_visa",
+  "score": 5,
+  "cost": 0.00053976,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 507,
+    "output": 3
+  }
+}

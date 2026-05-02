@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "### Step-by-Step Solution\n\n1. **Cost of material**: Janet pays $500 for the material.\n\n2. **Cost of jeweler's work**: She pays an additional $800 for the jeweler to construct it.\n\n3. **Subtotal before insurance**: Add the material and jeweler costs: $500 + $800 = $1,300.\n\n4. **Insurance cost**: She pays 10% of \"that\" (the subtotal) for insurance. 10% of $1,300 is $1,300 \u00d7 0.10 = $130.\n\n5. **Total cost**: Add the insurance to the subtotal: $1,300 + $130 = $1,430.\n\nJanet paid a total of $1,430 for the brooch, including material, construction, and insurance.\n\nANSWER: 1430",
+  "score": 0,
+  "cost": 0.0003652,
+  "expected": "1430",
+  "tokens": {
+    "input": 246,
+    "output": 395
+  }
+}

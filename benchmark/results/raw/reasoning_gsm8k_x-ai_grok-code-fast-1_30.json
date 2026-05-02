@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Adam has 50 points.  \nBetty collected 30% more than Adam: 50 + (30% of 50) = 50 + 15 = 65 points.  \nTom has 30 points less than Betty: 65 - 30 = 35 points.  \nMartha collected 3 times more points than Tom: 3 \u00d7 35 = 105 points.  \nTotal points: 50 + 65 + 105 + 35 = 255 points.  \nPoints needed: 400 - 255 = 145 points.  \n\nANSWER: 145",
+  "score": 0,
+  "cost": 0.00037480000000000006,
+  "expected": "145",
+  "tokens": {
+    "input": 342,
+    "output": 383
+  }
+}

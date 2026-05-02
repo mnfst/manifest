@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Let's solve this step by step:\n1.  Calculate Joey's current points: He starts with 214 points and scores 26 more. Add these together:\n    $214 + 26 = 240$\n2.  Calculate Marcy's current points: She starts with 225 points and scores 10 more. Add these together:\n    $225 +10 = 235$\n3.  Find the difference between Joey's points and Marcy's points to see how far Joey is winning:\n    $240 - 235 =5$\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.00023380000000000002,
+  "expected": "5",
+  "tokens": {
+    "input": 134,
+    "output": 551
+  }
+}

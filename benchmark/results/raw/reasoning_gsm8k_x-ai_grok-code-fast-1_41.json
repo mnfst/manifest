@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let \\( H \\) represent the number of copies Harald sold.  \nMarilyn sold 10 times as many, so she sold \\( 10H \\) copies.  \nTogether, they sold \\( H + 10H = 11H \\) copies.  \nThis equals 88,000, so \\( 11H = 88,000 \\).  \nDivide both sides by 11: \\( H = 88,000 \\div 11 = 8,000 \\).  \n\nANSWER: 8000",
+  "score": 0,
+  "cost": 0.0002604,
+  "expected": "8000",
+  "tokens": {
+    "input": 270,
+    "output": 258
+  }
+}

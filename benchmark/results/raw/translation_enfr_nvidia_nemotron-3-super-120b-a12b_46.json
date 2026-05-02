@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 46,
+  "response": "J'ai re\u00e7u sept motions de r\u00e9solution conform\u00e9ment \u00e0 l'article\u202f37 du r\u00e8glement int\u00e9rieur.",
+  "score": 5,
+  "cost": 6.119999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 25
+  }
+}

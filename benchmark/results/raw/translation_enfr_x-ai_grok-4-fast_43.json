@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "L'unit\u00e9 est simplement fix\u00e9e au repose-t\u00eate du si\u00e8ge du conducteur \u00e0 l'aide d'une sangle \u00e9lastique solide. Dans cette",
+  "score": 4,
+  "cost": 0.0003538000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 393
+  }
+}

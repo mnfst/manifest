@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Source : examplereferenceletter.com\n\nTranslation: The English text \"Source:examplereferenceletter.com\" is translated to French as \"Source : examplereferenceletter.com\". The translation remains the same as it's a proper noun (a website URL) and doesn't require any tone or meaning adjustments.",
+  "score": 5,
+  "cost": 4.395e-05,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 64
+  }
+}

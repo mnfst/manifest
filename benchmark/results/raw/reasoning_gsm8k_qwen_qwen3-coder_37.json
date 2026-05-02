@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "I need to find how many votes candidate C received in this election.\n\nLet me break this down step by step:\n\nGiven information:\n- Total voters = 100\n- Candidate A got 20% of the votes\n- Candidate B got 50% more than candidate A's votes\n- Candidate C got the rest of the votes\n\nStep 1: Calculate Candidate A's votes\nCandidate A got 20% of 100 votes\nA's votes = 20% \u00d7 100 = 0.20 \u00d7 100 = 20 votes\n\nStep 2: Calculate Candidate B's votes\nCandidate B got 50% more than candidate A's votes\nB's votes = A's votes + (50% of A's votes)\nB's votes = 20 + (0.50 \u00d7 20)\nB's votes = 20 + 10 = 30 votes\n\nStep 3: Calculate Candidate C's votes\nThe total votes = A's votes + B's votes + C's votes\n100 = 20 + 30 + C's votes\n100 = 50 + C's votes\nC's votes = 100 - 50 = 50 votes\n\nLet me verify: 20 + 30 + 50 = 100 \u2713\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0002893,
+  "expected": "50",
+  "tokens": {
+    "input": 103,
+    "output": 303
+  }
+}

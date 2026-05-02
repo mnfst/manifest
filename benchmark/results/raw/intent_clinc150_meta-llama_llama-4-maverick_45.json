@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "intent_clinc150",
+  "case": 45,
+  "response": "accept_reservations",
+  "score": 5,
+  "cost": 9.24e-05,
+  "expected": "accept_reservations",
+  "tokens": {
+    "input": 596,
+    "output": 5
+  }
+}

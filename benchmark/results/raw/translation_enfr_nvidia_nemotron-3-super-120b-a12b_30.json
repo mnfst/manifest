@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie pour l\u2019apprentissage des jeunes dans les PME, les ETI et les collectivit\u00e9s locales.",
+  "score": 5,
+  "cost": 7.02e-06,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 33
+  }
+}

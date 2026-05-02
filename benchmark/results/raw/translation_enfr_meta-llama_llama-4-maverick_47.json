@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "Ce type de r\u00e9pression, ainsi que l'arrestation ces derni\u00e8res semaines de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de fausses informations dites, ont l\u00e9gitimement suscit\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale. \n\nHowever, a more accurate translation would be:\nCe genre de r\u00e9pression, ainsi que l'arrestation ces derni\u00e8res semaines de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de pr\u00e9tendues fausses informations, ont \u00e0 juste titre suscit\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.\n\nThe phrase \"so-called false information\" is translated to \"pr\u00e9tendues fausses informations\" to maintain the nuance of the original text, implying that the information is not necessarily false, but is being labeled as such by the authorities.",
+  "score": 4,
+  "cost": 0.00011174999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 169
+  }
+}

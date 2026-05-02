@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "To solve this problem, we need to work backwards from the information provided.\n\n1. Let's denote the total number of vacuum cleaners Melanie started with as \\( x \\).\n\n2. According to the problem, Melanie has 5 vacuum cleaners left after selling some at the orange house. Before selling at the orange house, she had twice as many as she has left, because she sold half of what was left at the orange house. Therefore, before the orange house, she had:\n   \\[\n   2 \\times 5 = 10 \\text{ vacuum cleaners}\n   \\]\n\n3. Before selling 2 vacuum cleaners to the red house, she must have had:\n   \\[\n   10 + 2 = 12 \\text{ vacuum cleaners}\n   \\]\n\n4. The problem states that she sold a third of her vacuum cleaners at the green house. Let's denote the number of vacuum cleaners she had before the green house as \\( y \\). After selling a third at the green house, she had:\n   \\[\n   y - \\frac{y}{3} = \\frac{2y}{3}\n   \\]\n   We know that after selling at the green house, she had 12 vacuum cleaners left. Therefore:\n   \\[\n   \\frac{2y}{3} = 12\n   \\]\n\n5. Solving for \\( y \\):\n   \\[\n   2y = 36 \\implies y = 18\n   \\]\n\nSo, Melanie started with 18 vacuum cleaners.\n\nANSWER: 18",
+  "score": 0,
+  "cost": 0.0014612,
+  "expected": "18",
+  "tokens": {
+    "input": 101,
+    "output": 326
+  }
+}

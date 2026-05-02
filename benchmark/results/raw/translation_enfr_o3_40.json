@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "French: Nous avons simplement besoin d\u2019obtenir plus d\u2019informations.",
+  "score": 5,
+  "cost": 0.001328,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 158
+  }
+}

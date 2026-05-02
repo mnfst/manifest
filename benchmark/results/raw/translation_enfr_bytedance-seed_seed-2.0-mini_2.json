@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus vint et parla clairement et avec tendresse : \u00ab C\u2019est moi. \u00bb Cette expression devint le fondement de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 0.00040560000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 991
+  }
+}

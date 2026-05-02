@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "Each duck needs 3.5 pounds of insects per week. Since there are 7 days in a week, the daily requirement per duck is 3.5 / 7 = 0.5 pounds. For a flock of 10 ducks, the total daily requirement is 10 \u00d7 0.5 = 5 pounds.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.000446745,
+  "expected": "5",
+  "tokens": {
+    "input": 75,
+    "output": 238
+  }
+}

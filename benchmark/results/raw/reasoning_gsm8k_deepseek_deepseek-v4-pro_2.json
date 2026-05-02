@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Tom sails from 1 PM to 4 PM, which is 3 hours. At 10 miles per hour, the distance he covers is:\nDistance = Speed \u00d7 Time = 10 mph \u00d7 3 h = 30 miles.\n\nHe returns the same 30 miles at a speed of 6 mph. The time for the return trip is:\nTime = Distance \u00f7 Speed = 30 miles \u00f7 6 mph = 5 hours.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.0005489700000000001,
+  "expected": "5",
+  "tokens": {
+    "input": 86,
+    "output": 294
+  }
+}

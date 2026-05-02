@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "To solve this problem, we will break it down into steps.\n\nStep 1: Elaine initially had 20 Pokemon cards.\n\nStep 2: After a month, she collected three times the initial number. So, she collected 3 * 20 = 60 cards in the first month.\n\nStep 3: In the second month, she collected 20 fewer cards than those she collected in the first month. So, she collected 60 - 20 = 40 cards in the second month.\n\nStep 4: Now, we need to calculate the total number of cards she collected in the first and second months. In the first month, she collected 60 cards, and in the second month, she collected 40 cards. So, the combined number is 60 + 40 = 100 cards.\n\nStep 5: In the third month, she collected twice the combined number of Pokemon cards she collected in the first and second months. So, she collected 2 * 100 = 200 cards in the third month.\n\nStep 6: To find the total number of cards Elaine has now, we need to add the initial number of cards and the cards she collected over the three months. The total number of cards collected is 60 + 40 + 200 = 300. Adding the initial 20 cards, we get 300 + 20 = 320.\n\nTherefore, Elaine has 320 Pokemon cards now.\n\nANSWER: 320",
+  "score": 0,
+  "cost": 0.00020475,
+  "expected": "320",
+  "tokens": {
+    "input": 185,
+    "output": 295
+  }
+}

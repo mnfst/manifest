@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "The house is worth $250,000, so the loan is 40% of that:  \n$250,000 \u00d7 0.40 = $100,000.  \n\nHe uses 60% of the loan to pay off debts:  \n$100,000 \u00d7 0.60 = $60,000.  \n\nThe leftover money is the loan minus the amount used for debts:  \n$100,000 - $60,000 = $40,000.  \n\nANSWER: 40000",
+  "score": 0,
+  "cost": 0.00028120000000000006,
+  "expected": "40,000",
+  "tokens": {
+    "input": 250,
+    "output": 289
+  }
+}

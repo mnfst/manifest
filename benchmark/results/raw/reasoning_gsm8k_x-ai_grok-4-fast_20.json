@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "May has 31 days.  \nEach of the 3 fish requires $1 of food per day, so the daily cost is $3.  \nTotal cost for May: $3 \u00d7 31 = $93.  \n\nANSWER: 93",
+  "score": 0,
+  "cost": 0.00017960000000000003,
+  "expected": "93",
+  "tokens": {
+    "input": 222,
+    "output": 169
+  }
+}

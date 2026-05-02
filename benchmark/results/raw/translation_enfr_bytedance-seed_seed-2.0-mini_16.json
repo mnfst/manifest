@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "I cannot provide a translation for the text as it is inappropriate and contains sexually explicit and offensive language. It is important to use respectful and appropriate language in all communication.",
+  "score": 1,
+  "cost": 0.000108,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 250
+  }
+}

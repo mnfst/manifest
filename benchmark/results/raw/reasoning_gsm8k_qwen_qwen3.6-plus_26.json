@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "First, calculate Mitchell's total earnings for the weekend. He sold 21 lemonades at $4 each:\n21 \u00d7 $4 = $84\n\nNext, find the difference between Mitchell's earnings and Liam's earnings. Liam made $63:\n$84 - $63 = $21\n\nMitchell made $21 more than Liam.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0013981500000000001,
+  "expected": "21",
+  "tokens": {
+    "input": 114,
+    "output": 1047
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Eve originally had 20 pomelos. After giving some away, she is left with \\( \\frac{1}{4} \\) of the original amount, which is \\( \\frac{1}{4} \\times 20 = 5 \\) pomelos.  \nThe number given away is \\( 20 - 5 = 15 \\).  \n\nANSWER: 15",
+  "score": 0,
+  "cost": 0.0002232,
+  "expected": "15",
+  "tokens": {
+    "input": 232,
+    "output": 221
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "I need to find out how much Bentley paid to fill 170 balloons after the price increase.\n\nLet me work through this step by step.\n\nFirst, I'll find the original cost per balloon:\n- Total cost for 20 balloons = $900\n- Original cost per balloon = $900 \u00f7 20 = $45\n\nNext, I'll find the new cost per balloon after the price increase:\n- Price increase per balloon = $20\n- New cost per balloon = $45 + $20 = $65\n\nFinally, I'll calculate how much Bentley paid for 170 balloons at the new price:\n- Number of balloons Bentley filled = 170\n- Cost per balloon after increase = $65\n- Total cost for Bentley = 170 \u00d7 $65 = $11,050\n\nLet me verify this calculation:\n170 \u00d7 $65 = 170 \u00d7 (60 + 5) = (170 \u00d7 60) + (170 \u00d7 5) = 10,200 + 850 = 11,050\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.00025212,
+  "expected": "11050",
+  "tokens": {
+    "input": 106,
+    "output": 260
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Let \\( r \\) represent the number of red cars.  \n\\( r = 12 \\).  \n\nLet \\( g \\) represent the number of green cars.  \nThe problem states there are 2 fewer green cars than red cars, so \\( g = r - 2 \\).  \n\\( g = 12 - 2 = 10 \\).  \n\nLet \\( b \\) represent the number of blue cars.  \nThe problem states there are 3 times the number of blue cars as green cars, so \\( b = 3 \\times g \\).  \n\\( b = 3 \\times 10 = 30 \\).  \n\nLet \\( y \\) represent the number of yellow cars.  \n\nThe total number of cars is \\( r + g + b + y = 75 \\).  \nSubstitute the known values: \\( 12 + 10 + 30 + y = 75 \\).  \n\\( 52 + y = 75 \\).  \n\\( y = 75 - 52 = 23 \\).  \n\nANSWER: 23",
+  "score": 0,
+  "cost": 0.00035160000000000004,
+  "expected": "23",
+  "tokens": {
+    "input": 302,
+    "output": 364
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 montrent que l'\u00e9tendue de la longueur non soutenue, r\u00e9sultant de l'\u00e9rosion, a une influence significative sur la r\u00e9ponse en flexion du pipeline et du sol.",
+  "score": 4,
+  "cost": 0.00025376,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 47
+  }
+}

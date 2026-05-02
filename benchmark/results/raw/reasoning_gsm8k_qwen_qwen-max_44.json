@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "To solve this problem, we need to follow these steps:\n\n1. Determine the initial number of cows in the stalls.\n2. Add the number of cows Mr. Sylas buys.\n3. Divide the new cows equally among the stalls.\n4. Calculate the total number of cows in 8 of the stalls.\n\n**Step 1: Initial number of cows in the stalls.**\n- There are 10 stalls, each with 20 cows.\n- Total initial number of cows = 10 stalls * 20 cows/stall = 200 cows.\n\n**Step 2: Add the number of cows Mr. Sylas buys.**\n- Mr. Sylas buys 40 new cows.\n- Total number of cows after the purchase = 200 cows + 40 cows = 240 cows.\n\n**Step 3: Divide the new cows equally among the stalls.**\n- Mr. Sylas divides the 40 new cows equally among 20 stalls.\n- Number of new cows per stall = 40 cows / 20 stalls = 2 cows/stall.\n- Total number of cows per stall after adding the new cows = 20 cows/stall (initial) + 2 cows/stall (new) = 22 cows/stall.\n\n**Step 4: Calculate the total number of cows in 8 of the stalls.**\n- Number of cows in 8 stalls = 8 stalls * 22 cows/stall = 176 cows.\n\nANSWER: 176",
+  "score": 0,
+  "cost": 0.00144976,
+  "expected": "192",
+  "tokens": {
+    "input": 94,
+    "output": 325
+  }
+}

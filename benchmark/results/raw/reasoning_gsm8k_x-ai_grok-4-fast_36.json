@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Let initial cards = 20.\n\nFirst month collected: 3 \u00d7 20 = 60.  \nTotal after first month: 20 + 60 = 80.\n\nSecond month collected: 60 - 20 = 40.  \nTotal after second month: 80 + 40 = 120.\n\nFirst and second months combined: 60 + 40 = 100.  \nThird month collected: 2 \u00d7 100 = 200.  \nTotal after third month: 120 + 200 = 320.\n\nANSWER: 320",
+  "score": 0,
+  "cost": 0.00031020000000000006,
+  "expected": "320",
+  "tokens": {
+    "input": 263,
+    "output": 322
+  }
+}

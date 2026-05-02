@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 24,
+  "response": "{\"persons\":[],\"organizations\":[\"Indian Space Research Organisation\"],\"locations\":[\"Sriharikota\"]}",
+  "score": 5,
+  "cost": 0.002815,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 122
+  }
+}

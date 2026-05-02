@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "To solve this problem, let's work backwards from the information given.\n\n1. Let's denote the original number of vacuum cleaners Melanie had as \\(x\\).\n\n2. She sold a third of her vacuum cleaners at the green house, so she sold \\(\\frac{x}{3}\\) vacuum cleaners there. Thus, she had \\(x - \\frac{x}{3} = \\frac{2x}{3}\\) vacuum cleaners left.\n\n3. Then, she sold 2 more vacuum cleaners at the red house. So, after the red house, she had \\(\\frac{2x}{3} - 2\\) vacuum cleaners left.\n\n4. At the orange house, she sold half of what was left. So, she sold \\(\\frac{1}{2}(\\frac{2x}{3} - 2)\\) vacuum cleaners. Therefore, after the orange house, she had \\(\\frac{1}{2}(\\frac{2x}{3} - 2)\\) vacuum cleaners left.\n\n5. We are told that after the orange house, Melanie had 5 vacuum cleaners left. So, \\(\\frac{1}{2}(\\frac{2x}{3} - 2) = 5\\).\n\n6. Let's solve the equation for \\(x\\):\n   - \\(\\frac{1}{2}(\\frac{2x}{3} - 2) = 5\\)\n   - Multiplying both sides by 2 gives: \\(\\frac{2x}{3} - 2 = 10\\)\n   - Adding 2 to both sides gives: \\(\\frac{2x}{3} = 12\\)\n   - Multiplying both sides by \\(\\frac{3}{2}\\) gives: \\(x = 18\\)\n\nTherefore, Melanie started with 18 vacuum cleaners.\n\nANSWER: 18",
+  "score": 0,
+  "cost": 0.00023055000000000002,
+  "expected": "18",
+  "tokens": {
+    "input": 101,
+    "output": 359
+  }
+}

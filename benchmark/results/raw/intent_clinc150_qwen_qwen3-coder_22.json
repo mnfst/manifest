@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "intent_clinc150",
+  "case": 22,
+  "response": "transfer",
+  "score": 5,
+  "cost": 0.00011286,
+  "expected": "transfer",
+  "tokens": {
+    "input": 509,
+    "output": 1
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n'y a pas d'autre explication \u00e0 l'attribution parcimonieuse de 10 ou 12 millions d'ECU, qui, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 de moyens modernes pour exercer une fonction de surveillance dans le secteur de la p\u00eache.",
+  "score": 5,
+  "cost": 0.0004902000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 223,
+    "output": 557
+  }
+}

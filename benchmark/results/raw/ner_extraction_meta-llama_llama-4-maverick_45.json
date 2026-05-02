@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "ner_extraction",
+  "case": 45,
+  "response": "```json\n{\n    \"persons\": [\"Leonardo da Vinci\"],\n    \"organizations\": [\"Louvre Museum\", \"Royal Collection\"],\n    \"locations\": [\"Paris\"]\n}\n```",
+  "score": 5,
+  "cost": 3.375e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 37
+  }
+}

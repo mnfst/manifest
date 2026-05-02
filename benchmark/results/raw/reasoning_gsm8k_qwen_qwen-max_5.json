@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "To solve the problem, let's break it down step by step:\n\n1. **Initial number of fairies:**\n   - Katelyn saw 50 fairies flying above the nearby forest.\n   - Initial number of fairies = 50.\n\n2. **Fairies joining from the east:**\n   - One of her friends saw half as many fairies as Katelyn saw.\n   - Half of 50 is \\( \\frac{50}{2} = 25 \\).\n   - These 25 fairies joined the 50 fairies already there.\n   - Total number of fairies after the new ones joined = 50 + 25 = 75.\n\n3. **Fairies flying away:**\n   - Ten minutes later, 30 fairies flew away.\n   - Number of fairies remaining after 30 flew away = 75 - 30 = 45.\n\nTherefore, the number of fairies remaining is 45.\n\nANSWER: 45",
+  "score": 0,
+  "cost": 0.0010244000000000002,
+  "expected": "45",
+  "tokens": {
+    "input": 121,
+    "output": 216
+  }
+}

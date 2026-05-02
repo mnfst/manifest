@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "Let's solve this problem step by step:\n\n1.  **Calculate total wheels needed for cars**:\n    There are 57 cars, each requiring 4 wheels.\n    $57 \\times 4 = 228$ total wheels for cars.\n\n2.  **Calculate total wheels needed for motorcycles**:\n    There are 73 motorcycles, each requiring 2 wheels.\n    $73 \\times 2 = 146$ total wheels for motorcycles.\n\n3.  **Find total required wheels**:\n    Add the wheels for cars and motorcycles together:\n    $228 + 146 = 374$ total wheels needed.\n\n4.  **Calculate remaining wheels**:\n    Henry starts with 650 wheels. Subtract the total required wheels:\n    $650 - 374 = 276$\n\nANSWER: 276",
+  "score": 0,
+  "cost": 0.0003201,
+  "expected": "276",
+  "tokens": {
+    "input": 149,
+    "output": 763
+  }
+}

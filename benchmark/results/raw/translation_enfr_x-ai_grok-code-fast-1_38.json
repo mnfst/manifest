@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Cela ne peut mener qu'au chaos et \u00e0 la terreur.",
+  "score": 5,
+  "cost": 0.00022860000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 231,
+    "output": 228
+  }
+}

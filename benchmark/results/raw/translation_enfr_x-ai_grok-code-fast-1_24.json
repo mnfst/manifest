@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Le programme de nutrition urbaine d'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et promeut le cr\u00e9dit aux groupes de femmes qui commercialisent de la nourriture.",
+  "score": 5,
+  "cost": 0.0004354,
+  "expected": "",
+  "tokens": {
+    "input": 245,
+    "output": 483
+  }
+}

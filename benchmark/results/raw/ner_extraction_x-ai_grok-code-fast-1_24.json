@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 24,
+  "response": "{\"persons\": [], \"organizations\": [\"Indian Space Research Organisation\"], \"locations\": [\"Sriharikota\"]}",
+  "score": 4,
+  "cost": 0.00022060000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 271,
+    "output": 208
+  }
+}

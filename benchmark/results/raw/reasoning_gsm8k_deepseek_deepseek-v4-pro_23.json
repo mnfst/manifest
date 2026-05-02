@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "The initial cost per balloon is found by dividing the total cost by the number of balloons: $900 / 20 = $45. After a $20 increase, the new cost per balloon is $45 + $20 = $65. Bentley fills 170 balloons at the new rate, so the total cost is 170 \u00d7 $65 = $11,050.\n\nANSWER: 11050",
+  "score": 0,
+  "cost": 0.00051939,
+  "expected": "11050",
+  "tokens": {
+    "input": 94,
+    "output": 275
+  }
+}

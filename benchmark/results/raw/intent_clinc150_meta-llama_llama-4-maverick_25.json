@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "intent_clinc150",
+  "case": 25,
+  "response": "shopping_list_update",
+  "score": 5,
+  "cost": 9.15e-05,
+  "expected": "shopping_list_update",
+  "tokens": {
+    "input": 594,
+    "output": 4
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "intent_clinc150",
+  "case": 12,
+  "response": "oil_change_how",
+  "score": 5,
+  "cost": 0.0002584,
+  "expected": "oil_change_how",
+  "tokens": {
+    "input": 708,
+    "output": 146
+  }
+}

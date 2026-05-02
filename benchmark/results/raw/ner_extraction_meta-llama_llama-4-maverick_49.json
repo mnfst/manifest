@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "ner_extraction",
+  "case": 49,
+  "response": "```json\n{\n    \"persons\": [\"Pope Francis\"],\n    \"organizations\": [\"Vatican\"],\n    \"locations\": [\"St. Peter Square\"]\n}\n```",
+  "score": 4,
+  "cost": 3.27e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 35
+  }
+}

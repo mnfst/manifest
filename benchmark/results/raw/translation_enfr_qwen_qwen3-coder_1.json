@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)",
+  "score": 5,
+  "cost": 3.102e-05,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 23
+  }
+}

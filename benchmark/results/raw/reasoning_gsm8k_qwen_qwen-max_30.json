@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "To solve this problem, we need to calculate the number of points each student has collected and then sum them up to see how many points the class has in total. Finally, we will compare this total to the 400 points threshold to find out how many points they are missing.\n\n1. **Adam's Points:**\n   - Adam has collected 50 points.\n\n2. **Betty's Points:**\n   - Betty collected 30% more points than Adam.\n   - 30% of Adam's points: \\( 0.30 \\times 50 = 15 \\) points.\n   - Betty's points: \\( 50 + 15 = 65 \\) points.\n\n3. **Tom's Points:**\n   - Tom has 30 points less than Betty.\n   - Tom's points: \\( 65 - 30 = 35 \\) points.\n\n4. **Marta's Points:**\n   - Marta collected 3 times more points than Tom.\n   - Marta's points: \\( 3 \\times 35 = 105 \\) points.\n\n5. **Total Points Collected by the Class:**\n   - Adam's points: 50\n   - Betty's points: 65\n   - Tom's points: 35\n   - Marta's points: 105\n   - Total points: \\( 50 + 65 + 35 + 105 = 255 \\) points.\n\n6. **Points Missing to Reach the Trip Threshold:**\n   - The class needs 400 points to go on the trip.\n   - Points missing: \\( 400 - 255 = 145 \\) points.\n\nANSWER: 145",
+  "score": 0,
+  "cost": 0.0017492800000000002,
+  "expected": "145",
+  "tokens": {
+    "input": 154,
+    "output": 382
+  }
+}

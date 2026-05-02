@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Eve originally had 20 pomelos.  \nShe is left with 1/4 of the pomelos she originally had, which is (1/4) \u00d7 20 = 5 pomelos.  \nTherefore, she gave away 20 - 5 = 15 pomelos.  \n\nANSWER: 15",
+  "score": 0,
+  "cost": 0.000248,
+  "expected": "15",
+  "tokens": {
+    "input": 280,
+    "output": 240
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "To solve this problem, let's break it down into steps.\n\n1. The Doubtfire sisters are initially driving home with 7 adopted kittens.\n\n2. Their mother informs them that Patchy, one of their house cats, has had kittens. The number of kittens Patchy has is thrice the number of adopted kittens they are driving home with. So, Patchy has 3 * 7 = 21 kittens.\n\n3. The other house cat, Trixie, has had 12 kittens.\n\n4. To find the total number of kittens the Doubtfire family now has, we need to sum the adopted kittens and the kittens born to Patchy and Trixie. total_kittens = adopted kittens + Patchy's kittens + Trixie's kittens = 7 + 21 + 12.\n\n5. Let's calculate the total: total_kittens = 7 + 21 + 12 = 40.\n\nANSWER: 40",
+  "score": 0,
+  "cost": 0.00014115000000000002,
+  "expected": "40",
+  "tokens": {
+    "input": 129,
+    "output": 203
+  }
+}

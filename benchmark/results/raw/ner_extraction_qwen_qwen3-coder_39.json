@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "ner_extraction",
+  "case": 39,
+  "response": "{\n  \"persons\": [\"Dario Amodei\"],\n  \"organizations\": [\"Anthropic\", \"Aspen Ideas Festival\"],\n  \"locations\": [\"Colorado\"]\n}",
+  "score": 5,
+  "cost": 4.7079999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 34
+  }
+}

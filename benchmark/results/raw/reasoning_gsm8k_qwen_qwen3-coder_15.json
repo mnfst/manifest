@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "I need to find out by how many points Joey is winning after both players score their points.\n\nLet me work through this step by step:\n\nFirst, let me find Joey's new score:\n- Joey starts with 214 points\n- Joey scores 26 points\n- Joey's new score = 214 + 26 = 240 points\n\nNext, let me find Marcy's new score:\n- Marcy starts with 225 points\n- Marcy scores 10 points\n- Marcy's new score = 225 + 10 = 235 points\n\nNow I need to find the difference between their scores:\n- Joey's score: 240 points\n- Marcy's score: 235 points\n- Difference = 240 - 235 = 5 points\n\nTherefore, Joey is winning by 5 points.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00019272,
+  "expected": "5",
+  "tokens": {
+    "input": 92,
+    "output": 196
+  }
+}

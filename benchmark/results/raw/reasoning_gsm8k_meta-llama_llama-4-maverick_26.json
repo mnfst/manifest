@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "To solve this problem, we need to compare the amount of money Liam and Mitchell made during the same weekend.\n\nStep 1: Identify how much money Liam made. According to the problem, Liam made $63.\n\nStep 2: Calculate how much money Mitchell made. The problem states that Mitchell sold 21 lemonades at $4 apiece. So, we need to multiply the number of lemonades sold by the price per lemonade to find out Mitchell's total earnings.\nMitchell's earnings = 21 lemonades * $4/lemonade = $84\n\nStep 3: Compare Mitchell's earnings to Liam's earnings to find out how much more Mitchell made.\nDifference = Mitchell's earnings - Liam's earnings = $84 - $63 = $21\n\nTherefore, Mitchell made $21 more than Liam.\n\nANSWER: 21",
+  "score": 0,
+  "cost": 0.00011685,
+  "expected": "21",
+  "tokens": {
+    "input": 107,
+    "output": 168
+  }
+}

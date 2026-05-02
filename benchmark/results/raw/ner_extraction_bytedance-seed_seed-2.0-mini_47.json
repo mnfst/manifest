@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "{\"persons\": [\"Alain Aspect\"], \"organizations\": [\"Universite Paris-Saclay\"], \"locations\": [\"Stockholm\"]}",
+  "score": 5,
+  "cost": 0.0003135,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 754
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "I need to find the number of students enrolled this year after a 20% increase from last year's 50 students.\n\nStep 1: Identify the original number of students\nLast year: 50 students\n\nStep 2: Calculate the increase\n20% of 50 students = 0.20 \u00d7 50 = 10 students\n\nStep 3: Find the total enrollment this year\nThis year's enrollment = Last year's enrollment + Increase\nThis year's enrollment = 50 + 10 = 60 students\n\nAlternatively, I could calculate this as:\nThis year's enrollment = 50 \u00d7 (1 + 0.20) = 50 \u00d7 1.20 = 60 students\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.00016675999999999998,
+  "expected": "60",
+  "tokens": {
+    "input": 86,
+    "output": 168
+  }
+}

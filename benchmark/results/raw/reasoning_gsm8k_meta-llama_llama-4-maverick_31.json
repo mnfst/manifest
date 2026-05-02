@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "To solve this problem, let's break it down into steps.\n\nStep 1: Determine the number of boys in the classroom.\nThe problem states that the classroom has 30 boys.\n\nStep 2: Calculate the number of girls in the classroom.\nIt is given that the classroom has 3 times as many girls as boys. So, the number of girls = 3 * number of boys = 3 * 30 = 90.\n\nStep 3: Calculate the number of nongendered children in the classroom.\nThe problem states that the classroom has 1/10 as many nongendered children as boys. So, the number of nongendered children = 1/10 * number of boys = 1/10 * 30 = 3.\n\nStep 4: Calculate the total number of children in the classroom.\nTotal children = number of boys + number of girls + number of nongendered children = 30 + 90 + 3 = 123.\n\nANSWER: 123",
+  "score": 0,
+  "cost": 0.00013814999999999997,
+  "expected": "123",
+  "tokens": {
+    "input": 93,
+    "output": 207
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "The problem describes a drill setup with 5 different schools, where each school has 7 rows, and each row consists of 8 children.\n\n- Number of children per school: 7 rows \u00d7 8 children per row = 56 children.\n- Total number of children across all schools: 5 schools \u00d7 56 children per school = 280 children.\n\nANSWER: 280",
+  "score": 0,
+  "cost": 0.00035240000000000005,
+  "expected": "280",
+  "tokens": {
+    "input": 290,
+    "output": 368
+  }
+}

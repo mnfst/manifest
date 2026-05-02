@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "intent_clinc150",
+  "case": 3,
+  "response": "We need to classify the user message into exactly one intent from the list. The message: \"should",
+  "score": 0,
+  "cost": 5.2919999999999995e-05,
+  "expected": "schedule_maintenance",
+  "tokens": {
+    "input": 568,
+    "output": 20
+  }
+}

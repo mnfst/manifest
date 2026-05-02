@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Last year, there were 50 students. A 20% increase means the enrollment grew by 0.20 \u00d7 50 = 10 students. Adding this to last year's total: 50 + 10 = 60 students.\n\nANSWER: 60",
+  "score": 0,
+  "cost": 0.00031407,
+  "expected": "60",
+  "tokens": {
+    "input": 78,
+    "output": 161
+  }
+}

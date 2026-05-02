@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Tu sais d\u2019o\u00f9 vient l\u2019argent ?",
+  "score": 5,
+  "cost": 0.001955,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 89
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "I need to find the total time Jim spends on TV and reading in 4 weeks.\n\nLet me break this down step by step:\n\nFirst, let me find how much time Jim spends each day:\n- TV time: 2 hours\n- Reading time: half as long as TV = 2 \u00f7 2 = 1 hour\n- Total time per day: 2 + 1 = 3 hours\n\nNext, let me find how much time he spends per week:\n- He does this 3 times a week\n- Total time per week: 3 hours/day \u00d7 3 days/week = 9 hours/week\n\nFinally, let me find the total time for 4 weeks:\n- Total time in 4 weeks: 9 hours/week \u00d7 4 weeks = 36 hours\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.00017226,
+  "expected": "36",
+  "tokens": {
+    "input": 91,
+    "output": 173
+  }
+}

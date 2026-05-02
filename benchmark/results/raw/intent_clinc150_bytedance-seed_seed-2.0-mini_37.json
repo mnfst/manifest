@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "intent_clinc150",
+  "case": 37,
+  "response": "payday",
+  "score": 5,
+  "cost": 8.42e-05,
+  "expected": "payday",
+  "tokens": {
+    "input": 606,
+    "output": 59
+  }
+}

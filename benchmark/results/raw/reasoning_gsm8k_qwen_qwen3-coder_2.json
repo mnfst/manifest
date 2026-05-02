@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "I need to find how long it takes Tom to get back, which requires knowing the distance he traveled and his return speed.\n\nLet me break this down step by step:\n\nStep 1: Find the distance Tom traveled going out.\n- Speed going out: 10 miles per hour\n- Time going out: from 1 to 4 PM = 3 hours\n- Distance = Speed \u00d7 Time = 10 mph \u00d7 3 hours = 30 miles\n\nStep 2: Find the time to return.\n- Distance to return: 30 miles (same as the distance going out)\n- Return speed: 6 miles per hour\n- Time = Distance \u00f7 Speed = 30 miles \u00f7 6 mph = 5 hours\n\nTherefore, it takes Tom 5 hours to get back.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00017182000000000002,
+  "expected": "5",
+  "tokens": {
+    "input": 93,
+    "output": 172
+  }
+}

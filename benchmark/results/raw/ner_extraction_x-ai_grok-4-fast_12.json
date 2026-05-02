@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "{\"persons\":[\"Jensen Huang\"],\"organizations\":[\"Nvidia\",\"GTC\"],\"locations\":[\"San Jose\"]}",
+  "score": 5,
+  "cost": 0.000299,
+  "expected": "",
+  "tokens": {
+    "input": 223,
+    "output": 318
+  }
+}

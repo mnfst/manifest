@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "intent_clinc150",
+  "case": 47,
+  "response": "cook_time",
+  "score": 5,
+  "cost": 0.00043355,
+  "expected": "cook_time",
+  "tokens": {
+    "input": 514,
+    "output": 205
+  }
+}

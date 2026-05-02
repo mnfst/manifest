@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "ner_extraction",
+  "case": 46,
+  "response": "{\n  \"persons\": [\"Liang Rubo\"],\n  \"organizations\": [\"ByteDance\", \"Senate Commerce Committee\", \"TikTok\"],\n  \"locations\": [\"Washington\"]\n}",
+  "score": 5,
+  "cost": 5.126000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 39
+  }
+}

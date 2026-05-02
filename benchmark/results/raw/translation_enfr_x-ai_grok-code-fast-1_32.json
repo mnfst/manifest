@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement de personnel au RSUE.",
+  "score": 5,
+  "cost": 0.00031160000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 246,
+    "output": 328
+  }
+}

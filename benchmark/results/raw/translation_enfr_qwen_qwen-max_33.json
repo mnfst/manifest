@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 33,
+  "response": "CV33 (1) (1.3) Remplacez \"le conducteur et les autres membres de l'\u00e9quipage\" par \"les membres de l'\u00e9quipage du v\u00e9hicule\".",
+  "score": 5,
+  "cost": 0.00022568,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 40
+  }
+}

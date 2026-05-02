@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Sarah spent $300 on books, with each book costing $15. To find the total number of books, divide the total cost by the price per book:  \n300 \u00f7 15 = 20 books.  \n\nShe gave an equal number of these books to her 4 kids. To find how many each child got, divide the total books by the number of kids:  \n20 \u00f7 4 = 5 books.  \n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.0004684,
+  "expected": "5",
+  "tokens": {
+    "input": 282,
+    "output": 515
+  }
+}

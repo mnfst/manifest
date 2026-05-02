@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "ner_extraction",
+  "case": 2,
+  "response": "{\"persons\":[],\"organizations\":[\"Google DeepMind\",\"Nature\"],\"locations\":[]}",
+  "score": 4,
+  "cost": 0.000918,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 98
+  }
+}

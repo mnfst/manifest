@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "intent_clinc150",
+  "case": 9,
+  "response": "weather",
+  "score": 5,
+  "cost": 0.00029965,
+  "expected": "weather",
+  "tokens": {
+    "input": 510,
+    "output": 103
+  }
+}

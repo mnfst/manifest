@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu luttes, plus \u00e7a va \u00eatre g\u00eanant pour tout le monde.",
+  "score": 4,
+  "cost": 1.53e-05,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 120
+  }
+}

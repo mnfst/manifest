@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "I need to track the number of fairies step by step.\n\nInitial situation:\n- Katelyn saw 50 fairies flying above the nearby forest\n\nAfter twenty minutes:\n- One of her friends saw half as many fairies as Katelyn saw come from the east\n- Half of 50 = 25 fairies came from the east\n- Total fairies now = 50 + 25 = 75 fairies\n\nTen minutes later:\n- 30 fairies flew away\n- Remaining fairies = 75 - 30 = 45 fairies\n\nTherefore, there are 45 fairies remaining.\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.00015246000000000001,
+  "expected": "45",
+  "tokens": {
+    "input": 121,
+    "output": 143
+  }
+}

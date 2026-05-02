@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\"persons\": [\"Serena Williams\"], \"organizations\": [\"ESPY\"], \"locations\": [\"Los Angeles\"]}",
+  "score": 5,
+  "cost": 0.00016380000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 381
+  }
+}

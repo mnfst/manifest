@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Si le revenu et/ou la situation d'emploi d'une personne change, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle, auquel cas il y aura une nouvelle \u00e9valuation.",
+  "score": 5,
+  "cost": 2.9549999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 35
+  }
+}

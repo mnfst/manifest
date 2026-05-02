@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Jim watches TV for 2 hours per session.  \nHe reads for half as long as he watches TV, so he reads for 1 hour per session.  \nEach session totals 2 hours (TV) + 1 hour (reading) = 3 hours.  \nHe does this 3 times per week, so per week: 3 sessions \u00d7 3 hours = 9 hours.  \nIn 4 weeks: 4 weeks \u00d7 9 hours = 36 hours.  \n\nANSWER: 36",
+  "score": 0,
+  "cost": 0.0005146,
+  "expected": "36",
+  "tokens": {
+    "input": 285,
+    "output": 572
+  }
+}

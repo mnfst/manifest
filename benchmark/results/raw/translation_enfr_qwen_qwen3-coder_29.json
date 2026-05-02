@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime bien... m\u00eame si je ne sais pas pourquoi.",
+  "score": 4,
+  "cost": 2.244e-05,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 16
+  }
+}

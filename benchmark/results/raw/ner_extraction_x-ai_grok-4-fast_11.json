@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "{\"persons\":[],\"organizations\":[\"United Nations Security Council\"],\"locations\":[\"North Korea\",\"New York\"]}",
+  "score": 5,
+  "cost": 0.0002242,
+  "expected": "",
+  "tokens": {
+    "input": 221,
+    "output": 225
+  }
+}

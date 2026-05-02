@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Janet pays $500 for materials and $800 for the jeweler's work. The total before insurance is $500 + $800 = $1300. She then pays 10% of that amount for insurance: 0.10 \u00d7 $1300 = $130. The total amount she pays is $1300 + $130 = $1430.\n\nANSWER: 1430",
+  "score": 0,
+  "cost": 0.00050373,
+  "expected": "1430",
+  "tokens": {
+    "input": 94,
+    "output": 266
+  }
+}

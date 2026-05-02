@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "ner_extraction",
+  "case": 49,
+  "response": "{\n  \"persons\": [\"Pope Francis\"],\n  \"organizations\": [],\n  \"locations\": [\"St. Peter Square\", \"Vatican\"]\n}",
+  "score": 4,
+  "cost": 4.312e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 30
+  }
+}

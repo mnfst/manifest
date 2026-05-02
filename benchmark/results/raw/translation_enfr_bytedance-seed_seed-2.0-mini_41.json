@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "T'es pas dans la DGA. Zoome et ferme ta gueule putain.",
+  "score": 4,
+  "cost": 0.0005557,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 1368
+  }
+}

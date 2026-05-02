@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Sector Source est un site web de ressources d\u00e9di\u00e9 \u00e0 aider ceux qui dirigent des associations caritatives et des organisations \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...",
+  "score": 5,
+  "cost": 0.00028740000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 241,
+    "output": 299
+  }
+}

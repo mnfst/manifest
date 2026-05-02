@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Find Adam's points**\nAdam has collected exactly **50 points**.\n\n**Step 2: Find Betty's points**\nBetty collected 30% more points than Adam.\n30% of 50 = 0.30 \u00d7 50 = 15\nBetty's points = 50 + 15 = **65 points**\n\n**Step 3: Find Tom's points**\nTom has 30 points less than Betty.\nTom's points = 65 - 30 = **35 points**\n\n**Step 4: Find Marta's points**\nMarta collected 3 times more points than Tom.\nMarta's points = 3 \u00d7 35 = **105 points**\n\n**Step 5: Calculate the total points collected by the class**\nTotal = Adam + Betty + Tom + Marta\nTotal = 50 + 65 + 35 + 105 = **255 points**\n\n**Step 6: Calculate how many points are missing**\nThe minimum threshold is 400 points.\nMissing points = 400 - 255 = **145 points**\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.002857725,
+  "expected": "145",
+  "tokens": {
+    "input": 157,
+    "output": 2159
+  }
+}

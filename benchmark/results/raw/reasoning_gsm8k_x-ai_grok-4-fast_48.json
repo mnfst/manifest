@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Original weight: 8 pounds.\n\nIncrease by 50%: \\(8 \\times 1.5 = 12\\) pounds.\n\nTwo pounds lighter: \\(12 - 2 = 10\\) pounds.\n\nANSWER: 10",
+  "score": 0,
+  "cost": 0.0002436,
+  "expected": "10",
+  "tokens": {
+    "input": 250,
+    "output": 242
+  }
+}

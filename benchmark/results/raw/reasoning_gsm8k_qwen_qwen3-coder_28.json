@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "I need to find how many people got on the bus at the terminal.\n\nLet me call the number of people who got on at the terminal \"x\".\n\nNow I'll track what happens at each stop:\n\nAt the terminal:\n- x people got on\n\nAt the first bus stop:\n- 5 more people got in\n- Total people on bus: x + 5\n\nAt the second bus stop:\n- 7 people got down\n- 8 more people got in\n- Total people on bus: (x + 5) - 7 + 8 = x + 6\n\nI'm told that there were 20 people heading to the third stop, which means there were 20 people on the bus after the second stop.\n\nSo I can set up the equation:\nx + 6 = 20\n\nSolving for x:\nx = 20 - 6\nx = 14\n\nLet me verify this answer:\n- Terminal: 14 people get on\n- First stop: 14 + 5 = 19 people\n- Second stop: 19 - 7 + 8 = 20 people \u2713\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.00024310000000000003,
+  "expected": "14",
+  "tokens": {
+    "input": 113,
+    "output": 248
+  }
+}

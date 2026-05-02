@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "{\"persons\": [\"Warren Buffett\"], \"organizations\": [\"Bank of America\", \"SEC\"], \"locations\": []}",
+  "score": 5,
+  "cost": 9.159999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 200
+  }
+}

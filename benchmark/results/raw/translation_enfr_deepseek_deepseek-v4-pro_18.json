@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "La plage la plus proche est facilement accessible en voiture, situ\u00e9e \u00e0 quelque 6...",
+  "score": 4,
+  "cost": 0.00044544,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 247
+  }
+}

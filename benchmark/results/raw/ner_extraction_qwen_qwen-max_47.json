@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "{\n  \"persons\": [\"Alain Aspect\"],\n  \"organizations\": [\"Universite Paris-Saclay\"],\n  \"locations\": [\"Stockholm\"]\n}",
+  "score": 5,
+  "cost": 0.00020904000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 31
+  }
+}

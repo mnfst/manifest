@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "To solve this problem, we need to follow these steps:\n\n1. Calculate the total number of burritos given to the students.\n2. Add the number of burritos eaten by Mr. George.\n3. Subtract the total number of burritos eaten (by students and Mr. George) from the initial number of burritos to find the leftover burritos.\n\nStep 1: Calculate the total number of burritos given to the students.\n- There are 50 students, and each student was given 10 burritos.\n- Total burritos for students = 50 students * 10 burritos/student = 500 burritos.\n\nStep 2: Add the number of burritos eaten by Mr. George.\n- Mr. George ate 20 burritos.\n- Total burritos eaten by students and Mr. George = 500 (students) + 20 (Mr. George) = 520 burritos.\n\nStep 3: Subtract the total number of burritos eaten from the initial number of burritos to find the leftover burritos.\n- Initial number of burritos = 600.\n- Total burritos eaten = 520.\n- Leftover burritos = 600 - 520 = 80 burritos.\n\nANSWER: 80",
+  "score": 0,
+  "cost": 0.001248,
+  "expected": "80",
+  "tokens": {
+    "input": 108,
+    "output": 273
+  }
+}

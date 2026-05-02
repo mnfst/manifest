@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\", \"CES\"],\n  \"locations\": [\"Las Vegas\"]\n}",
+  "score": 4,
+  "cost": 0.0022737,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 1730
+  }
+}

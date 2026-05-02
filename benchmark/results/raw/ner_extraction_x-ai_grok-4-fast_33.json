@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 33,
+  "response": "{\"persons\": [], \"organizations\": [\"International Monetary Fund\"], \"locations\": [\"Latin America\"]}",
+  "score": 5,
+  "cost": 0.0001654,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 152
+  }
+}

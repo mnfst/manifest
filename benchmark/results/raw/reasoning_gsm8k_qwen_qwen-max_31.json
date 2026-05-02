@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "To solve this problem, let's break it down step by step.\n\n1. **Determine the number of boys:**\n   - The problem states that the classroom has 30 boys.\n   - So, the number of boys = 30.\n\n2. **Determine the number of girls:**\n   - The problem states that there are 3 times as many girls as there are boys.\n   - Number of girls = 3 * Number of boys = 3 * 30 = 90.\n\n3. **Determine the number of nongendered children:**\n   - The problem states that there are 1/10 as many nongendered children as there are boys.\n   - Number of nongendered children = (1/10) * Number of boys = (1/10) * 30 = 3.\n\n4. **Calculate the total number of children:**\n   - Total number of children = Number of boys + Number of girls + Number of nongendered children\n   - Total number of children = 30 + 90 + 3 = 123.\n\nTherefore, the total number of children in the classroom is 123.\n\nANSWER: 123",
+  "score": 0,
+  "cost": 0.0011845599999999999,
+  "expected": "123",
+  "tokens": {
+    "input": 95,
+    "output": 261
+  }
+}

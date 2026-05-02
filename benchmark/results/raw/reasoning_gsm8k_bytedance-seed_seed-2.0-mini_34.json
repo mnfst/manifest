@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Let's solve this step-by-step:\n\n### Step 1: Calculate total ticket cost\nThe problem states the friends spent $20.25 total on 3 tickets. This is the combined ticket cost for the group: **Total tickets = $20.25**\n\n### Step 2: Calculate total food cost\nFood spending was $4.50 less than ticket costs. Subtract $4.50 from the total ticket cost:\nFood cost = 20.25 - 4.50 = **$15.75** (total for the group)\n\n### Step 3: Calculate total ride cost\nThere are 2 different rides, each costing $33. Multiply the cost per ride by the number of rides:\nTotal ride cost = 2 * 33 = **$66** (total for the group)\n\n### Step 4: Calculate total combined costs\nAdd together all three cost categories:\nTotal cost = 20.25 + 15.75 + 66 = 36 + 66 = **$102**\n\n### Step 5: Split total costs evenly among 3 friends\nDivide the total cost by 3:\nCost per person = 102 / 3 = **34**\n\nANSWER: 34",
+  "score": 0,
+  "cost": 0.0010638000000000002,
+  "expected": "34",
+  "tokens": {
+    "input": 154,
+    "output": 2621
+  }
+}

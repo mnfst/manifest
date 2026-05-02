@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocs issus de SRT plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et pr\u00e9sentaient une couche dense d'EPS recouvrant une grande partie de la surface.",
+  "score": 5,
+  "cost": 0.0032604,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 2494
+  }
+}

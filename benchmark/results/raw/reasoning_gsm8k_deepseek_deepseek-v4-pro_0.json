@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Kim raises $320 more than Alexandra, who raises $430, so Kim raises 430 + 320 = $750.  \nMaryam raises $400 more than Sarah, who raises $300, so Maryam raises 300 + 400 = $700.  \nTotal raised by all four girls: Alexandra ($430) + Kim ($750) + Sarah ($300) + Maryam ($700) = $2180.  \n\nANSWER: 2180",
+  "score": 0,
+  "cost": 0.000528525,
+  "expected": "2280",
+  "tokens": {
+    "input": 91,
+    "output": 281
+  }
+}

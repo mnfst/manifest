@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "ner_extraction",
+  "case": 37,
+  "response": "{\"persons\": [], \"organizations\": [\"University of Cambridge\", \"AstraZeneca\"], \"locations\": [\"Oxford\"]}",
+  "score": 4,
+  "cost": 0.001502,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 170
+  }
+}

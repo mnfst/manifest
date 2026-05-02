@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "calendar",
+  "score": 5,
+  "cost": 8.580000000000001e-05,
+  "expected": "calendar",
+  "tokens": {
+    "input": 602,
+    "output": 64
+  }
+}

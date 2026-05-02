@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "ner_extraction",
+  "case": 14,
+  "response": "```json\n{\n    \"persons\": [\"Jerome Powell\"],\n    \"organizations\": [\"Federal Reserve\", \"Congress\"],\n    \"locations\": [\"Washington DC\"]\n}\n```",
+  "score": 5,
+  "cost": 3.24e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 36
+  }
+}

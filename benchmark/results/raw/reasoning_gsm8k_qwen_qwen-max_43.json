@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "To solve the problem, we need to determine the ages of Martha and Jeff based on the given information.\n\n1. Mike's age is given as 24 years.\n2. Martha is 4 years younger than Mike. Therefore, we can calculate Martha's age as follows:\n   \\[\n   \\text{Martha's age} = \\text{Mike's age} - 4 = 24 - 4 = 20 \\text{ years}\n   \\]\n3. Jeff is 10 years older than Martha. Therefore, we can calculate Jeff's age as follows:\n   \\[\n   \\text{Jeff's age} = \\text{Martha's age} + 10 = 20 + 10 = 30 \\text{ years}\n   \\]\n\nThus, Jeff is 30 years old.\n\nANSWER: 30",
+  "score": 0,
+  "cost": 0.0008465600000000001,
+  "expected": "30",
+  "tokens": {
+    "input": 90,
+    "output": 181
+  }
+}

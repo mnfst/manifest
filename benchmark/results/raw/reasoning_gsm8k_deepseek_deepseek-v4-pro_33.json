@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "The cost of 5 lollipops at $0.40 each is 5 \u00d7 $0.40 = $2.00.  \nThe total cost for 5 lollipops and 4 candies is $3.20, so the cost for 4 candies is $3.20 - $2.00 = $1.20.  \nThus, each candy costs $1.20 \u00f7 4 = $0.30.  \n\nThe cost of 10 lollipops is 10 \u00d7 $0.40 = $4.00.  \nThe cost of 10 candies is 10 \u00d7 $0.30 = $3.00.  \nTotal cost = $4.00 + $3.00 = $7.00.  \n\nANSWER: 7",
+  "score": 0,
+  "cost": 0.00084651,
+  "expected": "7",
+  "tokens": {
+    "input": 86,
+    "output": 465
+  }
+}

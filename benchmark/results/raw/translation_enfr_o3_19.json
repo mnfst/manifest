@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "French: FTI \u2014 Privil\u00e8ges et conditions",
+  "score": 5,
+  "cost": 0.00132,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 157
+  }
+}

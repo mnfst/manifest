@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "To solve this problem, let's work backwards from the information given about the total number of people heading to the third stop.\n\n1. At the third stop, there were 20 people on the bus.\n2. At the second stop, 7 people got down and 8 people got in. So, before the second stop (after the first stop), the number of people on the bus can be calculated by reversing the changes that happened at the second stop. This means we subtract the people who got in (8) and add back the people who got down (7). So, the formula to find the number of people after the first stop is: 20 - 8 + 7.\n3. Calculating the number of people after the first stop: 20 - 8 + 7 = 19.\n4. At the first stop, 5 people got in. So, to find out how many people were on the bus before the first stop (i.e., the number of people who got on at the terminal), we need to reverse this change by subtracting the 5 people who got in at the first stop from the total after the first stop. So, the number of people who got on at the terminal is: 19 - 5.\n5. Calculating the number of people who got on at the terminal: 19 - 5 = 14.\n\nANSWER: 14",
+  "score": 0,
+  "cost": 0.00018659999999999998,
+  "expected": "14",
+  "tokens": {
+    "input": 112,
+    "output": 283
+  }
+}

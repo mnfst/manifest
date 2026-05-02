@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Let's solve this step by step:\n\n1.  **Find the number of green cars**: The problem says there are 2 fewer green cars than red cars. We know red cars =12, so:\n    Green cars = 12 -2 = 10.\n\n2.  **Find the number of blue cars**: Blue cars are 3 times the number of green cars:\n    Blue cars = 3 *10 =30.\n\n3.  **Calculate the total of red, green, and blue cars**:\n    Total so far =12 +10 +30 =52.\n\n4.  **Find the number of yellow cars**: The total number of all cars is 75, so subtract the sum of the other colors from the total:\n    Yellow cars =75 -52 =23.\n\nANSWER: 23",
+  "score": 0,
+  "cost": 0.0003808,
+  "expected": "23",
+  "tokens": {
+    "input": 152,
+    "output": 914
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "Let's solve this problem step by step:\n\n1.  **First, find the total cost of the 5 lollipops**:\n    Each lollipop costs $0.40, so 5 lollipops cost \\(5 \\times 0.40 = 2.00\\) dollars.\n\n2.  **Calculate the total cost of the 4 candies**:\n    The total spent was $3.20. Subtract the cost of the lollipops to find the total cost of the 4 candies:\n    \\(3.20 - 2.00 = 1.20\\) dollars.\n\n3.  **Find the cost of one single candy**:\n    Divide the total candy cost by 4: \\(1.20 \\div 4 = 0.30\\) dollars per candy.\n\n4.  **Calculate the total cost of 10 lollipops and 10 candies**:\n    - 10 lollipops cost \\(10 \\times 0.40 = 4.00\\) dollars\n    - 10 candies cost \\(10 \\times 0.30 = 3.00\\) dollars\n    Add these together: \\(4.00 + 3.00 = 7.00\\)\n\nANSWER: 7",
+  "score": 0,
+  "cost": 0.00037500000000000006,
+  "expected": "7",
+  "tokens": {
+    "input": 138,
+    "output": 903
+  }
+}

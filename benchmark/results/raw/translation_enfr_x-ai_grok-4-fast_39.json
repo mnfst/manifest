@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Tu sais d'o\u00f9 vient l'argent ?",
+  "score": 5,
+  "cost": 0.0001734,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 171
+  }
+}

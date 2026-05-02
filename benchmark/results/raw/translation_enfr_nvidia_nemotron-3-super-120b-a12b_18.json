@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "La plage la plus proche est \u00e0 une distance de conduite facile, situ\u00e9e \u00e0 quelques 6\u2026",
+  "score": 3,
+  "cost": 1.89e-05,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 161
+  }
+}

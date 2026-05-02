@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "April has 30 days, so the first half is days 1\u201315 (15 days) and the second half is days 16\u201330 (15 days).\n\nLet \\(x\\) be the daily savings amount in the first half.  \nThe daily savings in the second half is twice that, so \\(2x\\).  \n\nTotal savings = (15 \u00d7 \\(x\\)) + (15 \u00d7 \\(2x\\)) = 15\\(x\\) + 30\\(x\\) = 45\\(x\\).  \nThis equals the target of $1125, so:  \n45\\(x\\) = 1125  \n\\(x\\) = 1125 \u00f7 45 = 25.  \n\nThus, the daily savings in the second half is \\(2x\\) = 50.  \n\nANSWER: 50",
+  "score": 0,
+  "cost": 0.0004432,
+  "expected": "50",
+  "tokens": {
+    "input": 296,
+    "output": 480
+  }
+}

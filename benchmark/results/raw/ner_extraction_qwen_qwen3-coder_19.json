@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "ner_extraction",
+  "case": 19,
+  "response": "{\n  \"persons\": [\"Thierry Breton\"],\n  \"organizations\": [\"European Parliament\"],\n  \"locations\": [\"Brussels\"]\n}",
+  "score": 5,
+  "cost": 4.136e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 29
+  }
+}

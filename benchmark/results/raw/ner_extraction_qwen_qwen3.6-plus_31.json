@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "ner_extraction",
+  "case": 31,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Samsung Electronics\"],\n  \"locations\": [\"South Korea\"]\n}",
+  "score": 5,
+  "cost": 0.00048555,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 355
+  }
+}

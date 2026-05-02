@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)",
+  "score": 5,
+  "cost": 0.0005206,
+  "expected": "",
+  "tokens": {
+    "input": 243,
+    "output": 590
+  }
+}

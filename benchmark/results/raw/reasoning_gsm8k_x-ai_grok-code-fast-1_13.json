@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Janet pays $500 for the material and $800 for the jeweler to construct the brooch, for a total cost of $500 + $800 = $1300.  \nShe then pays 10% of that total ($1300) for insurance, which is 0.10 \u00d7 $1300 = $130.  \nThe total amount she pays is $1300 + $130 = $1430.  \n\nANSWER: 1430",
+  "score": 0,
+  "cost": 0.000358,
+  "expected": "1430",
+  "tokens": {
+    "input": 294,
+    "output": 374
+  }
+}

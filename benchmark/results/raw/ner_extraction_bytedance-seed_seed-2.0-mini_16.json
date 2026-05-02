@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "{\"persons\": [\"Angela Merkel\"], \"organizations\": [], \"locations\": [\"White House\"]}",
+  "score": 4,
+  "cost": 0.0004953000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 1210
+  }
+}

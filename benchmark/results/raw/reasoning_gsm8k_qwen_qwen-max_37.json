@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "To solve this problem, let's break it down into steps:\n\n1. **Determine the number of votes for candidate A:**\n   - Candidate A got 20% of the votes.\n   - Since there were 100 voters, the number of votes for candidate A is:\n     \\[\n     20\\% \\text{ of } 100 = \\frac{20}{100} \\times 100 = 20 \\text{ votes}\n     \\]\n\n2. **Determine the number of votes for candidate B:**\n   - Candidate B got 50% more votes than candidate A.\n   - 50% more than 20 votes is:\n     \\[\n     50\\% \\text{ of } 20 = \\frac{50}{100} \\times 20 = 10 \\text{ votes}\n     \\]\n   - So, the total number of votes for candidate B is:\n     \\[\n     20 + 10 = 30 \\text{ votes}\n     \\]\n\n3. **Determine the number of votes for candidate C:**\n   - The total number of votes is 100.\n   - The votes for candidate A and B together are:\n     \\[\n     20 + 30 = 50 \\text{ votes}\n     \\]\n   - Therefore, the number of votes for candidate C is:\n     \\[\n     100 - 50 = 50 \\text{ votes}\n     \\]\n\nFinally, the number of votes that candidate C got is 50.\n\nANSWER: 50",
+  "score": 0,
+  "cost": 0.0015714400000000001,
+  "expected": "50",
+  "tokens": {
+    "input": 103,
+    "output": 352
+  }
+}

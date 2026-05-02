@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 33,
+  "response": "CV33 (1) (1.3) Remplacez \u00ab\u202fle conducteur et les autres membres de l'\u00e9quipage\u202f\u00bb par \u00ab\u202fmembres de l'\u00e9quipage du v\u00e9hicule\u202f\u00bb.",
+  "score": 5,
+  "cost": 9.539999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 51
+  }
+}

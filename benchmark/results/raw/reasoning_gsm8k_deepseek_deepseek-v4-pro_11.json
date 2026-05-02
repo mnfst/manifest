@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "The total number of burritos ordered is 600. There are 50 students, each given 10 burritos, so the students eat 50 \u00d7 10 = 500 burritos. Mr. George eats 20 burritos. The total number of burritos eaten is 500 + 20 = 520. The number of leftover burritos is 600 - 520 = 80.\n\nANSWER: 80",
+  "score": 0,
+  "cost": 0.00045327,
+  "expected": "80",
+  "tokens": {
+    "input": 98,
+    "output": 236
+  }
+}

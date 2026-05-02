@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "To find out how many yards of yarn Mariah and her grandma used altogether, we need to follow these steps:\n\n1. **Determine the amount of yarn Mariah used:**\n   - Mariah used \\( \\frac{1}{4} \\) of a skein of yarn.\n   - Since there are 364 yards in a skein, Mariah used:\n     \\[\n     \\frac{1}{4} \\times 364 = \\frac{364}{4} = 91 \\text{ yards}\n     \\]\n\n2. **Determine the amount of yarn her grandma used:**\n   - Her grandma used \\( \\frac{1}{2} \\) of a skein of yarn.\n   - Since there are 364 yards in a skein, her grandma used:\n     \\[\n     \\frac{1}{2} \\times 364 = \\frac{364}{2} = 182 \\text{ yards}\n     \\]\n\n3. **Add the amounts of yarn used by Mariah and her grandma:**\n   - Mariah used 91 yards.\n   - Her grandma used 182 yards.\n   - Together, they used:\n     \\[\n     91 + 182 = 273 \\text{ yards}\n     \\]\n\nTherefore, the total amount of yarn they used altogether is:\n\nANSWER: 273",
+  "score": 0,
+  "cost": 0.0013624000000000002,
+  "expected": "273",
+  "tokens": {
+    "input": 106,
+    "output": 301
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sentiment_sst2",
+  "case": 31,
+  "response": "negative",
+  "score": 5,
+  "cost": 8.7e-06,
+  "expected": "negative",
+  "tokens": {
+    "input": 50,
+    "output": 2
+  }
+}

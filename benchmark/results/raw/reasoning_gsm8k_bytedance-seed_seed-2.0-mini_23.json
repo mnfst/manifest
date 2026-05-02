@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "Let's solve this problem step by step:\n\n1.  **Calculate the original price per helium balloon**\n    The total cost for 20 balloons was $900. So the original cost per balloon is:\n    $900 \u00f7 20 = $45 per balloon.\n\n2.  **Find the new increased price per balloon**\n    The price per balloon increased by $20, so the new price is:\n    $45 + $20 = $65 per balloon.\n\n3.  **Calculate the total cost for 170 balloons at the new price**\n    Multiply the new per-balloon cost by the number of balloons:\n    170 \u00d7 $65 = $11050.\n\nANSWER: 11050",
+  "score": 0,
+  "cost": 0.00039240000000000005,
+  "expected": "11050",
+  "tokens": {
+    "input": 148,
+    "output": 944
+  }
+}

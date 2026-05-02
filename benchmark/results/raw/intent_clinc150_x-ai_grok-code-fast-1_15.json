@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "intent_clinc150",
+  "case": 15,
+  "response": "share_location",
+  "score": 5,
+  "cost": 0.00023500000000000002,
+  "expected": "share_location",
+  "tokens": {
+    "input": 711,
+    "output": 116
+  }
+}

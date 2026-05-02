@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\"persons\":[\"Serena Williams\"],\"organizations\":[],\"locations\":[\"Los Angeles\"]}",
+  "score": 4,
+  "cost": 0.00626,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 295
+  }
+}

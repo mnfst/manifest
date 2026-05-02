@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Jamaal starts with an 8-pound weight. Increasing by 50% means adding 50% of 8 pounds (which is 4 pounds) to the original weight, resulting in 8 + 4 = 12 pounds. Since this is too heavy, he uses a weight 2 pounds lighter than 12 pounds, which is 12 - 2 = 10 pounds.\n\nANSWER: 10",
+  "score": 0,
+  "cost": 0.00029560000000000003,
+  "expected": "10",
+  "tokens": {
+    "input": 298,
+    "output": 295
+  }
+}

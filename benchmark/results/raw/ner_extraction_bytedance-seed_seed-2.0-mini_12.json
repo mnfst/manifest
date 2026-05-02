@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "{\"persons\": [\"Jensen Huang\"], \"organizations\": [\"Nvidia\", \"GTC conference\"], \"locations\": [\"San Jose\"]}",
+  "score": 4,
+  "cost": 0.0001787,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 417
+  }
+}

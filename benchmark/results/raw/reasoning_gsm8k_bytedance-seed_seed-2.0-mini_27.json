@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let's solve this problem step-by-step:\n\n### Step 1: Define the initial number of vacuum cleaners\nLet \\( X \\) = total number of vacuum cleaners Melanie started with.\n\n### Step 2: Track remaining vacuum cleaners after each stop\n1.  **Green House**: She sold \\( \\frac{1}{3}X \\) cleaners. The remaining amount is:\n    \\( X - \\frac{1}{3}X = \\frac{2}{3}X \\)\n2.  **Red House**: She sold 2 more cleaners. The remaining amount is:\n    \\( \\frac{2}{3}X - 2 \\)\n3.  **Orange House**: She sold half of what was left, so half remains. The problem states 5 cleaners are left after this. This means:\n    \\( \\frac{1}{2} \\times \\left( \\frac{2}{3}X - 2 \\right) =5 \\)\n\n### Step3: Solve for \\( X \\)\nFirst multiply both sides by 2 to eliminate the fraction:\n\\( \\frac{2}{3}X -2 =10 \\)\nAdd 2 to both sides:\n\\( \\frac{2}{3}X =12 \\)\nMultiply both sides by \\( \\frac{3}{2} \\):\n\\( X =12 \\times \\frac{3}{2}=18 \\)\n\n### Step4: Verify the answer\n- Start with 18: sell 6 (1/3) at green house, left with 12.\n- Sell 2 at red house, left with 10.\n- Sell half (5) at orange house, left with 5, which matches the problem's given leftover.\n\nANSWER: 18",
+  "score": 0,
+  "cost": 0.00047910000000000004,
+  "expected": "18",
+  "tokens": {
+    "input": 143,
+    "output": 1162
+  }
+}

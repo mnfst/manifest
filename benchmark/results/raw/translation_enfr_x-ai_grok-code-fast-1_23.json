@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les d\u00e9versoirs capables de faire face aux \u00e9v\u00e9nements d'inondation postul\u00e9s sont soit int\u00e9gr\u00e9s dans les structures du barrage, soit construits en tant que structures distinctes.",
+  "score": 5,
+  "cost": 0.0003124,
+  "expected": "",
+  "tokens": {
+    "input": 246,
+    "output": 329
+  }
+}

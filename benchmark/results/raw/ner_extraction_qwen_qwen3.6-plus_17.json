@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "ner_extraction",
+  "case": 17,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Toyota\"],\n  \"locations\": [\"Greensboro\", \"North Carolina\"]\n}",
+  "score": 5,
+  "cost": 0.001615575,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 1224
+  }
+}

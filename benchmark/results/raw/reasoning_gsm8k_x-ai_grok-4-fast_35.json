@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Peaches: 6 pounds \u00d7 $2.00/pound = $12.00  \nPlums: 8 pounds \u00d7 $1.00/pound = $8.00  \nApricots: 6 pounds \u00d7 $3.00/pound = $18.00  \nTotal: $12.00 + $8.00 + $18.00 = $38.00  \n\nANSWER: 38",
+  "score": 0,
+  "cost": 0.0003058,
+  "expected": "38",
+  "tokens": {
+    "input": 265,
+    "output": 316
+  }
+}

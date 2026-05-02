@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "The total cost of half a dozen plates is calculated first. Half a dozen is 6, and each plate costs $6000. So, 6 \u00d7 $6000 = $36,000.\nTwenty dozen cups cost $1200 less than this amount: $36,000 \u2013 $1200 = $34,800.\nTwenty dozen cups equal 20 \u00d7 12 = 240 cups.\nThe cost per cup is $34,800 \u00f7 240 = $145.\n\nANSWER: 145",
+  "score": 0,
+  "cost": 0.0008956649999999999,
+  "expected": "145",
+  "tokens": {
+    "input": 71,
+    "output": 497
+  }
+}

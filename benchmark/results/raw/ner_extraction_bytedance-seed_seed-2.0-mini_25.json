@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "ner_extraction",
+  "case": 25,
+  "response": "{\"persons\": [\"Mark Zuckerberg\"], \"organizations\": [\"Meta\"], \"locations\": [\"Menlo Park\"]}",
+  "score": 5,
+  "cost": 5.6500000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 111
+  }
+}

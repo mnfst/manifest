@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "ner_extraction",
+  "case": 37,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"University of Cambridge\", \"AstraZeneca\"],\n  \"locations\": [\"Oxford\"]\n}",
+  "score": 4,
+  "cost": 0.00020280000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 30
+  }
+}

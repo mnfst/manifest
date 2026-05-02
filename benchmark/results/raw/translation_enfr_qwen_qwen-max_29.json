@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime bien... bien que je ne sache pas pourquoi.",
+  "score": 4,
+  "cost": 0.00010608000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 16
+  }
+}

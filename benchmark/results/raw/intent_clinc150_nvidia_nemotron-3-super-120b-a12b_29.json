@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "intent_clinc150",
+  "case": 29,
+  "response": "We need to classify the user message \"how do you make pasta\" into one of the intents",
+  "score": 0,
+  "cost": 5.283e-05,
+  "expected": "recipe",
+  "tokens": {
+    "input": 567,
+    "output": 20
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Gerald's share: $60  \nAfter spending $10: $50  \n\nANSWER: 50",
+  "score": 0,
+  "cost": 0.00017219999999999998,
+  "expected": "50",
+  "tokens": {
+    "input": 221,
+    "output": 160
+  }
+}

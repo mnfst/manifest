@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "To solve this problem, we need to follow these steps:\n\n1. Determine how many books Sarah bought.\n2. Divide the total number of books by the number of children to find out how many books each child received.\n\nStep 1: Calculate the total number of books Sarah bought.\n- Sarah spent $300 on books.\n- Each book costs $15.\n- The total number of books is calculated by dividing the total amount spent by the cost per book:\n  \\[\n  \\text{Total number of books} = \\frac{\\$300}{\\$15} = 20\n  \\]\n\nStep 2: Divide the total number of books by the number of children.\n- Sarah has 4 children.\n- The number of books each child gets is:\n  \\[\n  \\text{Books per child} = \\frac{\\text{Total number of books}}{\\text{Number of children}} = \\frac{20}{4} = 5\n  \\]\n\nThus, each child received 5 books.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.0010098400000000001,
+  "expected": "5",
+  "tokens": {
+    "input": 91,
+    "output": 220
+  }
+}

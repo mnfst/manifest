@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "To solve this problem, let's break it down into steps.\n\n1. **Calculate the total cost of half a dozen plates:**\n   - Half a dozen = 6\n   - Cost per plate = $6000\n   - Total cost for 6 plates = 6 * $6000 = $36,000\n\n2. **Understand the cost relationship between cups and plates:**\n   - Twenty dozen cups cost $1200 less than the total cost of 6 plates.\n   - Twenty dozen = 20 * 12 = 240 cups\n   - Total cost of 6 plates = $36,000\n   - Therefore, the total cost of 240 cups = $36,000 - $1200 = $34,800\n\n3. **Calculate the cost per cup:**\n   - Total cost of 240 cups = $34,800\n   - Cost per cup = Total cost / Number of cups = $34,800 / 240\n\n4. **Perform the division to find the cost per cup:**\n   - $34,800 / 240 = $145\n\nSo, the total cost of buying each cup is $145.\n\nANSWER: 145",
+  "score": 0,
+  "cost": 0.00015495000000000003,
+  "expected": "145",
+  "tokens": {
+    "input": 77,
+    "output": 239
+  }
+}

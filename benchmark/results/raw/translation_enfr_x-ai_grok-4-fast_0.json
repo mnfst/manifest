@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je veux le faire.",
+  "score": 5,
+  "cost": 0.000269,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 290
+  }
+}

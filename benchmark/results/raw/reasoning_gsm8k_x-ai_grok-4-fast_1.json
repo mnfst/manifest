@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 1,
+  "response": "Kalinda's rate: 4 pieces per minute.  \nMom's rate: half of Kalinda's, so 2 pieces per minute.  \nCombined rate: 4 + 2 = 6 pieces per minute.  \nTime in minutes: 360 pieces / 6 pieces per minute = 60 minutes.  \nTime in hours: 60 minutes / 60 minutes per hour = 1 hour.  \n\nANSWER: 1",
+  "score": 0,
+  "cost": 0.0002886,
+  "expected": "1",
+  "tokens": {
+    "input": 243,
+    "output": 300
+  }
+}

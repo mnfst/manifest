@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sentiment_sst2",
+  "case": 23,
+  "response": "negative",
+  "score": 5,
+  "cost": 1.914e-05,
+  "expected": "negative",
+  "tokens": {
+    "input": 83,
+    "output": 1
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "ner_extraction",
+  "case": 26,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Supreme Court\", \"ACLU\"],\n  \"locations\": [\"State of Texas\"]\n}",
+  "score": 4,
+  "cost": 0.00019551999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 29
+  }
+}

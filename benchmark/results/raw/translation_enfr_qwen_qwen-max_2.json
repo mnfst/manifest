@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus vint et parla distinctement et avec bont\u00e9 : \"C'est moi.\" Cette expression devint la base de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 0.00019863999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 35
+  }
+}

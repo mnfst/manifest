@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 39,
+  "response": "{\"persons\":[\"Dario Amodei\"],\"organizations\":[\"Anthropic\",\"Aspen Ideas Festival\"],\"locations\":[\"Colorado\"]}",
+  "score": 5,
+  "cost": 0.00541,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 251
+  }
+}

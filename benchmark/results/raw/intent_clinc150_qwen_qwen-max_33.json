@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "intent_clinc150",
+  "case": 33,
+  "response": "direct_deposit",
+  "score": 5,
+  "cost": 0.00053768,
+  "expected": "direct_deposit",
+  "tokens": {
+    "input": 509,
+    "output": 2
+  }
+}

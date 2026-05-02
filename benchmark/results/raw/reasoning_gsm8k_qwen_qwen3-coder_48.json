@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "I need to find the weight Jamaal now uses after his adjustments.\n\nLet me work through this step by step:\n\nStep 1: Find the original weight.\nJamaal was using an 8-pound weight.\n\nStep 2: Calculate the 50% increase.\n50% of 8 pounds = 0.50 \u00d7 8 = 4 pounds\nSo the increased weight = 8 + 4 = 12 pounds\n\nStep 3: Find what happens next.\nThe 12-pound weight was too heavy, so he uses a weight that is 2 pounds lighter than that.\n\nStep 4: Calculate the final weight.\nFinal weight = 12 - 2 = 10 pounds\n\nTherefore, Jamaal now uses a 10-pound weight.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.00017093999999999999,
+  "expected": "10",
+  "tokens": {
+    "input": 105,
+    "output": 168
+  }
+}

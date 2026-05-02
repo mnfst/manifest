@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 0.00011330000000000002,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 507,
+    "output": 2
+  }
+}

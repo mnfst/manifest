@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "ner_extraction",
+  "case": 35,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"European Space Agency\",\n    \"NASA\"\n  ],\n  \"locations\": [\n    \"lunar south pole\"\n  ]\n}",
+  "score": 4,
+  "cost": 1.0079999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 39
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 35,
+  "response": "{\"persons\": [], \"organizations\": [\"European Space Agency\", \"NASA\"], \"locations\": [\"lunar south pole\"]}",
+  "score": 4,
+  "cost": 0.00021140000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 269,
+    "output": 197
+  }
+}

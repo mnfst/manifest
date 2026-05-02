@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "Let's solve this problem step by step:\n\n1.  **Find the age of the younger son**: The older son is 12, and the younger is 4 years younger. So 12 - 4 = 8 years old.\n2.  **Calculate total candles needed**: Birthday candles match each son's age, so total candles = 12 + 8 = 20 candles.\n3.  **Find number of packs required**: Each pack has 5 candles. Number of packs = 20 \u00f7 5 = 4 packs.\n4.  **Calculate total cost**: Each pack costs $3, so total spend = 4 \u00d7 3 = $12.\n\nANSWER: 12",
+  "score": 0,
+  "cost": 0.0002835,
+  "expected": "12",
+  "tokens": {
+    "input": 135,
+    "output": 675
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "```json\n{\n  \"persons\": [\"Picasso\", \"Monet\"],\n  \"organizations\": [\"The Metropolitan Museum of Art\"],\n  \"locations\": [\"New York\"]\n}\n```",
+  "score": 5,
+  "cost": 4.44e-05,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 38
+  }
+}

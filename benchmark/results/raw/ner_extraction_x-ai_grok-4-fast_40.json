@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 40,
+  "response": "{\"persons\": [], \"organizations\": [\"Reserve Bank of Australia\", \"Goldman Sachs\"], \"locations\": [\"Australia\"]}",
+  "score": 4,
+  "cost": 0.0001816,
+  "expected": "",
+  "tokens": {
+    "input": 220,
+    "output": 172
+  }
+}

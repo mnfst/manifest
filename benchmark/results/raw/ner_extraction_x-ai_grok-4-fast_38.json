@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 38,
+  "response": "{\"persons\": [\"Kamala Harris\"], \"organizations\": [\"General Motors\"], \"locations\": [\"Detroit\"]}",
+  "score": 5,
+  "cost": 0.00018140000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 172
+  }
+}

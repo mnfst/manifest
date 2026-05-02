@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Let's solve this step by step:\n\n1.  First, we are told there are 30 boys in the classroom.\n2.  Calculate the number of girls: The problem states there are 3 times as many girls as boys. So girls = 3 * 30 = 90.\n3.  Calculate the number of nongendered children: They are 1/10 as many as boys. So nongendered children = 30 * (1/10) = 3.\n4.  Add all groups together to get total children: 30 boys + 90 girls + 3 nongendered children = 123.\n\nANSWER: 123",
+  "score": 0,
+  "cost": 0.0002049,
+  "expected": "123",
+  "tokens": {
+    "input": 137,
+    "output": 478
+  }
+}

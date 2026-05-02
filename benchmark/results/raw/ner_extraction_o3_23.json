@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "ner_extraction",
+  "case": 23,
+  "response": "{\n  \"persons\": [\"Taylor Swift\"],\n  \"organizations\": [\"Eras Tour\"],\n  \"locations\": [\"Wembley Stadium\", \"London\"]\n}",
+  "score": 4,
+  "cost": 0.003614,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 434
+  }
+}

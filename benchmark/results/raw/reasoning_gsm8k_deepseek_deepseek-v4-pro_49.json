@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "The sisters' ages total 3 \u00d7 16 = 48. The younger brother is 12, and his age is half the older brother's age, so the older brother is 24. The brothers' ages total 12 + 24 = 36. The total age of all siblings is 48 + 36 = 84.\n\nANSWER: 84",
+  "score": 0,
+  "cost": 0.00046893,
+  "expected": "84",
+  "tokens": {
+    "input": 94,
+    "output": 246
+  }
+}

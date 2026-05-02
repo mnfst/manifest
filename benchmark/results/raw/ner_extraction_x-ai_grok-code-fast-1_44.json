@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [],\n  \"locations\": [\"Puerto Rico\", \"Dominican Republic\"]\n}",
+  "score": 4,
+  "cost": 0.00036620000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 267,
+    "output": 391
+  }
+}

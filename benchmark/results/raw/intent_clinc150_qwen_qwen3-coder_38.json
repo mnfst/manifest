@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "intent_clinc150",
+  "case": 38,
+  "response": "oil_change_when",
+  "score": 5,
+  "cost": 0.00011396000000000001,
+  "expected": "oil_change_when",
+  "tokens": {
+    "input": 506,
+    "output": 3
+  }
+}

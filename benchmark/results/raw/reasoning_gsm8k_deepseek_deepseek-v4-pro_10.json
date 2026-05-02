@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "The low setting removes 1 liter per day. The medium setting removes twice that, so 2 liters per day. The high setting removes twice the medium, so 4 liters per day.\n\nRunning the dehumidifier:\n- Low for 3 days: 3 \u00d7 1 = 3 liters\n- Medium for 3 days: 3 \u00d7 2 = 6 liters\n- High for 5 days: 5 \u00d7 4 = 20 liters\n\nTotal water removed: 3 + 6 + 20 = 29 liters\n\nANSWER: 29",
+  "score": 0,
+  "cost": 0.0007642950000000001,
+  "expected": "29",
+  "tokens": {
+    "input": 197,
+    "output": 390
+  }
+}

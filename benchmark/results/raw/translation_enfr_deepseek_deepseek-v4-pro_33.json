@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "translation_enfr",
+  "case": 33,
+  "response": "CV33 (1) (1.3) Remplacer \u00ab le conducteur et les autres membres de l'\u00e9quipage \u00bb par \u00ab les membres de l'\u00e9quipage du v\u00e9hicule \u00bb.",
+  "score": 5,
+  "cost": 0.00062466,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 346
+  }
+}

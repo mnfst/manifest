@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Nous avons juste besoin d'obtenir plus d'informations.",
+  "score": 5,
+  "cost": 4.41e-06,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 16
+  }
+}

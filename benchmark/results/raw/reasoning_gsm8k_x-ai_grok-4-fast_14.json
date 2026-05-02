@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "Each duck needs 3.5 pounds per week.  \nFor 10 ducks: \\(10 \\times 3.5 = 35\\) pounds per week.  \nThere are 7 days in a week, so per day: \\(35 \\div 7 = 5\\) pounds.  \n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.00021160000000000002,
+  "expected": "5",
+  "tokens": {
+    "input": 226,
+    "output": 208
+  }
+}

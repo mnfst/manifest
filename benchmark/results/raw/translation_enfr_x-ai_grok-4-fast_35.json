@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[male reporter #1 on tv] L'accident s'est produit juste apr\u00e8s 10 heures du matin.",
+  "score": 5,
+  "cost": 0.000261,
+  "expected": "",
+  "tokens": {
+    "input": 193,
+    "output": 278
+  }
+}

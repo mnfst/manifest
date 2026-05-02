@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement de personnel aupr\u00e8s de l'EUSR.",
+  "score": 5,
+  "cost": 2.4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 27
+  }
+}

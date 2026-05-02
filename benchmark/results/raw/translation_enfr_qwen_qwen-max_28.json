@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Nous sommes capables... de lancer une puissance de feu... plus grande que tout ce qui a jamais \u00e9t\u00e9 d\u00e9clench\u00e9 dans l'histoire des guerres.",
+  "score": 4,
+  "cost": 0.0001976,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 36
+  }
+}

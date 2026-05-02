@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "I need to find the total cost and then divide it by 3 to find how much each friend paid.\n\nLet me break down the costs:\n\n1) Cost of tickets: $20.25\n\n2) Cost of food: They spent $4.50 less on food than on tickets\n   Food cost = Ticket cost - $4.50 = $20.25 - $4.50 = $15.75\n\n3) Cost of rides: 2 rides at $33 each\n   Ride cost = 2 \u00d7 $33 = $66\n\n4) Total cost:\n   Total = Tickets + Food + Rides\n   Total = $20.25 + $15.75 + $66 = $102\n\n5) Cost per person:\n   Each person pays = Total cost \u00f7 3 = $102 \u00f7 3 = $34\n\nANSWER: 34",
+  "score": 4,
+  "cost": 0.00020328000000000002,
+  "expected": "34",
+  "tokens": {
+    "input": 112,
+    "output": 203
+  }
+}

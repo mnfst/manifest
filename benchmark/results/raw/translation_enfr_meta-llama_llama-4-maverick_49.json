@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "J'ai des g\u00e2teaux \u00e0 la cr\u00e8me, des sucreries, des harengs marin\u00e9s et des dattes cristallis\u00e9es.",
+  "score": 5,
+  "cost": 2.505e-05,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 30
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Mitchell sold 21 lemonades at $4 each, so his total earnings were $21 \\times 4 = 84$.\n\nLiam earned $63.\n\nMitchell earned $84 - 63 = 21$ more dollars than Liam.\n\nANSWER: 21",
+  "score": 0,
+  "cost": 0.00022400000000000002,
+  "expected": "21",
+  "tokens": {
+    "input": 252,
+    "output": 217
+  }
+}

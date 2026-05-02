@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Gerald and Julia divided $100 in the ratio 3:2, meaning the total is split into 5 equal parts (3 for Gerald and 2 for Julia).  \nGerald's share is (3/5) \u00d7 $100 = $60.  \nHe spent $10 on a book, so he has $60 - $10 = $50 left.  \n\nANSWER: 50",
+  "score": 0,
+  "cost": 0.000269,
+  "expected": "50",
+  "tokens": {
+    "input": 269,
+    "output": 269
+  }
+}

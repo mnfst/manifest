@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Let's solve this step-by-step:\n\n1.  Calculate the total time Tom spent sailing away from his starting point:\n    He sails from 1 PM to 4 PM, which is \\(4 -1 = 3\\) hours.\n\n2.  Find the one-way travel distance:\n    His outgoing speed is 10 mph, so distance = speed \u00d7 time = \\(10 \\times 3 = 30\\) miles.\n\n3.  Calculate the return trip time:\n    He returns at 6 mph, and time = distance \u00f7 speed. So return time = \\(30 \\div 6 =5\\) hours.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.00017510000000000003,
+  "expected": "5",
+  "tokens": {
+    "input": 135,
+    "output": 404
+  }
+}

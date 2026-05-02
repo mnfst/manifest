@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "### Step-by-Step Solution\n\n1. **Tickets cost**: The three friends spent $20.25 on 3 tickets. This is the total for tickets.\n\n2. **Food cost**: They spent $4.50 less on food than on the tickets.  \n   Food cost = $20.25 - $4.50 = $15.75.\n\n3. **Rides cost**: They went on 2 different rides, each costing $33.  \n   Total rides cost = 2 \u00d7 $33 = $66.\n\n4. **Total expenditure**: Add up all costs.  \n   Total = Tickets + Food + Rides = $20.25 + $15.75 + $66.  \n   $20.25 + $15.75 = $36.00.  \n   $36.00 + $66 = $102.00.\n\n5. **Split evenly**: There are 3 friends, so each pays an equal share.  \n   Amount per person = $102.00 \u00f7 3 = $34.00.\n\nEach friend paid $34.\n\nANSWER: 34",
+  "score": 0,
+  "cost": 0.00048600000000000005,
+  "expected": "34",
+  "tokens": {
+    "input": 254,
+    "output": 544
+  }
+}

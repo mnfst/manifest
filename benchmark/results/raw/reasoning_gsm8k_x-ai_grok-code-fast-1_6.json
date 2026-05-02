@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Ann is currently 9 years old.  \nHer brother is twice her age, so he is currently 2 \u00d7 9 = 18 years old.  \nIn 3 years, her brother will be 18 + 3 = 21 years old.  \n\nANSWER: 21",
+  "score": 0,
+  "cost": 0.00020960000000000003,
+  "expected": "21",
+  "tokens": {
+    "input": 264,
+    "output": 196
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 1,
+  "response": "Kalinda adds 4 pieces per minute.  \nHer mom adds half as many, so 4 / 2 = 2 pieces per minute.  \nTogether, they add 4 + 2 = 6 pieces per minute.  \nTotal pieces: 360.  \nTime in minutes: 360 / 6 = 60 minutes.  \nConvert to hours: 60 minutes / 60 = 1 hour.  \n\nANSWER: 1",
+  "score": 0,
+  "cost": 0.0002782,
+  "expected": "1",
+  "tokens": {
+    "input": 291,
+    "output": 275
+  }
+}

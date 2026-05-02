@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "{\"persons\": [], \"organizations\": [], \"locations\": [\"Puerto Rico\", \"Dominican Republic\"]}",
+  "score": 4,
+  "cost": 0.001474,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 167
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Winston picked 6 pounds of peaches at $2.00 per pound, so the cost for peaches is 6 \u00d7 2 = $12.00.  \nHe picked 8 pounds of plums at $1.00 per pound, so the cost for plums is 8 \u00d7 1 = $8.00.  \nHe picked 6 pounds of apricots at $3.00 per pound, so the cost for apricots is 6 \u00d7 3 = $18.00.  \nThe total cost is $12.00 + $8.00 + $18.00 = $38.00.  \n\nANSWER: 38",
+  "score": 0,
+  "cost": 0.00035300000000000007,
+  "expected": "38",
+  "tokens": {
+    "input": 313,
+    "output": 363
+  }
+}

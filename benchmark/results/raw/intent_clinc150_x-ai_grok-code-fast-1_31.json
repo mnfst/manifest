@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "intent_clinc150",
+  "case": 31,
+  "response": "freeze_account",
+  "score": 5,
+  "cost": 0.0002748,
+  "expected": "freeze_account",
+  "tokens": {
+    "input": 710,
+    "output": 166
+  }
+}

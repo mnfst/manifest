@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Les crit\u00e8res du DSM-IV pour l'ivresse alcoolique sont similaires, avec l'ajout d'un ou plusieurs des signes suivants : \u00e9locution embarrass\u00e9e, d\u00e9s\u00e9quilibre, d\u00e9marche chancelante, nystagmus, alt\u00e9ration de l'attention ou de la m\u00e9moire, stupeur ou coma.",
+  "score": 4,
+  "cost": 0.00039,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 74
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "The cost of 5 lollipops is \\(5 \\times 0.40 = 2.00\\).\n\nThe cost of 4 candies is \\(3.20 - 2.00 = 1.20\\).\n\nThe cost per candy is \\(1.20 \\div 4 = 0.30\\).\n\nThe cost of 10 lollipops is \\(10 \\times 0.40 = 4.00\\).\n\nThe cost of 10 candies is \\(10 \\times 0.30 = 3.00\\).\n\nThe total cost is \\(4.00 + 3.00 = 7.00\\).\n\nANSWER: 7",
+  "score": 0,
+  "cost": 0.00033360000000000003,
+  "expected": "7",
+  "tokens": {
+    "input": 232,
+    "output": 359
+  }
+}

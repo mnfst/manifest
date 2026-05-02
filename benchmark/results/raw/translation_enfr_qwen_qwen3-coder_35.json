@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[male reporter #1 on tv] l'accident s'est produit peu apr\u00e8s 10h00 du matin.",
+  "score": 4,
+  "cost": 3.322e-05,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 26
+  }
+}

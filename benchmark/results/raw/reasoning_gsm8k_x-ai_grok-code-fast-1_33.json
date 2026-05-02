@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "Manolo bought 5 lollipops and 4 candies for a total of $3.20. Each lollipop costs $0.40, so the cost of the 5 lollipops is 5 \u00d7 $0.40 = $2.00. Subtracting this from the total gives the cost of the 4 candies: $3.20 - $2.00 = $1.20. Dividing by 4 gives the cost per candy: $1.20 \u00f7 4 = $0.30.  \n\nFor 10 lollipops, the cost is 10 \u00d7 $0.40 = $4.00. For 10 candies, the cost is 10 \u00d7 $0.30 = $3.00. Adding these together gives the total cost: $4.00 + $3.00 = $7.00.  \n\nANSWER: 7.00",
+  "score": 0,
+  "cost": 0.0004288,
+  "expected": "7",
+  "tokens": {
+    "input": 280,
+    "output": 466
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 7,
+  "response": "Services de placement. C'est g\u00e9n\u00e9reux.\n\nThe translation maintains the same tone and meaning as the original English text. The phrase \"Placement services\" is translated to \"Services de placement\", and the expression \"That's generous\" is translated to \"C'est g\u00e9n\u00e9reux\", conveying the same level of sarcasm or irony.",
+  "score": 5,
+  "cost": 4.47e-05,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 66
+  }
+}

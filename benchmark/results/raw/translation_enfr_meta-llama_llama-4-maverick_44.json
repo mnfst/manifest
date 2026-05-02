@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'\u00e9tendue de la longueur non soutenue d\u00e9velopp\u00e9e \u00e0 la suite d'un affouillement a une influence significative sur la r\u00e9ponse de flexion tuyau-sol.",
+  "score": 4,
+  "cost": 3.375e-05,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 42
+  }
+}

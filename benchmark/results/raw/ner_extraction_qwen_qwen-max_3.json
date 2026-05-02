@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "ner_extraction",
+  "case": 3,
+  "response": "{\n  \"persons\": [\"Maria Garcia\"],\n  \"organizations\": [\"Microsoft\", \"ACM\"],\n  \"locations\": [\"Seattle\"]\n}",
+  "score": 5,
+  "cost": 0.00019344,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 28
+  }
+}

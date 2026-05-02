@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Melanie started with an unknown number of vacuum cleaners, let's call it \\( x \\).\n\n1. She sold a third at the green house: sold \\( \\frac{x}{3} \\), remaining \\( \\frac{2x}{3} \\).\n2. She sold 2 more at the red house: remaining \\( \\frac{2x}{3} - 2 \\).\n3. She sold half of what was left at the orange house: sold \\( \\frac{1}{2} \\left( \\frac{2x}{3} - 2 \\right) \\), remaining \\( \\frac{1}{2} \\left( \\frac{2x}{3} - 2 \\right) \\).\n\nWe are told the remaining is 5:\n\\[\n\\frac{1}{2} \\left( \\frac{2x}{3} - 2 \\right) = 5\n\\]\nMultiply both sides by 2:\n\\[\n\\frac{2x}{3} - 2 = 10\n\\]\nAdd 2:\n\\[\n\\frac{2x}{3} = 12\n\\]\nMultiply by \\( \\frac{3}{2} \\):\n\\[\nx = 18\n\\]\n\nANSWER: 18",
+  "score": 0,
+  "cost": 0.001130565,
+  "expected": "18",
+  "tokens": {
+    "input": 95,
+    "output": 626
+  }
+}

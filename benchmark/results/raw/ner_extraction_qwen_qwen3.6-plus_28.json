@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "ner_extraction",
+  "case": 28,
+  "response": "{\"persons\": [], \"organizations\": [\"Johns Hopkins University\"], \"locations\": [\"Baltimore\"]}",
+  "score": 4,
+  "cost": 0.001148875,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 865
+  }
+}

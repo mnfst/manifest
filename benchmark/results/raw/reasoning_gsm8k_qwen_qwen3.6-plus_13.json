@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "First, find the combined cost of the materials and the jeweler's construction fee:\n$500 + $800 = $1,300\n\nNext, calculate the insurance cost, which is 10% of that combined amount:\n10% of $1,300 = 0.10 \u00d7 1,300 = $130\n\nFinally, add the insurance cost to the initial subtotal to determine the total amount Janet paid:\n$1,300 + $130 = $1,430\n\nANSWER: 1430",
+  "score": 0,
+  "cost": 0.002285725,
+  "expected": "1430",
+  "tokens": {
+    "input": 109,
+    "output": 1731
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Cela ne peut mener qu'au chaos et \u00e0 la terreur.",
+  "score": 5,
+  "cost": 2.178e-05,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 16
+  }
+}

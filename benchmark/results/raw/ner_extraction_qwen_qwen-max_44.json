@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [],\n  \"locations\": [\"Puerto Rico\", \"Dominican Republic\"]\n}",
+  "score": 4,
+  "cost": 0.000182,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 26
+  }
+}

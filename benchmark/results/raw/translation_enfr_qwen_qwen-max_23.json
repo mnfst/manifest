@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les voies de d\u00e9rivation capables de g\u00e9rer les crues postul\u00e9es sont int\u00e9gr\u00e9es soit dans les structures du barrage, soit construites comme des ouvrages distincts.",
+  "score": 5,
+  "cost": 0.00022464,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 41
+  }
+}

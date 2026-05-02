@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "intent_clinc150",
+  "case": 44,
+  "response": "insurance_change",
+  "score": 5,
+  "cost": 0.00031232499999999996,
+  "expected": "insurance_change",
+  "tokens": {
+    "input": 513,
+    "output": 112
+  }
+}

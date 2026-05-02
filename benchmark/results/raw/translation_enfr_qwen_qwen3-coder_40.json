@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Nous avons juste besoin d'obtenir plus d'informations.",
+  "score": 5,
+  "cost": 2.1560000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "On pourrait vous arr\u00eater pour racolage.",
+  "score": 2,
+  "cost": 0.001814,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 219
+  }
+}

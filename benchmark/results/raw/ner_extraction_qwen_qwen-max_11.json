@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"United Nations Security Council\"],\n  \"locations\": [\"North Korea\", \"New York\"]\n}",
+  "score": 5,
+  "cost": 0.00019656,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 29
+  }
+}

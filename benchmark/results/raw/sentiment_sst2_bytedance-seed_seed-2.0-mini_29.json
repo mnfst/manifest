@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sentiment_sst2",
+  "case": 29,
+  "response": "negative",
+  "score": 5,
+  "cost": 3.41e-05,
+  "expected": "negative",
+  "tokens": {
+    "input": 117,
+    "output": 56
+  }
+}

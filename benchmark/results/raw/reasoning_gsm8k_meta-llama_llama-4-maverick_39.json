@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "To solve this problem, let's start by identifying the information given and then work through it step by step.\n\n1. Madeline ate 6 grapes.\n2. Her brother used 5 times as many grapes as Madeline to make grape juice. So, he used 5 * 6 = 30 grapes.\n3. The total number of grapes used by Madeline and her brother is 6 + 30 = 36 grapes.\n4. The remaining grapes were used by their mother to make 4 pies, and each pie requires 12 grapes. So, the total number of grapes used for the pies is 4 * 12 = 48 grapes.\n5. To find the initial number of grapes, we need to add the grapes used by Madeline, her brother, and their mother. So, the total number of grapes at the beginning = 36 (used by Madeline and her brother) + 48 (used by their mother) = 84 grapes.\n\nANSWER: 84",
+  "score": 0,
+  "cost": 0.00013815,
+  "expected": "84",
+  "tokens": {
+    "input": 109,
+    "output": 203
+  }
+}

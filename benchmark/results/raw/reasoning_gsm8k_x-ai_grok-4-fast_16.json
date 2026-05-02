@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Total books bought: $300 \u00f7 $15 = 20 books.  \nBooks per child: 20 \u00f7 4 = 5 books.  \n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.00018920000000000002,
+  "expected": "5",
+  "tokens": {
+    "input": 234,
+    "output": 178
+  }
+}

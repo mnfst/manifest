@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "ner_extraction",
+  "case": 26,
+  "response": "{\"persons\":[],\"organizations\":[\"The Supreme Court\",\"ACLU\"],\"locations\":[\"State of Texas\"]}",
+  "score": 4,
+  "cost": 0.002502,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 295
+  }
+}

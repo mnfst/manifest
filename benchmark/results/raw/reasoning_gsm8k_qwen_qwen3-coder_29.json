@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "I need to find the number of yellow cars in the bumper car rink.\n\nLet me work through this step by step.\n\nGiven information:\n- 12 red cars\n- 2 fewer green cars than red cars\n- 3 times the number of blue cars as green cars\n- Total of 75 cars\n- Need to find the number of yellow cars\n\nStep 1: Find the number of green cars.\nGreen cars = Red cars - 2\nGreen cars = 12 - 2 = 10\n\nStep 2: Find the number of blue cars.\nBlue cars = 3 \u00d7 Green cars\nBlue cars = 3 \u00d7 10 = 30\n\nStep 3: Find the number of yellow cars.\nTotal cars = Red cars + Green cars + Blue cars + Yellow cars\n75 = 12 + 10 + 30 + Yellow cars\n75 = 52 + Yellow cars\nYellow cars = 75 - 52 = 23\n\nLet me verify: 12 + 10 + 30 + 23 = 75 \u2713\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.00023957999999999998,
+  "expected": "23",
+  "tokens": {
+    "input": 113,
+    "output": 244
+  }
+}

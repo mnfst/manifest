@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "",
+  "score": 0,
+  "cost": 0.00072732,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 400
+  }
+}

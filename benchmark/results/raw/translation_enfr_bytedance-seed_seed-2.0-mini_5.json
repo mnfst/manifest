@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocs issus de temps de r\u00e9tention de boues (SRT) plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et se sont av\u00e9r\u00e9s poss\u00e9der une couche d'EPS dense couvrant une grande partie de leur surface.",
+  "score": 5,
+  "cost": 0.0017894,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 4450
+  }
+}

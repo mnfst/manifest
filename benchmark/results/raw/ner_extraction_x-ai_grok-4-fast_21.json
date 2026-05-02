@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "{\"persons\":[\"Picasso\",\"Monet\"],\"organizations\":[\"The Metropolitan Museum of Art\"],\"locations\":[\"New York\"]}",
+  "score": 5,
+  "cost": 0.00023000000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 222,
+    "output": 232
+  }
+}

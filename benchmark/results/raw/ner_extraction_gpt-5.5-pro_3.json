@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 3,
+  "response": "{\"persons\":[\"Maria Garcia\"],\"organizations\":[\"Microsoft\",\"ACM\"],\"locations\":[\"Seattle\"]}",
+  "score": 5,
+  "cost": 0.003985,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 181
+  }
+}

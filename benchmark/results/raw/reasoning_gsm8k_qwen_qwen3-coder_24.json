@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "I need to find the profit the class made from selling lollipops.\n\nLet me break this down step by step:\n\nFirst, let me find the total number of lollipops sold:\n- 30 students\n- Each student sold 10 lollipops on average\n- Total lollipops sold = 30 \u00d7 10 = 300 lollipops\n\nNext, let me calculate the total revenue from selling the lollipops:\n- Selling price per lollipop = $0.8\n- Total revenue = 300 \u00d7 $0.8 = $240\n\nNow, let me calculate the total cost of buying the lollipops:\n- Cost price per lollipop = $0.5\n- Total cost = 300 \u00d7 $0.5 = $150\n\nFinally, let me find the profit:\n- Profit = Total revenue - Total cost\n- Profit = $240 - $150 = $90\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.00022132,
+  "expected": "90",
+  "tokens": {
+    "input": 126,
+    "output": 220
+  }
+}

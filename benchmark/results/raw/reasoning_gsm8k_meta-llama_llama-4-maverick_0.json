@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "To find the total amount of money raised, we need to determine how much each girl raised and then sum those amounts.\n\n1. Alexandra raised $430.\n2. Kim raised $320 more than Alexandra, so Kim raised $430 + $320 = $750.\n3. Sarah raised $300.\n4. Maryam raised $400 more than Sarah, so Maryam raised $300 + $400 = $700.\n\nNow, let's add up the amounts raised by all the girls:\n- Alexandra raised $430.\n- Kim raised $750.\n- Sarah raised $300.\n- Maryam raised $700.\n\nTotal = $430 + $750 + $300 + $700 = $2180.\n\nANSWER: 2180",
+  "score": 0,
+  "cost": 0.00010214999999999999,
+  "expected": "2280",
+  "tokens": {
+    "input": 97,
+    "output": 146
+  }
+}

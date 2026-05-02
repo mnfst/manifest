@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "intent_clinc150",
+  "case": 40,
+  "response": "mpg",
+  "score": 5,
+  "cost": 0.00011286,
+  "expected": "mpg",
+  "tokens": {
+    "input": 505,
+    "output": 2
+  }
+}

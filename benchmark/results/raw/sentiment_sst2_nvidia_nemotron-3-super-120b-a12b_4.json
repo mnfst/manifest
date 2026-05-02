@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sentiment_sst2",
+  "case": 4,
+  "response": "We need to classify sentiment of the given text: \"all that 's missing is the spontane",
+  "score": 0,
+  "cost": 7.56e-06,
+  "expected": "negative",
+  "tokens": {
+    "input": 64,
+    "output": 20
+  }
+}

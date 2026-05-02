@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "I need to find how many copies Harald sold, given that Marilyn's record sold 10 times as many copies as Harald's, and together they sold 88,000 copies.\n\nLet me define variables:\n- Let H = number of copies Harald sold\n- Let M = number of copies Marilyn sold\n\nFrom the problem, I can set up two equations:\n1) M = 10H (Marilyn sold 10 times as many as Harald)\n2) H + M = 88,000 (combined total)\n\nNow I'll substitute equation 1 into equation 2:\nH + M = 88,000\nH + 10H = 88,000\n11H = 88,000\nH = 88,000 \u00f7 11\nH = 8,000\n\nLet me verify this answer:\n- Harald sold: 8,000 copies\n- Marilyn sold: 10 \u00d7 8,000 = 80,000 copies\n- Combined total: 8,000 + 80,000 = 88,000 copies \u2713\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.00025916000000000003,
+  "expected": "8000",
+  "tokens": {
+    "input": 82,
+    "output": 274
+  }
+}

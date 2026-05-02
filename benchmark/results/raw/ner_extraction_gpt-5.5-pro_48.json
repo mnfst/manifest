@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 48,
+  "response": "{\"persons\":[],\"organizations\":[\"TSMC\",\"Department of Commerce\"],\"locations\":[\"Phoenix\",\"Arizona\"]}",
+  "score": 5,
+  "cost": 0.00582,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 272
+  }
+}

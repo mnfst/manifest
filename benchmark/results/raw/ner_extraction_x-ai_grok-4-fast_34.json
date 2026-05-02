@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "{\"persons\": [\"Gordon Ramsay\"], \"organizations\": [\"Bellagio\"], \"locations\": [\"Las Vegas\"]}",
+  "score": 4,
+  "cost": 0.0004534,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 512
+  }
+}

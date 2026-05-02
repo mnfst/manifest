@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "I need to find how many books each child received. Let me work through this step by step.\n\nFirst, I'll find the total number of books Sarah bought:\n- Total spent: $300\n- Cost per book: $15\n- Total number of books = $300 \u00f7 $15 = 20 books\n\nNext, I'll find how many books each child received:\n- Total books: 20\n- Number of children: 4\n- Books per child = 20 \u00f7 4 = 5 books\n\nLet me verify this makes sense:\n- 20 books \u00d7 $15 per book = $300 \u2713\n- 4 children \u00d7 5 books each = 20 books total \u2713\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00016522,
+  "expected": "5",
+  "tokens": {
+    "input": 91,
+    "output": 165
+  }
+}

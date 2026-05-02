@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\"persons\": [\"Serena Williams\"], \"organizations\": [\"ESPY\"], \"locations\": [\"Los Angeles\"]}",
+  "score": 5,
+  "cost": 0.00031120000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 268,
+    "output": 322
+  }
+}

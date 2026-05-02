@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 20,
+  "response": "{\"persons\": [\"Sundar Pichai\"], \"organizations\": [\"Google\"], \"locations\": [\"Malaysia\"]}",
+  "score": 5,
+  "cost": 0.00015360000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 224,
+    "output": 136
+  }
+}

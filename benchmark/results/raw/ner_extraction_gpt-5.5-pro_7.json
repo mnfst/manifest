@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 7,
+  "response": "{\"persons\":[\"Lionel Messi\"],\"organizations\":[\"Inter Miami\",\"New York Red Bulls\"],\"locations\":[\"Chase Stadium\",\"Fort Lauderdale\"]}",
+  "score": 5,
+  "cost": 0.002655,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 114
+  }
+}

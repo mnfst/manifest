@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate Rafaela's total tips.**\nRafaela received a $20 tip from each of the 40 customers.\n$40 \\text{ customers} \\times \\$20/\\text{customer} = \\$800$\n\n**Step 2: Calculate Julieta's total tips.**\nJulieta received 10% less than Rafaela. First, find 10% of Rafaela's total:\n$10\\% \\text{ of } \\$800 = 0.10 \\times 800 = \\$80$\nSubtract this amount from Rafaela's total to find Julieta's tips:\n$\\$800 - \\$80 = \\$720$\n\n**Step 3: Calculate the combined total.**\nAdd Rafaela's and Julieta's tips together:\n$\\$800 + \\$720 = \\$1,520$\n\nANSWER: 1520",
+  "score": 0,
+  "cost": 0.0018947500000000002,
+  "expected": "1520",
+  "tokens": {
+    "input": 102,
+    "output": 1432
+  }
+}

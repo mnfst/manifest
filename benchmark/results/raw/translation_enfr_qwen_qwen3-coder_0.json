@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je veux le faire.",
+  "score": 5,
+  "cost": 1.958e-05,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 13
+  }
+}

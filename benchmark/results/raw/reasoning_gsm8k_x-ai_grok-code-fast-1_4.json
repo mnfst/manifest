@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Mariah used 1/4 of a skein, and her grandma used 1/2 of a skein. Together, they used 1/4 + 1/2 = 3/4 of a skein. There are 364 yards in a skein, so the total yards used is (3/4) \u00d7 364.\n\nFirst, calculate 364 \u00f7 4 = 91.  \nThen, 91 \u00d7 3 = 273.\n\nANSWER: 273",
+  "score": 0,
+  "cost": 0.0002912,
+  "expected": "273",
+  "tokens": {
+    "input": 296,
+    "output": 290
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Source : examplereferenceletter.com",
+  "score": 5,
+  "cost": 0.000394545,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 219
+  }
+}

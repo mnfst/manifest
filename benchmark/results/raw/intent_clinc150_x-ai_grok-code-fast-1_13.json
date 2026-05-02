@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "intent_clinc150",
+  "case": 13,
+  "response": "nutrition_info",
+  "score": 5,
+  "cost": 0.0002254,
+  "expected": "nutrition_info",
+  "tokens": {
+    "input": 707,
+    "output": 105
+  }
+}

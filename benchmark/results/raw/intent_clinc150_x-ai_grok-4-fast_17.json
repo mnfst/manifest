@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "intent_clinc150",
+  "case": 17,
+  "response": "todo_list",
+  "score": 0,
+  "cost": 0.0003024,
+  "expected": "reminder",
+  "tokens": {
+    "input": 660,
+    "output": 213
+  }
+}

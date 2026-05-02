@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "To solve this problem, we need to determine how many pomelos Eve gave away. Let's go through the steps:\n\n1. **Determine the number of pomelos Eve is left with:**\n   - Eve is left with 1/4 of the 20 pomelos she originally had.\n   - 1/4 of 20 is calculated as: \n     \\[\n     \\frac{1}{4} \\times 20 = 5 \\text{ pomelos}\n     \\]\n\n2. **Calculate the number of pomelos Eve gave away:**\n   - Eve originally had 20 pomelos.\n   - She is left with 5 pomelos.\n   - The number of pomelos she gave away is:\n     \\[\n     20 - 5 = 15 \\text{ pomelos}\n     \\]\n\nThus, Eve gave away 15 pomelos.\n\nANSWER: 15",
+  "score": 0,
+  "cost": 0.0009349600000000001,
+  "expected": "15",
+  "tokens": {
+    "input": 91,
+    "output": 202
+  }
+}

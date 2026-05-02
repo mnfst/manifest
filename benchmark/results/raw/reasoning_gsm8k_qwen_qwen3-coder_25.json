@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "I need to work through this step by step.\n\nStep 1: Find the loan amount.\nJohn's house is worth $250,000 and he gets a loan worth 40% of that.\nLoan amount = $250,000 \u00d7 0.40 = $100,000\n\nStep 2: Find how much he used to pay off debts.\nHe uses 60% of the loan to pay off his debts.\nAmount used for debts = $100,000 \u00d7 0.60 = $60,000\n\nStep 3: Find how much money he had leftover.\nThe leftover amount is the loan amount minus what he used for debts.\nLeftover amount = $100,000 - $60,000 = $40,000\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.00019426,
+  "expected": "40,000",
+  "tokens": {
+    "input": 111,
+    "output": 193
+  }
+}

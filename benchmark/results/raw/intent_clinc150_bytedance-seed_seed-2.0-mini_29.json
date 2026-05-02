@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "intent_clinc150",
+  "case": 29,
+  "response": "recipe",
+  "score": 5,
+  "cost": 0.0001106,
+  "expected": "recipe",
+  "tokens": {
+    "input": 602,
+    "output": 126
+  }
+}

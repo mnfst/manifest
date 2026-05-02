@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "I need to find how many pomelos Eve gave away.\n\nLet me start by identifying what I know:\n- Eve originally had 20 pieces of pomelos\n- After giving some away, she has 1/4 of what she originally had\n- I need to find how many she gave away\n\nFirst, let me find how many pomelos Eve has left:\nShe has 1/4 of her original amount\n1/4 \u00d7 20 = 20/4 = 5 pomelos left\n\nNow I can find how many she gave away:\nOriginal amount - Amount left = Amount given away\n20 - 5 = 15 pomelos\n\nLet me verify this answer:\n- Eve started with 20 pomelos\n- She gave away 15 pomelos\n- She has 5 pomelos left\n- 5 is indeed 1/4 of 20 (since 20 \u00f7 4 = 5) \u2713\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.0002101,
+  "expected": "15",
+  "tokens": {
+    "input": 91,
+    "output": 216
+  }
+}

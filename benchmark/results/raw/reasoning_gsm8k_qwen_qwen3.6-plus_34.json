@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Determine the cost of the food.**\nThe problem states that the friends spent $4.50 less on food than on the tickets.\nCost of tickets = $20.25\nCost of food = $20.25 - $4.50 = $15.75\n\n**Step 2: Determine the cost of the rides.**\nThey went on 2 rides that cost $33 each.\nCost of rides = 2 * $33 = $66.00\n\n**Step 3: Calculate the total amount spent.**\nAdd the cost of the tickets, food, and rides together.\nTotal Cost = $20.25 (tickets) + $15.75 (food) + $66.00 (rides)\nTotal Cost = $36.00 + $66.00\nTotal Cost = $102.00\n\n**Step 4: Calculate how much each friend paid.**\nThere are 3 friends splitting the total cost evenly.\nCost per person = $102.00 / 3\nCost per person = $34.00\n\nANSWER: 34",
+  "score": 2,
+  "cost": 0.0019695,
+  "expected": "34",
+  "tokens": {
+    "input": 116,
+    "output": 1486
+  }
+}

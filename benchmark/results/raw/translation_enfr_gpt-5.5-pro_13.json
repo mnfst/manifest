@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Dites simplement \u00e0 Kumagaya que le d\u00e9tective est l\u00e0.",
+  "score": 5,
+  "cost": 0.00593,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 287
+  }
+}

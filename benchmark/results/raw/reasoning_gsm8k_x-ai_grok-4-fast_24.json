@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Total lollipops sold: 30 students \u00d7 10 lollipops each = 300 lollipops.  \nProfit per lollipop: $0.8 - $0.5 = $0.3.  \nTotal profit: 300 \u00d7 $0.3 = $90.  \n\nANSWER: 90",
+  "score": 0,
+  "cost": 0.00023240000000000004,
+  "expected": "90",
+  "tokens": {
+    "input": 266,
+    "output": 224
+  }
+}

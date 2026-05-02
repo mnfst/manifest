@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Sector Source est un site web de ressources destin\u00e9 \u00e0 aider ceux qui dirigent des \u0153uvres de bienfaisance et des organismes \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur\u2026",
+  "score": 5,
+  "cost": 7.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 44
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "ner_extraction",
+  "case": 33,
+  "response": "```json\n{\n    \"persons\": [],\n    \"organizations\": [\"International Monetary Fund\"],\n    \"locations\": [\"Latin America\"]\n}\n```",
+  "score": 5,
+  "cost": 2.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 29
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "intent_clinc150",
+  "case": 46,
+  "response": "calculator",
+  "score": 5,
+  "cost": 0.00053664,
+  "expected": "calculator",
+  "tokens": {
+    "input": 512,
+    "output": 1
+  }
+}

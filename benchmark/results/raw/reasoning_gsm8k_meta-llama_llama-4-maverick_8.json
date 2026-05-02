@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To solve this problem, we need to calculate the number of students enrolled this year after a 20% increase from last year's enrollment.\n\nStep 1: Identify the number of students enrolled last year.\nLast year, there were 50 students enrolled.\n\nStep 2: Calculate the increase in enrollment.\nThe increase is 20% of 50 students. To find 20% of 50, we multiply 50 by 0.20 (since 20% = 20/100 = 0.20).\n20% of 50 = 50 * 0.20 = 10 students.\n\nStep 3: Add the increase to the number of students enrolled last year to find the total enrollment this year.\nTotal enrollment this year = last year's enrollment + increase = 50 + 10 = 60 students.\n\nTherefore, the total number of students enrolled this year in the calligraphy class is 60.\n\nANSWER: 60",
+  "score": 0,
+  "cost": 0.0001272,
+  "expected": "60",
+  "tokens": {
+    "input": 84,
+    "output": 191
+  }
+}

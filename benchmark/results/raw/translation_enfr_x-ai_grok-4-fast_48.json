@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 48,
+  "response": "- Choisissez l'une de ces Renault \u00e0 louer \u00e0 Galati ou dans d'autres villes telles que : Arad, Timisoara, Sibiu, Oradea, Brasov, Bucarest, Iasi ou Suceava et vous arriverez \u00e0 votre destination en un rien de temps. De plus, vous \u00e9conomiserez beaucoup d'argent que vous pourriez d\u00e9penser pour autre chose.",
+  "score": 5,
+  "cost": 0.00047840000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 244,
+    "output": 537
+  }
+}

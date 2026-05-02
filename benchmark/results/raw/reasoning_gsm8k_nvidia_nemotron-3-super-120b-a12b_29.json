@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "We need to parse problem: 12 red cars. Green cars: 2 fewer than red => green = red - 2 = 12 - 2 = 10. Blue cars: 3 times the number of blue.",
+  "score": 3,
+  "cost": 1.539e-05,
+  "expected": "23",
+  "tokens": {
+    "input": 120,
+    "output": 51
+  }
+}

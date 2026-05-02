@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "TV time per session: 2 hours  \nReading time per session: half of 2 hours = 1 hour  \nTotal time per session: 2 + 1 = 3 hours  \nSessions per week: 3  \nTotal time per week: 3 sessions \u00d7 3 hours = 9 hours  \nTotal time in 4 weeks: 4 weeks \u00d7 9 hours = 36 hours  \n\nANSWER: 36",
+  "score": 0,
+  "cost": 0.0002202,
+  "expected": "36",
+  "tokens": {
+    "input": 237,
+    "output": 216
+  }
+}

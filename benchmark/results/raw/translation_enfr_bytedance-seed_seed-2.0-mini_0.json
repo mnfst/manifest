@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je veux le faire.",
+  "score": 5,
+  "cost": 0.0003135,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 764
+  }
+}

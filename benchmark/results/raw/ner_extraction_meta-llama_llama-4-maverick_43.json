@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "ner_extraction",
+  "case": 43,
+  "response": "```json\n{\n    \"persons\": [\"Satya Nadella\"],\n    \"organizations\": [\"Microsoft\", \"OpenAI\"],\n    \"locations\": []\n}\n```",
+  "score": 5,
+  "cost": 3.1200000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 33
+  }
+}

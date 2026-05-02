@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "L'\u00e9vasion fiscale a augment\u00e9 en Tunisie, causant un manque significatif en termes de ressources publiques, a d\u00e9clar\u00e9 l'ancien chef du gouvernement int\u00e9rimaire Ali Larayedh en juin 2013, cit\u00e9 par le journal Business Flood.",
+  "score": 5,
+  "cost": 0.000322,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 349
+  }
+}

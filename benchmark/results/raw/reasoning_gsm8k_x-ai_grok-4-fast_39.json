@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "Madeline ate 6 grapes.\n\nHer brother used 5 times as many grapes as Madeline, which is \\(5 \\times 6 = 30\\) grapes.\n\nThe mother used the remaining grapes to make 4 pies, and each pie requires 12 grapes, so the remaining grapes needed are \\(4 \\times 12 = 48\\).\n\nLet \\(T\\) be the total number of grapes at the beginning.\n\nAfter Madeline and her brother, the grapes left are \\(T - 6 - 30 = T - 36\\).\n\nThis equals 48, so \\(T - 36 = 48\\).\n\nThus, \\(T = 48 + 36 = 84\\).\n\nANSWER: 84",
+  "score": 0,
+  "cost": 0.00036980000000000004,
+  "expected": "84",
+  "tokens": {
+    "input": 253,
+    "output": 399
+  }
+}

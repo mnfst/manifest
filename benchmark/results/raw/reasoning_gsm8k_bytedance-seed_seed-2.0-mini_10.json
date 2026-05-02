@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "Let's solve this step by step:\n\n1.  **Find the daily water removal for each setting**:\n    - Low setting: Given as 1 liter per day.\n    - Medium setting: Twice the low setting, so 1 * 2 = 2 liters per day.\n    - High setting: Twice the medium setting, so 2 * 2 = 4 liters per day.\n\n2.  Calculate total water removed on each setting:\n    - Low: 3 days * 1 L/day = 3 liters\n    - Medium: 3 days * 2 L/day = 6 liters\n    - High: 5 days * 4 L/day = 20 liters\n\n3.  Add together the totals from all settings:\n    3 + 6 + 20 = 29\n\nANSWER: 29",
+  "score": 0,
+  "cost": 0.00027519999999999997,
+  "expected": "29",
+  "tokens": {
+    "input": 248,
+    "output": 626
+  }
+}

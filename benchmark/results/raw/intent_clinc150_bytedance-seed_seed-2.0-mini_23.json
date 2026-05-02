@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 0.0003978000000000001,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 606,
+    "output": 843
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Le programme d'nutrition urbaine de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et promeut l'octroi de cr\u00e9dits \u00e0 des groupes de femmes qui commercialisent des aliments.",
+  "score": 4,
+  "cost": 0.00024128000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 45
+  }
+}

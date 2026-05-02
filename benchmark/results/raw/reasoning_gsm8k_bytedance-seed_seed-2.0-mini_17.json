@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "Let's solve this step by step:\n1.  Calculate the total cost of the books: Ted buys 3 books at $16 each. This is $16 * 3 = $48.\n2.  Calculate the total cost of the pencils: He buys 3 pencils at $6 each. This is $6 *3 = $18.\n3.  Add these two totals together to find the total amount spent: $48 + $18 = $66.\n\nANSWER: 66",
+  "score": 0,
+  "cost": 0.00017510000000000003,
+  "expected": "66",
+  "tokens": {
+    "input": 123,
+    "output": 407
+  }
+}

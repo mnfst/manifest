@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sentiment_sst2",
+  "case": 1,
+  "response": "positive",
+  "score": 5,
+  "cost": 7.8e-05,
+  "expected": "positive",
+  "tokens": {
+    "input": 71,
+    "output": 1
+  }
+}

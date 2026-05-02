@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(MPG)\nFROM cars_data\nWHERE Cylinders = 4;",
+  "score": 5,
+  "cost": 0.005865,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 274
+  }
+}

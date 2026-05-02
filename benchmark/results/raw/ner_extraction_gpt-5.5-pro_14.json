@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 14,
+  "response": "{\"persons\":[\"Jerome Powell\"],\"organizations\":[\"Federal Reserve\",\"Congress\"],\"locations\":[\"Washington DC\"]}",
+  "score": 5,
+  "cost": 0.00283,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 124
+  }
+}

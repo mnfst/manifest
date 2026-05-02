@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Tickets cost: $20.25  \nFood cost: $20.25 - $4.50 = $15.75  \nRides cost: 2 \u00d7 $33 = $66  \nTotal cost: $20.25 + $15.75 + $66 = $102  \nEach friend pays: $102 \u00f7 3 = $34  \n\nANSWER: 34",
+  "score": 0,
+  "cost": 0.0003836,
+  "expected": "34",
+  "tokens": {
+    "input": 302,
+    "output": 404
+  }
+}

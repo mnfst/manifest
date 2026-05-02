@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "I need to find out how old Ann's brother will be in 3 years.\n\nLet me work through this step by step:\n\nStep 1: Find Ann's current age.\nAnn is 9 years old.\n\nStep 2: Find her brother's current age.\nHer brother is twice her age, so:\nBrother's age = 2 \u00d7 Ann's age = 2 \u00d7 9 = 18 years old\n\nStep 3: Find her brother's age in 3 years.\nIn 3 years, her brother will be:\nBrother's current age + 3 = 18 + 3 = 21 years old\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.00013859999999999998,
+  "expected": "21",
+  "tokens": {
+    "input": 70,
+    "output": 140
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "intent_clinc150",
+  "case": 9,
+  "response": "weather",
+  "score": 5,
+  "cost": 0.00019380000000000002,
+  "expected": "weather",
+  "tokens": {
+    "input": 661,
+    "output": 77
+  }
+}

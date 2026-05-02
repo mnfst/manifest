@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Ann is currently 9 years old. Her brother is twice her age, so his current age is 9 \u00d7 2 = 18 years old. In 3 years, he will be 18 + 3 = 21 years old.\n\nANSWER: 21",
+  "score": 0,
+  "cost": 0.00027318,
+  "expected": "21",
+  "tokens": {
+    "input": 64,
+    "output": 141
+  }
+}

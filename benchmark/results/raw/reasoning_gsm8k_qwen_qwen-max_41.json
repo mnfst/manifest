@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "To solve this problem, let's define the variables and set up an equation based on the information given.\n\nLet \\(H\\) represent the number of copies Harald sold. According to the problem, Marilyn's first record sold 10 times as many copies as Harald's, so Marilyn sold \\(10H\\) copies.\n\nThe total number of copies sold by both Marilyn and Harald combined is 88,000. Therefore, we can write the equation:\n\\[H + 10H = 88,000\\]\n\nSimplifying the equation:\n\\[11H = 88,000\\]\n\nTo find the value of \\(H\\), we divide both sides of the equation by 11:\n\\[H = \\frac{88,000}{11}\\]\n\\[H = 8,000\\]\n\nSo, Harald sold 8,000 copies.\n\nANSWER: 8000",
+  "score": 0,
+  "cost": 0.00092976,
+  "expected": "8000",
+  "tokens": {
+    "input": 82,
+    "output": 203
+  }
+}

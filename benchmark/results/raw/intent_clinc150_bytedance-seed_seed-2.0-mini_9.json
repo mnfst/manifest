@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "intent_clinc150",
+  "case": 9,
+  "response": "weather",
+  "score": 5,
+  "cost": 7.77e-05,
+  "expected": "weather",
+  "tokens": {
+    "input": 605,
+    "output": 43
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "Wheels needed for cars: 57 \u00d7 4 = 228  \nWheels needed for motorcycles: 73 \u00d7 2 = 146  \nTotal wheels needed: 228 + 146 = 374  \nWheels left: 650 - 374 = 276  \n\nANSWER: 276",
+  "score": 0,
+  "cost": 0.0002018,
+  "expected": "276",
+  "tokens": {
+    "input": 249,
+    "output": 190
+  }
+}

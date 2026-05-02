@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 31,
+  "response": "{\"persons\": [], \"organizations\": [\"Samsung Electronics\"], \"locations\": [\"South Korea\"]}",
+  "score": 5,
+  "cost": 0.00014460000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 126
+  }
+}

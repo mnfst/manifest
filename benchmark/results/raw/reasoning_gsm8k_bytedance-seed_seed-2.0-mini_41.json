@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let's solve this problem step-by-step:\n\n1.  **Define variables**: Let $H$ = number of copies Harald sold. Marilyn sold 10 times as many, so her sales are $10H$.\n2.  Set up the combined sales equation: The total copies sold together are 88,000, so:\n    $H + 10H = 88000$\n3.  Simplify and solve for $H$:\n    Combine like terms: $11H = 88000$\n    Divide both sides by 11: $H = \\frac{88000}{11} = 8000$\n\nWe can verify: Harald sold 8,000 copies, Marilyn sold 10*8000=80,000 copies, and 8,000 +80,000 =88,000 which matches the combined sales given.\n\nANSWER: 8000",
+  "score": 0,
+  "cost": 0.000195,
+  "expected": "8000",
+  "tokens": {
+    "input": 122,
+    "output": 457
+  }
+}

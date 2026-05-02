@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "La sous-section 104(1.1) est modifi\u00e9e pour pr\u00e9ciser qu'elle s'applique nonobstant la sous-section 248(25) de la Loi. La sous-section 248(25) de la Loi d\u00e9crit, \u00e0 d'autres fins de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est consid\u00e9r\u00e9e comme \u00e9tant \u00ab int\u00e9ress\u00e9e au b\u00e9n\u00e9fice \u00bb dans une fiducie.",
+  "score": 5,
+  "cost": 0.0005764000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 238,
+    "output": 661
+  }
+}

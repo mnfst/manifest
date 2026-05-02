@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "To solve this problem, we need to determine how much Elvis needs to save each day in the second half of the month to meet his monthly saving target of $1125.\n\n1. **Determine the number of days in each half of the month:**\n   - April has 30 days.\n   - The first half of April has 15 days.\n   - The second half of April also has 15 days.\n\n2. **Let \\( x \\) be the amount Elvis saves each day in the first half of the month.**\n   - Therefore, in the first half, he saves \\( 15x \\) dollars.\n\n3. **In the second half, he saves twice as much daily as in the first half.**\n   - So, in the second half, he saves \\( 2x \\) per day.\n   - Therefore, in the second half, he saves \\( 15 \\times 2x = 30x \\) dollars.\n\n4. **Set up the equation for the total savings to meet the target:**\n   - The total savings for the month is the sum of the savings in the first half and the second half.\n   - This gives us the equation: \\( 15x + 30x = 1125 \\).\n\n5. **Solve for \\( x \\):**\n   \\[\n   15x + 30x = 1125\n   \\]\n   \\[\n   45x = 1125\n   \\]\n   \\[\n   x = \\frac{1125}{45}\n   \\]\n   \\[\n   x = 25\n   \\]\n\n6. **Determine the daily savings in the second half:**\n   - Since \\( x = 25 \\), the amount saved each day in the second half is \\( 2x \\).\n   - Therefore, \\( 2x = 2 \\times 25 = 50 \\).\n\nThus, Elvis has to save $50 each day in the second half of the month.\n\nANSWER: 50",
+  "score": 0,
+  "cost": 0.0019510400000000002,
+  "expected": "50",
+  "tokens": {
+    "input": 104,
+    "output": 443
+  }
+}

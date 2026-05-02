@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "intent_clinc150",
+  "case": 2,
+  "response": "report_lost_card",
+  "score": 5,
+  "cost": 0.00034970000000000004,
+  "expected": "report_lost_card",
+  "tokens": {
+    "input": 512,
+    "output": 141
+  }
+}

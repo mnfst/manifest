@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "intent_clinc150",
+  "case": 1,
+  "response": "find_phone",
+  "score": 5,
+  "cost": 0.0003828,
+  "expected": "find_phone",
+  "tokens": {
+    "input": 572,
+    "output": 77
+  }
+}

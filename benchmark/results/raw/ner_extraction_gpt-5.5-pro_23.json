@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 23,
+  "response": "{\"persons\":[\"Taylor Swift\"],\"organizations\":[],\"locations\":[\"Wembley Stadium\",\"London\"]}",
+  "score": 4,
+  "cost": 0.002965,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 130
+  }
+}

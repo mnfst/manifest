@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "To solve this problem, let's break it down into steps.\n\n1. **Calculate the cost of the tickets**: The cost of 3 tickets to the fair is $20.25.\n\n2. **Calculate the cost of food**: They spent $4.50 less on food than on the tickets. So, the cost of food = cost of tickets - $4.50 = $20.25 - $4.50 = $15.75.\n\n3. **Calculate the cost of the rides**: They went on 2 rides at $33 each. So, the total cost for the rides = 2 * $33 = $66.\n\n4. **Calculate the total cost**: The total cost = cost of tickets + cost of food + cost of rides = $20.25 + $15.75 + $66 = $102.\n\n5. **Calculate the cost per person**: Since they agreed to split all the costs evenly among the 3 friends, the cost per person = total cost / 3 = $102 / 3 = $34.\n\nANSWER: 34",
+  "score": 0,
+  "cost": 0.00014759999999999998,
+  "expected": "34",
+  "tokens": {
+    "input": 108,
+    "output": 219
+  }
+}

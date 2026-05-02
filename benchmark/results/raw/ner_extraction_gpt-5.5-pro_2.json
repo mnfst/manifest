@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 2,
+  "response": "{\"persons\":[],\"organizations\":[\"Google DeepMind\",\"Nature\"],\"locations\":[]}",
+  "score": 4,
+  "cost": 0.003525,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 159
+  }
+}

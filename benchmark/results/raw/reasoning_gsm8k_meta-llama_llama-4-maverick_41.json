@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "To solve this problem, let's denote the number of copies Harald's record sold as \\(H\\) and the number of copies Marilyn's record sold as \\(M\\).\n\nStep 1: Understand the given information.\n- Marilyn's record sold 10 times as many copies as Harald's. So, \\(M = 10H\\).\n- The total number of copies sold by both is 88,000. So, \\(M + H = 88,000\\).\n\nStep 2: Substitute \\(M\\) from the first equation into the second equation to find \\(H\\).\nSince \\(M = 10H\\), substituting \\(M\\) in the second equation gives us \\(10H + H = 88,000\\).\n\nStep 3: Simplify and solve for \\(H\\).\nCombining like terms, we get \\(11H = 88,000\\).\nTo find \\(H\\), we divide both sides by 11: \\(H = \\frac{88,000}{11}\\).\n\nStep 4: Calculate \\(H\\).\n\\(H = \\frac{88,000}{11} = 8,000\\).\n\nTherefore, Harald sold 8,000 copies.\n\nANSWER: 8000",
+  "score": 0,
+  "cost": 0.0001554,
+  "expected": "8000",
+  "tokens": {
+    "input": 76,
+    "output": 240
+  }
+}

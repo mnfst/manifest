@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie pour les apprentis jeunes dans les PME, les entreprises moyennes et les collectivit\u00e9s locales",
+  "score": 4,
+  "cost": 2.1599999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 24
+  }
+}

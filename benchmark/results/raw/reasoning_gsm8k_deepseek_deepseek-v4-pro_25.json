@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "John's house is worth $250,000. He gets a loan for 40% of that value, which is 0.40 \u00d7 $250,000 = $100,000. He uses 60% of the loan to pay off debts: 0.60 \u00d7 $100,000 = $60,000. The leftover money is the loan amount minus the debt payment: $100,000 - $60,000 = $40,000.\n\nANSWER: 40000",
+  "score": 0,
+  "cost": 0.00055071,
+  "expected": "40,000",
+  "tokens": {
+    "input": 98,
+    "output": 292
+  }
+}

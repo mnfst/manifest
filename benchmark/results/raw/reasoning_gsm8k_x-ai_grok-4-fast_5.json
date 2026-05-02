@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Initially, there are 50 fairies.\n\nHalf as many as Katelyn saw is 25 fairies, which join the existing group, making a total of 50 + 25 = 75 fairies.\n\nThen, 30 fairies fly away, leaving 75 - 30 = 45 fairies.\n\nANSWER: 45",
+  "score": 0,
+  "cost": 0.00021040000000000002,
+  "expected": "45",
+  "tokens": {
+    "input": 260,
+    "output": 198
+  }
+}

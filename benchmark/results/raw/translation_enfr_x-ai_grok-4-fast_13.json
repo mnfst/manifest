@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Dis simplement \u00e0 Kumagaya que le d\u00e9tective est l\u00e0.",
+  "score": 5,
+  "cost": 0.0002292,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 240
+  }
+}

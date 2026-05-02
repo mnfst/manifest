@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "```json\n{\n  \"persons\": [\"Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"Science\"],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 3.9e-05,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 30
+  }
+}

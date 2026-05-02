@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Let's solve this problem step by step:\n\n1.  **Initial number of fairies**: Katelyn first saw 50 fairies.\n2.  **Fairies that join later**: The problem states half as many as Katelyn's initial count join. Half of 50 is \\(50 \\div 2 = 25\\). Add these to the existing fairies: \\(50 + 25 = 75\\) total fairies now.\n3.  **Fairies that leave**: 30 fairies fly away, so subtract this from the current total: \\(75 - 30 = 45\\).\n\nANSWER: 45",
+  "score": 0,
+  "cost": 0.0002723,
+  "expected": "45",
+  "tokens": {
+    "input": 163,
+    "output": 640
+  }
+}

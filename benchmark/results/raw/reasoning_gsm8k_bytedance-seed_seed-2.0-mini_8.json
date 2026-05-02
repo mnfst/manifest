@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Let's solve this problem step by step:\n1.  First, find the number of additional students this year. A 20% increase means we calculate 20% of last year's enrollment of 50 students.\n    - Convert 20% to a decimal: 20% = 0.20\n    - Calculate 20% of 50: \\(50 \\times 0.20 = 10\\) new students.\n2.  Add this increase to last year's enrollment to get this year's total: \\(50 +10 =60\\)\n\nANSWER: 60",
+  "score": 0,
+  "cost": 0.00017240000000000004,
+  "expected": "60",
+  "tokens": {
+    "input": 128,
+    "output": 399
+  }
+}

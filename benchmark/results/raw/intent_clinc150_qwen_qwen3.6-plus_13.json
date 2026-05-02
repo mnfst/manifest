@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "intent_clinc150",
+  "case": 13,
+  "response": "nutrition_info",
+  "score": 5,
+  "cost": 0.0003211,
+  "expected": "nutrition_info",
+  "tokens": {
+    "input": 508,
+    "output": 120
+  }
+}

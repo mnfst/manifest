@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "intent_clinc150",
+  "case": 36,
+  "response": "insurance",
+  "score": 5,
+  "cost": 9.045e-05,
+  "expected": "insurance",
+  "tokens": {
+    "input": 595,
+    "output": 2
+  }
+}

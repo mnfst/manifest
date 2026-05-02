@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "intent_clinc150",
+  "case": 42,
+  "response": "next_song",
+  "score": 5,
+  "cost": 0.0001122,
+  "expected": "next_song",
+  "tokens": {
+    "input": 502,
+    "output": 2
+  }
+}

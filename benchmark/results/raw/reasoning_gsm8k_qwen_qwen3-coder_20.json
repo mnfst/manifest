@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "I need to find how much Jen spends on fish food in May.\n\nLet me break this down step by step:\n\n1) First, I'll find how many fish Jen has:\n   Jen has 3 fish\n\n2) Next, I'll find the daily food cost per fish:\n   Each fish needs $1 worth of food per day\n\n3) Now I'll calculate the total daily food cost:\n   3 fish \u00d7 $1 per fish = $3 per day\n\n4) I need to know how many days are in May:\n   May has 31 days\n\n5) Finally, I'll calculate the total monthly cost:\n   $3 per day \u00d7 31 days = $93\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.0001496,
+  "expected": "93",
+  "tokens": {
+    "input": 76,
+    "output": 151
+  }
+}

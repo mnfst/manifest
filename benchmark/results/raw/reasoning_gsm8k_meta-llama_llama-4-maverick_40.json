@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "To solve this problem, let's break it down into steps.\n\n1. **Understand the monthly saving target**: Elvis needs to save $1125 in April.\n\n2. **Determine the number of days in April**: April has 30 days.\n\n3. **Divide April into two halves**: The first half consists of the first 15 days, and the second half consists of the last 15 days.\n\n4. **Set up the savings plan**: Let's denote the amount Elvis saves each day in the first half as \\(x\\). Therefore, in the second half, he saves \\(2x\\) each day because he wants to save twice as much daily in the second half as in the first half.\n\n5. **Calculate total savings for the month based on the plan**:\n   - Total savings in the first half = \\(15x\\) (since there are 15 days and he saves \\(x\\) each day).\n   - Total savings in the second half = \\(15 \\times 2x = 30x\\) (since there are 15 days and he saves \\(2x\\) each day).\n   - Total savings for the month = \\(15x + 30x = 45x\\).\n\n6. **Equating the total savings to the target**:\n   - We know the total savings for the month should be $1125. So, \\(45x = 1125\\).\n\n7. **Solve for \\(x\\)**:\n   - \\(x = \\frac{1125}{45} = 25\\).\n\n8. **Calculate the daily savings for the second half**:\n   - Daily savings in the second half = \\(2x = 2 \\times 25 = 50\\).\n\nTherefore, Elvis needs to save $50 each day in the second half of April.\n\nANSWER: 50",
+  "score": 0,
+  "cost": 0.0002343,
+  "expected": "50",
+  "tokens": {
+    "input": 102,
+    "output": 365
+  }
+}

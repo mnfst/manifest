@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "Le dispositif se fixe simplement au repose-t\u00eate du si\u00e8ge du conducteur \u00e0 l'aide d'une sangle \u00e9lastique r\u00e9sistante. Dans ce",
+  "score": 4,
+  "cost": 0.0015886000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 1209
+  }
+}

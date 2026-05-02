@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Let's solve this step-by-step:\n\n1.  First, calculate the total cost before insurance: add the material cost and the construction fee.\n    $500 (materials) + $800 (construction) = $1300\n\n2.  Next, calculate the insurance cost, which is 10% of the pre-insurance total. 10% is equal to 0.10 in decimal form:\n    $1300 * 0.10 = $130\n\n3.  Finally, add the insurance cost to the pre-insurance total to get the full amount Janet paid:\n    $1300 + $130 = $1430\n\nANSWER: 1430",
+  "score": 0,
+  "cost": 0.0002119,
+  "expected": "1430",
+  "tokens": {
+    "input": 147,
+    "output": 493
+  }
+}

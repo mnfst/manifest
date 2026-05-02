@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "intent_clinc150",
+  "case": 36,
+  "response": "insurance",
+  "score": 5,
+  "cost": 0.00030820000000000006,
+  "expected": "insurance",
+  "tokens": {
+    "input": 709,
+    "output": 208
+  }
+}

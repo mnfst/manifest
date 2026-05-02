@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "To solve this problem, we need to follow these steps:\n\n1. Understand the given information: The area of Billie's rectangular bedroom is 360 square feet, and the length of his room is given in yards.\n\n2. Convert the length from yards to feet because the area is given in square feet. Since 1 yard = 3 feet, the length in feet = 3 yards * 3 feet/yard = 9 feet.\n\n3. Use the formula for the area of a rectangle to find the width. The formula for the area (A) of a rectangle is A = length * width. We are given A = 360 square feet and length = 9 feet. So, 360 = 9 * width.\n\n4. Solve for the width: width = 360 / 9 = 40 feet.\n\n5. Calculate the perimeter of the room using the formula for the perimeter (P) of a rectangle: P = 2 * (length + width). Substituting the known values, P = 2 * (9 + 40).\n\n6. Perform the arithmetic: P = 2 * 49 = 98 feet.\n\nTherefore, the perimeter of the room is 98 feet.\n\nANSWER: 98",
+  "score": 0,
+  "cost": 0.0001617,
+  "expected": "98",
+  "tokens": {
+    "input": 78,
+    "output": 250
+  }
+}

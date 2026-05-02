@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "intent_clinc150",
+  "case": 29,
+  "response": "recipe",
+  "score": 5,
+  "cost": 0.00027640000000000005,
+  "expected": "recipe",
+  "tokens": {
+    "input": 706,
+    "output": 169
+  }
+}

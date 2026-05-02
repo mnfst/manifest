@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "### Step-by-Step Solution\n\n1. Calculate Joey's score after his turn:  \n   Joey starts with 214 points and scores 26 more points.  \n   214 + 26 = 240 points.\n\n2. Calculate Marcy's score after her turn:  \n   Marcy starts with 225 points and scores 10 more points.  \n   225 + 10 = 235 points.\n\n3. Determine the difference:  \n   Joey is winning, so subtract Marcy's score from Joey's score.  \n   240 - 235 = 5 points.\n\nJoey is now winning by 5 points.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.00026940000000000004,
+  "expected": "5",
+  "tokens": {
+    "input": 231,
+    "output": 279
+  }
+}

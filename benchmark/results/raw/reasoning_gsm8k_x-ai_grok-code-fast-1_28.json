@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let \\( x \\) be the number of people who got on the bus at the terminal.\n\nAfter the first bus stop, 5 more people got in, so the total is \\( x + 5 \\).\n\nAt the second bus stop, 7 people got down and 8 more got in, so the total becomes \\( x + 5 - 7 + 8 = x + 6 \\).\n\nThis total is 20 people heading to the third stop, so \\( x + 6 = 20 \\).\n\nSolving for \\( x \\): \\( x = 20 - 6 = 14 \\).\n\nANSWER: 14",
+  "score": 0,
+  "cost": 0.00037160000000000003,
+  "expected": "14",
+  "tokens": {
+    "input": 306,
+    "output": 388
+  }
+}

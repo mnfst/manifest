@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers) \n\nNote: \"Hommejeunechh\" seems to be a username or a specific identifier, so it is kept as is in the French translation.",
+  "score": 5,
+  "cost": 0.00027560000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 54
+  }
+}

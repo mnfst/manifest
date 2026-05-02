@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 19,
+  "response": "{\n  \"persons\": [\"Thierry Breton\"],\n  \"organizations\": [\"European Parliament\"],\n  \"locations\": [\"Brussels\"]\n}",
+  "score": 5,
+  "cost": 0.000238,
+  "expected": "",
+  "tokens": {
+    "input": 266,
+    "output": 231
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Let's solve this step by step:\n\n### Step 1: Calculate Betty's points\nAdam has 50 points, and Betty collected 30% more than Adam.\n30% of 50 = 0.3 * 50 = 15\nBetty's points = 50 + 15 = 65\n\n### Step 2: Calculate Tom's points\nTom has 30 points less than Betty.\nTom's points = 65 - 30 = 35\n\n### Step 3: Calculate Marta's points\nMarta collected 3 times more points than Tom (interpreted as 3 times Tom's points, standard in elementary math problems).\nMarta's points = 3 * 35 = 105\n\n### Step 4: Calculate total class points\nAdd the points of all four students:\nAdam (50) + Betty (65) + Tom (35) + Marta (105) = 50 +65 +35 +105 = 255\n\n### Step 5: Calculate missing points\nThe threshold is 400 points.\nMissing points = 400 - 255 = 145\n\nANSWER: 145",
+  "score": 0,
+  "cost": 0.0032015,
+  "expected": "145",
+  "tokens": {
+    "input": 195,
+    "output": 7955
+  }
+}

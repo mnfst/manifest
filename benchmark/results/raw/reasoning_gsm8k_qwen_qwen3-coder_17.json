@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "I need to calculate how much Ted spent in total on books and pencils.\n\nLet me break this down step by step:\n\nFirst, let me calculate the cost of the books:\n- Ted buys 3 books\n- Each book costs $16\n- Total cost for books = 3 \u00d7 $16 = $48\n\nNext, let me calculate the cost of the pencils:\n- Ted buys 3 pencils\n- Each pencil costs $6\n- Total cost for pencils = 3 \u00d7 $6 = $18\n\nNow, let me find the total amount spent:\n- Total spent = Cost of books + Cost of pencils\n- Total spent = $48 + $18 = $66\n\nANSWER: 66",
+  "score": 5,
+  "cost": 0.00015246000000000001,
+  "expected": "66",
+  "tokens": {
+    "input": 81,
+    "output": 153
+  }
+}

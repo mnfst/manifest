@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Let's solve this step by step:\n\n1.  We are told Mike is 24 years old. Martha is 4 years younger than Mike, so calculate Martha's age:\n    $24 - 4 = 20$ years old.\n2.  Jeff is 10 years older than Martha, so calculate Jeff's age:\n    $20 + 10 = 30$ years old.\n\nANSWER: 30",
+  "score": 0,
+  "cost": 0.0001436,
+  "expected": "30",
+  "tokens": {
+    "input": 132,
+    "output": 326
+  }
+}

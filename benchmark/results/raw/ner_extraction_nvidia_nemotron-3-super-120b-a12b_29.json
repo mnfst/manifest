@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Tokyo Stock Exchange\",",
+  "score": 4,
+  "cost": 4.3740000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 400
+  }
+}

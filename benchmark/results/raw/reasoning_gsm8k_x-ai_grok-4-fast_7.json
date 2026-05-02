@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Twenty dozen cups is \\(20 \\times 12 = 240\\) cups.  \nLet \\(C\\) be the cost per cup in dollars.  \nThe total cost of 240 cups is \\(240C\\).  \n\nHalf a dozen plates is \\(0.5 \\times 12 = 6\\) plates.  \nThe total cost of 6 plates at $6000 each is \\(6 \\times 6000 = 36{,}000\\).  \n\nThe cups cost $1200 less than the plates, so:  \n\\[240C = 36{,}000 - 1200 = 34{,}800\\]  \n\\[C = \\frac{34{,}800}{240} = 145\\]  \n\nThe cost of each cup is $145.  \n\nANSWER: 145",
+  "score": 0,
+  "cost": 0.0004486,
+  "expected": "145",
+  "tokens": {
+    "input": 223,
+    "output": 505
+  }
+}

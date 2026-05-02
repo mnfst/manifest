@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 48,
+  "response": "{\"persons\": [], \"organizations\": [\"TSMC\", \"Department of Commerce\"], \"locations\": [\"Phoenix\", \"Arizona\"]}",
+  "score": 4,
+  "cost": 0.0002112,
+  "expected": "",
+  "tokens": {
+    "input": 272,
+    "output": 196
+  }
+}

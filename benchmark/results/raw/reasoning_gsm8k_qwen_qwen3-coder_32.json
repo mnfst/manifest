@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "I need to find the perimeter of Billie's rectangular bedroom given its area and length.\n\nLet me start by identifying what I know:\n- Area = 360 square feet\n- Length = 3 yards\n\nFirst, I need to convert the length to feet since the area is given in square feet.\nSince 1 yard = 3 feet:\nLength = 3 yards \u00d7 3 feet/yard = 9 feet\n\nNow I can find the width using the area formula for a rectangle:\nArea = Length \u00d7 Width\n360 = 9 \u00d7 Width\nWidth = 360 \u00f7 9 = 40 feet\n\nNow I can calculate the perimeter using the perimeter formula for a rectangle:\nPerimeter = 2(Length + Width)\nPerimeter = 2(9 + 40)\nPerimeter = 2(49)\nPerimeter = 98 feet\n\nANSWER: 98",
+  "score": 5,
+  "cost": 0.00018678,
+  "expected": "98",
+  "tokens": {
+    "input": 81,
+    "output": 192
+  }
+}

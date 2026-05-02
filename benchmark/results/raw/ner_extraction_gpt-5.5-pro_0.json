@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "{\"persons\":[\"Tim Cook\"],\"organizations\":[\"Apple\",\"Samsung\"],\"locations\":[\"Las Vegas\"]}",
+  "score": 5,
+  "cost": 0.004345,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 199
+  }
+}

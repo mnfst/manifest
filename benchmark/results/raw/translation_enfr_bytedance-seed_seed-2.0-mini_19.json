@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "# French Translation:\nFTI \u2014 Privil\u00e8ges et conditions\n\nThis maintains the official, formal tone of the original acronym-driven text, with no deviation from the core meaning.",
+  "score": 5,
+  "cost": 0.0001004,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 232
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Elaine starts with 20 Pokemon cards.\n\nIn the first month, she collects three times the initial number: 3 \u00d7 20 = 60 cards.  \nTotal after first month: 20 + 60 = 80 cards.\n\nIn the second month, she collects 20 fewer than in the first month: 60 - 20 = 40 cards.  \nTotal after second month: 80 + 40 = 120 cards.\n\nIn the third month, she collects twice the combined number from the first and second months: (60 + 40) \u00d7 2 = 100 \u00d7 2 = 200 cards.  \nTotal after third month: 120 + 200 = 320 cards.\n\nANSWER: 320",
+  "score": 0,
+  "cost": 0.0003982,
+  "expected": "320",
+  "tokens": {
+    "input": 311,
+    "output": 420
+  }
+}

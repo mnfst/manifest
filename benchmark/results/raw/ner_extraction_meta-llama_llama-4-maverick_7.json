@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "ner_extraction",
+  "case": 7,
+  "response": "```json\n{\n    \"persons\": [\"Lionel Messi\"],\n    \"organizations\": [\"Inter Miami\", \"New York Red Bulls\"],\n    \"locations\": [\"Chase Stadium\", \"Fort Lauderdale\"]\n}\n```",
+  "score": 5,
+  "cost": 3.735e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 43
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 se f\u00e9licite de la soumission du rapport initial de l\u2019\u00c9tat partie et se r\u00e9jouit du dialogue constructif et fructueux engag\u00e9 avec une d\u00e9l\u00e9gation comp\u00e9tente de haut niveau.",
+  "score": 5,
+  "cost": 3.0240000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 269
+  }
+}

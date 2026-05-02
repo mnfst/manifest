@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "French: Sydney, Esther sera dans mon bureau.",
+  "score": 5,
+  "cost": 0.000802,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 92
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "translation_enfr",
+  "case": 10,
+  "response": "\u00c7a pourrait faire surgir quelques indices et nous rapprocher de l\u2019animal qui a fait \u00e7a.",
+  "score": 5,
+  "cost": 0.007185,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 349
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "To solve this problem, we need to calculate the total amount of money Mitchell made and then compare it to the amount Liam made.\n\n1. **Determine the total amount Mitchell made:**\n   - Mitchell sold 21 lemonades.\n   - Each lemonade was sold for $4.\n   - Total amount Mitchell made = Number of lemonades * Price per lemonade\n   - Total amount Mitchell made = 21 * 4 = $84\n\n2. **Compare Mitchell's earnings to Liam's:**\n   - Liam made $63.\n   - Mitchell made $84.\n   - Difference in earnings = Mitchell's earnings - Liam's earnings\n   - Difference in earnings = 84 - 63 = $21\n\nMitchell made $21 more than Liam that weekend.\n\nANSWER: 21",
+  "score": 0,
+  "cost": 0.0008299199999999999,
+  "expected": "21",
+  "tokens": {
+    "input": 110,
+    "output": 172
+  }
+}

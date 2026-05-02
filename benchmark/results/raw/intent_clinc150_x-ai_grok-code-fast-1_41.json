@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "bill_due",
+  "score": 5,
+  "cost": 0.00023800000000000004,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 706,
+    "output": 121
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "To solve this problem, we need to follow these steps:\n\n1. Determine the new weight after a 50% increase.\n2. Subtract 2 pounds from the new weight to find the final weight Jamaal uses.\n\nStep 1: Calculate the new weight after a 50% increase.\n- The original weight is 8 pounds.\n- A 50% increase means we need to find 50% of 8 pounds and add it to the original weight.\n- 50% of 8 pounds = 0.5 * 8 = 4 pounds.\n- New weight after the increase = 8 pounds + 4 pounds = 12 pounds.\n\nStep 2: Subtract 2 pounds from the new weight.\n- The new weight is 12 pounds.\n- Jamaal uses a weight that is 2 pounds lighter than this new weight.\n- Final weight = 12 pounds - 2 pounds = 10 pounds.\n\nANSWER: 10",
+  "score": 0,
+  "cost": 0.0009578400000000001,
+  "expected": "10",
+  "tokens": {
+    "input": 105,
+    "output": 204
+  }
+}

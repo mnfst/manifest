@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 28,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Johns Hopkins University\"],\n  \"locations\": [\"Baltimore\"]\n}",
+  "score": 4,
+  "cost": 0.0001918,
+  "expected": "",
+  "tokens": {
+    "input": 267,
+    "output": 173
+  }
+}

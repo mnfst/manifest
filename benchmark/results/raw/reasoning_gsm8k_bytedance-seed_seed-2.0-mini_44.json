@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Let's solve this problem step by step:\n\n1.  **Find the number of new cows added to each stall**:\n    Mr. Sylas buys 40 total new cows and splits them equally across 20 stalls. So per stall, the number of new cows is:\n    $40 \\div 20 = 2$ cows per stall.\n\n2.  **Determine the total cows per stall after adding new ones**:\n    The problem states each stall originally has 20 cows (the mention of \"ten stalls\" is likely a typo, as we later see there are 20 total stalls, so all 20 stalls start with 20 cows each). Adding the 2 new cows per stall gives:\n    $20 + 2 = 22$ cows per stall.\n\n3.  **Calculate total cows in 8 stalls**:\n    Multiply the number of cows per stall by 8:\n    $8 \\times 22 = 176$.\n\nANSWER: 176",
+  "score": 0,
+  "cost": 0.0025563,
+  "expected": "192",
+  "tokens": {
+    "input": 135,
+    "output": 6357
+  }
+}

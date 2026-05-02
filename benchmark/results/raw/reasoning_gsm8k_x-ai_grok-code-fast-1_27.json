@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let \\(x\\) be the initial number of vacuum cleaners Melanie started with.\n\nAt the green house, she sold \\(\\frac{1}{3}\\) of them, leaving her with \\(x - \\frac{x}{3} = \\frac{2x}{3}\\).\n\nAt the red house, she sold 2 more, leaving her with \\(\\frac{2x}{3} - 2\\).\n\nAt the orange house, she sold half of what was left, which is \\(\\frac{1}{2} \\times (\\frac{2x}{3} - 2) = \\frac{x}{3} - 1\\).\n\nAfter this, she has \\((\\frac{2x}{3} - 2) - (\\frac{x}{3} - 1) = \\frac{2x}{3} - \\frac{x}{3} - 2 + 1 = \\frac{x}{3} - 1\\).\n\nThis equals 5, so \\(\\frac{x}{3} - 1 = 5\\).\n\nSolving for \\(x\\): \\(\\frac{x}{3} = 6\\), so \\(x = 18\\).\n\nANSWER: 18",
+  "score": 0,
+  "cost": 0.000651,
+  "expected": "18",
+  "tokens": {
+    "input": 295,
+    "output": 740
+  }
+}

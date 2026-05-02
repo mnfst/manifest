@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "To solve this problem, let's break it down into steps.\n\nStep 1: Calculate the total time Jim spends watching TV and reading in one session.\n- Time spent watching TV = 2 hours\n- Time spent reading = half of the time spent watching TV = 2 / 2 = 1 hour\n- Total time spent in one session = 2 + 1 = 3 hours\n\nStep 2: Determine how many times Jim does this in one week and calculate the total time spent in a week.\n- Frequency per week = 3 times\n- Total time spent in one week = 3 hours * 3 = 9 hours\n\nStep 3: Calculate the total time spent over 4 weeks.\n- Total time in 4 weeks = 9 hours/week * 4 weeks = 36 hours\n\nTherefore, the total time Jim spends on TV and reading in 4 weeks is calculated as above.\n\nANSWER: 36",
+  "score": 0,
+  "cost": 0.00012944999999999998,
+  "expected": "36",
+  "tokens": {
+    "input": 91,
+    "output": 193
+  }
+}

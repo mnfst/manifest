@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "intent_clinc150",
+  "case": 18,
+  "response": "We need to classify the message \"where is my current location\". The intents list includes \"current",
+  "score": 0,
+  "cost": 5.283e-05,
+  "expected": "current_location",
+  "tokens": {
+    "input": 567,
+    "output": 20
+  }
+}

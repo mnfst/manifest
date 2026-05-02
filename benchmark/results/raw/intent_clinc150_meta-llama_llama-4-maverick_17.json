@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "intent_clinc150",
+  "case": 17,
+  "response": "remind",
+  "score": 0,
+  "cost": 9.089999999999999e-05,
+  "expected": "reminder",
+  "tokens": {
+    "input": 594,
+    "output": 3
+  }
+}

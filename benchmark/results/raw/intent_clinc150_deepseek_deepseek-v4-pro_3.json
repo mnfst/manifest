@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "intent_clinc150",
+  "case": 3,
+  "response": "",
+  "score": 0,
+  "cost": 0.00028188,
+  "expected": "schedule_maintenance",
+  "tokens": {
+    "input": 568,
+    "output": 20
+  }
+}

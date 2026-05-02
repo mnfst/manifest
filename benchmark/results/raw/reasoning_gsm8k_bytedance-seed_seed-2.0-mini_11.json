@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Let's solve this problem step by step:\n\n1.  Calculate total burritos eaten by students: There are 50 students, each given 10 burritos.\n    $50 * 10 = 500$ burritos.\n2.  Add the burritos Mr. George ate: He eats 20 burritos, so total consumed burritos are $500 + 20 = 520$.\n3.  Subtract total consumed burritos from the initial order of 600 to find leftovers:\n    $600 - 520 = 80$.\n\nANSWER: 80",
+  "score": 0,
+  "cost": 0.0003118,
+  "expected": "80",
+  "tokens": {
+    "input": 150,
+    "output": 742
+  }
+}

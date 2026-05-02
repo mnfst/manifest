@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "{\n  \"persons\": [\"Picasso\", \"Monet\"],\n  \"organizations\": [\"Metropolitan Museum of Art\"],\n  \"locations\": [\"New York\"]\n}",
+  "score": 5,
+  "cost": 9.72e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 34
+  }
+}

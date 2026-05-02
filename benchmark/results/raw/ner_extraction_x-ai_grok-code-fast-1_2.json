@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 2,
+  "response": "{\"persons\": [], \"organizations\": [\"Google DeepMind\", \"Nature\"], \"locations\": []}",
+  "score": 4,
+  "cost": 0.000257,
+  "expected": "",
+  "tokens": {
+    "input": 265,
+    "output": 255
+  }
+}

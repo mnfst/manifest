@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "3 days on low: \\(3 \\times 1 = 3\\) liters  \n3 days on medium: \\(3 \\times 2 = 6\\) liters  \n5 days on high: \\(5 \\times 4 = 20\\) liters  \nTotal: \\(3 + 6 + 20 = 29\\) liters  \n\nANSWER: 29",
+  "score": 0,
+  "cost": 0.00023440000000000003,
+  "expected": "29",
+  "tokens": {
+    "input": 348,
+    "output": 206
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Sisters: There are 3 sisters, each 16 years old.  \nTotal age for sisters: 3 \u00d7 16 = 48 years.  \n\nBrothers: One brother is 12 years old, and this age is half the age of the older brother.  \nLet the older brother's age be \\( x \\). Then, \\( \\frac{x}{2} = 12 \\), so \\( x = 24 \\).  \nAges of brothers: 24 and 12.  \nTotal age for brothers: 24 + 12 = 36 years.  \n\nTotal age of all siblings: 48 + 36 = 84 years.  \n\nANSWER: 84",
+  "score": 0,
+  "cost": 0.00044760000000000004,
+  "expected": "84",
+  "tokens": {
+    "input": 294,
+    "output": 486
+  }
+}

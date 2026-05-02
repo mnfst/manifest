@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "Ce type de r\u00e9pression, ainsi que l'arrestation au cours des derni\u00e8res semaines de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de pr\u00e9tendues fausses informations, ont l\u00e9gitimement suscit\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 0.00424255,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 3246
+  }
+}

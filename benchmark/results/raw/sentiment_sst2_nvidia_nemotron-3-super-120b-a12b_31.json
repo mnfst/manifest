@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sentiment_sst2",
+  "case": 31,
+  "response": "We need to classify sentiment of the given text: \"why make a documentary about these marginal historical figures",
+  "score": 0,
+  "cost": 7.02e-06,
+  "expected": "negative",
+  "tokens": {
+    "input": 58,
+    "output": 20
+  }
+}

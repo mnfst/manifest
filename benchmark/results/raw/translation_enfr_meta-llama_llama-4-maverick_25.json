@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 25,
+  "response": "2. Le 21 f\u00e9vrier, le sous-secr\u00e9taire \u00e0 la Guerre, Jos\u00e9 Asenio, est limog\u00e9, et bient\u00f4t arr\u00eat\u00e9 avec le colonel Villalba, pour la trahison de Malaga.",
+  "score": 5,
+  "cost": 3.765e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 46
+  }
+}

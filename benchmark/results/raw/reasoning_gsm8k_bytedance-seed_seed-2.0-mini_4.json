@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Step 1: Calculate the yards each person used\n- Mariah used 1/4 of a 364-yard skein: \\(364 \\times \\frac{1}{4} = 91\\) yards.\n- Her grandma used 1/2 of a 364-yard skein: \\(364 \\times \\frac{1}{2} = 182\\) yards.\n\nStep 2: Add the two amounts together\nTotal yards used = \\(91 + 182 = 273\\) yards.\n\nANSWER: 273",
+  "score": 0,
+  "cost": 0.0002552,
+  "expected": "273",
+  "tokens": {
+    "input": 148,
+    "output": 601
+  }
+}

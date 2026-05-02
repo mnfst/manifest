@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "He sails from 1 to 4 PM, which is 3 hours at 10 mph, covering 30 miles.\n\nThe return trip is 30 miles at 6 mph, which takes 5 hours.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.0002122,
+  "expected": "5",
+  "tokens": {
+    "input": 237,
+    "output": 206
+  }
+}

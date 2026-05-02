@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Rafaela received tips from 40 customers at $20 each, so her total is \\(40 \\times 20 = 800\\).\n\nJulieta received 10% less than Rafaela, which is \\(800 - (0.1 \\times 800) = 800 - 80 = 720\\).\n\nTogether, they received \\(800 + 720 = 1520\\).\n\nANSWER: 1520",
+  "score": 0,
+  "cost": 0.00027720000000000007,
+  "expected": "1520",
+  "tokens": {
+    "input": 242,
+    "output": 286
+  }
+}

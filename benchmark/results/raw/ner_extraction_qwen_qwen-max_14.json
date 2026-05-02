@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "ner_extraction",
+  "case": 14,
+  "response": "{\n  \"persons\": [\"Jerome Powell\"],\n  \"organizations\": [\"The Federal Reserve\", \"Congress\"],\n  \"locations\": [\"Washington DC\"]\n}",
+  "score": 5,
+  "cost": 0.00020176,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 31
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "First, calculate the total pounds of insects needed per week for 10 ducks:  \n10 ducks \u00d7 3.5 pounds per duck = 35 pounds per week.  \n\nNext, divide by 7 days in a week to find the daily amount:  \n35 pounds / 7 days = 5 pounds per day.  \n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.00026040000000000004,
+  "expected": "5",
+  "tokens": {
+    "input": 274,
+    "output": 257
+  }
+}

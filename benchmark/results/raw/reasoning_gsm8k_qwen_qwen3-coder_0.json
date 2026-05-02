@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "I need to find how much money each person raised, then add them all together.\n\nLet me identify what each person raised:\n\nAlexandra: $430 (given)\n\nKim: $320 more than Alexandra\nKim = $430 + $320 = $750\n\nSarah: $300 (given)\n\nMaryam: $400 more than Sarah\nMaryam = $300 + $400 = $700\n\nNow I'll add up all the amounts:\nTotal = Alexandra + Kim + Sarah + Maryam\nTotal = $430 + $750 + $300 + $700\nTotal = $2,180\n\nANSWER: 2180",
+  "score": 4,
+  "cost": 0.00016302,
+  "expected": "2280",
+  "tokens": {
+    "input": 105,
+    "output": 159
+  }
+}

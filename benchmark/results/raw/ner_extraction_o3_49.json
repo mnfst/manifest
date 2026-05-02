@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "ner_extraction",
+  "case": 49,
+  "response": "{\"persons\":[\"Pope Francis\"],\"organizations\":[],\"locations\":[\"St. Peter Square\",\"Vatican\"]}",
+  "score": 4,
+  "cost": 0.00201,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 233
+  }
+}

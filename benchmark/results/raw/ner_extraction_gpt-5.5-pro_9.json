@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 9,
+  "response": "{\"persons\":[],\"organizations\":[\"World Health Organization\"],\"locations\":[\"sub-Saharan Africa\",\"Geneva\"]}",
+  "score": 5,
+  "cost": 0.00227,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 95
+  }
+}

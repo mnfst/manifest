@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Ten stalls have 20 cows each, so the initial total number of cows is 10 \u00d7 20 = 200.  \nMr. Sylas buys 40 more cows, bringing the total to 200 + 40 = 240 cows.  \nThese 240 cows are divided equally into 20 stalls, so each stall gets 240 \u00f7 20 = 12 cows.  \nSince all stalls have the same number of cows, 8 stalls have 12 cows each.  \n\nANSWER: 12",
+  "score": 0,
+  "cost": 0.0022786,
+  "expected": "192",
+  "tokens": {
+    "input": 285,
+    "output": 2777
+  }
+}

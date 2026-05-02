@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Let's break down the cost for each type of fruit first, then sum them up:\n\n1.  **Peaches**: $2.00 per pound, 6 pounds. Cost = 2 * 6 = $12.00\n2.  **Plums**: $1.00 per pound, 8 pounds. Cost = 1 * 8 = $8.00\n3.  **Apricots**: $3.00 per pound, 6 pounds. Cost = 3 *6 = $18.00\n\nNow add all the individual costs together:\n12 + 8 +18 = 38\n\nANSWER: 38",
+  "score": 0,
+  "cost": 0.00018250000000000002,
+  "expected": "38",
+  "tokens": {
+    "input": 169,
+    "output": 414
+  }
+}

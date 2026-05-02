@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Je dirais que c'est de faible valeur, au mieux.",
+  "score": 4,
+  "cost": 0.0002798,
+  "expected": "",
+  "tokens": {
+    "input": 231,
+    "output": 292
+  }
+}

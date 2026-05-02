@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "SELECT Name\nFROM country\nWHERE Continent = 'Africa'\n  AND Population < (\n    SELECT MIN(Population)\n    FROM country\n    WHERE Continent = 'Asia'\n  );",
+  "score": 5,
+  "cost": 0.04518,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 2240
+  }
+}

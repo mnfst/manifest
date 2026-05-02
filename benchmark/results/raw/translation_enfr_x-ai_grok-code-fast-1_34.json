@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "Sydney, Esther sera dans mon bureau.",
+  "score": 5,
+  "cost": 0.000259,
+  "expected": "",
+  "tokens": {
+    "input": 231,
+    "output": 266
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "To solve this problem, we first need to determine how much money Gerald had before he spent $10 on a book. \n\n1. The total ratio parts are 3 + 2 = 5.\n2. The total amount of money to be divided is $100.\n3. To find out how much money each part of the ratio represents, we divide $100 by the total number of parts: $100 / 5 = $20 per part.\n4. Gerald's share is represented by 3 parts, so his share is 3 * $20 = $60.\n5. After spending $10 on a book, Gerald has $60 - $10 = $50 left.\n\nANSWER: 50",
+  "score": 0,
+  "cost": 9.764999999999999e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 75,
+    "output": 144
+  }
+}

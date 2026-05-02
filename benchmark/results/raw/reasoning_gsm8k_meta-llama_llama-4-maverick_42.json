@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "To find the total number of children participating in the mass drill, we first need to determine the number of children in one school and then multiply that by the number of schools.\n\n1. Number of children in a row = 8\n2. Number of rows for each school = 7\n3. Number of schools = 5\n\nFirst, we calculate the number of children from one school:\n- Number of children in one row = 8\n- Number of rows = 7\n- Total children from one school = 8 * 7 = 56\n\nNext, we calculate the total number of children from all schools:\n- Number of schools = 5\n- Total children = Number of children from one school * Number of schools = 56 * 5 = 280\n\nTherefore, the total number of children that can be in the drill is 280.\n\nANSWER: 280",
+  "score": 0,
+  "cost": 0.0001236,
+  "expected": "280",
+  "tokens": {
+    "input": 96,
+    "output": 182
+  }
+}

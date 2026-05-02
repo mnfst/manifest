@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "We need to parse problem: Manolo bought five lollipops and four candies that cost $3.20. Each lollipop costs $0.40. Find cost of 10 lollipops and 10 candies.\n\nLet L = price per lollipop = $0.40. Let C = price per candy unknown.\n\nGiven: 5L + 4C = 3.20.\n\nPlug L: 5*0.40 = 2.00. So 2.00 + 4C = 3.20, p, q, r, s, t, u, v, w, x, y, z",
+  "score": 3,
+  "cost": 2.313e-05,
+  "expected": "7",
+  "tokens": {
+    "input": 105,
+    "output": 152
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Gerald and Julia divided $100 in the ratio 3:2. The total number of parts is 3 + 2 = 5. Gerald's share is 3/5 of $100, which is $60. He spent $10 on a book, so he has $60 - $10 = $50 left.\n\nANSWER: 50",
+  "score": 0,
+  "cost": 0.000371055,
+  "expected": "50",
+  "tokens": {
+    "input": 69,
+    "output": 196
+  }
+}

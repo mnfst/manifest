@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "ner_extraction",
+  "case": 43,
+  "response": "{\n  \"persons\": [\"Satya Nadella\"],\n  \"organizations\": [\"Microsoft\", \"OpenAI\", \"Office 365\"],\n  \"locations\": []\n}",
+  "score": 5,
+  "cost": 0.00022464,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 35
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Je dirais que \u00e7a a peu de valeur, au mieux.",
+  "score": 4,
+  "cost": 0.003095,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 146
+  }
+}

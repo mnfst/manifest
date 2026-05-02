@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "First, determine the duration of the outbound trip. Tom sails from 1 PM to 4 PM, which is a total of 3 hours.\n\nNext, calculate the distance he covers during this outbound leg using the formula: Distance = Speed \u00d7 Time. \nAt 10 miles per hour for 3 hours, the distance is: \n10 mph \u00d7 3 hours = 30 miles.\n\nSince he travels back along the same route, the return distance is also 30 miles.\n\nFinally, calculate the time it takes to return using the formula: Time = Distance / Speed. \nTraveling 30 miles at a speed of 6 mph takes: \n30 miles \u00f7 6 mph = 5 hours.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.0016838250000000001,
+  "expected": "5",
+  "tokens": {
+    "input": 97,
+    "output": 1271
+  }
+}

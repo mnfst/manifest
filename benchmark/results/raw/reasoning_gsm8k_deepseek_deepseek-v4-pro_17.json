@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "Ted buys 3 books at $16 each and 3 pencils at $6 each.\n- Cost of books: 3 \u00d7 16 = $48\n- Cost of pencils: 3 \u00d7 6 = $18\n- Total spent: 48 + 18 = $66\n\nANSWER: 66",
+  "score": 0,
+  "cost": 0.00042108,
+  "expected": "66",
+  "tokens": {
+    "input": 72,
+    "output": 224
+  }
+}

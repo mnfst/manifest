@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Boys = 30  \nGirls = 3 \u00d7 30 = 90  \nNongendered = (1/10) \u00d7 30 = 3  \nTotal = 30 + 90 + 3 = 123  \n\nANSWER: 123",
+  "score": 0,
+  "cost": 0.0002044,
+  "expected": "123",
+  "tokens": {
+    "input": 238,
+    "output": 196
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "intent_clinc150",
+  "case": 20,
+  "response": "vaccines",
+  "score": 5,
+  "cost": 9.15e-05,
+  "expected": "vaccines",
+  "tokens": {
+    "input": 598,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "T'es pas \u00e0 la DGA. Zoome et ferme ta putain de gueule.",
+  "score": 4,
+  "cost": 0.002667275,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 2040
+  }
+}

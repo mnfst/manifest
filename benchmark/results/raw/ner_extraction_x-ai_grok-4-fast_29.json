@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "{\"persons\":[],\"organizations\":[\"Tokyo Stock Exchange\",\"Nikkei 225\"],\"locations\":[\"Tokyo\"]}",
+  "score": 4,
+  "cost": 0.0006810000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 221,
+    "output": 796
+  }
+}

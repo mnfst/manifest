@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "Step 1: Determine how many grapes Madeline ate. She ate 6 grapes.\nStep 2: Calculate how many grapes her brother used. He used 5 times as many as Madeline: 5 \u00d7 6 = 30 grapes.\nStep 3: Calculate how many grapes their mother used. She made 4 pies, and the recipe requires 12 grapes per pie: 4 \u00d7 12 = 48 grapes.\nStep 4: Add all the grapes together to find the total number at the beginning: 6 (Madeline) + 30 (brother) + 48 (mother) = 84 grapes.\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.0019428499999999999,
+  "expected": "84",
+  "tokens": {
+    "input": 114,
+    "output": 1466
+  }
+}

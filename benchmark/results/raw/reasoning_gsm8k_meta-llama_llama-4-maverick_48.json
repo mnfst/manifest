@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "To solve this problem, let's follow the steps described:\n\n1. Jamaal starts with an 8-pound weight.\n2. He increases the weight by 50%. To find the new weight, we need to calculate 50% of 8 pounds and add it to the original 8 pounds. \n   - 50% of 8 pounds = 0.5 * 8 = 4 pounds.\n   - New weight = 8 pounds + 4 pounds = 12 pounds.\n3. The 12-pound weight is too heavy, so he uses a weight that is 2 pounds lighter than 12 pounds.\n   - New weight = 12 pounds - 2 pounds = 10 pounds.\n\nTherefore, Jamaal is now using a 10-pound weight.\n\nANSWER: 10",
+  "score": 0,
+  "cost": 0.00011279999999999999,
+  "expected": "10",
+  "tokens": {
+    "input": 104,
+    "output": 162
+  }
+}

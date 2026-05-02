@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "{\n  \"persons\": [\"Angela Merkel\"],\n  \"organizations\": [],\n  \"locations\": [\"White House\"]\n}",
+  "score": 4,
+  "cost": 8.550000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 25
+  }
+}

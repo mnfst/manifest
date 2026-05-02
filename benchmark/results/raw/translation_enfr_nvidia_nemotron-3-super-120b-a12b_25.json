@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 25,
+  "response": "2. Le 21\u202ff\u00e9vrier, le sous\u2011secr\u00e9taire d\u2019\u00c9tat \u00e0 la Guerre, Jos\u00e9 Asenio, a \u00e9t\u00e9 limog\u00e9, puis bient\u00f4t arr\u00eat\u00e9 avec le colonel Villalba, pour la trahison de Malaga.",
+  "score": 5,
+  "cost": 1.125e-05,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 61
+  }
+}

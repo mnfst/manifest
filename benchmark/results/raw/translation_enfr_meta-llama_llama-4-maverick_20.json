@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Je dirais que c'est de faible valeur, au mieux.",
+  "score": 4,
+  "cost": 2.4149999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 14
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "ner_extraction",
+  "case": 7,
+  "response": "{\n  \"persons\": [\"Lionel Messi\"],\n  \"organizations\": [\"Inter Miami\", \"New York Red Bulls\"],\n  \"locations\": [\"Chase Stadium\", \"Fort Lauderdale\"]\n}",
+  "score": 5,
+  "cost": 0.000301455,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 154
+  }
+}

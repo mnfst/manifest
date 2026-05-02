@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "{\"persons\": [], \"organizations\": [\"United Nations Security Council\"], \"locations\": [\"North Korea\", \"New York\"]}",
+  "score": 4,
+  "cost": 0.00151,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 171
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu te d\u00e9bats, plus \u00e7a va \u00eatre embarrassant pour tout le monde.",
+  "score": 4,
+  "cost": 0.00019460000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 196
+  }
+}

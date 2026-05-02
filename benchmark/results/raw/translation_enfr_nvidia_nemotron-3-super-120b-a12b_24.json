@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Le programme de nutrition urbaine de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et promeut le cr\u00e9dit aux groupes de femmes qui commercialisent des denr\u00e9es alimentaires.",
+  "score": 5,
+  "cost": 1.4309999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 99
+  }
+}

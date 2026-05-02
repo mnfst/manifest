@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "Tu n'es pas au DGA. Rapproche-toi et ferme-la.\n\nNote: I've maintained the informal/aggressive tone of the original English text in the French translation. \"DGA\" appears to be an acronym that would likely remain the same in French context, though without more context I've kept it as is.",
+  "score": 4,
+  "cost": 7.018000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 69
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "I need to find the total number of leftover burritos after the picnic.\n\nLet me break this down step by step:\n\nGiven information:\n- Total burritos ordered: 600\n- Number of students: 50\n- Burritos per student: 10\n- Burritos Mr. George ate: 20\n\nStep 1: Calculate the total number of burritos eaten by students.\nNumber of students \u00d7 Burritos per student = 50 \u00d7 10 = 500 burritos\n\nStep 2: Calculate the total number of burritos consumed (students + Mr. George).\nBurritos eaten by students + Burritos eaten by Mr. George = 500 + 20 = 520 burritos\n\nStep 3: Calculate the leftover burritos.\nTotal burritos ordered - Total burritos consumed = 600 - 520 = 80 burritos\n\nTherefore, there were 80 leftover burritos from the picnic.\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.00021119999999999998,
+  "expected": "80",
+  "tokens": {
+    "input": 108,
+    "output": 213
+  }
+}

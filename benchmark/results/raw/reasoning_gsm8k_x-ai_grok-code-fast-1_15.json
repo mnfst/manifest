@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Joey starts with 214 points and scores 26, so he now has 214 + 26 = 240 points.  \nMarcy starts with 225 points and scores 10, so she now has 225 + 10 = 235 points.  \nJoey is ahead by 240 - 235 = 5 points.  \n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.00021740000000000003,
+  "expected": "5",
+  "tokens": {
+    "input": 279,
+    "output": 202
+  }
+}

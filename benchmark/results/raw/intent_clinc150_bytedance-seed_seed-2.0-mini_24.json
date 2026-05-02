@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "intent_clinc150",
+  "case": 24,
+  "response": "report_fraud",
+  "score": 5,
+  "cost": 0.00015960000000000003,
+  "expected": "report_fraud",
+  "tokens": {
+    "input": 612,
+    "output": 246
+  }
+}

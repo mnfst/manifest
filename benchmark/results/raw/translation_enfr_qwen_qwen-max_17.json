@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Source : examplereferenceletter.com\n\nTranslation to French:\n\nSource : examplereferenceletter.com\n\nNote: The text provided is a source reference, not a sentence or paragraph to be translated. The source reference remains the same in French.",
+  "score": 5,
+  "cost": 0.00024440000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 50
+  }
+}

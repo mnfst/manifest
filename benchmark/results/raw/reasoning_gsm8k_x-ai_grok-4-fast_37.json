@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Candidate A received 20% of 100 votes, which is 20 votes.\n\nCandidate B received 50% more than candidate A, so B received \\(20 \\times 1.5 = 30\\) votes.\n\nThe total votes for A and B are \\(20 + 30 = 50\\).\n\nCandidate C received the remaining votes: \\(100 - 50 = 50\\).\n\nANSWER: 50",
+  "score": 0,
+  "cost": 0.000296,
+  "expected": "50",
+  "tokens": {
+    "input": 244,
+    "output": 309
+  }
+}

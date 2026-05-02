@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Sector Source est un site web de ressources d\u00e9di\u00e9 \u00e0 aider ceux qui g\u00e8rent des organismes de charit\u00e9 et des organisations \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...",
+  "score": 5,
+  "cost": 0.0003756,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 917
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, c'est ce diable qui conduit sur Wangan.",
+  "score": 4,
+  "cost": 0.0003976,
+  "expected": "",
+  "tokens": {
+    "input": 232,
+    "output": 439
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let \\( H \\) be the number of copies Harald sold. Marilyn sold \\( 10H \\) copies. The total sold is \\( H + 10H = 11H \\).  \nWe are given that \\( 11H = 88,000 \\).  \nDivide both sides by 11: \\( H = \\frac{88,000}{11} = 8,000 \\).\n\nANSWER: 8000",
+  "score": 0,
+  "cost": 0.00035496,
+  "expected": "8000",
+  "tokens": {
+    "input": 72,
+    "output": 186
+  }
+}

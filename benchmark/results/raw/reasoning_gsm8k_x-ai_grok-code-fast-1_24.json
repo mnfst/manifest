@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "The problem involves calculating the profit from selling lollipops to determine how much money the class raised.\n\n- Each student sold an average of 10 lollipops, and there are 30 students, so the total number of lollipops sold is 30 \u00d7 10 = 300.\n- The cost to buy each lollipop was $0.5, and they sold each for $0.8, so the profit per lollipop is $0.8 - $0.5 = $0.3.\n- The total profit is therefore 300 \u00d7 $0.3 = $90.\n\nThis profit represents the money raised for the class fund.\n\nANSWER: 90",
+  "score": 0,
+  "cost": 0.000314,
+  "expected": "90",
+  "tokens": {
+    "input": 314,
+    "output": 314
+  }
+}

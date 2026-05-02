@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 9.18e-05,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 596,
+    "output": 4
+  }
+}

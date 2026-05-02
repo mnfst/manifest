@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "We need to parse the problem: \"In a family, there are 2 brothers and 3 sisters. All sisters are the same age, which is 16. One of the brothers is 12 years old, which is half the age of the older brother. What is the total age of all these siblings?\"\n\nWe have 2 brothers: one is 12 years old, and that is half the age of the older brother. So older brother is 2*12 = 24 years old. So brothers ages: 12 and 24.\n\nSisters:  \nB:  \nC D E F G H I J K L M N O P Q R S T U V W X Y Z",
+  "score": 2,
+  "cost": 2.376e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 111,
+    "output": 153
+  }
+}

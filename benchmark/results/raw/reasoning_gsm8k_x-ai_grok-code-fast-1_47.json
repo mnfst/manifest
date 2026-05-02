@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 47,
+  "response": "Nik has 200 crayons, each weighing 1 ounce, so the total weight of the crayons is 200 ounces.\n\nHe separates them into groups of 8 crayons per box. Since 200 \u00f7 8 = 25, he can fill exactly 25 boxes with no crayons left over.\n\nEach box weighs 8 ounces, and each contains 8 crayons (8 ounces), so each box (including its crayons) weighs 8 + 8 = 16 ounces.\n\nThe total weight of all 25 boxes (including crayons) is 25 \u00d7 16 = 400 ounces.\n\nThere are 16 ounces in a pound, so 400 \u00f7 16 = 25 pounds.\n\nANSWER: 25",
+  "score": 0,
+  "cost": 0.0004358,
+  "expected": "25",
+  "tokens": {
+    "input": 311,
+    "output": 467
+  }
+}

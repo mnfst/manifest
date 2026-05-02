@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Let's solve this problem step by step:\n\n1.  First, calculate the total number of parts in the ratio: The ratio is 3:2, so total parts = 3 + 2 = 5 parts.\n2.  Find the value of one part: The total money divided is $100, so each part equals $100 \u00f7 5 = $20.\n3.  Calculate Gerald's initial amount of money: Gerald's share is 3 parts, so he got 3 \u00d7 $20 = $60.\n4.  Subtract the money he spent on the book: Gerald spent $10, so the money he has left is $60 - $10 = $50.\n\nANSWER: 50",
+  "score": 0,
+  "cost": 0.000164,
+  "expected": "50",
+  "tokens": {
+    "input": 120,
+    "output": 380
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "To solve this problem, let's break it down step by step.\n\n1. **Cost of the material**: Janet pays $500 for the material.\n2. **Cost of construction**: Janet pays $800 for the jeweler to construct the brooch.\n3. **Total cost before insurance**: Add the cost of the material and the cost of construction.\n   \\[\n   500 + 800 = 1300\n   \\]\n4. **Insurance cost**: Janet pays 10% of the total cost before insurance to get it insured.\n   \\[\n   \\text{Insurance cost} = 0.10 \\times 1300 = 130\n   \\]\n5. **Total cost including insurance**: Add the insurance cost to the total cost before insurance.\n   \\[\n   1300 + 130 = 1430\n   \\]\n\nThus, Janet paid a total of $1430.\n\nANSWER: 1430",
+  "score": 0,
+  "cost": 0.0010119200000000001,
+  "expected": "1430",
+  "tokens": {
+    "input": 105,
+    "output": 217
+  }
+}

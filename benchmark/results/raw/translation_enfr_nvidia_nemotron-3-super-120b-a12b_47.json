@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "La r\u00e9pression de ce type, ainsi que l'arrestation ces derni\u00e8res semaines de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de soi\u2011disant fausses informations, ont l\u00e9gitimement \u00e9veill\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 3.9510000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 363
+  }
+}

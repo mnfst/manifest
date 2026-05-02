@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "To find the total age of all the siblings, we need to calculate the age of each sibling and then sum them up.\n\n1. The age of all the sisters is given as 16 years. Since there are 3 sisters, the total age of the sisters = 3 * 16 = 48 years.\n\n2. One of the brothers is 12 years old. It is given that this is half the age of the older brother. So, the age of the older brother = 2 * 12 = 24 years.\n\n3. Now, we have the ages of all the siblings: \n   - The total age of the 3 sisters = 48 years.\n   - The age of the younger brother = 12 years.\n   - The age of the older brother = 24 years.\n\n4. To find the total age of all the siblings, we add their ages together: \n   Total age = age of all sisters + age of younger brother + age of older brother\n             = 48 + 12 + 24\n             = 84 years.\n\nTherefore, the total age of all these siblings is 84 years.\n\nANSWER: 84",
+  "score": 0,
+  "cost": 0.0001578,
+  "expected": "84",
+  "tokens": {
+    "input": 100,
+    "output": 238
+  }
+}

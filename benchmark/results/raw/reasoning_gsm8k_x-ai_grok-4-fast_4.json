@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Mariah used \\(\\frac{1}{4}\\) of a skein: \\(\\frac{1}{4} \\times 364 = 91\\) yards.  \nGrandma used \\(\\frac{1}{2}\\) of a skein: \\(\\frac{1}{2} \\times 364 = 182\\) yards.  \nTotal: \\(91 + 182 = 273\\) yards.  \n\nANSWER: 273",
+  "score": 0,
+  "cost": 0.000212,
+  "expected": "273",
+  "tokens": {
+    "input": 248,
+    "output": 203
+  }
+}

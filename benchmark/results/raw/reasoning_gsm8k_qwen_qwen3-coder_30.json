@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "I need to find how many points each student has collected, then calculate how many more points the class needs to reach 400 points.\n\nLet me work through this step by step:\n\nFirst, let me identify what I know:\n- Adam has 50 points\n- Betty collected 30% more than Adam\n- Tom has 30 points less than Betty\n- Martha collected 3 times more points than Tom\n- The minimum threshold is 400 points\n\nNow let me calculate each student's points:\n\nAdam: 50 points\n\nBetty: Betty collected 30% more than Adam\nBetty = 50 + (30% of 50) = 50 + (0.30 \u00d7 50) = 50 + 15 = 65 points\n\nTom: Tom has 30 points less than Betty\nTom = 65 - 30 = 35 points\n\nMartha: Martha collected 3 times more points than Tom\nMartha = 3 \u00d7 35 = 105 points\n\nNow let me calculate the total points collected by the class:\nTotal = Adam + Betty + Tom + Martha\nTotal = 50 + 65 + 35 + 105 = 255 points\n\nFinally, let me calculate how many points they're missing to reach the 400-point threshold:\nPoints missing = 400 - 255 = 145 points\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.000319,
+  "expected": "145",
+  "tokens": {
+    "input": 154,
+    "output": 324
+  }
+}

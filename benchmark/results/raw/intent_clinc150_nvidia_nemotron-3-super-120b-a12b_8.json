@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "intent_clinc150",
+  "case": 8,
+  "response": "We need to classify the message \"i am not sure\" into one of the intents list.",
+  "score": 0,
+  "cost": 5.273999999999999e-05,
+  "expected": "maybe",
+  "tokens": {
+    "input": 566,
+    "output": 20
+  }
+}

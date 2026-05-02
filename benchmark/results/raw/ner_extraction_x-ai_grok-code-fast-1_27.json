@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "{\n  \"persons\": [\"Cristiano Ronaldo\"],\n  \"organizations\": [\"Al Nassr\", \"Manchester United\"],\n  \"locations\": [\"Riyadh\"]\n}",
+  "score": 5,
+  "cost": 0.000267,
+  "expected": "",
+  "tokens": {
+    "input": 271,
+    "output": 266
+  }
+}

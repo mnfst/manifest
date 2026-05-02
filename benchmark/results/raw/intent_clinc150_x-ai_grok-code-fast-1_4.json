@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "intent_clinc150",
+  "case": 4,
+  "response": "uber",
+  "score": 5,
+  "cost": 0.000294,
+  "expected": "uber",
+  "tokens": {
+    "input": 714,
+    "output": 189
+  }
+}

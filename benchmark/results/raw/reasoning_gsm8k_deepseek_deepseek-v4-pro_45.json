@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "ANSWER: 276",
+  "score": 0,
+  "cost": 0.000350175,
+  "expected": "276",
+  "tokens": {
+    "input": 97,
+    "output": 177
+  }
+}

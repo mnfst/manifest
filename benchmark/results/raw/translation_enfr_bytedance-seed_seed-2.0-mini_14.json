@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 se f\u00e9licite de la pr\u00e9sentation du rapport initial de l'\u00c9tat partie et est satisfait du dialogue constructif et fructueux initi\u00e9 avec une d\u00e9l\u00e9gation comp\u00e9tente de haut niveau.",
+  "score": 5,
+  "cost": 0.0009979,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 2470
+  }
+}

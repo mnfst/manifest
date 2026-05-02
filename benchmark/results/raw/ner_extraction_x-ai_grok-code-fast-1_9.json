@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 9,
+  "response": "{\"persons\": [], \"organizations\": [\"World Health Organization\"], \"locations\": [\"sub-Saharan Africa\", \"Geneva\"]}",
+  "score": 4,
+  "cost": 0.00023700000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 269,
+    "output": 229
+  }
+}

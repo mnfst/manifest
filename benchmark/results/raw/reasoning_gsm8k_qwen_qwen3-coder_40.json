@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "I need to find how much Elvis saves each day in the second half of April.\n\nLet me set up the problem step by step.\n\nFirst, let me identify the key information:\n- Monthly saving target: $1125\n- April has 30 days\n- First half of April: 15 days\n- Second half of April: 15 days\n- In the second half, he saves twice as much daily as in the first half\n\nLet me define variables:\n- Let x = amount saved per day in the first half\n- Then 2x = amount saved per day in the second half\n\nNow I'll set up the equation:\nTotal savings = (First half savings) + (Second half savings)\n$1125 = (15 days \u00d7 x) + (15 days \u00d7 2x)\n$1125 = 15x + 30x\n$1125 = 45x\n\nSolving for x:\nx = $1125 \u00f7 45\nx = $25\n\nSo Elvis saves $25 per day in the first half.\n\nFor the second half, he saves 2x = 2 \u00d7 $25 = $50 per day.\n\nLet me verify:\n- First half: 15 days \u00d7 $25 = $375\n- Second half: 15 days \u00d7 $50 = $750\n- Total: $375 + $750 = $1125 \u2713\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00031064,
+  "expected": "50",
+  "tokens": {
+    "input": 104,
+    "output": 327
+  }
+}

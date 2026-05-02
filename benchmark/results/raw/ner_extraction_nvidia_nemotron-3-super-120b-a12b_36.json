@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "{\n  \"persons\": [\"Warren Buffett\"],\n  \"organizations\": [\"Bank of America\", \"SEC\"],\n  \"locations\": []\n}",
+  "score": 5,
+  "cost": 2.151e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 154
+  }
+}

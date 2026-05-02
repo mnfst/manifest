@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Les crit\u00e8res du DSM\u2011IV pour l\u2019intoxication \u00e0 l\u2019alcool sont similaires, avec l\u2019ajout d\u2019un ou plusieurs des signes suivants\u202f: \u00e9locution p\u00e2teuse, manque de coordination, d\u00e9marche instable, nystagmus, alt\u00e9ration de l\u2019attention ou de la m\u00e9moire, stupeur ou coma.",
+  "score": 5,
+  "cost": 1.422e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 80
+  }
+}

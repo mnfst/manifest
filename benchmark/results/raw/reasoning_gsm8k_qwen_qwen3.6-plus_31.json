@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Step 1: Identify the number of boys. The problem explicitly states there are 30 boys.\nStep 2: Calculate the number of girls. There are 3 times as many girls as boys, so 3 \u00d7 30 = 90 girls.\nStep 3: Calculate the number of nongendered children. There are 1/10 as many nongendered children as boys, so (1/10) \u00d7 30 = 3 nongendered children.\nStep 4: Add all the groups together to find the total number of children. Total = 30 (boys) + 90 (girls) + 3 (nongendered) = 123.\n\nANSWER: 123",
+  "score": 2,
+  "cost": 0.001787175,
+  "expected": "123",
+  "tokens": {
+    "input": 99,
+    "output": 1350
+  }
+}

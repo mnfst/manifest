@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Twenty dozen cups is 20 \u00d7 12 = 240 cups.  \nHalf a dozen plates is 6 plates.  \nThe total cost of 6 plates at $6000 each is 6 \u00d7 6000 = $36,000.  \nThe cost of 240 cups is $1200 less than $36,000, so 36,000 - 1,200 = $34,800.  \nThe cost per cup is $34,800 \u00f7 240 = $145.  \n\nANSWER: 145",
+  "score": 0,
+  "cost": 0.0006238000000000001,
+  "expected": "145",
+  "tokens": {
+    "input": 271,
+    "output": 712
+  }
+}

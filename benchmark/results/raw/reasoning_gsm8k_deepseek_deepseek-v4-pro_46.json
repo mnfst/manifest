@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "Anakin caught 10 starfish, 6 sea horses, and 3 clownfish, for a total of 10 + 6 + 3 = 19 fish.  \nLocsin caught 5 fewer starfish: 10 - 5 = 5; 3 fewer sea horses: 6 - 3 = 3; and 2 more clownfish: 3 + 2 = 5. Locsin's total is 5 + 3 + 5 = 13 fish.  \nTogether they caught 19 + 13 = 32 fish.\n\nANSWER: 32",
+  "score": 0,
+  "cost": 0.000600735,
+  "expected": "32",
+  "tokens": {
+    "input": 109,
+    "output": 318
+  }
+}

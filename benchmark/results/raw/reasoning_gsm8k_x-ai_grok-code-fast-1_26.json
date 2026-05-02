@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Liam made $63.  \nMitchell sold 21 lemonades at $4 each, so Mitchell made 21 \u00d7 4 = $84.  \nMitchell made $84 - $63 = $21 more than Liam.  \n\nANSWER: 21",
+  "score": 0,
+  "cost": 0.00030639999999999997,
+  "expected": "21",
+  "tokens": {
+    "input": 300,
+    "output": 308
+  }
+}

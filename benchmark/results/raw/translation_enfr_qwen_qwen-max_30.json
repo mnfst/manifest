@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie pour les apprentissages de jeunes dans les PME, les entreprises de taille interm\u00e9diaire et les autorit\u00e9s locales",
+  "score": 4,
+  "cost": 0.00018096,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 32
+  }
+}

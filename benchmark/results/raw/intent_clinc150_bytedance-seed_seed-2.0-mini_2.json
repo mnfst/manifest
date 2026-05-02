@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "intent_clinc150",
+  "case": 2,
+  "response": "report_lost_card",
+  "score": 5,
+  "cost": 9.070000000000001e-05,
+  "expected": "report_lost_card",
+  "tokens": {
+    "input": 607,
+    "output": 75
+  }
+}

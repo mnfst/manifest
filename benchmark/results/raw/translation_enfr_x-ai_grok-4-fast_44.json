@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'\u00e9tendue de la longueur non support\u00e9e d\u00e9velopp\u00e9e en raison de l'affouillement exerce une influence significative sur la r\u00e9ponse flexionnelle tuyau-sol.",
+  "score": 4,
+  "cost": 0.0003532,
+  "expected": "",
+  "tokens": {
+    "input": 202,
+    "output": 391
+  }
+}

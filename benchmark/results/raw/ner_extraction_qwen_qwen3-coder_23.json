@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "ner_extraction",
+  "case": 23,
+  "response": "{\n  \"persons\": [\"Taylor Swift\"],\n  \"organizations\": [],\n  \"locations\": [\"Wembley Stadium\", \"London\"]\n}",
+  "score": 4,
+  "cost": 4.2019999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 29
+  }
+}

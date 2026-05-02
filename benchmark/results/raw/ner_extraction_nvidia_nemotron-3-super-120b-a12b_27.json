@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "{\n  \"persons\": [\"Cristiano Ronaldo\"],\n  \"organizations\": [\"Al Nassr\", \"Manchester United\"],\n  \"locations\": [\"Riyadh\"]\n}",
+  "score": 5,
+  "cost": 9.9e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 35
+  }
+}

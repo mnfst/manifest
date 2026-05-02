@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "First, calculate the daily food cost: Jen has 3 fish, each needing $1 of food per day. So daily spending is 3 * 1 = $3 per day.\n\nNext, note that May has 31 days. Multiply the daily cost by the number of days in May to find total spending: 3 * 31 = 93.\n\nANSWER: 93",
+  "score": 0,
+  "cost": 0.00013220000000000001,
+  "expected": "93",
+  "tokens": {
+    "input": 118,
+    "output": 301
+  }
+}

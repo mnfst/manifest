@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, rouler sur la Wangan, c'est ce diable.",
+  "score": 4,
+  "cost": 0.00030960000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 341
+  }
+}

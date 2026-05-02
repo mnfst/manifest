@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 0.00034280000000000004,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 662,
+    "output": 263
+  }
+}

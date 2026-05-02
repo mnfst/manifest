@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, c'est ce diable qui descend la Wangan.",
+  "score": 4,
+  "cost": 0.0031278,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 2396
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, celui qui roule sur l'autoroute Wangan, c'est ce diable.\n\nNote: This translation maintains the conversational tone and meaning of the original English text, which appears to be referring to someone driving on the Wangan expressway (likely the Shuto Expressway in Tokyo) in a problematic or dangerous manner.",
+  "score": 4,
+  "cost": 7.039999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 71
+  }
+}

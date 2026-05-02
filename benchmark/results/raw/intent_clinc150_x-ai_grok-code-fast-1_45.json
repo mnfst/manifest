@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "intent_clinc150",
+  "case": 45,
+  "response": "accept_reservations",
+  "score": 5,
+  "cost": 0.0009268000000000001,
+  "expected": "accept_reservations",
+  "tokens": {
+    "input": 710,
+    "output": 981
+  }
+}

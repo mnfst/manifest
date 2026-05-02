@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit: \"D'accord.\" Et j'ai dit: \"Eh bien, je me demande o\u00f9 \u00e7a va \u00eatre.\"",
+  "score": 4,
+  "cost": 2.3549999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 27
+  }
+}

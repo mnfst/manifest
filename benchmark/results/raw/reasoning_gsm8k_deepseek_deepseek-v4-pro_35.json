@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Winston picked 6 pounds of peaches at $2.00 per pound, 8 pounds of plums at $1.00 per pound, and 6 pounds of apricots at $3.00 per pound.  \nCost of peaches: 6 \u00d7 $2.00 = $12.00  \nCost of plums: 8 \u00d7 $1.00 = $8.00  \nCost of apricots: 6 \u00d7 $3.00 = $18.00  \nTotal spent: $12.00 + $8.00 + $18.00 = $38.00\n\nANSWER: 38",
+  "score": 0,
+  "cost": 0.000750375,
+  "expected": "38",
+  "tokens": {
+    "input": 113,
+    "output": 403
+  }
+}

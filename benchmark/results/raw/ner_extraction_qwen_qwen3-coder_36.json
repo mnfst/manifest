@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "{\n  \"persons\": [\"Warren Buffett\"],\n  \"organizations\": [\"Bank of America\", \"SEC\"],\n  \"locations\": []\n}",
+  "score": 5,
+  "cost": 4.158e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 29
+  }
+}

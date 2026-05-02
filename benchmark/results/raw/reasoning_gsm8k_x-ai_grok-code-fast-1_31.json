@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Let \\( B \\) represent the number of boys. The problem states there are 30 boys, so \\( B = 30 \\).\n\nThe number of girls is 3 times the number of boys, so \\( G = 3B = 3 \\times 30 = 90 \\).\n\nThe number of nongendered children is \\( \\frac{1}{10} \\) times the number of boys, so \\( N = \\frac{1}{10}B = \\frac{1}{10} \\times 30 = 3 \\).\n\nThe total number of children is \\( B + G + N = 30 + 90 + 3 = 123 \\).\n\nANSWER: 123",
+  "score": 0,
+  "cost": 0.00043240000000000005,
+  "expected": "123",
+  "tokens": {
+    "input": 286,
+    "output": 469
+  }
+}

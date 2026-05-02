@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "ner_extraction",
+  "case": 23,
+  "response": "{\"persons\": [\"Taylor Swift\"], \"organizations\": [], \"locations\": [\"Wembley Stadium\", \"London\"]}",
+  "score": 4,
+  "cost": 0.000272,
+  "expected": "",
+  "tokens": {
+    "input": 268,
+    "output": 273
+  }
+}

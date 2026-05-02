@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "To find the total amount Winston spent on fruit, we need to calculate the cost for each type of fruit separately and then add those costs together.\n\n**Step 1: Calculate the cost of the peaches.**\n*   Price per pound: $2.00\n*   Pounds picked: 6\n*   Cost = $2.00 $\\times$ 6 = $12.00\n\n**Step 2: Calculate the cost of the plums.**\n*   Price per pound: $1.00\n*   Pounds picked: 8\n*   Cost = $1.00 $\\times$ 8 = $8.00\n\n**Step 3: Calculate the cost of the apricots.**\n*   Price per pound: $3.00\n*   Pounds picked: 6\n*   Cost = $3.00 $\\times$ 6 = $18.00\n\n**Step 4: Calculate the total cost.**\n*   Total Cost = Cost of Peaches + Cost of Plums + Cost of Apricots\n*   Total Cost = $12.00 + $8.00 + $18.00\n*   Total Cost = $20.00 + $18.00\n*   Total Cost = $38.00\n\nWinston spent a total of $38.00 on fruit.\n\nANSWER: 38",
+  "score": 2,
+  "cost": 0.002108275,
+  "expected": "38",
+  "tokens": {
+    "input": 131,
+    "output": 1589
+  }
+}

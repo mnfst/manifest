@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "```json\n{\n  \"persons\": [\"Alain Aspect\", \"Professor\"],\n  \"organizations\": [\"Universite Paris-Saclay\", \"Nobel Prize\"],\n  \"locations\": [\"Stockholm\"]\n}\n```",
+  "score": 3,
+  "cost": 4.8299999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 44
+  }
+}

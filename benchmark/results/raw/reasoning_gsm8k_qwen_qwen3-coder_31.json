@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "I need to find the total number of children in the classroom by determining the number of girls, boys, and nongendered children.\n\nGiven information:\n- The classroom has 30 boys\n- There are 3 times as many girls as boys\n- There are 1/10 as many nongendered children as boys\n\nLet me calculate each group:\n\nStep 1: Find the number of girls\nNumber of girls = 3 \u00d7 number of boys\nNumber of girls = 3 \u00d7 30 = 90\n\nStep 2: Find the number of nongendered children\nNumber of nongendered children = (1/10) \u00d7 number of boys\nNumber of nongendered children = (1/10) \u00d7 30 = 3\n\nStep 3: Find the total number of children\nTotal children = boys + girls + nongendered children\nTotal children = 30 + 90 + 3 = 123\n\nANSWER: 123",
+  "score": 2,
+  "cost": 0.00021186000000000002,
+  "expected": "123",
+  "tokens": {
+    "input": 95,
+    "output": 217
+  }
+}

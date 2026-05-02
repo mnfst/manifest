@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "Ted buys 3 books at $16 each, so the cost for books is 3 \u00d7 16 = $48.  \nHe buys 3 pencils at $6 each, so the cost for pencils is 3 \u00d7 6 = $18.  \nTotal spent is $48 + $18 = $66.  \n\nANSWER: 66",
+  "score": 0,
+  "cost": 0.0003216,
+  "expected": "66",
+  "tokens": {
+    "input": 272,
+    "output": 334
+  }
+}

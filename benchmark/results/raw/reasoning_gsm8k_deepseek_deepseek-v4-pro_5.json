@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "The problem describes the number of fairies changing over time. We start with 50 fairies. Then, half as many as Katelyn originally saw (50) join, which is 25 fairies. After that, 30 fairies fly away. The calculation is:\n\n50 (initial) + 25 (joined) - 30 (flew away) = 45\n\nANSWER: 45",
+  "score": 0,
+  "cost": 0.000609435,
+  "expected": "45",
+  "tokens": {
+    "input": 113,
+    "output": 322
+  }
+}

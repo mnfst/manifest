@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "{\n  \"persons\": [\"Picasso\", \"Monet\"],\n  \"organizations\": [\"The Metropolitan Museum of Art\"],\n  \"locations\": [\"New York\"]\n}",
+  "score": 5,
+  "cost": 0.000525525,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 385
+  }
+}

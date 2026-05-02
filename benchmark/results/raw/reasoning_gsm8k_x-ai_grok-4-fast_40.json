@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "Elvis's monthly saving target is $1125, and April has 30 days, so the first half is 15 days and the second half is 15 days.\n\nLet \\(x\\) be the amount saved each day in the first half. Then, the amount saved each day in the second half is \\(2x\\).\n\nTotal savings from the first half: \\(15x\\).\n\nTotal savings from the second half: \\(15 \\times 2x = 30x\\).\n\nOverall total: \\(15x + 30x = 45x = 1125\\).\n\nSolving for \\(x\\): \\(x = 1125 \\div 45 = 25\\).\n\nAmount per day in the second half: \\(2x = 50\\).\n\nANSWER: 50",
+  "score": 0,
+  "cost": 0.00037360000000000003,
+  "expected": "50",
+  "tokens": {
+    "input": 248,
+    "output": 405
+  }
+}

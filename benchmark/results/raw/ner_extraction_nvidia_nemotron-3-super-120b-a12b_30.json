@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "{\n  \"persons\": [\"Justin Trudeau\"],\n  \"organizations\": [\"United Nations\", \"General Assembly\"],\n  \"locations\": [\"New York\"]\n}",
+  "score": 5,
+  "cost": 2.808e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 229
+  }
+}

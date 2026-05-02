@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "calendar",
+  "score": 5,
+  "cost": 0.00052728,
+  "expected": "calendar",
+  "tokens": {
+    "input": 503,
+    "output": 1
+  }
+}

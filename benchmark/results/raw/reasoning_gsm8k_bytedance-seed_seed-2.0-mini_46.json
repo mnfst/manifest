@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "Let's solve this step by step:\n\nStep 1: Calculate each person's individual catch first\nAnakin's catch:\n- Starfish: 10\n- Sea horses: 6\n- Clownfish:3\nTotal for Anakin: 10 + 6 +3 =19 fish\n\nLocsin's catch:\n- Starfish: 5 fewer than Anakin \u219210-5=5\n- Sea horses:3 fewer than Anakin \u21926-3=3\n- Clownfish:2 more than Anakin \u21923+2=5\nTotal for Locsin:5+3+5=13 fish\n\nStep 2: Add their totals together\nTotal fish caught = Anakin's total + Locsin's total =19 +13=32\n\nANSWER: 32",
+  "score": 0,
+  "cost": 0.00042740000000000003,
+  "expected": "32",
+  "tokens": {
+    "input": 158,
+    "output": 1029
+  }
+}

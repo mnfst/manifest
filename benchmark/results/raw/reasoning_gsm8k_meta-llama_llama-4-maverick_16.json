@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "To find out how many books each child got, we first need to determine the total number of books Sarah bought.\n\n1. The total amount spent on books is $300.\n2. The cost of each book is $15.\n3. To find the total number of books, we divide the total amount spent by the cost per book: total_books = total_amount_spent / cost_per_book = 300 / 15.\n\nCalculating the total number of books: total_books = 300 / 15 = 20.\n\n4. Sarah gave an equal number of books to her 4 kids. To find out how many books each child got, we divide the total number of books by the number of kids: books_per_child = total_books / number_of_kids = 20 / 4.\n\nCalculating the number of books per child: books_per_child = 20 / 4 = 5.\n\nTherefore, each child got 5 books.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.00013079999999999998,
+  "expected": "5",
+  "tokens": {
+    "input": 88,
+    "output": 196
+  }
+}

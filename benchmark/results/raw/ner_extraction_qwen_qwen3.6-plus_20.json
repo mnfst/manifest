@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "ner_extraction",
+  "case": 20,
+  "response": "{\"persons\": [\"Sundar Pichai\"], \"organizations\": [\"Google\"], \"locations\": [\"Malaysia\"]}",
+  "score": 5,
+  "cost": 0.0009711,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 727
+  }
+}

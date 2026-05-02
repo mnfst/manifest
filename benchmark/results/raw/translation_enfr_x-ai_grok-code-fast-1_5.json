@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocs provenant de SRT plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et ont \u00e9t\u00e9 trouv\u00e9s pour poss\u00e9der une couche d'EPS dense qui couvre une grande partie de la surface.",
+  "score": 4,
+  "cost": 0.000307,
+  "expected": "",
+  "tokens": {
+    "input": 247,
+    "output": 322
+  }
+}

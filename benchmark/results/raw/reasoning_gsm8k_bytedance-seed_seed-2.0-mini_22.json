@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Let's solve this problem step-by-step:\n\n1.  **Calculate Rafaela's total tips**:\n    There are 40 customers, each gave a $20 tip. So Rafaela's tips are:\n    $40 * 20 = $800\n\n2.  **Calculate Julieta's total tips**:\n    Julieta received 10% less than Rafaela. This means she got 90% of Rafaela's tips (since 100% -10% =90%).\n    90% of $800 = 0.9 * 800 = $720\n\n3.  **Calculate the combined total tips**:\n    Add Rafaela's and Julieta's tips together: $800 + $720 = $1520\n\nANSWER: 1520",
+  "score": 0,
+  "cost": 0.0002547,
+  "expected": "1520",
+  "tokens": {
+    "input": 143,
+    "output": 601
+  }
+}

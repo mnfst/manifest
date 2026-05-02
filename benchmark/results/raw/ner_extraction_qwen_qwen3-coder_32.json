@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\n  \"persons\": [\"Serena Williams\"],\n  \"organizations\": [\"ESPY\"],\n  \"locations\": [\"Los Angeles\"]\n}",
+  "score": 5,
+  "cost": 4.0480000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 28
+  }
+}

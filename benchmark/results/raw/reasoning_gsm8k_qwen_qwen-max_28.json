@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "To solve this problem, let's break it down step by step:\n\n1. Let's denote the number of people who got on the bus at the terminal as \\( x \\).\n\n2. At the first bus stop, 5 more people got on the bus. So, the number of people on the bus after the first stop is:\n   \\[ x + 5 \\]\n\n3. At the second bus stop, 7 people got off the bus, and then 8 more people got on. So, the number of people on the bus after the second stop is:\n   \\[ (x + 5) - 7 + 8 \\]\n   Simplifying this, we get:\n   \\[ x + 5 - 7 + 8 = x + 6 \\]\n\n4. According to the problem, there were a total of 20 people on the bus heading to the third stop. Thus, we can set up the equation:\n   \\[ x + 6 = 20 \\]\n\n5. To find \\( x \\), we solve the equation:\n   \\[ x + 6 = 20 \\]\n   \\[ x = 20 - 6 \\]\n   \\[ x = 14 \\]\n\nTherefore, the number of people who got on the bus at the terminal is 14.\n\nANSWER: 14",
+  "score": 0,
+  "cost": 0.0012948,
+  "expected": "14",
+  "tokens": {
+    "input": 113,
+    "output": 283
+  }
+}

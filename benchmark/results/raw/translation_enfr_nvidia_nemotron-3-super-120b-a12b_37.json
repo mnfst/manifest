@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "Le paragraphe\u202f104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu\u2019il s\u2019applique malgr\u00e9 le paragraphe\u202f248(25) de la Loi. Le paragraphe\u202f248(25) de la Loi d\u00e9crit, aux autres fins de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est consid\u00e9r\u00e9e comme \u00e9tant int\u00e9ress\u00e9e de fa\u00e7on b\u00e9n\u00e9fique dans une fiducie.",
+  "score": 5,
+  "cost": 5.3729999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 487
+  }
+}

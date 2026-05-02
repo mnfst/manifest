@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let's solve this problem step-by-step:\n\n1.  Define the unknown variable: Let $X$ be the number of people who got on the bus at the terminal.\n2.  Track the number of passengers after each stop:\n    - After the terminal: There are $X$ passengers.\n    - After the first bus stop: 5 more people board, so total passengers become $X +5$.\n    - After the second bus stop: 7 people get off, then 8 board. Calculate the new total:\n      $(X +5) -7 +8 = X + (5 -7 +8) = X +6$.\n3.  We know the total passengers heading to the third stop is 20, so set up the equation:\n    $X +6 = 20$.\n4.  Solve for $X$: Subtract 6 from both sides \u2192 $X = 20 -6 =14$.\n\nLet's verify this answer: Starting with 14 passengers, add 5 at first stop (19), subtract 7 then add 8 at second stop: 19-7=12, 12+8=20, which matches the given total.\n\nANSWER: 14",
+  "score": 0,
+  "cost": 0.0004135,
+  "expected": "14",
+  "tokens": {
+    "input": 155,
+    "output": 995
+  }
+}

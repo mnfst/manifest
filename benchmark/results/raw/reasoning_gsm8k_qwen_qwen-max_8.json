@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To find out how many students are enrolled this year in the calligraphy class, we need to calculate a 20% increase on last year's enrollment of 50 students.\n\nStep 1: Calculate 20% of last year's enrollment.\n20% of 50 = 0.20 * 50 = 10 students\n\nStep 2: Add the 20% increase to last year's enrollment to find this year's enrollment.\n50 students (last year) + 10 students (20% increase) = 60 students\n\nTherefore, the number of students enrolled this year in the calligraphy class is 60.\n\nANSWER: 60",
+  "score": 0,
+  "cost": 0.00070096,
+  "expected": "60",
+  "tokens": {
+    "input": 86,
+    "output": 147
+  }
+}

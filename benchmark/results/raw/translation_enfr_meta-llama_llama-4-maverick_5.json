@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocs provenant de SRT plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et pr\u00e9sentaient une couche dense d'EPS qui recouvrait une grande partie de leur surface.",
+  "score": 5,
+  "cost": 3.9149999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 35
+  }
+}

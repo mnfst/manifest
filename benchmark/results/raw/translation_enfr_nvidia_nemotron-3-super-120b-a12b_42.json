@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 42,
+  "response": "Ce premier recensement eut lieu pendant que Quirinus \u00e9tait gouverneur de Syrie. Chacun devait \u00eatre inscrit dans sa propre ville. Ainsi, chacun partit pour sa ville d\u2019origine ; Joseph aussi partit de Nazareth de Galil\u00e9e. Comme il appartenait \u00e0 la famille de David, \u00e9tant un descendant de celui\u2011ci, il se rendit en Jud\u00e9e, \u00e0 Bethl\u00e9em, la ville de David, pour \u00eatre inscrit avec Marie, son \u00e9pouse, qui \u00e9tait enceinte.",
+  "score": 5,
+  "cost": 2.043e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 118
+  }
+}

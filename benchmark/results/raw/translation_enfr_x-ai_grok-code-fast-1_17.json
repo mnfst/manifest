@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Source : examplereferenceletter.com",
+  "score": 5,
+  "cost": 0.0003094,
+  "expected": "",
+  "tokens": {
+    "input": 231,
+    "output": 329
+  }
+}

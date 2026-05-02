@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "ner_extraction",
+  "case": 20,
+  "response": "```json\n{\n    \"persons\": [\"Sundar Pichai\"],\n    \"organizations\": [\"Google\"],\n    \"locations\": [\"Malaysia\"]\n}\n```",
+  "score": 5,
+  "cost": 3.09e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 32
+  }
+}

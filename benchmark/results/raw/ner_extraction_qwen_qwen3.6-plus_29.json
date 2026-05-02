@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Tokyo Stock Exchange\"],\n  \"locations\": [\"Tokyo\"]\n}",
+  "score": 4,
+  "cost": 0.002684175,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 2045
+  }
+}

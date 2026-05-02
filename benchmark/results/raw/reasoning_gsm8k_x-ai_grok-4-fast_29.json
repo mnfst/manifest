@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Red cars: 12  \nGreen cars: 12 - 2 = 10  \nBlue cars: 3 \u00d7 10 = 30  \nTotal red + green + blue: 12 + 10 + 30 = 52  \nYellow cars: 75 - 52 = 23  \n\nANSWER: 23",
+  "score": 0,
+  "cost": 0.00018920000000000002,
+  "expected": "23",
+  "tokens": {
+    "input": 254,
+    "output": 173
+  }
+}

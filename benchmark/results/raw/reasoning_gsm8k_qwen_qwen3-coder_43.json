@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "I need to find Jeff's age by working through the relationships step by step.\n\nGiven information:\n- Mike is 24 years old\n- Martha is 4 years younger than Mike\n- Jeff is 10 years older than Martha\n\nStep 1: Find Martha's age.\nSince Martha is 4 years younger than Mike, and Mike is 24:\nMartha's age = Mike's age - 4 = 24 - 4 = 20 years old\n\nStep 2: Find Jeff's age.\nSince Jeff is 10 years older than Martha, and Martha is 20:\nJeff's age = Martha's age + 10 = 20 + 10 = 30 years old\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.00016060000000000003,
+  "expected": "30",
+  "tokens": {
+    "input": 90,
+    "output": 160
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "I need to find how many wheels Henry will have left after assembling all the toys.\n\nLet me break this down step by step:\n\nFirst, let me calculate how many wheels are needed for the cars:\n- Number of cars: 57\n- Wheels per car: 4\n- Total wheels for cars: 57 \u00d7 4 = 228 wheels\n\nNext, let me calculate how many wheels are needed for the motorcycles:\n- Number of motorcycles: 73\n- Wheels per motorcycle: 2\n- Total wheels for motorcycles: 73 \u00d7 2 = 146 wheels\n\nNow, let me find the total number of wheels needed:\n- Total wheels needed = wheels for cars + wheels for motorcycles\n- Total wheels needed = 228 + 146 = 374 wheels\n\nFinally, let me calculate how many wheels will be left:\n- Wheels available: 650\n- Wheels needed: 374\n- Wheels left = 650 - 374 = 276 wheels\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.00022506,
+  "expected": "276",
+  "tokens": {
+    "input": 107,
+    "output": 229
+  }
+}

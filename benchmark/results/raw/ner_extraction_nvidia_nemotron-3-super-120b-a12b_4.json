@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "ner_extraction",
+  "case": 4,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"Bank of England\",\n    \"European Central Bank\"\n  ],\n  \"locations\": [\n    \"Frankfurt\"\n  ]\n}",
+  "score": 4,
+  "cost": 9.899999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 39
+  }
+}

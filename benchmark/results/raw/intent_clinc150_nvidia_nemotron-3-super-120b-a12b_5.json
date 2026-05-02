@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "intent_clinc150",
+  "case": 5,
+  "response": "We need to classify the user message: \"what are the best places to get shrimp in chicago",
+  "score": 0,
+  "cost": 5.337e-05,
+  "expected": "restaurant_suggestion",
+  "tokens": {
+    "input": 573,
+    "output": 20
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "French: Votre mari avait-il invit\u00e9 le lieutenant Gilbert chez vous ?",
+  "score": 5,
+  "cost": 9.984e-05,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 15
+  }
+}

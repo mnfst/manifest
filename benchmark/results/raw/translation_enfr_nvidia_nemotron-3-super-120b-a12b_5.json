@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocs provenant de SRT plus \u00e9lev\u00e9es \u00e9taient moins hydrat\u00e9s et ont \u00e9t\u00e9 trouv\u00e9s poss\u00e9dant une couche dense d'EPS couvrant une grande partie de la surface.",
+  "score": 4,
+  "cost": 2.736e-05,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 242
+  }
+}

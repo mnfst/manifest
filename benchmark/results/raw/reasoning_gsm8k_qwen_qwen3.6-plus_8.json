@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To find the number of students enrolled this year, we need to calculate the increase in enrollment and add it to last year's total.\n\n**Step 1: Calculate the number of new students.**\nWe need to find 20% of the 50 students enrolled last year.\n$$20\\% \\text{ of } 50 = 0.20 \\times 50 = 10$$\nSo, there are 10 new students.\n\n**Step 2: Add the increase to the original enrollment.**\nAdd the 10 new students to the 50 students from last year.\n$$50 + 10 = 60$$\n\nThere are 60 students enrolled this year.\n\nANSWER: 60",
+  "score": 0,
+  "cost": 0.00146965,
+  "expected": "60",
+  "tokens": {
+    "input": 90,
+    "output": 1108
+  }
+}

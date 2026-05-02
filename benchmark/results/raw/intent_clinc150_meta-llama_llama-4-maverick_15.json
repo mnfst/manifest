@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "intent_clinc150",
+  "case": 15,
+  "response": "share_location",
+  "score": 5,
+  "cost": 9.135e-05,
+  "expected": "share_location",
+  "tokens": {
+    "input": 597,
+    "output": 3
+  }
+}

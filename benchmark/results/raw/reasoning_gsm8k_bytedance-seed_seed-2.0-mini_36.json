@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Let's solve this step-by-step:\n\n1.  **Initial cards**: Elaine starts with 20 Pokemon cards.\n2.  **First month collection**: She collects three times her initial number of cards. That is $3 \\times 20 = 60$ cards.\n3.  **Second month collection**: She collects 20 fewer cards than the first month. So $60 - 20 = 40$ cards.\n4.  **Third month collection**: She collects twice the combined total of the first and second months. The combined first and second collections are $60 + 40 = 100$, so twice that is $2 \\times 100 = 200$ cards.\n5.  **Total cards now**: Add the initial cards plus all monthly collections: $20 + 60 + 40 + 200 = 320$.\n\nANSWER: 320",
+  "score": 0,
+  "cost": 0.0008937000000000001,
+  "expected": "320",
+  "tokens": {
+    "input": 161,
+    "output": 2194
+  }
+}

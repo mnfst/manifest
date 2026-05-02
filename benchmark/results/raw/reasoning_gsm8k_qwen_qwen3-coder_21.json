@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "I need to find how many steps Elliott took during his jog.\n\nLet me break down what I know:\n- Elliott's goal is 10,000 steps total\n- He finished half of his steps on walks to and from school\n- He did another 1,000 steps walking with his friend\n- After his jog, he had 2,000 steps left to take\n\nLet me work through this step by step:\n\nFirst, let me find how many steps he took walking to and from school:\n- Half of his total goal = 10,000 \u00f7 2 = 5,000 steps\n\nNext, let me calculate the total steps he had taken before his jog:\n- Steps to/from school: 5,000\n- Steps with friend: 1,000\n- Total before jog: 5,000 + 1,000 = 6,000 steps\n\nNow, let me figure out how many total steps he had taken after his jog:\n- He had 2,000 steps left to reach his goal of 10,000\n- So after his jog, he had taken: 10,000 - 2,000 = 8,000 steps\n\nFinally, let me find how many steps he took during his jog:\n- Steps after jog: 8,000\n- Steps before jog: 6,000\n- Steps during jog: 8,000 - 6,000 = 2,000 steps\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.0003388,
+  "expected": "2000",
+  "tokens": {
+    "input": 136,
+    "output": 351
+  }
+}

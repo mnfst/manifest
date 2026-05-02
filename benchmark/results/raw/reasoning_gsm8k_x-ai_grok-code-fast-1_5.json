@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Katelyn initially saw 50 fairies.\n\nHalf as many as Katelyn saw is 25 fairies, which came from the east and joined the existing fairies, making a total of 50 + 25 = 75 fairies.\n\nTen minutes later, 30 fairies flew away, leaving 75 - 30 = 45 fairies.\n\nANSWER: 45",
+  "score": 0,
+  "cost": 0.0003656,
+  "expected": "45",
+  "tokens": {
+    "input": 308,
+    "output": 380
+  }
+}

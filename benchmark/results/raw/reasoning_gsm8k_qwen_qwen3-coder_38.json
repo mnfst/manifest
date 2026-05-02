@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "I need to find how much money Gerald had left after spending $10 on a book.\n\nFirst, let me determine how Gerald and Julia divided the $100 in the ratio 3:2.\n\nWhen dividing in the ratio 3:2, this means:\n- Gerald gets 3 parts\n- Julia gets 2 parts\n- Total parts = 3 + 2 = 5 parts\n\nSince the total amount is $100, each part is worth:\n$100 \u00f7 5 = $20\n\nTherefore:\n- Gerald's share = 3 parts \u00d7 $20 = $60\n- Julia's share = 2 parts \u00d7 $20 = $40\n\nLet me verify: $60 + $40 = $100 \u2713\n\nNow, if Gerald spent $10 on a book, the amount he has left is:\n$60 - $10 = $50\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00019580000000000002,
+  "expected": "50",
+  "tokens": {
+    "input": 78,
+    "output": 203
+  }
+}

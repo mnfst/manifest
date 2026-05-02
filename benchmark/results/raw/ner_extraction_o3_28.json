@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "ner_extraction",
+  "case": 28,
+  "response": "{\"persons\": [], \"organizations\": [\"Johns Hopkins University\"], \"locations\": [\"Baltimore\"]}",
+  "score": 4,
+  "cost": 0.001476,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 167
+  }
+}

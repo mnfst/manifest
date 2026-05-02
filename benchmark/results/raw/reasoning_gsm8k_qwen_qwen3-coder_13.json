@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "I need to calculate the total amount Janet paid for the brooch, including material, construction, and insurance costs.\n\nLet me break this down step by step:\n\nStep 1: Calculate the initial costs\n- Material cost: $500\n- Construction cost: $800\n- Total initial costs: $500 + $800 = $1,300\n\nStep 2: Calculate the insurance cost\n- Insurance is 10% of the initial costs\n- Insurance cost: 10% of $1,300 = 0.10 \u00d7 $1,300 = $130\n\nStep 3: Calculate the total amount paid\n- Total cost = Initial costs + Insurance cost\n- Total cost = $1,300 + $130 = $1,430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.00018853999999999998,
+  "expected": "1430",
+  "tokens": {
+    "input": 105,
+    "output": 188
+  }
+}

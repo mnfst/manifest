@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "To solve this problem, we need to calculate the total cost of the tickets, food, and rides, and then divide this total by the number of friends to find out how much each one paid.\n\n1. **Cost of tickets:**\n   - The total cost of the 3 tickets is $20.25.\n\n2. **Cost of food:**\n   - The cost of food is $4.50 less than the cost of the tickets.\n   - Cost of food = $20.25 - $4.50 = $15.75.\n\n3. **Cost of rides:**\n   - Each ride costs $33, and they went on 2 different rides.\n   - Total cost of rides = 2 * $33 = $66.\n\n4. **Total cost:**\n   - Add the cost of the tickets, food, and rides.\n   - Total cost = $20.25 (tickets) + $15.75 (food) + $66 (rides) = $102.00.\n\n5. **Cost per friend:**\n   - There are 3 friends, and they agreed to split the total cost evenly.\n   - Cost per friend = Total cost / 3 = $102.00 / 3 = $34.00.\n\nTherefore, each of them paid $34.00.\n\nANSWER: 34.00",
+  "score": 0,
+  "cost": 0.00137696,
+  "expected": "34",
+  "tokens": {
+    "input": 112,
+    "output": 303
+  }
+}

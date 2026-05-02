@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "Anakin caught 10 starfish, 6 sea horses, and 3 clownfish, for a total of 10 + 6 + 3 = 19 creatures.\n\nLocsin caught 5 fewer starfish than Anakin (10 - 5 = 5 starfish), 3 fewer sea horses than Anakin (6 - 3 = 3 sea horses), and 2 more clownfish than Anakin (3 + 2 = 5 clownfish), for a total of 5 + 3 + 5 = 13 creatures.\n\nThe total number of creatures caught is 19 + 13 = 32. Note that while starfish are technically not fish, the problem refers to all caught items collectively as \"fish\" in the question.\n\nANSWER: 32",
+  "score": 0,
+  "cost": 0.0009847999999999999,
+  "expected": "32",
+  "tokens": {
+    "input": 304,
+    "output": 1155
+  }
+}

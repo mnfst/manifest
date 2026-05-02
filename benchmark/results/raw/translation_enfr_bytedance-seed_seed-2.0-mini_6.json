@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, c'est ce diable-l\u00e0 qui conduit sur la Wangan.",
+  "score": 4,
+  "cost": 0.00045020000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 1106
+  }
+}

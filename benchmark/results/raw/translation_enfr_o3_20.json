@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "French: Je dirais qu\u2019au mieux, \u00e7a a peu de valeur.",
+  "score": 4,
+  "cost": 0.001866,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 225
+  }
+}

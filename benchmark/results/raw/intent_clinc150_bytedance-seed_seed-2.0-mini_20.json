@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "intent_clinc150",
+  "case": 20,
+  "response": "vaccines",
+  "score": 5,
+  "cost": 8.280000000000001e-05,
+  "expected": "vaccines",
+  "tokens": {
+    "input": 608,
+    "output": 55
+  }
+}

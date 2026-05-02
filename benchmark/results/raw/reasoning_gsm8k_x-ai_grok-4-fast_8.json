@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To solve this, calculate the 20% increase on last year's enrollment of 50 students.\n\n20% of 50 is \\(0.20 \\times 50 = 10\\).\n\nAdd this to the original enrollment: \\(50 + 10 = 60\\).\n\nAlternatively, multiply the original by 1.20: \\(50 \\times 1.20 = 60\\).\n\nANSWER: 60",
+  "score": 0,
+  "cost": 0.00022480000000000002,
+  "expected": "60",
+  "tokens": {
+    "input": 228,
+    "output": 224
+  }
+}

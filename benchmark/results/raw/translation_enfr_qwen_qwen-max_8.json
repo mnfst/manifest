@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit : \"Bien s\u00fbr.\" Et j'ai dit : \"Eh bien, je me demande o\u00f9 \u00e7a va se passer.\"",
+  "score": 4,
+  "cost": 0.0001664,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 28
+  }
+}

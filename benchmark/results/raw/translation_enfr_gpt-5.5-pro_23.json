@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Des \u00e9vacuateurs de crues capables d\u2019\u00e9vacuer les crues postul\u00e9es sont soit int\u00e9gr\u00e9s aux structures du barrage, soit construits sous forme d\u2019ouvrages distincts.",
+  "score": 4,
+  "cost": 0.007515,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 363
+  }
+}

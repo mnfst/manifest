@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 10,
+  "response": "Peut-\u00eatre g\u00e9n\u00e9rons quelques indices pour nous rapprocher de l'animal qui a fait \u00e7a.",
+  "score": 5,
+  "cost": 0.0006435,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 1588
+  }
+}

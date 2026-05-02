@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "{\n  \"persons\": [\"Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"Science\"],\n  \"locations\": []\n}",
+  "score": 4,
+  "cost": 0.00058986,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 322
+  }
+}

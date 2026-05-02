@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "La r\u00e9pression de ce type, ainsi que les arrestations r\u00e9centes de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser des informations soi-disant fausses, ont \u00e0 juste titre \u00e9veill\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 0.0003868000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 262,
+    "output": 418
+  }
+}

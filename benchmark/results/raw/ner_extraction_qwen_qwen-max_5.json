@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "ner_extraction",
+  "case": 5,
+  "response": "{\n  \"persons\": [\"James Wilson\"],\n  \"organizations\": [\"Stanford University\", \"IEEE\"],\n  \"locations\": [\"Tokyo\"]\n}",
+  "score": 5,
+  "cost": 0.00019968,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 30
+  }
+}

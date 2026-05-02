@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "We need to classify the message \"is the bill due today\". The intents list includes \"bill",
+  "score": 0,
+  "cost": 5.283e-05,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 567,
+    "output": 20
+  }
+}

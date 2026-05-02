@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Step 1: Katelyn initially saw 50 fairies flying above the nearby forest.\n\nStep 2: One of her friends saw half as many fairies as Katelyn saw come from the east and join the fairies that were there. Half of 50 is 25, so 25 fairies joined the initial 50.\n\nStep 3: Calculate the total number of fairies after 25 more joined. 50 (initial fairies) + 25 (new fairies) = 75 fairies.\n\nStep 4: Ten minutes later, 30 fairies flew away. So, we need to subtract 30 from the total number of fairies that were present before they flew away.\n\nStep 5: Calculate the remaining number of fairies after 30 flew away. 75 (fairies before some flew away) - 30 (fairies that flew away) = 45.\n\nANSWER: 45",
+  "score": 0,
+  "cost": 0.00014325,
+  "expected": "45",
+  "tokens": {
+    "input": 187,
+    "output": 192
+  }
+}

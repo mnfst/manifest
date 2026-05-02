@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "To solve this problem, let's break it down into steps.\n\n1. **Calculate the total number of lollipops sold**: There are 30 students, and on average, each student sold 10 lollipops. So, the total number of lollipops sold is 30 students * 10 lollipops/student = 300 lollipops.\n\n2. **Calculate the total revenue from selling lollipops**: Each lollipop was sold for $0.8. So, the total revenue from selling 300 lollipops is 300 lollipops * $0.8/lollipop = $240.\n\n3. **Calculate the total cost of the lollipops**: The class bought the lollipops for $0.5 each. So, the total cost for 300 lollipops is 300 lollipops * $0.5/lollipop = $150.\n\n4. **Calculate the profit**: The profit is the total revenue minus the total cost. So, the profit = $240 - $150 = $90.\n\nTherefore, the class was able to raise $90 from the profit of selling lollipops.\n\nANSWER: 90",
+  "score": 0,
+  "cost": 0.0001614,
+  "expected": "90",
+  "tokens": {
+    "input": 120,
+    "output": 239
+  }
+}

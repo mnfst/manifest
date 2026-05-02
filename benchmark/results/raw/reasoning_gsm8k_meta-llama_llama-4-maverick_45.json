@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "To solve this problem, we need to follow these steps:\n\n1. Calculate the total number of wheels needed for the cars.\n2. Calculate the total number of wheels needed for the motorcycles.\n3. Sum the total number of wheels needed for both cars and motorcycles.\n4. Subtract the total number of wheels needed from the number of wheels available in the box.\n\nStep 1: Calculate the total number of wheels needed for the cars.\nHenry needs to assemble 57 cars, and each car requires 4 wheels. So, the total number of wheels needed for the cars is 57 * 4 = 228.\n\nStep 2: Calculate the total number of wheels needed for the motorcycles.\nHenry needs to assemble 73 motorcycles, and each motorcycle requires 2 wheels. So, the total number of wheels needed for the motorcycles is 73 * 2 = 146.\n\nStep 3: Sum the total number of wheels needed for both cars and motorcycles.\nTotal wheels needed = wheels for cars + wheels for motorcycles = 228 + 146 = 374.\n\nStep 4: Subtract the total number of wheels needed from the number of wheels available in the box.\nHenry has 650 wheels in the box. So, the number of wheels left after assembling all the toys is 650 - 374 = 276.\n\nANSWER: 276",
+  "score": 0,
+  "cost": 0.00017805,
+  "expected": "276",
+  "tokens": {
+    "input": 103,
+    "output": 271
+  }
+}

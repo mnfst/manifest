@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "The original cost for 20 balloons is $900, so the original price per balloon is $900 \u00f7 20 = $45.\n\nAfter the increase, the new price per balloon is $45 + $20 = $65.\n\nBentley fills 170 balloons at $65 each, so the total cost is 170 \u00d7 $65 = $11,050.\n\nANSWER: 11050",
+  "score": 0,
+  "cost": 0.000302,
+  "expected": "11050",
+  "tokens": {
+    "input": 246,
+    "output": 316
+  }
+}

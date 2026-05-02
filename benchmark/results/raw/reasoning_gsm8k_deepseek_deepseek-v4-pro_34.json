@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "The total cost of tickets is $20.25.  \nThe total cost of food is $20.25 - $4.50 = $15.75.  \nThe total cost of rides is 2 \u00d7 $33 = $66.00.  \nThe overall total cost is $20.25 + $15.75 + $66.00 = $102.00.  \nSplit evenly among 3 friends, each pays $102.00 \u00f7 3 = $34.00.  \n\nANSWER: 34",
+  "score": 0,
+  "cost": 0.00089175,
+  "expected": "34",
+  "tokens": {
+    "input": 102,
+    "output": 487
+  }
+}

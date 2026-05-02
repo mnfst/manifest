@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "{\"persons\": [\"Jensen Huang\"], \"organizations\": [\"Nvidia\", \"GTC\"], \"locations\": [\"San Jose\"]}",
+  "score": 5,
+  "cost": 0.00153,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 173
+  }
+}

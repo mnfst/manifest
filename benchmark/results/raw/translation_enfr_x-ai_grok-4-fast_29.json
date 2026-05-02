@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime bien... m\u00eame si je ne sais pas pourquoi.",
+  "score": 4,
+  "cost": 0.00021620000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 224
+  }
+}

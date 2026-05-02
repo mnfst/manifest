@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus vint et parla distinctement et avec bienveillance : \u00ab C'est moi. \u00bb Cette expression devint la base de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 0.0003692,
+  "expected": "",
+  "tokens": {
+    "input": 246,
+    "output": 400
+  }
+}

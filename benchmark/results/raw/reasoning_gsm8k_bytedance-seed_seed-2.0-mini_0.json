@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Let's solve this step by step:\n\n1.  First, find how much each girl raised:\n    - Alexandra raises $430 as given directly.\n    - Kim raises $320 more than Alexandra: $430 + $320 = $750.\n    - Sarah raises $300 as given directly.\n    - Maryam raises $400 more than Sarah: $300 + $400 = $700.\n\n2.  Add all their totals together:\n    $430 (Alexandra) + $750 (Kim) + $300 (Sarah) + $700 (Maryam) = $2180\n\nANSWER: 2180",
+  "score": 0,
+  "cost": 0.0004127,
+  "expected": "2280",
+  "tokens": {
+    "input": 147,
+    "output": 995
+  }
+}

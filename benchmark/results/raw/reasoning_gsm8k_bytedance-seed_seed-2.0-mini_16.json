@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Let's solve this problem step by step:\n\n1.  **Find the total number of books Sarah bought**:\n    She spent $300 total, and each book cost $15. To find the total number of books, divide the total amount spent by the price per book:\n    $300 \u00f7 $15 = 20 total books.\n\n2.  **Split the total books equally between 4 kids**:\n    Divide the total number of books by the number of kids:\n    20 \u00f7 4 = 5.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.00016130000000000002,
+  "expected": "5",
+  "tokens": {
+    "input": 133,
+    "output": 370
+  }
+}

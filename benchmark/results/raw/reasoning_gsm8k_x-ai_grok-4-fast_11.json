@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Total burritos ordered: 600.\n\nBurritos given to 50 students: 50 \u00d7 10 = 500.\n\nBurritos eaten by Mr. George: 20.\n\nTotal burritos consumed: 500 + 20 = 520.\n\nLeftover burritos: 600 - 520 = 80.\n\nANSWER: 80",
+  "score": 0,
+  "cost": 0.000234,
+  "expected": "80",
+  "tokens": {
+    "input": 250,
+    "output": 230
+  }
+}

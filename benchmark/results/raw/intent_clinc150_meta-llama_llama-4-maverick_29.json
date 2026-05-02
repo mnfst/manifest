@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "intent_clinc150",
+  "case": 29,
+  "response": "recipe",
+  "score": 5,
+  "cost": 9e-05,
+  "expected": "recipe",
+  "tokens": {
+    "input": 592,
+    "output": 2
+  }
+}

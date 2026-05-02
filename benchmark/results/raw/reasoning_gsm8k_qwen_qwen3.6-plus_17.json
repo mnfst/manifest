@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "To find out how much Ted spent in total, we can break the problem down into simple steps:\n\n**Step 1:** Calculate the total cost of the books.\nTed buys 3 books at $16 each.\n3 \u00d7 $16 = $48\n\n**Step 2:** Calculate the total cost of the pencils.\nTed buys 3 pencils at $6 each.\n3 \u00d7 $6 = $18\n\n**Step 3:** Add the cost of the books and pencils together to find the total amount spent.\n$48 + $18 = $66\n\n*(Note: The starting amount of $200 is extra information and is not needed to answer how much he spent.)*\n\nANSWER: 66",
+  "score": 0,
+  "cost": 0.001549925,
+  "expected": "66",
+  "tokens": {
+    "input": 85,
+    "output": 1171
+  }
+}

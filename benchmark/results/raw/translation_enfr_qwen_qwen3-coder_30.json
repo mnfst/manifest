@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie pour les apprentissages des jeunes dans les PME, les moyennes entreprises et les collectivit\u00e9s locales",
+  "score": 4,
+  "cost": 3.6519999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 30
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Mariah used 1/4 of a skein of yarn, and her grandma used 1/2 of a skein of yarn. To find the total fraction of a skein used, add these fractions:\n1/4 + 1/2 = 1/4 + 2/4 = 3/4.\n\nThere are 364 yards in a skein. Multiply the total fraction by the number of yards per skein:\n(3/4) \u00d7 364 = 3 \u00d7 (364 \u00f7 4) = 3 \u00d7 91 = 273.\n\nThey used 273 yards of yarn altogether.\n\nANSWER: 273",
+  "score": 0,
+  "cost": 0.0005824649999999999,
+  "expected": "273",
+  "tokens": {
+    "input": 99,
+    "output": 310
+  }
+}

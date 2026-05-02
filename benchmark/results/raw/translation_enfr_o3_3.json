@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n\u2019existe pas d\u2019autre explication \u00e0 cette subvention parcimonieuse de 10 ou 12 millions d\u2019ECU, somme qui, comme nous le savons tous, ne suffit m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 des moyens modernes n\u00e9cessaires \u00e0 l\u2019exercice d\u2019une fonction de contr\u00f4le dans le secteur de la p\u00eache.",
+  "score": 5,
+  "cost": 0.002892,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 343
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Nous sommes capables\u2026 de lancer plus de puissance de feu\u2026 qu\u2019il n\u2019en a jamais \u00e9t\u00e9 lib\u00e9r\u00e9 dans toute l\u2019histoire de la guerre.",
+  "score": 4,
+  "cost": 0.003024,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 367
+  }
+}

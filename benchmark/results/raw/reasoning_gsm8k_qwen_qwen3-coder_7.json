@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "I need to find the cost of each cup. Let me break this problem down step by step.\n\nLet me define the variables:\n- Let the cost of each cup = $c\n- Twenty dozen cups = 20 \u00d7 12 = 240 cups\n- Half a dozen plates = 6 plates\n- Each plate costs $6000\n\nNow let me set up the equation based on the given information:\n\nThe cost of twenty dozen cups = The total cost of half a dozen plates - $1200\n\nCost of 240 cups = (Cost of 6 plates) - $1200\n\n240c = (6 \u00d7 $6000) - $1200\n\n240c = $36000 - $1200\n\n240c = $34800\n\nNow I'll solve for c:\n\nc = $34800 \u00f7 240\n\nc = $145\n\nLet me verify this answer:\n- Cost of 240 cups = 240 \u00d7 $145 = $34,800\n- Cost of 6 plates = 6 \u00d7 $6000 = $36,000\n- Difference = $36,000 - $34,800 = $1,200 \u2713\n\nThis matches the given condition that twenty dozen cups cost $1200 less than half a dozen plates.\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.0003047,
+  "expected": "145",
+  "tokens": {
+    "input": 81,
+    "output": 326
+  }
+}

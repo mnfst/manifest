@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "ner_extraction",
+  "case": 17,
+  "response": "{\"persons\":[],\"organizations\":[\"Toyota\"],\"locations\":[\"Greensboro\",\"North Carolina\"]}",
+  "score": 5,
+  "cost": 0.002935,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 129
+  }
+}

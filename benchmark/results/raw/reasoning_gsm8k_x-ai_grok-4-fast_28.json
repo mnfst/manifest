@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let \\( x \\) be the number of people who got on at the terminal.\n\nAfter the first stop: \\( x + 5 \\).\n\nAfter the second stop: \\( (x + 5) - 7 + 8 = x + 6 \\).\n\nThis equals 20 people heading to the third stop, so \\( x + 6 = 20 \\).\n\nThus, \\( x = 14 \\).\n\nANSWER: 14",
+  "score": 0,
+  "cost": 0.0003444,
+  "expected": "14",
+  "tokens": {
+    "input": 258,
+    "output": 366
+  }
+}

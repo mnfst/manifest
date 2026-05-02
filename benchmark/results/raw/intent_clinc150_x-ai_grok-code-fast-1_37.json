@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "intent_clinc150",
+  "case": 37,
+  "response": "payday",
+  "score": 5,
+  "cost": 0.00024119999999999998,
+  "expected": "payday",
+  "tokens": {
+    "input": 710,
+    "output": 124
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "translation_enfr",
+  "case": 7,
+  "response": "Services de placement. C\u2019est g\u00e9n\u00e9reux.",
+  "score": 5,
+  "cost": 0.0024,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 112
+  }
+}

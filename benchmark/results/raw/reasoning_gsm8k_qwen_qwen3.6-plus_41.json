@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let's define a variable for the unknown quantity:\nLet $H$ be the number of copies Harald sold.\n\nAccording to the problem, Marilyn sold 10 times as many copies as Harald. So, Marilyn sold $10H$ copies.\n\nWe are also told that their combined sales total 88,000 copies. We can write this as an equation:\n$H + 10H = 88,000$\n\nCombine the like terms on the left side:\n$11H = 88,000$\n\nTo find $H$, divide both sides by 11:\n$H = \\frac{88,000}{11}$\n$H = 8,000$\n\nSo, Harald sold 8,000 copies. (As a quick check: Marilyn sold $10 \\times 8,000 = 80,000$ copies, and $80,000 + 8,000 = 88,000$, which matches the given total.)\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.0020917,
+  "expected": "8000",
+  "tokens": {
+    "input": 84,
+    "output": 1588
+  }
+}

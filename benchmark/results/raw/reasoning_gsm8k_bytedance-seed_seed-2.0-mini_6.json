@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Let's solve this problem step by step:\n1.  First calculate the brother's current age. Ann is 9 years old, and her brother is twice her age. So his current age is $9 \\times 2 = 18$ years old.\n2.  Next, find his age in 3 years by adding 3 to his current age: $18 + 3 = 21$.\n\nANSWER: 21",
+  "score": 0,
+  "cost": 0.0001308,
+  "expected": "21",
+  "tokens": {
+    "input": 112,
+    "output": 299
+  }
+}

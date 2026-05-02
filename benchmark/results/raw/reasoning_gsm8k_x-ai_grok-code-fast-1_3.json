@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "The younger son is 12 - 4 = 8 years old.  \nAssuming James buys one candle per year of age for each son (a standard birthday candle practice), he needs 12 + 8 = 20 candles.  \nEach pack contains 5 candles and costs $3, so he needs 20 / 5 = 4 packs.  \nThe total cost is 4 \u00d7 $3 = $12.  \n\nANSWER: 12",
+  "score": 0,
+  "cost": 0.0004732,
+  "expected": "12",
+  "tokens": {
+    "input": 286,
+    "output": 520
+  }
+}

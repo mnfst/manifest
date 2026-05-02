@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "French: Sector Source est un site Web de ressources con\u00e7u pour aider les responsables d\u2019organismes de bienfaisance et d\u2019organisations \u00e0 but non lucratif \u00e0 demeurer inform\u00e9s sur\u2026",
+  "score": 5,
+  "cost": 0.002078,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 249
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "ANSWER: 30",
+  "score": 2,
+  "cost": 1.773e-05,
+  "expected": "30",
+  "tokens": {
+    "input": 99,
+    "output": 98
+  }
+}

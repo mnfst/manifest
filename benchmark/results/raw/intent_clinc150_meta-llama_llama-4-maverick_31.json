@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "intent_clinc150",
+  "case": 31,
+  "response": "freeze_account",
+  "score": 5,
+  "cost": 9.12e-05,
+  "expected": "freeze_account",
+  "tokens": {
+    "input": 596,
+    "output": 3
+  }
+}

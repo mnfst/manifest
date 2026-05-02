@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "To solve this problem, let's break it down step by step:\n\n1. **Identify the ages of the sisters:**\n   - There are 3 sisters and all of them are 16 years old.\n   - The total age of the sisters is \\(3 \\times 16 = 48\\) years.\n\n2. **Identify the ages of the brothers:**\n   - One of the brothers is 12 years old.\n   - The problem states that the 12-year-old brother is half the age of the older brother.\n   - Therefore, the age of the older brother is \\(12 \\times 2 = 24\\) years.\n\n3. **Calculate the total age of the brothers:**\n   - The total age of the brothers is \\(12 + 24 = 36\\) years.\n\n4. **Calculate the total age of all the siblings:**\n   - Add the total age of the sisters and the total age of the brothers.\n   - Total age of all siblings is \\(48 + 36 = 84\\) years.\n\nANSWER: 84",
+  "score": 0,
+  "cost": 0.0010712,
+  "expected": "84",
+  "tokens": {
+    "input": 102,
+    "output": 232
+  }
+}

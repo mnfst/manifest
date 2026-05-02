@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "La plage la plus proche se trouve \u00e0 une distance de conduite facile, situ\u00e9e \u00e0 environ 6...",
+  "score": 4,
+  "cost": 0.00022480000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 236,
+    "output": 222
+  }
+}

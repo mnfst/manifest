@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "To solve this problem, let's break it down step by step:\n\n1. **Determine the total cost of half a dozen plates:**\n   - Each plate is sold at $6000.\n   - Half a dozen plates is 6 plates.\n   - Total cost for 6 plates = 6 * $6000 = $36000.\n\n2. **Find the cost of twenty dozen cups:**\n   - The problem states that twenty dozen cups cost $1200 less than the total cost of half a dozen plates.\n   - Total cost of twenty dozen cups = $36000 - $1200 = $34800.\n\n3. **Calculate the cost per cup:**\n   - Twenty dozen cups is 20 * 12 = 240 cups.\n   - Cost per cup = Total cost of twenty dozen cups / Number of cups.\n   - Cost per cup = $34800 / 240.\n\n4. **Perform the division:**\n   - Cost per cup = $34800 / 240 = $145.\n\nTherefore, the total cost of buying each cup is:\n\nANSWER: 145",
+  "score": 0,
+  "cost": 0.00116168,
+  "expected": "145",
+  "tokens": {
+    "input": 81,
+    "output": 259
+  }
+}

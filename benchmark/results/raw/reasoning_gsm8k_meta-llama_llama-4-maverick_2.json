@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "To solve this problem, we need to determine the distance Tom travels from 1 to 4 PM and then calculate how long it takes him to travel back at a different speed.\n\n1. First, we need to find out how long Tom traveled from 1 to 4 PM. \n   - 4 PM - 1 PM = 3 hours.\n\n2. Next, we calculate the distance he traveled in those 3 hours at 10 miles per hour.\n   - Distance = Speed * Time = 10 mph * 3 hours = 30 miles.\n\n3. Now, we know Tom traveled 30 miles away from his starting point. \n   - To get back, he has to cover the same distance, 30 miles, but at a different speed, 6 mph.\n\n4. To find out how long it takes him to get back, we use the formula Time = Distance / Speed.\n   - Time = 30 miles / 6 mph = 5 hours.\n\nTherefore, it takes Tom 5 hours to get back.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.000144,
+  "expected": "5",
+  "tokens": {
+    "input": 92,
+    "output": 217
+  }
+}

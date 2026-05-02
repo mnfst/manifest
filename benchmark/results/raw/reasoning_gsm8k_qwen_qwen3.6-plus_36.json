@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Identify the initial number of cards.**\nElaine started with 20 Pokemon cards.\n\n**Step 2: Calculate the cards collected in the first month.**\nShe collected three times the initial number: \n3 \u00d7 20 = 60 cards.\n\n**Step 3: Calculate the cards collected in the second month.**\nShe collected 20 fewer cards than she did in the first month: \n60 \u2212 20 = 40 cards.\n\n**Step 4: Calculate the cards collected in the third month.**\nShe collected twice the combined number of cards from the first and second months: \n2 \u00d7 (60 + 40) = 2 \u00d7 100 = 200 cards.\n\n**Step 5: Calculate the total number of cards she has now.**\nAdd the initial amount to all the cards collected over the three months: \n20 (initial) + 60 (month 1) + 40 (month 2) + 200 (month 3) = 320 cards.\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.002936375,
+  "expected": "320",
+  "tokens": {
+    "input": 123,
+    "output": 2228
+  }
+}

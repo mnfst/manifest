@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "",
+  "score": 3,
+  "cost": 0.000884355,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 500
+  }
+}

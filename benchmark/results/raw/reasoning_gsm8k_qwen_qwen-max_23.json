@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "To solve this problem, we first need to determine the original cost of filling one helium balloon and then calculate the new cost after the price increase. Finally, we will use the new cost to find out how much Bentley paid to fill 170 balloons.\n\n1. **Determine the original cost per balloon:**\n   - The total cost to fill 20 balloons was $900.\n   - To find the cost per balloon, we divide the total cost by the number of balloons.\n   \\[\n   \\text{Cost per balloon} = \\frac{900}{20} = 45 \\text{ dollars}\n   \\]\n\n2. **Calculate the new cost per balloon after the price increase:**\n   - The cost of filling each balloon was increased by $20.\n   - Therefore, the new cost per balloon is:\n   \\[\n   \\text{New cost per balloon} = 45 + 20 = 65 \\text{ dollars}\n   \\]\n\n3. **Calculate the total cost for 170 balloons at the new price:**\n   - The new cost per balloon is $65.\n   - To find the total cost for 170 balloons, we multiply the new cost per balloon by the number of balloons.\n   \\[\n   \\text{Total cost for 170 balloons} = 65 \\times 170 = 11050 \\text{ dollars}\n   \\]\n\nThus, Bentley paid $11,050 to fill 170 balloons after the price increase.\n\nANSWER: 11050",
+  "score": 0,
+  "cost": 0.00152048,
+  "expected": "11050",
+  "tokens": {
+    "input": 106,
+    "output": 339
+  }
+}

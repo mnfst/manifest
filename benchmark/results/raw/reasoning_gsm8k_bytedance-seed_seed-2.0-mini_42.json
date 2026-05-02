@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "Let's solve this step by step:\n\n1.  First, calculate how many children are in one school's drill: Each school has 7 rows, with 8 children per row. So per school, that's $8 \\times7 = 56$ children.\n2.  Next, there are 5 different schools. Multiply the number of children per school by the total number of schools: $56 \\times5 = 280$.\n\nAlternatively, you can calculate total rows first: $7 \\text{ rows per school} \\times5 \\text{ schools} =35$ total rows. Then multiply by 8 children per row: $35\\times8=280$.\n\nANSWER: 280",
+  "score": 0,
+  "cost": 0.0002503,
+  "expected": "280",
+  "tokens": {
+    "input": 139,
+    "output": 591
+  }
+}

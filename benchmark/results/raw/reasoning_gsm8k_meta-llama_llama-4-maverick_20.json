@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "To solve this problem, we need to determine the total amount Jen spends on food for her 3 fish in the month of May.\n\nStep 1: Calculate the daily cost of food for the fish.\nSince Jen has 3 fish and each fish needs $1 worth of food a day, the total daily cost is 3 * $1 = $3.\n\nStep 2: Determine the number of days in May.\nMay has 31 days.\n\nStep 3: Calculate the total cost of food for the month of May.\nTo find the total cost for May, we multiply the daily cost by the number of days in May. So, $3 * 31 = $93.\n\nTherefore, Jen spends $93 on food in the month of May.\n\nANSWER: 93",
+  "score": 0,
+  "cost": 0.0001062,
+  "expected": "93",
+  "tokens": {
+    "input": 76,
+    "output": 158
+  }
+}

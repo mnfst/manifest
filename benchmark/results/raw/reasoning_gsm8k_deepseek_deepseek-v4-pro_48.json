@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Jamaal starts with an 8-pound weight. A 50% increase adds \\(0.5 \\times 8 = 4\\) pounds, making the weight \\(8 + 4 = 12\\) pounds. Since this is too heavy, he uses a weight 2 pounds lighter: \\(12 - 2 = 10\\) pounds.\n\nANSWER: 10",
+  "score": 0,
+  "cost": 0.00046023,
+  "expected": "10",
+  "tokens": {
+    "input": 98,
+    "output": 240
+  }
+}

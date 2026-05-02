@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Tom sails from 1 PM to 4 PM, which is a 3-hour period at 10 mph. The distance traveled is therefore 10 mph \u00d7 3 hours = 30 miles.\n\nHe then returns at 6 mph, so the time to cover 30 miles is 30 miles \u00f7 6 mph = 5 hours.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.00027539999999999997,
+  "expected": "5",
+  "tokens": {
+    "input": 285,
+    "output": 273
+  }
+}

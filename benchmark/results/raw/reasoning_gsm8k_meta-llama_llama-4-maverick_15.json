@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "To determine by how many points Joey is winning, we first need to calculate the total points Joey and Marcy have after their respective turns.\n\n1. Joey initially has 214 points. After scoring 26 points, he will have:\n   214 + 26 = 240 points.\n\n2. Marcy initially has 225 points. After scoring 10 points, she will have:\n   225 + 10 = 235 points.\n\n3. To find out by how many points Joey is winning, we subtract Marcy's total points from Joey's total points:\n   240 (Joey's points) - 235 (Marcy's points) = 5 points.\n\nTherefore, Joey is winning by 5 points.\n\nANSWER: 5",
+  "score": 0,
+  "cost": 0.00011415000000000001,
+  "expected": "5",
+  "tokens": {
+    "input": 153,
+    "output": 152
+  }
+}

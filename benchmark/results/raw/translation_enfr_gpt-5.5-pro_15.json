@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Sector Source est un site Web de ressources destin\u00e9 \u00e0 aider les responsables d\u2019organismes de bienfaisance et d\u2019organismes sans but lucratif \u00e0 rester inform\u00e9s sur...",
+  "score": 5,
+  "cost": 0.004805,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 229
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Nous pourrions vous r\u00e9server pour sollicitation.\n\n(Note: This translation maintains the formal tone and legal/business context of the original English text, where \"solicitation\" likely refers to the legal term for requesting or encouraging someone to take action, often in a professional or regulatory context.)",
+  "score": 4,
+  "cost": 5.940000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 59
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "{\"persons\": [\"Cristiano Ronaldo\"], \"organizations\": [\"Al Nassr\", \"Manchester United\"], \"locations\": [\"Riyadh\"]}",
+  "score": 5,
+  "cost": 0.0005989750000000001,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 441
+  }
+}

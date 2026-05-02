@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "Let's solve this problem step by step:\n\n1.  **Determine the number of days in each half of April**: April has 30 total days, so the first half (days 1-15) is 15 days, and the second half (days 16-30) is also 15 days.\n2.  Define variables: Let $x$ = daily savings in the first half of the month. The problem states the second half daily savings is twice this amount, so second half daily savings = $2x$.\n3.  Calculate total savings:\n    Total savings from first half = $15 \\times x = 15x$\n    Total savings from second half = $15 \\times 2x = 30x$\n    Combined total savings = $15x + 30x = 45x$\n4.  Set total savings equal to the monthly target of $1125$:\n    $45x = 1125$\n    Solve for $x$: $x = \\frac{1125}{45} = 25$. This is the first half daily savings.\n5.  Find the second half daily savings: $2x = 2 \\times 25 = 50$.\n\nWe can verify: 15 days * $25 = $375, 15 days * $50 = $750, and $375 + 750 = 1125$, which matches the target.\n\nANSWER: 50",
+  "score": 0,
+  "cost": 0.00043740000000000006,
+  "expected": "50",
+  "tokens": {
+    "input": 146,
+    "output": 1057
+  }
+}

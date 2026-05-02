@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "On pourrait vous arr\u00eater pour sollicitation. \n\nAlternatively, a more formal or literal translation could be: \nNous pourrions vous inculper pour sollicitation.\n\nBoth translations maintain the tone and meaning of the original English text, but the first one is more conversational, while the second one is more formal. \n\nIn this context, \"sollicitation\" is understood to mean \"soliciting for prostitution\". If the context is different (e.g., soliciting donations or votes), the translation might need to be adjusted accordingly. \n\nFor instance, in a more general context: \nNous pourrions vous verbaliser pour sollicitation.\n\nHowever, \"sollicitation\" is a faux ami (false friend) and its meaning can vary depending on the context. In a business or general context, it usually means \"soliciting\" in a neutral or positive sense. \n\nTo be more precise in the context of prostitution, one might use: \nOn pourrait vous arr\u00eater pour racolage.\n\nThis translation is more specific to the context of soliciting for prostitution.",
+  "score": 3,
+  "cost": 0.00013680000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 219
+  }
+}

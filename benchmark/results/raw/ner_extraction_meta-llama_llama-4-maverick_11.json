@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "```json\n{\n    \"persons\": [],\n    \"organizations\": [\"United Nations Security Council\"],\n    \"locations\": [\"North Korea\", \"New York\"]\n}\n```",
+  "score": 4,
+  "cost": 3.165e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 34
+  }
+}

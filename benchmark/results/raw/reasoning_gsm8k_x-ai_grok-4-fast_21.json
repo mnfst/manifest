@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Elliott's daily goal is 10,000 steps.  \nHalf of his steps were completed on walks to and from school: \\(10,000 \\div 2 = 5,000\\) steps.  \nHe took another 1,000 steps on a short walk with his friend.  \nTotal steps before the jog: \\(5,000 + 1,000 = 6,000\\).  \nAfter the jog, 2,000 steps remain to reach 10,000.  \nSteps completed after the jog: \\(10,000 - 2,000 = 8,000\\).  \nSteps during the jog: \\(8,000 - 6,000 = 2,000\\).\n\nANSWER: 2000",
+  "score": 0,
+  "cost": 0.0004558,
+  "expected": "2000",
+  "tokens": {
+    "input": 275,
+    "output": 501
+  }
+}

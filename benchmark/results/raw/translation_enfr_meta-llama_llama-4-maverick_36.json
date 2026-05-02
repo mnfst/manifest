@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus vous vous d\u00e9battez, plus \u00e7a va \u00eatre g\u00eanant pour tout le monde.\n\nThis translation maintains the tone and meaning of the original English text, conveying a sense of warning that resistance or struggling will lead to an increasingly uncomfortable situation for everyone involved.",
+  "score": 5,
+  "cost": 3.765e-05,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 52
+  }
+}
