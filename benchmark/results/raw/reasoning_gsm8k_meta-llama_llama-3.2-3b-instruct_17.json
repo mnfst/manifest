@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "To find the total amount Ted spent, we need to calculate the cost of the books and the pencils separately and then add them together.\n\nFirst, let's calculate the cost of the books:\n3 books x $16 per book = $48\n\nNext, let's calculate the cost of the pencils:\n3 pencils x $6 per pencil = $18\n\nNow, we add the cost of the books and the pencils together:\n$48 + $18 = $66\n\nTherefore, Ted spent a total of $66.\n\nANSWER: 66",
+  "score": 5,
+  "cost": 9.741e-06,
+  "expected": "66",
+  "tokens": {
+    "input": 81,
+    "output": 110
+  }
+}

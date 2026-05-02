@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Here is a 2-sentence summary of the email:\n\nAcme Corp is experiencing API latency spikes and has not responded to the CS Lead's request for support, prompting the CS Lead to escalate the issue to the executive level. The CS Lead has assigned a dedicated engineer to assist and is seeking an executive sponsor for a call to discuss the issue this week.",
+  "score": 4,
+  "cost": 4.887000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 73
+  }
+}

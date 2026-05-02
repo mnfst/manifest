@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 10,
+  "response": "```\n{\n  \"persons\": [\"Jennifer Lopez\", \"Ben Affleck\"],\n  \"organizations\": [],\n  \"locations\": [\"Beverly Hills\"]\n}\n```",
+  "score": 5,
+  "cost": 5.61e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 34
+  }
+}

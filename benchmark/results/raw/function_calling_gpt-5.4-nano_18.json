@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "function_calling",
+  "case": 18,
+  "response": "{\"name\":\"check_domain\",\"arguments\":{\"domain\":\"coolstartup.com\"}}",
+  "score": 5,
+  "cost": 1.53e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 17
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 17,
+  "response": "Here are the unit tests for the `is_balanced_parens` function using pytest style:\n\n```python\nimport pytest\n\ndef test_happy_path():\n    assert is_balanced_parens(\"()\") == True\n    assert is_balanced_parens(\"()[]{}\") == True\n    assert is_balanced_parens(\"(a + b) * {c - d}\") == True\n\ndef test_edge_case_empty_string():\n    assert is_balanced_parens(\"\") == True\n\ndef test_edge_case_single_paren():\n    assert is_balanced_parens(\"(\") == False\n    assert is_balanced_parens(\")\") == False\n\ndef test_edge_case_single_bracket():\n    assert is_balanced_parens(\"[\") == False\n    assert is_balanced_parens(\"]\") == False\n\ndef test_edge_case_single_brace():\n    assert is_balanced_parens(\"{\") == False\n    assert is_balanced_parens(\"}\") == False\n\ndef test_edge_case_unbalanced_paren():\n    assert is_balanced_parens(\"(a + b\") == False\n    assert is_balanced_parens(\"a + b)\") == False\n\ndef test_edge_case_unbalanced_bracket():\n    assert is_balanced_parens(\"[a + b\") == False\n    assert is_balanced_parens(\"a + b]\") == False\n\ndef test_edge_case_unbalanced_brace():\n    assert is_balanced_parens(\"{a + b\") == False\n    assert is_balanced_parens(\"a + b}\") == False\n\ndef test_edge_case_nested_paren():\n    assert is_balanced_parens(\"(a + (b * c))\") == True\n    assert is_balanced_parens(\"(a + (b * c\")) == False\n\ndef test_edge_case_nested_bracket():\n    assert is_balanced_parens(\"[a + (b * c]]\") == False\n    assert is_balanced_parens(\"[a + (b * c]\") == False\n\ndef test_edge_case_nested_brace():\n    assert is_balanced_parens(\"{a + (b * c}\") == False\n    assert is_balanced_parens(\"{a + (b * c}\") == False\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Balanced parentheses, brackets, and braces\n* Edge cases: Empty string, single parentheses, single brackets, single braces\n* Error cases: Unbalanced parentheses, brackets, and braces\n* Nested parentheses, brackets, and braces\n\nNote that these tests are not exhaustive, and you may want to add more test cases to cover additional scenarios.",
+  "score": 4,
+  "cost": 3.4272e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 550
+  }
+}

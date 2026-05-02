@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "To find the total amount of money the girls raised, we need to calculate how much each girl raised individually and then add those amounts together.\n\n1. **Alexandra** raised $430.\n2. **Kim** raised $320 more than Alexandra. \n   So, Kim raised: $430 + $320 = $750.\n3. **Sarah** raised $300.\n4. **Maryam** raised $400 more than Sarah. \n   So, Maryam raised: $300 + $400 = $700.\n\nNow, we add all their amounts together to find the total:\nTotal = Alexandra + Kim + Sarah + Maryam\nTotal = $430 + $750 + $300 + $700\n\nAdding them up:\n$430 + $750 = $1180\n$300 + $700 = $1000\n$1180 + $1000 = $2180\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.00383,
+  "expected": "2280",
+  "tokens": {
+    "input": 98,
+    "output": 239
+  }
+}

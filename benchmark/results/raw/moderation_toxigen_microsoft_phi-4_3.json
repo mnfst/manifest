@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "moderation_toxigen",
+  "case": 3,
+  "response": "Toxic",
+  "score": 5,
+  "cost": 7.540000000000001e-06,
+  "expected": "toxic",
+  "tokens": {
+    "input": 113,
+    "output": 3
+  }
+}

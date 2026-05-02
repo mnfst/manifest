@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT DISTINCT a.id\nFROM flight_2 a\nLEFT JOIN flight_2 f ON a.id = f.id\nWHERE f.departure_date IS NULL OR f.arrival_date IS NULL;\n```",
+  "score": 2,
+  "cost": 3.186e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 44
+  }
+}

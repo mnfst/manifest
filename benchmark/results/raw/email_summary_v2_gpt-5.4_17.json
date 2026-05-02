@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "v4.2 is being rolled back due to a data corruption bug in the new sync engine that affected 23 accounts. Action items are to restore from the pre-release backup, re-run affected transactions, notify impacted customers, and continue work on the hotfix branch.",
+  "score": 5,
+  "cost": 0.000658,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 57
+  }
+}

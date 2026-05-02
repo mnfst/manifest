@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To solve this problem, we need to calculate 20% of 50 and add it to the original number of students.\n\n20% of 50 = 0.20 x 50 = 10\n\nAdding this to the original number of students:\n50 + 10 = 60\n\nTherefore, there are 60 students enrolled in the calligraphy class this year.",
+  "score": 5,
+  "cost": 4.401e-06,
+  "expected": "60",
+  "tokens": {
+    "input": 87,
+    "output": 76
+  }
+}

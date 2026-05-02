@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT language)\nFROM country\nWHERE year_founded < 1930;",
+  "score": 5,
+  "cost": 3.597e-06,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 21
+  }
+}

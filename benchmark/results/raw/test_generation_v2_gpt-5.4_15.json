@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 15,
+  "response": "```python\nimport pytest\n\nfrom your_module import rotate_list\n\n\ndef test_rotate_list_happy_path():\n    assert rotate_list([1, 2, 3, 4, 5], 2) == [4, 5, 1, 2, 3]\n\n\ndef test_rotate_list_empty_list():\n    assert rotate_list([], 3) == []\n\n\ndef test_rotate_list_zero_steps():\n    assert rotate_list([1, 2, 3], 0) == [1, 2, 3]\n\n\ndef test_rotate_list_steps_equal_to_length():\n    assert rotate_list([1, 2, 3], 3) == [1, 2, 3]\n\n\ndef test_rotate_list_steps_greater_than_length():\n    assert rotate_list([1, 2, 3], 5) == [2, 3, 1]\n\n\ndef test_rotate_list_single_element():\n    assert rotate_list([42], 10) == [42]\n\n\ndef test_rotate_list_negative_steps():\n    assert rotate_list([1, 2, 3, 4], -1) == [2, 3, 4, 1]\n\n\ndef test_rotate_list_does_not_mutate_input():\n    original = [1, 2, 3, 4]\n    result = rotate_list(original, 1)\n    assert original == [1, 2, 3, 4]\n    assert result == [4, 1, 2, 3]\n    assert result is not original\n\n\n@pytest.mark.parametrize(\n    \"lst,k,expected\",\n    [\n        ([1, 2, 3, 4], 1, [4, 1, 2, 3]),\n        ([1, 2, 3, 4], 2, [3, 4, 1, 2]),\n        ([1, 2, 3, 4], 4, [1, 2, 3, 4]),\n        ([\"a\", \"b\", \"c\"], 1, [\"c\", \"a\", \"b\"]),\n        ([True, False], 3, [False, True]),\n    ],\n)\ndef test_rotate_list_various_inputs(lst, k, expected):\n    assert rotate_list(lst, k) == expected\n\n\ndef test_rotate_list_non_integer_k_raises_type_error():\n    with pytest.raises(TypeError):\n        rotate_list([1, 2, 3], \"2\")\n\n\ndef test_rotate_list_none_as_list_returns_error():\n    with pytest.raises(TypeError):\n        rotate_list(None, 1)\n```\n\nIf you want, I can also provide:\n- a `test_rotate_list.py` file ready to copy-paste, or\n- a version using more `@pytest.mark.parametrize` to reduce repetition.",
+  "score": 5,
+  "cost": 0.004806,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 582
+  }
+}

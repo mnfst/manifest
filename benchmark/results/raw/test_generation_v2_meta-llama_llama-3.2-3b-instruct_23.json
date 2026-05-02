@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 23,
+  "response": "Here's how you can write unit tests for the `matrix_transpose` function using pytest:\n\n```python\nimport pytest\nimport numpy as np\n\ndef test_matrix_transpose_happy_path():\n    # Arrange\n    matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]\n    expected_result = [[1, 4, 7], [2, 5, 8], [3, 6, 9]]\n\n    # Act\n    result = matrix_transpose(matrix)\n\n    # Assert\n    assert result == expected_result\n\ndef test_matrix_transpose_empty_matrix():\n    # Arrange\n    matrix = []\n    expected_result = []\n\n    # Act\n    result = matrix_transpose(matrix)\n\n    # Assert\n    assert result == expected_result\n\ndef test_matrix_transpose_single_element_matrix():\n    # Arrange\n    matrix = [[1]]\n    expected_result = [[1]]\n\n    # Act\n    result = matrix_transpose(matrix)\n\n    # Assert\n    assert result == expected_result\n\ndef test_matrix_transpose_non_square_matrix():\n    # Arrange\n    matrix = [[1, 2, 3], [4, 5, 6]]\n    expected_result = [[1, 4], [2, 5], [3, 6]]\n\n    # Act\n    result = matrix_transpose(matrix)\n\n    # Assert\n    assert result == expected_result\n\ndef test_matrix_transpose_non_list_input():\n    # Arrange\n    matrix = \"not a list\"\n    with pytest.raises(TypeError):\n        matrix_transpose(matrix)\n\ndef test_matrix_transpose_non_list_of_lists_input():\n    # Arrange\n    matrix = \"not a list of lists\"\n    with pytest.raises(TypeError):\n        matrix_transpose(matrix)\n```\n\nNote that the `matrix_transpose` function does not handle the case where the input matrix is not a list of lists. You may want to add error checking to handle this case. Here's an updated version of the function that includes error checking:\n\n```python\ndef matrix_transpose(matrix: list) -> list:\n    if not isinstance(matrix, list) or not all(isinstance(row, list) for row in matrix):\n        raise TypeError(\"Input must be a list of lists\")\n    if not matrix:\n        return []\n    return [[row[i] for row in matrix] for i in range(len(matrix[0]))]\n```",
+  "score": 5,
+  "cost": 2.9426999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 499
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 8,
+  "response": "{\n  \"persons\": [\n    \"Elon Musk\"\n  ],\n  \"organizations\": [\n    \"Tesla\"\n  ],\n  \"locations\": [\n    \"Fremont\",\n    \"California\"\n  ]\n}",
+  "score": 5,
+  "cost": 2.5300000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 46
+  }
+}

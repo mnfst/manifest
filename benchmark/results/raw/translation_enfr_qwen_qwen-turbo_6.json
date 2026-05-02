@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "Tout de suite, rouler sur Wangan, c'est ce d\u00e9mon.",
+  "score": 4,
+  "cost": 1.8810000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 17
+  }
+}

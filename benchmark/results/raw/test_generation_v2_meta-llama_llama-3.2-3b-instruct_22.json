@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 22,
+  "response": "Here's an example of how you can write unit tests for the `group_by` function using pytest:\n\n```python\nimport pytest\nfrom your_module import group_by  # Replace 'your_module' with the actual name of the module where the function is defined\n\ndef test_group_by_happy_path():\n    # Arrange\n    items = [1, 2, 3, 4, 5, 6, 7, 8, 9]\n    key_fn = lambda x: x % 3\n\n    # Act\n    result = group_by(items, key_fn)\n\n    # Assert\n    expected_result = {0: [1, 4, 7], 1: [2, 5, 8], 2: [3, 6, 9]}\n    assert result == expected_result\n\ndef test_group_by_empty_list():\n    # Arrange\n    items = []\n    key_fn = lambda x: x % 3\n\n    # Act\n    result = group_by(items, key_fn)\n\n    # Assert\n    assert result == {}\n\ndef test_group_by_single_item():\n    # Arrange\n    items = [1]\n    key_fn = lambda x: x % 3\n\n    # Act\n    result = group_by(items, key_fn)\n\n    # Assert\n    expected_result = {1: [1]}\n    assert result == expected_result\n\ndef test_group_by_duplicate_keys():\n    # Arrange\n    items = [1, 2, 2, 3, 3, 3]\n    key_fn = lambda x: x % 3\n\n    # Act\n    result = group_by(items, key_fn)\n\n    # Assert\n    expected_result = {0: [1, 2, 2], 1: [3, 3, 3]}\n    assert result == expected_result\n\ndef test_group_by_non_hashable_key():\n    # Arrange\n    items = [1, 2, 3, 4, 5]\n    key_fn = lambda x: x\n\n    # Act and Assert\n    with pytest.raises(TypeError):\n        group_by(items, key_fn)\n\ndef test_group_by_non_callable_key():\n    # Arrange\n    items = [1, 2, 3, 4, 5]\n    key_fn = \"not a function\"\n\n    # Act and Assert\n    with pytest.raises(TypeError):\n        group_by(items, key_fn)\n```\n\nIn these tests, we cover the following scenarios:\n\n*   Happy path: Test that the function groups items correctly when given a list of items and a valid key function.\n*   Edge case: Test that the function returns an empty dictionary when given an empty list.\n*   Edge case: Test that the function returns a dictionary with a single key-value pair when given a list with a single item.\n*   Edge case: Test that the function handles duplicate keys correctly.\n*   Error case: Test that the function raises a `TypeError` when given a non-hashable key.\n*   Error case: Test that the function raises a `TypeError` when given a non-callable key.",
+  "score": 5,
+  "cost": 3.6924e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 643
+  }
+}

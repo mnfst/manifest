@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Summary: The Design Team has released DS v3 with updates including new dark mode color tokens, a revised spacing scale, and updated components, along with a migration tool. They recommend a team-by-team rollout starting with the Settings page.",
+  "score": 5,
+  "cost": 4.554e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 47
+  }
+}

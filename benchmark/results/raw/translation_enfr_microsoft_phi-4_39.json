@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Sais-tu d'o\u00f9 vient l'argent ? \n\nThis translation maintains the informal tone and meaning of the original English text.",
+  "score": 5,
+  "cost": 4.2900000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 28
+  }
+}

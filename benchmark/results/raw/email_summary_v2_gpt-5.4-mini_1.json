@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "The outage was caused by a misconfigured load balancer at 2:14 PM, resulting in 47 minutes of degraded service and affecting 12,000 users. Action items are to add load balancer configuration validation to CI, update the runbook, and implement traffic distribution alerts.",
+  "score": 5,
+  "cost": 0.0001047,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 61
+  }
+}

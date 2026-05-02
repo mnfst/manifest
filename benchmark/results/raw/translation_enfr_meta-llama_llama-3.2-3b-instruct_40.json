@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Nous avons juste besoin d'obtenir plus d'informations.\n\n(Note: The translation is quite literal, but the tone and meaning are preserved. If you want a more idiomatic translation, you could say \"Nous avons besoin de plus d'informations\" or \"Nous avons besoin de connaissances suppl\u00e9mentaires\".)",
+  "score": 4,
+  "cost": 5.4059999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 69
+  }
+}

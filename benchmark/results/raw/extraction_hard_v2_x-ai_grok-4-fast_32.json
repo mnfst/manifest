@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "extraction_hard_v2",
+  "case": 32,
+  "response": "{\"tracking_number\":\"1Z999AA10123456784\",\"carrier\":\"UPS\",\"service\":\"Ground\",\"origin\":\"Warehouse #7, Memphis TN\",\"weight_lbs\":4.2,\"dimensions\":\"12x8x6 in\",\"events\":[{\"timestamp\":\"04/25 18:30\",\"status\":\"Picked up\",\"location\":\"Memphis TN\"},{\"timestamp\":\"04/26 03:15\",\"status\":\"Departed facility\",\"location\":\"Memphis TN\"},{\"timestamp\":\"04/26 14:22\",\"status\":\"In transit\",\"location\":\"Nashville TN\"},{\"timestamp\":\"04/27 06:00\",\"status\":\"Arrived at facility\",\"location\":\"Louisville KY\"},{\"timestamp\":\"04/27 09:45\",\"status\":\"Out for delivery\",\"location\":\"Louisville KY\"},{\"timestamp\":\"04/27 14:12\",\"status\":\"Delivered\",\"location\":\"456 Oak Street, Lexington KY 40502\"}],\"delivery\":{\"address\":\"456 Oak Street, Lexington KY 40502\",\"signed_by\":\"FRONT DOOR\",\"on_time\":true}}",
+  "score": 4,
+  "cost": 0.0013197999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 423,
+    "output": 1544
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "```sql\nSELECT\n  AVG(rank)\nFROM matches\nWHERE\n  winner_id IS NOT NULL;\n```",
+  "score": 3,
+  "cost": 6.54e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 27
+  }
+}

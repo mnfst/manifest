@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 4,
+  "response": "Here are some unit tests for the `celsius_to_fahrenheit` function using pytest:\n```python\nimport pytest\n\ndef test_celsius_to_fahrenheit_happy_path():\n    # Test with a valid input\n    assert celsius_to_fahrenheit(0) == 32\n\ndef test_celsius_to_fahrenheit_edge_case():\n    # Test with a very low celsius value\n    assert celsius_to_fahrenheit(-273.15) == 0\n\ndef test_celsius_to_fahrenheit_error_case():\n    # Test with a non-numeric input\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(\"hello\")\n\ndef test_celsius_to_fahrenheit_negative_celsius():\n    # Test with a negative celsius value\n    assert celsius_to_fahrenheit(-273.15) == 0\n\ndef test_celsius_to_fahrenheit_zero_celsius():\n    # Test with a celsius value of 0\n    assert celsius_to_fahrenheit(0) == 32\n\ndef test_celsius_to_fahrenheit_zero_fahrenheit():\n    # Test with a fahrenheit value of 32\n    assert celsius_to_fahrenheit(0) == 32\n\ndef test_celsius_to_fahrenheit_negative_fahrenheit():\n    # Test with a fahrenheit value of -40\n    assert celsius_to_fahrenheit(-40) == 5.0\n```\nThese tests cover the following scenarios:\n\n* Happy path: Test with a valid input (0, 32, etc.)\n* Edge case: Test with a very low celsius value (-273.15)\n* Error case: Test with a non-numeric input (hello)\n* Negative celsius value: Test with a negative celsius value\n* Zero celsius: Test with a celsius value of 0\n* Zero fahrenheit: Test with a fahrenheit value of 32\n* Negative fahrenheit: Test with a fahrenheit value of -40",
+  "score": 3,
+  "cost": 1.2366e-05,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 395
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "intent_clinc150",
+  "case": 17,
+  "response": "remind_update",
+  "score": 0,
+  "cost": 4.1339999999999994e-05,
+  "expected": "reminder",
+  "tokens": {
+    "input": 632,
+    "output": 4
+  }
+}

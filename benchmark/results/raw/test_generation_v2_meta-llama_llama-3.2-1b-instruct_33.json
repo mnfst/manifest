@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 33,
+  "response": "Here are some unit tests for the `flatten_dict` function using pytest style:\n\n```python\nimport pytest\nfrom typing import Dict\n\ndef test_empty_dict():\n    # Test with an empty dictionary\n    assert flatten_dict({}) == {}\n\ndef test_single_item():\n    # Test with a single item in the dictionary\n    assert flatten_dict({'a': 1}) == {'a': 1}\n\ndef test_multiple_items():\n    # Test with multiple items in the dictionary\n    assert flatten_dict({'a': 1, 'b': 2, 'c': 3}) == {'a': 1, 'b': 2, 'c': 3}\n\ndef test_nested_dict():\n    # Test with a nested dictionary\n    assert flatten_dict({'a': {'b': 1, 'c': 2}, 'd': {'e': 3, 'f': 4}}) == {'a.b': 1, 'a.c': 2, 'd.e': 3, 'd.f': 4}\n\ndef test_non_dict_value():\n    # Test with a non-dictionary value\n    assert flatten_dict(1) == ((),)\n\ndef test_non_string_key():\n    # Test with a non-string key\n    assert flatten_dict({'a': 1, 2: 2}) == ((),)\n\ndef test_non_string_sep():\n    # Test with a non-string separator\n    assert flatten_dict({'a': 1, 'b': 2}, sep='x') == ((),)\n\ndef test_non_string_sep():\n    # Test with a non-string separator\n    assert flatten_dict({'a': 1, 'b': 2}, sep='x') == ((),)\n\ndef test_empty_string():\n    # Test with an empty string as the separator\n    assert flatten_dict({'a': 1, 'b': 2}, sep='x') == ((),)\n\ndef test_non_string():\n    # Test with a non-string separator\n    with pytest.raises(TypeError):\n        flatten_dict({'a': 1, 2: 2}, sep='x')\n```\n\nThese tests cover the following cases:\n\n* Happy path: Test with an empty dictionary, a single item, multiple items, and a nested dictionary.\n* Edge cases: Test with non-dictionary values, non-string keys, non-string separators, and empty strings.\n* Error cases: Test with a non-string separator that is not a string.",
+  "score": 3,
+  "cost": 1.7118e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 504
+  }
+}

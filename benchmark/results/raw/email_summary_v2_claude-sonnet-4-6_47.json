@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "The March onboarding cohort rated their experience 7.2/10, with the buddy system praised but key issues identified around benefits deadline confusion, delayed tools access, and missing culture handbooks. The priority action item is to fix tools access to meet the 1-day target, while also addressing benefits communication and handbook distribution.",
+  "score": 5,
+  "cost": 0.001443,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 71
+  }
+}

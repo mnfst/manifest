@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "intent_clinc150",
+  "case": 20,
+  "response": "vaccines",
+  "score": 5,
+  "cost": 4.0600000000000004e-05,
+  "expected": "vaccines",
+  "tokens": {
+    "input": 509,
+    "output": 303
+  }
+}

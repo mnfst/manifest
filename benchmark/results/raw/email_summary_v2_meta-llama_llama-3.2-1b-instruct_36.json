@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe API's /api/v2/search endpoint experienced a latency increase from 200ms to 800ms after a recent deployment, and the root cause is a new full-text search query that is not using the index. To resolve the issue, a GIN index needs to be added to the content column, and the deployment will be done during a maintenance window tonight.",
+  "score": 5,
+  "cost": 5.022e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 87
+  }
+}

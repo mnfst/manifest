@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "Here's a set of unit tests for the `add` function using **pytest** style. These tests cover:\n\n- **Happy path**: Normal integer inputs.\n- **Edge cases**: Zero, maximum/minimum integers.\n- **Error cases**: Non-integer inputs (which should raise `TypeError`).\n\n### \u2705 `test_add.py`\n\n```python\nimport pytest\n\ndef add(a: int, b: int) -> int:\n    return a + b\n\ndef test_add_happy_path():\n    assert add(2, 3) == 5\n    assert add(-1, 1) == 0\n    assert add(0, 0) == 0\n\ndef test_add_edge_cases():\n    assert add(10**18, 1) == 10**18 + 1\n    assert add(-10**18, 0) == -10**18\n\ndef test_add_type_errors():\n    with pytest.raises(TypeError):\n        add(\"2\", 3)\n    with pytest.raises(TypeError):\n        add(2, \"3\")\n    with pytest.raises(TypeError):\n        add(\"2\", \"3\")\n    with pytest.raises(TypeError):\n        add(2.5, 3)\n    with pytest.raises(TypeError):\n        add(2, 3.5)\n```\n\n### \ud83e\uddea How to Run the Tests\n\nYou can run the tests using `pytest` from the command line:\n\n```bash\npytest test_add.py\n```\n\n### \ud83d\udcdd Notes\n\n- The function `add` is explicitly typed with `: int` and returns `int`, so the type hints help with clarity, but the actual type checking is not enforced at runtime in Python.\n- The tests ensure that any non-integer input raises a `TypeError`, as expected.\n- `pytest.raises` is used to check that the function raises the correct exceptions.\n\nLet me know if you'd like to use `unittest` instead or add more complex test cases!",
+  "score": 5,
+  "cost": 1.5378e-05,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 408
+  }
+}

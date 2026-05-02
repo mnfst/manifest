@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 35,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"track_shipment\", \"arguments\": {\"tracking_number\": \"12345\"}}\n```\n\nThis function call is valid because the `track_shipment` function takes a `tracking_number` argument, which is provided in the JSON object.",
+  "score": 4,
+  "cost": 8.007e-06,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 63
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Katelyn initially sees **50** fairies.\n\n1. **First 20 minutes:** One friend sees half as many fairies as those Katelyn saw **come from the east**.  \n   Half of 50 is \\(50 \\div 2 = 25\\).  \n   So the total becomes \\(50 + 25 = 75\\).\n\n2. **Next 10 minutes:** **30 fairies fly away**.  \n   So the remaining number is \\(75 - 30 = 45\\).\n\nANSWER: 45",
+  "score": 5,
+  "cost": 5.71e-05,
+  "expected": "45",
+  "tokens": {
+    "input": 115,
+    "output": 114
+  }
+}

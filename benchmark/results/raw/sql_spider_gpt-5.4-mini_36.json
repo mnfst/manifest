@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT s.name\nFROM students s\nJOIN likes l ON s.student_id = l.student_id\nGROUP BY s.student_id, s.name\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 7.86e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 48
+  }
+}

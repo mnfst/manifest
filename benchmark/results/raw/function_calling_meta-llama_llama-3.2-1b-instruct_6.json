@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 6,
+  "response": "Here is the correct function call:\n\n```json\n{\"name\": \"translate\", \"arguments\": {\"text\": \"The meeting has been rescheduled to Monday\", \"target_language\": \"es\", \"source_language\": \"auto\"}}\n```\n\nExplanation:\n\n* `translate(text: str, target_language: str, source_language: str = \"auto\")` is the function definition.\n* `text` is the input text to be translated.\n* `target_language` is the language to translate to (in this case, Spanish).\n* `source_language` is the language of the input text (in this case, auto, which means the input text is in the source language).",
+  "score": 5,
+  "cost": 6.5609999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 137
+  }
+}

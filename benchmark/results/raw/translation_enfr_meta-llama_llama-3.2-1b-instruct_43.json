@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "La unit\u00e9 est simplement attach\u00e9e \u00e0 la colonne de la colonne de dos du conducteur en utilisant un ruban adh\u00e9sif fort. Dans ce cas,",
+  "score": 2,
+  "cost": 2.403e-06,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 37
+  }
+}

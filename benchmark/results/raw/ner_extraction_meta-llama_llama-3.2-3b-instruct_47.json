@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "```json\n{\n  \"persons\": [\"Alain Aspect\"],\n  \"organizations\": [\"Universite Paris-Saclay\"],\n  \"locations\": [\"Stockholm\"]\n}\n```",
+  "score": 5,
+  "cost": 5.916000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 36
+  }
+}

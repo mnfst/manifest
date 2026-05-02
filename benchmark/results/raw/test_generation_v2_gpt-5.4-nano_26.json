@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 26,
+  "response": "```python\n# test_safe_divide.py\nimport pytest\n\nfrom your_module import safe_divide  # change to the actual import path\n\n\ndef test_safe_divide_happy_path_basic_integers():\n    assert safe_divide(10, 2) == 5\n\n\ndef test_safe_divide_happy_path_with_floats():\n    assert safe_divide(7.5, 2.5) == 3.0\n\n\ndef test_safe_divide_happy_path_negative_numbers():\n    assert safe_divide(-9, 3) == -3\n\n\ndef test_safe_divide_happy_path_default_when_divisor_is_nonzero_and_default_custom():\n    assert safe_divide(1.0, 0.5, default=-123.0) == 2.0  # default shouldn't matter\n\n\ndef test_safe_divide_edge_case_zero_dividend():\n    assert safe_divide(0.0, 5.0) == 0.0\n\n\ndef test_safe_divide_edge_case_divisor_is_very_small_nonzero():\n    # Ensure it behaves normally for non-zero divisor\n    assert safe_divide(1.0, 1e-12) == 1.0e12\n\n\ndef test_safe_divide_edge_case_default_argument_is_used_when_divisor_zero():\n    assert safe_divide(10.0, 0.0) == 0.0  # default=0.0\n\n\ndef test_safe_divide_error_case_division_by_zero_with_custom_default():\n    assert safe_divide(10.0, 0.0, default=42.0) == 42.0\n\n\ndef test_safe_divide_error_case_both_are_zero():\n    # 0/0 triggers ZeroDivisionError and should return default\n    assert safe_divide(0.0, 0.0, default=-1.0) == -1.0\n\n\ndef test_safe_divide_error_case_non_numeric_inputs_raise_type_error():\n    with pytest.raises(TypeError):\n        safe_divide(\"10\", 2)\n\n    with pytest.raises(TypeError):\n        safe_divide(10, \"2\")\n\n    with pytest.raises(TypeError):\n        safe_divide(None, 2)\n```",
+  "score": 5,
+  "cost": 0.0001912,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 459
+  }
+}

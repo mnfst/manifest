@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "To find out how much money the class was able to raise from the profit, we need to calculate the total number of lollipops sold and the profit made on each lollipop.\n\nStep 1: Calculate the total number of lollipops sold.\nThere are 30 students in the class, and on average, each student sold 10 lollipops.\nTotal lollipops sold = 30 students * 10 lollipops/student = 300 lollipops\n\nStep 2: Calculate the profit made on a single lollipop.\nThe class bought the lollipops for $0.50 each and sold them for $0.80 each.\nProfit per lollipop = Selling price - Cost price\nProfit per lollipop = $0.80 - $0.50 = $0.30\n\nStep 3: Calculate the total profit.\nTotal profit = Total lollipops sold * Profit per lollipop\nTotal profit = 300 lollipops * $0.30/lollipop = $90\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.0037075,
+  "expected": "90",
+  "tokens": {
+    "input": 115,
+    "output": 228
+  }
+}

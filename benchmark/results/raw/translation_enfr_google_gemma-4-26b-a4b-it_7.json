@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 7,
+  "response": "Depending on the context (whether \"generous\" means \"kind/noble\" or \"lavish/excessive\"), here are the best ways to translate this:\n\n**Option 1: If \"generous\" means kind or noble (most likely)**\n> **Services de placement. C'est g\u00e9n\u00e9reux.**\n\n**Option 2: If \"generous\" is used sarcastically (meaning \"that's a bit much\" or \"over the top\")**\n> **Services de placement. C'est all\u00e9 un peu loin.**\n\n**Option 3: If \"generous\" refers to a large amount/offer (more formal)**\n> **Services de placement. C'est une offre g\u00e9n\u00e9reuse.**",
+  "score": 4,
+  "cost": 1.164e-05,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 153
+  }
+}

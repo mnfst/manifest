@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly ETL job failed at 3 AM due to an upstream Salesforce schema change that broke the connector, causing dashboards to show stale data since yesterday. A fix has been deployed and the backfill is running, with full recovery expected by 4 PM today.",
+  "score": 5,
+  "cost": 3.15e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 56
+  }
+}

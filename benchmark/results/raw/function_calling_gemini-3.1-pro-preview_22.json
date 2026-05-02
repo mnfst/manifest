@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 22,
+  "response": "{\n  \"name\": \"create_database\",\n  \"arguments\": {\n    \"name\": \"analytics_prod\",\n    \"engine\": \"postgresql\"\n  }\n}",
+  "score": 5,
+  "cost": 0.0008275,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 40
+  }
+}

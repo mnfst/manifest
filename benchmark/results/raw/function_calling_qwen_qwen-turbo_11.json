@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 11,
+  "response": "{\"name\": \"add_to_list\", \"arguments\": {\"list_name\": \"shopping\", \"items\": [\"milk\", \"eggs\", \"bread\"]}}",
+  "score": 4,
+  "cost": 4.2240000000000006e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 33
+  }
+}

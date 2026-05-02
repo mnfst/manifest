@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "{\"persons\":[\"Gordon Ramsay\"],\"organizations\":[\"Bellagio hotel\"],\"locations\":[\"Las Vegas\"]}",
+  "score": 5,
+  "cost": 0.001338,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 94
+  }
+}

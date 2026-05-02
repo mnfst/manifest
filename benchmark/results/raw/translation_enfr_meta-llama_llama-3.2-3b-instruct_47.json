@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "La r\u00e9pression de ce type, accompagn\u00e9e de l'arrestation r\u00e9cente de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser des informations fausses, a naturellement \u00e9veill\u00e9 la pr\u00e9occupation de la communaut\u00e9 internationale.",
+  "score": 4,
+  "cost": 6.782999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 64
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "To solve this problem, we need to use the information given to find Jeff's age.\n\nWe know that Mike is 24 years old.\n\nWe also know that Martha is 4 years younger than Mike, so we can find Martha's age by subtracting 4 from Mike's age:\nMartha's age = Mike's age - 4\nMartha's age = 24 - 4\nMartha's age = 20\n\nWe know that Jeff is 10 years older than Martha, so we can find Jeff's age by adding 10 to Martha's age:\nJeff's age = Martha's age + 10\nJeff's age = 20 + 10\nJeff's age = 30\n\nTherefore, Jeff is 30 years old.\n\nANSWER: 30",
+  "score": 5,
+  "cost": 1.2801e-05,
+  "expected": "30",
+  "tokens": {
+    "input": 91,
+    "output": 160
+  }
+}

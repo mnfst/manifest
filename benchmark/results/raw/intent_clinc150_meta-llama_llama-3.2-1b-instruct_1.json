@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 1,
+  "response": "help",
+  "score": 0,
+  "cost": 1.377e-05,
+  "expected": "find_phone",
+  "tokens": {
+    "input": 508,
+    "output": 2
+  }
+}

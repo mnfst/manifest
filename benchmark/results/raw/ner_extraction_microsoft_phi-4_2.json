@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 2,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Google DeepMind\", \"Nature\"],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 6.305e-06,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 29
+  }
+}

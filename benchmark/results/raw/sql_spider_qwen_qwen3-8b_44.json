@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT airport_code\nFROM (\n    SELECT origin AS airport_code\n    FROM flights\n    UNION ALL\n    SELECT destination AS airport_code\n    FROM flights\n) AS combined\nGROUP BY airport_code\nORDER BY COUNT(*) ASC\nLIMIT 1;",
+  "score": 4,
+  "cost": 7.39e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 1406
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "To solve the problem, we need to determine the current age of Ann's brother and then calculate how old he will be in 3 years.\n\n1. **Determine Ann's brother's current age:**\n   - Ann is currently 9 years old.\n   - Her brother is twice her age, so we calculate his age as follows:\n     \\[\n     \\text{Brother's current age} = 2 \\times \\text{Ann's age} = 2 \\times 9 = 18\n     \\]\n\n2. **Calculate the brother's age in 3 years:**\n   - In 3 years, Ann's brother will be 3 years older than he is now.\n   - Therefore, we add 3 years to his current age:\n     \\[\n     \\text{Brother's age in 3 years} = 18 + 3 = 21\n     \\]\n\nThus, Ann's brother will be 21 years old in 3 years.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 1.82e-05,
+  "expected": "21",
+  "tokens": {
+    "input": 72,
+    "output": 208
+  }
+}

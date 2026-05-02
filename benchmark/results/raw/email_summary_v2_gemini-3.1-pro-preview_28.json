@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test missed its four-hour target, taking over six hours to complete due to a lengthy database restore. To prepare for the next test in October, the team must increase backup frequency and pre-provision a standby database.",
+  "score": 5,
+  "cost": 0.0009775,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 48
+  }
+}

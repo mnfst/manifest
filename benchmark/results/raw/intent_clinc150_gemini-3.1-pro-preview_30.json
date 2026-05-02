@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "intent_clinc150",
+  "case": 30,
+  "response": "where_are_you_from",
+  "score": 5,
+  "cost": 0.001645,
+  "expected": "where_are_you_from",
+  "tokens": {
+    "input": 616,
+    "output": 7
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Depending on the level of formality you want to convey, here are the best ways to translate this:\n\n**1. Informal (Standard/Casual):**\n> **Tu sais d'o\u00f9 vient l'argent ?**\n*(This is the most natural way to say it to a friend or someone you know well.)*\n\n**2. Formal (Polite/Professional):**\n> **Savez-vous d'o\u00f9 vient l'argent ?**\n*(Use this if you are speaking to a stranger, a superior, or a group of people.)*\n\n**3. Very Casual (Slang/Street):**\n> **Tu sais d'o\u00f9 vient le fric ?**\n*(Use \"le fric\" instead of \"l'argent\" if you want to sound more colloquial/slangy.)*",
+  "score": 5,
+  "cost": 1.278e-05,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 170
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 5,
+  "response": "```json\n{\n  \"persons\": [\"James Wilson\"],\n  \"organizations\": [\"Stanford University\", \"IEEE\"],\n  \"locations\": [\"Tokyo\"]\n}\n```",
+  "score": 5,
+  "cost": 6.9599999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 38
+  }
+}

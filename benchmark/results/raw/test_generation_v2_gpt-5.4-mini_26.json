@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 26,
+  "response": "```python\nimport math\nimport pytest\n\nfrom your_module import safe_divide\n\n\n@pytest.mark.parametrize(\n    \"a,b,default,expected\",\n    [\n        (10, 2, 0.0, 5.0),\n        (9, 3, 1.0, 3.0),\n        (5.5, 2.0, 0.0, 2.75),\n        (-8, 2, 0.0, -4.0),\n        (0, 5, 0.0, 0.0),\n    ],\n)\ndef test_safe_divide_happy_path(a, b, default, expected):\n    assert safe_divide(a, b, default=default) == expected\n\n\n@pytest.mark.parametrize(\n    \"a,b,default\",\n    [\n        (1, 0, 0.0),\n        (1.0, 0.0, 7.5),\n        (0, 0, -1.0),\n        (-5, 0, 42.0),\n    ],\n)\ndef test_safe_divide_zero_division_returns_default(a, b, default):\n    assert safe_divide(a, b, default=default) == default\n\n\ndef test_safe_divide_uses_default_value():\n    assert safe_divide(10, 0, default=123.45) == 123.45\n\n\ndef test_safe_divide_default_is_zero_by_default():\n    assert safe_divide(10, 0) == 0.0\n\n\ndef test_safe_divide_nan_result():\n    result = safe_divide(math.nan, 2)\n    assert math.isnan(result)\n\n\n@pytest.mark.parametrize(\n    \"a,b,exc_type\",\n    [\n        (\"10\", 2, TypeError),\n        (10, \"2\", TypeError),\n        (None, 2, TypeError),\n        (10, None, TypeError),\n    ],\n)\ndef test_safe_divide_non_numeric_inputs_raise(a, b, exc_type):\n    with pytest.raises(exc_type):\n        safe_divide(a, b)\n```\n\nNotes:\n- Replace `your_module` with the actual module name where `safe_divide` is defined.\n- The function only catches `ZeroDivisionError`, so type-related errors should propagate.",
+  "score": 5,
+  "cost": 0.0005916,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 474
+  }
+}

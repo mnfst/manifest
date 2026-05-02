@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "To find out how many votes candidate C received, we can calculate the number of votes for each candidate step by step:\n\n1. **Calculate Candidate A's votes:**\nCandidate A received 20% of the 100 total votes. \n20% of 100 = 20 votes.\n\n2. **Calculate Candidate B's votes:**\nCandidate B received 50% more votes than Candidate A. \nFirst, find what 50% of Candidate A's votes is: 50% of 20 = 10 votes.\nNow, add this to Candidate A's total to find Candidate B's votes: 20 + 10 = 30 votes.\n\n3. **Calculate Candidate C's votes:**\nThe rest of the votes went to Candidate C. \nFirst, find the total votes given to A and B: 20 (for A) + 30 (for B) = 50 votes.\nNow, subtract this from the total number of voters to find Candidate C's votes: 100 - 50 = 50 votes.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0040375,
+  "expected": "50",
+  "tokens": {
+    "input": 97,
+    "output": 253
+  }
+}

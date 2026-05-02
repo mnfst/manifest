@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "function_calling",
+  "case": 6,
+  "response": "{\"name\": \"translate\", \"arguments\": {\"text\": \"The meeting has been rescheduled to Monday\", \"target_language\": \"Spanish\"}}",
+  "score": 4,
+  "cost": 0.000894,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 36
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 45,
+  "response": "```json\n{\n  \"persons\": [\"Leonardo da Vinci\"],\n  \"organizations\": [\"The Louvre Museum\", \"Royal Collection\"],\n  \"locations\": [\"Paris\"]\n}\n```",
+  "score": 5,
+  "cost": 7.2800000000000014e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 38
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 32,
+  "response": "Here are some unit tests for the `find_missing` function using pytest style:\n\n```python\nimport pytest\n\ndef test_find_missing():\n    # Happy path\n    nums = [0, 1, 2, 4, 6, 3, 5, 7]\n    expected = 9\n    assert find_missing(nums) == expected\n\n    # Edge case: empty list\n    nums = []\n    expected = 0\n    assert find_missing(nums) == expected\n\n    # Edge case: single element list\n    nums = [0]\n    expected = 0\n    assert find_missing(nums) == expected\n\n    # Edge case: list with duplicate elements\n    nums = [0, 1, 2, 2, 3, 4, 5, 6]\n    expected = 9\n    assert find_missing(nums) == expected\n\n    # Error case: non-list input\n    with pytest.raises(TypeError):\n        find_missing(\"hello\")\n\n    # Error case: non-integer input\n    with pytest.raises(TypeError):\n        find_missing(123)\n\n    # Error case: non-list input with non-integer values\n    with pytest.raises(TypeError):\n        find_missing([1, 2, 3, \"hello\"])\n\n    # Error case: list with non-integer values\n    nums = [1, 2, 3, \"hello\"]\n    with pytest.raises(TypeError):\n        find_missing(nums)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test that the function returns the correct result for a list of numbers.\n* Edge cases: Test that the function handles empty, single-element, and duplicate-element lists correctly.\n* Error cases: Test that the function raises the correct errors for non-list inputs, non-integer inputs, and lists with non-integer values.",
+  "score": 4,
+  "cost": 1.2447e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 377
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "To solve this problem, we need to calculate the total number of wheels needed for the cars and the motorcycles, and then subtract that from the total number of wheels in the box.\n\nFirst, let's calculate the total number of wheels needed for the cars:\nNumber of cars = 57\nWheels per car = 4\nTotal wheels for cars = Number of cars x Wheels per car = 57 x 4 = 228\n\nNext, let's calculate the total number of wheels needed for the motorcycles:\nNumber of motorcycles = 73\nWheels per motorcycle = 2\nTotal wheels for motorcycles = Number of motorcycles x Wheels per motorcycle = 73 x 2 = 146\n\nNow, let's add the total number of wheels needed for the cars and the motorcycles:\nTotal wheels needed = Total wheels for cars + Total wheels for motorcycles = 228 + 146 = 374\n\nFinally, let's subtract the total number of wheels needed from the total number of wheels in the box:\nWheels left = Total wheels in box - Total wheels needed = 650 - 374 = 276\n\nANSWER: 276",
+  "score": 5,
+  "cost": 9.071999999999999e-06,
+  "expected": "276",
+  "tokens": {
+    "input": 106,
+    "output": 230
+  }
+}

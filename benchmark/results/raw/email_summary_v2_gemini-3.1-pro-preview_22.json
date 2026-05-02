@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The proposed Japan expansion plan outlines a May-to-August launch timeline with a total budget of $200,000. The CEO must approve this proposal in order for the team to proceed.",
+  "score": 5,
+  "cost": 0.0008725,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 42
+  }
+}

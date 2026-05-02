@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "function_calling",
+  "case": 4,
+  "response": "{\"name\": \"resize_image\", \"arguments\": {\"path\": \"uploads photo.jpg\", \"width\": 800, \"height\": 600}}\n{\"name\": \"convert_format\", \"arguments\": {\"path\": \"uploads photo.jpg\", \"target_format\": \"PNG\"}}",
+  "score": 2,
+  "cost": 0.0001272,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 2439
+  }
+}

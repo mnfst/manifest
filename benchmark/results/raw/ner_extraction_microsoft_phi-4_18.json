@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "```json\n{\n  \"persons\": [\"Professor Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"Science magazine\"],\n  \"locations\": []\n}\n```",
+  "score": 5,
+  "cost": 6.565000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 32
+  }
+}

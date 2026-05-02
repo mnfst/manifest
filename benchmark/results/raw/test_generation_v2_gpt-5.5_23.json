@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 23,
+  "response": "```python\n# test_matrix_transpose.py\n\nimport pytest\n\n# Replace `your_module` with the actual module name where matrix_transpose is defined\nfrom your_module import matrix_transpose\n\n\n@pytest.mark.parametrize(\n    \"matrix, expected\",\n    [\n        (\n            [[1, 2, 3], [4, 5, 6]],\n            [[1, 4], [2, 5], [3, 6]],\n        ),\n        (\n            [[1, 2], [3, 4]],\n            [[1, 3], [2, 4]],\n        ),\n        (\n            [[1, 2, 3]],\n            [[1], [2], [3]],\n        ),\n        (\n            [[1], [2], [3]],\n            [[1, 2, 3]],\n        ),\n        (\n            [[\"a\", \"b\"], [\"c\", \"d\"]],\n            [[\"a\", \"c\"], [\"b\", \"d\"]],\n        ),\n    ],\n)\ndef test_matrix_transpose_happy_paths(matrix, expected):\n    assert matrix_transpose(matrix) == expected\n\n\ndef test_matrix_transpose_empty_matrix_returns_empty_list():\n    assert matrix_transpose([]) == []\n\n\n@pytest.mark.parametrize(\n    \"matrix\",\n    [\n        [[]],\n        [[], []],\n        [[], [1, 2, 3]],\n    ],\n)\ndef test_matrix_transpose_empty_first_row_returns_empty_list(matrix):\n    assert matrix_transpose(matrix) == []\n\n\ndef test_matrix_transpose_does_not_mutate_input():\n    matrix = [[1, 2], [3, 4]]\n    original = [row[:] for row in matrix]\n\n    result = matrix_transpose(matrix)\n\n    assert matrix == original\n    assert result == [[1, 3], [2, 4]]\n\n\ndef test_matrix_transpose_ragged_matrix_with_longer_later_rows_ignores_extra_values():\n    matrix = [[1], [2, 3], [4, 5, 6]]\n\n    assert matrix_transpose(matrix) == [[1, 2, 4]]\n\n\n@pytest.mark.parametrize(\n    \"matrix\",\n    [\n        [[1, 2], [3]],\n        [[1], []],\n        [[1, 2, 3], [4, 5]],\n    ],\n)\ndef test_matrix_transpose_ragged_matrix_with_shorter_later_rows_raises_index_error(matrix):\n    with pytest.raises(IndexError):\n        matrix_transpose(matrix)\n\n\n@pytest.mark.parametrize(\n    \"matrix\",\n    [\n        [1, 2, 3],\n        [[1], 2],\n        [[1], None],\n    ],\n)\ndef test_matrix_transpose_invalid_row_types_raise_type_error(matrix):\n    with pytest.raises(TypeError):\n        matrix_transpose(matrix)\n```",
+  "score": 4,
+  "cost": 0.019215,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 1583
+  }
+}

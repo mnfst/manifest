@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 17,
+  "response": "remind",
+  "score": 0,
+  "cost": 5.65e-05,
+  "expected": "reminder",
+  "tokens": {
+    "input": 556,
+    "output": 3
+  }
+}

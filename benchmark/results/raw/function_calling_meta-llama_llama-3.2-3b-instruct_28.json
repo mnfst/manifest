@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 28,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"block_ip\", \"arguments\": {\"ip\": \"192.168.1.100\"}}\n```\n\nThis function call tells the system to block the IP address `192.168.1.100` in the firewall.",
+  "score": 4,
+  "cost": 7.752e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 61
+  }
+}

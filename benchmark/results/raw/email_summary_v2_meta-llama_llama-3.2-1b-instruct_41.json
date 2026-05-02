@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe current 1Gbps network is at 78% capacity, and upgrading to 10Gbps is recommended to avoid revisiting the network in 6 months to ensure continued performance and reliability. The proposed solution includes a one-time cost of $45,000 for the upgrade and an ongoing monthly cost of $2,000 for traffic shaping and CDN optimization.",
+  "score": 4,
+  "cost": 5.373e-06,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 86
+  }
+}

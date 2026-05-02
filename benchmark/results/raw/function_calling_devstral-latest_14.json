@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 14,
+  "response": "```json\n{\"name\": \"create_reminder\", \"arguments\": {\"message\": \"Call the dentist\", \"time\": \"15:00\", \"date\": \"Wednesday\"}}\n```",
+  "score": 4,
+  "cost": 2.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 42
+  }
+}

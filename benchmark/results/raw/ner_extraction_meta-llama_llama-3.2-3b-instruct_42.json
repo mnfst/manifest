@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 42,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"African Union\", \"Egypt\", \"Ethiopia\"],\n  \"locations\": [\"Addis Ababa\", \"Sudan\"]\n}\n```",
+  "score": 3,
+  "cost": 6.324e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 44
+  }
+}

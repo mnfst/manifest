@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "Summary: The v1 API will be deprecated on June 30 and removed on September 30, with 340 integrations still using it. Action items include personal outreach to the top 20 enterprise customers and a webinar for the rest to facilitate migration.",
+  "score": 5,
+  "cost": 5.412e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 56
+  }
+}

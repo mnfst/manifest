@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement de personnel aupr\u00e8s de l'EUSR.",
+  "score": 5,
+  "cost": 5.22e-06,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 30
+  }
+}

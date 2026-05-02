@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 35,
+  "response": "Here is the correct function call:\n\n```json\n{\"name\": \"get_order\", \"arguments\": {\"tracking_number\": \"12345\"}}\n```\n\nThis function call is valid because it matches the provided request.",
+  "score": 1,
+  "cost": 3.6989999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 43
+  }
+}

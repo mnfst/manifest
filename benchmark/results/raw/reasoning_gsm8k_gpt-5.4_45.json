@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "Cars:  \n\\(57 \\times 4 = 228\\) wheels\n\nMotorcycles:  \n\\(73 \\times 2 = 146\\) wheels\n\nTotal wheels needed:  \n\\(228 + 146 = 374\\)\n\nWheels left from 650:  \n\\(650 - 374 = 276\\)\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.000782,
+  "expected": "276",
+  "tokens": {
+    "input": 99,
+    "output": 73
+  }
+}

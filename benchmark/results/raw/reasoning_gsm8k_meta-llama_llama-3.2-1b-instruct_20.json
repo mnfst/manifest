@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "To solve this problem, we need to calculate the total amount of food Jen spends on fish per day and then multiply that by the number of days in May.\n\nMay has 31 days. \n\nFirst, let's calculate the daily cost of food:\n3 fish * $1 per fish = $3 per day\n\nNow, let's multiply the daily cost by the number of days in May:\n$3 per day * 31 days = $93\n\nANSWER: $93",
+  "score": 5,
+  "cost": 4.7519999999999996e-06,
+  "expected": "93",
+  "tokens": {
+    "input": 79,
+    "output": 97
+  }
+}

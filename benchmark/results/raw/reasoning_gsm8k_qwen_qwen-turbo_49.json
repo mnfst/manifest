@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "To solve the problem, let's break it down step by step:\n\n1. **Number of siblings**: There are 2 brothers and 3 sisters, so a total of 5 siblings.\n2. **Age of the sisters**: All 3 sisters are 16 years old.\n   - Total age of the sisters = 3 \u00d7 16 = 48\n3. **Age of the brothers**: One of the brothers is 12 years old, and this is half the age of the older brother.\n   - That means the older brother is 2 \u00d7 12 = 24 years old.\n   - Total age of the brothers = 12 + 24 = 36\n4. **Total age of all siblings** = Total age of sisters + Total age of brothers\n   - Total = 48 + 36 = 84\n\nANSWER: 84",
+  "score": 5,
+  "cost": 9.768e-06,
+  "expected": "84",
+  "tokens": {
+    "input": 106,
+    "output": 190
+  }
+}

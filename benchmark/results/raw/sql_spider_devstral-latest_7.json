@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "```sql\nSELECT COUNT(*) AS number_of_cars\nFROM cars\nWHERE year = 1980;\n```",
+  "score": 5,
+  "cost": 1.47e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 26
+  }
+}

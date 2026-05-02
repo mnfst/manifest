@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "extraction_hard_v2",
+  "case": 40,
+  "response": "```json\n{\n  \"invoice_number\": \"INV-2024-0847\",\n  \"date\": \"2024-03-15\",\n  \"vendor\": \"Johnson & Sons LLC\",\n  \"items\": [\n    {\n      \"description\": \"5x USB-C Cables (premium) @ $12.99 each\",\n      \"quantity\": 5,\n      \"unit_price\": 12.99\n    },\n    {\n      \"description\": \"Office Chair, ergonomic mesh -- qty 2 -- $349.99/ea\",\n      \"quantity\": 2,\n      \"unit_price\": 349.99\n    },\n    {\n      \"description\": \"1 box of printer paper (A4) $45.50\",\n      \"quantity\": 1,\n      \"unit_price\": 45.50\n    }\n  ],\n  \"subtotal\": 824.42,\n  \"tax\": 68.01,\n  \"total\": 892.43\n}\n```",
+  "score": 3,
+  "cost": 1.0692e-05,
+  "expected": "",
+  "tokens": {
+    "input": 194,
+    "output": 202
+  }
+}

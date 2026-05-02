@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT YEAR\nFROM concert\nGROUP BY YEAR\nORDER BY COUNT(*) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 5.0489999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 25
+  }
+}

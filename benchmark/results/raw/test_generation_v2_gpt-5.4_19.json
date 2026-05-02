@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "```python\nimport pytest\n\nfrom your_module import clamp\n\n\nclass TestClamp:\n    def test_returns_value_when_within_range(self):\n        assert clamp(5.0, 0.0, 10.0) == 5.0\n\n    def test_returns_min_when_value_below_range(self):\n        assert clamp(-1.0, 0.0, 10.0) == 0.0\n\n    def test_returns_max_when_value_above_range(self):\n        assert clamp(11.0, 0.0, 10.0) == 10.0\n\n    def test_returns_min_when_value_equals_min(self):\n        assert clamp(0.0, 0.0, 10.0) == 0.0\n\n    def test_returns_max_when_value_equals_max(self):\n        assert clamp(10.0, 0.0, 10.0) == 10.0\n\n    @pytest.mark.parametrize(\n        \"value,min_val,max_val,expected\",\n        [\n            (5, 0, 10, 5),\n            (-5, 0, 10, 0),\n            (15, 0, 10, 10),\n            (3.5, 3.5, 3.5, 3.5),\n            (-10.5, -5.0, 5.0, -5.0),\n            (10.5, -5.0, 5.0, 5.0),\n            (0.0, -5.0, 5.0, 0.0),\n        ],\n    )\n    def test_clamp_various_cases(self, value, min_val, max_val, expected):\n        assert clamp(value, min_val, max_val) == expected\n\n    def test_handles_negative_ranges(self):\n        assert clamp(-7.0, -10.0, -5.0) == -7.0\n\n    def test_handles_reversed_bounds_by_current_implementation(self):\n        # Current implementation does not validate min_val <= max_val.\n        # It effectively returns min_val when min_val > max_val.\n        assert clamp(5.0, 10.0, 0.0) == 10.0\n\n    def test_returns_nan_when_value_is_nan(self):\n        result = clamp(float(\"nan\"), 0.0, 10.0)\n        assert result != result  # NaN is not equal to itself\n\n    def test_raises_type_error_for_non_numeric_value(self):\n        with pytest.raises(TypeError):\n            clamp(\"5\", 0.0, 10.0)\n\n    def test_raises_type_error_for_non_numeric_min(self):\n        with pytest.raises(TypeError):\n            clamp(5.0, \"0\", 10.0)\n\n    def test_raises_type_error_for_non_numeric_max(self):\n        with pytest.raises(TypeError):\n            clamp(5.0, 0.0, \"10\")\n```\n\nIf you want, I can also provide:\n- a version using only parametrized tests\n- a more compact test suite\n- property-based tests with `hypothesis`",
+  "score": 5,
+  "cost": 0.005376,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 656
+  }
+}

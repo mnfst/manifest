@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 6,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Amazon\"],\n  \"locations\": [\"Nashville\", \"Davidson County\"]\n}\n```",
+  "score": 5,
+  "cost": 6.824999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 33
+  }
+}

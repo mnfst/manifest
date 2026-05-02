@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "```sql\nSELECT model\nFROM cars_data\nJOIN car_names ON cars_data.id = car_names.makeid\nWHERE weight < (SELECT AVG(weight) FROM cars_data);\n```",
+  "score": 4,
+  "cost": 0.000978,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 49
+  }
+}

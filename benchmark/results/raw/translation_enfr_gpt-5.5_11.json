@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "Un grand nombre d\u2019attractions et de produits touristiques (th\u00e9, itin\u00e9raires culturels, centres de sant\u00e9 et de bien-\u00eatre et spas, gastronomie, activit\u00e9s nautiques, etc.) ont \u00e9t\u00e9 identifi\u00e9s dans la destination, n\u00e9cessitant un d\u00e9veloppement interd\u00e9pendant en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne.",
+  "score": 5,
+  "cost": 0.001722,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 124
+  }
+}

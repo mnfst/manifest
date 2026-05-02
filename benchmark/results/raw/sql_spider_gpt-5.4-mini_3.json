@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "SELECT c.Name\nFROM Country c\nJOIN Country continent_country\n  ON continent_country.Continent = 'Asia'\nWHERE c.Continent = 'Africa'\nGROUP BY c.Name\nHAVING MAX(c.Population) < (SELECT MIN(Population) FROM Country WHERE Continent = 'Asia');",
+  "score": 3,
+  "cost": 0.0001002,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 65
+  }
+}

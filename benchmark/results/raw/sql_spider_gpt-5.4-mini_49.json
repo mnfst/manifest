@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "SELECT hometown\nFROM teacher\nGROUP BY hometown\nHAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 4.6200000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 21
+  }
+}

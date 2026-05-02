@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "```sql\nSELECT model\nFROM car_1\nWHERE weight < (SELECT AVG(weight) FROM car_1)\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 7.280000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 30
+  }
+}

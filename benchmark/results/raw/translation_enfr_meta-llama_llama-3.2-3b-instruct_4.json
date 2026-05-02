@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "Avez-vous invit\u00e9 le lieutenant Gilbert \u00e0 votre maison ?",
+  "score": 2,
+  "cost": 2.6519999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 13
+  }
+}

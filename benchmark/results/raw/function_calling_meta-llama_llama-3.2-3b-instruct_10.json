@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 10,
+  "response": "{\"name\": \"play_song\", \"arguments\": {\"title\": \"Bohemian Rhapsody\", \"artist\": \"Queen\"}}",
+  "score": 5,
+  "cost": 6.069e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 28
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 18,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"check_domain\", \"arguments\": {\"domain\": \"coolstartup.com\"}}\n```\n\nThis function call will return a response indicating whether the domain is available for purchase or not.",
+  "score": 5,
+  "cost": 7.190999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 51
+  }
+}

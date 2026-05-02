@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe SSL certificate for api.company.com is set to expire on May 4, but auto-renewal failed due to a DNS validation issue, and the CNAME record was removed during a recent DNS migration. The issue has been fixed, and the DevOps team will re-add the CNAME record to ensure the certificate renewal process can proceed.",
+  "score": 4,
+  "cost": 5.211000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 82
+  }
+}

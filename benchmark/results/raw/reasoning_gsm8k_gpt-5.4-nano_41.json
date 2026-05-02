@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let Harald\u2019s copies be \\(h\\).  \nMarilyn sold \\(10h\\) copies.\n\nCombined total:\n\\[\nh + 10h = 88{,}000\n\\]\n\\[\n11h = 88{,}000\n\\]\n\\[\nh = \\frac{88{,}000}{11} = 8{,}000\n\\]\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 4.2000000000000004e-05,
+  "expected": "8000",
+  "tokens": {
+    "input": 72,
+    "output": 87
+  }
+}

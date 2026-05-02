@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The SOC 2 Type II audit was completed with no critical findings, though three minor observations were noted regarding access reviews, incident response testing, and vendor assessments. The team must remediate these three specific issues within 30 days.",
+  "score": 5,
+  "cost": 0.0009275,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 46
+  }
+}

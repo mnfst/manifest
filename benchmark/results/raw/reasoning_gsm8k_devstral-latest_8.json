@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "**Solution:**\n\n1. **Determine the number of additional students due to the 20% increase:**\n\n   To find 20% of last year's enrollment (50 students), multiply 50 by 0.20:\n   \\[\n   50 \\times 0.20 = 10 \\text{ students}\n   \\]\n\n2. **Calculate the total enrollment this year:**\n\n   Add the additional students to last year's enrollment:\n   \\[\n   50 + 10 = 60 \\text{ students}\n   \\]\n\n**Final Answer:**\n\\[\n\\boxed{60}\n\\]",
+  "score": 5,
+  "cost": 4.8100000000000004e-05,
+  "expected": "60",
+  "tokens": {
+    "input": 82,
+    "output": 133
+  }
+}

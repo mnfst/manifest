@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[reporter masculin #1 \u00e0 la t\u00e9l\u00e9vision] Un accident est survenu juste apr\u00e8s 10h00.",
+  "score": 5,
+  "cost": 3.774e-06,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 26
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "```sql\nSELECT T1.name, T1.capacity FROM stadium AS T1 JOIN concert AS T2 ON T1.stadium_id = T2.stadium_id WHERE T2.year > 2013 GROUP BY T1.stadium_id ORDER BY count(*) DESC LIMIT 1\n```",
+  "score": 4,
+  "cost": 0.00123,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 69
+  }
+}

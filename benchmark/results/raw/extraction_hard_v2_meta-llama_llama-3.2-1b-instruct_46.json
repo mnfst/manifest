@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "extraction_hard_v2",
+  "case": 46,
+  "response": "```json\n{\n  \"patient_id\": \"PT-20240315-089\",\n  \"collected\": \"03/15/2024 08:30\",\n  \"physician\": \"Dr. R. Patel\",\n  \"results\": [\n    {\n      \"test\": \"CBC\",\n      \"value\": 7.2,\n      \"unit\": \"x10^9/L\",\n      \"normal_range\": \"4.5-11.0\",\n      \"flag\": \"normal\"\n    },\n    {\n      \"test\": \"Metabolic Panel\",\n      \"value\": 128,\n      \"unit\": \"mg/dL\",\n      \"normal_range\": \"70-100\",\n      \"flag\": \"high\"\n    },\n    {\n      \"test\": \"Creatinine\",\n      \"value\": 0.9,\n      \"unit\": \"mg/dL\",\n      \"normal_range\": \"0.7-1.3\",\n      \"flag\": \"normal\"\n    },\n    {\n      \"test\": \"eGFR\",\n      \"value\": 95,\n      \"unit\": \"mL/min\",\n      \"normal_range\": \">60\",\n      \"flag\": \"normal\"\n    }\n  ]\n}\n```",
+  "score": 3,
+  "cost": 1.4228999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 277,
+    "output": 250
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "To solve this problem, we start by defining the quantities involved. Let:\n\n- $ H $ represent the number of copies Harald sold.\n- Since Marilyn sold 10 times as many copies as Harald, her sales are $ 10H $.\n\nThe problem states that the **combined** number of copies sold by both is 88,000. Therefore, we can write the equation:\n\n$$\nH + 10H = 88,000\n$$\n\n---\n\n### Step 1: Combine like terms\n\n$$\n11H = 88,000\n$$\n\n---\n\n### Step 2: Solve for $ H $\n\n$$\nH = \\frac{88,000}{11}\n$$\n\n$$\nH = 8,000\n$$\n\n---\n\n### Final Answer\n\n$$\n\\boxed{8000}\n$$",
+  "score": 5,
+  "cost": 5.0650000000000005e-05,
+  "expected": "8000",
+  "tokens": {
+    "input": 82,
+    "output": 931
+  }
+}

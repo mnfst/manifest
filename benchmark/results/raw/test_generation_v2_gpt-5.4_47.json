@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 47,
+  "response": "```python\nimport pytest\n\nfrom your_module import run_length_encode\n\n\ndef test_run_length_encode_empty_string_returns_empty_list():\n    assert run_length_encode(\"\") == []\n\n\ndef test_run_length_encode_single_character():\n    assert run_length_encode(\"a\") == [(\"a\", 1)]\n\n\ndef test_run_length_encode_all_unique_characters():\n    assert run_length_encode(\"abc\") == [(\"a\", 1), (\"b\", 1), (\"c\", 1)]\n\n\ndef test_run_length_encode_all_same_characters():\n    assert run_length_encode(\"aaaa\") == [(\"a\", 4)]\n\n\ndef test_run_length_encode_mixed_runs():\n    assert run_length_encode(\"aaabbcddd\") == [\n        (\"a\", 3),\n        (\"b\", 2),\n        (\"c\", 1),\n        (\"d\", 3),\n    ]\n\n\ndef test_run_length_encode_case_sensitive():\n    assert run_length_encode(\"aaAAa\") == [(\"a\", 2), (\"A\", 2), (\"a\", 1)]\n\n\ndef test_run_length_encode_includes_whitespace():\n    assert run_length_encode(\"  aa  \") == [(\" \", 2), (\"a\", 2), (\" \", 2)]\n\n\ndef test_run_length_encode_digits_are_treated_as_characters():\n    assert run_length_encode(\"111223\") == [(\"1\", 3), (\"2\", 2), (\"3\", 1)]\n\n\ndef test_run_length_encode_special_characters():\n    assert run_length_encode(\"!!@@@#\") == [(\"!\", 2), (\"@\", 3), (\"#\", 1)]\n\n\n@pytest.mark.parametrize(\n    \"value,expected\",\n    [\n        (\"\", []),\n        (\"z\", [(\"z\", 1)]),\n        (\"abba\", [(\"a\", 1), (\"b\", 2), (\"a\", 1)]),\n        (\"aabcccccaaa\", [(\"a\", 2), (\"b\", 1), (\"c\", 5), (\"a\", 3)]),\n    ],\n)\ndef test_run_length_encode_parametrized_cases(value, expected):\n    assert run_length_encode(value) == expected\n\n\ndef test_run_length_encode_none_returns_empty_list_current_behavior():\n    assert run_length_encode(None) == []\n\n\n@pytest.mark.parametrize(\"value\", [123, [\"a\", \"a\"], {\"a\": 1}])\ndef test_run_length_encode_invalid_non_string_inputs_raise_type_error(value):\n    with pytest.raises(TypeError):\n        run_length_encode(value)\n```\n\nNotes:\n- Replace `from your_module import run_length_encode` with the actual module import.\n- `None` is included as a current-behavior edge case because `if not s:` causes it to return `[]`, even though the annotation says `str`.",
+  "score": 5,
+  "cost": 0.004888,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 580
+  }
+}

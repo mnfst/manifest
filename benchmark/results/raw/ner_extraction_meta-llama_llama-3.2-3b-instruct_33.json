@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 33,
+  "response": "```\n{\n  \"persons\": [],\n  \"organizations\": [\"International Monetary Fund\"],\n  \"locations\": [\"Latin America\"]\n}\n```",
+  "score": 5,
+  "cost": 5.202e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 28
+  }
+}

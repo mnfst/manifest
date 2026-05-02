@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**Fran\u00e7ais :**\nDe son c\u00f4t\u00e9, le deuxi\u00e8me atelier s'est concentr\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de surveillance des organes conventionnels \u00e0 l'\u00c9tat du Cameroun, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones.\n\n*Explications des choix de traduction :*\n- **\"On its part\" \u2192 \"De son c\u00f4t\u00e9\"** : Plus naturel en fran\u00e7ais tout en gardant le sens.\n- **\"Supervisory organs of treaty bodies\" \u2192 \"Organes de surveillance des organes conventionnels\"** : Traduction pr\u00e9cise des termes juridiques.\n- **\"In accordance with\" \u2192 \"Conform\u00e9ment \u00e0\"** : \u00c9quivalent formel en fran\u00e7ais.\n- **\"Obligations towards\" \u2192 \"Obligations envers\"** : Plus idiomatique en fran\u00e7ais.\n\nSi vous souhaitez une version plus concise ou adapt\u00e9e \u00e0 un contexte sp\u00e9cifique, n'h\u00e9sitez pas \u00e0 me le pr\u00e9ciser !",
+  "score": 4,
+  "cost": 7.21e-05,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 219
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 26,
+  "response": "```json\n{\n  \"name\": \"upload_file\",\n  \"arguments\": {\n    \"path\": \"report.pdf\",\n    \"destination\": \"shared documents folder\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 8.125e-06,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 39
+  }
+}

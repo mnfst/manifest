@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "SELECT DISTINCT m.name\nFROM maker m\nJOIN model md ON m.id = md.maker_id\nJOIN car c ON md.model = c.model\nWHERE c.year = 1970;",
+  "score": 5,
+  "cost": 7.35e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 42
+  }
+}

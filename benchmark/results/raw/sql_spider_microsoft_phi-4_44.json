@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "```sql\nSELECT airport_code\nFROM (\n    SELECT origin_airport_code AS airport_code, COUNT(*) AS flight_count\n    FROM flights\n    GROUP BY origin_airport_code\n    UNION ALL\n    SELECT destination_airport_code AS airport_code, COUNT(*) AS flight_count\n    FROM flights\n    GROUP BY destination_airport_code\n) AS combined_flights\nGROUP BY airport_code\nORDER BY SUM(flight_count) ASC\nLIMIT 1;\n```",
+  "score": 3,
+  "cost": 1.0789999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 95
+  }
+}

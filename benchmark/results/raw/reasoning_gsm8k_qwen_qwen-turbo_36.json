@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Step 1: Elaine initially had 20 Pok\u00e9mon cards.  \nSo, initial cards = 20.\n\nStep 2: After a month, she collected three times that number.  \nFirst month collection = 3 \u00d7 20 = 60 cards.\n\nStep 3: In the second month, she collected 20 fewer cards than those she collected in the first month.  \nSecond month collection = 60 - 20 = 40 cards.\n\nStep 4: In the third month, she collected twice the combined number of cards she collected in the first and second months.  \nCombined first and second months = 60 + 40 = 100 cards.  \nThird month collection = 2 \u00d7 100 = 200 cards.\n\nStep 5: Total number of cards now = initial + first month + second month + third month.  \nTotal = 20 + 60 + 40 + 200 = 320.\n\nANSWER: 320",
+  "score": 5,
+  "cost": 1.1220000000000001e-05,
+  "expected": "320",
+  "tokens": {
+    "input": 123,
+    "output": 217
+  }
+}

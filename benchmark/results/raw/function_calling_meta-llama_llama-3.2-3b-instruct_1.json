@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 1,
+  "response": "Here is the correct function call:\n\n`{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}`\n\nThis will return the current weather in Paris in the specified units (defaulting to Celsius).",
+  "score": 4,
+  "cost": 7.2419999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 44
+  }
+}

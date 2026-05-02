@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "ner_extraction",
+  "case": 1,
+  "response": "{\n  \"persons\": [\"Biden\", \"Macron\"],\n  \"organizations\": [\"NATO\"],\n  \"locations\": [\"White House\"]\n}",
+  "score": 5,
+  "cost": 2.5250000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 433
+  }
+}

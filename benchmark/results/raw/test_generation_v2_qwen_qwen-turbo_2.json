@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "Here's a set of **pytest-style unit tests** for the `factorial` function. These tests cover:\n\n- **Happy path**: Normal inputs (e.g., n = 0, 1, 2, 5, 10).\n- **Edge cases**: n = 0, n = 1.\n- **Error cases**: Negative input (raises `ValueError`), non-integer input (should raise a `TypeError`).\n\n### `test_factorial.py`\n\n```python\nimport pytest\n\nfrom your_module import factorial  # Replace 'your_module' with the actual module name\n\ndef test_factorial_happy_path():\n    assert factorial(0) == 1\n    assert factorial(1) == 1\n    assert factorial(2) == 2\n    assert factorial(3) == 6\n    assert factorial(5) == 120\n    assert factorial(10) == 3628800\n\ndef test_factorial_negative_input():\n    with pytest.raises(ValueError, match='n must be non-negative'):\n        factorial(-1)\n\ndef test_factorial_non_integer_input():\n    with pytest.raises(TypeError):\n        factorial(2.5)\n\ndef test_factorial_zero():\n    assert factorial(0) == 1\n\ndef test_factorial_one():\n    assert factorial(1) == 1\n\ndef test_factorial_large_number():\n    assert factorial(20) == 2432902008176640000\n```\n\n### Notes:\n\n- Replace `your_module` with the name of the module where the `factorial` function is defined.\n- If the function is in the same file, you can import it directly.\n- The `test_factorial_non_integer_input` test checks that `factorial(2.5)` raises a `TypeError`, which is appropriate because the function expects an `int`.\n\n### To Run the Tests:\n\nMake sure you have `pytest` installed:\n\n```bash\npip install pytest\n```\n\nThen run:\n\n```bash\npytest test_factorial.py\n```\n\nThis will run all the test cases and report any failures.",
+  "score": 5,
+  "cost": 1.7588999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 446
+  }
+}

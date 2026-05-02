@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The SOC 2 Type II audit is complete with no critical findings, but it identified three observations: access reviews are not frequent enough, the incident response plan has not been tested in six months, and vendor risk assessments are incomplete for two vendors. The Compliance Team needs to remediate these issues within 30 days.",
+  "score": 5,
+  "cost": 0.0001086,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 66
+  }
+}

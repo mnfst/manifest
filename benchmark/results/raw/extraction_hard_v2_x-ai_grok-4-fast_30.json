@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "extraction_hard_v2",
+  "case": 30,
+  "response": "{\"incident_id\":\"SI-2024-0089\",\"detected\":\"2024-03-15 02:14 UTC\",\"severity\":\"P1 Critical\",\"status\":\"Contained\",\"attack_vector\":{\"compromised_account\":\"svc-analytics@corp.local\",\"vulnerability\":\"CVE-2024-1234\"},\"impact\":{\"records_exposed\":12847,\"data_types\":[\"name\",\"email\",\"hashed passwords\"]},\"timeline\":[{\"time\":\"02:14\",\"action\":\"IDS alert fired\"},{\"time\":\"02:18\",\"action\":\"On-call paged\"},{\"time\":\"02:32\",\"action\":\"Service account disabled\"},{\"time\":\"02:45\",\"action\":\"API gateway patched\"},{\"time\":\"03:15\",\"action\":\"Forensic investigation started\"},{\"time\":\"04:00\",\"action\":\"Incident contained\"}],\"action_items\":[\"rotate all service account creds\",\"notify affected users within 72h\",\"engage external forensics firm\"]}",
+  "score": 5,
+  "cost": 0.0006766000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 423,
+    "output": 740
+  }
+}

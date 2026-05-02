@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "To find the total number of leftover burritos, we need to calculate how many burritos were given out and eaten, and then subtract that from the total amount ordered.\n\nStep 1: Calculate the total number of burritos given to the students.\nThere are 50 students, and each student received 10 burritos.\n50 students \u00d7 10 burritos/student = 500 burritos\n\nStep 2: Add the burritos eaten by Mr. George to find the total number of burritos consumed.\nMr. George ate 20 burritos.\n500 burritos (for students) + 20 burritos (for Mr. George) = 520 burritos\n\nStep 3: Subtract the total number of consumed burritos from the original amount ordered to find the leftovers.\nGeorge ordered 600 burritos in total.\n600 burritos - 520 burritos = 80 burritos\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.003435,
+  "expected": "80",
+  "tokens": {
+    "input": 102,
+    "output": 212
+  }
+}

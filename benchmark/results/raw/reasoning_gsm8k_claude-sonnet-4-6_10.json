@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "Let me solve this step by step.\n\n**Low setting:** 1 liter per day\n**Medium setting:** 2 \u00d7 1 = 2 liters per day\n**High setting:** 2 \u00d7 2 = 4 liters per day\n\n**Water removed on low setting (3 days):**\n3 days \u00d7 1 liter/day = 3 liters\n\n**Water removed on medium setting (3 days):**\n3 days \u00d7 2 liters/day = 6 liters\n\n**Water removed on high setting (5 days):**\n5 days \u00d7 4 liters/day = 20 liters\n\n**Total water removed:**\n3 + 6 + 20 = 29 liters\n\nANSWER: 29",
+  "score": 5,
+  "cost": 0.003417,
+  "expected": "29",
+  "tokens": {
+    "input": 214,
+    "output": 185
+  }
+}

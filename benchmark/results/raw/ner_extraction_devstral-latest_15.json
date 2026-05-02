@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"SpaceX\", \"Starlink\"],\n  \"locations\": [\"Cape Canaveral\"]\n}\n```",
+  "score": 4,
+  "cost": 1.8700000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 38
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "```sql\nSELECT * FROM tvshow WHERE director = 'Ben Jones';\n```",
+  "score": 3,
+  "cost": 2.403e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 17
+  }
+}

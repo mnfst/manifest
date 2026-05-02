@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Nous pourrions vous arr\u00eater pour sollicitation.",
+  "score": 2,
+  "cost": 5.7400000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 1114
+  }
+}

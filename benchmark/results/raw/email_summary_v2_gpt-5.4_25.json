@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The company reached 10K MAU, grew MRR to $85K (+12% MoM), hired a VP of Sales, and signed a Series A term sheet for $8M at a $40M pre-money valuation.  \nThe key action item is that the fundraising round is set to close on May 10, with burn at $120K/month and 11 months of runway after the raise.",
+  "score": 5,
+  "cost": 0.000906,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 87
+  }
+}

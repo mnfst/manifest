@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 15,
+  "response": "```json\n{\"name\": \"compress_video\", \"arguments\": {\"path\": \"downloads presentation.mp4\", \"target_reduction\": 0.5}}\n```",
+  "score": 5,
+  "cost": 9.6e-06,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 37
+  }
+}

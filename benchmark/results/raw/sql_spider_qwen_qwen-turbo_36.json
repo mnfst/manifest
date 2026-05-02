@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT name\nFROM students\nORDER BY likes DESC\nLIMIT 1;",
+  "score": 4,
+  "cost": 3.0030000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 15
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The workshop with 15 enterprise customers revealed key feedback, including the need for improved bulk import, SSO as a blocker for some accounts, and positive reception of the new analytics dashboard, with unexpected interest in an internal tool as a standalone product. A follow-up report is attached for review.",
+  "score": 5,
+  "cost": 2.92e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 2,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Google DeepMind\",\n    \"Nature\"\n  ],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 7.02e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 42
+  }
+}

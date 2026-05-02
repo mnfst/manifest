@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "La plage la plus proche est facilement accessible en voiture, \u00e0 quelque 6\u2026",
+  "score": 4,
+  "cost": 3.4200000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 19
+  }
+}

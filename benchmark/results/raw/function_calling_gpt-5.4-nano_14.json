@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "function_calling",
+  "case": 14,
+  "response": "{\"name\":\"create_reminder\",\"arguments\":{\"message\":\"Call the dentist\",\"time\":\"3:00 PM\",\"date\":\"Wednesday\"}}",
+  "score": 4,
+  "cost": 2.0700000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 29
+  }
+}

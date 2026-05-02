@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 25,
+  "response": "2. Le 21 f\u00e9vrier, le sous-secr\u00e9taire de la D\u00e9fense, Jos\u00e9 Asenio, a \u00e9t\u00e9 d\u00e9mis et arr\u00eat\u00e9 avec le colonel Villalba, pour la trahison de Malague.",
+  "score": 3,
+  "cost": 3.213e-06,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 51
+  }
+}

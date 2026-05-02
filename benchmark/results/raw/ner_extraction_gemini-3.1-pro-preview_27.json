@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "{\n  \"persons\": [\n    \"Cristiano Ronaldo\"\n  ],\n  \"organizations\": [\n    \"Al Nassr\",\n    \"Manchester United\"\n  ],\n  \"locations\": [\n    \"Riyadh\"\n  ]\n}",
+  "score": 5,
+  "cost": 0.000995,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 55
+  }
+}

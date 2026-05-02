@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "SELECT Name\nFROM Country\nWHERE Continent = 'Africa'\n  AND Population < ALL (\n    SELECT Population\n    FROM Country\n    WHERE Continent = 'Asia'\n  );",
+  "score": 5,
+  "cost": 0.000468,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 40
+  }
+}

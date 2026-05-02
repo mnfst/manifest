@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Step 1: Calculate Joey's new total.\nJoey starts with 214 points and scores 26 points.\n214 + 26 = 240 points\n\nStep 2: Calculate Marcy's new total.\nMarcy starts with 225 points and scores 10 points.\n225 + 10 = 235 points\n\nStep 3: Find the difference.\n240 - 235 = 5 points\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.001917,
+  "expected": "5",
+  "tokens": {
+    "input": 94,
+    "output": 109
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "Here's a set of **pytest-style unit tests** for the `clamp` function. These tests cover:\n\n- **Happy path** (normal usage)\n- **Edge cases** (e.g. value equals min or max)\n- **Error cases** (e.g. invalid input types)\n\n### \u2705 `test_clamp.py`\n\n```python\nimport pytest\n\ndef clamp(value: float, min_val: float, max_val: float) -> float:\n    return max(min_val, min(value, max_val))\n\ndef test_clamp_happy_path():\n    assert clamp(5, 1, 10) == 5\n    assert clamp(0, -5, 5) == 0\n    assert clamp(100, 0, 10) == 10\n\ndef test_clamp_edge_cases():\n    assert clamp(1, 1, 10) == 1\n    assert clamp(10, 1, 10) == 10\n    assert clamp(-5, -10, -5) == -5\n    assert clamp(100, 100, 200) == 100\n\ndef test_clamp_with_negative_values():\n    assert clamp(-7, -10, -5) == -7\n    assert clamp(-10, -10, -5) == -10\n    assert clamp(-5, -10, -5) == -5\n\ndef test_clamp_with_floats():\n    assert clamp(3.5, 1.2, 5.0) == 3.5\n    assert clamp(0.1, -1.0, 0.5) == 0.1\n    assert clamp(1.5, 1.2, 1.4) == 1.4\n\ndef test_clamp_with_invalid_types():\n    with pytest.raises(TypeError):\n        clamp(\"5\", 1, 10)\n    with pytest.raises(TypeError):\n        clamp(5, \"1\", 10)\n    with pytest.raises(TypeError):\n        clamp(5, 1, \"10\")\n\ndef test_clamp_min_greater_than_max():\n    # According to the function, it's okay for min_val > max_val\n    # The function will still return min_val, since min_val is larger than max_val\n    assert clamp(5, 10, 5) == 10\n    assert clamp(3, 5, 2) == 5\n    assert clamp(10, 20, 5) == 20\n```\n\n### \ud83d\udccc Notes:\n- The function assumes that `min_val` and `max_val` can be in any order. If `min_val > max_val`, the function still works as expected (returns `min_val`).\n- The `clamp` function is type-agnostic but expects `float` inputs. The tests handle invalid types with `TypeError`.\n\n### \ud83e\uddea To Run the Tests\n\nInstall pytest if you haven't:\n\n```bash\npip install pytest\n```\n\nRun the tests:\n\n```bash\npytest test_clamp.py\n```\n\nLet me know if you'd like to add more test coverage, such as with `pytest.mark.parametrize` for parameterized tests.",
+  "score": 5,
+  "cost": 2.5146e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 692
+  }
+}

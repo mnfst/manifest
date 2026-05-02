@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 7,
+  "response": "```python\nimport pytest\n\n# Import the function under test\n# from your_module import remove_duplicates\n\ndef test_remove_duplicates_happy_path_preserves_order():\n    assert remove_duplicates([1, 2, 1, 3, 2, 4]) == [1, 2, 3, 4]\n\ndef test_remove_duplicates_empty_list():\n    assert remove_duplicates([]) == []\n\ndef test_remove_duplicates_single_element():\n    assert remove_duplicates([42]) == [42]\n\ndef test_remove_duplicates_all_unique():\n    assert remove_duplicates([1, 2, 3]) == [1, 2, 3]\n\ndef test_remove_duplicates_all_same():\n    assert remove_duplicates([7, 7, 7]) == [7]\n\ndef test_remove_duplicates_preserves_first_occurrence_with_mixed_types():\n    # Equality / hashing works for these built-in types\n    assert remove_duplicates([\"a\", 1, \"a\", 1, None, None]) == [\"a\", 1, None]\n\ndef test_remove_duplicates_with_unhashable_items_raises_typeerror():\n    # Sets require hashable items; unhashable elements should raise TypeError\n    with pytest.raises(TypeError):\n        remove_duplicates([[1], [1], [2]])\n\ndef test_remove_duplicates_with_unhashable_mixed_items_raises_typeerror():\n    with pytest.raises(TypeError):\n        remove_duplicates([1, {\"a\": 1}, {\"a\": 1}])\n\ndef test_remove_duplicates_non_list_input_raises_typeerror():\n    # Function expects list; other iterables may behave unexpectedly.\n    # Since it calls `for item in lst`, passing non-iterables should raise TypeError.\n    with pytest.raises(TypeError):\n        remove_duplicates(123)\n\ndef test_remove_duplicates_with_none_is_supported():\n    assert remove_duplicates([None, 1, None, 2]) == [None, 1, 2]\n\ndef test_remove_duplicates_with_tuple_hashing_works():\n    # Tuples are hashable if their contents are hashable\n    assert remove_duplicates([(1, 2), (1, 2), (2, 3), (1, 2)]) == [(1, 2), (2, 3)]\n```",
+  "score": 5,
+  "cost": 0.00019350000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 464
+  }
+}

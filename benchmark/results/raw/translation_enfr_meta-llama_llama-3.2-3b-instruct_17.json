@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Il semble que vous ayez oubli\u00e9 de fournir le texte \u00e0 traduire. Veuillez me donner le texte en anglais que vous souhaitez traduire en fran\u00e7ais. Je serai ravi de vous aider !",
+  "score": 1,
+  "cost": 4.335e-06,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 47
+  }
+}

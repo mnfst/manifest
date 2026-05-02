@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 35,
+  "response": "change_language",
+  "score": 5,
+  "cost": 1.3850999999999998e-05,
+  "expected": "change_language",
+  "tokens": {
+    "input": 510,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n**\"Il sugg\u00e9rait, au contraire, que l'arm\u00e9e devrait jouer un r\u00f4le secondaire dans les op\u00e9rations antiterroristes.\"**\n\n*Variante possible (selon le contexte) :*\n**\"Il proposait plut\u00f4t que l'arm\u00e9e assume un r\u00f4le d'appui dans les op\u00e9rations de lutte contre le terrorisme.\"**\n\n*Explications :*\n- **\"It suggested\" \u2192 \"Il sugg\u00e9rait/proposait\"** : Selon le registre (formel ou neutre).\n- **\"Instead\" \u2192 \"au contraire/plut\u00f4t\"** : Pour marquer l'opposition ou l'alternative.\n- **\"Secondary role\" \u2192 \"r\u00f4le secondaire/d'appui\"** : \"Secondaire\" est direct, \"d'appui\" insiste sur le soutien.\n- **\"Anti-terrorist operations\" \u2192 \"op\u00e9rations antiterroristes/lutte contre le terrorisme\"** : Les deux formulations sont courantes en fran\u00e7ais.\n\nSi le contexte est plus technique (ex. rapport militaire), la premi\u00e8re version est pr\u00e9f\u00e9rable. Pour un style plus fluide, la seconde variante peut convenir.",
+  "score": 5,
+  "cost": 7.5e-05,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 236
+  }
+}

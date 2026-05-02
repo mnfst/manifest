@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 40,
+  "response": "```python\nimport pytest\n\nfrom your_module import rgb_to_hex\n\n\n@pytest.mark.parametrize(\n    \"r, g, b, expected\",\n    [\n        (0, 0, 0, \"#000000\"),\n        (255, 255, 255, \"#ffffff\"),\n        (255, 0, 128, \"#ff0080\"),\n        (16, 32, 48, \"#102030\"),\n        (1, 2, 3, \"#010203\"),\n    ],\n)\ndef test_rgb_to_hex_happy_path(r, g, b, expected):\n    assert rgb_to_hex(r, g, b) == expected\n\n\n@pytest.mark.parametrize(\n    \"r, g, b\",\n    [\n        (0, 0, -1),\n        (-1, 0, 0),\n        (256, 0, 0),\n        (0, 256, 0),\n        (0, 0, 300),\n        (-10, 256, 500),\n    ],\n)\ndef test_rgb_to_hex_invalid_values_raise_value_error(r, g, b):\n    with pytest.raises(ValueError, match=\"RGB values must be 0-255\"):\n        rgb_to_hex(r, g, b)\n\n\ndef test_rgb_to_hex_boundary_values():\n    assert rgb_to_hex(0, 255, 0) == \"#00ff00\"\n    assert rgb_to_hex(255, 0, 255) == \"#ff00ff\"\n\n\n@pytest.mark.parametrize(\n    \"r, g, b, expected\",\n    [\n        (15, 15, 15, \"#0f0f0f\"),  # zero-padded hex formatting\n        (10, 11, 12, \"#0a0b0c\"),\n    ],\n)\ndef test_rgb_to_hex_zero_padding(r, g, b, expected):\n    assert rgb_to_hex(r, g, b) == expected\n```\n\n### Notes\n- Replace `from your_module import rgb_to_hex` with the actual module path.\n- These tests cover:\n  - happy path values\n  - boundary/edge cases (`0` and `255`)\n  - invalid values raising `ValueError`\n  - formatting behavior with leading zeroes",
+  "score": 5,
+  "cost": 0.0005841,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 460
+  }
+}

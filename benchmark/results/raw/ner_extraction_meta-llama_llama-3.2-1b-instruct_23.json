@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 23,
+  "response": "```\n{\n  \"persons\": [\"Taylor Swift\"],\n  \"organizations\": [\"Wembley Stadium\", \"London\"],\n  \"locations\": [\"London\"]\n}\n```",
+  "score": 2,
+  "cost": 3.024e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 34
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "```python\n# test_clamp.py\nimport math\nimport pytest\n\nfrom your_module import clamp  # update to the actual module name\n\n\ndef test_clamp_happy_path_inside_bounds():\n    assert clamp(5.0, 0.0, 10.0) == 5.0\n\n\ndef test_clamp_happy_path_below_min():\n    assert clamp(-1.0, 0.0, 10.0) == 0.0\n\n\ndef test_clamp_happy_path_above_max():\n    assert clamp(11.0, 0.0, 10.0) == 10.0\n\n\ndef test_clamp_edge_case_min_equals_max():\n    assert clamp(5.0, 3.0, 3.0) == 3.0\n    assert clamp(-100.0, 3.0, 3.0) == 3.0\n    assert clamp(100.0, 3.0, 3.0) == 3.0\n\n\ndef test_clamp_edge_case_value_equals_bounds():\n    assert clamp(0.0, 0.0, 10.0) == 0.0\n    assert clamp(10.0, 0.0, 10.0) == 10.0\n\n\ndef test_clamp_edge_case_negative_bounds():\n    assert clamp(-5.0, -10.0, -1.0) == -5.0\n    assert clamp(-20.0, -10.0, -1.0) == -10.0\n    assert clamp(0.0, -10.0, -1.0) == -1.0\n\n\ndef test_clamp_edge_case_nan_propagates():\n    # With Python's float comparisons, NaN will cause max/min to return\n    # whichever argument is used in the expression; here we assert it matches\n    # the function's behavior.\n    result = clamp(float(\"nan\"), 0.0, 10.0)\n    assert math.isnan(result)\n\n\ndef test_clamp_edge_case_infinities():\n    assert clamp(float(\"-inf\"), 0.0, 10.0) == 0.0\n    assert clamp(float(\"inf\"), 0.0, 10.0) == 10.0\n\n\ndef test_clamp_error_case_min_greater_than_max():\n    # Not specified by the function, but the current implementation will still\n    # return something based on nested min/max logic.\n    # Here we assert the actual behavior for clarity.\n    # clamp(5, 10, 0) -> max(10, min(5, 0)) = max(10, 0) = 10\n    assert clamp(5.0, 10.0, 0.0) == 10.0\n\n\ndef test_clamp_error_case_non_numeric_type_raises_typeerror():\n    with pytest.raises(TypeError):\n        clamp(\"5\", 0.0, 10.0)  # comparisons between str and float fail\n\n\ndef test_clamp_error_case_none_raises_typeerror():\n    with pytest.raises(TypeError):\n        clamp(None, 0.0, 10.0)\n```",
+  "score": 5,
+  "cost": 0.0002768,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 676
+  }
+}

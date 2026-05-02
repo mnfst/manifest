@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 41,
+  "response": "```json\n{\n  \"persons\": [\"LeBron James\"],\n  \"organizations\": [\"Los Angeles Lakers\"],\n  \"locations\": []\n}\n```",
+  "score": 5,
+  "cost": 7.02e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 35
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "intent_clinc150",
+  "case": 20,
+  "response": "vaccines",
+  "score": 5,
+  "cost": 5.3400000000000004e-05,
+  "expected": "vaccines",
+  "tokens": {
+    "input": 514,
+    "output": 5
+  }
+}

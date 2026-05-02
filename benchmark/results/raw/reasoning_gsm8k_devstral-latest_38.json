@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Let's solve the problem step by step.\n\n1. **Determine the total parts of the ratio:**\n\n   The ratio of Gerald to Julia is 3:2. So, the total parts are:\n   \\[\n   3 + 2 = 5 \\text{ parts}\n   \\]\n\n2. **Calculate the amount each part represents:**\n\n   The total amount of money is \\$100. Therefore, each part is:\n   \\[\n   \\frac{\\$100}{5} = \\$20 \\text{ per part}\n   \\]\n\n3. **Find out how much Gerald received:**\n\n   Gerald's share is 3 parts:\n   \\[\n   3 \\times \\$20 = \\$60\n   \\]\n\n4. **Subtract the amount Gerald spent on the book:**\n\n   Gerald spent \\$10 on a book. So, the money he has left is:\n   \\[\n   \\$60 - \\$10 = \\$50\n   \\]\n\n**Final Answer:**\n\\[\n\\boxed{50}\n\\]",
+  "score": 5,
+  "cost": 7.22e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 74,
+    "output": 216
+  }
+}

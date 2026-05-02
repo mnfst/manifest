@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "To determine how many points the class is missing to reach the trip threshold, we follow these steps:\n\n---\n\n### Step 1: Determine Each Student's Points\n\n- **Adam** has collected **50 points**.\n- **Betty** has collected **30% more** than Adam:\n  $$\n  50 + (0.30 \\times 50) = 50 + 15 = 65 \\text{ points}\n  $$\n- **Tom** has **30 points less** than Betty:\n  $$\n  65 - 30 = 35 \\text{ points}\n  $$\n- **Martha** has **3 times more** points than Tom:\n  $$\n  3 \\times 35 = 105 \\text{ points}\n  $$\n\n---\n\n### Step 2: Calculate Total Points Collected by the Class\n\n$$\n\\text{Total} = 50 (\\text{Adam}) + 65 (\\text{Betty}) + 35 (\\text{Tom}) + 105 (\\text{Martha}) = 255 \\text{ points}\n$$\n\n---\n\n### Step 3: Determine Points Missing to Reach the Threshold\n\nThe **minimum threshold** for the trip is **400 points**. So the number of points the class is missing is:\n\n$$\n400 - 255 = 145\n$$\n\n---\n\n### Final Answer\n\n$$\n\\boxed{145}\n$$",
+  "score": 5,
+  "cost": 0.00010400000000000002,
+  "expected": "145",
+  "tokens": {
+    "input": 154,
+    "output": 1926
+  }
+}

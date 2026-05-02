@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Here are a few ways to translate this, depending on how formal or colloquial you want the \"cop jargon\" to sound. \n\n**Option 1: Best match for tone (Police jargon / Colloquial)**\n> *\"On pourrait vous embarquer pour racolage.\"*\n*(Note: \"Embarquer\" is the French police slang equivalent to \"taking someone in\" or \"booking\" them. \"Racolage\" is the legal term for soliciting/prostitution).*\n\n**Option 2: Standard / A bit more formal**\n> *\"Nous pourrions vous arr\u00eater pour racolage.\"*\n*(Translation: We could arrest you for solicitation).*\n\n**Option 3: If speaking to someone informally (using \"tu\")**\n> *\"On pourrait t'embarquer pour racolage.\"*\n\n*Context note:* If the \"solicitation\" in your context refers to illegal door-to-door sales rather than prostitution, replace \"racolage\" with **\"d\u00e9marchage ill\u00e9gal\"**.",
+  "score": 5,
+  "cost": 0.00331,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 216
+  }
+}

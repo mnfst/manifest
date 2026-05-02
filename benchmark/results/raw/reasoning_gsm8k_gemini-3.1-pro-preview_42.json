@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "To find the total number of children in the drill, we need to calculate the number of children in each school and then multiply that by the total number of schools.\n\n1. First, find the number of children from one school:\nThere are 8 children in each row, and each school has 7 rows. \n8 children/row \u00d7 7 rows = 56 children per school.\n\n2. Next, find the total number of children for all the schools:\nThere are 5 different schools participating, and each school has 56 children.\n56 children/school \u00d7 5 schools = 280 children.\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.0023425,
+  "expected": "280",
+  "tokens": {
+    "input": 91,
+    "output": 141
+  }
+}

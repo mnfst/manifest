@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "extraction_hard_v2",
+  "case": 2,
+  "response": "```json\n{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\n    \"Jamie\",\n    \"Priya\",\n    \"Marcus\",\n    \"Lin\"\n  ],\n  \"decisions\": [\n    \"Push the recommendation engine to Q3\",\n    \"Allocate 20% of sprint capacity to tech debt\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"Complete onboarding mockups\",\n      \"deadline\": \"2026-04-18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"Send updated roadmap\",\n      \"deadline\": \"2026-04-13\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"Prepare analytics dashboard before board meeting\",\n      \"deadline\": \"May 2026\"\n    }\n  ]\n}\n```",
+  "score": 4,
+  "cost": 2.55e-05,
+  "expected": "",
+  "tokens": {
+    "input": 187,
+    "output": 238
+  }
+}

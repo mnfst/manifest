@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 17,
+  "response": "```json\n{\"name\": \"generate_qr\", \"arguments\": {\"data\": \"https://example.com/signup\"}}\n```",
+  "score": 5,
+  "cost": 8.82e-06,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 29
+  }
+}

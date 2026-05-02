@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "The March onboarding cohort satisfaction dropped to 7.2/10 from 8.1/10, with positives including the buddy system (9.1/10) and on-time IT support, but key issues are delayed tools access (3\u20135 days vs. 1-day target), confusion about the benefits deadline, and not receiving a culture handbook. Action item: prioritize fixing tools access to meet the 1-day target.",
+  "score": 5,
+  "cost": 4.72e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 90
+  }
+}

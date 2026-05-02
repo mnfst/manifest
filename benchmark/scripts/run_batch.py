@@ -43,8 +43,10 @@ SPEND_FILE = "results/spend_tracker.json"
 # --- Reasoning models ---
 REASONING_MODELS = {
     "DeepSeek-R1", "o4-mini", "grok-4-20-reasoning", "gpt-5.1-chat",
-    "Kimi-K2.6", "kimi-k2.6", "gemini-2.5-pro", "MiniMax-M2.7", "claude-opus-4-7",
+    "Kimi-K2.6", "kimi-k2.6", "gemini-2.5-pro", "gemini-3.1-pro-preview",
+    "MiniMax-M2.7", "claude-opus-4-7",
     "Phi-4-reasoning", "qwen3-32b",
+    "gpt-5.5", "gpt-5.5-pro", "o3", "gpt-5.4", "gpt-5.4-mini", "gpt-5.4-nano",
 }
 
 # Models that don't support temperature parameter
@@ -72,10 +74,31 @@ MODELS = {
     "claude-sonnet-4-20250514": {
         "provider": "anthropic", "input_price": 3.00, "output_price": 15.00,
     },
+    "claude-sonnet-4-6": {
+        "provider": "anthropic", "input_price": 3.00, "output_price": 15.00,
+    },
     "claude-haiku-4-5-20251001": {
         "provider": "anthropic", "input_price": 0.80, "output_price": 4.00,
     },
     # OpenAI (direct)
+    "gpt-5.5": {
+        "provider": "openai", "input_price": 3.00, "output_price": 12.00,
+    },
+    "gpt-5.5-pro": {
+        "provider": "openai_responses", "input_price": 5.00, "output_price": 20.00,
+    },
+    "o3": {
+        "provider": "openai", "input_price": 2.00, "output_price": 8.00,
+    },
+    "gpt-5.4": {
+        "provider": "openai", "input_price": 2.00, "output_price": 8.00,
+    },
+    "gpt-5.4-mini": {
+        "provider": "openai", "input_price": 0.30, "output_price": 1.20,
+    },
+    "gpt-5.4-nano": {
+        "provider": "openai", "input_price": 0.10, "output_price": 0.40,
+    },
     "gpt-4o": {
         "provider": "openai", "input_price": 2.50, "output_price": 10.00,
     },
@@ -83,6 +106,9 @@ MODELS = {
         "provider": "openai", "input_price": 0.15, "output_price": 0.60,
     },
     # Gemini (direct)
+    "gemini-3.1-pro-preview": {
+        "provider": "gemini", "input_price": 2.50, "output_price": 15.00,
+    },
     "gemini-2.5-pro": {
         "provider": "gemini", "input_price": 1.25, "output_price": 10.00,
     },
@@ -109,6 +135,10 @@ MODELS = {
     "ministral-3b-latest": {
         "provider": "mistral", "input_price": 0.04, "output_price": 0.04,
     },
+    # Mistral coding specialist
+    "devstral-latest": {
+        "provider": "mistral", "input_price": 0.10, "output_price": 0.30,
+    },
     # Moonshot/Kimi (direct via api.moonshot.ai)
     "kimi-k2.6": {
         "provider": "moonshot", "input_price": 0.60, "output_price": 2.40,
@@ -119,6 +149,18 @@ MODELS = {
     },
     "bytedance-seed/seed-1.6-flash": {
         "provider": "openrouter", "input_price": 0.075, "output_price": 0.30,
+    },
+    "bytedance-seed/seed-2.0-mini": {
+        "provider": "openrouter", "input_price": 0.10, "output_price": 0.40,
+    },
+    "qwen/qwen-max": {
+        "provider": "openrouter", "input_price": 1.04, "output_price": 4.16,
+    },
+    "qwen/qwen3.6-plus": {
+        "provider": "openrouter", "input_price": 0.325, "output_price": 1.30,
+    },
+    "qwen/qwen3-coder": {
+        "provider": "openrouter", "input_price": 0.22, "output_price": 0.88,
     },
     "qwen/qwen3.6-flash": {
         "provider": "openrouter", "input_price": 0.25, "output_price": 1.00,
@@ -132,8 +174,42 @@ MODELS = {
     "deepseek/deepseek-v4-flash": {
         "provider": "openrouter", "input_price": 0.14, "output_price": 0.56,
     },
+    "deepseek/deepseek-v4-pro": {
+        "provider": "openrouter", "input_price": 0.435, "output_price": 1.74,
+    },
+    "meta-llama/llama-4-maverick": {
+        "provider": "openrouter", "input_price": 0.15, "output_price": 0.60,
+    },
     "x-ai/grok-4.20": {
-        "provider": "openrouter", "input_price": 2.00, "output_price": 8.00,
+        "provider": "openrouter", "input_price": 1.25, "output_price": 5.00,
+    },
+    "x-ai/grok-4-fast": {
+        "provider": "openrouter", "input_price": 0.20, "output_price": 0.80,
+    },
+    "x-ai/grok-code-fast-1": {
+        "provider": "openrouter", "input_price": 0.20, "output_price": 0.80,
+    },
+    "meta-llama/llama-3.2-1b-instruct": {
+        "provider": "openrouter", "input_price": 0.027, "output_price": 0.027,
+    },
+    "meta-llama/llama-3.2-3b-instruct": {
+        "provider": "openrouter", "input_price": 0.051, "output_price": 0.051,
+    },
+    "qwen/qwen-turbo": {
+        "provider": "openrouter", "input_price": 0.033, "output_price": 0.033,
+    },
+    "qwen/qwen3-8b": {
+        "provider": "openrouter", "input_price": 0.050, "output_price": 0.050,
+    },
+    "google/gemma-4-26b-a4b-it": {
+        "provider": "openrouter", "input_price": 0.060, "output_price": 0.060,
+    },
+    "microsoft/phi-4": {
+        "provider": "openrouter", "input_price": 0.065, "output_price": 0.065,
+    },
+    # NVIDIA Nemotron
+    "nvidia/nemotron-3-super-120b-a12b": {
+        "provider": "openrouter", "input_price": 0.09, "output_price": 0.09,
     },
     # Azure models (re-added when Azure is back)
     "DeepSeek-V3.2": {"provider": "azure", "input_price": 0.30, "output_price": 1.10},
@@ -336,10 +412,45 @@ def call_openai(model, messages, max_tokens):
     import requests as req
     url = "https://api.openai.com/v1/chat/completions"
     headers = {"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}", "Content-Type": "application/json"}
-    body = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0}
+    # GPT-5.x and o-series require max_completion_tokens instead of max_tokens
+    if model.startswith("gpt-5") or model.startswith("o3") or model.startswith("o4"):
+        body = {"model": model, "messages": messages, "max_completion_tokens": max_tokens}
+    else:
+        body = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0}
     try:
         resp = req.post(url, json=body, headers=headers, timeout=120)
         return resp.json()
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def call_openai_responses(model, messages, max_tokens):
+    """Call OpenAI Responses API for models that don't support /chat/completions."""
+    import requests as req
+    url = "https://api.openai.com/v1/responses"
+    headers = {"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}", "Content-Type": "application/json"}
+    # Convert chat messages to a single input string
+    input_text = "\n".join(f"{m['role']}: {m['content']}" for m in messages)
+    body = {"model": model, "input": input_text}
+    try:
+        resp = req.post(url, json=body, headers=headers, timeout=300)
+        data = resp.json()
+        # Extract response text from Responses API format
+        content = ""
+        usage = {"prompt_tokens": 0, "completion_tokens": 0}
+        for item in data.get("output", []):
+            if item.get("type") == "message":
+                for c in item.get("content", []):
+                    if c.get("type") == "output_text":
+                        content += c.get("text", "")
+        if "usage" in data:
+            usage["prompt_tokens"] = data["usage"].get("input_tokens", 0)
+            usage["completion_tokens"] = data["usage"].get("output_tokens", 0)
+        # Normalize to chat completions format
+        return {
+            "choices": [{"message": {"content": content}}],
+            "usage": usage,
+        }
     except Exception as e:
         return {"error": str(e)}
 
@@ -437,6 +548,8 @@ def call_model(model_name, messages, max_tokens):
     mt = effective_max_tokens(model_name, max_tokens)
     if provider == "openai":
         return call_openai(model_name, messages, mt)
+    elif provider == "openai_responses":
+        return call_openai_responses(model_name, messages, mt)
     elif provider == "anthropic":
         return call_anthropic(model_name, messages, mt)
     elif provider == "gemini":
@@ -466,9 +579,9 @@ def compute_cost(model_name, response):
 def judge_response(response_text, original_input, judge_prompt):
     messages = [
         {"role": "system", "content": "You are an evaluation judge. " + judge_prompt},
-        {"role": "user", "content": f"Input: {original_input[:500]}\n\nResponse to evaluate:\n{response_text[:1000]}"},
+        {"role": "user", "content": f"Input: {original_input[:2000]}\n\nResponse to evaluate:\n{response_text[:2000]}"},
     ]
-    result = call_openai("gpt-4o-mini", messages, 5)
+    result = call_openai("gpt-4o-mini", messages, 20)
     if "error" in result:
         return 0
     text = result.get("choices", [{}])[0].get("message", {}).get("content", "0")
@@ -513,6 +626,7 @@ def is_provider_available(provider):
     """Quick check if a provider's API key is configured."""
     key_map = {
         "openai": "OPENAI_API_KEY",
+        "openai_responses": "OPENAI_API_KEY",
         "anthropic": "ANTHROPIC_API_KEY",
         "gemini": "GEMINI_API_KEY",
         "minimax": "MINIMAX_API_KEY",

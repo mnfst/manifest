@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 41,
+  "response": "```python\n# test_hex_to_rgb.py\nimport pytest\n\n# Adjust the import to match your module name\n# from your_module import hex_to_rgb\n\n\ndef hex_to_rgb(h: str) -> tuple:\n    h = h.lstrip('#')\n    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))\n\n\n# ---------- Happy path ----------\n@pytest.mark.parametrize(\n    \"inp, expected\",\n    [\n        (\"#000000\", (0, 0, 0)),\n        (\"ffffff\", (255, 255, 255)),   # no leading '#'\n        (\"#FFFFFF\", (255, 255, 255)), # uppercase\n        (\"#1a2b3c\", (0x1A, 0x2B, 0x3C)),\n        (\"1A2B3C\", (0x1A, 0x2B, 0x3C)),\n        (\"###123456\", (0x12, 0x34, 0x56)),  # lstrip('#') removes all leading '#'\n    ],\n)\ndef test_hex_to_rgb_happy_path(inp, expected):\n    assert hex_to_rgb(inp) == expected\n\n\n# ---------- Edge cases ----------\ndef test_hex_to_rgb_empty_string_raises_value_error():\n    # '' -> chunks are '' for each pair; int('', 16) fails\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"\")\n\ndef test_hex_to_rgb_too_short_raises_value_error():\n    # length < 6 results in one or more '' chunks\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"#12345\")  # last chunk is '' -> ValueError\n\ndef test_hex_to_rgb_non_hex_char_raises_value_error():\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"#12x456\")  # 'x' is not valid in base-16 conversion\n\ndef test_hex_to_rgb_extra_long_string_ignores_after_6():\n    # Implementation reads only positions 0:2, 2:4, 4:6\n    assert hex_to_rgb(\"#123456789\") == (0x12, 0x34, 0x56)\n\n\n# ---------- Error cases ----------\ndef test_hex_to_rgb_none_type_raises_type_error():\n    with pytest.raises(TypeError):\n        hex_to_rgb(None)  # lstrip not supported for None\n\n\ndef test_hex_to_rgb_blank_string_of_hashes_only_raises_value_error():\n    # '###' -> after lstrip('#') becomes '' -> ValueError on int('', 16)\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"###\")\n```",
+  "score": 5,
+  "cost": 0.00023009999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 556
+  }
+}

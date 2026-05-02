@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Mike is 24 years old.\n\nMartha is 4 years younger than Mike:\n\n24 - 4 = 20\n\nSo Martha is 20 years old.\n\nJeff is 10 years older than Martha:\n\n20 + 10 = 30\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.001164,
+  "expected": "30",
+  "tokens": {
+    "input": 84,
+    "output": 76
+  }
+}

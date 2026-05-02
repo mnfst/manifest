@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "SELECT\n  c.name AS conductor_name,\n  o.name AS orchestra_name\nFROM orchestra.conductors c\nJOIN orchestra.conductor_orchestra co\n  ON co.conductor_id = c.id\nJOIN orchestra.orchestras o\n  ON o.id = co.orchestra_id;",
+  "score": 5,
+  "cost": 3.2200000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 61
+  }
+}

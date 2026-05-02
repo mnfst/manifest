@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 10,
+  "response": "```python\nimport pytest\n\nfrom your_module import is_valid_email\n\n\n@pytest.mark.parametrize(\n    \"email\",\n    [\n        \"user@example.com\",\n        \"user.name@example.com\",\n        \"user_name@example.com\",\n        \"user-name@example.com\",\n        \"user+tag@example.com\",\n        \"USER123@example.co\",\n        \"a.b-c_d+e%f@example-domain.com\",\n    ],\n)\ndef test_is_valid_email_valid_addresses(email):\n    assert is_valid_email(email) is True\n\n\n@pytest.mark.parametrize(\n    \"email\",\n    [\n        \"user@example\",            # missing top-level domain\n        \"userexample.com\",         # missing @\n        \"user@.com\",               # missing domain name\n        \"@example.com\",            # missing local part\n        \"user@example.c\",          # TLD too short\n        \"user@exam_ple.com\",       # underscore not allowed in domain\n        \"user@example..com\",       # double dot in domain\n        \"user@@example.com\",       # double @\n        \"user example@example.com\",# space in local part\n        \"user@example.com \",       # trailing space\n        \" user@example.com\",       # leading space\n    ],\n)\ndef test_is_valid_email_invalid_addresses(email):\n    assert is_valid_email(email) is False\n\n\ndef test_is_valid_email_empty_string():\n    assert is_valid_email(\"\") is False\n\n\n@pytest.mark.parametrize(\n    \"email\",\n    [\n        None,\n        123,\n        12.34,\n        [],\n        {},\n        (\"user@example.com\",),\n    ],\n)\ndef test_is_valid_email_non_string_input_raises_type_error(email):\n    with pytest.raises(TypeError):\n        is_valid_email(email)  # type: ignore[arg-type]\n```\n\n### Notes\n- Replace `from your_module import is_valid_email` with the actual import path.\n- These tests cover:\n  - **Happy path**: valid emails\n  - **Edge cases**: empty string, leading/trailing spaces, plus-addressing, subdomains/different domain formats\n  - **Error cases**: non-string inputs, which raise `TypeError` because `re.match(...)` expects a string or bytes-like object",
+  "score": 5,
+  "cost": 0.0005778000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 458
+  }
+}

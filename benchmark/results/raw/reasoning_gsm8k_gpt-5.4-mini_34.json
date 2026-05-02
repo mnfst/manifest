@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Step 1: Cost of tickets  \nThey spent **$20.25** on 3 tickets.\n\nStep 2: Cost of food  \nFood cost **$4.50 less** than the tickets, so:\n\n$20.25 - $4.50 = $15.75$\n\nStep 3: Cost of rides  \nThey went on **2 rides**, and each ride cost **$33**:\n\n$2 \\times 33 = 66$\n\nStep 4: Total cost  \nAdd everything up:\n\n$20.25 + 15.75 + 66 = 102.00$\n\nStep 5: Split evenly among 3 friends  \n$102.00 \\div 3 = 34.00$\n\nEach friend paid **$34**.\n\nANSWER: 34",
+  "score": 4,
+  "cost": 0.0002328,
+  "expected": "34",
+  "tokens": {
+    "input": 104,
+    "output": 168
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "Brian's dehumidifier removes water at different rates depending on the setting:  \n- **Low setting**: 1 liter/day  \n- **Medium setting**: 2 liters/day (twice the low setting)  \n- **High setting**: 4 liters/day (twice the medium setting)  \n\n**Total water removed** is calculated by multiplying the daily removal rate by the number of days for each setting and summing the results:  \n- **Low setting**: $1 \\, \\text{liter/day} \\times 3 \\, \\text{days} = 3 \\, \\text{liters}$  \n- **Medium setting**: $2 \\, \\text{liters/day} \\times 3 \\, \\text{days} = 6 \\, \\text{liters}$  \n- **High setting**: $4 \\, \\text{liters/day} \\times 5 \\, \\text{days} = 20 \\, \\text{liters}$  \n\nAdding these together:  \n$$\n3 + 6 + 20 = 29 \\, \\text{liters}\n$$\n\n**Answer:** 29  \nANSWER: 29",
+  "score": 5,
+  "cost": 6.295e-05,
+  "expected": "29",
+  "tokens": {
+    "input": 206,
+    "output": 1053
+  }
+}

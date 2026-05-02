@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 23,
+  "response": "Here's a set of **pytest-style unit tests** for the `matrix_transpose` function. The tests cover:\n\n- **Happy path**: a normal 2x2 matrix.\n- **Edge cases**: a single-element matrix, a 1xN matrix, and an N\u00d71 matrix.\n- **Error cases**: invalid input (non-list, empty list, and inconsistent row lengths).\n\n### `test_matrix_transpose.py`\n\n```python\nimport pytest\n\ndef matrix_transpose(matrix: list) -> list:\n    if not matrix:\n        return []\n    return [[row[i] for row in matrix] for i in range(len(matrix[0]))]\n\ndef test_matrix_transpose_happy_path():\n    matrix = [[1, 2], [3, 4]]\n    expected = [[1, 3], [2, 4]]\n    assert matrix_transpose(matrix) == expected\n\ndef test_matrix_transpose_single_element():\n    matrix = [[5]]\n    expected = [[5]]\n    assert matrix_transpose(matrix) == expected\n\ndef test_matrix_transpose_1xN():\n    matrix = [[1, 2, 3]]\n    expected = [[1], [2], [3]]\n    assert matrix_transpose(matrix) == expected\n\ndef test_matrix_transpose_Nx1():\n    matrix = [[1], [2], [3]]\n    expected = [[1, 2, 3]]\n    assert matrix_transpose(matrix) == expected\n\ndef test_matrix_transpose_empty():\n    matrix = []\n    expected = []\n    assert matrix_transpose(matrix) == expected\n\ndef test_matrix_transpose_inconsistent_rows():\n    matrix = [[1, 2], [3]]\n    with pytest.raises(IndexError):\n        matrix_transpose(matrix)\n\ndef test_matrix_transpose_non_list_input():\n    with pytest.raises(TypeError):\n        matrix_transpose(\"not a list\")\n\ndef test_matrix_transpose_non_rectangular_matrix():\n    matrix = [[1, 2], [3, 4, 5]]\n    with pytest.raises(IndexError):\n        matrix_transpose(matrix)\n```\n\n### How to Run\n\nTo run the tests, save the code in a file named `test_matrix_transpose.py` and run:\n\n```bash\npytest test_matrix_transpose.py\n```\n\n### Notes\n\n- The original `matrix_transpose` function uses a list comprehension that assumes all rows are of the same length.\n- The `IndexError` is raised when trying to access `row[i]` for a row that is too short.\n- The `TypeError` is raised when the input is not a list.\n\nLet me know if you want to add support for more advanced types (e.g., NumPy arrays).",
+  "score": 5,
+  "cost": 2.0823e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 552
+  }
+}

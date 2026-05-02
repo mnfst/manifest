@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 29,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"extract_tables\", \"arguments\": {\"path\": \"uploads/contract.pdf\"}}\n```\n\nThis function call tells the system to extract tables from the scanned document located at the path \"uploads/contract.pdf\".",
+  "score": 2,
+  "cost": 7.4459999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 57
+  }
+}

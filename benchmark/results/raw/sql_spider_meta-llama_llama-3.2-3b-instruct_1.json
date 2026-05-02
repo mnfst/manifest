@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "```sql\nSELECT AVG(mpg) \nFROM car_1 \nWHERE cyl = 4;\n```",
+  "score": 5,
+  "cost": 5.202e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 22
+  }
+}

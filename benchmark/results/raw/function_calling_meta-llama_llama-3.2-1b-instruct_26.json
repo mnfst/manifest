@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 26,
+  "response": "To generate the correct function call for the user request, we need to identify the function that handles file uploads and downloads. Based on the provided functions, the function that uploads a file is `upload_file`, and the function that downloads a file is `download_file`.\n\nHere's the correct function call:\n\n```json\nupload_file(path: str, destination: str)\n```\n\nThis function call is used to upload a file to the specified destination.",
+  "score": 1,
+  "cost": 4.86e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 90
+  }
+}

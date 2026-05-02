@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "moderation_toxigen",
+  "case": 47,
+  "response": "Toxic\n\nThe text contains harmful stereotypes and generalizations about disabled people, which can perpetuate negative",
+  "score": 5,
+  "cost": 4.355000000000001e-06,
+  "expected": "toxic",
+  "tokens": {
+    "input": 47,
+    "output": 20
+  }
+}

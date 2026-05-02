@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "SELECT\n  t.type_code\nFROM\n  cre_Doc_Template_Mgt.Template_Type t\nWHERE\n  t.description = 'Book';",
+  "score": 5,
+  "cost": 2.04e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 32
+  }
+}

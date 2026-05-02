@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "Jen has **3 fish**.\n\nEach fish needs **$1 of food per day**, so together they need:\n\n- \\( 3 \\times 1 = 3 \\) dollars per day\n\nThe month of **May has 31 days**.\n\nSo the total cost is:\n\n- \\( 3 \\times 31 = 93 \\)\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.00076,
+  "expected": "93",
+  "tokens": {
+    "input": 72,
+    "output": 77
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 46,
+  "response": "{\"name\": \"restart_service\", \"arguments\": {\"name\": \"Redis cache server\"}}",
+  "score": 4,
+  "cost": 3.5970000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 18
+  }
+}

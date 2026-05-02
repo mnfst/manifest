@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "To solve this problem, we need to find the total number of children in the drill.\n\nStep 1: First, we need to find the total number of rows of children. Since there are 7 rows of children, and each row has 8 children, we multiply the number of rows by the number of children in each row.\n\n7 rows * 8 children/row = 56 children\n\nStep 2: Next, we need to find the total number of children in the drill. Since there are 5 different schools, and each school has 8 children, we multiply the number of schools by the number of children in each school.\n\n5 schools * 8 children/school = 40 children\n\nStep 3: Now, we add the total number of children in the drill to the number of children in the rows to find the total number of children.\n\n56 children + 40 children = 96 children\n\nANSWER: 96",
+  "score": 2,
+  "cost": 7.911000000000001e-06,
+  "expected": "280",
+  "tokens": {
+    "input": 100,
+    "output": 193
+  }
+}

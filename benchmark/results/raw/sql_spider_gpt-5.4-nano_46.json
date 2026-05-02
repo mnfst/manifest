@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "SELECT\n  c.GovernmentForm,\n  SUM(c.Population) AS TotalPopulation\nFROM country c\nWHERE c.LifeExpectancy > 72\nGROUP BY c.GovernmentForm;",
+  "score": 3,
+  "cost": 2.6300000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 44
+  }
+}

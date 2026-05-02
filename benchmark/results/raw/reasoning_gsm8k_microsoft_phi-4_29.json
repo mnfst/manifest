@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "To solve this problem, we need to determine the number of yellow cars based on the given information about the other cars.\n\n1. **Identify the number of red cars:**\n   - The rink has 12 red cars.\n\n2. **Determine the number of green cars:**\n   - The number of green cars is 2 fewer than the number of red cars.\n   - Number of green cars = 12 (red cars) - 2 = 10 green cars.\n\n3. **Determine the number of blue cars:**\n   - The number of blue cars is 3 times the number of green cars.\n   - Number of blue cars = 3 \u00d7 10 = 30 blue cars.\n\n4. **Calculate the total number of red, green, and blue cars:**\n   - Total number of red, green, and blue cars = 12 (red) + 10 (green) + 30 (blue) = 52 cars.\n\n5. **Determine the number of yellow cars:**\n   - The total number of cars in the rink is 75.\n   - Number of yellow cars = Total cars - (Red + Green + Blue cars)\n   - Number of yellow cars = 75 - 52 = 23 yellow cars.\n\nTherefore, the number of yellow cars is:\n\nANSWER: 23",
+  "score": 5,
+  "cost": 2.5285000000000003e-05,
+  "expected": "23",
+  "tokens": {
+    "input": 113,
+    "output": 276
+  }
+}

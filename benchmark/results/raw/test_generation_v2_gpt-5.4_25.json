@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 25,
+  "response": "```python\nimport pytest\n\nfrom your_module import deduplicate_sorted\n\n\nclass TestDeduplicateSorted:\n    def test_empty_list_returns_empty_list(self):\n        assert deduplicate_sorted([]) == []\n\n    def test_single_element_list(self):\n        assert deduplicate_sorted([42]) == [42]\n\n    def test_no_duplicates(self):\n        assert deduplicate_sorted([1, 2, 3, 4]) == [1, 2, 3, 4]\n\n    def test_consecutive_duplicates_removed(self):\n        assert deduplicate_sorted([1, 1, 2, 2, 2, 3, 3, 4]) == [1, 2, 3, 4]\n\n    def test_all_elements_same(self):\n        assert deduplicate_sorted([5, 5, 5, 5]) == [5]\n\n    def test_strings(self):\n        assert deduplicate_sorted([\"a\", \"a\", \"b\", \"b\", \"c\"]) == [\"a\", \"b\", \"c\"]\n\n    def test_mixed_consecutive_duplicates(self):\n        assert deduplicate_sorted([1, 1, 2, 3, 3, 4, 4, 5]) == [1, 2, 3, 4, 5]\n\n    def test_non_consecutive_duplicates_are_not_removed(self):\n        # Function only removes adjacent duplicates, assuming sorted input\n        assert deduplicate_sorted([1, 2, 1, 3]) == [1, 2, 1, 3]\n\n    def test_none_values(self):\n        assert deduplicate_sorted([None, None, 1, 1, 2]) == [None, 1, 2]\n\n    def test_returns_new_list(self):\n        original = [1, 1, 2, 2]\n        result = deduplicate_sorted(original)\n        assert result == [1, 2]\n        assert result is not original\n\n    @pytest.mark.parametrize(\n        \"input_list,expected\",\n        [\n            ([0, 0, 0, 1], [0, 1]),\n            ([-3, -3, -2, -2, -1], [-3, -2, -1]),\n            ([True, True, False], [True, False]),\n            ([\"x\"], [\"x\"]),\n        ],\n    )\n    def test_various_inputs(self, input_list, expected):\n        assert deduplicate_sorted(input_list) == expected\n\n    def test_none_input_returns_empty_list(self):\n        assert deduplicate_sorted(None) == []\n```\n\nNote: replace `from your_module import deduplicate_sorted` with the actual module name.\n\nOne important note: with the current implementation, `None` does not raise an error because `if not lst:` treats it like an empty input and returns `[]`. If you want stricter type-checking behavior, the function would need to be changed.",
+  "score": 5,
+  "cost": 0.005036,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 608
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "Due to PCI compliance issues with the payment integration, the product launch requires a two-week delay. Please attend a meeting tomorrow at 10 AM to decide whether to delay the full launch to May 15 or launch without payments using updated terms and conditions.",
+  "score": 5,
+  "cost": 0.00104,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 53
+  }
+}

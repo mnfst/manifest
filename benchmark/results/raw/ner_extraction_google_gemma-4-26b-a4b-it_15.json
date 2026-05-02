@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"SpaceX\"\n  ],\n  \"locations\": [\n    \"Cape Canaveral\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 7.68e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 47
+  }
+}

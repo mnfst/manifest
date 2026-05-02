@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "SELECT AVG(rank) FROM winners;",
+  "score": 3,
+  "cost": 2.772e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 7
+  }
+}

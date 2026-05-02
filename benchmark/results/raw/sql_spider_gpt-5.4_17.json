@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "SELECT s.name\nFROM stadium AS s\nWHERE s.stadium_id NOT IN (\n  SELECT DISTINCT c.stadium_id\n  FROM concert AS c\n  WHERE EXTRACT(YEAR FROM c.concert_date) = 2014\n);",
+  "score": 5,
+  "cost": 0.000572,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 52
+  }
+}

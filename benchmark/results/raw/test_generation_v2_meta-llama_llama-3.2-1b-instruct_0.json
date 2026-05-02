@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "Here are some unit tests for the `add` function using pytest:\n```python\nimport pytest\n\ndef test_add_happy_path():\n    # Test with positive numbers\n    assert add(2, 3) == 5\n    assert add(5, 7) == 12\n    assert add(10, 15) == 25\n\ndef test_add_edge_case():\n    # Test with negative numbers\n    assert add(-2, 3) == -1\n    assert add(-5, -7) == -12\n    assert add(-10, -15) == -25\n\ndef test_add_edge_case_negative():\n    # Test with zero\n    assert add(0, 0) == 0\n    assert add(-0, -0) == 0\n    assert add(0, -0) == 0\n\ndef test_add_edge_case_zero():\n    # Test with zero as both numbers\n    assert add(0, 0) == 0\n    assert add(0, 0) == 0\n    assert add(0, 0) == 0\n\ndef test_add_negative_numbers():\n    # Test with negative numbers\n    assert add(-2, -3) == -5\n    assert add(-5, -7) == -12\n    assert add(-10, -15) == -25\n\ndef test_add_large_numbers():\n    # Test with large numbers\n    assert add(1000000, 2000000) == 3000000\n    assert add(1000000, 2000000) == 3000000\n    assert add(1000000, 2000000) == 3000000\n\ndef test_add_edge_case_large_numbers():\n    # Test with very large numbers\n    with pytest.raises(OverflowError):\n        add(1000000, 2000000)\n    with pytest.raises(OverflowError):\n        add(1000000, 2000000000)\n    with pytest.raises(OverflowError):\n        add(1000000, 2000000000000)\n```\nNote that I've also added some additional tests to cover the edge cases, such as negative numbers, zero, and very large numbers. I've also used the `pytest.raises` context manager to test for `OverflowError` exceptions.",
+  "score": 3,
+  "cost": 1.458e-05,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 483
+  }
+}

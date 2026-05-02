@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "French: Des d\u00e9versoirs capables de g\u00e9rer les crues postul\u00e9es sont int\u00e9gr\u00e9s soit aux structures du barrage, soit construits comme des structures s\u00e9par\u00e9es.",
+  "score": 4,
+  "cost": 5.789999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 36
+  }
+}

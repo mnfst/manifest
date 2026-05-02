@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "## Step-by-step Solution\n\n**Total burritos ordered:** 600\n\n**Burritos eaten by students:**\n- 50 students \u00d7 10 burritos each = 500 burritos\n\n**Burritos eaten by Mr. George:** 20 burritos\n\n**Total burritos consumed:**\n- 500 + 20 = 520 burritos\n\n**Leftover burritos:**\n- 600 - 520 = 80 burritos\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.002208,
+  "expected": "80",
+  "tokens": {
+    "input": 116,
+    "output": 124
+  }
+}

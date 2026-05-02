@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "An open source dependency audit of 234 packages revealed two issues: an AGPL-licensed charting library incompatible with the SaaS model and one unlicensed package. Both must be resolved before the next release, with Chart.js recommended as an Apache-licensed alternative for the charting library.",
+  "score": 5,
+  "cost": 0.001404,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 69
+  }
+}

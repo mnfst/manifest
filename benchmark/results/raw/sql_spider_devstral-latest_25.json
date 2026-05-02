@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "```sql\nSELECT title\nFROM shows\nWHERE genre = 'cartoon'\nAND director = 'Ben Jones';\n```",
+  "score": 5,
+  "cost": 1.39e-05,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 25
+  }
+}

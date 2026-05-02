@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "## Solution\n\nLet Harald's sales = h copies\nLet Marilyn's sales = 10h copies\n\nCombined sales equation:\nh + 10h = 88,000\n\n11h = 88,000\n\nh = 88,000 \u00f7 11\n\nh = 8,000\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.001398,
+  "expected": "8000",
+  "tokens": {
+    "input": 81,
+    "output": 77
+  }
+}

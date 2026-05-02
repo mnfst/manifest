@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Let's break down the problem step by step to find out how much each friend paid.\n\n1. **Cost of Tickets:**\n   - They spent $20.25 on 3 tickets.\n   - **Total cost for tickets:** $20.25\n\n2. **Cost of Food:**\n   - They spent $4.50 less on food than on the tickets.\n   - **Total cost for food:** $20.25 - $4.50 = $15.75\n\n3. **Cost of Rides:**\n   - They went on 2 different rides, each costing $33.\n   - **Total cost for rides:** 2 \u00d7 $33 = $66\n\n4. **Total Cost:**\n   - **Total cost for tickets, food, and rides:** $20.25 + $15.75 + $66 = $102\n\n5. **Cost per Friend:**\n   - They agreed to split all the costs evenly among the 3 friends.\n   - **Cost per friend:** $102 \u00f7 3 = $34\n\n**Final Answer:**\nANSWER: 34",
+  "score": 5,
+  "cost": 8.55e-05,
+  "expected": "34",
+  "tokens": {
+    "input": 108,
+    "output": 249
+  }
+}

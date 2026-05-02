@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "To solve this problem, we need to find the number of crabs each person has and then add them together.\n\nFirst, we know that Bo has 40 crabs.\n\nSince Monic has 4 fewer crabs than Bo, we can find the number of crabs Monic has by subtracting 4 from Bo's total:\nMonic's crabs = Bo's crabs - 4\nMonic's crabs = 40 - 4\nMonic's crabs = 36\n\nNext, we know that Rani has 10 more crabs than Monic. We can find the number of crabs Rani has by adding 10 to Monic's total:\nRani's crabs = Monic's crabs + 10\nRani's crabs = 36 + 10\nRani's crabs = 46\n\nNow that we know the number of crabs each person has, we can add them together to find the total:\nTotal crabs = Bo's crabs + Monic's crabs + Rani's crabs\nTotal crabs = 40 + 36 + 46\nTotal crabs = 122\n\nANSWER: 122",
+  "score": 5,
+  "cost": 1.7085e-05,
+  "expected": "122",
+  "tokens": {
+    "input": 88,
+    "output": 247
+  }
+}

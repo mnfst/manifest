@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "To solve this problem, we need to determine how far Tom travels from 1 PM to 4 PM and then calculate how long it takes him to return at a different speed.\n\n1. **Calculate the distance traveled from 1 PM to 4 PM:**\n\n   - Tom's ship travels at 10 miles per hour.\n   - He sails from 1 PM to 4 PM, which is a duration of 3 hours.\n\n   \\[\n   \\text{Distance} = \\text{Speed} \\times \\text{Time} = 10 \\, \\text{miles per hour} \\times 3 \\, \\text{hours} = 30 \\, \\text{miles}\n   \\]\n\n2. **Calculate the time taken to travel back at 6 miles per hour:**\n\n   - Tom needs to travel back the same distance of 30 miles.\n   - His return speed is 6 miles per hour.\n\n   \\[\n   \\text{Time} = \\frac{\\text{Distance}}{\\text{Speed}} = \\frac{30 \\, \\text{miles}}{6 \\, \\text{miles per hour}} = 5 \\, \\text{hours}\n   \\]\n\nTherefore, it takes Tom 5 hours to travel back at a rate of 6 miles per hour.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 2.431e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 94,
+    "output": 280
+  }
+}

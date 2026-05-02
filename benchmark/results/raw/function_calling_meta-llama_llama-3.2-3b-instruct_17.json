@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 17,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"generate_qr\", \"arguments\": {\"data\": \"https://example.com/signup\", \"size\": 256}}\n```\n\nThis function call tells the `generate_qr` function to generate a QR code for the URL \"https://example.com/signup\" with a size of 256.",
+  "score": 5,
+  "cost": 8.924999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 75
+  }
+}

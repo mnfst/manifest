@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "extraction_hard_v2",
+  "case": 49,
+  "response": "```json\n{\n  \"restaurant\": \"Chez Marcel\",\n  \"reviewer\": \"foodie_jane\",\n  \"date\": \"March 2024\",\n  \"wait_time_min\": 40,\n  \"dishes\": [\n    {\n      \"name\": \"duck confit\",\n      \"rating\": \"incredible\"\n    },\n    {\n      \"name\": \"creme brulee\",\n      \"rating\": \"just ok, slightly overcooked\"\n    }\n  ],\n  \"wine\": {\n    \"name\": \"2019 Chateau Margaux\",\n    \"year\": 2019\n  },\n  \"bill_total\": 247,\n  \"party_size\": 2,\n  \"ratings\": {\n    \"food\": 4.5,\n    \"service\": 3.5,\n    \"ambiance\": 4,\n    \"value\": 3,\n    \"overall\": 3.75\n  },\n  \"would_return\": true\n}\n```",
+  "score": 4,
+  "cost": 3.1525e-05,
+  "expected": "",
+  "tokens": {
+    "input": 284,
+    "output": 201
+  }
+}

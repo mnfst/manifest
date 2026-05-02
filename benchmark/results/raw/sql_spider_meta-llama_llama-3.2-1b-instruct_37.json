@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT s.name, s.release_year\nFROM concert_singer s\nORDER BY s.age ASC;\n```",
+  "score": 2,
+  "cost": 2.8079999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 25
+  }
+}

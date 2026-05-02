@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The company is relocating to a new office at 500 Market Street, with the official move scheduled for the weekend of June 7-8. To prepare for this transition, each team must designate a move coordinator by this Friday.",
+  "score": 4,
+  "cost": 0.00094,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 48
+  }
+}

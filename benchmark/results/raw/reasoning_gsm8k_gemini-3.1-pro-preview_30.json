@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "To find out how many points the class is missing, we first need to calculate the number of points each student has collected.\n\n1. **Adam's points:** \nAdam has collected 50 points.\n\n2. **Betty's points:** \nBetty collected 30% more points than Adam. \nFirst, we find what 30% of Adam's points is: \n30% of 50 = 0.30 * 50 = 15 points.\nNow, we add this to Adam's total to find Betty's points: \n50 + 15 = 65 points.\n\n3. **Tom's points:** \nTom has 30 points less than Betty. \n65 - 30 = 35 points.\n\n4. **Marta's points:** \nMarta collected 3 times as many points as Tom. \n3 * 35 = 105 points.\n\nNow, we find the total number of points collected by all four students:\nTotal points = Adam's points + Betty's points + Tom's points + Marta's points\nTotal points = 50 + 65 + 35 + 105 = 255 points.\n\nThe minimum threshold to go on the trip is 400 points. To find out how many points they are missing, we subtract their total points from the threshold:\nMissing points = 400 - 255 = 145 points.\n\nANSWER: 145",
+  "score": 4,
+  "cost": 0.005495,
+  "expected": "145",
+  "tokens": {
+    "input": 146,
+    "output": 342
+  }
+}

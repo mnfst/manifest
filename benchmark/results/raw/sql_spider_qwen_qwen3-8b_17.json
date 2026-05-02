@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "SELECT DISTINCT s.name\nFROM stadiums s\nLEFT JOIN concerts c ON s.id = c.stadium_id AND YEAR(c.date) = 2014\nWHERE c.id IS NULL;",
+  "score": 5,
+  "cost": 2.125e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 344
+  }
+}

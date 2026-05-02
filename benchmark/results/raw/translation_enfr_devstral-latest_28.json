@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Here\u2019s the translation that maintains the tone and meaning of the original English text:\n\n**French:**\n*\"Nous sommes capables... de d\u00e9ployer une puissance de feu... plus grande que tout ce qui a jamais \u00e9t\u00e9 lib\u00e9r\u00e9 dans l'histoire de la guerre.\"*\n\nThis version keeps the dramatic and assertive tone while accurately conveying the original meaning.",
+  "score": 5,
+  "cost": 2.4100000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 66
+  }
+}

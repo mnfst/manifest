@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 4,
+  "response": "Summary: Maria Chen from DataSync is proposing a revenue-sharing partnership where they handle data synchronization infrastructure and the other party integrates their SDK, potentially increasing annual revenue by $2 million. She is available for a technical discussion next week.",
+  "score": 5,
+  "cost": 4.719e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 46
+  }
+}

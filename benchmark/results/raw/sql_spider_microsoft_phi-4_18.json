@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT DISTINCT c.country\nFROM concert_singer c\nJOIN (\n    SELECT country\n    FROM concert_singer\n    WHERE age > 40\n) older_singers ON c.country = older_singers.country\nJOIN (\n    SELECT country\n    FROM concert_singer\n    WHERE age < 30\n) younger_singers ON c.country = younger_singers.country;\n```",
+  "score": 3,
+  "cost": 1.0789999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 80
+  }
+}

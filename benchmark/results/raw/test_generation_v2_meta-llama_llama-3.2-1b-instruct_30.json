@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "Here are some unit tests for the `snake_to_camel` function using pytest style:\n\n```python\nimport pytest\n\ndef test_snake_to_camel_happy_path():\n    assert snake_to_camel(\"hello_world\") == \"HelloWorld\"\n    assert snake_to_camel(\"hello_world_class\") == \"HelloWorldClass\"\n\ndef test_snake_to_camel_edge_case():\n    assert snake_to_camel(\"hello_world\") == \"HelloWorld\"\n    assert snake_to_camel(\"hello_world_class\") == \"HelloWorldClass\"\n    assert snake_to_camel(\"hello_world_\") == \"HelloWorld\"\n\ndef test_snake_to_camel_empty_string():\n    assert snake_to_camel(\"\") == \"\"\n    assert snake_to_camel(\"   \") == \"   \"\n\ndef test_snake_to_camel_single_word():\n    assert snake_to_camel(\"hello\") == \"Hello\"\n    assert snake_to_camel(\"hello_world\") == \"HelloWorld\"\n\ndef test_snake_to_camel_multiple_words():\n    assert snake_to_camel(\"hello_world_class\") == \"HelloWorldClass\"\n    assert snake_to_camel(\"hello_world_\") == \"HelloWorld\"\n\ndef test_snake_to_camel_non_string_input():\n    with pytest.raises(TypeError):\n        snake_to_camel(123)\n    with pytest.raises(TypeError):\n        snake_to_camel(None)\n    with pytest.raises(TypeError):\n        snake_to_camel([1, 2, 3])\n```\n\nThese tests cover the following cases:\n\n* Happy path: Test that the function works correctly for strings with multiple words and underscores.\n* Edge cases: Test that the function handles empty strings, single words, and strings with no underscores.\n* Error cases: Test that the function raises a TypeError when given non-string inputs.",
+  "score": 4,
+  "cost": 1.1825999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 362
+  }
+}

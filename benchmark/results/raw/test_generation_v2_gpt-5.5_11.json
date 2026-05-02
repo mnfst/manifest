@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 11,
+  "response": "```python\n# test_merge_sorted.py\n\nimport pytest\n\nfrom your_module import merge_sorted  # replace with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"a,b,expected\",\n    [\n        ([], [], []),\n        ([], [1, 2, 3], [1, 2, 3]),\n        ([1, 2, 3], [], [1, 2, 3]),\n        ([1, 3, 5], [2, 4, 6], [1, 2, 3, 4, 5, 6]),\n        ([1, 2, 3], [4, 5, 6], [1, 2, 3, 4, 5, 6]),\n        ([4, 5, 6], [1, 2, 3], [1, 2, 3, 4, 5, 6]),\n        ([1, 1, 3], [1, 2, 2], [1, 1, 1, 2, 2, 3]),\n        ([-5, -1, 3], [-4, 0, 2], [-5, -4, -1, 0, 2, 3]),\n        ([1.5, 3.5], [2.5, 4.5], [1.5, 2.5, 3.5, 4.5]),\n    ],\n)\ndef test_merge_sorted_happy_paths(a, b, expected):\n    assert merge_sorted(a, b) == expected\n\n\ndef test_merge_sorted_does_not_modify_inputs():\n    a = [1, 3, 5]\n    b = [2, 4, 6]\n\n    original_a = a.copy()\n    original_b = b.copy()\n\n    result = merge_sorted(a, b)\n\n    assert result == [1, 2, 3, 4, 5, 6]\n    assert a == original_a\n    assert b == original_b\n\n\ndef test_merge_sorted_returns_new_list():\n    a = [1, 2]\n    b = [3, 4]\n\n    result = merge_sorted(a, b)\n\n    assert result == [1, 2, 3, 4]\n    assert result is not a\n    assert result is not b\n\n\ndef test_merge_sorted_with_duplicate_values_preserves_all_items():\n    a = [1, 1, 2]\n    b = [1, 2, 2]\n\n    result = merge_sorted(a, b)\n\n    assert result == [1, 1, 1, 2, 2, 2]\n    assert len(result) == len(a) + len(b)\n\n\ndef test_merge_sorted_prefers_left_list_when_values_are_equal():\n    class Item:\n        def __init__(self, value, label):\n            self.value = value\n            self.label = label\n\n        def __le__(self, other):\n            return self.value <= other.value\n\n    a1 = Item(1, \"a1\")\n    a2 = Item(2, \"a2\")\n    b1 = Item(1, \"b1\")\n    b2 = Item(2, \"b2\")\n\n    result = merge_sorted([a1, a2], [b1, b2])\n\n    assert [item.label for item in result] == [\"a1\", \"b1\", \"a2\", \"b2\"]\n\n\n@pytest.mark.parametrize(\n    \"a,b\",\n    [\n        (None, []),\n        ([], None),\n        (1, [1, 2, 3]),\n        ([1, 2, 3], 1),\n    ],\n)\ndef test_merge_sorted_raises_type_error_for_non_sequence_inputs(a, b):\n    with pytest.raises(TypeError):\n        merge_sorted(a, b)\n\n\ndef test_merge_sorted_raises_type_error_for_incomparable_values():\n    with pytest.raises(TypeError):\n        merge_sorted([1], [\"a\"])\n```",
+  "score": 4,
+  "cost": 0.022728,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 1863
+  }
+}

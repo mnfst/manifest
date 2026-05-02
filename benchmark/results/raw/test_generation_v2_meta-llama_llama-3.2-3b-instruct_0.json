@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "Here's an example of how you can write unit tests for the `add` function using pytest:\n\n```python\nimport pytest\n\ndef test_add_happy_path():\n    \"\"\"Test the happy path of the add function\"\"\"\n    assert add(2, 3) == 5\n\ndef test_add_negative_numbers():\n    \"\"\"Test adding two negative numbers\"\"\"\n    assert add(-2, -3) == -5\n\ndef test_add_positive_and_negative():\n    \"\"\"Test adding a positive and a negative number\"\"\"\n    assert add(2, -3) == -1\n\ndef test_add_zero():\n    \"\"\"Test adding zero to any number\"\"\"\n    assert add(0, 5) == 5\n    assert add(5, 0) == 5\n\ndef test_add_non_integer():\n    \"\"\"Test adding non-integer values\"\"\"\n    with pytest.raises(TypeError):\n        add(2.5, 3)\n\ndef test_add_non_numeric():\n    \"\"\"Test adding non-numeric values\"\"\"\n    with pytest.raises(TypeError):\n        add('a', 3)\n    with pytest.raises(TypeError):\n        add(3, 'b')\n```\n\nIn this example, we're testing the following scenarios:\n\n*   Happy path: Adding two positive numbers\n*   Adding two negative numbers\n*   Adding a positive and a negative number\n*   Adding zero to a number\n*   Adding non-integer values\n*   Adding non-numeric values\n\nWe're using the `assert` statement to verify that the function returns the expected result. If the function is working correctly, all these tests should pass. If any of these tests fail, it indicates a bug in the `add` function.",
+  "score": 5,
+  "cost": 2.0399999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 343
+  }
+}

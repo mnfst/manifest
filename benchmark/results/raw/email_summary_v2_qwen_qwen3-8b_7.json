@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The office will move to 500 Market St by June 1, with a moving weekend scheduled for June 7\u20138 and IT setup required from June 4\u20136. Teams must designate a move coordinator by Friday, and the budget for professional movers has been approved.",
+  "score": 5,
+  "cost": 2.22e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 350
+  }
+}

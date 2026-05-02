@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "```python\n# test_reverse_words.py\nimport pytest\n\nfrom your_module import reverse_words  # replace with the actual import path\n\n\n@pytest.mark.parametrize(\n    \"s, expected\",\n    [\n        (\"\", \"\"),  # happy-ish: empty string\n        (\"hello\", \"hello\"),  # single word\n        (\"hello world\", \"world hello\"),  # two words\n        (\"the quick brown fox\", \"fox brown quick the\"),  # multiple words\n        (\"  hello   world  \", \"world hello\"),  # leading/trailing/multiple spaces\n        (\"a   b c    d\", \"d c b a\"),  # mixed spacing\n        (\"\\n\\t  hello \\n world \\t\", \"world hello\"),  # any whitespace is treated as separator\n    ],\n)\ndef test_reverse_words_happy_paths(s, expected):\n    assert reverse_words(s) == expected\n\n\ndef test_reverse_words_collapses_internal_whitespace():\n    # Edge case: multiple whitespace between words should be collapsed\n    assert reverse_words(\"a     b\") == \"b a\"\n\n\ndef test_reverse_words_only_whitespace():\n    # Edge case: string with only whitespace produces no words => empty output\n    assert reverse_words(\"     \") == \"\"\n    assert reverse_words(\"\\n\\t  \") == \"\"\n\n\n@pytest.mark.parametrize(\"s\", [None, 123, 1.5, [\"a\", \"b\"], {\"a\": \"b\"}])\ndef test_reverse_words_type_errors(s):\n    # Error case: function expects str; non-str should raise an exception\n    with pytest.raises(TypeError):\n        reverse_words(s)\n```",
+  "score": 5,
+  "cost": 0.0001398,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 336
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT country_name, COUNT(language) AS number_of_languages\nFROM country\nJOIN countrylanguage ON country.code = countrylanguage.countrycode\nGROUP BY country_name\nHAVING COUNT(language) > 2;\n```",
+  "score": 4,
+  "cost": 8.385000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 46
+  }
+}

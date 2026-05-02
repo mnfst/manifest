@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "intent_clinc150",
+  "case": 14,
+  "response": "date",
+  "score": 5,
+  "cost": 2.6450000000000003e-05,
+  "expected": "date",
+  "tokens": {
+    "input": 503,
+    "output": 26
+  }
+}

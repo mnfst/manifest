@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 33,
+  "response": "```json\n{\n  \"name\": \"git_create_branch\",\n  \"arguments\": {\n    \"name\": \"feature-payments\",\n    \"from_branch\": \"main\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 9.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 40
+  }
+}

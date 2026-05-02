@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "```json\n{\n  \"persons\": [\n    \"Warren Buffett\"\n  ],\n  \"organizations\": [\n    \"Bank of America\",\n    \"SEC\"\n  ],\n  \"locations\": []\n}\n```",
+  "score": 5,
+  "cost": 7.74e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 51
+  }
+}

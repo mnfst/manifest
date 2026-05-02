@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "French: Je dirais que c'est de faible valeur, au mieux.",
+  "score": 5,
+  "cost": 0.000453,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 22
+  }
+}

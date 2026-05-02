@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "```json\n{\n  \"persons\": [\n    \"Justin Trudeau\"\n  ],\n  \"organizations\": [\n    \"General Assembly\",\n    \"United Nations\"\n  ],\n  \"locations\": [\n    \"New York\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 8.279999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 60
+  }
+}

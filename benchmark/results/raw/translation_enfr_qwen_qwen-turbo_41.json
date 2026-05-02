@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "Tu n'es pas dans la DGA. Simplement zoome et tais-toi.",
+  "score": 4,
+  "cost": 2.1779999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 19
+  }
+}

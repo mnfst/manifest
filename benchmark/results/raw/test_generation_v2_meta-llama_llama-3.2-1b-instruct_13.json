@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "Here are some unit tests for the `fizzbuzz` function using pytest style:\n\n```python\nimport pytest\n\ndef test_fizzbuzz_happy_path():\n    assert fizzbuzz(15) == 'FizzBuzz'\n    assert fizzbuzz(20) == 'FizzBuzz'\n    assert fizzbuzz(25) == 'Fizz'\n    assert fizzbuzz(30) == 'Buzz'\n    assert fizzbuzz(35) == 'FizzBuzz'\n\ndef test_fizzbuzz_edge_case():\n    assert fizzbuzz(1) == '1'\n    assert fizzbuzz(2) == '2'\n    assert fizzbuzz(3) == '3'\n    assert fizzbuzz(4) == '4'\n    assert fizzbuzz(5) == '5'\n\ndef test_fizzbuzz_error_case():\n    with pytest.raises(ValueError):\n        fizzbuzz(-1)\n    with pytest.raises(ValueError):\n        fizzbuzz(0)\n    with pytest.raises(ValueError):\n        fizzbuzz(15.5)\n    with pytest.raises(ValueError):\n        fizzbuzz('a')\n\ndef test_fizzbuzz_non_integer_input():\n    with pytest.raises(TypeError):\n        fizzbuzz(1.5)\n    with pytest.raises(TypeError):\n        fizzbuzz('a')\n    with pytest.raises(TypeError):\n        fizzbuzz(15)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test the function with positive integers and edge cases.\n* Edge cases: Test the function with negative numbers, zero, and non-integer inputs.\n* Error cases: Test the function with invalid inputs (negative numbers and non-integer values) and raise a `ValueError` exception.",
+  "score": 2,
+  "cost": 1.1555999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 329
+  }
+}

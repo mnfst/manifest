@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "To find the total amount Winston spent on fruit, we need to calculate the cost of each type of fruit and add them together.\n\nFirst, let's calculate the cost of the peaches:\n6 pounds of peaches at $2.00 per pound = 6 x $2.00 = $12.00\n\nNext, let's calculate the cost of the plums:\n8 pounds of plums at $1.00 per pound = 8 x $1.00 = $8.00\n\nFinally, let's calculate the cost of the apricots:\n6 pounds of apricots at $3.00 per pound = 6 x $3.00 = $18.00\n\nNow, let's add the costs together:\n$12.00 (peaches) + $8.00 (plums) + $18.00 (apricots) = $38.00\n\nTherefore, Winston spent a total of $38.00 on fruit.\n\nANSWER: 38",
+  "score": 5,
+  "cost": 1.6881e-05,
+  "expected": "38",
+  "tokens": {
+    "input": 127,
+    "output": 204
+  }
+}

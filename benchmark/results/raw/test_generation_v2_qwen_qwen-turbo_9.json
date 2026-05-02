@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 9,
+  "response": "Here's a set of **pytest-style unit tests** for the `max_subarray_sum` function. These tests cover:\n\n- **Happy path** (normal case with positive numbers)\n- **Edge cases** (single-element array, all negative numbers)\n- **Error cases** (non-list input, empty list)\n\n### \u2705 Test File: `test_max_subarray_sum.py`\n\n```python\nimport pytest\n\nfrom your_module import max_subarray_sum  # replace with your actual module name\n\ndef test_happy_path():\n    assert max_subarray_sum([1, 2, 3, 4]) == 10\n    assert max_subarray_sum([2, -1, 2, -1, 3]) == 5\n    assert max_subarray_sum([1, -2, 3, 10, -5, 6]) == 14\n\ndef test_edge_cases():\n    assert max_subarray_sum([5]) == 5\n    assert max_subarray_sum([-1, -2, -3]) == -1\n    assert max_subarray_sum([0]) == 0\n    assert max_subarray_sum([]) == 0\n\ndef test_error_cases():\n    with pytest.raises(TypeError):\n        max_subarray_sum(\"not a list\")\n    with pytest.raises(TypeError):\n        max_subarray_sum(123)\n    with pytest.raises(TypeError):\n        max_subarray_sum([1, \"a\", 3])\n```\n\n### \ud83d\udcdd Notes:\n\n- Replace `your_module` with the name of the module where `max_subarray_sum` is defined.\n- The function `max_subarray_sum` is designed to return `0` for an empty list.\n- The function handles negative numbers correctly using **Kadane's algorithm**.\n- `pytest.raises` is used to test that invalid inputs raise `TypeError`.\n\n---\n\n### \ud83e\uddea To Run the Tests:\n\n```bash\npytest test_max_subarray_sum.py\n```\n\nLet me know if you want to test with more complex inputs or integrate this into a test suite.",
+  "score": 5,
+  "cost": 1.7622e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 430
+  }
+}

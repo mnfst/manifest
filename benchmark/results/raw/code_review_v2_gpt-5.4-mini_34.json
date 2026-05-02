@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "code_review_v2",
+  "case": 34,
+  "response": "This function is **incorrect for password checking** and has a **security flaw**.\n\n## What\u2019s wrong\n\n```python\ndef compare_passwords(stored, provided):\n    return stored == provided\n```\n\n### 1. It compares passwords in plain text\nIf `stored` is the actual password, that means passwords are being kept in cleartext, which is unsafe. Passwords should never be stored directly.\n\n### 2. It is vulnerable to timing attacks\nUsing `==` for secret values can leak information through comparison timing. An attacker may be able to infer parts of the password/hash by measuring how long comparisons take.\n\n### 3. It ignores password hashing\nCorrect password verification should compare the provided password against a **hash** stored in the database, not against the raw password.\n\n---\n\n## How to fix it\n\n### If `stored` is a password hash\nUse a constant-time verification function from a password library, such as:\n\n- `bcrypt`\n- `argon2`\n- `passlib`\n\nExample with `bcrypt`:\n\n```python\nimport bcrypt\n\ndef compare_passwords(stored_hash, provided_password):\n    return bcrypt.checkpw(provided_password.encode(\"utf-8\"), stored_hash.encode(\"utf-8\"))\n```\n\n### If you need constant-time comparison for non-password secrets\nUse:\n\n```python\nimport hmac\n\ndef compare_secrets(stored, provided):\n    return hmac.compare_digest(stored, provided)\n```\n\nBut note: **for passwords, hashing + dedicated verification is the correct approach**, not just constant-time string comparison.\n\n---\n\n## Additional recommendations\n\n- Store password hashes using a strong algorithm like **Argon2id** or **bcrypt**\n- Use a unique **salt** per password\n- Consider a server-side **pepper** for extra protection\n- Enforce rate limiting / account lockout to reduce brute-force attacks\n\nIf you want, I can show a secure password-hashing and verification example using `argon2` or `bcrypt`.",
+  "score": 0,
+  "cost": 0.0005049,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 408
+  }
+}

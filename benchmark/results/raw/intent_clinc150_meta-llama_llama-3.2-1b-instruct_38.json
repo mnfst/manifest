@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 38,
+  "response": "information",
+  "score": 0,
+  "cost": 1.3743e-05,
+  "expected": "oil_change_when",
+  "tokens": {
+    "input": 507,
+    "output": 2
+  }
+}

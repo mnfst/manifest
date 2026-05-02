@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 31,
+  "response": "Here are some unit tests for the `camel_to_snake` function using pytest:\n```python\nimport pytest\nimport re\n\ndef test_camel_to_snake_happy_path():\n    assert camel_to_snake(\"camelCase\") == \"camel_snake_case\"\n    assert camel_to_snake(\"helloWorld\") == \"hello_world\"\n\ndef test_camel_to_snake_edge_case():\n    assert camel_to_snake(\"camelCase\") == \"camel_snake_case\"\n    assert camel_to_snake(\"helloWorld\") == \"hello_world\"\n\ndef test_camel_to_snake_error_case():\n    with pytest.raises(ValueError):\n        camel_to_snake(\"abc\")\n\ndef test_camel_to_snake_empty_string():\n    assert camel_to_snake(\"\") == \"\"\n\ndef test_camel_to_snake_non_alphabetic_characters():\n    assert camel_to_snake(\"CamelCase\") == \"camel_snake_case\"\n\ndef test_camel_to_snake_non_alphabetic_characters_case_insensitive():\n    assert camel_to_snake(\"CamelCase\") == \"camel_snake_case\"\n    assert camel_to_snake(\"camelCase\") == \"camel_snake_case\"\n\ndef test_camel_to_snake_non_alphabetic_characters_case_sensitive():\n    assert camel_to_snake(\"CamelCase\") == \"CamelSnakeCase\"\n    assert camel_to_snake(\"camelCase\") == \"CamelCase\"\n\ndef test_camel_to_snake_non_alphabetic_characters_with_punctuation():\n    assert camel_to_snake(\"Camel!Case\") == \"camel_snake_case\"\n    assert camel_to_snake(\"camel!Case\") == \"camel_snake_case\"\n\ndef test_camel_to_snake_non_alphabetic_characters_with_numbers():\n    assert camel_to_snake(\"Camel@Case\") == \"camel_snake_case\"\n    assert camel_to_snake(\"camel@Case\") == \"camel_snake_case\"\n\ndef test_camel_to_snake_non_alphabetic_characters_with_special_characters():\n    assert camel_to_snake(\"Camel!@Case\") == \"camel_snake_case\"\n    assert camel_to_snake(\"camel!@Case\") == \"camel_snake_case\"\n```\nThese tests cover the following cases:\n\n* Happy path: Test that the function works correctly for strings with camelCase input.\n* Edge cases: Test that the function handles strings with non-alphabetic characters, including punctuation, numbers, and special characters.\n* Error cases: Test that the function raises a `ValueError` when given an empty string or a string with non-alphabetic characters.",
+  "score": 3,
+  "cost": 1.6335000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 528
+  }
+}

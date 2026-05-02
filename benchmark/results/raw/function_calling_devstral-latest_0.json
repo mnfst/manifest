@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 0,
+  "response": "```json\n{\"name\": \"send_email\", \"arguments\": {\"to\": \"john@example.com\", \"subject\": \"Meeting Tomorrow\", \"body\": \"Hi John can we meet at 2pm\"}}\n```",
+  "score": 5,
+  "cost": 2.4299999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 46
+  }
+}

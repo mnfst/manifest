@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "James has 2 sons:\n\n- One son is 12 years old.\n- The other is 4 years younger: 12 - 4 = 8 years old.\n\nTotal candles needed:\n\n12 + 8 = 20 candles\n\nEach pack has 5 candles, so the number of packs needed is:\n\n20 \u00f7 5 = 4 packs\n\nEach pack costs $3, so the total cost is:\n\n4 \u00d7 3 = 12\n\nANSWER: 12",
+  "score": 4,
+  "cost": 0.00198,
+  "expected": "12",
+  "tokens": {
+    "input": 88,
+    "output": 143
+  }
+}

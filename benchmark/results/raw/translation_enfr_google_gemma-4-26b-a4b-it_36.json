@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Depending on the level of formality you want to convey, here are the best ways to translate this:\n\n**1. Natural/Colloquial (Best for most situations):**\n> \u00ab Plus tu lutteras, plus ce sera g\u00eanant pour tout le monde. \u00bb\n\n**2. Slightly more informal/Spoken (Closest to the \"gonna\" vibe):**\n> \u00ab Plus tu vas lutter, plus \u00e7a va \u00eatre malaisant pour tout le monde. \u00bb\n*(Note: \"Malaisant\" is a very common modern term for \"awkward\".)*\n\n**3. Formal/Literary:**\n> \u00ab Plus vous lutterez, plus la situation sera embarrassante pour tous. \u00bb\n\n**Key Translation Choices:**\n* **\"The more... the more...\"**: Translated as *\"Plus... plus...\"*\n* **\"Struggle\"**: I used *\"lutter\"* (to fight/struggle). If you mean \"struggle\" in the sense of \"making things difficult/resisting,\" you could also use *\"plus tu r\u00e9sisteras\"*.\n* **\"Awkward\"**: I provided *\"g\u00eanant\"* (standard), *\"malaisant\"* (slang/modern), and *\"embarrassante\"* (formal).",
+  "score": 4,
+  "cost": 1.8779999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 265
+  }
+}

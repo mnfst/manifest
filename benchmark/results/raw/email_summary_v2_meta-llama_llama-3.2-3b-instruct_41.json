@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe current 1Gbps network link is at 78% capacity during peak usage, and the sender proposes upgrading to a 10Gbps link for $45,000 (one-time) plus $2,000 per month. The sender recommends upgrading to 10Gbps to avoid revisiting the issue in 6 months, as it is expected to accommodate future growth, with an alternative option being traffic shaping and CDN optimization for $15,000.",
+  "score": 5,
+  "cost": 1.1118e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 105
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "sql_spider",
+  "case": 13,
+  "response": "```sql\nSELECT max(transcript_date) FROM Transcripts\n```",
+  "score": 5,
+  "cost": 0.0003975,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 15
+  }
+}

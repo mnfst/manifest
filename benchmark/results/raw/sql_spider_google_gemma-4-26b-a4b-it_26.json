@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT COUNT(*)\nFROM flights\nWHERE departure_city = 'Aberdeen' AND destination_city = 'Ashley';\n```",
+  "score": 5,
+  "cost": 7.02e-06,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 30
+  }
+}

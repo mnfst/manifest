@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"Tokyo Stock Exchange\"\n  ],\n  \"locations\": [\n    \"Tokyo\"\n  ]\n}",
+  "score": 4,
+  "cost": 2.0700000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 34
+  }
+}

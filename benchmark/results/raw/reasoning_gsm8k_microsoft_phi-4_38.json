@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "To solve the problem, we need to determine how much money Gerald initially received and then calculate how much he has left after spending $10 on a book.\n\n1. **Determine the total parts in the ratio**:  \n   The ratio given is 3:2. This means there are a total of \\(3 + 2 = 5\\) parts.\n\n2. **Calculate the value of each part**:  \n   The total amount of money is $100. Since the ratio divides this amount into 5 parts, each part is worth:\n   \\[\n   \\frac{100}{5} = 20 \\text{ dollars per part}\n   \\]\n\n3. **Calculate Gerald's share**:  \n   Gerald's share is 3 parts. Therefore, the amount of money Gerald receives is:\n   \\[\n   3 \\times 20 = 60 \\text{ dollars}\n   \\]\n\n4. **Calculate how much Gerald has left after spending $10**:  \n   Gerald initially has $60. After spending $10 on a book, he has:\n   \\[\n   60 - 10 = 50 \\text{ dollars left}\n   \\]\n\nThus, the final answer is:\n\nANSWER: 50",
+  "score": 5,
+  "cost": 2.1190000000000002e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 77,
+    "output": 249
+  }
+}

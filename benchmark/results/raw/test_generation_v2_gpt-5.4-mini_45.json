@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 45,
+  "response": "```python\nimport pytest\n\nfrom your_module import sliding_window\n\n\ndef test_sliding_window_happy_path_list():\n    result = list(sliding_window([1, 2, 3, 4], 2))\n    assert result == [(1, 2), (2, 3), (3, 4)]\n\n\ndef test_sliding_window_happy_path_generator():\n    data = (x for x in [1, 2, 3, 4, 5])\n    result = list(sliding_window(data, 3))\n    assert result == [(1, 2, 3), (2, 3, 4), (3, 4, 5)]\n\n\ndef test_sliding_window_size_one():\n    result = list(sliding_window([10, 20, 30], 1))\n    assert result == [(10,), (20,), (30,)]\n\n\ndef test_sliding_window_size_equals_length():\n    result = list(sliding_window([1, 2, 3], 3))\n    assert result == [(1, 2, 3)]\n\n\ndef test_sliding_window_empty_iterable_raises_stop_iteration():\n    with pytest.raises(StopIteration):\n        next(sliding_window([], 1))\n\n\ndef test_sliding_window_size_greater_than_length_raises_stop_iteration():\n    with pytest.raises(StopIteration):\n        next(sliding_window([1, 2], 3))\n\n\ndef test_sliding_window_size_zero_yields_empty_tuples_for_each_item():\n    result = list(sliding_window([1, 2, 3], 0))\n    assert result == [(), (), ()]\n\n\ndef test_sliding_window_negative_size_behaves_like_zero():\n    result = list(sliding_window([1, 2, 3], -1))\n    assert result == [(), (), ()]\n\n\ndef test_sliding_window_non_integer_size_type_error():\n    with pytest.raises(TypeError):\n        list(sliding_window([1, 2, 3], \"2\"))\n\n\ndef test_sliding_window_iterator_consumed_progressively():\n    data = iter([1, 2, 3, 4])\n    gen = sliding_window(data, 2)\n\n    assert next(gen) == (1, 2)\n    assert next(gen) == (2, 3)\n    assert next(gen) == (3, 4)\n    with pytest.raises(StopIteration):\n        next(gen)\n```",
+  "score": 5,
+  "cost": 0.0006353999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 505
+  }
+}

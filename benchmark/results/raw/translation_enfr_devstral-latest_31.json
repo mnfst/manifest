@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Here\u2019s the translation that maintains the tone and meaning of the original English phrase:\n\n**French:** *Nous pourrions vous inculper pour sollicitation.*\n\n### Notes:\n- **\"Book you\"** is translated as **\"vous inculper\"** (to charge/arrest you), which is the legal term used in French for formal accusations.\n- **\"Solicitation\"** remains **\"solicitation\"** in French, as it is a legal term often used in the same context (e.g., *solicitation de prostitution* for prostitution-related offenses).\n\nIf the context is more informal (e.g., a warning rather than a formal charge), you could also say:\n*\"Nous pourrions vous arr\u00eater pour sollicitation.\"* (We could arrest you for solicitation.)\n\nWould you like any adjustments based on a specific context?",
+  "score": 2,
+  "cost": 5.37e-05,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 169
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 36,
+  "response": "```json\n{\n  \"name\": \"subscribe\",\n  \"arguments\": {\n    \"email\": \"jane@example.com\",\n    \"list_name\": \"monthly newsletter\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 8.255000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 40
+  }
+}

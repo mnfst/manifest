@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Katelyn saw 50 fairies.\n\nThen, half as many fairies joined:\n- Half of 50 is 25\n\nSo now there were:\n- 50 + 25 = 75 fairies\n\nThen 30 fairies flew away:\n- 75 - 30 = 45\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.000782,
+  "expected": "45",
+  "tokens": {
+    "input": 115,
+    "output": 69
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "ner_extraction",
+  "case": 33,
+  "response": "{\"persons\":[],\"organizations\":[\"International Monetary Fund\"],\"locations\":[\"Latin America\"]}",
+  "score": 5,
+  "cost": 0.000834,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 39,
+  "response": "Here's an example of how you can write unit tests for the `topological_sort` function using pytest:\n\n```python\nimport pytest\nfrom your_module import topological_sort  # replace 'your_module' with the actual name of the module where the function is defined\n\ndef test_topological_sort_happy_path():\n    # Create a sample graph\n    graph = {\n        'A': ['B', 'C'],\n        'B': ['D'],\n        'C': ['D'],\n        'D': []\n    }\n    expected_result = ['D', 'C', 'B', 'A']\n    assert topological_sort(graph) == expected_result\n\ndef test_topological_sort_empty_graph():\n    # Create an empty graph\n    graph = {}\n    expected_result = []\n    assert topological_sort(graph) == expected_result\n\ndef test_topological_sort_single_node_graph():\n    # Create a graph with a single node\n    graph = {\n        'A': []\n    }\n    expected_result = ['A']\n    assert topological_sort(graph) == expected_result\n\ndef test_topological_sort_cyclic_graph():\n    # Create a graph with a cycle\n    graph = {\n        'A': ['B'],\n        'B': ['A']\n    }\n    with pytest.raises(ValueError):\n        topological_sort(graph)\n\ndef test_topological_sort_invalid_input():\n    # Create a graph with a node that is not in the graph\n    graph = {\n        'A': ['B'],\n        'B': ['C']\n    }\n    with pytest.raises(KeyError):\n        topological_sort(graph)\n\ndef test_topological_sort_none_input():\n    # Test that the function raises an error when the input is None\n    with pytest.raises(TypeError):\n        topological_sort(None)\n```\n\nIn these tests, we cover the following cases:\n\n*   Happy path: A graph with a valid topological ordering.\n*   Empty graph: An empty graph.\n*   Single node graph: A graph with a single node.\n*   Cyclic graph: A graph with a cycle, which should raise a `ValueError`.\n*   Invalid input: A graph with a node that is not in the graph, which should raise a `KeyError`.\n*   None input: The function should raise a `TypeError` when the input is `None`.\n\nNote that the `test_topological_sort_cyclic_graph` test uses the `pytest.raises` context manager to catch the `ValueError` exception that is raised when the function encounters a cyclic graph. Similarly, the `test_topological_sort_invalid_input` test uses `pytest.raises` to catch the `TypeError` exception that is raised when the input is `None`.",
+  "score": 4,
+  "cost": 3.3558e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 545
+  }
+}

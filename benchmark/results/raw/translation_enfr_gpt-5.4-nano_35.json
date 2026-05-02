@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[reporter homme n\u00b01 \u00e0 la t\u00e9l\u00e9vision] un accident s\u2019est produit juste apr\u00e8s 10 h 00.",
+  "score": 5,
+  "cost": 1.5100000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 27
+  }
+}

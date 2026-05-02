@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 40,
+  "response": "Here's a complete set of **pytest-style unit tests** for the `rgb_to_hex` function. These tests cover:\n\n- **Happy path**: Valid RGB values.\n- **Edge cases**: Minimum (0) and maximum (255) values.\n- **Error cases**: Values outside the 0\u2013255 range.\n\n---\n\n### \u2705 `test_rgb_to_hex.py`\n\n```python\nimport pytest\n\nfrom your_module import rgb_to_hex  # Replace with the actual module name\n\ndef test_rgb_to_hex_happy_path():\n    assert rgb_to_hex(255, 255, 255) == \"#ffffff\"\n    assert rgb_to_hex(0, 0, 0) == \"#000000\"\n    assert rgb_to_hex(128, 64, 32) == \"#804020\"\n\n\ndef test_rgb_to_hex_edge_cases():\n    assert rgb_to_hex(0, 0, 255) == \"#0000ff\"\n    assert rgb_to_hex(255, 0, 0) == \"#ff0000\"\n    assert rgb_to_hex(0, 255, 0) == \"#00ff00\"\n\n\ndef test_rgb_to_hex_invalid_values():\n    with pytest.raises(ValueError):\n        rgb_to_hex(256, 0, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(-1, 0, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(0, 256, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(0, -1, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(0, 0, 256)\n    with pytest.raises(ValueError):\n        rgb_to_hex(-1, -1, -1)\n\n\ndef test_rgb_to_hex_non_integer_values():\n    with pytest.raises(TypeError):\n        rgb_to_hex(\"255\", 0, 0)\n    with pytest.raises(TypeError):\n        rgb_to_hex(255, \"0\", 0)\n    with pytest.raises(TypeError):\n        rgb_to_hex(255, 0, \"0\")\n```\n\n---\n\n### \ud83d\udcdd Notes:\n\n- Replace `your_module` with the actual name of the module where `rgb_to_hex` is defined.\n- This test suite assumes that `rgb_to_hex` is in a module called `your_module.py`. If your function is in a different module, adjust accordingly.\n- The `f-strings` used in the `rgb_to_hex` function will format integers as two-digit hex values, padding with a zero if needed (e.g., `0x0a` becomes `0a`).\n\nLet me know if you want the tests in a different format (e.g., `unittest` or with fixtures).",
+  "score": 5,
+  "cost": 2.3661000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 598
+  }
+}

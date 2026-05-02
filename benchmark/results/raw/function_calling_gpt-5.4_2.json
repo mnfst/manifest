@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "function_calling",
+  "case": 2,
+  "response": "{\"name\":\"search_files\",\"arguments\":{\"directory\":\"src\",\"pattern\":\"*.py\",\"modified_within_days\":7}}",
+  "score": 5,
+  "cost": 0.000412,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 27
+  }
+}

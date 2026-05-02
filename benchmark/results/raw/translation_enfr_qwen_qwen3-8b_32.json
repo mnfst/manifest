@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et le EEAS peuvent proposer la mise \u00e0 disposition du personnel \u00e0 la EUSR.",
+  "score": 4,
+  "cost": 5.2550000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 1001
+  }
+}

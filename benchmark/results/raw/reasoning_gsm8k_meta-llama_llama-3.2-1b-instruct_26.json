@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "To solve this problem, we need to find out how much money Mitchell made and then subtract the amount Liam made.\n\nFirst, let's find out how much money Mitchell made. Since he sold 21 lemonades at $4 apiece, we can multiply the number of lemonades by the price per lemonade:\n\n21 lemonades x $4 per lemonade = $84\n\nNow, let's find out how much money Liam made. We know that Liam bragged that he made $63, but we don't know how many lemonades he sold. Let's call the number of lemonades Liam sold \"x\". Then, we can set up an equation:\n\nx x $4 = $63\n\nTo solve for x, we can divide both sides of the equation by $4:\n\nx = $63 / $4\nx = 15.75\n\nNow that we know Liam sold 15.75 lemonades, we can find out how much money he made:\n\n15.75 lemonades x $4 per lemonade = $63\n\nLiam made $63.\n\nNow, let's find out how much money Mitchell made. We already know that he made $84.\n\nTo find out how much more Mitchell made than Liam, we can subtract the amount Liam made from the amount Mitchell made:\n\n$84 - $63 = $21\n\nTherefore, Mitchell made $21 more than Liam.",
+  "score": 4,
+  "cost": 1.0638e-05,
+  "expected": "21",
+  "tokens": {
+    "input": 111,
+    "output": 283
+  }
+}

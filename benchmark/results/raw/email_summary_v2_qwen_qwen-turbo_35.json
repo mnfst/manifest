@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "Summary: The email announces updates to the content moderation policy requiring AI-generated images to be labeled, banning deepfakes, and mandating disclosure for AI-assisted text, with enforcement starting June 1. Training materials are being prepared to support the new policy.",
+  "score": 5,
+  "cost": 5.1480000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 52
+  }
+}

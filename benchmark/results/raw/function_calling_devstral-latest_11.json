@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 11,
+  "response": "```json\n{\"name\": \"add_to_list\", \"arguments\": {\"list_name\": \"shopping list\", \"items\": [\"milk\", \"eggs\", \"bread\"]}}\n```",
+  "score": 5,
+  "cost": 2.0600000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 40
+  }
+}

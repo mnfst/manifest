@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "To solve this problem, we need to determine the cost of one candy and then calculate the total cost for 10 lollipops and 10 candies.\n\n1. **Determine the total cost of the lollipops:**\n\n   Manolo bought 5 lollipops, each costing $0.40.\n\n   \\[\n   \\text{Cost of 5 lollipops} = 5 \\times 0.40 = 2.00\n   \\]\n\n2. **Determine the cost of the candies:**\n\n   The total cost for 5 lollipops and 4 candies is $3.20. We already calculated the cost of the lollipops as $2.00.\n\n   \\[\n   \\text{Cost of 4 candies} = 3.20 - 2.00 = 1.20\n   \\]\n\n3. **Find the cost of one candy:**\n\n   \\[\n   \\text{Cost of 1 candy} = \\frac{1.20}{4} = 0.30\n   \\]\n\n4. **Calculate the cost of 10 lollipops:**\n\n   \\[\n   \\text{Cost of 10 lollipops} = 10 \\times 0.40 = 4.00\n   \\]\n\n5. **Calculate the cost of 10 candies:**\n\n   \\[\n   \\text{Cost of 10 candies} = 10 \\times 0.30 = 3.00\n   \\]\n\n6. **Calculate the total cost for 10 lollipops and 10 candies:**\n\n   \\[\n   \\text{Total cost} = 4.00 + 3.00 = 7.00\n   \\]\n\nTherefore, the total cost for 10 lollipops and 10 candies is $7.00.\n\nANSWER: 7.00",
+  "score": 5,
+  "cost": 3.1395e-05,
+  "expected": "7",
+  "tokens": {
+    "input": 87,
+    "output": 396
+  }
+}

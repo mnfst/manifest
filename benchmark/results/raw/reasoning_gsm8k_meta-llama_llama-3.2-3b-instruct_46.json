@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "To solve this problem, we need to calculate the number of fish each person caught and then add them together.\n\nAnakin caught 10 starfish, 6 sea horses, and 3 clownfish. So, the total number of fish Anakin caught is:\n10 + 6 + 3 = 19\n\nLocsin caught 5 fewer starfish than Anakin, so Locsin caught:\n10 - 5 = 5 starfish\n\nLocsin also caught 3 fewer sea horses than Anakin, so Locsin caught:\n6 - 3 = 3 sea horses\n\nLocsin caught 2 more clownfish than Anakin, so Locsin caught:\n3 + 2 = 5 clownfish\n\nNow, let's add up the total number of fish caught by both Anakin and Locsin:\nAnakin's total: 19\nLocsin's total: 5 + 3 + 5 = 13\n\nTotal number of fish caught: 19 + 13 = 32\n\nANSWER: 32",
+  "score": 4,
+  "cost": 1.683e-05,
+  "expected": "32",
+  "tokens": {
+    "input": 118,
+    "output": 212
+  }
+}

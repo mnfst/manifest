@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "French: Nous sommes capables... de d\u00e9ployer une puissance de feu sup\u00e9rieure... \u00e0 tout ce qui a jamais \u00e9t\u00e9 utilis\u00e9 dans l\u2019histoire de la guerre.",
+  "score": 4,
+  "cost": 0.000352,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 33
+  }
+}

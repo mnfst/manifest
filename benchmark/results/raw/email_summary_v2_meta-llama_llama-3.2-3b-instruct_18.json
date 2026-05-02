@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe VP of Engineering proposes to split the Platform team into two separate teams: Infrastructure and Developer Experience, in order to address the bottleneck where development work is often hindered by infrastructure incidents. An attached draft org chart outlines the proposed team structure.",
+  "score": 5,
+  "cost": 8.108999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 46,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"restart_service\", \"arguments\": {\"name\": \"redis cache server\"}}\n```\n\nThis function call will restart the Redis cache server and return the service status.",
+  "score": 4,
+  "cost": 7.038e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 48
+  }
+}

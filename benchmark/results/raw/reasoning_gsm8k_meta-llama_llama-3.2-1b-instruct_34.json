@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "To solve this problem, we need to follow the steps below:\n\nStep 1: Calculate the total cost of the tickets.\n3 tickets x $20.25 = $61.75\n\nStep 2: Calculate the total cost of the food.\n$61.75 - $4.50 = $57.25\n\nStep 3: Calculate the total cost of the rides.\n2 rides x $33 = $66\n\nStep 4: Calculate the total cost of all the expenses.\n$61.75 + $57.25 + $66 = $179.00\n\nStep 5: Calculate the amount each person paid.\n$179.00 \u00f7 3 = $59.67\n\nANSWER: $59.67",
+  "score": 1,
+  "cost": 7.047e-06,
+  "expected": "34",
+  "tokens": {
+    "input": 111,
+    "output": 150
+  }
+}

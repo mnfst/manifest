@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "extraction_hard_v2",
   "case": 13,
-  "response": "{\n  \"trial_id\": \"NCT04982562\",\n  \"phase\": \"III\",\n  \"sponsor\": \"NovaPharma Inc.\",\n  \"drug\": \"NP-401\",\n  \"indication\": \"Treatment-Resistant Major Depression\",\n  \"enrollment\": 842,\n  \"sites\": 28,\n  \"arms\": [\n    {\n      \"name\": \"NP-401\",\n      \"dose\": \"60 mg\",\n      \"n\": 421\n    },\n    {\n      \"name\": \"Placebo\",\n      \"dose\": \"0 mg\",\n      \"n\": 421\n    }\n  ],\n  \"duration_weeks\": 36,\n  \"primary_endpoint\": \"Change in MADRS score from baseline\",\n  \"results\": {\n    \"treatment_effect\": -18.4,\n    \"placebo_effect\": -12.1,\n    \"p_value\": \"<0.001\",\n    \"nnt\": 5.2\n  },\n  \"adverse_events\": [\n    {\n      \"event\": \"nausea\",\n      \"rate_pct\": 23\n    },\n    {\n      \"event\": \"headache\",\n      \"rate_pct\": 18\n    },\n    {\n      \"event\": \"insomnia\",\n      \"rate_pct\": 12\n    }\n  ]\n}",
-  "score": 0,
-  "cost": 0.006362400000000001,
+  "response": "{\"trial_id\":\"NCT04982562\",\"phase\":\"III\",\"sponsor\":\"NovaPharma Inc.\",\"drug\":\"NP-401\",\"indication\":\"Treatment-Resistant Major Depression\",\"enrollment\":842,\"sites\":28,\"arms\":[{\"name\":\"NP-401\",\"dose\":\"60mg\",\"n\":421},{\"name\":\"placebo\",\"dose\":\"\",\"n\":421}],\"duration_weeks\":36,\"primary_endpoint\":\"Change in MADRS score from baseline\",\"results\":{\"treatment_effect\":-18.4,\"placebo_effect\":-12.1,\"p_value\":\"<0.001\",\"nnt\":5.2},\"adverse_events\":[{\"event\":\"nausea\",\"rate_pct\":23},{\"event\":\"headache\",\"rate_pct\":18},{\"event\":\"insomnia\",\"rate_pct\":12}]}",
+  "score": 4,
+  "cost": 0.008320400000000002,
   "expected": "",
   "tokens": {
     "input": 360,
-    "output": 1356
+    "output": 1801
   }
 }

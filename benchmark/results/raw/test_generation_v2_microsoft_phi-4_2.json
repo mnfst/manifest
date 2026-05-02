@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "To write unit tests for the `factorial` function using `pytest`, we need to cover the happy path, edge cases, and error cases. Here's how you can structure the tests:\n\n```python\nimport pytest\n\ndef factorial(n: int) -> int:\n    if n < 0:\n        raise ValueError('n must be non-negative')\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n\ndef test_factorial_happy_path():\n    assert factorial(0) == 1\n    assert factorial(1) == 1\n    assert factorial(2) == 2\n    assert factorial(3) == 6\n    assert factorial(4) == 24\n    assert factorial(5) == 120\n\ndef test_factorial_large_number():\n    assert factorial(10) == 3628800\n\ndef test_factorial_edge_case():\n    # Edge case for the smallest non-negative integer\n    assert factorial(0) == 1\n\ndef test_factorial_negative_input():\n    with pytest.raises(ValueError, match='n must be non-negative'):\n        factorial(-1)\n\ndef test_factorial_non_integer_input():\n    with pytest.raises(TypeError):\n        factorial(3.5)\n\ndef test_factorial_non_numeric_input():\n    with pytest.raises(TypeError):\n        factorial(\"string\")\n```\n\n### Explanation:\n\n1. **Happy Path Tests**:\n   - `test_factorial_happy_path`: Tests the function with small positive integers where the factorial is well-known.\n   - `test_factorial_large_number`: Tests the function with a larger number to ensure it handles typical use cases correctly.\n\n2. **Edge Case Tests**:\n   - `test_factorial_edge_case`: Specifically tests the edge case of `n = 0`, which should return `1`.\n\n3. **Error Case Tests**:\n   - `test_factorial_negative_input`: Ensures that a `ValueError` is raised when a negative integer is passed.\n   - `test_factorial_non_integer_input`: Ensures that a `TypeError` is raised when a non-integer (e.g., float) is passed.\n   - `test_factorial_non_numeric_input`: Ensures that a `TypeError` is raised when a non-numeric type (e.g., string) is passed.\n\nThese tests cover the expected behavior of the `factorial` function, including handling of invalid inputs.",
+  "score": 5,
+  "cost": 3.7375e-05,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 493
+  }
+}

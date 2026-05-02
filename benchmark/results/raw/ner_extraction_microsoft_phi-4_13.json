@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 13,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Oxford University\", \"Pfizer\"],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 6.695e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 31
+  }
+}

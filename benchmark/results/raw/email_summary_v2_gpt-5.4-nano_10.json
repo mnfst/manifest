@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO shared a draft Q1 board deck highlighting strong performance (127% of revenue target and NRR at 115%) alongside increased CAC (up 22%). Action item: provide your section on the product roadmap by Wednesday for inclusion ahead of next Tuesday\u2019s board meeting.",
+  "score": 5,
+  "cost": 3.1700000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 58
+  }
+}

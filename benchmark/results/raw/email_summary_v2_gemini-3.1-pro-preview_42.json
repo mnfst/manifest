@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "A recent workshop with 15 enterprise customers highlighted a strong need for better bulk import and SSO, alongside praise for the analytics dashboard and unexpected interest in an internal tool. Please review the attached follow-up report for full details.",
+  "score": 5,
+  "cost": 0.0009525,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 46
+  }
+}

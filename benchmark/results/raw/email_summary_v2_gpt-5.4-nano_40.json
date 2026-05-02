@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The team\u2019s quarterly OKR results show Engineering (0.7), Sales (0.9), and Support (0.8) meeting or exceeding targets, while Product (0.6) missed due to a delayed AI feature. Ops recommends carrying forward the AI OKR with increased allocation, and next quarter planning starts Monday.",
+  "score": 5,
+  "cost": 3.9800000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 69
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "To determine the total number of crabs that Rani, Monic, and Bo have together, we will follow a step-by-step approach based on the given relationships.\n\n---\n\n### Step 1: Determine the number of crabs Bo has\nThe problem states that **Bo has 40 crabs**.\n\n$$\n\\text{Bo} = 40\n$$\n\n---\n\n### Step 2: Determine the number of crabs Monic has\nMonic has **4 fewer crabs than Bo**. Therefore:\n\n$$\n\\text{Monic} = \\text{Bo} - 4 = 40 - 4 = 36\n$$\n\n---\n\n### Step 3: Determine the number of crabs Rani has\nRani has **10 more crabs than Monic**. So:\n\n$$\n\\text{Rani} = \\text{Monic} + 10 = 36 + 10 = 46\n$$\n\n---\n\n### Step 4: Calculate the total number of crabs\nNow, sum up the number of crabs each person has:\n\n$$\n\\text{Total} = \\text{Bo} + \\text{Monic} + \\text{Rani} = 40 + 36 + 46\n$$\n\n$$\n\\text{Total} = 122\n$$\n\n---\n\n### Final Answer:\n$$\n\\boxed{122}\n$$",
+  "score": 5,
+  "cost": 5.495e-05,
+  "expected": "122",
+  "tokens": {
+    "input": 86,
+    "output": 1013
+  }
+}

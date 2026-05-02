@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie pour les stages de jeunesse dans les PME, les PME et les autorit\u00e9s locales",
+  "score": 2,
+  "cost": 3.978e-06,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 29
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe board has reviewed the Q1 board deck and is pleased with the progress, but notes that the company's revenue target is 127% of the target, which is 2% below the expected 129%. The board requests that the product roadmap be finalized by Wednesday to be discussed at the next board meeting.",
+  "score": 2,
+  "cost": 4.509e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 76
+  }
+}

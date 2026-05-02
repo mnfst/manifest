@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "{\n  \"persons\": [\n    \"Tim Cook\"\n  ],\n  \"organizations\": [\n    \"Apple\",\n    \"Samsung\"\n  ],\n  \"locations\": [\n    \"Las Vegas\"\n  ]\n}",
+  "score": 5,
+  "cost": 0.0009475,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "To solve this problem, we need to find the perimeter of the rectangular bedroom in feet. We are given the area in square feet and the length in yards.\n\n**Step 1: Convert the length from yards to feet.**\nThe length of the room is given as 3 yards. Since 1 yard = 3 feet, we convert the length to feet:\nLength ($L$) = $3 \\text{ yards} \\times 3 \\text{ feet/yard} = 9 \\text{ feet}$.\n\n**Step 2: Find the width of the room in feet.**\nThe area ($A$) of a rectangle is calculated by the formula:\n$A = \\text{Length} \\times \\text{Width}$\nWe are given that the area is 360 square feet and we found the length is 9 feet. Let $W$ be the width:\n$360 = 9 \\times W$\nTo find $W$, divide both sides by 9:\n$W = \\frac{360}{9} = 40 \\text{ feet}$.\n\n**Step 3: Calculate the perimeter of the room in feet.**\nThe perimeter ($P$) of a rectangle is calculated by the formula:\n$P = 2 \\times (\\text{Length} + \\text{Width})$\nSubstitute the values we found:\n$P = 2 \\times (9 \\text{ feet} + 40 \\text{ feet})$\n$P = 2 \\times (49 \\text{ feet})$\n$P = 98 \\text{ feet}$.\n\nThe perimeter of the room is 98 feet.\n\nANSWER: 98",
+  "score": 5,
+  "cost": 2.52e-05,
+  "expected": "98",
+  "tokens": {
+    "input": 78,
+    "output": 342
+  }
+}

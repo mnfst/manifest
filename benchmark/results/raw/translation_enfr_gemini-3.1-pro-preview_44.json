@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Here is the translation, maintaining the formal and technical engineering tone:\n\n**French:**\nLes analyses de sensibilit\u00e9 indiquent que l'\u00e9tendue de la longueur non support\u00e9e r\u00e9sultant de l'affouillement a une influence significative sur la r\u00e9ponse en flexion du syst\u00e8me conduite-sol.\n\n*Technical notes on vocabulary used:*\n*   **Scour:** Translated as *affouillement*, which is the standard geotechnical/civil engineering term for localized erosion around structures.\n*   **Unsupported length:** Translated as *longueur non support\u00e9e* (in pipeline engineering, the term *port\u00e9e libre* or \"free span\" is also frequently used and would be equally accurate here).\n*   **Pipe-soil response:** Translated as *r\u00e9ponse du syst\u00e8me conduite-sol* (or *tube-sol*) to sound natural in French engineering literature.",
+  "score": 5,
+  "cost": 0.00275,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 175
+  }
+}

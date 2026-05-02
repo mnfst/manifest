@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "extraction_hard_v2",
+  "case": 46,
+  "response": "```json\n{\n  \"patient_id\": \"PT-20240315-089\",\n  \"collected\": \"03/15/2024 08:30\",\n  \"physician\": \"Dr. R. Patel\",\n  \"results\": [\n    {\n      \"test\": \"CBC\",\n      \"value\": {\n        \"WBC\": 7.2,\n        \"RBC\": 4.8,\n        \"Hemoglobin\": 14.2,\n        \"Platelets\": 245\n      },\n      \"unit\": {\n        \"WBC\": \"x10^9/L\",\n        \"RBC\": \"x10^12/L\",\n        \"Hemoglobin\": \"g/dL\",\n        \"Platelets\": \"x10^9/L\"\n      },\n      \"normal_range\": {\n        \"WBC\": \"4.5-11.0\",\n        \"RBC\": \"4.7-6.1\",\n        \"Hemoglobin\": \"14.0-18.0\",\n        \"Platelets\": \"150-400\"\n      },\n      \"flag\": null\n    },\n    {\n      \"test\": \"Metabolic Panel\",\n      \"value\": {\n        \"Glucose\": 128,\n        \"Creatinine\": 0.9,\n        \"eGFR\": 95\n      },\n      \"unit\": null,\n      \"normal_range\": {\n        \"Glucose\": \"70-100\",\n        \"Creatinine\": \"0.7-1.3\",\n        \"eGFR\": \">\"\n      },\n      \"flag\": \"HIGH\"\n    }\n  ]\n}\n```",
+  "score": 2,
+  "cost": 3.1212e-05,
+  "expected": "",
+  "tokens": {
+    "input": 277,
+    "output": 335
+  }
+}

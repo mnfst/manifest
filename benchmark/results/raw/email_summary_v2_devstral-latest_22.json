@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines the timeline and budget for Japan's expansion, with key milestones from May to August and a total budget of $200K. CEO approval is required to proceed with the plan.",
+  "score": 5,
+  "cost": 2.24e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 42
+  }
+}

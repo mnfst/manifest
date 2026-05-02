@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "Step 1: Madeline ate 6 grapes.  \nStep 2: Her brother used 5 times as many grapes as Madeline to make grape juice.  \nSo, the brother used:  \n$$ 5 \\times 6 = 30 \\text{ grapes} $$  \nStep 3: The total number of grapes used by Madeline and her brother is:  \n$$ 6 + 30 = 36 \\text{ grapes} $$  \nStep 4: Their mother used the remaining grapes to make 4 pies, with each pie requiring 12 grapes.  \nSo, the number of grapes used for the pies is:  \n$$ 4 \\times 12 = 48 \\text{ grapes} $$  \nStep 5: The total number of grapes at the beginning is the sum of the grapes used by Madeline, her brother, and their mother:  \n$$ 36 + 48 = 84 $$\n\nANSWER: 84",
+  "score": 4,
+  "cost": 1.0527000000000001e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 114,
+    "output": 205
+  }
+}

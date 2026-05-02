@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et j'en ai envie.",
+  "score": 5,
+  "cost": 1.7490000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 12
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 11,
+  "response": "Here's a set of **pytest-style unit tests** for the `merge_sorted` function. These tests cover:\n\n- **Happy path**: Both lists are sorted and merged correctly.\n- **Edge cases**: One or both lists are empty, or one list is completely before the other.\n- **Error cases**: Non-list inputs (though the function expects `list` types, we can check for that).\n\n### \u2705 `test_merge_sorted.py`\n\n```python\nimport pytest\n\ndef test_merge_sorted_happy_path():\n    assert merge_sorted([1, 3, 5], [2, 4, 6]) == [1, 2, 3, 4, 5, 6]\n\ndef test_merge_sorted_empty_a():\n    assert merge_sorted([], [1, 2, 3]) == [1, 2, 3]\n\ndef test_merge_sorted_empty_b():\n    assert merge_sorted([1, 2, 3], []) == [1, 2, 3]\n\ndef test_merge_sorted_one_empty():\n    assert merge_sorted([], []) == []\n\ndef test_merge_sorted_a_before_b():\n    assert merge_sorted([1, 2, 3], [4, 5, 6]) == [1, 2, 3, 4, 5, 6]\n\ndef test_merge_sorted_b_before_a():\n    assert merge_sorted([4, 5, 6], [1, 2, 3]) == [1, 2, 3, 4, 5, 6]\n\ndef test_merge_sorted_mixed():\n    assert merge_sorted([1, 4, 7], [2, 5, 8]) == [1, 2, 4, 5, 7, 8]\n\ndef test_merge_sorted_with_duplicates():\n    assert merge_sorted([1, 2, 2, 3], [2, 3, 4]) == [1, 2, 2, 2, 3, 3, 4]\n\ndef test_merge_sorted_non_list_inputs():\n    with pytest.raises(TypeError):\n        merge_sorted(\"not a list\", [1, 2, 3])\n    with pytest.raises(TypeError):\n        merge_sorted([1, 2, 3], \"also not a list\")\n    with pytest.raises(TypeError):\n        merge_sorted(\"not a list\", \"also not a list\")\n```\n\n### \u2705 Notes:\n- The function assumes that both inputs are **sorted lists**. If they are not, the result will not be correctly merged. This function does **not** sort the input lists.\n- The tests use `pytest.raises` to check for `TypeError` when inputs are not lists.\n\n### \ud83e\uddea To Run:\nSave the code in a file named `test_merge_sorted.py` and run:\n\n```bash\npytest test_merge_sorted.py\n```\n\nLet me know if you want to test it with more complex data or integrate it into a larger test suite.",
+  "score": 5,
+  "cost": 2.4650999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 617
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe product team is facing a delay in launching the payment integration due to a non-compliance issue with PCI standards, and they need 2 more weeks to resolve the issue. The team is considering two options: launching without payments and delaying the full launch to May 15, or meeting with the legal team to discuss the updated terms and conditions.",
+  "score": 4,
+  "cost": 5.0489999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 82
+  }
+}

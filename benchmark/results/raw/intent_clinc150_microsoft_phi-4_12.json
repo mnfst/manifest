@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "intent_clinc150",
+  "case": 12,
+  "response": "oil_change_how",
+  "score": 5,
+  "cost": 3.2955000000000006e-05,
+  "expected": "oil_change_how",
+  "tokens": {
+    "input": 502,
+    "output": 5
+  }
+}

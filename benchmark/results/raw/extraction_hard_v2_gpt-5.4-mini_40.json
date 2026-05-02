@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "extraction_hard_v2",
+  "case": 40,
+  "response": "{\"invoice_number\":\"INV-2024-0847\",\"date\":\"2024-03-15\",\"vendor\":\"Johnson & Sons LLC\",\"items\":[{\"description\":\"USB-C Cables (premium)\",\"quantity\":5,\"unit_price\":12.99},{\"description\":\"Office Chair, ergonomic mesh\",\"quantity\":2,\"unit_price\":349.99},{\"description\":\"box of printer paper (A4)\",\"quantity\":1,\"unit_price\":45.5}],\"total\":892.43,\"currency\":\"USD\"}",
+  "score": 5,
+  "cost": 0.00018480000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 107
+  }
+}

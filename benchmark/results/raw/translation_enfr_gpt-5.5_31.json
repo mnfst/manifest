@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Nous pourrions vous inculper pour racolage.",
+  "score": 2,
+  "cost": 0.001113,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 85
+  }
+}

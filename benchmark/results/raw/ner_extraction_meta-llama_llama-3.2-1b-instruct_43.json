@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 43,
+  "response": "{\n  \"persons\": [\"Satya Nadella\"],\n  \"organizations\": [\"Microsoft\"],\n  \"locations\": [\"\"]",
+  "score": 4,
+  "cost": 2.7540000000000007e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 25
+  }
+}

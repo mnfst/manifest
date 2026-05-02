@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch is delayed due to PCI compliance issues with payment integration, requiring either a partial launch without payments (with updated T&Cs) or a full delay until May 15. A meeting is scheduled for tomorrow at 10am to decide the next steps.",
+  "score": 5,
+  "cost": 2.6700000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 56
+  }
+}

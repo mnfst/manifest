@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let's solve the problem step by step.\n\nLet the total number of vacuum cleaners Melanie started with be $ x $.\n\n1. **Sold a third at the green house**:  \n   She sold $ \\frac{1}{3}x $, so the number of vacuum cleaners left is:  \n   $$\n   x - \\frac{1}{3}x = \\frac{2}{3}x\n   $$\n\n2. **Sold 2 more to the red house**:  \n   Now the number of vacuum cleaners left is:  \n   $$\n   \\frac{2}{3}x - 2\n   $$\n\n3. **Sold half of what was left at the orange house**:  \n   She sold half of $ \\frac{2}{3}x - 2 $, so the number left after this is:  \n   $$\n   \\frac{1}{2} \\left( \\frac{2}{3}x - 2 \\right)\n   $$\n\n4. **She has 5 vacuum cleaners left**:  \n   So we set up the equation:  \n   $$\n   \\frac{1}{2} \\left( \\frac{2}{3}x - 2 \\right) = 5\n   $$\n\nNow solve the equation:\n\nMultiply both sides by 2:\n$$\n\\frac{2}{3}x - 2 = 10\n$$\n\nAdd 2 to both sides:\n$$\n\\frac{2}{3}x = 12\n$$\n\nMultiply both sides by $ \\frac{3}{2} $:\n$$\nx = 12 \\cdot \\frac{3}{2} = 18\n$$\n\n### Final Answer:\nANSWER: 18",
+  "score": 5,
+  "cost": 1.5444e-05,
+  "expected": "18",
+  "tokens": {
+    "input": 105,
+    "output": 363
+  }
+}

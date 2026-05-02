@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Si le revenu et/ou le statut d'emploi d'une personne change, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle, auquel cas il y aura une nouvelle \u00e9valuation.",
+  "score": 5,
+  "cost": 6.695e-06,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 43
+  }
+}

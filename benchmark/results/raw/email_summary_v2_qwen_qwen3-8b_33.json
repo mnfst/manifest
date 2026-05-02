@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The employee engagement survey shows an overall score of 7.8/10 (above the industry average of 7.2), with team collaboration rated highest (8.9/10) and career growth clarity lowest (6.1/10). Proposed actions include quarterly career conversations, an internal mobility program, and mentorship matching, with a town hall discussion scheduled for Friday.",
+  "score": 5,
+  "cost": 2.875e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 455
+  }
+}

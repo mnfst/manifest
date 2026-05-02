@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "A misconfigured load balancer caused a 47-minute service degradation affecting 12,000 users, and the team has identified three action items: adding load balancer config validation to CI, updating the runbook, and implementing traffic distribution alerts. Jen has attached the full post-mortem document for reference.",
+  "score": 5,
+  "cost": 3.1e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 68
+  }
+}

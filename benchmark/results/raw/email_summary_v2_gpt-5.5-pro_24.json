@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Design System v3 is ready for adoption, with dark-mode color tokens, a revised 4px spacing scale, and updated Button and Modal components. Teams should use the migration tool and roll it out team by team, starting with the Settings page.",
+  "score": 5,
+  "cost": 0.003375,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 147
+  }
+}

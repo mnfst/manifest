@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 36,
+  "response": "Here's a set of **pytest-style unit tests** for the `validate_password` function. These tests cover:\n\n- **Happy path**: A valid password that meets all criteria.\n- **Edge cases**: Passwords that are exactly 8 characters long, and ones that are just missing one of the required conditions.\n- **Error cases**: Passwords that are too short, and ones that lack one or more required character types.\n\n### \u2705 `test_validate_password.py`\n\n```python\nimport pytest\n\ndef validate_password(pw: str) -> bool:\n    if len(pw) < 8:\n        return False\n    has_upper = any(c.isupper() for c in pw)\n    has_lower = any(c.islower() for c in pw)\n    has_digit = any(c.isdigit() for c in pw)\n    return has_upper and has_lower and has_digit\n\n# Test cases\ndef test_validate_password_happy_path():\n    assert validate_password(\"Password1\") is True\n\ndef test_validate_password_too_short():\n    assert validate_password(\"Pass1\") is False\n\ndef test_validate_password_missing_upper():\n    assert validate_password(\"password1\") is False\n\ndef test_validate_password_missing_lower():\n    assert validate_password(\"PASSWORD1\") is False\n\ndef test_validate_password_missing_digit():\n    assert validate_password(\"Password\") is False\n\ndef test_validate_password_exactly_8_characters():\n    assert validate_password(\"Pass1234\") is True\n\ndef test_validate_password_all_conditions_met_but_length():\n    assert validate_password(\"Pass123\") is False  # Length < 8\n\ndef test_validate_password_no_upper_no_lower_no_digit():\n    assert validate_password(\"12345678\") is False\n\ndef test_validate_password_only_upper():\n    assert validate_password(\"PASSWORD\") is False\n\ndef test_validate_password_only_lower():\n    assert validate_password(\"password\") is False\n\ndef test_validate_password_only_digits():\n    assert validate_password(\"12345678\") is False\n```\n\n### \u2705 How to Run\n\nSave the above code in a file named `test_validate_password.py` and run:\n\n```bash\npytest test_validate_password.py\n```\n\n### \ud83d\udcdd Notes\n\n- Each test uses `assert` to verify the function's return value.\n- The function is kept simple and not modified, so the tests are focused on its behavior.\n- The tests ensure that all required conditions are checked: minimum length, presence of uppercase, lowercase, and digit characters.\n\nLet me know if you want to test it with parameterized tests or use fixtures!",
+  "score": 5,
+  "cost": 2.1318e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 530
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\n  \"persons\": [\n    \"Serena Williams\"\n  ],\n  \"organizations\": [],\n  \"locations\": [\n    \"Los Angeles\"\n  ]\n}",
+  "score": 4,
+  "cost": 0.000765,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 40
+  }
+}

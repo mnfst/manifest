@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT country_name\nFROM car_makers\nGROUP BY country_name\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 4,
+  "cost": 5.4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 27
+  }
+}

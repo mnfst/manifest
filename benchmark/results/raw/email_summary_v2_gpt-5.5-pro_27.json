@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The team shipped the auth redesign on time and had strong collaboration with design, but noted too many context switches and standups exceeding the 15-minute target. Action items are to limit WIP to 2 items per developer and timebox standups using a parking lot.",
+  "score": 5,
+  "cost": 0.00345,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 146
+  }
+}

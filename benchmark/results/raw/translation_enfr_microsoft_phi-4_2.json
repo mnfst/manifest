@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus vint et parla distinctement et avec bont\u00e9 : \"C'est moi.\" Cette expression devint la base de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 5.59e-06,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 36
+  }
+}

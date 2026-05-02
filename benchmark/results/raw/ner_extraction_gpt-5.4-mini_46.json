@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "ner_extraction",
+  "case": 46,
+  "response": "{\"persons\":[\"Liang Rubo\"],\"organizations\":[\"ByteDance\",\"Senate Commerce Committee\",\"TikTok\"],\"locations\":[\"Washington\"]}",
+  "score": 5,
+  "cost": 5.909999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 31
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "Une r\u00e9pression de cette nature, conjugu\u00e9e \u00e0 l'arrestation ces derni\u00e8res semaines de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de propager ce que l'on appelle de fausses informations, a, \u00e0 juste titre, suscit\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 8.52e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 68
+  }
+}

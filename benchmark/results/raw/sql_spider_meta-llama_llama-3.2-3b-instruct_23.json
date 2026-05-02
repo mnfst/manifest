@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "```sql\nSELECT t1.production_code, t1.channel\nFROM tvshow.tvshows t1\nJOIN tvshow.episodes t2 ON t1.production_code = t2.production_code\nWHERE t2.air_date = (SELECT MAX(air_date) FROM tvshow.episodes)\nAND t2.genre = 'cartoon';\n```",
+  "score": 4,
+  "cost": 7.4459999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 70
+  }
+}

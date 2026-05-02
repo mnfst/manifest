@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "```python\nimport pytest\n\nfrom your_module import snake_to_camel\n\n\nclass TestSnakeToCamel:\n    def test_happy_path_multiple_words(self):\n        assert snake_to_camel(\"hello_world\") == \"helloWorld\"\n\n    def test_happy_path_single_word(self):\n        assert snake_to_camel(\"hello\") == \"hello\"\n\n    def test_happy_path_many_words(self):\n        assert snake_to_camel(\"this_is_a_test\") == \"thisIsATest\"\n\n    def test_empty_string(self):\n        assert snake_to_camel(\"\") == \"\"\n\n    def test_leading_underscore(self):\n        assert snake_to_camel(\"_hello_world\") == \"HelloWorld\"\n\n    def test_trailing_underscore(self):\n        assert snake_to_camel(\"hello_world_\") == \"helloWorld\"\n\n    def test_multiple_consecutive_underscores(self):\n        assert snake_to_camel(\"hello__world\") == \"helloWorld\"\n\n    def test_only_underscores(self):\n        assert snake_to_camel(\"___\") == \"\"\n\n    def test_preserves_existing_first_part_case(self):\n        assert snake_to_camel(\"Hello_world\") == \"HelloWorld\"\n\n    def test_capitalizes_later_parts(self):\n        assert snake_to_camel(\"hello_wORLD_test\") == \"helloWorldTest\"\n\n    def test_numeric_parts(self):\n        assert snake_to_camel(\"version_2_test\") == \"version2Test\"\n\n    def test_non_string_input_raises(self):\n        with pytest.raises(AttributeError):\n            snake_to_camel(None)\n```\n\nIf you want, I can also provide:\n- a parameterized pytest version\n- a version with 100% branch-style coverage\n- improved implementation suggestions for stricter input validation",
+  "score": 5,
+  "cost": 0.002982,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 355
+  }
+}

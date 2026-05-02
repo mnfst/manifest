@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe v1 API will be deprecated on June 30 and removed on September 30, and currently, 340 integrations are still using the outdated API. The platform plans to personally reach out to the top 20 enterprise customers who have not yet started migrating and host a webinar for the remaining customers to assist with the transition.",
+  "score": 5,
+  "cost": 9.18e-06,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 79
+  }
+}

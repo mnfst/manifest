@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company has completed an open source dependency audit, which found 2 issues with 234 packages, including one that uses a viral license that is incompatible with their SaaS model. The audit recommended replacing the problematic package with an alternative, Apache-licensed library, and removing one package that has no license, to ensure compliance with their licensing requirements.",
+  "score": 5,
+  "cost": 5.238e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 82
+  }
+}

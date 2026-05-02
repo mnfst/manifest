@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Le programme de nutrition urbaine de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et encourage les groupes de femmes qui commercialisent des aliments.",
+  "score": 5,
+  "cost": 4.641e-06,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 36
+  }
+}

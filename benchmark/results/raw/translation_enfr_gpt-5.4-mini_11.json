@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "Un large \u00e9ventail d\u2019attractions et de produits touristiques (th\u00e9, circuits culturels, complexes de sant\u00e9 et de bien-\u00eatre et spa, gastronomie, activit\u00e9s nautiques, etc.) a \u00e9t\u00e9 identifi\u00e9 dans la destination, n\u00e9cessitant un d\u00e9veloppement interd\u00e9pendant en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne.",
+  "score": 5,
+  "cost": 0.0001146,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 76
+  }
+}

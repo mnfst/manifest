@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "Jeune homme, 49 ans, Pays-de-la-Loire (Angers)",
+  "score": 5,
+  "cost": 1.24e-05,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 20
+  }
+}

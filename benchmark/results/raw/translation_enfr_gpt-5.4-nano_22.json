@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Si le revenu et/ou la situation professionnelle d\u2019une personne change, il peut y avoir un transfert de la responsabilit\u00e9 institutionnelle ; dans ce cas, une nouvelle \u00e9valuation sera effectu\u00e9e.",
+  "score": 5,
+  "cost": 2.13e-05,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 40
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "While the engineering hiring pipeline is active across four open roles, the frontend position has lacked strong candidates for 60 days. To address this, recruiting recommends expanding the frontend role to remote applicants or adjusting its compensation band.",
+  "score": 5,
+  "cost": 0.000895,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 44
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "ner_extraction",
+  "case": 6,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Amazon\"],\n  \"locations\": [\"Nashville\", \"Davidson County\"]\n}\n```",
+  "score": 5,
+  "cost": 1.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 35
+  }
+}

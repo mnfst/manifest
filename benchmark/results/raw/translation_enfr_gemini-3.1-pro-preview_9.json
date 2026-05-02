@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "**French translation:**\n\nPour sa part, le deuxi\u00e8me atelier a port\u00e9 sur la mise en \u0153uvre des recommandations adress\u00e9es \u00e0 l'\u00c9tat du Cameroun par les organes de supervision des organes de trait\u00e9s, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, concernant ses obligations \u00e0 l'\u00e9gard des populations autochtones. \n\n*Note on terminology:* \n*   *\u00ab A port\u00e9 sur \u00bb* is the standard administrative French equivalent for a workshop/meeting that \"focused on\" a topic.\n*   *\u00ab Adress\u00e9es \u00e0 \u00bb* (addressed to) or *\u00ab formul\u00e9es \u00e0 l'endroit de \u00bb* flows much better in French diplomatic phrasing than a literal translation of \"made to\". \n*   *\u00ab Populations autochtones \u00bb* is the official UN terminology for \"indigenous populations/peoples\".",
+  "score": 4,
+  "cost": 0.0026,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 163
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Katelyn initially saw 50 fairies. After twenty minutes, her friend observed half as many fairies as Katelyn originally saw (50), which is 25 fairies, joining the existing group. This brings the total to 50 + 25 = 75 fairies. Ten minutes later, 30 fairies flew away, reducing the total to 75 - 30 = 45.\n\nANSWER: 45",
+  "score": 5,
+  "cost": 6.335000000000001e-05,
+  "expected": "45",
+  "tokens": {
+    "input": 121,
+    "output": 1146
+  }
+}

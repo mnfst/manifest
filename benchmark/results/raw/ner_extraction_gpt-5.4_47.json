@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "{\"persons\":[\"Alain Aspect\"],\"organizations\":[\"The Nobel Prize in Physics\",\"Universite Paris-Saclay\"],\"locations\":[\"Stockholm\"]}",
+  "score": 4,
+  "cost": 0.000412,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 33
+  }
+}

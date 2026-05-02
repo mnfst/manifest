@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "To find out how much money John has leftover, we need to follow these steps:\n\nStep 1: Calculate the total amount of the loan John received.\nJohn's house is worth $250,000, and he gets a loan for 40% of that value. \nLoan amount = $250,000 * 0.40 = $100,000\n\nStep 2: Calculate how much of the loan he used to pay off his debts.\nHe uses 60% of the $100,000 loan to pay off his debts.\nDebt payment = $100,000 * 0.60 = $60,000\n\nStep 3: Calculate the leftover money.\nSubtract the amount he paid towards his debts from the total loan amount.\nLeftover money = $100,000 - $60,000 = $40,000\n\n*(Alternatively, since he used 60% of the loan for debts, he has 40% of the loan leftover. $100,000 * 0.40 = $40,000)*\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.0043525,
+  "expected": "40,000",
+  "tokens": {
+    "input": 103,
+    "output": 273
+  }
+}

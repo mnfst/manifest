@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "extraction_hard_v2",
   "case": 34,
-  "response": "{\"event_id\": \"us7000jk2q\", \"magnitude\": 6.4, \"magnitude_type\": \"Mw\", \"time_utc\": \"2024-03-15 08:23:15 UTC\", \"location\": {\"lat\": 37.42, \"lon\": 141.03, \"description\": \"off coast of Fukushima, Japan\"}, \"depth_km\": 32, \"tsunami\": {\"advisory\": true, \"status\": \"later cancelled\"}, \"intensity\": [{\"location\": \"Iwaki\", \"mmi\": \"VI\", \"description\": \"Strong\"}, {\"location\": \"Sendai\", \"mmi\": \"V\", \"description\": \"Moderate\"}], \"felt_reports\": 2847, \"nearby_cities\": [{\"name\": \"Iwaki\", \"distance_km\": 68}, {\"name\": \"Sendai\", \"distance_km\": 142}, {\"name\": \"Tokyo\", \"distance_km\": 287}]}",
-  "score": 0,
-  "cost": 0.0034540000000000005,
+  "response": "```json\n{\n  \"event_id\": \"us7000jk2q\",\n  \"magnitude\": 6.4,\n  \"magnitude_type\": \"Mw\",\n  \"time_utc\": \"2024-03-15 08:23:15 UTC\",\n  \"location\": {\n    \"lat\": 37.42,\n    \"lon\": 141.03,\n    \"description\": \"off coast of Fukushima, Japan\"\n  },\n  \"depth_km\": 32,\n  \"tsunami\": {\n    \"advisory\": true,\n    \"status\": \"issued, later cancelled\"\n  },\n  \"intensity\": [\n    {\n      \"location\": \"Iwaki\",\n      \"mmi\": \"VI\",\n      \"description\": \"Strong\"\n    },\n    {\n      \"location\": \"Sendai\",\n      \"mmi\": \"V\",\n      \"description\": \"Moderate\"\n    }\n  ],\n  \"felt_reports\": 2847,\n  \"nearby_cities\": [\n    {\n      \"name\": \"Iwaki\",\n      \"distance_km\": 68\n    },\n    {\n      \"name\": \"Sendai\",\n      \"distance_km\": 142\n    },\n    {\n      \"name\": \"Tokyo\",\n      \"distance_km\": 287\n    }\n  ]\n}\n```",
+  "score": 5,
+  "cost": 0.0026004000000000005,
   "expected": "",
   "tokens": {
     "input": 308,
-    "output": 708
+    "output": 514
   }
 }

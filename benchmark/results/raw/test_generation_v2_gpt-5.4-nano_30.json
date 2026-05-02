@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "```python\n# test_snake_to_camel.py\nimport pytest\n\nfrom your_module import snake_to_camel\n\n\n@pytest.mark.parametrize(\n    \"inp, expected\",\n    [\n        (\"\", \"\"),  # empty string\n        (\"already_camel\", \"alreadyCamel\"),  # no underscores; treated as single part\n        (\"simple_test\", \"simpleTest\"),\n        (\"two_parts\", \"twoParts\"),\n        (\"leading_under_score\", \"leadingUnderScore\"),\n        (\"trailing_under_score_\", \"trailingUnderScore\"),  # trailing underscore => last part empty\n        (\"multiple___underscores\", \"multipleUnderscores\"),  # consecutive underscores => empty parts removed by capitalize()\n        (\"__starts_with_two\", \"StartsWithTwo\"),  # leading empty parts; first part empty => CamelCase starts immediately\n        (\"ends_with__double__\", \"endsWithDouble\"),  # trailing consecutive underscores produce empty parts\n    ],\n)\ndef test_snake_to_camel_happy_paths_and_edge_cases(inp, expected):\n    assert snake_to_camel(inp) == expected\n\n\ndef test_snake_to_camel_type_error_for_non_string():\n    with pytest.raises(AttributeError):\n        # Non-string has no .split attribute (e.g., None)\n        snake_to_camel(None)  # type: ignore[arg-type]\n\n\n@pytest.mark.parametrize(\"inp\", [123, 45.6, True, [], {}, object()])\ndef test_snake_to_camel_error_for_non_string_types(inp):\n    # For numbers/bools/lists/dicts/objects, .split will fail (AttributeError).\n    with pytest.raises(AttributeError):\n        snake_to_camel(inp)  # type: ignore[arg-type]\n```",
+  "score": 5,
+  "cost": 0.0001471,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 350
+  }
+}

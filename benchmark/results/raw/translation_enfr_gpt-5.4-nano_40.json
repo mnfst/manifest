@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Nous devons simplement obtenir plus d\u2019informations.",
+  "score": 4,
+  "cost": 7.600000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 11
+  }
+}

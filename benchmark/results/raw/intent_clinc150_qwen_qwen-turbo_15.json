@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "intent_clinc150",
+  "case": 15,
+  "response": "share_location",
+  "score": 5,
+  "cost": 1.6962e-05,
+  "expected": "share_location",
+  "tokens": {
+    "input": 512,
+    "output": 2
+  }
+}

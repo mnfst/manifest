@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 44,
+  "response": "Here's an example of how you can write unit tests for the `compose` function using pytest:\n\n```python\nimport pytest\nfrom your_module import compose  # replace 'your_module' with the actual name of the module where the compose function is defined\n\ndef test_compose_happy_path():\n    # Define some example functions\n    def double(x):\n        return x * 2\n\n    def add_one(x):\n        return x + 1\n\n    def square(x):\n        return x ** 2\n\n    # Compose the functions\n    composed = compose(double, add_one, square)\n\n    # Test the composed function\n    assert composed(2) == 9\n\ndef test_compose_happy_path_with_multiple_functions():\n    # Define some example functions\n    def double(x):\n        return x * 2\n\n    def add_one(x):\n        return x + 1\n\n    def square(x):\n        return x ** 2\n\n    def cube(x):\n        return x ** 3\n\n    # Compose the functions\n    composed = compose(double, add_one, square, cube)\n\n    # Test the composed function\n    assert composed(2) == 216\n\ndef test_compose_edge_case_empty_list():\n    # Test that an empty list of functions does not raise an error\n    with pytest.raises(ValueError):\n        compose()\n\ndef test_compose_edge_case_single_function():\n    # Test that a list with a single function does not raise an error\n    composed = compose(double)\n    assert composed(2) == 4\n\ndef test_compose_edge_case_non_function_input():\n    # Test that passing a non-function input raises a TypeError\n    with pytest.raises(TypeError):\n        compose(5)(2)\n\ndef test_compose_edge_case_non_callable_input():\n    # Test that passing a non-callable input raises a TypeError\n    with pytest.raises(TypeError):\n        compose(double, 'hello')(2)\n\ndef test_compose_edge_case_non_list_input():\n    # Test that passing a non-list input raises a TypeError\n    with pytest.raises(TypeError):\n        compose(2, 3, 4)\n```\n\nNote that the `compose` function does not currently handle the case where the input is an empty list, so we test that it raises a `ValueError` in this case. We also test that it raises a `TypeError` when the input is not a list of functions, or when the input list contains non-callable items. \n\nYou may want to add additional tests to cover other edge cases, such as passing a list with duplicate functions or passing a list with functions that do not take any arguments.",
+  "score": 4,
+  "cost": 3.1008e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 537
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Customer Success had a strong Q1, with NPS rising to 62, CSAT at 4.3/5, and churn dropping to 1.2%, while three enterprise expansions totaling $800K are in the pipeline. The team should prioritize addressing the top feature requests\u2014SSO, custom dashboards, and API rate limit increases\u2014to continue driving growth and retention.",
+  "score": 5,
+  "cost": 0.001677,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 86
+  }
+}

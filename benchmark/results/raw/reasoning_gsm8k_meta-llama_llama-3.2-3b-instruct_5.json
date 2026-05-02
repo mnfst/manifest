@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "To solve this problem, let's break it down step by step.\n\nInitially, Katelyn saw 50 fairies flying above the forest.\n\nAfter 20 minutes, one of her friends saw half as many fairies as Katelyn saw come from the east and join the fairies that were there. This means that 50 / 2 = 25 fairies flew in from the east.\n\nSo, the total number of fairies now is 50 (initial fairies) + 25 (new fairies) = 75 fairies.\n\nTen minutes later, 30 fairies flew away. To find the number of fairies remaining, we need to subtract 30 from the total number of fairies.\n\n75 (total fairies) - 30 (fairies that flew away) = 45\n\nTherefore, the number of fairies remaining is 45.\n\nANSWER: 45",
+  "score": 5,
+  "cost": 1.5606e-05,
+  "expected": "45",
+  "tokens": {
+    "input": 122,
+    "output": 184
+  }
+}

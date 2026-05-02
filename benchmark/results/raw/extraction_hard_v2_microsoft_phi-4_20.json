@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "extraction_hard_v2",
+  "case": 20,
+  "response": "```json\n{\n  \"invoice_number\": \"INV-20-24-08-47\",\n  \"date\": \"2024-03-15\",\n  \"vendor\": \"Johnson & Sons LLC\",\n  \"items\": [\n    {\n      \"description\": \"USB-C Cable (premium)\",\n      \"quantity\": 5,\n      \"unit_price\": 12.99\n    },\n    {\n      \"description\": \"Office Chair, ergonomic mesh\",\n      \"quantity\": 2,\n      \"unit_price\": 349.99\n    },\n    {\n      \"description\": \"Printer paper (A4)\",\n      \"quantity\": 1,\n      \"unit_price\": 45.50\n    }\n  ],\n  \"total\": 892.43,\n  \"currency\": \"USD\"\n}\n```",
+  "score": 4,
+  "cost": 2.3789999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 202,
+    "output": 164
+  }
+}

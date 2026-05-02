@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "SELECT\n  s.title\nFROM tvshow.show s\nJOIN tvshow.director d\n  ON d.id = s.director_id\nWHERE d.name = 'Ben Jones'\n  AND s.type = 'cartoon';",
+  "score": 5,
+  "cost": 2.6300000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 49
+  }
+}

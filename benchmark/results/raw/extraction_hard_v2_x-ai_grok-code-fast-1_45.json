@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "extraction_hard_v2",
+  "case": 45,
+  "response": "{\"passenger\": {\"name\": \"Maria Gonzalez\", \"title\": \"Dr.\"}, \"booking_ref\": \"XKJP42\", \"flight\": {\"number\": \"UA 872\", \"airline\": \"UA\", \"origin\": \"SFO\", \"destination\": \"NRT\", \"departure\": \"2024-06-15 11:40 AM PDT\", \"arrival\": \"2024-06-16 3:20 PM JST\"}, \"seat\": {\"number\": \"12A\", \"class\": \"Business\"}, \"extras\": {\"baggage\": \"2 checked bags included\", \"meal\": \"Vegetarian pre-ordered\", \"ff_status\": \"UA Gold\", \"ff_number\": \"MP2847291\"}}",
+  "score": 5,
+  "cost": 0.000625,
+  "expected": "",
+  "tokens": {
+    "input": 417,
+    "output": 677
+  }
+}

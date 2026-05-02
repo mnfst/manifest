@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "```python\nimport pytest\n\nfrom your_module import gcd\n\n\nclass TestGCD:\n    def test_gcd_of_two_positive_numbers(self):\n        assert gcd(48, 18) == 6\n\n    def test_gcd_when_one_number_divides_the_other(self):\n        assert gcd(20, 5) == 5\n\n    def test_gcd_of_coprime_numbers(self):\n        assert gcd(17, 13) == 1\n\n    def test_gcd_with_zero_and_positive_number(self):\n        assert gcd(0, 7) == 7\n        assert gcd(7, 0) == 7\n\n    def test_gcd_with_both_zeros(self):\n        assert gcd(0, 0) == 0\n\n    def test_gcd_with_negative_numbers(self):\n        assert gcd(-48, 18) == 6\n        assert gcd(48, -18) == 6\n        assert gcd(-48, -18) == 6\n\n    def test_gcd_with_equal_numbers(self):\n        assert gcd(9, 9) == 9\n\n    @pytest.mark.parametrize(\n        \"a,b,expected\",\n        [\n            (1, 1, 1),\n            (100, 10, 10),\n            (270, 192, 6),\n            (-270, 192, 6),\n            (192, -270, 6),\n            (-270, -192, 6),\n        ],\n    )\n    def test_gcd_parametrized_cases(self, a, b, expected):\n        assert gcd(a, b) == expected\n\n    @pytest.mark.parametrize(\"a,b\", [(\"10\", 5), (10, \"5\"), (None, 5), (10, None)])\n    def test_gcd_invalid_types_raise_type_error(self, a, b):\n        with pytest.raises(TypeError):\n            gcd(a, b)\n```\n\nNotes:\n- Replace `from your_module import gcd` with the actual module import.\n- These tests cover:\n  - happy path\n  - zero handling\n  - negative inputs\n  - equal values\n  - coprime values\n  - invalid type errors",
+  "score": 5,
+  "cost": 0.003772,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 455
+  }
+}

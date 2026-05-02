@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The first month of the bug bounty program yielded 47 reports, including 12 valid findings and 3 critical issues, with $15K in payouts and all critical bugs patched within 24 hours. Security reports strong ROI and recommends continuing the program.",
+  "score": 5,
+  "cost": 0.00224,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 84
+  }
+}

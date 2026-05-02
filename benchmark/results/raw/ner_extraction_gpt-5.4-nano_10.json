@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 10,
+  "response": "{\n  \"persons\": [\"Jennifer Lopez\", \"Ben Affleck\"],\n  \"organizations\": [],\n  \"locations\": [\"Beverly Hills\"]\n}",
+  "score": 5,
+  "cost": 2.0300000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 33
+  }
+}

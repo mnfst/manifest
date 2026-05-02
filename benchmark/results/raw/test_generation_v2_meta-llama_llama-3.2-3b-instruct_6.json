@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "Here's an example of how you can write unit tests for the `reverse_words` function using pytest:\n\n```python\nimport pytest\n\ndef test_reverse_words_happy_path():\n    \"\"\"Test that the function reverses the order of words correctly.\"\"\"\n    assert reverse_words(\"Hello World\") == \"World Hello\"\n    assert reverse_words(\"This is a test\") == \"test a is This\"\n\ndef test_reverse_words_empty_string():\n    \"\"\"Test that the function handles an empty string correctly.\"\"\"\n    assert reverse_words(\"\") == \"\"\n\ndef test_reverse_words_single_word():\n    \"\"\"Test that the function handles a single word correctly.\"\"\"\n    assert reverse_words(\"Hello\") == \"Hello\"\n\ndef test_reverse_words_multiple_spaces():\n    \"\"\"Test that the function handles multiple spaces between words correctly.\"\"\"\n    assert reverse_words(\"Hello   World\") == \"World Hello\"\n\ndef test_reverse_words_multiple_consecutive_spaces():\n    \"\"\"Test that the function handles multiple consecutive spaces correctly.\"\"\"\n    assert reverse_words(\"   Hello   World  \") == \"World Hello\"\n\ndef test_reverse_words_non_string_input():\n    \"\"\"Test that the function raises a TypeError for non-string input.\"\"\"\n    with pytest.raises(TypeError):\n        reverse_words(123)\n\ndef test_reverse_words_none_input():\n    \"\"\"Test that the function raises a TypeError for None input.\"\"\"\n    with pytest.raises(TypeError):\n        reverse_words(None)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Reversing a string with multiple words\n* Edge case: Empty string\n* Edge case: Single word\n* Edge case: Multiple spaces between words\n* Edge case: Multiple consecutive spaces\n* Error case: Non-string input\n* Error case: None input\n\nNote that the `pytest.raises` context manager is used to test that the function raises a `TypeError` for non-string input and `None`.",
+  "score": 5,
+  "cost": 2.1828e-05,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 369
+  }
+}

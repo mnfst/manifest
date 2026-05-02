@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Let me solve this step by step.\n\n**Initial cards:** 20\n\n**First month:** She collected three times her initial number\n- 3 \u00d7 20 = 60 cards\n\n**Second month:** She collected 20 fewer than the first month\n- 60 - 20 = 40 cards\n\n**Third month:** She collected twice the combined number from first and second months\n- Combined from first and second months: 60 + 40 = 100\n- Third month: 2 \u00d7 100 = 200 cards\n\n**Total:**\n- Initial + First + Second + Third\n- 20 + 60 + 40 + 200 = 320 cards\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.002856,
+  "expected": "320",
+  "tokens": {
+    "input": 122,
+    "output": 166
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "moderation_toxigen",
+  "case": 20,
+  "response": "Toxic",
+  "score": 0,
+  "cost": 1.809e-06,
+  "expected": "safe",
+  "tokens": {
+    "input": 64,
+    "output": 3
+  }
+}

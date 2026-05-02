@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Source : examplereferenceletter.com",
+  "score": 5,
+  "cost": 1.551e-06,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 8
+  }
+}

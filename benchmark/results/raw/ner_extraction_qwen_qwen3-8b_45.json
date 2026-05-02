@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "ner_extraction",
+  "case": 45,
+  "response": "{\"persons\": [\"Leonardo da Vinci\"], \"organizations\": [\"Louvre Museum\", \"Royal Collection\"], \"locations\": [\"Paris\"]}",
+  "score": 5,
+  "cost": 2.1550000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 356
+  }
+}

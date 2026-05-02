@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 39,
+  "response": "{\n  \"persons\": [\n    \"Anthropic\",\n    \"Dario Amodei\"\n  ],\n  \"organizations\": [],\n  \"locations\": [\n    \"Aspen Ideas Festival\",\n    \"Colorado\"\n  ]\n}",
+  "score": 2,
+  "cost": 2.6800000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 48
+  }
+}

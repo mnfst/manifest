@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "extraction_hard_v2",
+  "case": 46,
+  "response": "{\n  \"patient_id\": \"PT-20240315-089\",\n  \"collected\": \"03/15/2024 08:30\",\n  \"physician\": \"Dr. R. Patel\",\n  \"results\": [\n    {\n      \"test\": \"WBC\",\n      \"value\": 7.2,\n      \"unit\": \"x10^9/L\",\n      \"normal_range\": \"4.5-11.0\",\n      \"flag\": \"\"\n    },\n    {\n      \"test\": \"RBC\",\n      \"value\": 4.8,\n      \"unit\": \"x10^12/L\",\n      \"normal_range\": \"4.7-6.1\",\n      \"flag\": \"\"\n    },\n    {\n      \"test\": \"Hemoglobin\",\n      \"value\": 14.2,\n      \"unit\": \"g/dL\",\n      \"normal_range\": \"14.0-18.0\",\n      \"flag\": \"\"\n    },\n    {\n      \"test\": \"Platelets\",\n      \"value\": 245,\n      \"unit\": \"x10^9/L\",\n      \"normal_range\": \"150-400\",\n      \"flag\": \"\"\n    },\n    {\n      \"test\": \"Glucose\",\n      \"value\": 128,\n      \"unit\": \"mg/dL\",\n      \"normal_range\": \"70-100\",\n      \"flag\": \"HIGH\"\n    },\n    {\n      \"test\": \"Creatinine\",\n      \"value\": 0.9,\n      \"unit\": \"mg/dL\",\n      \"normal_range\": \"0.7-1.3\",\n      \"flag\": \"\"\n    },\n    {\n      \"test\": \"eGFR\",\n      \"value\": 95,\n      \"unit\": \"mL/min\",\n      \"normal_range\": \">60\",\n      \"flag\": \"\"\n    }\n  ]\n}",
+  "score": 5,
+  "cost": 0.00799,
+  "expected": "",
+  "tokens": {
+    "input": 310,
+    "output": 481
+  }
+}

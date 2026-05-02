@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "SELECT c.makeid,\n       c.makename\nFROM car_1.cars AS c\nWHERE c.horsepower > (\n        SELECT MIN(c2.horsepower)\n        FROM car_1.cars AS c2\n      )\n  AND c.cylinders <= 3;",
+  "score": 5,
+  "cost": 3.3600000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 62
+  }
+}

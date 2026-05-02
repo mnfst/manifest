@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 31,
+  "response": "```json\n{\n  \"name\": \"archive_emails\",\n  \"arguments\": {\n    \"folder\": \"inbox\",\n    \"older_than_days\": 182\n  }\n}\n```",
+  "score": 5,
+  "cost": 8.45e-06,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 38
+  }
+}

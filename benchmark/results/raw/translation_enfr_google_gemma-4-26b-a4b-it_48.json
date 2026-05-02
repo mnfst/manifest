@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 48,
+  "response": "Voici une proposition de traduction qui conserve le ton promotionnel et fluide du texte original :\n\n\u00ab Choisissez l'un de ces mod\u00e8les Renault \u00e0 louer \u00e0 Galati ou dans d'autres villes telles qu'Arad, Timisoara, Sibiu, Oradea, Brasov, Bucarest, Iasi ou Suceava, et vous atteindrez votre destination en un rien de temps. De plus, vous ferez de nombreuses \u00e9conomies que vous pourrez consacrer \u00e0 autre chose. \u00bb",
+  "score": 5,
+  "cost": 1.248e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 103
+  }
+}

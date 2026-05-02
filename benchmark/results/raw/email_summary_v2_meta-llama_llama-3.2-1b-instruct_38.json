@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe bug bounty program has received 47 reports, with 12 valid ones, resulting in a total payout of $15,000. The program's results show a strong ROI, and the security team recommends continuing the program to continue finding and patching vulnerabilities.",
+  "score": 4,
+  "cost": 4.833e-06,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 65
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT n.name\nFROM nations n\nWHERE n.code IN (\n    SELECT c.country_code\n    FROM languages c\n    WHERE c.language = 'English'\n) AND n.code IN (\n    SELECT c.country_code\n    FROM languages c\n    WHERE c.language = 'French'\n);",
+  "score": 5,
+  "cost": 4.455e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 58
+  }
+}

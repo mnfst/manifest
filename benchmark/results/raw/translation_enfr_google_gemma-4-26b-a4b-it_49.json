@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "Depending on the desired level of formality, here are two ways to translate this:\n\n**Option 1: Natural/Standard (Best for most contexts)**\n> \u00ab J'ai des g\u00e2teaux \u00e0 la cr\u00e8me, des confiseries, du hareng saumure et des dattes cristallis\u00e9es. \u00bb\n\n**Option 2: Slightly more formal/Literary**\n> \u00ab Je dispose de g\u00e2teaux \u00e0 la cr\u00e8me, de douceurs sucr\u00e9es, de hareng marin\u00e9 et de dattes cristallis\u00e9es. \u00bb\n\n**Key Translation Choices:**\n*   **Cream cakes:** *G\u00e2teaux \u00e0 la cr\u00e8me* is the direct equivalent.\n*   **Sweet meats:** This is an archaic English term for sugary confections. In French, *confiseries* (confectionery) or *douceurs sucr\u00e9es* (sweet treats) captures the meaning best.\n*   **Pickled herring:** *Hareng saumure* (brined) or *hareng marin\u00e9* (marinated) are the standard culinary terms.\n*   **Crystallized dates:** *Dattes cristallis\u00e9es* is the exact culinary term.",
+  "score": 5,
+  "cost": 1.7160000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 236
+  }
+}

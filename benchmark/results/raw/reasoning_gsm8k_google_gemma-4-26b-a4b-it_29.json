@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "To solve for the number of yellow cars, we need to determine the number of cars of each other color first.\n\n1.  **Identify the number of red cars:**\n    The problem states there are 12 red cars.\n    Red cars = 12\n\n2.  **Calculate the number of green cars:**\n    The problem states there are 2 fewer green cars than red cars.\n    Green cars = Red cars - 2\n    Green cars = 12 - 2 = 10\n\n3.  **Calculate the number of blue cars:**\n    The problem states there are 3 times as many blue cars as green cars.\n    Blue cars = 3 \u00d7 Green cars\n    Blue cars = 3 \u00d7 10 = 30\n\n4.  **Calculate the total number of red, green, and blue cars:**\n    Total (Red + Green + Blue) = 12 + 10 + 30\n    Total (Red + Green + Blue) = 52\n\n5.  **Calculate the number of yellow cars:**\n    The problem states the total number of cars in the rink is 75. The yellow cars are the remaining cars.\n    Yellow cars = Total cars - (Red + Green + Blue)\n    Yellow cars = 75 - 52\n    Yellow cars = 23\n\nFinal check:\nRed (12) + Green (10) + Blue (30) + Yellow (23) = 75.\nThe math is correct.\n\nANSWER: 23",
+  "score": 5,
+  "cost": 2.7119999999999998e-05,
+  "expected": "23",
+  "tokens": {
+    "input": 115,
+    "output": 337
+  }
+}

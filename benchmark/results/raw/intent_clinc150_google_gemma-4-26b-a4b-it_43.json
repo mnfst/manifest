@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "intent_clinc150",
+  "case": 43,
+  "response": "book_flight",
+  "score": 5,
+  "cost": 3.858e-05,
+  "expected": "book_flight",
+  "tokens": {
+    "input": 639,
+    "output": 4
+  }
+}

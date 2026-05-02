@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 42,
+  "response": "Ce premier recensement a \u00e9t\u00e9 effectu\u00e9 pendant la gouvernance de Quirinus en Syrie. Chacun devait \u00eatre inscrit dans sa propre ville. Ainsi, chacun s'est dirig\u00e9 vers sa propre ville ; Joseph a \u00e9galement quitt\u00e9 Nazareth de Galil\u00e9e. Puisqu'il appartenait \u00e0 la famille de David, descendant de lui, il est all\u00e9 \u00e0 J\u00e9rusalem, \u00e0 la ville de David, pour \u00eatre inscrit avec Marie, sa femme, qui \u00e9tait enceinte.",
+  "score": 3,
+  "cost": 1.1424e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 111
+  }
+}

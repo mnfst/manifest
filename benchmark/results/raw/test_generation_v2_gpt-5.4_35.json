@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 35,
+  "response": "```python\nimport pytest\n\n\nfrom your_module import lru_cache\n\n\ndef test_happy_path_put_and_get():\n    get, put = lru_cache(2)\n\n    put(\"a\", 1)\n    put(\"b\", 2)\n\n    assert get(\"a\") == 1\n    assert get(\"b\") == 2\n\n\ndef test_get_missing_key_returns_minus_one():\n    get, put = lru_cache(2)\n\n    assert get(\"missing\") == -1\n\n\ndef test_eviction_removes_least_recently_used_item():\n    get, put = lru_cache(2)\n\n    put(\"a\", 1)\n    put(\"b\", 2)\n    put(\"c\", 3)\n\n    assert get(\"a\") == -1\n    assert get(\"b\") == 2\n    assert get(\"c\") == 3\n\n\ndef test_get_marks_item_as_recently_used():\n    get, put = lru_cache(2)\n\n    put(\"a\", 1)\n    put(\"b\", 2)\n\n    assert get(\"a\") == 1  # \"a\" becomes most recently used\n    put(\"c\", 3)           # should evict \"b\"\n\n    assert get(\"a\") == 1\n    assert get(\"b\") == -1\n    assert get(\"c\") == 3\n\n\ndef test_put_existing_key_updates_value_and_recency():\n    get, put = lru_cache(2)\n\n    put(\"a\", 1)\n    put(\"b\", 2)\n    put(\"a\", 10)  # update existing and mark recent\n    put(\"c\", 3)   # should evict \"b\"\n\n    assert get(\"a\") == 10\n    assert get(\"b\") == -1\n    assert get(\"c\") == 3\n\n\ndef test_capacity_one_keeps_only_most_recent_item():\n    get, put = lru_cache(1)\n\n    put(\"a\", 1)\n    assert get(\"a\") == 1\n\n    put(\"b\", 2)\n    assert get(\"a\") == -1\n    assert get(\"b\") == 2\n\n\ndef test_capacity_zero_never_stores_items():\n    get, put = lru_cache(0)\n\n    put(\"a\", 1)\n\n    assert get(\"a\") == -1\n\n    put(\"b\", 2)\n    assert get(\"b\") == -1\n\n\ndef test_negative_capacity_raises_on_put():\n    get, put = lru_cache(-1)\n\n    with pytest.raises(KeyError):\n        put(\"a\", 1)\n\n\n@pytest.mark.parametrize(\n    \"key,value\",\n    [\n        (None, \"x\"),\n        (1, \"int-key\"),\n        ((1, 2), \"tuple-key\"),\n    ],\n)\ndef test_supports_various_hashable_key_types(key, value):\n    get, put = lru_cache(3)\n\n    put(key, value)\n\n    assert get(key) == value\n\n\ndef test_multiple_gets_preserve_value_and_recency():\n    get, put = lru_cache(2)\n\n    put(\"a\", 1)\n    put(\"b\", 2)\n\n    assert get(\"a\") == 1\n    assert get(\"a\") == 1\n\n    put(\"c\", 3)  # should evict \"b\"\n\n    assert get(\"a\") == 1\n    assert get(\"b\") == -1\n    assert get(\"c\") == 3\n```\n\nReplace `from your_module import lru_cache` with the actual module path.",
+  "score": 5,
+  "cost": 0.00623,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 746
+  }
+}

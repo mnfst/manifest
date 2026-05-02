@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les caniveaux capables de g\u00e9rer les \u00e9v\u00e9nements de crue postul\u00e9s sont int\u00e9gr\u00e9s soit dans les structures de barrage, soit construits en tant que structures s\u00e9par\u00e9es.",
+  "score": 4,
+  "cost": 3.625e-05,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 673
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 30,
+  "response": "{\n  \"name\": \"batch_process\",\n  \"arguments\": {\n    \"directory\": \"gallery\",\n    \"operation\": \"generate_thumbnail\",\n    \"params\": {\n      \"width\": 150,\n      \"height\": 150\n    }\n  }\n}",
+  "score": 3,
+  "cost": 0.0013075,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 68
+  }
+}

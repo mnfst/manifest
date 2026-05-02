@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 22,
+  "response": "transfer",
+  "score": 5,
+  "cost": 1.3824e-05,
+  "expected": "transfer",
+  "tokens": {
+    "input": 510,
+    "output": 2
+  }
+}

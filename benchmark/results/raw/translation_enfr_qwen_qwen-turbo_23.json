@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les d\u00e9versoirs capables de g\u00e9rer les \u00e9v\u00e9nements de crue suppos\u00e9s sont int\u00e9gr\u00e9s soit aux structures du barrage, soit construits en tant que structures ind\u00e9pendantes.",
+  "score": 4,
+  "cost": 3.234e-06,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 42
+  }
+}

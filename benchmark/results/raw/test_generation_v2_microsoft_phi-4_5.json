@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "To write unit tests for the `count_vowels` function using the `pytest` framework, we need to consider various scenarios including happy paths, edge cases, and error cases. Here's a set of tests that cover these scenarios:\n\n```python\nimport pytest\n\ndef count_vowels(s: str) -> int:\n    return sum(1 for c in s.lower() if c in 'aeiou')\n\n# Happy path tests\ndef test_count_vowels_happy_path():\n    assert count_vowels(\"Hello World\") == 3\n    assert count_vowels(\"AEIOU\") == 5\n    assert count_vowels(\"Python\") == 1\n    assert count_vowels(\"Programming\") == 3\n\n# Edge cases\ndef test_count_vowels_empty_string():\n    assert count_vowels(\"\") == 0\n\ndef test_count_vowels_no_vowels():\n    assert count_vowels(\"bcdfghjklmnpqrstvwxyz\") == 0\n\ndef test_count_vowels_all_vowels():\n    assert count_vowels(\"aeiou\") == 5\n\ndef test_count_vowels_non_alpha_characters():\n    assert count_vowels(\"12345\") == 0\n    assert count_vowels(\"Hello, World!\") == 3\n    assert count_vowels(\"Python 3.8\") == 1\n\ndef test_count_vowels_case_insensitivity():\n    assert count_vowels(\"HELLO\") == 2\n    assert count_vowels(\"hElLo\") == 2\n\n# Error cases\ndef test_count_vowels_non_string_input():\n    with pytest.raises(TypeError):\n        count_vowels(123)\n\ndef test_count_vowels_none_input():\n    with pytest.raises(TypeError):\n        count_vowels(None)\n\ndef test_count_vowels_string_with_spaces():\n    assert count_vowels(\"a e i o u\") == 5\n\ndef test_count_vowels_string_with_special_characters():\n    assert count_vowels(\"a!e@i#o$u\") == 5\n\ndef test_count_vowels_string_with_numbers():\n    assert count_vowels(\"a1e2i3o4u\") == 5\n\ndef test_count_vowels_string_with_punctuation():\n    assert count_vowels(\"a,e.i;o!u\") == 5\n```\n\n### Explanation:\n\n1. **Happy Path Tests**: These tests cover typical scenarios where the input string contains vowels, consonants, or mixed characters.\n\n2. **Edge Cases**: \n   - Empty strings should return 0.\n   - Strings without vowels should return 0.\n   - Strings with only vowels should return the count of vowels.\n   - Strings with non-alphabetic characters should be handled correctly, ignoring non-vowels.\n\n3. **Error Cases**:\n   - Non-string inputs should raise a `TypeError`. This is tested with integers and `None` inputs.\n   - Strings with spaces, numbers, and special characters are tested to ensure they are handled correctly.\n\nThese tests ensure that the function behaves as expected across a range of inputs and edge cases.",
+  "score": 5,
+  "cost": 4.738500000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 658
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 49,
+  "response": "```json\n{\"name\": \"resize_instance\", \"arguments\": {\"instance_id\": \"app-server-1\", \"new_type\": \"t3.large\"}}\n```",
+  "score": 5,
+  "cost": 9.539999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 40
+  }
+}

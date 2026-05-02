@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 20,
+  "response": "Here is the correct function call for the user request:\n\n```json\n{\"name\": \"git_merge\", \"arguments\": {\"source\": \"feature-auth\", \"target\": \"main\"}}\n```\n\nExplanation:\n\n* `git_merge` is the function name.\n* `source` is the branch to merge into (`feature-auth` in this case).\n* `target` is the branch to merge into (`main` in this case).",
+  "score": 4,
+  "cost": 4.482e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 87
+  }
+}

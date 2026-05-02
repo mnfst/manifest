@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 32,
+  "response": "```python\nimport pytest\n\nfrom your_module import find_missing\n\n\nclass TestFindMissing:\n    def test_happy_path_missing_in_middle(self):\n        assert find_missing([3, 0, 1]) == 2\n\n    def test_happy_path_missing_zero(self):\n        assert find_missing([1, 2, 3]) == 0\n\n    def test_happy_path_missing_n(self):\n        assert find_missing([0, 1, 2]) == 3\n\n    def test_single_element_list_missing_zero(self):\n        assert find_missing([1]) == 0\n\n    def test_single_element_list_missing_one(self):\n        assert find_missing([0]) == 1\n\n    def test_empty_list(self):\n        assert find_missing([]) == 0\n\n    @pytest.mark.parametrize(\n        \"nums, expected\",\n        [\n            ([0, 2], 1),\n            ([4, 2, 1, 0], 3),\n            ([5, 4, 3, 2, 1, 0], 6),\n            ([6, 5, 4, 3, 2, 1, 0], 7),\n            ([2, 3, 1, 0, 5], 4),\n        ],\n    )\n    def test_various_valid_inputs(self, nums, expected):\n        assert find_missing(nums) == expected\n\n    def test_unsorted_input(self):\n        assert find_missing([9, 6, 4, 2, 3, 5, 7, 0, 1]) == 8\n\n    def test_duplicate_values_produces_incorrect_mathematical_result_but_no_error(self):\n        # Function does not validate input; this documents current behavior.\n        assert find_missing([0, 1, 1]) == 4\n\n    def test_negative_value_produces_incorrect_mathematical_result_but_no_error(self):\n        # Function does not validate input; this documents current behavior.\n        assert find_missing([-1, 0, 1]) == 6\n\n    def test_non_integer_values_are_summed_without_validation(self):\n        # Function does not enforce integer-only input; this documents current behavior.\n        assert find_missing([0.0, 1.0, 3.0]) == 2.0\n\n    def test_invalid_type_none_raises_type_error(self):\n        with pytest.raises(TypeError):\n            find_missing(None)\n\n    def test_invalid_element_type_raises_type_error(self):\n        with pytest.raises(TypeError):\n            find_missing([0, 1, \"2\"])\n```\n\nIf you want, I can also provide:\n1. a version with plain test functions instead of a test class, or\n2. a stricter test suite assuming the function should reject invalid inputs.",
+  "score": 5,
+  "cost": 0.004854,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 587
+  }
+}

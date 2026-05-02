@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 31,
+  "response": "```python\nimport pytest\n\nfrom your_module import camel_to_snake\n\n\nclass TestCamelToSnake:\n    def test_converts_simple_camel_case(self):\n        assert camel_to_snake(\"camelCase\") == \"camel_case\"\n\n    def test_converts_pascal_case(self):\n        assert camel_to_snake(\"CamelCase\") == \"camel_case\"\n\n    def test_returns_lowercase_for_single_word(self):\n        assert camel_to_snake(\"Simple\") == \"simple\"\n\n    def test_keeps_snake_case_unchanged_except_lowercasing(self):\n        assert camel_to_snake(\"already_snake_case\") == \"already_snake_case\"\n\n    def test_handles_empty_string(self):\n        assert camel_to_snake(\"\") == \"\"\n\n    def test_handles_single_lowercase_character(self):\n        assert camel_to_snake(\"a\") == \"a\"\n\n    def test_handles_single_uppercase_character(self):\n        assert camel_to_snake(\"A\") == \"a\"\n\n    def test_handles_trailing_acronym_without_splitting_each_letter(self):\n        assert camel_to_snake(\"parseHTTP\") == \"parse_http\"\n\n    def test_does_not_split_consecutive_uppercase_prefix(self):\n        assert camel_to_snake(\"HTTPRequest\") == \"httprequest\"\n\n    def test_handles_numbers_without_inserting_extra_underscores(self):\n        assert camel_to_snake(\"version2Value\") == \"version2value\"\n\n    @pytest.mark.parametrize(\n        \"value\",\n        [None, 123, 4.56, [\"camelCase\"], {\"key\": \"value\"}],\n    )\n    def test_raises_type_error_for_non_string_input(self, value):\n        with pytest.raises(TypeError):\n            camel_to_snake(value)\n```\n\nIf you want, I can also provide:\n- a version using plain test functions instead of a test class\n- a more exhaustive parametrized test suite\n- tests rewritten to match the intended behavior for acronyms like `HTTPRequest -> http_request`",
+  "score": 5,
+  "cost": 0.003386,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 405
+  }
+}

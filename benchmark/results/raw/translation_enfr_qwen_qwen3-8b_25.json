@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 25,
+  "response": "2. Le 21 f\u00e9vrier, le Sous-secr\u00e9taire \u00e0 la Guerre, Jos\u00e9 Asenio, a \u00e9t\u00e9 destitu\u00e9 et peu apr\u00e8s arr\u00eat\u00e9, ainsi que le colonel Villalba, pour la trahison de Malaga.",
+  "score": 5,
+  "cost": 3.125e-05,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 559
+  }
+}

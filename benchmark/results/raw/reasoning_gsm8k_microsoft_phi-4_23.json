@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "To solve this problem, we need to determine the cost per balloon before and after the price increase, and then calculate the total cost for 170 balloons after the price increase.\n\n1. **Determine the original cost per balloon:**\n   - The total cost for 20 balloons was $900.\n   - Therefore, the cost per balloon before the price increase is calculated as follows:\n     \\[\n     \\text{Original cost per balloon} = \\frac{900}{20} = 45 \\text{ dollars per balloon}\n     \\]\n\n2. **Determine the new cost per balloon after the price increase:**\n   - The cost per balloon increased by $20.\n   - Therefore, the new cost per balloon is:\n     \\[\n     \\text{New cost per balloon} = 45 + 20 = 65 \\text{ dollars per balloon}\n     \\]\n\n3. **Calculate the total cost for 170 balloons after the price increase:**\n   - Bentley fills 170 balloons at the new cost per balloon.\n   - The total cost is calculated as follows:\n     \\[\n     \\text{Total cost for 170 balloons} = 170 \\times 65 = 11050 \\text{ dollars}\n     \\]\n\nThus, the final answer is:\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 2.3984999999999998e-05,
+  "expected": "11050",
+  "tokens": {
+    "input": 102,
+    "output": 267
+  }
+}

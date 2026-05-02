@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Janet's total payment includes the cost of materials, construction, and insurance. \n\n1. **Materials Cost**: $500  \n2. **Construction Cost**: $800  \n   - Total before insurance: $500 + $800 = **$1300**  \n3. **Insurance Cost**: 10% of $1300 = 0.10 \u00d7 $1300 = **$130**  \n4. **Total Payment**: $1300 + $130 = **$1430**  \n\nANSWER: 1430",
+  "score": 5,
+  "cost": 4.4e-05,
+  "expected": "1430",
+  "tokens": {
+    "input": 105,
+    "output": 775
+  }
+}

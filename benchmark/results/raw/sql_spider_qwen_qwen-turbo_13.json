@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 13,
+  "response": "SELECT MAX(release_date) AS last_transcript_release_date FROM transcripts;",
+  "score": 5,
+  "cost": 2.9370000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 15
+  }
+}

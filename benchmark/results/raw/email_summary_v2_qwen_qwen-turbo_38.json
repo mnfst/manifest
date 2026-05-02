@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "Summary: The first month of the Bug Bounty Program received 47 reports, 12 of which were valid, with 3 critical issues resolved and $15K paid in rewards. The program shows strong ROI and is recommended to continue.",
+  "score": 5,
+  "cost": 5.577e-06,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 50
+  }
+}

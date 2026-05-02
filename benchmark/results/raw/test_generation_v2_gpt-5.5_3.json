@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "```python\n# test_flatten.py\nimport pytest\n\nfrom your_module import flatten  # replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"input_list, expected\",\n    [\n        ([1, 2, 3], [1, 2, 3]),\n        ([[1, 2], [3, 4]], [1, 2, 3, 4]),\n        ([1, [2, [3, [4]]]], [1, 2, 3, 4]),\n        ([[[[1]]], 2, [[3, 4]], 5], [1, 2, 3, 4, 5]),\n        ([[], [1, 2], [], [[3]], []], [1, 2, 3]),\n        ([[\"a\", [\"b\", \"c\"]], \"d\"], [\"a\", \"b\", \"c\", \"d\"]),\n    ],\n)\ndef test_flatten_happy_paths(input_list, expected):\n    assert flatten(input_list) == expected\n\n\n@pytest.mark.parametrize(\n    \"input_list, expected\",\n    [\n        ([], []),\n        ([[], [[]], [[[]]]], []),\n        ([None, [True, False], [0]], [None, True, False, 0]),\n        ([1, \"abc\", [2, \"def\"]], [1, \"abc\", 2, \"def\"]),\n    ],\n)\ndef test_flatten_edge_cases(input_list, expected):\n    assert flatten(input_list) == expected\n\n\ndef test_flatten_does_not_mutate_original_list():\n    original = [1, [2, [3]], 4]\n    original_copy = [1, [2, [3]], 4]\n\n    result = flatten(original)\n\n    assert result == [1, 2, 3, 4]\n    assert original == original_copy\n\n\ndef test_flatten_preserves_non_list_iterables():\n    input_list = [1, (2, 3), {4, 5}]\n\n    result = flatten(input_list)\n\n    assert result[0] == 1\n    assert result[1] == (2, 3)\n    assert result[2] == {4, 5}\n\n\n@pytest.mark.parametrize(\"invalid_input\", [None, 123, 3.14, object()])\ndef test_flatten_raises_type_error_for_non_iterable_input(invalid_input):\n    with pytest.raises(TypeError):\n        flatten(invalid_input)\n\n\ndef test_flatten_string_input_behaves_as_iterable():\n    assert flatten(\"abc\") == [\"a\", \"b\", \"c\"]\n\n\ndef test_flatten_raises_recursion_error_for_self_referential_list():\n    cyclic = []\n    cyclic.append(cyclic)\n\n    with pytest.raises(RecursionError):\n        flatten(cyclic)\n```",
+  "score": 5,
+  "cost": 0.011238,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 917
+  }
+}

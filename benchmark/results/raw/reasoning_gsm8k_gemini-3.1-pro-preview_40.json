@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "To find out how much Elvis has to save each day in the second half of April, we first need to know the number of days in April. April has 30 days, which means the first half of the month has 15 days and the second half has 15 days.\n\nLet $x$ be the amount he saves each day in the first half of the month. \nSince he wants to save twice as much daily in the second half, the amount he saves each day in the second half will be $2x$.\n\nNow we can set up an equation for his total savings for the month:\n(15 days * $x$) + (15 days * $2x$) = $1125\n\nSimplify and solve for $x$:\n15x + 30x = 1125\n45x = 1125\n\nDivide both sides by 45:\nx = 1125 / 45\nx = 25\n\nSo, Elvis saves $25 each day in the first half of the month. \n\nThe question asks for the daily savings in the second half of the month, which is twice the amount of the first half:\n2 * $25 = $50\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0043525,
+  "expected": "50",
+  "tokens": {
+    "input": 97,
+    "output": 274
+  }
+}

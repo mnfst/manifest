@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let's solve the problem step by step.\n\nLet the number of people who got on the bus at the terminal be $ x $.\n\n1. At the first bus stop, 5 more people got in.  \n   So, the total number of people after the first stop is:  \n   $ x + 5 $\n\n2. At the second bus stop, 7 people got down and 8 more got in.  \n   The number of people after this stop is:  \n   $ (x + 5) - 7 + 8 = x + 6 $\n\n3. We are told that there were a total of 20 people heading to the third stop.  \n   So, we set up the equation:  \n   $ x + 6 = 20 $\n\n4. Solving for $ x $:  \n   $ x = 20 - 6 $  \n   $ x = 14 $\n\nSo, the number of people who got on the bus at the terminal is 14.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 1.0956000000000001e-05,
+  "expected": "14",
+  "tokens": {
+    "input": 117,
+    "output": 215
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 41,
+  "response": "Here's a set of **pytest-style unit tests** for the `hex_to_rgb` function. The tests cover:\n\n- **Happy path**: a valid hex color code.\n- **Edge cases**: hex codes with and without the `#` prefix, and 3-character shorthand.\n- **Error cases**: invalid hex strings (non-hex characters, wrong length).\n\n---\n\n### \u2705 `test_hex_to_rgb.py`\n\n```python\nimport pytest\n\ndef hex_to_rgb(h: str) -> tuple:\n    h = h.lstrip('#')\n    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))\n\n# Test cases\ndef test_hex_to_rgb_happy_path():\n    assert hex_to_rgb(\"#FF5733\") == (255, 87, 51)\n    assert hex_to_rgb(\"FF5733\") == (255, 87, 51)\n\ndef test_hex_to_rgb_short_hand():\n    assert hex_to_rgb(\"#ABC\") == (170, 187, 204)\n    assert hex_to_rgb(\"ABC\") == (170, 187, 204)\n\ndef test_hex_to_rgb_invalid_length():\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"#1234\")  # 4 characters\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"#12345\")  # 5 characters\n\ndef test_hex_to_rgb_invalid_characters():\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"#G12345\")\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"#123XYZ\")\n\ndef test_hex_to_rgb_empty_string():\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"\")\n\ndef test_hex_to_rgb_whitespace():\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"  #FF0000  \")\n```\n\n---\n\n### \ud83d\udd0d Explanation of Test Cases\n\n- **`test_hex_to_rgb_happy_path`**: Tests the function with a standard 6-character hex code.\n- **`test_hex_to_rgb_short_hand`**: Tests 3-character hex codes (shorthand).\n- **`test_hex_to_rgb_invalid_length`**: Ensures that the function raises an error if the hex string is not 3 or 6 characters long.\n- **`test_hex_to_rgb_invalid_characters`**: Ensures that the function raises an error if the hex string has non-hex characters.\n- **`test_hex_to_rgb_empty_string`**: Ensures that an empty string is handled correctly.\n- **`test_hex_to_rgb_whitespace`**: Ensures that whitespace is not allowed.\n\n---\n\n### \u2705 To Run the Tests\n\nInstall `pytest` if you haven't already:\n\n```bash\npip install pytest\n```\n\nRun the tests:\n\n```bash\npytest test_hex_to_rgb.py\n```\n\n---\n\nLet me know if you want to add support for other formats (like `rgb()` or `rgba()`), or if you want to use `unittest` instead of `pytest`.",
+  "score": 5,
+  "cost": 2.3793e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 637
+  }
+}

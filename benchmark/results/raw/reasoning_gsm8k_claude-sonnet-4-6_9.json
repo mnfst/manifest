@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "## Step-by-step Solution\n\n**Find how many crabs Monic has:**\n- Bo has 40 crabs\n- Monic has 4 fewer crabs than Bo\n- Monic = 40 - 4 = **36 crabs**\n\n**Find how many crabs Rani has:**\n- Rani has 10 more crabs than Monic\n- Rani = 36 + 10 = **46 crabs**\n\n**Calculate the total:**\n- Total = Bo + Monic + Rani\n- Total = 40 + 36 + 46 = **122 crabs**\n\nANSWER: 122",
+  "score": 5,
+  "cost": 0.00267,
+  "expected": "122",
+  "tokens": {
+    "input": 90,
+    "output": 160
+  }
+}

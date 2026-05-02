@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 48,
+  "response": "Maria Chen of DataSync proposes a revenue-share partnership where DataSync manages data sync infrastructure and your team integrates their SDK, potentially reducing customer latency by 60% and adding an estimated $2M in annual revenue for each company. Action item: confirm availability for a technical discussion next week.",
+  "score": 5,
+  "cost": 0.00306,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 130
+  }
+}

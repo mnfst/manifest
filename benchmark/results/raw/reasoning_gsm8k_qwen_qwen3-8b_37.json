@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "To determine how many votes candidate C received, we start by analyzing the information provided:\n\n- **Total number of voters**: 100\n- **Candidate A received 20% of the votes**\n- **Candidate B received 50% more votes than Candidate A**\n- **The rest of the votes went to Candidate C**\n\n---\n\n### Step 1: Calculate Candidate A's Votes\n\nCandidate A received 20% of the 100 votes:\n\n$$\n\\text{Votes for A} = 20\\% \\times 100 = 0.20 \\times 100 = 20\n$$\n\n---\n\n### Step 2: Calculate Candidate B's Votes\n\nCandidate B received **50% more** than Candidate A. This means:\n\n$$\n\\text{Votes for B} = \\text{Votes for A} + 50\\% \\times \\text{Votes for A} = 20 + (0.5 \\times 20) = 20 + 10 = 30\n$$\n\n---\n\n### Step 3: Calculate Candidate C's Votes\n\nThe total number of votes is 100. Subtract the votes received by A and B to find the votes for C:\n\n$$\n\\text{Votes for C} = 100 - (\\text{Votes for A} + \\text{Votes for B}) = 100 - (20 + 30) = 100 - 50 = 50\n$$\n\n---\n\n### Final Verification\n\nAdding up all the votes:\n\n$$\n\\text{Votes for A} + \\text{Votes for B} + \\text{Votes for C} = 20 + 30 + 50 = 100\n$$\n\nThis confirms the calculations are consistent with the total number of votes.\n\n---\n\n### Final Answer\n$$\n\\boxed{50}\n$$",
+  "score": 5,
+  "cost": 7.200000000000002e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 103,
+    "output": 1337
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "To find the total amount of money raised, we need to calculate the total number of lollipops sold and then multiply it by the profit per lollipop.\n\nStep 1: Calculate the total number of lollipops sold\nNumber of students = 30\nNumber of lollipops sold per student = 10\nTotal number of lollipops sold = Number of students * Number of lollipops sold per student\nTotal number of lollipops sold = 30 * 10\nTotal number of lollipops sold = 300\n\nStep 2: Calculate the total cost of the lollipops\nCost per lollipop = $0.5\nTotal cost of lollipops = Total number of lollipops sold * Cost per lollipop\nTotal cost of lollipops = 300 * $0.5\nTotal cost of lollipops = $150\n\nStep 3: Calculate the total profit\nProfit per lollipop = Selling price per lollipop - Cost per lollipop\nProfit per lollipop = $0.8 - $0.5\nProfit per lollipop = $0.3\nTotal profit = Total number of lollipops sold * Profit per lollipop\nTotal profit = 300 * $0.3\nTotal profit = $90\n\nANSWER: 90",
+  "score": 5,
+  "cost": 2.0858999999999998e-05,
+  "expected": "90",
+  "tokens": {
+    "input": 127,
+    "output": 282
+  }
+}

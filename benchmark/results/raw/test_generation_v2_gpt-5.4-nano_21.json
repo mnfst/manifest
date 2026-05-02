@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 21,
+  "response": "```python\nimport pytest\n\n# Assuming truncate is imported from the module under test:\n# from your_module import truncate\n\n\nclass TestTruncate:\n    # ---------- Happy path ----------\n    def test_no_truncation_when_string_fits(self):\n        assert truncate(\"hello\", 5) == \"hello\"\n\n    def test_truncation_when_string_exceeds_max_len_default_suffix(self):\n        assert truncate(\"hello world\", 5) == \"h...\"\n\n    def test_truncation_with_custom_suffix(self):\n        assert truncate(\"hello world\", 8, suffix=\"!!!\") == \"hello!!!\"\n\n    # ---------- Edge cases ----------\n    def test_empty_string(self):\n        assert truncate(\"\", 0) == \"\"\n        assert truncate(\"\", 3) == \"\"\n\n    def test_max_len_equals_suffix_length(self):\n        # If max_len == len(suffix), result should be suffix only\n        assert truncate(\"abcdefgh\", 3, suffix=\"...\") == \"...\"\n\n    def test_suffix_longer_than_max_len_results_in_negative_slice(self):\n        # Current implementation allows negative slicing, effectively producing suffix alone.\n        assert truncate(\"longer\", 2, suffix=\".....\") == \".....\"\n\n    def test_suffix_can_be_empty(self):\n        assert truncate(\"abcdef\", 3, suffix=\"\") == \"abc\"\n\n    def test_max_len_zero(self):\n        assert truncate(\"abc\", 0) == \"...\".replace(\".\", \"...\")  # keep intent clear\n        # Exact expected behavior with default suffix:\n        # s[:0-len('...')] => s[:-3] => '' for 'abc'\n        # '' + '...' => '...'\n        assert truncate(\"abc\", 0) == \"...\"\n\n    # ---------- Error cases ----------\n    def test_non_string_input_raises_type_error(self):\n        with pytest.raises(TypeError):\n            truncate(None, 3)  # len(None) -> TypeError\n\n    def test_non_int_max_len_raises_type_error(self):\n        with pytest.raises(TypeError):\n            truncate(\"hello\", \"3\")  # len(s) <= \"3\" -> TypeError\n\n    def test_negative_max_len_behavior(self):\n        # For negative max_len, len(s) <= max_len is False, so it truncates based on slicing.\n        # With default suffix '...': s[:max_len-len(suffix)] + suffix\n        # Example: s=\"hello\"(len=5), max_len=-1 -> -1-3=-4 => s[:-4] = 'h' => 'h...'\n        assert truncate(\"hello\", -1) == \"h...\"\n```",
+  "score": 4,
+  "cost": 0.0002225,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 536
+  }
+}

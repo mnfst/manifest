@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 15,
+  "response": "{\"name\": \"compress_video\", \"arguments\": {\"path\": \"downloads presentation.mp4\", \"target_reduction\": 50.0}}",
+  "score": 4,
+  "cost": 0.0007575,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 32
+  }
+}

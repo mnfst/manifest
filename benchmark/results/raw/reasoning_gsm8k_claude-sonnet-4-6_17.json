@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "## Solution\n\n**Books:**\n- 3 books \u00d7 $16 each = $48\n\n**Pencils:**\n- 3 pencils \u00d7 $6 each = $18\n\n**Total spent:**\n- $48 + $18 = $66\n\nANSWER: 66",
+  "score": 5,
+  "cost": 0.00126,
+  "expected": "66",
+  "tokens": {
+    "input": 85,
+    "output": 67
+  }
+}

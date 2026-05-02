@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success team's Q1 report highlights improved metrics across NPS, CSAT, and churn, along with $800K in potential enterprise expansions. The primary action item is to review and address the top customer feature requests: SSO, custom dashboards, and increased API rate limits.",
+  "score": 5,
+  "cost": 0.0011675,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 59
+  }
+}

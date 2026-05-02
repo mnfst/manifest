@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "moderation_toxigen",
+  "case": 22,
+  "response": "toxic",
+  "score": 5,
+  "cost": 8.400000000000001e-06,
+  "expected": "toxic",
+  "tokens": {
+    "input": 64,
+    "output": 5
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "function_calling",
+  "case": 13,
+  "response": "{\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}}\n{\"name\": \"set_thermostat\", \"arguments\": {\"temperature\": 72, \"mode\": \"auto\"}}",
+  "score": 2,
+  "cost": 1.925e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 284
+  }
+}

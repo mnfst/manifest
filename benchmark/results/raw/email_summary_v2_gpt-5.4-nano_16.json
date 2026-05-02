@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "April\u2019s marketing campaign generated 45K impressions, 2.3K clicks (5.1% CTR), and 187 signups (8.1% conversion) at a $12K cost, resulting in a $64 CAC\u2014showing CTR up 1.2 percentage points versus March but conversion down 0.8 percentage points. Action item: A/B test the landing page CTA to improve conversion rates.",
+  "score": 5,
+  "cost": 4.71e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 89
+  }
+}

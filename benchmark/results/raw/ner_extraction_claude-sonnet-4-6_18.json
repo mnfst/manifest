@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "```json\n{\n  \"persons\": [\"Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"Science\"],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 0.000774,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 37
+  }
+}

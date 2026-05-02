@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 9,
+  "response": "```python\nimport pytest\n\nfrom your_module import max_subarray_sum\n\n\nclass TestMaxSubarraySum:\n    def test_happy_path_mixed_positive_and_negative(self):\n        assert max_subarray_sum([1, -2, 3, 4, -1, 2]) == 8\n\n    def test_single_element_positive(self):\n        assert max_subarray_sum([5]) == 5\n\n    def test_single_element_negative(self):\n        assert max_subarray_sum([-5]) == -5\n\n    def test_all_positive_numbers(self):\n        assert max_subarray_sum([1, 2, 3, 4]) == 10\n\n    def test_all_negative_numbers(self):\n        assert max_subarray_sum([-8, -3, -6, -2, -5, -4]) == -2\n\n    def test_empty_list_returns_zero(self):\n        assert max_subarray_sum([]) == 0\n\n    def test_with_zeros(self):\n        assert max_subarray_sum([0, -1, 0, 3, 0, -2, 0]) == 3\n\n    def test_best_subarray_in_middle(self):\n        assert max_subarray_sum([-2, -3, 4, -1, -2, 1, 5, -3]) == 7\n\n    def test_best_subarray_at_start(self):\n        assert max_subarray_sum([4, 3, -10, 2, 2]) == 7\n\n    def test_best_subarray_at_end(self):\n        assert max_subarray_sum([-5, -1, 2, 3, 4]) == 9\n\n    def test_large_drop_resets_running_sum(self):\n        assert max_subarray_sum([10, -100, 20, 30]) == 50\n\n    def test_all_zeros(self):\n        assert max_subarray_sum([0, 0, 0]) == 0\n\n    def test_invalid_type_none_raises(self):\n        with pytest.raises(TypeError):\n            max_subarray_sum(None)\n\n    def test_invalid_type_non_iterable_raises(self):\n        with pytest.raises(TypeError):\n            max_subarray_sum(123)\n\n    def test_invalid_element_type_raises(self):\n        with pytest.raises(TypeError):\n            max_subarray_sum([1, \"a\", 3])\n```\n\nIf you want, I can also provide:\n- a `@pytest.mark.parametrize` version\n- a version using plain test functions instead of a test class\n- a complete `test_max_subarray_sum.py` file with import paths adjusted",
+  "score": 5,
+  "cost": 0.004518,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 540
+  }
+}

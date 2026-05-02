@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "test_generation_v2",
+  "case": 10,
+  "response": "To test this function effectively, we should use `pytest.mark.parametrize`. This allows us to test multiple inputs against the same logic cleanly, separating the \"Happy Path\" (valid emails), \"Edge Cases\" (tricky but valid/invalid formats), and \"Error Cases\" (invalid types).\n\nHere is the complete test suite:\n\n```python\nimport pytest\nfrom your_module import is_valid_email  # Replace 'your_module' with the actual filename\n\n@pytest.mark.parametrize(\"valid_email\", [\n    \"simple@example.com\",\n    \"very.common@example.com\",\n    \"disposable.style.email.with+symbol@example.com\",\n    \"other.email-with-hyphen@example.com\",\n    \"fully-qualified-domain@example.cluster.local\",\n    \"user.name+tag+sorting@example.com\",\n    \"1234567890@example.com\",\n    \"x@example.com\",\n    \"example-indeed@strange-example.com",
+  "score": 4,
+  "cost": 1.7460000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 214
+  }
+}

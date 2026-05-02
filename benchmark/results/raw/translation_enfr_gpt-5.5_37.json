@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "Le paragraphe 104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu\u2019il s\u2019applique malgr\u00e9 le paragraphe 248(25) de la Loi. Le paragraphe 248(25) de la Loi d\u00e9crit, pour l\u2019application des autres dispositions de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est consid\u00e9r\u00e9e comme ayant un \u00ab droit de b\u00e9n\u00e9ficiaire \u00bb dans une fiducie.",
+  "score": 4,
+  "cost": 0.004854,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 382
+  }
+}

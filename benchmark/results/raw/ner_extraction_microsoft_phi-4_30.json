@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "```json\n{\n  \"persons\": [\"Justin Trudeau\"],\n  \"organizations\": [\"Canadian Prime Minister\", \"General Assembly\", \"United Nations\"],\n  \"locations\": [\"New York\"]\n}\n```",
+  "score": 3,
+  "cost": 7.345000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 40
+  }
+}

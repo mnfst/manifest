@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 45,
+  "response": "```json\n{\"name\": \"grant_access\", \"arguments\": {\"user\": \"bob\", \"resource\": \"analytics database\", \"permission\": \"read\"}}\n```",
+  "score": 5,
+  "cost": 8.580000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 36
+  }
+}

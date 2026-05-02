@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe mobile app's crash rate has increased to 2.3% since its release, exceeding the threshold of 0.5%, and a fix for the issue has been merged into the main codebase. An emergency release is being submitted to the Play Store to address the problem, which is currently affecting Android 12+ users.",
+  "score": 5,
+  "cost": 9.18e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 80
+  }
+}

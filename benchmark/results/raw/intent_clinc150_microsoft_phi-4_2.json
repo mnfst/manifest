@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "intent_clinc150",
+  "case": 2,
+  "response": "report_lost_card",
+  "score": 5,
+  "cost": 4.1534999999999995e-05,
+  "expected": "report_lost_card",
+  "tokens": {
+    "input": 635,
+    "output": 4
+  }
+}

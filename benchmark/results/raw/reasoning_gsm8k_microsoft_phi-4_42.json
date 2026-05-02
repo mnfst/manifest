@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "To solve this problem, we need to determine the total number of children participating in the drill. Here's the step-by-step reasoning:\n\n1. **Number of Children per Row**: Each row consists of 8 children.\n\n2. **Number of Rows per School**: Each school has 7 rows.\n\n3. **Number of Children per School**: \n   - Calculate the total number of children in one school by multiplying the number of children per row by the number of rows per school:\n   \\[\n   8 \\text{ children/row} \\times 7 \\text{ rows/school} = 56 \\text{ children/school}\n   \\]\n\n4. **Number of Schools**: There are 5 schools participating.\n\n5. **Total Number of Children**: \n   - Multiply the number of children per school by the number of schools:\n   \\[\n   56 \\text{ children/school} \\times 5 \\text{ schools} = 280 \\text{ children}\n   \\]\n\nThus, the total number of children participating in the drill is 280.\n\nANSWER: 280",
+  "score": 5,
+  "cost": 2.1125e-05,
+  "expected": "280",
+  "tokens": {
+    "input": 99,
+    "output": 226
+  }
+}

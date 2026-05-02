@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 39,
+  "response": "```json\n{\n  \"persons\": [\"Dario Amodei\"],\n  \"organizations\": [],\n  \"locations\": [\"Aspen\", \"Colorado\"]\n}\n```",
+  "score": 4,
+  "cost": 5.864999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 34
+  }
+}

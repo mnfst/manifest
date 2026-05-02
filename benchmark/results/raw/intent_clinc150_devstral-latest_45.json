@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 45,
+  "response": "accept_reservations",
+  "score": 5,
+  "cost": 5.7400000000000006e-05,
+  "expected": "accept_reservations",
+  "tokens": {
+    "input": 559,
+    "output": 5
+  }
+}

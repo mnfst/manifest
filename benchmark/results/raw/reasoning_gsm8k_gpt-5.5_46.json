@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "Anakin caught:\n\n- 10 starfish\n- 6 sea horses\n- 3 clownfish\n\nTotal for Anakin:\n\n10 + 6 + 3 = 19\n\nLocsin caught:\n\n- 5 fewer starfish than Anakin: 10 - 5 = 5\n- 3 fewer sea horses than Anakin: 6 - 3 = 3\n- 2 more clownfish than Anakin: 3 + 2 = 5\n\nTotal for Locsin:\n\n5 + 3 + 5 = 13\n\nTogether, they caught:\n\n19 + 13 = 32\n\nANSWER: 32",
+  "score": 5,
+  "cost": 0.004353,
+  "expected": "32",
+  "tokens": {
+    "input": 111,
+    "output": 335
+  }
+}

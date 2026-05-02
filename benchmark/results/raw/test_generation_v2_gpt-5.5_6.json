@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "```python\n# test_reverse_words.py\nimport pytest\n\nfrom your_module import reverse_words  # replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"input_s, expected\",\n    [\n        (\"hello world\", \"world hello\"),\n        (\"the quick brown fox\", \"fox brown quick the\"),\n        (\"single\", \"single\"),\n        (\"\", \"\"),\n        (\"   \", \"\"),\n        (\"  hello   world  \", \"world hello\"),\n        (\"hello\\tworld\\npython\", \"python world hello\"),\n        (\"hello, world!\", \"world! hello,\"),\n        (\"\u4f60\u597d \u4e16\u754c\", \"\u4e16\u754c \u4f60\u597d\"),\n        (\"a  b   c\", \"c b a\"),\n    ],\n)\ndef test_reverse_words(input_s, expected):\n    assert reverse_words(input_s) == expected\n\n\ndef test_reverse_words_preserves_words_but_normalizes_whitespace():\n    result = reverse_words(\"  one\\t two\\n\\nthree  \")\n    assert result == \"three two one\"\n    assert \"  \" not in result\n    assert \"\\t\" not in result\n    assert \"\\n\" not in result\n\n\n@pytest.mark.parametrize(\n    \"bad_input, expected_exception\",\n    [\n        (None, AttributeError),\n        (123, AttributeError),\n        ([\"hello\", \"world\"], AttributeError),\n        (b\"hello world\", TypeError),\n    ],\n)\ndef test_reverse_words_invalid_inputs(bad_input, expected_exception):\n    with pytest.raises(expected_exception):\n        reverse_words(bad_input)\n```",
+  "score": 5,
+  "cost": 0.005394,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 436
+  }
+}

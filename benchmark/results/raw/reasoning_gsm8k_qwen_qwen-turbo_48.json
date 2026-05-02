@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Step 1: Jamaal starts with an 8-pound weight.  \nStep 2: He increases the weight by 50%.  \nTo calculate 50% of 8 pounds:  \n$$ 0.50 \\times 8 = 4 $$  \nSo the new weight is:  \n$$ 8 + 4 = 12 $$ pounds.  \n\nStep 3: He then uses a weight that is 2 pounds lighter than 12 pounds.  \n$$ 12 - 2 = 10 $$ pounds.  \n\nFinal Answer:  \nANSWER: 10",
+  "score": 5,
+  "cost": 7.689e-06,
+  "expected": "10",
+  "tokens": {
+    "input": 109,
+    "output": 124
+  }
+}

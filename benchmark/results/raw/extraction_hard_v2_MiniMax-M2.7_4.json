@@ -3,11 +3,11 @@
   "task": "extraction_hard_v2",
   "case": 4,
   "response": "{\"title\":\"Senior Backend Engineer\",\"company\":\"CloudMatrix\",\"location\":{\"city\":\"Austin\",\"remote\":true},\"salary\":{\"min\":165000,\"max\":195000},\"requirements\":{\"min_years\":5,\"skills\":[\"Go\",\"Rust\",\"Kubernetes\",\"event-driven architectures\"]},\"benefits\":[\"unlimited PTO\",\"health/dental/vision\",\"401k match\",\"$3K learning budget\"]}",
-  "score": 0,
-  "cost": 0.0012111000000000001,
+  "score": 4,
+  "cost": 0.0013783000000000003,
   "expected": "",
   "tokens": {
     "input": 177,
-    "output": 231
+    "output": 269
   }
 }

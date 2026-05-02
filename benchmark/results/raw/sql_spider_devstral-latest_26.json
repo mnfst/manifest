@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT COUNT(*)\nFROM flights\nWHERE departure_city = 'Aberdeen'\n  AND destination_city = 'Ashley';\n```",
+  "score": 5,
+  "cost": 1.62e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 29
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "To solve this problem, we need to break it down into steps.\n\nStep 1: First, let's calculate the total cost of half a dozen plates. Since there are 6 plates in a dozen, half a dozen plates would be 3 plates. The cost of 3 plates is 3 x $6000 = $18000.\n\nStep 2: Now, let's calculate the cost of twenty dozen cups. Since there are 12 cups in a dozen, twenty dozen cups would be 20 x 12 = 240 cups. The cost of 240 cups is unknown, so let's call it x.\n\nStep 3: According to the problem, twenty dozen cups cost $1200 less than the total cost of half a dozen plates. We can set up an equation to represent this relationship:\n\nx = $18000 - $1200\n\nStep 4: Simplify the equation:\n\nx = $16800\n\nStep 5: Now that we know the cost of twenty dozen cups, we can calculate the cost of one cup by dividing the total cost by 240:\n\nCost per cup = $16800 / 240\nCost per cup = $70\n\nANSWER: 70",
+  "score": 5,
+  "cost": 1.6625999999999996e-05,
+  "expected": "145",
+  "tokens": {
+    "input": 80,
+    "output": 246
+  }
+}

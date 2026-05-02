@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "{\n  \"persons\": [\"Picasso\", \"Monet\"],\n  \"organizations\": [\"The Metropolitan Museum of Art\", \"New York\"],\n  \"locations\": [\"New York\"]",
+  "score": 4,
+  "cost": 3.105e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 37
+  }
+}

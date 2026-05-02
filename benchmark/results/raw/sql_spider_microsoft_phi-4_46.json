@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT government_form, SUM(population) AS total_population\nFROM world_1\nWHERE life_expectancy > 72\nGROUP BY government_form;\n```",
+  "score": 3,
+  "cost": 8.449999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 35
+  }
+}

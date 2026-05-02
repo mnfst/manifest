@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "travel_to_south_africa",
+  "score": 0,
+  "cost": 1.3905e-05,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 508,
+    "output": 7
+  }
+}

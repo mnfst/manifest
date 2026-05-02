@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 31,
+  "response": "Here's a set of **pytest-style unit tests** for the `camel_to_snake` function. These tests cover:\n\n- **Happy path**: Normal camelCase input.\n- **Edge cases**: Single character, empty string, all lowercase, all uppercase.\n- **Error cases**: Non-string input (e.g., integer, None).\n\n---\n\n### \u2705 `test_camel_to_snake.py`\n\n```python\nimport pytest\nfrom your_module import camel_to_snake  # Replace with the actual module name\n\ndef test_camel_to_snake_happy_path():\n    assert camel_to_snake(\"CamelCase\") == \"camel_case\"\n    assert camel_to_snake(\"CamelCaseWithMore\") == \"camel_case_with_more\"\n    assert camel_to_snake(\"MyVariableName\") == \"my_variable_name\"\n\ndef test_camel_to_snake_edge_cases():\n    assert camel_to_snake(\"\") == \"\"  # Empty string\n    assert camel_to_snake(\"A\") == \"a\"  # Single character\n    assert camel_to_snake(\"a\") == \"a\"  # All lowercase\n    assert camel_to_snake(\"ALLCAPS\") == \"allcaps\"  # All uppercase\n\ndef test_camel_to_snake_error_cases():\n    with pytest.raises(TypeError):\n        camel_to_snake(123)  # Non-string input\n    with pytest.raises(TypeError):\n        camel_to_snake(None)  # None input\n    with pytest.raises(TypeError):\n        camel_to_snake([\"list\"])  # List input\n```\n\n---\n\n### \ud83d\udd27 Notes:\n\n- Replace `your_module` with the actual module name where `camel_to_snake` is defined.\n- Make sure that the `re` module is imported inside the function (as in your code), which is fine.\n- `re.sub(r'(?<=[a-z])(?=[A-Z])', '_', s)` uses a **positive lookahead and lookbehind** to insert an underscore between lowercase and uppercase letters.\n\n---\n\n### \u2705 To Run the Tests:\n\n```bash\npytest test_camel_to_snake.py\n```\n\nLet me know if you want to test it with `unittest` or add more complex cases.",
+  "score": 5,
+  "cost": 1.7556e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 454
+  }
+}

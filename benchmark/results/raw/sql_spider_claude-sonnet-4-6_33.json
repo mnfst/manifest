@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "SELECT title, rating\nFROM episodes\nORDER BY rating DESC\nLIMIT 3;",
+  "score": 5,
+  "cost": 0.00057,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 21
+  }
+}

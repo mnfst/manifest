@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "Recruiting reports that the engineering team has 4 open roles (2 backend, 1 frontend, 1 ML) with 23 candidates in process and 5 in final rounds, but the frontend role has been open for 60 days without strong candidates. The recommended action is to consider expanding the frontend search to remote candidates or adjusting the compensation band.",
+  "score": 5,
+  "cost": 0.0001176,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 74
+  }
+}

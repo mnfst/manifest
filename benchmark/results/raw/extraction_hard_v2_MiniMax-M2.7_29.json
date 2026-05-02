@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "extraction_hard_v2",
   "case": 29,
-  "response": "{\"restaurant\": \"Chez Marcel\", \"reviewer\": \"foodie_jane\", \"date\": \"March 2024\", \"wait_time_min\": 40, \"dishes\": [{\"name\": \"duck confit\", \"rating\": \"incredible\"}, {\"name\": \"creme brulee\", \"rating\": \"just ok\"}], \"wine\": {\"name\": \"Chateau Margaux\", \"year\": 2019}, \"bill_total\": 247, \"party_size\": 2, \"ratings\": {\"food\": 4.5, \"service\": 3.5, \"ambiance\": 4, \"value\": 3, \"overall\": 3.75}, \"would_return\": true}",
-  "score": 0,
-  "cost": 0.0040447,
+  "response": "```json\n{\n  \"restaurant\": \"Chez Marcel\",\n  \"reviewer\": \"@foodie_jane\",\n  \"date\": \"March 2024\",\n  \"wait_time_min\": 40,\n  \"dishes\": [\n    {\"name\": \"duck confit\", \"rating\": \"incredible\"},\n    {\"name\": \"creme brulee\", \"rating\": \"just ok\"}\n  ],\n  \"wine\": {\"name\": \"Chateau Margaux\", \"year\": 2019},\n  \"bill_total\": 247,\n  \"party_size\": 2,\n  \"ratings\": {\"food\": 4.5, \"service\": 3.5, \"ambiance\": 4, \"value\": 3, \"overall\": 3.75},\n  \"would_return\": true\n}\n```",
+  "score": 5,
+  "cost": 0.0020284,
   "expected": "",
   "tokens": {
-    "input": 313,
-    "output": 841
+    "input": 296,
+    "output": 387
   }
 }

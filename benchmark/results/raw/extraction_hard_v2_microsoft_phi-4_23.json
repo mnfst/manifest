@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "extraction_hard_v2",
+  "case": 23,
+  "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page is completely broken, showing a white screen after attempting to pay.\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart.\",\n    \"Go to checkout.\",\n    \"Enter card information.\",\n    \"Click 'Pay'.\"\n  ],\n  \"expected_behavior\": \"Payment should be processed successfully.\",\n  \"actual_behavior\": \"Spinner for 30 seconds then a white screen appears with a CORS error and 'undefined is not a function' in checkout.bundle.js:847.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 2.0345e-05,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 150
+  }
+}

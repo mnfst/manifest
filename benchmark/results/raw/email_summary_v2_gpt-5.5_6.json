@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a $450K ARR customer, is threatening to churn due to three weeks of API latency spikes and five days without a support response. James has assigned a dedicated engineer and needs an executive sponsor for a customer call this week.",
+  "score": 5,
+  "cost": 0.001167,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 72
+  }
+}

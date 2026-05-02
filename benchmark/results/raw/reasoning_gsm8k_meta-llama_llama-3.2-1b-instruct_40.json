@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "To solve this problem, let's break it down step by step.\n\nLet's assume Elvis saves x dollars per day in the first half of the month. Since he wants to save twice as much in the second half, he will save 2x dollars per day in the second half.\n\nThe total savings for the month is $1125, and the total number of days in the month is 30. So, the total savings for the first half of the month is 30x.\n\nSince Elvis saves twice as much in the second half, the total savings for the second half of the month is 2(30x) = 60x.\n\nThe total savings for the month is the sum of the savings for the first half and the second half, so we can set up the equation:\n\n30x + 60x = 1125\n\nCombine like terms:\n\n90x = 1125\n\nDivide both sides by 90:\n\nx = 1125 / 90\nx = 12.5\n\nSo, Elvis saves $12.50 per day in the first half of the month.\n\nSince he saves twice as much in the second half, he saves 2x = 2(12.5) = 25 dollars per day in the second half.\n\nANSWER: 25",
+  "score": 4,
+  "cost": 1.0016999999999999e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 105,
+    "output": 266
+  }
+}

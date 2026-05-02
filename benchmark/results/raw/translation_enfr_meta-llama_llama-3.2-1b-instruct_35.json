@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[Journaliste #1 sur la t\u00e9l\u00e9vision] un accident a eu lieu juste apr\u00e8s 10h00.",
+  "score": 4,
+  "cost": 1.917e-06,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 23
+  }
+}

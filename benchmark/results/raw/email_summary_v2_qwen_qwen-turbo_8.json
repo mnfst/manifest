@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "Summary: The annual performance review cycle begins on May 1, with key deadlines for self-reviews, manager reviews, calibration, and delivery. Managers must attend a training session on April 30 to learn about the new competency framework.",
+  "score": 4,
+  "cost": 4.884e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 48
+  }
+}

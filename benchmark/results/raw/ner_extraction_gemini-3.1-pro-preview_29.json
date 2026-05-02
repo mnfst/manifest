@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"Tokyo Stock Exchange\"\n  ],\n  \"locations\": []\n}",
+  "score": 3,
+  "cost": 0.0006375,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 31
+  }
+}

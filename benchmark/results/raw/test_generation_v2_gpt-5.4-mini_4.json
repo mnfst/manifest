@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 4,
+  "response": "```python\nimport math\nimport pytest\n\nfrom your_module import celsius_to_fahrenheit\n\n\n@pytest.mark.parametrize(\n    \"celsius, expected\",\n    [\n        (-40, -40),\n        (0, 32),\n        (100, 212),\n        (37, 98.6),\n        (1, 33.8),\n        (0.5, 32.9),\n    ],\n)\ndef test_celsius_to_fahrenheit_happy_path(celsius, expected):\n    assert celsius_to_fahrenheit(celsius) == pytest.approx(expected)\n\n\n@pytest.mark.parametrize(\n    \"celsius, expected\",\n    [\n        (1e6, 1800032),\n        (-1e6, -1799968),\n        (math.inf, math.inf),\n        (-math.inf, -math.inf),\n    ],\n)\ndef test_celsius_to_fahrenheit_edge_cases(celsius, expected):\n    result = celsius_to_fahrenheit(celsius)\n    if math.isinf(expected):\n        assert math.isinf(result)\n        assert result == expected\n    else:\n        assert result == pytest.approx(expected)\n\n\n@pytest.mark.parametrize(\"bad_input\", [\"100\", None, [0], {\"c\": 0}, object()])\ndef test_celsius_to_fahrenheit_error_cases(bad_input):\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(bad_input)\n```\n\nNotes:\n- Replace `your_module` with the actual module name where the function lives.\n- The function is simple enough that the main error cases are non-numeric inputs raising `TypeError`.",
+  "score": 5,
+  "cost": 0.0004074,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 325
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "To solve this problem, we need to first determine the number of kittens Patchy had. Since Patchy had thrice the number of adopted kittens as Trixie, and Trixie had 12 kittens, we can multiply 12 by 3 to find the number of kittens Patchy had.\n\n12 x 3 = 36\n\nSo, Patchy had 36 kittens.\n\nNext, we need to add the number of kittens Patchy had to the number of kittens Trixie had to find the total number of kittens the Doubtfire family now has.\n\n36 (Patchy's kittens) + 12 (Trixie's kittens) = 48\n\nTherefore, the Doubtfire family now has 48 kittens.\n\nANSWER: 48",
+  "score": 2,
+  "cost": 1.4433e-05,
+  "expected": "40",
+  "tokens": {
+    "input": 128,
+    "output": 155
+  }
+}

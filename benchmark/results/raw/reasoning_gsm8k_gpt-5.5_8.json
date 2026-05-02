@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Last year, there were 50 students.\n\nThis year, enrollment increased by 20%.\n\n20% of 50 is:\n\n50 \u00d7 0.20 = 10\n\nSo the increase is 10 students.\n\nThis year\u2019s enrollment is:\n\n50 + 10 = 60\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.001236,
+  "expected": "60",
+  "tokens": {
+    "input": 80,
+    "output": 83
+  }
+}

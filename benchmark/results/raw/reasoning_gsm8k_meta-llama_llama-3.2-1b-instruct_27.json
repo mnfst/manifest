@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "To solve this problem, we need to work backwards from the information given.\n\nLet's start with the last step: Melanie has 5 vacuum cleaners left.\n\nSince she sold 2 more to the red house, the number of vacuum cleaners she had before selling to the red house is 5 + 2 = 7.\n\nSince she sold half of what was left at the orange house, the number of vacuum cleaners she had before selling to the orange house is 7 / 2 = 3.5.\n\nSince she sold a third of her vacuum cleaners at the green house, the number of vacuum cleaners she had before selling to the green house is 3.5 / 3 = 1.1667.\n\nSince we can't have a fraction of a vacuum cleaner, we can round this number to the nearest whole number. Therefore, Melanie had 1 vacuum cleaner left before selling to the green house.\n\nSo, Melanie started with 1 + 1.1667 = 2.1667 vacuum cleaners.",
+  "score": 1,
+  "cost": 8.396999999999998e-06,
+  "expected": "18",
+  "tokens": {
+    "input": 104,
+    "output": 207
+  }
+}

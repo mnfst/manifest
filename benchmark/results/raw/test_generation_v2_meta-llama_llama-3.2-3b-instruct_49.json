@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 49,
+  "response": "Here's how you can write unit tests for the given function using pytest style:\n\n```python\nimport pytest\nfrom your_module import intersection  # replace 'your_module' with the actual name of the module where the function is defined\n\ndef test_intersection_happy_path():\n    \"\"\"Test the function with a happy path\"\"\"\n    lst1 = [1, 2, 3, 4, 5]\n    lst2 = [4, 5, 6, 7, 8]\n    expected_result = [4, 5]\n    assert intersection(lst1, lst2) == expected_result\n\ndef test_intersection_empty_lists():\n    \"\"\"Test the function with empty lists\"\"\"\n    lst1 = []\n    lst2 = []\n    expected_result = []\n    assert intersection(lst1, lst2) == expected_result\n\ndef test_intersection_no_common_elements():\n    \"\"\"Test the function with no common elements\"\"\"\n    lst1 = [1, 2, 3]\n    lst2 = [4, 5, 6]\n    expected_result = []\n    assert intersection(lst1, lst2) == expected_result\n\ndef test_intersection_single_element():\n    \"\"\"Test the function with a single element\"\"\"\n    lst1 = [1]\n    lst2 = [1]\n    expected_result = [1]\n    assert intersection(lst1, lst2) == expected_result\n\ndef test_intersection_negative_numbers():\n    \"\"\"Test the function with negative numbers\"\"\"\n    lst1 = [-1, -2, -3]\n    lst2 = [-2, -3, -4]\n    expected_result = [-2, -3]\n    assert intersection(lst1, lst2) == expected_result\n\ndef test_intersection_non_integer_elements():\n    \"\"\"Test the function with non-integer elements\"\"\"\n    lst1 = [1.5, 2.5, 3.5]\n    lst2 = [2.5, 3.5, 4.5]\n    expected_result = [2.5, 3.5]\n    assert intersection(lst1, lst2) == expected_result\n\ndef test_intersection_non_list_input():\n    \"\"\"Test the function with non-list input\"\"\"\n    lst1 = 'hello'\n    lst2 = [1, 2, 3]\n    with pytest.raises(TypeError):\n        intersection(lst1, lst2)\n\ndef test_intersection_non_list_input_2():\n    \"\"\"Test the function with non-list input (again, for completeness)\"\"\"\n    lst1 = 123\n    lst2 = [1, 2, 3]\n    with pytest.raises(TypeError):\n        intersection(lst1, lst2)\n```\n\nNote that the `intersection` function does not check if the inputs are lists, so we need to test that it raises a `TypeError` when given non-list inputs.",
+  "score": 5,
+  "cost": 3.4476e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 573
+  }
+}

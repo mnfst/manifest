@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Je trouve que mon p\u00e9nis n\u2019est pas assez grand pour toi.",
+  "score": 4,
+  "cost": 1.0300000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 17
+  }
+}

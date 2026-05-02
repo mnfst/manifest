@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "Here's an example of how you can write unit tests for the `is_palindrome` function using pytest:\n\n```python\nimport pytest\n\ndef test_is_palindrome_happy_path():\n    \"\"\"Test that the function returns True for a palindrome string.\"\"\"\n    assert is_palindrome(\"madam\") == True\n\ndef test_is_palindrome_happy_path_multiple_spaces():\n    \"\"\"Test that the function returns True for a palindrome string with multiple spaces.\"\"\"\n    assert is_palindrome(\"  madam  \") == True\n\ndef test_is_palindrome_happy_path_punctuation():\n    \"\"\"Test that the function returns True for a palindrome string with punctuation.\"\"\"\n    assert is_palindrome(\"A man, a plan, a canal, Panama\") == True\n\ndef test_is_palindrome_happy_path_empty_string():\n    \"\"\"Test that the function returns True for an empty string.\"\"\"\n    assert is_palindrome(\"\") == True\n\ndef test_is_palindrome_happy_path_single_character():\n    \"\"\"Test that the function returns True for a single character.\"\"\"\n    assert is_palindrome(\"a\") == True\n\ndef test_is_palindrome_edge_case_single_character():\n    \"\"\"Test that the function returns False for a single character that is not a palindrome.\"\"\"\n    assert is_palindrome(\"a\") == False\n\ndef test_is_palindrome_edge_case_empty_string():\n    \"\"\"Test that the function raises an error for an empty string.\"\"\"\n    with pytest.raises(ValueError):\n        is_palindrome(\"\")\n\ndef test_is_palindrome_edge_case_non_string_input():\n    \"\"\"Test that the function raises an error for a non-string input.\"\"\"\n    with pytest.raises(TypeError):\n        is_palindrome(123)\n\ndef test_is_palindrome_edge_case_non_ascii_characters():\n    \"\"\"Test that the function ignores non-ASCII characters.\"\"\"\n    assert is_palindrome(\"Able was I ere I saw Elba\") == True\n```\n\nNote that I've added a `ValueError` test for the edge case where the input string is empty, and a `TypeError` test for the edge case where the input is not a string. I've also added a test to ensure that the function ignores non-ASCII characters.\n\nYou can run these tests using the following command:\n```bash\npytest test_is_palindrome.py\n```\nThis will run all the tests and report any failures or errors.",
+  "score": 4,
+  "cost": 2.7284999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 468
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "SELECT s.name, s.capacity\nFROM stadium s\nJOIN concert c ON s.id = c.stadium_id\nWHERE c.year > 2013\nGROUP BY s.id\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 4,
+  "cost": 4.389e-06,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 48
+  }
+}

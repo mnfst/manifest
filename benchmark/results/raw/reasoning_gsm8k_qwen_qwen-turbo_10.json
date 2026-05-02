@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "First, let's determine how much water the dehumidifier removes per day on each setting:\n\n- Low setting: 1 liter per day.\n- Medium setting: Twice as much as the low setting, so $ 2 \\times 1 = 2 $ liters per day.\n- High setting: Twice as much as the medium setting, so $ 2 \\times 2 = 4 $ liters per day.\n\nNow, calculate the total amount of water removed on each setting:\n\n- 3 days on the low setting: $ 3 \\times 1 = 3 $ liters.\n- 3 days on the medium setting: $ 3 \\times 2 = 6 $ liters.\n- 5 days on the high setting: $ 5 \\times 4 = 20 $ liters.\n\nFinally, add the amounts together:\n\n$$\n3 + 6 + 20 = 29\n$$\n\nANSWER: 29",
+  "score": 5,
+  "cost": 1.3398e-05,
+  "expected": "29",
+  "tokens": {
+    "input": 210,
+    "output": 196
+  }
+}

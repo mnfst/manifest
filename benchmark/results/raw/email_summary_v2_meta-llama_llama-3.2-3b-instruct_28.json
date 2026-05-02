@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe annual disaster recovery test was completed, with a target recovery time of 4 hours but an actual recovery time of 6 hours and 23 minutes, resulting in a 2-hour gap. To improve future test results, the sender recommends increasing backup frequency and pre-provisioning a standby database, with the next test scheduled for October.",
+  "score": 5,
+  "cost": 9.843e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 81
+  }
+}

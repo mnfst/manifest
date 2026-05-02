@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product launch is delayed by two weeks due to unresolved PCI compliance issues with the payment integration. The team is considering launching without payments (requiring updated T&Cs) or delaying to May 15, with a meeting scheduled tomorrow at 10am to discuss.",
+  "score": 5,
+  "cost": 1.795e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 255
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "The annual performance review cycle begins May 1, following a structured timeline that includes self-reviews, manager reviews, calibration, and final delivery by June 5, using a new competency framework. Managers should attend the training session on April 30 to prepare for the updated process.",
+  "score": 5,
+  "cost": 0.001239,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 63
+  }
+}

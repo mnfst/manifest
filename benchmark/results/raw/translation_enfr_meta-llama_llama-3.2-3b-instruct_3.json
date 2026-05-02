@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n'y a pas d'autre explication du pr\u00eat frugal de 10 ou 12 millions d'ECU, que nous tous connaissons, qui ne suffisent m\u00eame pas \u00e0 construire une seule embarcation \u00e9quip\u00e9e de moyens modernes pour exercer une fonction de surveillance dans le secteur des p\u00eacheries.",
+  "score": 4,
+  "cost": 7.803e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 73
+  }
+}

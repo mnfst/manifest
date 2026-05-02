@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "Quarterly OKR results met or exceeded targets for Engineering, Sales, and Support, but Product scored 0.6 against a 0.7 target due to the delayed AI feature. The AI OKR should be carried forward with increased allocation, and next quarter planning starts Monday.",
+  "score": 5,
+  "cost": 0.001326,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 80
+  }
+}

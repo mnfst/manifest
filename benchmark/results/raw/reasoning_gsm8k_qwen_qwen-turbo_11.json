@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "First, let's calculate the total number of burritos that were given out to the students. There are 50 students, and each student was given 10 burritos:\n\n$$\n50 \\times 10 = 500 \\text{ burritos}\n$$\n\nNext, we add the 20 burritos that Mr. George ate:\n\n$$\n500 + 20 = 520 \\text{ burritos}\n$$\n\nNow, subtract the total number of burritos given out (to students and Mr. George) from the original 600 burritos ordered:\n\n$$\n600 - 520 = 80 \\text{ burritos}\n$$\n\nSo, the total number of leftover burritos is:\n\nANSWER: 80",
+  "score": 5,
+  "cost": 9.174e-06,
+  "expected": "80",
+  "tokens": {
+    "input": 112,
+    "output": 166
+  }
+}

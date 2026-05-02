@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 16,
+  "response": "```sql\nSELECT COUNT(DISTINCT country_code) AS distinct_country_codes\nFROM players;\n```",
+  "score": 5,
+  "cost": 6.045e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 21
+  }
+}

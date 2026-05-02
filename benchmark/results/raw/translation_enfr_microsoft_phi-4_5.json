@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Le floc provenant de SRTs \u00e9lev\u00e9s \u00e9tait moins hydrat\u00e9 et a \u00e9t\u00e9 trouv\u00e9 \u00e0 poss\u00e9der une couche dense de EPS qui recouvre une grande partie de la surface.",
+  "score": 4,
+  "cost": 6.37e-06,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 43
+  }
+}

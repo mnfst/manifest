@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "To find out how many points the class is missing, we need to calculate the total points collected by each student and then subtract that sum from the threshold of 400 points.\n\n**Step 1: Calculate Adam's points.**\nAdam has 50 points.\nAdam = 50\n\n**Step 2: Calculate Betty's points.**\nBetty collected 30% more than Adam.\n30% of 50 = $0.30 \\times 50 = 15$.\nBetty = $50 + 15 = 65$ points.\n\n**Step 3: Calculate Tom's points.**\nTom has 30 points less than Betty.\nTom = $65 - 30 = 35$ points.\n\n**Step 4: Calculate Martha's points.**\nMartha collected 3 times more points than Tom.\nMartha = $3 \\times 35 = 105$ points.\n\n**Step 5: Calculate the total points collected by the class.**\nTotal = Adam + Betty + Tom + Martha\nTotal = $50 + 65 + 35 + 105$\nTotal = $115 + 35 + 105$\nTotal = $150 + 105$\nTotal = 255 points.\n\n**Step 6: Calculate the points missing to reach the threshold.**\nThe threshold is 400 points.\nMissing points = $400 - 255$\nMissing points = 145.\n\nANSWER: 145",
+  "score": 3,
+  "cost": 2.6099999999999997e-05,
+  "expected": "145",
+  "tokens": {
+    "input": 148,
+    "output": 287
+  }
+}

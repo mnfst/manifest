@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 44,
+  "response": "Here are some unit tests for the `compose` function using pytest:\n```python\nimport pytest\n\ndef compose(*fns):\n    def composed(x):\n        for fn in reversed(fns):\n            x = fn(x)\n        return x\n    return composed\n\n# Happy path tests\ndef test_compose_happy_path():\n    # Test with a simple function\n    def add(a, b):\n        return a + b\n\n    composed_add = compose(add, add)\n    assert composed_add(2, 3) == 5\n\n    # Test with multiple functions\n    def multiply(a, b):\n        return a * b\n\n    composed_multiply = compose(multiply, multiply)\n    assert composed_multiply(2, 3) == 6\n\n# Edge case: empty list of functions\ndef test_compose_empty_list():\n    def add(a, b):\n        return a + b\n\n    composed_add = compose(add, add)\n    assert composed_add(2, 3) == 5\n\n    def multiply(a, b):\n        return a * b\n\n    composed_multiply = compose(multiply, multiply)\n    assert composed_multiply(2, 3) == 6\n\n# Error case: non-function input\ndef test_compose_non_function_input():\n    def add(a, b):\n        return a + b\n\n    with pytest.raises(TypeError):\n        composed_add = compose(2, 3)\n    with pytest.raises(TypeError):\n        composed_add = compose(\"hello\", 3)\n\n# Error case: non-composable function\ndef test_compose_non_composable_function():\n    def add(a, b):\n        return a + b\n\n    with pytest.raises(TypeError):\n        composed_add = compose(add, \"hello\")\n    with pytest.raises(TypeError):\n        composed_add = compose(add, 3)\n```\nThese tests cover the following scenarios:\n\n* Happy path: testing the function with a simple and a simple list of functions\n* Edge case: testing the function with an empty list of functions\n* Error case: testing the function with non-function input and non-composable functions\n\nNote that the `pytest.raises` context manager is used to test for errors, and the `assert` statements are used to verify the expected output.",
+  "score": 3,
+  "cost": 1.4256e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 457
+  }
+}

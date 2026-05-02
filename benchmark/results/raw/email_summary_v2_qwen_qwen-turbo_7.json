@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The new office at 500 Market St will be ready by June 1, with the moving weekend scheduled for June 7-8, and IT requiring three days (June 4-6) for network setup. Each team must designate a move coordinator by Friday, and the budget has been approved for professional movers.",
+  "score": 5,
+  "cost": 5.412e-06,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 66
+  }
+}

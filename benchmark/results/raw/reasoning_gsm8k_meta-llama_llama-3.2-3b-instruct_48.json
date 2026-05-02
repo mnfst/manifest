@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "To solve this problem, we need to follow the steps below:\n\nStep 1: Calculate the weight Jamaal increases by 50%. \n50% of 8 pounds is 0.5 x 8 = 4 pounds.\n\nStep 2: Add the increased weight to the original weight.\n8 pounds + 4 pounds = 12 pounds.\n\nStep 3: Jamaal uses a weight two pounds lighter than the increased weight.\n12 pounds - 2 pounds = 10 pounds.\n\nTherefore, Jamaal now uses a weight of 10 pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 1.1475e-05,
+  "expected": "10",
+  "tokens": {
+    "input": 107,
+    "output": 118
+  }
+}

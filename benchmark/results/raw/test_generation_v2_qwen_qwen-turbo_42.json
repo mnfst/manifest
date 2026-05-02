@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 42,
+  "response": "Here's a **pytest-style** test suite for the `debounce` function. It covers:\n\n- **Happy path**: Function is called after the wait time.\n- **Edge cases**:\n  - Multiple rapid calls.\n  - Call after the timer has expired.\n- **Error cases**:\n  - Invalid `wait_ms` (non-integer or negative).\n\n---\n\n### \u2705 `test_debounce.py`\n\n```python\nimport pytest\nimport time\nimport threading\nfrom your_module import debounce  # Replace with the correct import\n\ndef test_debounce_happy_path():\n    called = [False]\n\n    def test_fn():\n        called[0] = True\n\n    debounced = debounce(test_fn, 100)\n    debounced()\n    time.sleep(0.2)  # Wait longer than the debounce time\n    assert called[0] is True\n\ndef test_debounce_multiple_calls():\n    called = [0]\n\n    def test_fn():\n        called[0] += 1\n\n    debounced = debounce(test_fn, 100)\n    debounced()\n    debounced()\n    debounced()\n    time.sleep(0.2)\n    assert called[0] == 1  # Only the last call should trigger\n\ndef test_debounce_call_after_timer():\n    called = [False]\n\n    def test_fn():\n        called[0] = True\n\n    debounced = debounce(test_fn, 100)\n    debounced()\n    time.sleep(0.2)  # Wait for timer to trigger\n    assert called[0] is True\n    debounced()\n    time.sleep(0.2)\n    assert called[0] is True  # Should trigger again after the new call\n\ndef test_debounce_invalid_wait_ms():\n    with pytest.raises(ValueError):\n        debounce(lambda: None, -1)\n\n    with pytest.raises(TypeError):\n        debounce(lambda: None, \"abc\")\n\ndef test_debounce_no_call():\n    called = [False]\n\n    def test_fn():\n        called[0] = True\n\n    debounced = debounce(test_fn, 100)\n    time.sleep(0.05)\n    assert called[0] is False  # No call was made\n```\n\n---\n\n### \u2705 Notes:\n\n- The `your_module` import should be replaced with the actual module where `debounce` is defined.\n- The test uses `time.sleep()` to wait for the timer to trigger.\n- It checks that only the **last** call is executed when multiple calls are made quickly.\n- `threading.Timer` is used for debouncing, so the tests need to wait for it to complete.\n\n---\n\n### \ud83e\uddea To run:\n\n```bash\npytest test_debounce.py\n```\n\nLet me know if you want to add more advanced features (like mocking or async support).",
+  "score": 5,
+  "cost": 2.3001000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 582
+  }
+}

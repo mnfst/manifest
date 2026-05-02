@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "function_calling",
+  "case": 29,
+  "response": "{\"name\":\"ocr_document\",\"arguments\":{\"path\":\"uploads/contract.pdf\",\"language\":\"en\"}}",
+  "score": 5,
+  "cost": 1.72e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 22
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company has reached a significant milestone, crossing 10,000 monthly active users and closing a Series A funding round with $8 million at a $40 million pre-money valuation. The company is now hiring a VP of Sales and has a 11-month runway post-funding, with a fundraising close expected on May 10.",
+  "score": 4,
+  "cost": 9.638999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 79
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Last year: 50 students  \nIncrease: 20% of 50 = 0.20 \u00d7 50 = 10 students  \nThis year: 50 + 10 = 60 students  \n\nANSWER: 60",
+  "score": 5,
+  "cost": 8.88e-05,
+  "expected": "60",
+  "tokens": {
+    "input": 80,
+    "output": 54
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success team reported improved Q1 metrics, including a higher NPS and a decreased churn rate, alongside a strong enterprise expansion pipeline. Key feature requests include SSO, custom dashboards, and increased API rate limits.",
+  "score": 4,
+  "cost": 1.008e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 43
+  }
+}

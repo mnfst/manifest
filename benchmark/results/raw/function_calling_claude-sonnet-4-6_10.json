@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "function_calling",
+  "case": 10,
+  "response": "{\"name\": \"play_song\", \"arguments\": {\"title\": \"Bohemian Rhapsody\", \"artist\": \"Queen\"}}",
+  "score": 5,
+  "cost": 0.000819,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 34
+  }
+}

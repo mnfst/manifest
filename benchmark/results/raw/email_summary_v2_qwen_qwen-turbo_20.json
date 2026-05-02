@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "Summary: A disk space alert occurred on prod-db-01 during the weekend due to a misconfigured log rotation after a migration, which was resolved with manual intervention. The team needs to review and fix the log rotation setup to prevent future issues.",
+  "score": 5,
+  "cost": 5.016e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 50
+  }
+}

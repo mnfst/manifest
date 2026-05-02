@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "function_calling",
+  "case": 7,
+  "response": "{\"name\":\"set_alarm\",\"arguments\":{\"time\":\"06:30 AM tomorrow\",\"label\":\"Morning Workout\"}}",
+  "score": 4,
+  "cost": 1.94e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 24
+  }
+}

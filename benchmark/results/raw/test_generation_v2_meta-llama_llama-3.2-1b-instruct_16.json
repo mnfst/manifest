@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "Here are some unit tests for the `gcd` function using pytest:\n```python\nimport pytest\n\ndef test_gcd_happy_path():\n    # Test with positive numbers\n    assert gcd(12, 15) == 3\n    assert gcd(24, 30) == 6\n    assert gcd(48, 18) == 6\n\ndef test_gcd_edge_case():\n    # Test with 0\n    assert gcd(0, 10) == 10\n    assert gcd(10, 0) == 10\n\ndef test_gcd_negative_numbers():\n    # Test with negative numbers\n    assert gcd(-12, -15) == 3\n    assert gcd(-24, -30) == 6\n    assert gcd(-48, -18) == 6\n\ndef test_gcd_mixed_numbers():\n    # Test with mixed numbers\n    assert gcd(12, -15) == 3\n    assert gcd(-24, 30) == 6\n    assert gcd(-48, -18) == 6\n\ndef test_gcd_zero():\n    # Test with zero\n    assert gcd(0, 0) == 0\n    assert gcd(0, 10) == 10\n\ndef test_gcd_negative_zero():\n    # Test with negative zero\n    assert gcd(-0, 10) == 10\n    assert gcd(-10, 0) == 10\n\ndef test_gcd_large_numbers():\n    # Test with large numbers\n    assert gcd(1000000, 2000000) == 1000000\n    assert gcd(2000000, 1000000) == 2000000\n    assert gcd(1000000, 5000000) == 1000000\n```\nThese tests cover the following cases:\n\n* Happy path: positive numbers, zero, and negative numbers\n* Edge cases: 0, negative zero, and large numbers\n* Mixed numbers: positive and negative numbers\n* Error cases: division by zero\n\nNote that these tests are not exhaustive, but they should provide a good starting point for further testing.",
+  "score": 5,
+  "cost": 1.3905e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 444
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The email announces updates to the content moderation policy, requiring labels for AI-generated images, banning deepfakes, and mandating disclosure of AI-assisted text, with enforcement beginning June 1. The Trust & Safety team is preparing training materials to support these changes.",
+  "score": 5,
+  "cost": 2.6e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 55
+  }
+}

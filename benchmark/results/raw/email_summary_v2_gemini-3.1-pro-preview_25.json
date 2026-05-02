@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "In April, the company achieved key milestones by surpassing 10K active users, growing MRR to $85K, hiring a VP of Sales, and securing an $8M Series A term sheet. Please note that the fundraising round will officially close on May 10.",
+  "score": 4,
+  "cost": 0.00114,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 58
+  }
+}

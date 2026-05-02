@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "Tu n\u2019es pas \u00e0 la DGA. Alors zoome et ferme ta putain de gueule.",
+  "score": 4,
+  "cost": 0.000272,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 24
+  }
+}

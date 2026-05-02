@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 29,
+  "response": "```json\n{\"name\": \"ocr_document\", \"arguments\": {\"path\": \"uploads/contract.pdf\", \"language\": \"en\"}}\n```",
+  "score": 5,
+  "cost": 1.76e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 31
+  }
+}

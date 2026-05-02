@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "```python\n# test_clamp.py\nimport math\nimport pytest\n\nfrom your_module import clamp  # Replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    (\"value\", \"min_val\", \"max_val\", \"expected\"),\n    [\n        # Happy path\n        (5.0, 0.0, 10.0, 5.0),\n        (0.5, 0.0, 1.0, 0.5),\n\n        # Below minimum\n        (-1.0, 0.0, 10.0, 0.0),\n\n        # Above maximum\n        (11.0, 0.0, 10.0, 10.0),\n\n        # Exactly on boundaries\n        (0.0, 0.0, 10.0, 0.0),\n        (10.0, 0.0, 10.0, 10.0),\n\n        # Negative ranges\n        (-5.0, -10.0, -1.0, -5.0),\n        (-20.0, -10.0, -1.0, -10.0),\n        (0.0, -10.0, -1.0, -1.0),\n\n        # Integers are valid because they are comparable numerics\n        (5, 0, 10, 5),\n\n        # Infinite bounds\n        (100.0, -math.inf, math.inf, 100.0),\n        (-math.inf, 0.0, 10.0, 0.0),\n        (math.inf, 0.0, 10.0, 10.0),\n    ],\n)\ndef test_clamp_returns_expected_value(value, min_val, max_val, expected):\n    assert clamp(value, min_val, max_val) == expected\n\n\n@pytest.mark.parametrize(\n    (\"value\", \"min_val\", \"max_val\", \"expected\"),\n    [\n        # Degenerate range where min and max are the same\n        (-1.0, 5.0, 5.0, 5.0),\n        (5.0, 5.0, 5.0, 5.0),\n        (10.0, 5.0, 5.0, 5.0),\n    ],\n)\ndef test_clamp_when_min_equals_max(value, min_val, max_val, expected):\n    assert clamp(value, min_val, max_val) == expected\n\n\ndef test_clamp_when_min_is_greater_than_max_documents_current_behavior():\n    # The function does not validate min_val <= max_val.\n    # Given the current implementation, min_val is returned.\n    assert clamp(5.0, 10.0, 0.0) == 10.0\n\n\ndef test_clamp_with_nan_value_returns_min_val():\n    # This documents Python's min/max behavior with NaN for this implementation.\n    assert clamp(math.nan, 0.0, 10.0) == 0.0\n\n\ndef test_clamp_with_nan_min_returns_nan():\n    result = clamp(5.0, math.nan, 10.0)\n    assert math.isnan(result)\n\n\n@pytest.mark.parametrize(\n    (\"value\", \"min_val\", \"max_val\"),\n    [\n        (None, 0.0, 10.0),\n        (\"5\", 0.0, 10.0),\n        (5.0, None, 10.0),\n        (5.0, 0.0, None),\n        (5.0, \"0\", 10.0),\n        (5.0, 0.0, \"10\"),\n    ],\n)\ndef test_clamp_raises_type_error_for_non_comparable_values(value, min_val, max_val):\n    with pytest.raises(TypeError):\n        clamp(value, min_val, max_val)\n```",
+  "score": 4,
+  "cost": 0.016188,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 1333
+  }
+}

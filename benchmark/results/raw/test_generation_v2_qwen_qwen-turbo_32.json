@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 32,
+  "response": "Here's a set of **pytest-style unit tests** for the `find_missing` function. These tests cover:\n\n- **Happy path**: Normal case where a number is missing.\n- **Edge cases**: When the list is empty, or when the missing number is at the beginning or end.\n- **Error cases**: When the input is not a list, or when the list contains invalid elements (e.g., non-integers or duplicates).\n\n### \u2705 `test_find_missing.py`\n\n```python\nimport pytest\n\ndef test_find_missing_happy_path():\n    assert find_missing([0, 1, 2, 4]) == 3\n    assert find_missing([1, 2, 3, 4]) == 0\n    assert find_missing([0, 2, 3, 4]) == 1\n    assert find_missing([0, 1, 2, 3]) == 4\n\ndef test_find_missing_edge_cases():\n    assert find_missing([0]) == 1  # [0, 1] should be the sequence, missing 1\n    assert find_missing([1]) == 0  # [0, 1] should be the sequence, missing 0\n    assert find_missing([0, 1, 2, 3, 5]) == 4\n    assert find_missing([0, 1, 2, 3, 4]) == 5\n\ndef test_find_missing_invalid_input():\n    with pytest.raises(TypeError):\n        find_missing(\"not a list\")\n    with pytest.raises(TypeError):\n        find_missing([1, 2, \"three\"])\n    with pytest.raises(ValueError):\n        find_missing([1, 2, 2])  # Duplicate value is invalid\n    with pytest.raises(ValueError):\n        find_missing([0, 1, 3])  # Missing 2, but the list is not in the [0..n] sequence\n    with pytest.raises(ValueError):\n        find_missing([0, 1, 4])  # Not a valid sequence (missing 2 and 3)\n\ndef test_find_missing_empty_list():\n    assert find_missing([]) == 0  # [0] is the sequence, missing 0\n```\n\n### \u2705 How to Run the Tests\n\nMake sure the `find_missing` function is in the same file or imported properly.\n\nTo run the tests, use:\n\n```bash\npytest test_find_missing.py\n```\n\n---\n\n### \u2705 Notes on the Function\n\nThe function `find_missing` assumes that:\n\n- `nums` is a list of integers.\n- The list is a **subset** of the sequence `[0, 1, ..., n]`, where `n = len(nums)`.\n- Exactly **one number is missing** from that sequence.\n\nSo, the tests above include checks that the input is valid and that the expected behavior is correctly captured.",
+  "score": 5,
+  "cost": 2.2539000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 598
+  }
+}

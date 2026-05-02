@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "SELECT nationality\nFROM people\nGROUP BY nationality\nHAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 0.00031,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 21
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "intent_clinc150",
+  "case": 9,
+  "response": "weather",
+  "score": 5,
+  "cost": 0.0001581,
+  "expected": "weather",
+  "tokens": {
+    "input": 511,
+    "output": 4
+  }
+}

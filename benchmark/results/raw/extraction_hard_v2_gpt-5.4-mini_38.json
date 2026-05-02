@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "extraction_hard_v2",
+  "case": 38,
+  "response": "{\"date\":\"March 15, 2024\",\"athlete\":\"Mike Torres\",\"bodyweight_lbs\":185,\"sleep_hours\":7,\"exercises\":[{\"name\":\"Back Squat\",\"sets\":[{\"weight\":225,\"reps\":5},{\"weight\":245,\"reps\":5},{\"weight\":265,\"reps\":3},{\"weight\":275,\"reps\":2}],\"note\":\"PR!\"},{\"name\":\"Romanian Deadlift\",\"sets\":[{\"weight\":185,\"reps\":8},{\"weight\":205,\"reps\":8},{\"weight\":205,\"reps\":8}],\"note\":\"\"},{\"name\":\"Leg Press\",\"sets\":[{\"weight\":360,\"reps\":10},{\"weight\":410,\"reps\":10},{\"weight\":450,\"reps\":8}],\"note\":\"\"},{\"name\":\"Leg Curl\",\"sets\":[{\"weight\":90,\"reps\":12},{\"weight\":100,\"reps\":10},{\"weight\":100,\"reps\":10}],\"note\":\"\"},{\"name\":\"Calf raises\",\"sets\":[{\"weight\":0,\"reps\":15},{\"weight\":0,\"reps\":15},{\"weight\":0,\"reps\":15}],\"note\":\"\"},{\"name\":\"Ab wheel\",\"sets\":[{\"weight\":0,\"reps\":12},{\"weight\":0,\"reps\":12},{\"weight\":0,\"reps\":12}],\"note\":\"\"}],\"duration_minutes\":72,\"rpe\":8.5,\"notes\":\"Hit squat PR at 275. Right knee felt tight on last set. Need to stretch more.\"}",
+  "score": 4,
+  "cost": 0.00048059999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 298,
+    "output": 326
+  }
+}

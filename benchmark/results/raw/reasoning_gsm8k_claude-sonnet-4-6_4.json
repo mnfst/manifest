@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "## Solution\n\n**Step 1: Find how many yards Mariah used.**\n\nMariah used 1/4 of a skein:\n1/4 \u00d7 364 = 91 yards\n\n**Step 2: Find how many yards her grandma used.**\n\nGrandma used 1/2 of a skein:\n1/2 \u00d7 364 = 182 yards\n\n**Step 3: Add the yards together.**\n\n91 + 182 = 273 yards\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.002169,
+  "expected": "273",
+  "tokens": {
+    "input": 113,
+    "output": 122
+  }
+}

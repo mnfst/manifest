@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "SELECT\n  country.name AS country_name,\n  COUNT(*) AS languages_spoken\nFROM country\nJOIN countrylanguage cl ON cl.countrycode = country.code\nJOIN language l ON l.id = cl.languageid\nGROUP BY country.name\nHAVING COUNT(*) > 2\nORDER BY languages_spoken DESC, country_name;",
+  "score": 3,
+  "cost": 3.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 69
+  }
+}

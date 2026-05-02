@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "```sql\nSELECT AVG(mpg) FROM cars_data WHERE cylinders = 4;\n```",
+  "score": 5,
+  "cost": 0.000645,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 26
+  }
+}

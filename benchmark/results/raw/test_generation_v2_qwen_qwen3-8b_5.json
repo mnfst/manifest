@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "Here is a comprehensive set of unit tests for the `count_vowels` function using the **pytest** style. These tests cover the **happy path**, **edge cases**, and **error cases** to ensure robustness and correctness of the function.\n\n---\n\n### \u2705 Function Overview\n\n```python\ndef count_vowels(s: str) -> int:\n    return sum(1 for c in s.lower() if c in 'aeiou')\n```\n\nThis function counts the number of vowels (`a`, `e`, `i`, `o`, `u`) in a given string, **case-insensitively**.\n\n---\n\n### \ud83d\udd0d Test Cases\n\n| Test Case Type | Description | Expected Result |\n|----------------|-------------|-----------------|\n| **Happy Path** | String with a mix of vowels and consonants | 2 |\n| **Edge Case** | Empty string | 0 |\n| **Edge Case** | String with no vowels | 0 |\n| **Edge Case** | String with only vowels | 5 |\n| **Edge Case** | String with all uppercase vowels | 5 |\n| **Edge Case** | String with mixed case vowels | 5 |\n| **Error Case** | Passing a non-string (e.g., integer) | Raises `AttributeError` |\n| **Error Case** | Passing `None` | Raises `AttributeError` |\n\n---\n\n### \ud83e\uddea Unit Tests (pytest Style)\n\n```python\nimport pytest\n\ndef count_vowels(s: str) -> int:\n    return sum(1 for c in s.lower() if c in 'aeiou')\n\ndef test_count_vowels_happy_path():\n    assert count_vowels(\"Hello\") == 2\n\ndef test_count_vowels_empty_string():\n    assert count_vowels(\"\") == 0\n\ndef test_count_vowels_no_vowels():\n    assert count_vowels(\"bcdfg\") == 0\n\ndef test_count_vowels_all_vowels():\n    assert count_vowels(\"aeiou\") == 5\n\ndef test_count_vowels_uppercase():\n    assert count_vowels(\"AEIOU\") == 5\n\ndef test_count_vowels_mixed_case():\n    assert count_vowels(\"aEiOu\") == 5\n\ndef test_count_vowels_non_string():\n    with pytest.raises(AttributeError):\n        count_vowels(123)\n\ndef test_count_vowels_none():\n    with pytest.raises(AttributeError):\n        count_vowels(None)\n```\n\n---\n\n### \ud83e\udde0 Notes\n\n- **Happy Path**: The function correctly counts vowels in a mixed-case string.\n- **Edge Cases**:\n  - Empty string: returns `0`.\n  - String with no vowels: returns `0`.\n  - String with all vowels: returns `5`.\n  - Uppercase and mixed-case strings are handled due to `.lower()`.\n- **Error Cases**:\n  - Passing non-string types (like `int`, `None`, `list`) raises an `AttributeError` because of the `.lower()` method call.\n  \nThis test suite ensures that the function behaves as expected under a variety of conditions, including invalid inputs.",
+  "score": 5,
+  "cost": 0.00022030000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 4341
+  }
+}

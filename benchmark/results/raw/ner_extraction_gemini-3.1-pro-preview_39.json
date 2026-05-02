@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 39,
+  "response": "{\n  \"persons\": [\n    \"Dario Amodei\"\n  ],\n  \"organizations\": [\n    \"Anthropic\"\n  ],\n  \"locations\": [\n    \"Colorado\"\n  ]\n}",
+  "score": 5,
+  "cost": 0.00093,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 50
+  }
+}

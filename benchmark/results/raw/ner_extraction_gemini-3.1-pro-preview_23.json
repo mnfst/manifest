@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 23,
+  "response": "{\n  \"persons\": [\n    \"Taylor Swift\"\n  ],\n  \"organizations\": [],\n  \"locations\": [\n    \"Wembley Stadium\",\n    \"London\"\n  ]\n}",
+  "score": 4,
+  "cost": 0.0008575,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 46
+  }
+}

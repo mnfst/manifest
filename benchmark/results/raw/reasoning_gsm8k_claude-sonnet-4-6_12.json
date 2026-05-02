@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "## Step-by-step Solution\n\n**Step 1: Find how long Jim reads each night**\nJim reads for half as long as he watches TV.\n- TV time: 2 hours\n- Reading time: 2 \u00f7 2 = 1 hour\n\n**Step 2: Find total time spent per session (one night)**\n- TV + Reading = 2 + 1 = 3 hours\n\n**Step 3: Find total time per week**\n- He does this 3 times a week\n- 3 hours \u00d7 3 times = 9 hours per week\n\n**Step 4: Find total time in 4 weeks**\n- 9 hours \u00d7 4 weeks = 36 hours\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.002943,
+  "expected": "36",
+  "tokens": {
+    "input": 96,
+    "output": 177
+  }
+}

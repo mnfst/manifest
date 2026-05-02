@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X launched new AI features at twice our price with a neutral market response, leaving our superior API and integrations as a strong competitive advantage. To address our lack of auto-categorization, the Product team recommends fast-tracking our own AI roadmap.",
+  "score": 5,
+  "cost": 0.0009925,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 51
+  }
+}

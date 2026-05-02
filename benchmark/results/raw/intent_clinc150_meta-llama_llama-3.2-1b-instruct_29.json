@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 29,
+  "response": "how_pasta",
+  "score": 0,
+  "cost": 1.3716e-05,
+  "expected": "recipe",
+  "tokens": {
+    "input": 504,
+    "output": 4
+  }
+}

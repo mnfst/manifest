@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT s.name\nFROM Highschooler s\nJOIN Likes l ON s.ID = l.student_id\nGROUP BY s.ID, s.name\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 4,
+  "cost": 0.001026,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 53
+  }
+}

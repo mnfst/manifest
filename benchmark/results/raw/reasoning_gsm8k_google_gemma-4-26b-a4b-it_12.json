@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "To solve this problem, we need to calculate the total time Jim spends on TV and reading per session, then per week, and finally for 4 weeks.\n\n**Step 1: Calculate the time spent per session.**\n- Time spent watching TV per session = 2 hours.\n- Time spent reading per session = half of the TV time = $2 \\text{ hours} \\div 2 = 1 \\text{ hour}$.\n- Total time per session = $2 \\text{ hours (TV)} + 1 \\text{ hour (reading)} = 3 \\text{ hours}$.\n\n**Step 2: Calculate the time spent per week.**\n- Jim performs this routine 3 times a week.\n- Total time per week = $3 \\text{ hours/session} \\times 3 \\text{ sessions/week} = 9 \\text{ hours/week}$.\n\n**Step 3: Calculate the total time spent in 4 weeks.**\n- Total time for 4 weeks = $9 \\text{ hours/week} \\times 4 \\text{ weeks} = 36 \\text{ hours}$.\n\n**Summary of calculations:**\n- TV time per session: 2 hours\n- Reading time per session: 1 hour\n- Total per session: 3 hours\n- Total per week (3 sessions): $3 \\times 3 = 9$ hours\n- Total for 4 weeks: $9 \\times 4 = 36$ hours\n\nANSWER: 36",
+  "score": 5,
+  "cost": 2.5019999999999998e-05,
+  "expected": "36",
+  "tokens": {
+    "input": 96,
+    "output": 321
+  }
+}

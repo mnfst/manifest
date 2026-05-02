@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "extraction_hard_v2",
+  "case": 16,
+  "response": "```json\n{\"product\": \"TaskFlow Pro\", \"price_per_user\": 29, \"competitors\": [{\"name\": \"WorkStream\", \"price_per_user\": 19, \"strengths\": [\"cheaper\", \"good mobile app\", \"500+ integrations\"], \"weaknesses\": [\"no custom workflows\", \"limited reporting\", \"slow support\"], \"market_share_pct\": 15, \"recent_moves\": [\"raised Series C ($45M)\", \"launched AI features\"]}, {\"name\": \"FlowMaster\", \"price_per_user\": 45, \"strengths\": [\"enterprise features\", \"SOC2\", \"dedicated CSM\"], \"weaknesses\": [\"expensive\", \"complex UI\", \"6-month implementation\"], \"market_share_pct\": 8, \"recent_moves\": [\"acquired DataPipe for $12M\", \"lost 3 enterprise deals to us\"]}], \"market_position\": \"#2 by revenue, #1 in mid-market segment\"}\n```",
+  "score": 5,
+  "cost": 0.0001149,
+  "expected": "",
+  "tokens": {
+    "input": 281,
+    "output": 217
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 10,
+  "response": "To fulfill the user's request, you can use the `play_song` function with the provided arguments. Here's the correct function call:\n\n```python\nplay_song(title: str, artist: str = None)\n```\n\nThis function call will return a JSON object with the specified arguments, which in this case is:\n\n```json\n{\"name\": \"play_song\", \"arguments\": {\"title\": \"Bohemian Rhapsody\", \"artist\": \"Queen\"}}\n```\n\nThis JSON object is in the format you requested.",
+  "score": 5,
+  "cost": 5.346e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 107
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Here is the translation, maintaining the technical and professional tone of civil engineering:\n\n**French:**\nDes \u00e9vacuateurs de crues capables de g\u00e9rer les \u00e9v\u00e9nements de crue postul\u00e9s sont soit int\u00e9gr\u00e9s aux structures du barrage, soit construits en tant qu'ouvrages distincts.\n\n*Note on technical terminology:* \nIn dam engineering, \"postulated flood events\" is also frequently translated as **\"les crues de projet\"** (design floods). If you want the text to sound even more native to a French hydrologist or engineer, you could use:\n*\u00ab Des \u00e9vacuateurs de crues capables de faire face aux crues de projet sont soit int\u00e9gr\u00e9s aux structures du barrage, soit construits en tant qu'ouvrages distincts. \u00bb*",
+  "score": 5,
+  "cost": 0.0025575,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 163
+  }
+}

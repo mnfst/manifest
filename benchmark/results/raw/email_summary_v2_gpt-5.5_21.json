@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team reports that 47 feature flags are active, including 23 from releases older than 6 months, creating unnecessary config complexity. They propose a cleanup sprint to remove 15 fully rolled-out flags and archive 8 dead-code flags, which should speed up the test suite by about 12%.",
+  "score": 5,
+  "cost": 0.001305,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 84
+  }
+}

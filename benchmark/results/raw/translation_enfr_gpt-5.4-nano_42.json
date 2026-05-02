@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 42,
+  "response": "Ce premier recensement eut lieu pendant que Quirinius \u00e9tait gouverneur de Syrie. Chacun devait se faire inscrire dans sa propre ville. Alors tous partirent pour leur cit\u00e9 ; Joseph aussi partit de Nazareth en Galil\u00e9e. Comme il appartenait \u00e0 la famille de David, puisqu\u2019il en \u00e9tait un descendant, il alla en Jud\u00e9e, \u00e0 la ville de David, appel\u00e9e Bethl\u00e9em, pour se faire inscrire avec Marie, son \u00e9pouse, qui \u00e9tait enceinte.",
+  "score": 5,
+  "cost": 5.0400000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 99
+  }
+}

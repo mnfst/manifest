@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 48,
+  "response": "Here are some unit tests for the `trie_insert_search` function using pytest style:\n\n```python\nimport pytest\nfrom your_module import trie_insert_search  # replace 'your_module' with the actual module name\n\ndef test_trie_insert_search_happy_path():\n    insert, search = trie_insert_search()\n    insert('hello')\n    assert search('hello') == True\n    assert search('world') == False\n\ndef test_trie_insert_search_empty_string():\n    insert, search = trie_insert_search()\n    insert('')\n    assert search('') == True\n    assert search('hello') == False\n\ndef test_trie_insert_search_single_character():\n    insert, search = trie_insert_search()\n    insert('a')\n    assert search('a') == True\n    assert search('b') == False\n\ndef test_trie_insert_search_multiple_characters():\n    insert, search = trie_insert_search()\n    insert('hello')\n    insert('world')\n    assert search('hello') == True\n    assert search('world') == True\n    assert search('foo') == False\n\ndef test_trie_insert_search_not_in_trie():\n    insert, search = trie_insert_search()\n    insert('hello')\n    assert search('goodbye') == False\n\ndef test_trie_insert_search_not_a_string():\n    insert, search = trie_insert_search()\n    with pytest.raises(TypeError):\n        search(123)\n\ndef test_trie_insert_search_none_input():\n    insert, search = trie_insert_search()\n    with pytest.raises(TypeError):\n        insert(None)\n\ndef test_trie_insert_search_empty_trie():\n    insert, search = trie_insert_search()\n    with pytest.raises(KeyError):\n        search('')\n\ndef test_trie_insert_search_non_string_characters():\n    insert, search = trie_insert_search()\n    insert('hello')\n    with pytest.raises(TypeError):\n        search('hello!')  # non-string characters\n```\n\nNote that I've used the `pytest.raises` context manager to test for expected exceptions, and I've also used the `assert` statement to verify the expected behavior. The tests cover the happy path, edge cases, and error cases as requested.",
+  "score": 4,
+  "cost": 2.8661999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 437
+  }
+}

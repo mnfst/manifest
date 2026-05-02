@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 7,
+  "response": "```json\n{\n  \"name\": \"set_alarm\",\n  \"arguments\": {\n    \"time\": \"6:30 AM tomorrow\",\n    \"label\": \"Morning Workout\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 9.100000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 41
+  }
+}

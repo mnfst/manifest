@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "```sql\nSELECT COUNT(*) FROM cars WHERE year = 1980;\n```",
+  "score": 5,
+  "cost": 6.18e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 20
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "intent_clinc150",
+  "case": 31,
+  "response": "freeze_account",
+  "score": 5,
+  "cost": 0.001983,
+  "expected": "freeze_account",
+  "tokens": {
+    "input": 631,
+    "output": 6
+  }
+}

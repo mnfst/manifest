@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "```sql\nSELECT hometown\nFROM teachers\nGROUP BY hometown\nHAVING COUNT(*) >= 2;\n```",
+  "score": 5,
+  "cost": 6.299999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 24
+  }
+}

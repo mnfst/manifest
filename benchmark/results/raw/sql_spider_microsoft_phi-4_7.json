@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "```sql\nSELECT COUNT(*) AS number_of_cars_made\nFROM car_1\nWHERE YEAR(manufacture_date) = 1980;\n```",
+  "score": 4,
+  "cost": 7.2149999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 33
+  }
+}

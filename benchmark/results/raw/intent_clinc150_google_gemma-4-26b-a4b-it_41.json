@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "bill_due",
+  "score": 5,
+  "cost": 3.786e-05,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 627,
+    "output": 4
+  }
+}

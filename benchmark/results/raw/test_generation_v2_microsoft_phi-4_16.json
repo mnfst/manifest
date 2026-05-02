@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "To write unit tests for the `gcd` function using `pytest`, we need to cover the happy path, edge cases, and error cases. Here's how you can structure the tests:\n\n```python\nimport pytest\n\ndef gcd(a: int, b: int) -> int:\n    while b:\n        a, b = b, a % b\n    return abs(a)\n\ndef test_gcd_happy_path():\n    assert gcd(48, 18) == 6\n    assert gcd(56, 98) == 14\n    assert gcd(101, 103) == 1\n    assert gcd(0, 5) == 5\n    assert gcd(5, 0) == 5\n    assert gcd(0, 0) == 0\n\ndef test_gcd_negative_numbers():\n    assert gcd(-48, 18) == 6\n    assert gcd(48, -18) == 6\n    assert gcd(-48, -18) == 6\n    assert gcd(-101, -103) == 1\n    assert gcd(-101, 103) == 1\n    assert gcd(101, -103) == 1\n\ndef test_gcd_large_numbers():\n    assert gcd(123456789, 987654321) == 9\n    assert gcd(0, 123456789) == 123456789\n    assert gcd(123456789, 0) == 123456789\n\ndef test_gcd_edge_cases():\n    assert gcd(1, 1) == 1\n    assert gcd(0, 0) == 0\n\ndef test_gcd_type_errors():\n    with pytest.raises(TypeError):\n        gcd(48, \"18\")\n    with pytest.raises(TypeError):\n        gcd(\"48\", 18)\n    with pytest.raises(TypeError):\n        gcd(48, 18, 27)\n\n# Run the tests\nif __name__ == \"__main__\":\n    pytest.main()\n```\n\n### Explanation:\n\n1. **Happy Path**: Tests with typical inputs where the function should work correctly.\n2. **Negative Numbers**: Tests with negative inputs to ensure the function handles them correctly.\n3. **Large Numbers**: Tests with large inputs to ensure the function handles them efficiently.\n4. **Edge Cases**: Tests with edge cases like `gcd(1, 1)` and `gcd(0, 0)`.\n5. **Type Errors**: Tests to ensure the function raises a `TypeError` when non-integer inputs are provided.\n\nThese tests cover a wide range of scenarios to ensure the `gcd` function behaves as expected.",
+  "score": 5,
+  "cost": 3.939e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 539
+  }
+}

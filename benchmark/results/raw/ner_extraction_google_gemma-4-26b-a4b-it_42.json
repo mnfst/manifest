@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 42,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"African Union\"\n  ],\n  \"locations\": [\n    \"Addis Ababa\",\n    \"Sudan\",\n    \"Egypt\",\n    \"Ethiopia\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 8.639999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 63
+  }
+}

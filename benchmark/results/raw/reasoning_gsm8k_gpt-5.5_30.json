@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Adam has 50 points.\n\nBetty collected 30% more than Adam:\n\n30% of 50 = 15  \n50 + 15 = 65\n\nSo Betty has 65 points.\n\nTom has 30 points less than Betty:\n\n65 - 30 = 35\n\nSo Tom has 35 points.\n\nMarta collected 3 times as many points as Tom:\n\n35 \u00d7 3 = 105\n\nNow add all the points:\n\n50 + 65 + 35 + 105 = 255\n\nThe class needs 400 points, so they are missing:\n\n400 - 255 = 145\n\nANSWER: 145",
+  "score": 4,
+  "cost": 0.00414,
+  "expected": "145",
+  "tokens": {
+    "input": 144,
+    "output": 309
+  }
+}

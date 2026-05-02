@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "moderation_toxigen",
+  "case": 21,
+  "response": "toxic",
+  "score": 5,
+  "cost": 2.1e-05,
+  "expected": "toxic",
+  "tokens": {
+    "input": 50,
+    "output": 5
+  }
+}

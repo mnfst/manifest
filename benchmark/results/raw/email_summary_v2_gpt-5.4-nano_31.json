@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The proposal is to introduce a \u201cStarter\u201d pricing tier at $29/month (between Free and Pro at $79) to address churn driven by price (40% cite price as the reason) and recover an estimated 15% of price-churned users, projecting $180K ARR. The Starter tier would include 5 users, 10K API calls, and email support.",
+  "score": 5,
+  "cost": 4.3299999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 81
+  }
+}

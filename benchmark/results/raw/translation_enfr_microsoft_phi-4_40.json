@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Nous avons simplement besoin de plus d'informations.",
+  "score": 5,
+  "cost": 3.1850000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 12
+  }
+}

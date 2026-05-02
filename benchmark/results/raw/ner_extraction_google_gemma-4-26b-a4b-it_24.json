@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 24,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Indian Space Research Organisation\"\n  ],\n  \"locations\": [\n    \"Sriharikota\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 7.799999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 49
+  }
+}

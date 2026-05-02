@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "**French translation:**\nLes flocs issus de SRT plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et se sont av\u00e9r\u00e9s poss\u00e9der une couche dense d'EPS recouvrant une grande partie de la surface.\n\n*Note on scientific terminology:* \nIn French scientific literature, the English acronyms **SRT** (Solid/Sludge Retention Time) and **EPS** (Extracellular Polymeric Substances) are very commonly used as-is. However, if you need the strictly French acronyms, you can replace them with **TRB** (*Temps de R\u00e9tention des Boues*) and **SPE** (*Substances Polym\u00e8res Extracellulaires*). \n\n*Alternative with French acronyms:*\nLes flocs issus de TRB plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et se sont av\u00e9r\u00e9s poss\u00e9der une couche dense de SPE recouvrant une grande partie de la surface.",
+  "score": 5,
+  "cost": 0.002845,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 182
+  }
+}

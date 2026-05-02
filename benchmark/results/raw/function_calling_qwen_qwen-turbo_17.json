@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 17,
+  "response": "{\"name\": \"generate_qr\", \"arguments\": {\"data\": \"https://example.com/signup\"}}",
+  "score": 5,
+  "cost": 4.158000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 21
+  }
+}

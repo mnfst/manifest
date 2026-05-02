@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Eve originally had 20 pomelos. After giving some away, she is left with 1/4 of the original amount. \n\n1. Calculate 1/4 of 20:\n   $$\n   \\frac{1}{4} \\times 20 = 5\n   $$\n   So, Eve has 5 pomelos left.\n\n2. Determine the number of pomelos given away by subtracting the remaining amount from the original amount:\n   $$\n   20 - 5 = 15\n   $$\n\nThus, Eve gave away 15 pomelos.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 3.4399999999999996e-05,
+  "expected": "15",
+  "tokens": {
+    "input": 91,
+    "output": 597
+  }
+}

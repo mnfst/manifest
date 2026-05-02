@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "intent_clinc150",
+  "case": 0,
+  "response": "transfer",
+  "score": 0,
+  "cost": 5.0650000000000005e-05,
+  "expected": "rollover_401k",
+  "tokens": {
+    "input": 511,
+    "output": 502
+  }
+}

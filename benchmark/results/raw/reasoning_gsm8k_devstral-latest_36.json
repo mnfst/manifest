@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Let's break down the problem step by step to find out how many Pok\u00e9mon cards Elaine has in total after three months.\n\n### **Initial Information:**\n- **Initial cards:** Elaine starts with **20** Pok\u00e9mon cards.\n\n### **First Month:**\n- She collects **three times** her initial number of cards.\n- **Calculation:**\n  \\( 3 \\times 20 = 60 \\) cards.\n\n### **Second Month:**\n- She collects **20 fewer** cards than she did in the first month.\n- **Calculation:**\n  \\( 60 - 20 = 40 \\) cards.\n\n### **Third Month:**\n- She collects **twice the combined number** of cards from the first and second months.\n- **Combined first and second months:**\n  \\( 60 + 40 = 100 \\) cards.\n- **Calculation:**\n  \\( 2 \\times 100 = 200 \\) cards.\n\n### **Total Cards After Three Months:**\n- **Initial cards:** 20\n- **First month:** +60\n- **Second month:** +40\n- **Third month:** +200\n- **Total:**\n  \\( 20 + 60 + 40 + 200 = 320 \\) cards.\n\n### **Final Answer:**\nANSWER: 320",
+  "score": 5,
+  "cost": 9.97e-05,
+  "expected": "320",
+  "tokens": {
+    "input": 115,
+    "output": 294
+  }
+}

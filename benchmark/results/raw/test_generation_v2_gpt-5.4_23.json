@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 23,
+  "response": "```python\nimport pytest\n\nfrom your_module import matrix_transpose\n\n\nclass TestMatrixTranspose:\n    def test_transpose_square_matrix(self):\n        matrix = [\n            [1, 2],\n            [3, 4],\n        ]\n        assert matrix_transpose(matrix) == [\n            [1, 3],\n            [2, 4],\n        ]\n\n    def test_transpose_rectangular_matrix(self):\n        matrix = [\n            [1, 2, 3],\n            [4, 5, 6],\n        ]\n        assert matrix_transpose(matrix) == [\n            [1, 4],\n            [2, 5],\n            [3, 6],\n        ]\n\n    def test_transpose_single_row(self):\n        matrix = [[1, 2, 3]]\n        assert matrix_transpose(matrix) == [\n            [1],\n            [2],\n            [3],\n        ]\n\n    def test_transpose_single_column(self):\n        matrix = [\n            [1],\n            [2],\n            [3],\n        ]\n        assert matrix_transpose(matrix) == [[1, 2, 3]]\n\n    def test_empty_matrix_returns_empty_list(self):\n        assert matrix_transpose([]) == []\n\n    def test_matrix_with_empty_row_returns_empty_list(self):\n        assert matrix_transpose([[]]) == []\n\n    def test_matrix_with_multiple_empty_rows_returns_empty_list(self):\n        assert matrix_transpose([[], []]) == []\n\n    def test_preserves_none_and_mixed_types(self):\n        matrix = [\n            [1, None],\n            [\"a\", 3.14],\n        ]\n        assert matrix_transpose(matrix) == [\n            [1, \"a\"],\n            [None, 3.14],\n        ]\n\n    def test_irregular_matrix_shorter_row_raises_index_error(self):\n        matrix = [\n            [1, 2, 3],\n            [4, 5],\n        ]\n        with pytest.raises(IndexError):\n            matrix_transpose(matrix)\n\n    def test_non_iterable_row_raises_type_error(self):\n        matrix = [\n            [1, 2],\n            3,\n        ]\n        with pytest.raises(TypeError):\n            matrix_transpose(matrix)\n\n    def test_none_input_returns_empty_list(self):\n        assert matrix_transpose(None) == []\n```\n\nReplace:\n\n```python\nfrom your_module import matrix_transpose\n```\n\nwith the actual module import path for your project.",
+  "score": 5,
+  "cost": 0.004122,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 497
+  }
+}

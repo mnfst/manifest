@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let me denote the starting number of vacuum cleaners as x.\n\n**Step 1: Green house**\nShe sold a third of her vacuum cleaners: x/3\nRemaining: x - x/3 = 2x/3\n\n**Step 2: Red house**\nShe sold 2 more.\nRemaining: 2x/3 - 2\n\n**Step 3: Orange house**\nShe sold half of what was left: (1/2)(2x/3 - 2)\nRemaining: (1/2)(2x/3 - 2)\n\n**Step 4: Set up equation**\nShe has 5 left:\n(1/2)(2x/3 - 2) = 5\n\n**Solve:**\n2x/3 - 2 = 10\n2x/3 = 12\nx = 18\n\n**Verification:**\n- Start: 18\n- Green house: sold 18/3 = 6, remaining = 12\n- Red house: sold 2, remaining = 10\n- Orange house: sold 10/2 = 5, remaining = 5 \u2713\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.004476,
+  "expected": "18",
+  "tokens": {
+    "input": 112,
+    "output": 276
+  }
+}

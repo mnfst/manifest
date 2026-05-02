@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "intent_clinc150",
+  "case": 22,
+  "response": "transfer",
+  "score": 5,
+  "cost": 5.300000000000001e-05,
+  "expected": "transfer",
+  "tokens": {
+    "input": 514,
+    "output": 4
+  }
+}

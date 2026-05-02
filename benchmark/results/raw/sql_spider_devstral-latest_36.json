@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT student.name\nFROM student\nJOIN post ON student.id = post.student_id\nGROUP BY student.id, student.name\nORDER BY COUNT(like.id) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 2.02e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 45
+  }
+}

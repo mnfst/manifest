@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "First, let's determine the original cost to fill one balloon.  \nWe are told that the total cost for 20 balloons was $900.  \nSo, the original cost per balloon is:\n\n$$\n\\frac{900}{20} = 45\n$$\n\nTwo days later, the cost of filling each balloon increased by $20.  \nSo, the new cost per balloon is:\n\n$$\n45 + 20 = 65\n$$\n\nNow, we calculate how much Bentley paid to fill 170 balloons at the new price:\n\n$$\n170 \\times 65 = 11050\n$$\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 8.613000000000002e-06,
+  "expected": "11050",
+  "tokens": {
+    "input": 110,
+    "output": 151
+  }
+}

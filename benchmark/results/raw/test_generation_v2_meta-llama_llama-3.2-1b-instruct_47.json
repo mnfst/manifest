@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 47,
+  "response": "Here are some unit tests for the `run_length_encode` function using pytest style:\n\n```python\nimport pytest\n\ndef test_empty_string():\n    # Test that an empty string returns an empty list\n    assert run_length_encode(\"\") == []\n\ndef test_single_character():\n    # Test that a single character returns a list with a single element\n    assert run_length_encode(\"a\") == [(a, 1)]\n\ndef test_single_digit():\n    # Test that a single digit returns a list with a single element\n    assert run_length_encode(\"1\") == [(1, 1)]\n\ndef test_multiple_consecutive_same():\n    # Test that consecutive identical characters return a list with a single element\n    assert run_length_encode(\"aaa\") == [(a, 3)]\n\ndef test_multiple_consecutive_different():\n    # Test that different characters return a list with a single element\n    assert run_length_encode(\"abc\") == [(a, 3), (b, 1), (c, 1)]\n\ndef test_multiple_consecutive_different_length():\n    # Test that a string with different lengths returns a list with a single element\n    assert run_length_encode(\"abc\") == [(a, 3)]\n\ndef test_non_string_input():\n    # Test that the function raises a TypeError for non-string input\n    with pytest.raises(TypeError):\n        run_length_encode(123)\n\ndef test_non_string_input_with_empty_string():\n    # Test that the function raises a TypeError for non-string input with an empty string\n    with pytest.raises(TypeError):\n        run_length_encode(\"hello\")\n\ndef test_non_string_input_with_non_string():\n    # Test that the function raises a TypeError for non-string input with a non-string\n    with pytest.raises(TypeError):\n        run_length_encode(123)\n```\n\nThese tests cover the following cases:\n\n* Happy path: Test that the function returns the correct result for a string with a single character, single digit, and multiple consecutive identical characters.\n* Edge cases: Test that the function raises a TypeError for empty strings, non-string inputs, and non-string inputs with empty strings.\n* Error cases: Test that the function raises a TypeError for non-string inputs that are not strings.",
+  "score": 2,
+  "cost": 1.5416999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 442
+  }
+}

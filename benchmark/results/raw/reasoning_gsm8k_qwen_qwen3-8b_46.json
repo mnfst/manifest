@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "To determine the total number of fish Anakin and Locsin caught, we will first calculate the number of fish each caught individually and then sum the totals.\n\n---\n\n### Step 1: Calculate Anakin's Total Fish\n\nAnakin caught:\n- 10 starfish\n- 6 sea horses\n- 3 clownfish\n\n$$\n\\text{Anakin's total} = 10 + 6 + 3 = 19 \\text{ fish}\n$$\n\n---\n\n### Step 2: Calculate Locsin's Total Fish\n\nLocsin caught:\n- 5 fewer starfish than Anakin:  \n  $10 - 5 = 5$ starfish\n- 3 fewer sea horses than Anakin:  \n  $6 - 3 = 3$ sea horses\n- 2 more clownfish than Anakin:  \n  $3 + 2 = 5$ clownfish\n\n$$\n\\text{Locsin's total} = 5 + 3 + 5 = 13 \\text{ fish}\n$$\n\n---\n\n### Step 3: Calculate the Combined Total\n\n$$\n\\text{Total fish} = \\text{Anakin's total} + \\text{Locsin's total} = 19 + 13 = 32\n$$\n\n---\n\n**Final Answer:**\n\n$$\n\\boxed{32}\n$$",
+  "score": 5,
+  "cost": 6.0299999999999995e-05,
+  "expected": "32",
+  "tokens": {
+    "input": 116,
+    "output": 1090
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Elaine started with 20 Pokemon cards.\n\n1. **After the first month**, she collected three times her original number:\n   \\[\n   3 \\times 20 = 60\n   \\]\n\n2. **In the second month**, she collected 20 fewer than in the first month:\n   \\[\n   60 - 20 = 40\n   \\]\n\n3. **In the third month**, she collected twice the combined number from the first and second months:\n   \\[\n   2 \\times (60 + 40) = 2 \\times 100 = 200\n   \\]\n\n4. **Total cards now**:\n   \\[\n   20 + 60 + 40 + 200 = 320\n   \\]\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.00023669999999999998,
+  "expected": "320",
+  "tokens": {
+    "input": 113,
+    "output": 169
+  }
+}

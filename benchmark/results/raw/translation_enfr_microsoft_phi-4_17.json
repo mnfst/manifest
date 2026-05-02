@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "To provide a translation, I would need the specific English text you want translated into French. Please provide the text you wish to translate, and I will maintain the tone and meaning in the translation.",
+  "score": 1,
+  "cost": 5.070000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 40
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "SELECT TypeCode FROM TemplateType WHERE Description = 'Book';",
+  "score": 5,
+  "cost": 2.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 492
+  }
+}

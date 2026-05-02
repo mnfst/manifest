@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 17,
+  "response": "```python\n# test_balanced_parens.py\nimport pytest\n\nfrom your_module import is_balanced_parens  # replace with actual module name\n\n\n@pytest.mark.parametrize(\n    \"s\",\n    [\n        \"\",\n        \"()\",\n        \"[]\",\n        \"{}\",\n        \"()[]{}\",\n        \"({[]})\",\n        \"{[()]}\",\n        \"((()))\",\n        \"[{()}](){}\",\n        \"abc\",\n        \"a(b)c\",\n        \"function(arg[0]) { return true; }\",\n        \"(hello [world] {test})\",\n    ],\n)\ndef test_is_balanced_parens_valid_inputs(s):\n    assert is_balanced_parens(s) is True\n\n\n@pytest.mark.parametrize(\n    \"s\",\n    [\n        \"(\",\n        \"[\",\n        \"{\",\n        \")\",\n        \"]\",\n        \"}\",\n        \"(]\",\n        \"[)\",\n        \"{]\",\n        \"([)]\",\n        \"({[})\",\n        \"(()\",\n        \"())\",\n        \"{[()]\",\n        \"{[(])}\",\n        \"abc(def]\",\n        \"a)b(c\",\n    ],\n)\ndef test_is_balanced_parens_invalid_inputs(s):\n    assert is_balanced_parens(s) is False\n\n\n@pytest.mark.parametrize(\n    \"s\",\n    [\n        \"((a + b) * [c - d])\",\n        \"{foo: [bar, baz]}\",\n        \"no brackets here\",\n        \"12345\",\n        \"!@#$%^&*\",\n    ],\n)\ndef test_is_balanced_parens_ignores_non_bracket_characters(s):\n    assert is_balanced_parens(s) is True\n\n\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        None,\n        123,\n        3.14,\n        True,\n    ],\n)\ndef test_is_balanced_parens_non_iterable_inputs_raise_type_error(bad_input):\n    with pytest.raises(TypeError):\n        is_balanced_parens(bad_input)\n\n\ndef test_is_balanced_parens_list_input_iterable_behavior():\n    # The function is annotated for str, but it works with any iterable of chars.\n    assert is_balanced_parens([\"(\", \"[\", \"]\", \")\"]) is True\n    assert is_balanced_parens([\"(\", \"[\", \")\", \"]\"]) is False\n```",
+  "score": 5,
+  "cost": 0.006888,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 545
+  }
+}

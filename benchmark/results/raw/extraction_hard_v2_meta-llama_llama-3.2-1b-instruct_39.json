@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "extraction_hard_v2",
+  "case": 39,
+  "response": "```json\n{\n  \"date\": \"March 15, 2024 | 2:00-4:30 PM EST\",\n  \"time\": \"2:00-4:30 PM EST\",\n  \"location\": \"Conference Room A + Zoom\",\n  \"attendees\": [\n    \"J. Smith (Chair)\",\n    \"M. Johnson\",\n    \"L. Chen\",\n    \"R. Patel\",\n    \"K. Williams\"\n  ],\n  \"absent\": [\n    \"D. Brown (excused)\"\n  ],\n  \"secretary\": \"A. Taylor\",\n  \"agenda_items\": [\n    {\n      \"topic\": \"Q4 Financial Review - Revenue $12.3M (108% of target). EBITDA margin improved to 18%. Cash: $8.2M.\",\n      \"summary\": \"EBITDA margin improved to 18%\",\n      \"description\": \"Revenue $12.3M, 108% of target\",\n      \"result\": \"Passed unanimously\"\n    },\n    {\n      \"topic\": \"Series B Update - Term sheet from Sequoia at $80M pre-money. Board voted 4-1 to proceed (Williams dissenting, preferred higher valuation).\",\n      \"summary\": \"Term sheet from Sequoia at $80M pre-money\",\n      \"description\": \"Board voted 4-1 to proceed\",\n      \"result\": \"Passed unanimously\"\n    },\n    {\n      \"topic\": \"Hiring Plan - Approved 15 new hires in Q2 (8 eng, 4 sales, 3 ops). Budget: $1.8M.\",\n      \"summary\": \"Approved 15 new hires in Q2\",\n      \"description\": \"Budget: $1.8M\",\n      \"result\": \"Passed unanimously\"\n    },\n    {\n      \"topic\": \"Next meeting: June 14, 2024\",\n      \"summary\": \"Next meeting: June 14, 2024\",\n      \"description\": \"Next meeting\",\n      \"result\": \"Passed unanimously\"\n    }\n  ],\n  \"motions\": [\n    {\n      \"description\": \"Motion to approve Q4 financials: Passed unanimously\",\n      \"result\": \"Passed unanimously\"\n    },\n    {\n      \"description\": \"Motion to authorize Series B negotiation: Passed 4-1\",\n      \"result\": \"Passed 4-1\"\n    },\n    {\n      \"description\": \"Motion to approve Q2 hiring budget: Passed unanimously\",\n      \"result\": \"Passed unanimously\"\n    }\n  ]\n}\n```",
+  "score": 3,
+  "cost": 2.3463000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 344,
+    "output": 525
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "To solve this problem, let's break it down step by step.\n\nLet's denote the number of people who got on the bus at the terminal as x.\n\nAt the first bus stop, 5 more people got in, so the total number of people on the bus is x + 5.\n\nAt the second bus stop, 7 people got down and 8 more got in. This means the net change in the number of people on the bus is 8 - 7 = 1. So, the total number of people on the bus is now x + 5 + 1 = x + 6.\n\nWe are told that the total number of people heading to the third stop is 20. Since the number of people on the bus at this point is x + 6, we can set up the equation:\n\nx + 6 = 20\n\nTo solve for x, we subtract 6 from both sides of the equation:\n\nx = 20 - 6\nx = 14\n\nTherefore, 14 people got on the bus at the terminal.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 1.7288999999999997e-05,
+  "expected": "14",
+  "tokens": {
+    "input": 115,
+    "output": 224
+  }
+}

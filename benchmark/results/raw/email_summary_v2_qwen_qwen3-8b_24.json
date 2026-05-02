@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "The Design System v3 is ready for adoption, featuring updates like new dark mode color tokens, a revised 4px spacing scale, and improved Button/Modal components, with a migration tool available. The team is advised to implement the update in a team-by-team rollout, starting with the Settings page.",
+  "score": 5,
+  "cost": 1.675e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 248
+  }
+}

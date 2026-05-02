@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The email informs of a GDPR data export request from user ID 45892 with a 30-day deadline (May 25) requiring all personal data across services, processing purposes documentation, third-party data sharing logs, and analytics data. Action items include compiling these items to comply with legal requirements.",
+  "score": 5,
+  "cost": 2.33e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 359
+  }
+}

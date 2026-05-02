@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "To write unit tests for the `add` function using `pytest`, we need to cover the happy path, edge cases, and error cases. Here's how you can structure the tests:\n\n```python\nimport pytest\n\ndef add(a: int, b: int) -> int:\n    return a + b\n\ndef test_add_happy_path():\n    # Test with positive numbers\n    assert add(2, 3) == 5\n    # Test with negative numbers\n    assert add(-2, -3) == -5\n    # Test with a positive and a negative number\n    assert add(-2, 3) == 1\n    assert add(2, -3) == -1\n    # Test with zero\n    assert add(0, 0) == 0\n    assert add(0, 5) == 5\n    assert add(5, 0) == 5\n\ndef test_add_edge_cases():\n    # Test with large numbers\n    assert add(2**31 - 1, 1) == 2**31\n    assert add(-(2**31), -1) == -(2**31) - 1\n    # Test with smallest integers\n    assert add(-2**31, 2**31 - 1) == -1\n\ndef test_add_error_cases():\n    # Test with non-integer inputs\n    with pytest.raises(TypeError):\n        add(2, '3')\n    with pytest.raises(TypeError):\n        add('2', 3)\n    with pytest.raises(TypeError):\n        add(2.5, 3)\n    with pytest.raises(TypeError):\n        add(2, 3.5)\n\n# To run the tests, use the command: pytest <filename>.py\n```\n\n### Explanation:\n\n- **Happy Path**: Tests with typical inputs, including positive numbers, negative numbers, zero, and combinations of these.\n- **Edge Cases**: Tests with the maximum and minimum integer values to ensure the function handles large numbers correctly.\n- **Error Cases**: Tests with non-integer inputs to ensure the function raises a `TypeError` as expected. \n\nThese tests cover a comprehensive range of scenarios for the `add` function.",
+  "score": 5,
+  "cost": 3.302e-05,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 455
+  }
+}

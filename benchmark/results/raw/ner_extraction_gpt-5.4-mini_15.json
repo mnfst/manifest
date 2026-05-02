@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "{\"persons\":[],\"organizations\":[\"SpaceX\",\"Falcon 9\",\"Starlink\"],\"locations\":[\"Cape Canaveral\"]}",
+  "score": 4,
+  "cost": 5.6699999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 29
+  }
+}

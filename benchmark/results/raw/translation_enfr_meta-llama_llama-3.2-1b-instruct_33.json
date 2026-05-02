@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 33,
+  "response": "CV33 (1) (1.3) Remplace \"le conducteur et les autres membres de la \u00e9quipe\" par \"les membres du \u00e9quipe de v\u00e9hicule\".",
+  "score": 2,
+  "cost": 2.619e-06,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 38
+  }
+}

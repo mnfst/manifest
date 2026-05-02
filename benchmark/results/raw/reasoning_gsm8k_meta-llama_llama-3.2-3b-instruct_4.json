@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "To find the total yards of yarn used, we need to add the yards used by Mariah and her grandma.\n\nMariah used 1/4 of a skein, which is 1/4 of 364 yards.\n1/4 x 364 = 91 yards\n\nHer grandma used 1/2 of a skein, which is 1/2 of 364 yards.\n1/2 x 364 = 182 yards\n\nNow, we add the yards used by Mariah and her grandma.\n91 + 182 = 273 yards\n\nANSWER: 273",
+  "score": 5,
+  "cost": 1.1576999999999998e-05,
+  "expected": "273",
+  "tokens": {
+    "input": 107,
+    "output": 120
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "SELECT section_name \nFROM sections \nORDER BY section_name DESC;",
+  "score": 5,
+  "cost": 3.0030000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 13
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Depending on the desired level of formality, here are the best ways to translate this:\n\n**Option 1: Natural/Cinematic (Best for movies or dramatic narration)**\n> \u00ab Nous sommes capables... de d\u00e9cha\u00eener une puissance de feu... plus grande que tout ce qui a \u00e9t\u00e9 d\u00e9ploy\u00e9 dans l'histoire de la guerre. \u00bb\n\n**Option 2: Formal/Military (More precise and authoritative)**\n> \u00ab Nous sommes en mesure... de lib\u00e9rer une puissance de feu... plus importante que n'importe quelle autre dans l'histoire de la guerre. \u00bb\n\n**Key Translation Choices:**\n*   **\"Launching more firepower\":** While \"lancer\" is a literal translation, **\"d\u00e9cha\u00eener\"** (to unleash) or **\"lib\u00e9rer\"** (to release) captures the dramatic weight of \"firepower\" much better in French.\n*   **\"Than has ever been released\":** Using **\"plus grande que tout ce qui a \u00e9t\u00e9 d\u00e9ploy\u00e9\"** (greater than everything that has been deployed) sounds more natural in French than a literal translation of \"released.\"",
+  "score": 5,
+  "cost": 1.7160000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 232
+  }
+}

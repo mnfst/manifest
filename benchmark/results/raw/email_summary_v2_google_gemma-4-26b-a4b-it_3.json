@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "The March onboarding satisfaction score decreased to 7.2/10 due to delays in tool access, confusion regarding benefits deadlines, and missing culture handbooks. The primary priority is to resolve the tool access delays to meet the one-day target.",
+  "score": 4,
+  "cost": 1.0379999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 51
+  }
+}

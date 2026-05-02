@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "To solve the problem, we need to calculate the total amount of money raised by each girl and then sum these amounts.\n\n1. **Alexandra's amount**:  \n   Alexandra raises $430.\n\n2. **Kim's amount**:  \n   Kim raises $320 more than Alexandra.  \n   Therefore, Kim raises:  \n   \\[\n   430 + 320 = 750 \\text{ dollars}\n   \\]\n\n3. **Sarah's amount**:  \n   Sarah raises $300.\n\n4. **Maryam's amount**:  \n   Maryam raises $400 more than Sarah.  \n   Therefore, Maryam raises:  \n   \\[\n   300 + 400 = 700 \\text{ dollars}\n   \\]\n\nNow, we sum the amounts raised by all four girls:\n\n- Alexandra: $430\n- Kim: $750\n- Sarah: $300\n- Maryam: $700\n\nTotal amount raised is:\n\\[\n430 + 750 + 300 + 700 = 2180 \\text{ dollars}\n\\]\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 2.0605e-05,
+  "expected": "2280",
+  "tokens": {
+    "input": 99,
+    "output": 218
+  }
+}

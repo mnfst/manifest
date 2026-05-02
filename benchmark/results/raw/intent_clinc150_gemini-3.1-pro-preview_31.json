@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "intent_clinc150",
+  "case": 31,
+  "response": "freeze_account",
+  "score": 5,
+  "cost": 0.0015925,
+  "expected": "freeze_account",
+  "tokens": {
+    "input": 619,
+    "output": 3
+  }
+}

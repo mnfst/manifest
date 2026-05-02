@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 49,
+  "response": "```json\n{\n  \"persons\": [\"Pope Francis\"],\n  \"organizations\": [\"Vatican\"],\n  \"locations\": [\"St. Peter Square\"]\n}\n```",
+  "score": 4,
+  "cost": 7.2149999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 34
+  }
+}

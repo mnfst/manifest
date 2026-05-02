@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "extraction_hard_v2",
+  "case": 44,
+  "response": "```json\n{\n  \"title\": \"Senior Backend Engineer\",\n  \"company\": \"CloudMatrix\",\n  \"location\": {\n    \"city\": \"Austin\",\n    \"remote\": true\n  },\n  \"salary\": {\n    \"min\": 165000,\n    \"max\": 195000\n  },\n  \"requirements\": {\n    \"min_years\": 5,\n    \"skills\": [\"Go\", \"Rust\", \"Kubernetes\", \"event-driven architectures\"]\n  },\n  \"benefits\": [\"unlimited PTO\", \"health/dental/vision\", \"401k match\", \"$3K learning budget\"]\n}\n```",
+  "score": 4,
+  "cost": 6.0799999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 146
+  }
+}

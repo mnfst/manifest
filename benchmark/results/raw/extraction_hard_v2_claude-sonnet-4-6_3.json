@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout\",\n  \"summary\": \"Checkout page fails with white screen after payment submission due to CORS error and JS exception\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout page\",\n    \"Enter card information\",\n    \"Click the pay button\"\n  ],\n  \"expected_behavior\": \"Payment is processed successfully and user receives confirmation\",\n  \"actual_behavior\": \"Spinner displays for 30 seconds followed by a white screen with no error message; console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.003393,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 191
+  }
+}

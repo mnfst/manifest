@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 9,
+  "response": "weather",
+  "score": 5,
+  "cost": 1.3743e-05,
+  "expected": "weather",
+  "tokens": {
+    "input": 507,
+    "output": 2
+  }
+}

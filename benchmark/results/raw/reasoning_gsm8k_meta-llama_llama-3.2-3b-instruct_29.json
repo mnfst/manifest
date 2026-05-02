@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "To solve this problem, let's break it down step by step.\n\n1. The rink has 12 red cars.\n2. They have 2 fewer green cars than red cars, so they have 12 - 2 = 10 green cars.\n3. They have 3 times the number of blue cars as they have green cars, so they have 3 x 10 = 30 blue cars.\n4. The total number of red, green, and blue cars is 12 + 10 + 30 = 52 cars.\n5. Since the rink has 75 cars in total, the number of yellow cars is 75 - 52 = 23.\n\nANSWER: 23",
+  "score": 5,
+  "cost": 1.3209e-05,
+  "expected": "23",
+  "tokens": {
+    "input": 114,
+    "output": 145
+  }
+}

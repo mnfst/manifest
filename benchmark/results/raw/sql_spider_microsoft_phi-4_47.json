@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "```sql\nSELECT type_code\nFROM cre_Doc_Template_Mgt\nWHERE description = 'Book';\n```",
+  "score": 3,
+  "cost": 6.5e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 23
+  }
+}

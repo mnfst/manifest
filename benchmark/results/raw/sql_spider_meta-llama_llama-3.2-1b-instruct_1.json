@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(mpg) FROM car_1 WHERE cylinders = 4",
+  "score": 5,
+  "cost": 2.565e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 15
+  }
+}

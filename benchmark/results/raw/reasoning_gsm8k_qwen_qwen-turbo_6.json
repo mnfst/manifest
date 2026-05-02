@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Step 1: Ann is currently 9 years old.  \nStep 2: Her brother is twice her age, so his current age is $ 2 \\times 9 = 18 $ years old.  \nStep 3: In 3 years, her brother will be $ 18 + 3 = 21 $ years old.  \n\nANSWER: 21",
+  "score": 5,
+  "cost": 5.082000000000001e-06,
+  "expected": "21",
+  "tokens": {
+    "input": 74,
+    "output": 80
+  }
+}

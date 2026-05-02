@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "{\n  \"persons\": [\"Angela Merkel\"],\n  \"organizations\": [\"Presidential Medal of Freedom\"],\n  \"locations\": [\"White House\"]\n}",
+  "score": 4,
+  "cost": 3.365e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 602
+  }
+}

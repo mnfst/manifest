@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "L'unit\u00e9 est simplement fix\u00e9e \u00e0 l'appuie-t\u00eate du si\u00e8ge conducteur \u00e0 l'aide d'un solide \u00e9lastique. Dans ce",
+  "score": 4,
+  "cost": 0.000771,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 41
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Alexandra raises \\$430.\n\nKim raises \\$320 more than Alexandra:\n\\[\n430 + 320 = 750\n\\]\n\nSarah raises \\$300.\n\nMaryam raises \\$400 more than Sarah:\n\\[\n300 + 400 = 700\n\\]\n\nNow add all four amounts:\n\\[\n430 + 750 + 300 + 700 = 2180\n\\]\n\nANSWER: 2180",
+  "score": 4,
+  "cost": 0.000866,
+  "expected": "2280",
+  "tokens": {
+    "input": 93,
+    "output": 85
+  }
+}

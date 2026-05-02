@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT name\nFROM nation\nWHERE name IN (\n    SELECT nation_name\n    FROM language\n    WHERE language = 'English'\n)\nAND name IN (\n    SELECT nation_name\n    FROM language\n    WHERE language = 'French'\n);\n```",
+  "score": 4,
+  "cost": 7.440000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 52
+  }
+}

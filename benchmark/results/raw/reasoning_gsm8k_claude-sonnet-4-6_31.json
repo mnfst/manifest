@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "## Solution\n\n**Given information:**\n- The classroom has 30 boys\n- 3 times as many girls as boys\n- 1/10 as many nongendered children as boys\n\n**Step 1: Calculate the number of girls**\nGirls = 3 \u00d7 boys = 3 \u00d7 30 = 90 girls\n\n**Step 2: Calculate the number of nongendered children**\nNongendered = (1/10) \u00d7 boys = (1/10) \u00d7 30 = 3 nongendered children\n\n**Step 3: Calculate the total number of children**\nTotal = boys + girls + nongendered\nTotal = 30 + 90 + 3 = **123**\n\nANSWER: 123",
+  "score": 1,
+  "cost": 0.002853,
+  "expected": "123",
+  "tokens": {
+    "input": 96,
+    "output": 171
+  }
+}

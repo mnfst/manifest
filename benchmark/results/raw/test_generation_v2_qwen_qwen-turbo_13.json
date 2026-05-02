@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "Here's a set of **pytest-style unit tests** for the `fizzbuzz` function. The tests cover:\n\n- **Happy path**: Normal inputs (e.g., 3, 5, 15).\n- **Edge cases**: 0, 1, and large numbers.\n- **Error cases**: Non-integer inputs (to test type handling).\n\n### File: `test_fizzbuzz.py`\n\n```python\nimport pytest\n\ndef test_fizzbuzz_happy_path():\n    assert fizzbuzz(3) == 'Fizz'\n    assert fizzbuzz(5) == 'Buzz'\n    assert fizzbuzz(15) == 'FizzBuzz'\n    assert fizzbuzz(1) == '1'\n    assert fizzbuzz(2) == '2'\n\ndef test_fizzbuzz_edge_cases():\n    assert fizzbuzz(0) == '0'\n    assert fizzbuzz(100) == 'Buzz'\n    assert fizzbuzz(99) == 'Fizz'\n\ndef test_fizzbuzz_error_cases():\n    with pytest.raises(TypeError):\n        fizzbuzz(\"3\")\n    with pytest.raises(TypeError):\n        fizzbuzz(3.14)\n    with pytest.raises(TypeError):\n        fizzbuzz(None)\n```\n\n### Notes:\n\n- The function `fizzbuzz` is expected to be in the same file or imported properly.\n- The `TypeError` tests ensure that the function doesn't accept non-integer inputs.\n- You can run the tests using:\n  ```bash\n  pytest test_fizzbuzz.py\n  ```\n\n### Optional: Add a test for a large number (e.g., 1000)\nYou could also add a test for a large number to ensure it still works:\n\n```python\ndef test_fizzbuzz_large_number():\n    assert fizzbuzz(1000) == 'Buzz'\n```\n\nLet me know if you'd like the function to be modified to handle other input types or return values.",
+  "score": 5,
+  "cost": 1.6434000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 397
+  }
+}

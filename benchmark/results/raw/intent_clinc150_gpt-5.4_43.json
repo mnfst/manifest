@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "intent_clinc150",
+  "case": 43,
+  "response": "book_flight",
+  "score": 5,
+  "cost": 0.001086,
+  "expected": "book_flight",
+  "tokens": {
+    "input": 519,
+    "output": 6
+  }
+}

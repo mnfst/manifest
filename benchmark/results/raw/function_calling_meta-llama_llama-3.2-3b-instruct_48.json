@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 48,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"git_tag\", \"arguments\": {\"name\": \"v3.0.0\", \"message\": \"Release v3.0.0\"}}\n{\"name\": \"git_push\", \"arguments\": {\"remote\": \"origin\", \"tags\": \"True\"}}\n```\n\nNote that the `git_list_tags` function is not needed for this request, as it is not part of the user request.",
+  "score": 2,
+  "cost": 1.0352999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 96
+  }
+}

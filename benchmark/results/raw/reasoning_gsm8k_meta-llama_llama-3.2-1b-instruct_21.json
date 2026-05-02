@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "To solve this problem, let's break it down step by step:\n\n1. Elliott walked 10,000 steps a day, which is half of his daily steps. So, he walked 10,000 / 2 = 5,000 steps on his walks to and from school.\n\n2. He also walked 1,000 steps going for a short walk with his friend, so he walked a total of 5,000 + 1,000 = 6,000 steps.\n\n3. After his jog, he had 2,000 steps left. This means that before his jog, he had 2,000 + 6,000 = 8,000 steps.\n\n4. Since he walked 5,000 steps on his walks to and from school, the remaining steps he walked on his jog would be 8,000 - 5,000 = 3,000 steps.\n\nANSWER: 3000",
+  "score": 4,
+  "cost": 8.721e-06,
+  "expected": "2000",
+  "tokens": {
+    "input": 132,
+    "output": 191
+  }
+}

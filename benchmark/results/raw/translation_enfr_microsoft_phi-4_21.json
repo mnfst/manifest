@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 21,
+  "response": "Maintenant, voudriez-vous bien vouloir lire ceci, s'il vous pla\u00eet ?",
+  "score": 4,
+  "cost": 4.16e-06,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 23
+  }
+}

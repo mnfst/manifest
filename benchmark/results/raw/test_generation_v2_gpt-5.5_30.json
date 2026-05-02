@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "```python\n# test_snake_to_camel.py\n\nimport pytest\n\nfrom your_module import snake_to_camel\n\n\n@pytest.mark.parametrize(\n    (\"input_value\", \"expected\"),\n    [\n        # Happy path\n        (\"hello_world\", \"helloWorld\"),\n        (\"my_long_variable\", \"myLongVariable\"),\n        (\"snake_to_camel\", \"snakeToCamel\"),\n\n        # Already camel/plain string\n        (\"hello\", \"hello\"),\n        (\"alreadyCamel\", \"alreadyCamel\"),\n\n        # Edge cases\n        (\"\", \"\"),\n        (\"_hello\", \"Hello\"),\n        (\"hello_\", \"hello\"),\n        (\"hello__world\", \"helloWorld\"),\n        (\"___\", \"\"),\n        (\"a_b_c\", \"aBC\"),\n\n        # Numbers / mixed content\n        (\"version_2_id\", \"version2Id\"),\n        (\"field_123_name\", \"field123Name\"),\n\n        # capitalize() lowercases remaining characters\n        (\"foo_BAR\", \"fooBar\"),\n        (\"FOO_bar\", \"FOOBar\"),\n        (\"foo_bAR_baz\", \"fooBarBaz\"),\n    ],\n)\ndef test_snake_to_camel(input_value, expected):\n    assert snake_to_camel(input_value) == expected\n\n\n@pytest.mark.parametrize(\n    \"invalid_input\",\n    [\n        None,\n        123,\n        12.5,\n        [],\n        {},\n    ],\n)\ndef test_snake_to_camel_invalid_non_string_inputs(invalid_input):\n    with pytest.raises(AttributeError):\n        snake_to_camel(invalid_input)\n\n\ndef test_snake_to_camel_bytes_input_raises_type_error():\n    with pytest.raises(TypeError):\n        snake_to_camel(b\"hello_world\")\n```",
+  "score": 5,
+  "cost": 0.008685,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 706
+  }
+}

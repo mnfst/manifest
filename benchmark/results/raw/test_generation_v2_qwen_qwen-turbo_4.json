@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 4,
+  "response": "Here's a set of unit tests for the `celsius_to_fahrenheit` function using **pytest** style:\n\n```python\nimport pytest\n\ndef celsius_to_fahrenheit(c: float) -> float:\n    return c * 9/5 + 32\n\n# Test cases using pytest's parametrize\n@pytest.mark.parametrize(\"celsius, expected\", [\n    (0, 32),                # Happy path: freezing point\n    (100, 212),             # Happy path: boiling point\n    (25, 77),               # Happy path: typical room temperature\n    (-40, -40),             # Edge case: -40\u00b0C is equal to -40\u00b0F\n    (37, 98.6),             # Edge case: body temperature\n    (1.8, 3.24),            # Decimal values\n    (0.0, 32.0),            # Zero as float\n    (float('inf'), float('inf')),  # Edge case: infinity\n    (float('-inf'), float('-inf')),  # Edge case: negative infinity\n])\ndef test_celsius_to_fahrenheit(celsius, expected):\n    assert celsius_to_fahrenheit(celsius) == pytest.approx(expected)\n\n# Test for invalid input (non-float)\ndef test_celsius_to_fahrenheit_invalid_input():\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(\"32\")\n```\n\n### Explanation:\n\n- **Happy Path**: Covers common values like 0\u00b0C, 100\u00b0C, and 25\u00b0C.\n- **Edge Cases**:\n  - `-40\u00b0C` is the same as `-40\u00b0F`.\n  - `37\u00b0C` is a typical body temperature.\n  - `inf` and `-inf` are handled gracefully.\n- **Error Cases**:\n  - Passing a string instead of a float raises a `TypeError`.\n\n### To Run the Tests:\n\nSave the code in a file, e.g., `test_celsius_to_fahrenheit.py`, and run:\n\n```bash\npytest test_celsius_to_fahrenheit.py\n```\n\nThis will execute all the test cases and report any failures.",
+  "score": 5,
+  "cost": 1.7292000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 459
+  }
+}

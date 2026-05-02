@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "```sql\nSELECT name\nFROM conductor\nGROUP BY name\nORDER BY COUNT(*) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 5.253e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 25
+  }
+}

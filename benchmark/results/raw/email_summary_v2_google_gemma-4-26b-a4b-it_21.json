@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team proposes a cleanup sprint to remove or archive 23 outdated feature flags to reduce complexity and improve test speeds. The primary action item is to execute the removal of 15 fully rolled-out flags and the archiving of 8 dead code flags.",
+  "score": 5,
+  "cost": 9.06e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 51
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 3,
+  "response": "To fulfill the user's request, you would use the `create_task` function with the provided arguments. Here's the correct function call:\n\n```python\ncreate_task(title=\"Review PR 42\", priority=\"high\", assignee=\"alice\", due_date=\"next Friday\")\n```\n\nThis will create a new task with the specified title, priority, assignee, and due date, and return a JSON object in the format you requested.",
+  "score": 5,
+  "cost": 5.5619999999999994e-06,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 89
+  }
+}

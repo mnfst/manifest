@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 13,
+  "response": "{\n  \"persons\": [\"Oxford University\", \"Pfizer\"],\n  \"organizations\": [\"Oxford University\", \"Pfizer\"],\n  \"locations\": [\"Oxford\", \"United Kingdom\"]",
+  "score": 2,
+  "cost": 3.132e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 42
+  }
+}

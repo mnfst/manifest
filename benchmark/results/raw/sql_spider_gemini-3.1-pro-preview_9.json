@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT T1.CountryName FROM countries AS T1 JOIN car_makers AS T2 ON T1.CountryId  =  T2.Country GROUP BY T1.CountryId ORDER BY count(*) DESC LIMIT 1\n```",
+  "score": 4,
+  "cost": 0.0009425,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 51
+  }
+}

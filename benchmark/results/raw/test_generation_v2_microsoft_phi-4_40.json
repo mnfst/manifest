@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "test_generation_v2",
+  "case": 40,
+  "response": "To write unit tests for the `rgb_to_hex` function using the pytest framework, we need to cover the happy path, edge cases, and error cases. Here's how you can structure the tests:\n\n```python\nimport pytest\n\ndef test_rgb_to_hex_happy_path():\n    # Test the happy path with valid RGB values\n    assert rgb_to_hex(255, 255, 255) == '#ffffff'\n    assert rgb_to_hex(0, 0, 0) == '#000000'\n    assert rgb_to_hex(128, 128, 128) == '#808080'\n    assert rgb_to_hex(255, 0, 0) == '#ff0000'\n    assert rgb_to_hex(0, 255, 0) == '#00ff00'\n    assert rgb_to_hex(0, 0, 255) == '#0000ff'\n\ndef test_rgb_to_hex_edge_cases():\n    # Test edge cases with minimum and maximum values\n    assert rgb_to_hex(0, 0, 0) == '#000000'\n    assert rgb_to_hex(255, 255, 255) == '#ffffff'\n    assert rgb_to_hex(0, 0, 255) == '#0000ff'\n    assert rgb_to_hex(0, 255, 0) == '#00ff00'\n    assert rgb_to_hex(255, 0, 0) == '#ff0000'\n    assert rgb_to_hex(255, 255, 0) == '#ffff00'\n    assert rgb_to_hex(255, 0, 255) == '#ff00ff'\n    assert rgb_to_hex(0, 255, 255) == '#00ffff'\n    assert rgb_to_hex(255, 255, 255) == '#fffff'\n\ndef test_rgb_to_hex_error_cases():\n    # Test error cases with invalid RGB values\n    with pytest.raises(ValueError):\n        rgb_to_hex(-1, 0, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(256, 0, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(0, -1, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(0, 256, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(0, 0, -1)\n    with pytest.raises(ValueError):\n        rgb_to_hex(0, 0, 256)\n    with pytest.raises(ValueError):\n        rgb_to_hex(256, 256, 256)\n    with pytest.raises(ValueError):\n        rgb_to_hex(-256, -256, -256)\n\n# Note: The function `rgb_to_hex` should be defined in the test file or imported from the module where it is defined.\n```\n\nThese tests cover:\n\n- **Happy Path**: Valid RGB values that convert correctly to hex.\n- **Edge Cases**: Minimum and maximum values for each component.\n- **Error Cases**: Values outside the valid range (0-255) for each component, which should raise a `ValueError`.",
+  "score": 4,
+  "cost": 4.8815e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 635
+  }
+}

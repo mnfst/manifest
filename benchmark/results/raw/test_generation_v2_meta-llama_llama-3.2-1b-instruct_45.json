@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 45,
+  "response": "Here are some unit tests for the `sliding_window` function using pytest style:\n\n```python\nimport pytest\nfrom typing import Tuple\n\ndef test_sliding_window_happy_path():\n    # Test with a small iterable\n    iterable = [1, 2, 3, 4, 5]\n    expected = [(1, 2, 3), (2, 3, 4), (3, 4, 5)]\n    result = sliding_window(iterable, 3)\n    assert result == expected\n\ndef test_sliding_window_edge_case_empty():\n    # Test with an empty iterable\n    iterable = []\n    expected = []\n    result = sliding_window(iterable, 3)\n    assert result == expected\n\ndef test_sliding_window_edge_case_single_element():\n    # Test with a single element iterable\n    iterable = [1]\n    expected = [(1)]\n    result = sliding_window(iterable, 3)\n    assert result == expected\n\ndef test_sliding_window_edge_case_large():\n    # Test with a large iterable\n    iterable = [1] * 1000\n    expected = [(1,) * 3]\n    result = sliding_window(iterable, 3)\n    assert result == expected\n\ndef test_sliding_window_empty_iterable():\n    # Test with an empty iterable\n    iterable = []\n    with pytest.raises(StopIteration):\n        sliding_window(iterable, 3)\n\ndef test_sliding_window_single_element_iterable():\n    # Test with a single element iterable\n    iterable = [1]\n    with pytest.raises(StopIteration):\n        sliding_window(iterable, 3)\n\ndef test_sliding_window_large_iterable():\n    # Test with a large iterable\n    iterable = [1] * 1000\n    with pytest.raises(StopIteration):\n        sliding_window(iterable, 3)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test with a small iterable, an empty iterable, and a single element iterable.\n* Edge cases: Test with an empty iterable, a single element iterable, and a large iterable.\n* Error cases: Test that the function raises a `StopIteration` exception when the iterable is empty.",
+  "score": 3,
+  "cost": 1.4958e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 451
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "**Standard French:**\nSector Source est un site de ressources con\u00e7u pour aider ceux qui dirigent des associations caritatives et des organisations \u00e0 but non lucratif \u00e0 se tenir inform\u00e9s sur...\n\n**Canadian French (if your audience is in Canada):**\nSector Source est un site de ressources con\u00e7u pour aider les dirigeants d'organismes de bienfaisance et d'organismes \u00e0 but non lucratif \u00e0 se tenir inform\u00e9s sur... \n\n*(Note: In Canada, the legal terms for charities and nonprofits are \"organismes de bienfaisance\" and \"organismes \u00e0 but non lucratif / OBNL\", whereas in Europe, \"associations caritatives\" is more commonly used).*",
+  "score": 5,
+  "cost": 0.002275,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 145
+  }
+}

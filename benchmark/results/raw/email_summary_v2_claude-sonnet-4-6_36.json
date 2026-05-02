@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The /api/v2/search endpoint experienced a 4x P99 latency increase after Thursday's deployment, caused by a full-text search query failing to utilize the database index. The fix\u2014adding a GIN index on the content column\u2014is scheduled for deployment tonight during the maintenance window.",
+  "score": 5,
+  "cost": 0.001311,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 66
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment m'aider, et je veux.\n\nNote: The translation is quite literal, but the tone and meaning are preserved. If you want to convey a more informal tone, you could use:\n\nJe suis l\u00e0 pour t'aider, et je veux.\n\nThis version is more conversational and friendly.",
+  "score": 2,
+  "cost": 5.355e-06,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 65
+  }
+}

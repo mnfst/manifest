@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 3,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"create_task\", \"arguments\": {\"title\": \"Review PR 42\", \"priority\": \"high\", \"assignee\": \"alice\", \"due_date\": \"next Friday\"}}\n```\n\nNote: I've assumed that \"next Friday\" is a valid date, if it's not, you should replace it with a specific date in the format \"YYYY-MM-DD\".",
+  "score": 4,
+  "cost": 1.0608e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 91
+  }
+}

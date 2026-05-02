@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe March cohort's satisfaction rating has dropped to 7.2/10, with positives including the buddy system and IT support, but negatives including confusion about benefits deadlines and delayed access to tools. The top priority is to address the issue with tools access, which took 3-5 days to resolve, with a target of 1 day.",
+  "score": 4,
+  "cost": 1.0148999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 82
+  }
+}

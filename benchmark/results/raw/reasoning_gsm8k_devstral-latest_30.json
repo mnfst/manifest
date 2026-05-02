@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Let's solve the problem step by step.\n\n1. **Adam's Points:**\n   - Adam has collected **50 points**.\n\n2. **Betty's Points:**\n   - Betty collected **30% more** than Adam.\n   - Calculation: \\( 50 + (0.30 \\times 50) = 50 + 15 = 65 \\) points.\n\n3. **Tom's Points:**\n   - Tom has **30 points less** than Betty.\n   - Calculation: \\( 65 - 30 = 35 \\) points.\n\n4. **Marta's Points:**\n   - Marta collected **3 times more** points than Tom.\n   - Calculation: \\( 3 \\times 35 = 105 \\) points.\n\n5. **Total Points Collected:**\n   - Sum of all students' points: \\( 50 \\) (Adam) \\( + 65 \\) (Betty) \\( + 35 \\) (Tom) \\( + 105 \\) (Marta) \\( = 255 \\) points.\n\n6. **Points Needed for the Trip:**\n   - The minimum threshold is **400 points**.\n   - Points missing: \\( 400 - 255 = 145 \\) points.\n\n**Final Answer:**\nANSWER: 145",
+  "score": 5,
+  "cost": 0.0001037,
+  "expected": "145",
+  "tokens": {
+    "input": 149,
+    "output": 296
+  }
+}

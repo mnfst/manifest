@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 40,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"Reserve Bank of Australia\",\n    \"Goldman Sachs\"\n  ],\n  \"locations\": [\n    \"Australia\"\n  ]\n}",
+  "score": 4,
+  "cost": 2.3400000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 41
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Here are a few ways to translate this, depending on who you are speaking to:\n\n**Informal (speaking to a friend or someone you know well):**\n\"Tu sais d'o\u00f9 vient l'argent ?\" *(Most natural for spoken French, matching the conversational tone of \"money's\")*\nor\n\"Est-ce que tu sais d'o\u00f9 vient l'argent ?\"\n\n**Formal or Plural (speaking to a stranger, a superior, or multiple people):**\n\"Savez-vous d'o\u00f9 vient l'argent ?\"",
+  "score": 5,
+  "cost": 0.0018025,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 115
+  }
+}

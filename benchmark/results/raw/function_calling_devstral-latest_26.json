@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 26,
+  "response": "```json\n{\"name\": \"upload_file\", \"arguments\": {\"path\": \"report.pdf\", \"destination\": \"shared documents\"}}\n```",
+  "score": 5,
+  "cost": 1.73e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 30
+  }
+}

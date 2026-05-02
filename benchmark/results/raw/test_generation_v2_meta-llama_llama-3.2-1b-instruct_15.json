@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 15,
+  "response": "Here are some unit tests for the `rotate_list` function using pytest style:\n\n```python\nimport pytest\n\ndef test_rotate_list_happy_path():\n    # Test with a list of length 5\n    lst = [1, 2, 3, 4, 5]\n    expected = [3, 4, 5, 1, 2]\n    assert rotate_list(lst, 2) == expected\n\ndef test_rotate_list_edge_case_empty_list():\n    # Test with an empty list\n    lst = []\n    expected = []\n    assert rotate_list(lst, 2) == lst\n\ndef test_rotate_list_edge_case_single_element_list():\n    # Test with a list of length 1\n    lst = [1]\n    expected = [1]\n    assert rotate_list(lst, 2) == lst\n\ndef test_rotate_list_edge_case_list_with_duplicates():\n    # Test with a list of length 5 and duplicates\n    lst = [1, 2, 2, 3, 4]\n    expected = [3, 4, 1, 2, 2]\n    assert rotate_list(lst, 2) == expected\n\ndef test_rotate_list_edge_case_list_with_negative_k():\n    # Test with a list and negative k\n    lst = [1, 2, 3, 4, 5]\n    k = -2\n    expected = [3, 4, 5, 1, 2]\n    assert rotate_list(lst, k) == expected\n\ndef test_rotate_list_edge_case_k_greater_than_list_length():\n    # Test with a list and k greater than list length\n    lst = [1, 2, 3, 4, 5]\n    k = 6\n    with pytest.raises(ValueError):\n        rotate_list(lst, k)\n\ndef test_rotate_list_edge_case_k_zero():\n    # Test with a list and k equal to 0\n    lst = [1, 2, 3, 4, 5]\n    k = 0\n    with pytest.raises(ValueError):\n        rotate_list(lst, k)\n```\n\nThese tests cover the following cases:\n\n* Happy path: Test with a list of length 5, 1, and 1 with duplicates.\n* Edge cases: Test with an empty list, a list of length 1, a list of length 5 and duplicates, and a list with negative k.\n* Error cases: Test with a list and k greater than list length, and k equal to 0.",
+  "score": 4,
+  "cost": 1.6308e-05,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 524
+  }
+}

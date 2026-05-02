@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The email proposes upgrading the network from 1Gbps to 10Gbps for $45K upfront and $2K/month, or using traffic shaping and CDN optimization for $15K, with a recommendation to choose the 10Gbps upgrade to avoid future issues. The main action item is to decide on the network upgrade option based on the provided cost and capacity analysis.",
+  "score": 5,
+  "cost": 6.567e-06,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 80
+  }
+}

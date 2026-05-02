@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Half a dozen plates means:\n\n\\[\n\\frac{1}{2} \\times 12 = 6 \\text{ plates}\n\\]\n\nEach plate costs \\$6000, so the total cost of 6 plates is:\n\n\\[\n6 \\times 6000 = 36000\n\\]\n\nTwenty dozen cups cost \\$1200 less than this amount:\n\n\\[\n36000 - 1200 = 34800\n\\]\n\nTwenty dozen means:\n\n\\[\n20 \\times 12 = 240 \\text{ cups}\n\\]\n\nSo the cost of each cup is:\n\n\\[\n\\frac{34800}{240} = 145\n\\]\n\nANSWER: 145",
+  "score": 4,
+  "cost": 0.001266,
+  "expected": "145",
+  "tokens": {
+    "input": 73,
+    "output": 140
+  }
+}

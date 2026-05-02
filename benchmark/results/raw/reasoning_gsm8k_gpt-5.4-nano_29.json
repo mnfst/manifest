@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "There are 12 red cars.\n\nGreen cars are 2 fewer than red cars:\n- Green = 12 \u2212 2 = 10\n\nBlue cars are 3 times the number of green cars:\n- Blue = 3 \u00d7 10 = 30\n\nTotal cars so far (red + green + blue):\n- 12 + 10 + 30 = 52\n\nTotal cars in the rink is 75, so yellow cars are:\n- Yellow = 75 \u2212 52 = 23\n\nANSWER: 23",
+  "score": 5,
+  "cost": 5.44e-05,
+  "expected": "23",
+  "tokens": {
+    "input": 104,
+    "output": 110
+  }
+}

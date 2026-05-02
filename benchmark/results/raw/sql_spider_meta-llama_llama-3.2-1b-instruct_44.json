@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "```sql\nSELECT airport_code\nFROM flight_2\nGROUP BY airport_code\nORDER BY COUNT(*) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 2.8079999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 29
+  }
+}

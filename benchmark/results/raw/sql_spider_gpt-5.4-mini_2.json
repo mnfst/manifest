@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "SELECT s.name, s.capacity\nFROM stadium AS s\nJOIN concert AS c\n  ON s.stadium_id = c.stadium_id\nWHERE c.concert_date > '2013-12-31'\nGROUP BY s.stadium_id, s.name, s.capacity\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.00010589999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 69
+  }
+}

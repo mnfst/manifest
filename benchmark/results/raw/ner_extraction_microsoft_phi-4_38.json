@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 38,
+  "response": "```json\n{\n  \"persons\": [\"Kamala Harris\"],\n  \"organizations\": [\"General Motors\"],\n  \"locations\": [\"Detroit\"]\n}\n```",
+  "score": 5,
+  "cost": 6.695e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 32
+  }
+}

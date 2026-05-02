@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint retrospective highlighted successful cross-team collaboration on the auth redesign, while identifying context switching and lengthy standups as areas for improvement. To address these issues, the team will limit Work In Progress (WIP) to two items per developer and enforce strictly timeboxed standups using a parking lot.",
+  "score": 5,
+  "cost": 0.00115,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 60
+  }
+}

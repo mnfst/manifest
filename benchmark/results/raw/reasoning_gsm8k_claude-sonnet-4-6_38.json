@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "## Solution\n\n**Step 1: Find Gerald's share**\n\nThe ratio is 3:2, so the total parts = 3 + 2 = 5 parts\n\nGerald's share = (3/5) \u00d7 $100 = **$60**\n\n**Step 2: Subtract the cost of the book**\n\nGerald's remaining money = $60 - $10 = **$50**\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.001719,
+  "expected": "50",
+  "tokens": {
+    "input": 78,
+    "output": 99
+  }
+}

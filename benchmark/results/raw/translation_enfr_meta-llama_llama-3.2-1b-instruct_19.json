@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "FTI \u2014 Privileges et conditions",
+  "score": 5,
+  "cost": 1.215e-06,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 8
+  }
+}

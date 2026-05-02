@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "```sql\nSELECT s.name, s.capacity\nFROM concert_s s\nJOIN venue v ON s.venue_id = v.id\nWHERE v.city NOT IN (\n  SELECT v.city\n  FROM concert_s s\n  JOIN venue v ON s.venue_id = v.id\n  WHERE s.year < 2014\n)\nORDER BY s.concerts_count DESC\nLIMIT 1;\n```",
+  "score": 2,
+  "cost": 8.363999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 82
+  }
+}

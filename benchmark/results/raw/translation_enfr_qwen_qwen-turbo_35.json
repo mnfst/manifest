@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[pr\u00e9sentateur masculin #1 \u00e0 la t\u00e9l\u00e9vision] Un accident s'est produit juste apr\u00e8s 10 heures.",
+  "score": 5,
+  "cost": 2.475e-06,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 24
+  }
+}

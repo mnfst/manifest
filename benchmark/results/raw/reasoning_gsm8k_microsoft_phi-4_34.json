@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "To solve this problem, we need to calculate the total expenses and then divide them evenly among the three friends.\n\n1. **Cost of Tickets:**\n   - The cost of 3 tickets is $20.25.\n\n2. **Cost of Food:**\n   - They spent $4.50 less on food than on tickets.\n   - Cost of food = Cost of tickets - $4.50 = $20.25 - $4.50 = $15.75.\n\n3. **Cost of Rides:**\n   - They went on 2 different rides, each costing $33.\n   - Total cost for rides = 2 rides \u00d7 $33 per ride = $66.\n\n4. **Total Cost:**\n   - Total cost = Cost of tickets + Cost of food + Cost of rides\n   - Total cost = $20.25 + $15.75 + $66 = $102.\n\n5. **Cost per Friend:**\n   - The total cost is split evenly among the three friends.\n   - Cost per friend = Total cost / 3 friends = $102 / 3 = $34.\n\nTherefore, each friend paid $34.\n\nANSWER: 34",
+  "score": 5,
+  "cost": 2.288e-05,
+  "expected": "34",
+  "tokens": {
+    "input": 110,
+    "output": 242
+  }
+}

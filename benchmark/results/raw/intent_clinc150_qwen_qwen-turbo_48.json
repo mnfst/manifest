@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "intent_clinc150",
+  "case": 48,
+  "response": "application_status",
+  "score": 5,
+  "cost": 1.6929e-05,
+  "expected": "application_status",
+  "tokens": {
+    "input": 511,
+    "output": 2
+  }
+}

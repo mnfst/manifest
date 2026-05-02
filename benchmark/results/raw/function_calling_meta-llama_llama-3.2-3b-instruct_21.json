@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 21,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"deploy\", \"arguments\": {\"version\": \"2.3.1\", \"environment\": \"staging\"}}\n```\n\nThis function call is valid because it matches the signature of the `deploy` function, which takes two arguments: `version` and `environment`.",
+  "score": 5,
+  "cost": 8.007e-06,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 70
+  }
+}

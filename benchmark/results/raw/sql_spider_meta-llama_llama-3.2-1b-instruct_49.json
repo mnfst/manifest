@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "```sql\nSELECT DISTINCT T1.hometown\nFROM course_teachers T1\nJOIN course_teachers T2 ON T1.teacher_id = T2.teacher_id\nWHERE T1.hometown IN (SELECT T2.hometown FROM course_teachers T2);\n```",
+  "score": 2,
+  "cost": 3.591e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 58
+  }
+}

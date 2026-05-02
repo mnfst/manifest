@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "March cohort satisfaction dropped to 7.2/10 (from 8.1/10), though the buddy system remains strong (9.1/10) and IT support was timely; main issues include confusion about the benefits deadline and delays in tool access (3\u20135 days vs. 1-day target), plus missing a culture handbook. Action item: prioritize fixing tools access delays, as noted by Lisa.",
+  "score": 5,
+  "cost": 4.600000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 87
+  }
+}

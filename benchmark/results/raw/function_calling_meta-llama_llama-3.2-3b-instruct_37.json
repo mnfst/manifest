@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 37,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"invalidate_cache\", \"arguments\": {\"pattern\": \"*.css,*.js\"}}\n```\n\nThis function call tells the system to invalidate the cache for all CSS and JS files, as specified in the `pattern` argument.",
+  "score": 4,
+  "cost": 6.986999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 60
+  }
+}

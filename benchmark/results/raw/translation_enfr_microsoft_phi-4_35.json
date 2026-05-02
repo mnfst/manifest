@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[Journaliste masculin #1 \u00e0 la t\u00e9l\u00e9vision] Un accident s'est produit juste apr\u00e8s 10:00 du matin.",
+  "score": 4,
+  "cost": 5.0049999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 28
+  }
+}

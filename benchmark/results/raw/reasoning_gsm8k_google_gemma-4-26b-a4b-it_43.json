@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "To solve this problem, we need to determine the ages of the individuals mentioned based on the information provided.\n\n1.  **Identify the known age:**\n    The problem states that Mike is 24 years old.\n    $Mike = 24$\n\n2.  **Find Martha's age:**\n    The problem states that Martha is 4 years younger than Mike.\n    $Martha = Mike - 4$\n    $Martha = 24 - 4$\n    $Martha = 20$\n\n3.  **Find Jeff's age:**\n    The problem states that Jeff is 10 years older than Martha.\n    $Jeff = Martha + 10$\n    $Jeff = 20 + 10$\n    $Jeff = 30$\n\n**Summary of ages:**\n- Mike: 24\n- Martha: 20\n- Jeff: 30\n\nANSWER: 30",
+  "score": 5,
+  "cost": 1.8e-05,
+  "expected": "30",
+  "tokens": {
+    "input": 95,
+    "output": 205
+  }
+}

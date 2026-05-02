@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "To solve this problem, we need to break it down step by step.\n\nStep 1: Calculate the amount of the loan John gets.\nThe house is worth $250,000 and he gets a loan worth 40% of that.\n40% of $250,000 = 0.4 x $250,000 = $100,000\n\nStep 2: Calculate the amount John uses to pay off his debts.\nHe uses 60% of the loan amount to pay off his debts.\n60% of $100,000 = 0.6 x $100,000 = $60,000\n\nStep 3: Calculate the amount of money John has leftover after paying off his debts.\nThe amount leftover is the amount of the loan minus the amount used to pay off debts.\n$100,000 - $60,000 = $40,000\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 1.4789999999999999e-05,
+  "expected": "40,000",
+  "tokens": {
+    "input": 108,
+    "output": 182
+  }
+}

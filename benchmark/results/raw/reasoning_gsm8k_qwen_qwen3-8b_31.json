@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "To determine the total number of children in the classroom, we begin by analyzing the relationships and quantities provided in the problem.\n\n---\n\n### Step 1: Number of Boys\n\nWe are directly told that the classroom has **30 boys**.\n\n$$\n\\text{Boys} = 30\n$$\n\n---\n\n### Step 2: Number of Girls\n\nThe problem states that the classroom has **3 times as many girls as boys**. Therefore:\n\n$$\n\\text{Girls} = 3 \\times \\text{Boys} = 3 \\times 30 = 90\n$$\n\n---\n\n### Step 3: Number of Nongendered Children\n\nThe problem also mentions that the classroom has **1/10 as many nongendered children as boys**. So:\n\n$$\n\\text{Nongendered} = \\frac{1}{10} \\times \\text{Boys} = \\frac{1}{10} \\times 30 = 3\n$$\n\n---\n\n### Step 4: Total Number of Children\n\nNow, we sum up all the groups to get the total number of children in the classroom:\n\n$$\n\\text{Total} = \\text{Boys} + \\text{Girls} + \\text{Nongendered} = 30 + 90 + 3 = 123\n$$\n\n---\n\n### Final Answer\n\n$$\n\\boxed{123}\n$$",
+  "score": 2,
+  "cost": 4.425e-05,
+  "expected": "123",
+  "tokens": {
+    "input": 95,
+    "output": 790
+  }
+}

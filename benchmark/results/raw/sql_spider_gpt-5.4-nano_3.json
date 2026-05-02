@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "SELECT c.name\nFROM world_1.country AS c\nWHERE c.continent = 'Africa'\n  AND c.population < (\n    SELECT MIN(a.population)\n    FROM world_1.country AS a\n    WHERE a.continent = 'Asia'\n  );",
+  "score": 5,
+  "cost": 2.94e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 55
+  }
+}

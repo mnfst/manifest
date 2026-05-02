@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 31,
+  "response": "{\"name\": \"archive_emails\", \"arguments\": {\"folder\": \"inbox\", \"older_than_days\": 180}}",
+  "score": 5,
+  "cost": 0.000705,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 30
+  }
+}

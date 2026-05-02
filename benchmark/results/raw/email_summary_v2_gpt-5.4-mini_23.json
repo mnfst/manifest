@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The v1 API will be deprecated on June 30 and removed on September 30, with 340 integrations still using it and 12 enterprise customers not yet started on migration. The action plan is to personally reach out to the top 20 customers and hold a webinar for the remaining users to drive migration using the published guide.",
+  "score": 5,
+  "cost": 0.000111,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 69
+  }
+}

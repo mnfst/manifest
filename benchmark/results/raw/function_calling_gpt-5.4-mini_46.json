@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "function_calling",
+  "case": 46,
+  "response": "{\"name\":\"restart_service\",\"arguments\":{\"name\":\"Redis cache server\"}}",
+  "score": 4,
+  "cost": 4.59e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 17
+  }
+}

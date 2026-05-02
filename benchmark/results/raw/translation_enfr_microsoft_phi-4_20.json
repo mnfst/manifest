@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Je dirais qu'il s'agit de bas de gamme, au mieux.",
+  "score": 4,
+  "cost": 3.835e-06,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 18
+  }
+}

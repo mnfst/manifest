@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT\n  t1.song_name,\n  t1.release_year\nFROM song AS t1\nJOIN singer AS t2\n  ON t1.singer_id = t2.singer_id\nORDER BY\n  t2.age DESC\nLIMIT 1;\n```",
+  "score": 3,
+  "cost": 9.119999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 67
+  }
+}

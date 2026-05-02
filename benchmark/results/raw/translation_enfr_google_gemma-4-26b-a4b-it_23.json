@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Voici deux options selon le niveau de formalisme souhait\u00e9 :\n\n**Option 1 (Soutenue et technique - Recommand\u00e9e) :**\n> \u00ab Les \u00e9vacuateurs de crue capables de g\u00e9rer les \u00e9pisodes de crues postul\u00e9s sont soit int\u00e9gr\u00e9s aux structures du barrage, soit construits en tant que structures distinctes. \u00bb\n\n**Option 2 (Plus directe) :**\n> \u00ab Les d\u00e9versoirs capables de supporter les crues postul\u00e9es sont soit int\u00e9gr\u00e9s \u00e0 la structure du barrage, soit construits comme des ouvrages s\u00e9par\u00e9s. \u00bb\n\n**Notes terminologiques :**\n*   **Spillways :** On utilise \u00ab \u00e9vacuateurs de crue \u00bb dans un contexte d'ing\u00e9nierie civile formel, bien que \u00ab d\u00e9versoirs \u00bb soit \u00e9galement correct.\n*   **Postulated flood events :** Se traduit par \u00ab \u00e9pisodes de crues postul\u00e9s \u00bb ou \u00ab crues postul\u00e9es \u00bb.\n*   **Incorporated :** \u00ab Int\u00e9gr\u00e9s \u00bb est le terme le plus pr\u00e9cis ici.",
+  "score": 5,
+  "cost": 1.668e-05,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 221
+  }
+}

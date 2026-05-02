@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Sarah spent \\$300 total, and each book cost \\$15.\n\n1. Find the total number of books she bought:  \n   \\(300 \\div 15 = 20\\) books\n\n2. She gave the books equally to her 4 kids:  \n   \\(20 \\div 4 = 5\\) books per child\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00011640000000000001,
+  "expected": "5",
+  "tokens": {
+    "input": 84,
+    "output": 76
+  }
+}

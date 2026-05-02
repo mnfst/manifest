@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "To solve this problem, we need to calculate the amount of money each person received as tips.\n\nRafaela received 40 tips of $20 each, so she received a total of:\n40 x $20 = $800\n\nJulieta received 10% less money than Rafaela, so we need to calculate 10% of Rafaela's total and subtract it from Rafaela's total:\n10% of $800 = 0.1 x $800 = $80\nJulieta's total = $800 - $80 = $720\n\nTo find the total amount of money they received altogether, we add Rafaela's total and Julieta's total:\n$800 + $720 = $1520\n\nANSWER: 1520",
+  "score": 2,
+  "cost": 1.2902999999999998e-05,
+  "expected": "1520",
+  "tokens": {
+    "input": 99,
+    "output": 154
+  }
+}

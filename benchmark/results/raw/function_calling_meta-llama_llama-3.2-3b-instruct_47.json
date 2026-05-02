@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 47,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"create_cron\", \"arguments\": {\"schedule\": \"0 0 * * *\", \"command\": \"cleanup script\", \"name\": \"my_cron_job\"}}\n```\n\nNote: You should replace `\"cleanup script\"` with the actual name of your script. \n\nHere's a breakdown of the cron expression:\n\n- `0 0 * * *` means:\n  - `0` minutes\n  - `0` hours\n  - `*` (any value)\n  - `*` (any value)\n  - `*` (any value)\n  - `*` (any value)\n\nThis will run the script at midnight every day.",
+  "score": 4,
+  "cost": 1.2495e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 151
+  }
+}

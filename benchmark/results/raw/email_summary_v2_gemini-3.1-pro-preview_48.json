@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 48,
+  "response": "DataSync's CEO, Maria Chen, is proposing a revenue-sharing partnership where integrating their SDK could reduce your customer latency by 60% and generate an estimated $2M in mutual annual revenue. Please let her know if you are available for a technical discussion next week to explore this opportunity.",
+  "score": 5,
+  "cost": 0.001135,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 61
+  }
+}

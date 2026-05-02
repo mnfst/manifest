@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "David reports a critical SQL injection vulnerability (CVSS 9.8) in `/api/v2/auth/login` affecting versions v3.2.0 through v3.4.1. The action items are to review the ready patch, parameterize the query in `auth_controller.py:142`, and ship a hotfix within 24 hours.",
+  "score": 5,
+  "cost": 0.000788,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 74
+  }
+}

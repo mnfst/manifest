@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 48,
+  "response": "Maria Chen from DataSync is proposing a revenue-share partnership after the TechConnect conference, where DataSync would handle the data sync infrastructure and the recipient would integrate their SDK, potentially reducing customer latency by 60% and generating an estimated $2M in additional annual revenue for each party. The main action item is to schedule a technical discussion next week to explore the proposal.",
+  "score": 5,
+  "cost": 0.00011939999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 77
+  }
+}

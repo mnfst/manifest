@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "To solve this problem, we need to determine the daily savings amount for the second half of April.\n\n**Step 1: Determine the number of days in April.**\nApril has 30 days.\n\n**Step 2: Divide the month into two halves.**\nThe problem refers to the \"first half\" and the \"second half\" of the month.\n- First half: Days 1 to 15 (15 days).\n- Second half: Days 16 to 30 (15 days).\n\n**Step 3: Set up the variables.**\nLet $x$ be the amount Elvis saves each day in the first half of the month.\nAccording to the problem, he wants to save twice as much daily in the second half as he saves in the first half.\nLet $2x$ be the amount Elvis saves each day in the second half of the month.\n\n**Step 4: Create an equation based on the total monthly target.**\nThe total savings for the month is the sum of the savings from the first half and the second half.\nTotal Savings = (Number of days in 1st half $\\times$ daily savings in 1st half) + (Number of days in 2nd half $\\times$ daily savings in 2nd half)\n\nGiven:\n- Total target = $1125\n- Days in 1st half = 15\n- Daily savings in 1st half = $x$\n- Days in 2nd half = 15\n- Daily savings in 2nd half = $2x$\n\nThe equation is:\n$15(x) + 15(2x) = 1125$\n\n**Step 5: Solve for $x$.**\n$15x + 30x = 1125$\n$45x = 1125$\n$x = \\frac{1125}{45}$\n\nTo simplify the division:\n$1125 / 5 = 225$\n$45 / 5 = 9$\n$x = 225 / 9$\n$x = 25$\n\n**Step 6: Calculate the daily savings for the second half.**\nThe question asks for the amount he has to save for each day in the **second half**.\nDaily savings in the second half = $2x$\nDaily savings in the second half = $2 \\times 25 = 50$\n\n**Verification:**\nFirst half: 15 days $\\times$ $25 = $375\nSecond half: 15 days $\\times$ $50 = $750\nTotal: $375 + $750 = $1125. This matches the target.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 3.792e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 101,
+    "output": 531
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "```sql\nSELECT T1.template_id FROM Templates AS T1 JOIN Ref_Template_Types AS T2 ON T1.template_type_code = T2.template_type_code WHERE T2.template_type_description = 'Presentation'\n```",
+  "score": 5,
+  "cost": 0.0010425,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 57
+  }
+}

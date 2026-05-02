@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe year-end audit is scheduled to start on January 15 and requires several tasks to be completed before then, including finalizing revenue recognition for Q4, reconciling bank accounts, verifying stock option records, and preparing related-party transaction disclosure. A meeting with the controller will be held next Tuesday to assign responsibilities for these tasks.",
+  "score": 5,
+  "cost": 9.129e-06,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 78
+  }
+}

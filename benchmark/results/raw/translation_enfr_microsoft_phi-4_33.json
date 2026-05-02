@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 33,
+  "response": "English: CV33 (1) (1.3) Replace \"the driver and the other members of the crew\" with \"members of the vehicle crew\".\n\nFrench: CV33 (1) (1.3) Remplacer \"le conducteur et les autres membres de l'\u00e9quipage\" par \"les membres de l'\u00e9quipage du v\u00e9hicule\".",
+  "score": 5,
+  "cost": 8.710000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 75
+  }
+}

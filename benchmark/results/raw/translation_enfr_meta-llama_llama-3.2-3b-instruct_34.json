@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "Sydney, Esther sera dans mon bureau.",
+  "score": 5,
+  "cost": 2.448e-06,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 10
+  }
+}

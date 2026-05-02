@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "```sql\nSELECT conductor_name\nFROM (\n    SELECT conductor_name, COUNT(DISTINCT orchestra_id) AS orchestra_count\n    FROM performances\n    GROUP BY conductor_name\n) AS conductor_orchestra_counts\nORDER BY orchestra_count DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 8.32e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 54
+  }
+}

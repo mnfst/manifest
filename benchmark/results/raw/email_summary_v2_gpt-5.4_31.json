@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "Revenue proposes adding a $29/month \u201cStarter\u201d tier between Free and Pro ($79) to address users who churn due to price. The proposed tier would include 5 users, 10K API calls, and email support, with a projected impact of recovering 15% of price-churned users and generating $180K ARR.",
+  "score": 5,
+  "cost": 0.000786,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 71
+  }
+}

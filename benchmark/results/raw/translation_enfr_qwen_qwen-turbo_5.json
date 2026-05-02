@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocs provenant de plus hauts SRT \u00e9taient moins hydrat\u00e9s et pr\u00e9sentaient une couche d'EPS dense qui recouvre une grande partie de la surface.",
+  "score": 5,
+  "cost": 3.102e-06,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 38
+  }
+}

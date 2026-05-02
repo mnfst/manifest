@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT s.song_name, s.release_year\nFROM songs s\nJOIN singers si ON s.singer_id = si.singer_id\nWHERE si.birth_year = (\n    SELECT MAX(birth_year)\n    FROM singers\n);\n```",
+  "score": 4,
+  "cost": 8.125e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 50
+  }
+}

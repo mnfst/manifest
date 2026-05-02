@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The /api/v2/search endpoint\u2019s P99 latency regressed from 200ms to 800ms after Thursday\u2019s deploy because a new full-text search query is not using the index. The team will fix it by adding a GIN index on the content column and deploy the change tonight during the maintenance window.",
+  "score": 5,
+  "cost": 0.00010740000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 66
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "To solve the problem, we need to calculate the total number of Pokemon cards Elaine has after three months of collecting.\n\n1. **Initial Number of Cards:**\n   - Elaine initially had 20 Pokemon cards.\n\n2. **First Month Collection:**\n   - After the first month, she collected three times the initial number of cards.\n   - Number of cards collected in the first month = \\(3 \\times 20 = 60\\).\n\n3. **Second Month Collection:**\n   - In the second month, she collected 20 fewer cards than she did in the first month.\n   - Number of cards collected in the second month = \\(60 - 20 = 40\\).\n\n4. **Third Month Collection:**\n   - In the third month, she collected twice the combined number of cards from the first and second months.\n   - Combined number of cards from the first and second months = \\(60 + 40 = 100\\).\n   - Number of cards collected in the third month = \\(2 \\times 100 = 200\\).\n\n5. **Total Number of Cards:**\n   - Total cards collected over three months = \\(60 + 40 + 200 = 300\\).\n   - Adding the initial cards, the total number of cards Elaine has now = \\(20 + 300 = 320\\).\n\nTherefore, the final answer is:\n\nANSWER: 320",
+  "score": 5,
+  "cost": 2.6195e-05,
+  "expected": "320",
+  "tokens": {
+    "input": 119,
+    "output": 284
+  }
+}

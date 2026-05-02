@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 38,
+  "response": "{\n  \"persons\": [\n    \"Kamala Harris\"\n  ],\n  \"organizations\": [\n    \"General Motors\"\n  ],\n  \"locations\": [\n    \"Detroit\"\n  ]\n}",
+  "score": 5,
+  "cost": 0.00088,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 48
+  }
+}

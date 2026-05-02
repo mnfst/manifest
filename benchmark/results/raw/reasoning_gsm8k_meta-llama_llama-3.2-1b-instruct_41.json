@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "To solve this problem, let's use algebra. Let's say Harald sold x copies of his record. Since Marilyn sold 10 times as many copies as Harald, Marilyn sold 10x copies.\n\nWe know that the total number of copies sold is 88,000. So, we can set up the equation:\n\nx + 10x = 88,000\n\nCombine like terms:\n\n11x = 88,000\n\nDivide both sides by 11:\n\nx = 8,000\n\nSo, Harald sold 8,000 copies of his record.",
+  "score": 5,
+  "cost": 5.4e-06,
+  "expected": "8000",
+  "tokens": {
+    "input": 81,
+    "output": 119
+  }
+}

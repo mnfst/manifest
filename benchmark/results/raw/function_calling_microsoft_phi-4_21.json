@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 21,
+  "response": "```json\n{\n  \"name\": \"deploy\",\n  \"arguments\": {\n    \"version\": \"2.3.1\",\n    \"environment\": \"staging\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 7.995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 40
+  }
+}

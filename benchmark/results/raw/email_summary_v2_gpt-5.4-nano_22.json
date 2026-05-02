@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines a Japan international expansion timeline (May legal entity setup, June localization completion, July beta with 10 customers, August general availability) with a total budget of $200K ($50K legal, $80K localization, $70K local hire). The action item is to obtain CEO approval to proceed.",
+  "score": 5,
+  "cost": 3.6299999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 67
+  }
+}

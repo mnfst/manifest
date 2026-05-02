@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Step 1: Calculate the number of cards Elaine collected in the first month.\nElaine initially had 20 cards. In the first month, she collected three times that number, which is 3 * 20 = 60 cards.\n\nStep 2: Calculate the number of cards Elaine collected in the second month.\nIn the second month, she collected 20 fewer cards than those she collected in the first month, which is 60 - 20 = 40 cards.\n\nStep 3: Calculate the combined number of cards collected in the first and second months.\nThe combined number of cards collected in the first and second months is 60 + 40 = 100 cards.\n\nStep 4: Calculate the number of cards Elaine collected in the third month.\nIn the third month, she collected twice the combined number of cards she collected in the first and second months, which is 2 * 100 = 200 cards.\n\nStep 5: Calculate the total number of cards Elaine has now.\nThe total number of cards Elaine has now is 20 (initial cards) + 60 (first month) + 40 (second month) + 200 (third month) = 300 cards.\n\nANSWER: 300",
+  "score": 5,
+  "cost": 9.936e-06,
+  "expected": "320",
+  "tokens": {
+    "input": 120,
+    "output": 248
+  }
+}

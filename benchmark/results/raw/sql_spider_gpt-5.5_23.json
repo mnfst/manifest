@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT production_code, channel\nFROM cartoon\nORDER BY original_air_date DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 0.004257,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 337
+  }
+}

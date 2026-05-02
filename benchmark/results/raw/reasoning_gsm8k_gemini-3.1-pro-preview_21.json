@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "To find out how many steps Elliott took during his jog, we can break down his daily steps:\n\n1. **Calculate the steps taken on his walks to and from school:** \n   Elliott's goal is 10,000 steps. He finished half of his steps during these walks.\n   10,000 / 2 = 5,000 steps\n\n2. **Add the steps taken on his walk with his friend:**\n   He took another 1,000 steps.\n   5,000 + 1,000 = 6,000 steps\n\n3. **Determine the total number of steps he had taken after his jog:**\n   The problem states that after his jog, he only had 2,000 steps left to reach his 10,000-step goal. This means he had already completed:\n   10,000 - 2,000 = 8,000 steps\n\n4. **Calculate the steps taken during his jog:**\n   Since he had taken 6,000 steps before the jog and 8,000 steps total after the jog, the jog itself was:\n   8,000 - 6,000 = 2,000 steps\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.0046725,
+  "expected": "2000",
+  "tokens": {
+    "input": 129,
+    "output": 290
+  }
+}

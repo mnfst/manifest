@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "Here's a set of **pytest-style unit tests** for the `reverse_words` function. These tests cover:\n\n- **Happy path**: Normal input with multiple words.\n- **Edge cases**: Empty string, single word, multiple spaces.\n- **Error cases**: Non-string input (though the function is typed with `str`, this tests type handling).\n\n### \u2705 Test File: `test_reverse_words.py`\n\n```python\nimport pytest\n\ndef reverse_words(s: str) -> str:\n    return ' '.join(s.split()[::-1])\n\ndef test_reverse_words_happy_path():\n    assert reverse_words(\"hello world\") == \"world hello\"\n    assert reverse_words(\"this is a test\") == \"test a is this\"\n\ndef test_reverse_words_edge_cases():\n    assert reverse_words(\"\") == \"\"\n    assert reverse_words(\"single\") == \"single\"\n    assert reverse_words(\"   multiple   spaces   \") == \"spaces multiple\"\n\ndef test_reverse_words_error_cases():\n    with pytest.raises(TypeError):\n        reverse_words(123)\n    with pytest.raises(TypeError):\n        reverse_words(None)\n    with pytest.raises(TypeError):\n        reverse_words([\"list\", \"of\", \"words\"])\n```\n\n### \ud83d\udd0d Explanation:\n\n- `s.split()` splits on **whitespace**, so multiple spaces are treated as a single separator.\n- `[::-1]` reverses the list of words.\n- `' '.join(...)` joins them back with a single space.\n\n### \ud83e\uddea How to Run:\n\nInstall pytest if you haven't already:\n\n```bash\npip install pytest\n```\n\nThen run the tests:\n\n```bash\npytest test_reverse_words.py\n```\n\nThis will execute all the test cases and report any failures.",
+  "score": 5,
+  "cost": 1.3431e-05,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 347
+  }
+}

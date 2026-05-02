@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The database team is migrating from MySQL 5.7 to PostgreSQL 16 with a phased timeline (May for schema conversion/testing, June for dual-write, July for cutover) using a blue-green deployment to avoid downtime. Key risks include rewriting 3 stored procedures, and the testing environment is already prepared.",
+  "score": 5,
+  "cost": 3.02e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 68
+  }
+}

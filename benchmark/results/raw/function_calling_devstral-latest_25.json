@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 25,
+  "response": "```json\n{\n  \"name\": \"schedule_meeting\",\n  \"arguments\": {\n    \"title\": \"Standup Meeting\",\n    \"duration_minutes\": 30,\n    \"time\": \"09:00\",\n    \"recurrence\": \"weekly\",\n    \"attendees\": [\"dev team\"]\n  }\n}\n```",
+  "score": 4,
+  "cost": 3.32e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 72
+  }
+}

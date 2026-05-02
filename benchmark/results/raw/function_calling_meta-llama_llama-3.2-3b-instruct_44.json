@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 44,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"set_log_level\", \"arguments\": {\"service\": \"payment\", \"level\": \"debug\"}}\n```\n\nThis function call sets the log level to \"debug\" for the \"payment\" service.",
+  "score": 5,
+  "cost": 7.956e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 56
+  }
+}

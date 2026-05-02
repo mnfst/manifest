@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 9,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"search_flights\", \"arguments\": {\"origin\": \"New York\", \"destination\": \"London\", \"date\": \"December 15th\", \"passengers\": 2}}\n```\n\nNote: I've kept the date as a string, as it's not clear if the function expects it in a specific format (e.g. ISO 8601). If the function expects a specific format, please let me know and I'll update the response accordingly.",
+  "score": 5,
+  "cost": 1.1373e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 109
+  }
+}

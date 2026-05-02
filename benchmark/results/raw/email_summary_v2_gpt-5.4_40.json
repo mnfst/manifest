@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows Engineering met target at 0.7, while Sales (0.9) and Support (0.8) exceeded their 0.7 targets; Product missed at 0.6 due to a delayed AI feature.  \nAction items: carry forward the AI OKR with increased allocation, and begin next quarter planning on Monday.",
+  "score": 5,
+  "cost": 0.000852,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 76
+  }
+}

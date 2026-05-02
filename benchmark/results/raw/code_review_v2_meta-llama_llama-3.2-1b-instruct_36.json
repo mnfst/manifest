@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "code_review_v2",
+  "case": 36,
+  "response": "**Code Review**\n\nThe provided code is a simple discount calculator that takes a price and a discount code as input and returns the discounted price. However, there are a few issues that need to be addressed:\n\n1. **Type Hinting**: The function does not include type hints for the `price` and `code` parameters. This makes it unclear what types of inputs the function expects.\n2. **Code Duplication**: The discount dictionary is hardcoded with three discount codes. This makes the code less flexible and easier to maintain if new discount codes need to be added.\n3. **Magic Numbers**: The discount values are hardcoded as strings. This makes the code less readable and maintainable if the discount values need to be changed.\n\n**Improved Code**\n\nHere's an improved version of the code that addresses these issues:\n```python\ndef calculate_discount(price: float, code: str) -> float:\n    \"\"\"\n    Calculate the discounted price based on a given discount code.\n\n    Args:\n        price (float): The original price.\n        code (str): The discount code.\n\n    Returns:\n        float: The discounted price.\n    \"\"\"\n    discount_codes = {\n        'SAVE10': 0.10,\n        'SAVE20': 0.20,\n        'HALF': 0.50\n    }\n\n    if code not in discount_codes:\n        raise ValueError(f\"Invalid discount code: {code}\")\n\n    discount_amount = discount_codes[code]\n    return price * (1 - discount_amount)\n```\n**Changes Made**\n\n1. Added type hints for the function parameters and return type.\n2. Created a dictionary `discount_codes` to store the discount values, making it easier to add or remove discount codes in the future.\n3. Added a check to ensure that the discount code is valid before attempting to apply the discount. If an invalid code is provided, a `ValueError` is raised with a descriptive message.\n\n**Example Use Cases**\n\n```python\nprint(calculate_discount(100, 'SAVE10'))  # Output: 90.0\nprint(calculate_discount(100, 'SAVE20'))  # Output: 80.0\nprint(calculate_discount(100, 'HALF'))   # Output: 50.0\n```\nNote that I've also added a docstring to provide a brief description of the function, its parameters, and its return value. This makes the code more readable and self-documenting.",
+  "score": 4,
+  "cost": 1.5768e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 496
+  }
+}

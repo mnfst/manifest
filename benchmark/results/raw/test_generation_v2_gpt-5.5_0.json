@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "```python\n# test_add.py\nimport pytest\n\nfrom your_module import add  # replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"a, b, expected\",\n    [\n        (1, 2, 3),\n        (10, 5, 15),\n        (-1, 1, 0),\n        (-5, -7, -12),\n        (0, 0, 0),\n        (0, 10, 10),\n    ],\n)\ndef test_add_happy_path(a, b, expected):\n    assert add(a, b) == expected\n\n\ndef test_add_large_numbers():\n    assert add(10**100, 10**100) == 2 * 10**100\n\n\ndef test_add_with_boolean_values():\n    # bool is a subclass of int in Python\n    assert add(True, True) == 2\n    assert add(True, False) == 1\n\n\n@pytest.mark.parametrize(\n    \"a, b\",\n    [\n        (1, \"2\"),\n        (\"1\", 2),\n        (None, 1),\n        (1, None),\n        ([1], 2),\n    ],\n)\ndef test_add_invalid_type_combinations_raise_type_error(a, b):\n    with pytest.raises(TypeError):\n        add(a, b)\n```",
+  "score": 5,
+  "cost": 0.004476,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 360
+  }
+}

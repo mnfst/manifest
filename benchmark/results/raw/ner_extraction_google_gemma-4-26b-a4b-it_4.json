@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 4,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Bank of England\",\n    \"European Central Bank\"\n  ],\n  \"locations\": [\n    \"Frankfurt\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 6.7799999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 42
+  }
+}

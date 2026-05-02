@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 33,
+  "response": "CV33 (1) (1.3) Remplacer \"le conducteur et les autres membres de l'\u00e9quipage\" par \"les membres de l'\u00e9quipage du v\u00e9hicule\".",
+  "score": 5,
+  "cost": 1.6100000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 36
+  }
+}

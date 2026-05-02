@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "Engineering met its OKR target, Sales and Support exceeded theirs, and Product missed its target due to the delayed AI feature. Carry forward the AI OKR with increased allocation, and start next-quarter planning on Monday.",
+  "score": 5,
+  "cost": 0.0038,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 159
+  }
+}

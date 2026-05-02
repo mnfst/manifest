@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "March onboarding satisfaction fell to 7.2/10 from 8.1, despite strong buddy system feedback and timely IT setup. Prioritize fixing tools access delays, and also clarify the benefits deadline and provide the culture handbook.",
+  "score": 4,
+  "cost": 0.00357,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 150
+  }
+}

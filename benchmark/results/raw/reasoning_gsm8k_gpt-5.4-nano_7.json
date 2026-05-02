@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Let the cost of one cup be \\(c\\).\n\n**1) Interpret the quantities**\n- \u201cTwenty dozen cups\u201d = \\(20 \\times 12 = 240\\) cups.\n  So total cost of the cups is \\(240c\\).\n- \u201cHalf a dozen plates sold at $6000 each\u201d:\n  - Half a dozen = \\(0.5 \\times 12 = 6\\) plates\n  - Cost = \\(6 \\times 6000 = 36000\\)\n\n**2) Translate the statement into an equation**\n\u201cTwenty dozen cups cost $1200 less than the total cost of half a dozen plates\u2026\u201d\n\\[\n240c = 36000 - 1200 = 34800\n\\]\n\n**3) Solve for \\(c\\)**\n\\[\nc = \\frac{34800}{240} = 145\n\\]\n\nSo each cup costs **$145**.\n\nANSWER: 145",
+  "score": 5,
+  "cost": 8.570000000000001e-05,
+  "expected": "145",
+  "tokens": {
+    "input": 73,
+    "output": 196
+  }
+}

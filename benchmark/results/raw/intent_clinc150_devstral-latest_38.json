@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 38,
+  "response": "oil_change_how",
+  "score": 0,
+  "cost": 5.75e-05,
+  "expected": "oil_change_when",
+  "tokens": {
+    "input": 557,
+    "output": 6
+  }
+}

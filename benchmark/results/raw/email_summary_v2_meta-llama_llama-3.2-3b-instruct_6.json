@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Here is a 2-sentence summary of the email:\n\nAcme Corp, a customer with an annual revenue of $450,000, is threatening to churn due to API latency spikes and a lack of response from support for 5 days. A dedicated engineer has been assigned to address the issue, and an executive sponsor is needed for a call this week to discuss the situation and find a resolution.",
+  "score": 5,
+  "cost": 9.638999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 81
+  }
+}

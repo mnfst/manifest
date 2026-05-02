@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "## Solution\n\nLet me break down the problem step by step.\n\n**Given information:**\n- Children stand 8 in a row\n- There are 7 rows\n- There are 5 different schools\n\n**Step 1: Find the number of children per school**\n- Each school has 7 rows \u00d7 8 children per row\n- Children per school = 7 \u00d7 8 = 56 children\n\n**Step 2: Find the total number of children for all 5 schools**\n- Total children = 56 \u00d7 5 = 280 children\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.002376,
+  "expected": "280",
+  "tokens": {
+    "input": 102,
+    "output": 138
+  }
+}

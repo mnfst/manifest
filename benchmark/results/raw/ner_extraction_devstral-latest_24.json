@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "ner_extraction",
+  "case": 24,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Indian Space Research Organisation\"],\n  \"locations\": [\"Sriharikota\"]\n}\n```",
+  "score": 4,
+  "cost": 1.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 35
+  }
+}

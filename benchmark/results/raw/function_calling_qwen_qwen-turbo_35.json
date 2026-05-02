@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\"name\": \"get_order\", \"arguments\": {\"order_id\": \"12345\"}}",
+  "score": 3,
+  "cost": 3.96e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 21
+  }
+}

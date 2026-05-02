@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT makeid, make_name\nFROM car_1\nWHERE horsepower > (SELECT MIN(horsepower) FROM car_1)\nAND num_cylinders <= 3;\n```",
+  "score": 5,
+  "cost": 6.833999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 41
+  }
+}

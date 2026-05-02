@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins January 15, requiring the team to complete four key tasks: finalizing Q4 revenue recognition, reconciling bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A Controller meeting is scheduled for next Tuesday to assign responsibilities for these items.",
+  "score": 5,
+  "cost": 0.001314,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 66
+  }
+}

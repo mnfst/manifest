@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "First, let's determine the ages of James's two sons.  \nWe know one son is 12 years old, and the other is 4 years younger.  \nSo, the age of the younger son is:  \n12 - 4 = 8 years old.\n\nNext, let's calculate the total number of candles needed.  \nJames needs one candle for each year of age for both sons.  \nSo, the total number of candles is:  \n12 + 8 = 20 candles.\n\nNow, we need to determine how many packs of candles James must buy.  \nEach pack contains 5 candles.  \nTo find the number of packs, divide the total number of candles by the number of candles per pack:  \n20 \u00f7 5 = 4 packs.\n\nFinally, calculate the total cost.  \nEach pack costs $3.  \nSo, the total cost is:  \n4 \u00d7 3 = $12.\n\nANSWER: 12",
+  "score": 4,
+  "cost": 9.801e-06,
+  "expected": "12",
+  "tokens": {
+    "input": 97,
+    "output": 200
+  }
+}

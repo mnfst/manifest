@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 26,
+  "response": "change_volume",
+  "score": 5,
+  "cost": 5.6300000000000006e-05,
+  "expected": "change_volume",
+  "tokens": {
+    "input": 554,
+    "output": 3
+  }
+}

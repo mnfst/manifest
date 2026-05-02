@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 5,
+  "response": "```json\n{\n  \"persons\": [\"Dr. James Wilson\"],\n  \"organizations\": [\"Stanford University\", \"IEEE\"],\n  \"locations\": [\"Tokyo\"]\n}\n```",
+  "score": 5,
+  "cost": 5.712e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 37
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "To find out how much Bentley paid to fill 170 balloons, we first need to determine the initial cost of filling a single balloon. \n\nGiven that the total cost of filling 20 balloons was $900, we can find the cost per balloon by dividing the total cost by the number of balloons:\n$900 / 20 balloons = $45 per balloon\n\nTwo days later, the cost to fill each balloon increased by $20. We add this increase to the initial cost to find the new price per balloon:\n$45 + $20 = $65 per balloon\n\nBentley filled 170 balloons at this new price. To find his total cost, we multiply the number of balloons by the new price per balloon:\n170 balloons * $65 = $11,050\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.0030675,
+  "expected": "11050",
+  "tokens": {
+    "input": 99,
+    "output": 188
+  }
+}

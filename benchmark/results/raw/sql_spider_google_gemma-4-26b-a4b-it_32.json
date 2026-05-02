@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "```sql\nSELECT first_name, AVG(ranking)\nFROM players\nGROUP BY first_name;\n```",
+  "score": 4,
+  "cost": 6.5999999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 25
+  }
+}

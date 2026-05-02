@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "extraction_hard_v2",
+  "case": 45,
+  "response": "```json\n{\n  \"passenger\": {\n    \"name\": \"Maria Gonzalez\",\n    \"title\": \"Dr.\"\n  },\n  \"booking_ref\": \"XKJP42\",\n  \"flight\": {\n    \"number\": \"UA 872\",\n    \"airline\": \"United Airlines\",\n    \"origin\": \"SFO\",\n    \"destination\": \"NRT\",\n    \"departure\": \"2024-06-15 11:40 AM PDT\",\n    \"arrival\": \"2024-06-16 3:20 PM JST\"\n  },\n  \"seat\": {\n    \"number\": \"12A\",\n    \"class\": \"Business\"\n  },\n  \"extras\": {\n    \"baggage\": \"2 checked bags included\",\n    \"meal\": \"Vegetarian pre-ordered\",\n    \"ff_status\": \"UA Gold\",\n    \"ff_number\": \"MP2847291\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 2.904e-05,
+  "expected": "",
+  "tokens": {
+    "input": 250,
+    "output": 234
+  }
+}

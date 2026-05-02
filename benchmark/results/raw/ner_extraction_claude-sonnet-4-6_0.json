@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "```json\n{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\", \"CES\"],\n  \"locations\": [\"Las Vegas\"]\n}\n```",
+  "score": 4,
+  "cost": 0.000885,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 44
+  }
+}

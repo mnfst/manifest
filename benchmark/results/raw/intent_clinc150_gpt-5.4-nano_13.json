@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "intent_clinc150",
+  "case": 13,
+  "response": "nutrition_info",
+  "score": 5,
+  "cost": 5.2900000000000005e-05,
+  "expected": "nutrition_info",
+  "tokens": {
+    "input": 509,
+    "output": 5
+  }
+}

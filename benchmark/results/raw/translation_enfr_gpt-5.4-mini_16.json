@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Je sens que ma bite n\u2019est pas assez grosse pour toi.",
+  "score": 4,
+  "cost": 2.97e-05,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 16
+  }
+}

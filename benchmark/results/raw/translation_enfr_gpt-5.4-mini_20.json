@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Je dirais que cela n\u2019a qu\u2019une faible valeur, au mieux.",
+  "score": 4,
+  "cost": 3.15e-05,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 18
+  }
+}

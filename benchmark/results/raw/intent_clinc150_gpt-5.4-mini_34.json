@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "intent_clinc150",
+  "case": 34,
+  "response": "replacement_card_duration",
+  "score": 5,
+  "cost": 0.00016319999999999998,
+  "expected": "replacement_card_duration",
+  "tokens": {
+    "input": 520,
+    "output": 6
+  }
+}

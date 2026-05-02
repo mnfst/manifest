@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "SELECT s.name\nFROM stadiums s\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM venues v\n  JOIN concerts c ON c.venue_id = v.venue_id\n  WHERE v.stadium_id = s.stadium_id\n    AND c.concert_year = 2014\n);",
+  "score": 5,
+  "cost": 3.3799999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 65
+  }
+}

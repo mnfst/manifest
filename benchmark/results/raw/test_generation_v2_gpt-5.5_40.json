@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 40,
+  "response": "```python\n# test_rgb_to_hex.py\nimport pytest\n\nfrom your_module import rgb_to_hex  # replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    (\"r\", \"g\", \"b\", \"expected\"),\n    [\n        (255, 0, 0, \"#ff0000\"),\n        (0, 255, 0, \"#00ff00\"),\n        (0, 0, 255, \"#0000ff\"),\n        (255, 255, 255, \"#ffffff\"),\n        (0, 0, 0, \"#000000\"),\n        (12, 34, 56, \"#0c2238\"),\n        (1, 2, 3, \"#010203\"),\n        (171, 205, 239, \"#abcdef\"),\n    ],\n)\ndef test_rgb_to_hex_happy_path(r, g, b, expected):\n    assert rgb_to_hex(r, g, b) == expected\n\n\n@pytest.mark.parametrize(\n    (\"r\", \"g\", \"b\", \"expected\"),\n    [\n        (0, 0, 0, \"#000000\"),\n        (255, 255, 255, \"#ffffff\"),\n        (0, 255, 128, \"#00ff80\"),\n    ],\n)\ndef test_rgb_to_hex_boundary_values(r, g, b, expected):\n    assert rgb_to_hex(r, g, b) == expected\n\n\n@pytest.mark.parametrize(\n    (\"r\", \"g\", \"b\"),\n    [\n        (-1, 0, 0),\n        (0, -1, 0),\n        (0, 0, -1),\n        (256, 0, 0),\n        (0, 256, 0),\n        (0, 0, 256),\n        (-10, 300, 128),\n    ],\n)\ndef test_rgb_to_hex_out_of_range_values_raise_value_error(r, g, b):\n    with pytest.raises(ValueError, match=\"RGB values must be 0-255\"):\n        rgb_to_hex(r, g, b)\n\n\n@pytest.mark.parametrize(\n    (\"r\", \"g\", \"b\"),\n    [\n        (\"255\", 0, 0),\n        (0, None, 0),\n        (0, 0, []),\n    ],\n)\ndef test_rgb_to_hex_non_numeric_values_raise_type_error(r, g, b):\n    with pytest.raises(TypeError):\n        rgb_to_hex(r, g, b)\n\n\n@pytest.mark.parametrize(\n    (\"r\", \"g\", \"b\"),\n    [\n        (1.5, 0, 0),\n        (0, 2.5, 0),\n        (0, 0, 3.5),\n    ],\n)\ndef test_rgb_to_hex_float_values_raise_value_error_from_formatting(r, g, b):\n    with pytest.raises(ValueError):\n        rgb_to_hex(r, g, b)\n```",
+  "score": 5,
+  "cost": 0.008997,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 723
+  }
+}

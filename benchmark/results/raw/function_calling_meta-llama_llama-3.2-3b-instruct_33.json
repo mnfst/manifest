@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 33,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"git_create_branch\", \"arguments\": {\"name\": \"feature-payments\", \"from_branch\": \"main\"}}\n```\n\nThis function call creates a new branch named \"feature-payments\" from the \"main\" branch.",
+  "score": 5,
+  "cost": 7.803e-06,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 61
+  }
+}

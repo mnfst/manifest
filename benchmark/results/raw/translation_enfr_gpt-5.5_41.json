@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "T\u2019es pas \u00e0 la DGA. Contente-toi de zoomer et ferme ta gueule.",
+  "score": 4,
+  "cost": 0.00156,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 120
+  }
+}

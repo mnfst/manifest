@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "The AWS bill has increased by 40% due to new ML training jobs using expensive p4d instances, costing an estimated $45K monthly. The team needs to decide by Friday whether to use spot instances with interruption risk or reserved instances with a commitment.",
+  "score": 5,
+  "cost": 5.676e-06,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 54
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 5,
+  "response": "```json\n{\n  \"name\": \"book_restaurant\",\n  \"arguments\": {\n    \"name\": \"Italian place on Main Street\",\n    \"party_size\": 4,\n    \"date\": \"this Saturday\",\n    \"time\": \"7pm\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 1.1700000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 58
+  }
+}

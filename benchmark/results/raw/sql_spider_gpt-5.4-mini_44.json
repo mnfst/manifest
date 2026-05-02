@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT airport_code\nFROM airports\nORDER BY flights ASC\nLIMIT 1;",
+  "score": 3,
+  "cost": 4.3799999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 19
+  }
+}

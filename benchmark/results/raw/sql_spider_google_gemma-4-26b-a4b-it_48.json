@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "```sql\nSELECT model FROM cars WHERE weight < (SELECT AVG(weight) FROM cars);\n```",
+  "score": 5,
+  "cost": 6.4199999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 22
+  }
+}

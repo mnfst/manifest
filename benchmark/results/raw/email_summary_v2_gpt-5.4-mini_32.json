@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "The SSL certificate for api.company.com expires in 7 days (May 4) because auto-renewal failed after the CNAME record for DNS validation was removed during the last DNS migration. The action item is to re-add the _acme-challenge.api.company.com CNAME record; DevOps said they will handle it today.",
+  "score": 5,
+  "cost": 0.0001167,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 71
+  }
+}

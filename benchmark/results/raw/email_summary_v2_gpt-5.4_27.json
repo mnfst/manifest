@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint retrospective noted that the auth redesign shipped on time and cross-team collaboration with design went well. Action items are to limit work in progress to 2 items per developer and timebox standups to 15 minutes using a parking lot for off-topic discussions.",
+  "score": 5,
+  "cost": 0.000648,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 55
+  }
+}

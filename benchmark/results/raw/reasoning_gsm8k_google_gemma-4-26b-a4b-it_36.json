@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "To find the total number of Pokemon cards Elaine has now, we need to calculate the number of cards she collected in each month and add them to her initial amount.\n\n**Step 1: Determine the initial amount.**\nElaine starts with:\nInitial = 20 cards\n\n**Step 2: Calculate the cards collected in the first month.**\nThe problem states she collected three times her initial number.\nFirst Month = 3 \u00d7 20 = 60 cards\n\n**Step 3: Calculate the cards collected in the second month.**\nThe problem states she collected 20 fewer cards than she did in the first month.\nSecond Month = 60 - 20 = 40 cards\n\n**Step 4: Calculate the cards collected in the third month.**\nThe problem states she collected twice the combined number of cards collected in the first and second months.\nCombined (Month 1 + Month 2) = 60 + 40 = 100 cards\nThird Month = 2 \u00d7 100 = 200 cards\n\n**Step 5: Calculate the total number of cards.**\nTo find the total, we add the initial amount and the amounts collected in each of the three months:\nTotal = Initial + First Month + Second Month + Third Month\nTotal = 20 + 60 + 40 + 200\n\nLet's sum them up:\n20 + 60 = 80\n80 + 40 = 120\n120 + 200 = 320\n\nANSWER: 320",
+  "score": 5,
+  "cost": 2.8199999999999994e-05,
+  "expected": "320",
+  "tokens": {
+    "input": 124,
+    "output": 346
+  }
+}

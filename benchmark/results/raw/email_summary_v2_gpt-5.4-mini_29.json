@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "The mobile app\u2019s crash rate spiked to 2.3% after yesterday\u2019s release, driven mainly by a null pointer error in the Android 12+ notification handler, while iOS remains unaffected. The fix has already been merged to main, and the team has submitted an emergency release request to the Play Store.",
+  "score": 5,
+  "cost": 0.00010919999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 67
+  }
+}

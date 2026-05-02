@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 36,
+  "response": "insurance",
+  "score": 5,
+  "cost": 5.67e-05,
+  "expected": "insurance",
+  "tokens": {
+    "input": 558,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT \n  country, \n  COUNT(language) as num_languages\nFROM \n  world_1.countries\nGROUP BY \n  country\nHAVING \n  COUNT(language) > 2;\n```",
+  "score": 4,
+  "cost": 3.564e-06,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 45
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "To find out how much Jen spends on fish food in the month of May, we need to follow these steps:\n\n1. **Calculate the daily cost of food:** Jen has 3 fish, and each fish needs $1 worth of food a day. \n   3 fish \u00d7 $1/fish = $3 per day.\n\n2. **Determine the number of days in May:** The month of May has 31 days.\n\n3. **Calculate the total cost for the month:** Multiply the daily cost by the number of days in May.\n   $3/day \u00d7 31 days = $93.\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.0022125,
+  "expected": "93",
+  "tokens": {
+    "input": 69,
+    "output": 136
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "The March onboarding cohort scored 7.2/10 in satisfaction, down from 8.1, with high praise for the buddy system and IT timeliness but issues including confusion over benefits deadlines, delayed tool access (3-5 days vs. 1-day target), and missing culture handbooks. The priority action is to resolve tool access delays, as noted by Lisa.",
+  "score": 5,
+  "cost": 3.55e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 81
+  }
+}

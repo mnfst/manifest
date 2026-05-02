@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "The AWS bill has increased by 40% due to expensive new ML training jobs, resulting in an estimated monthly cost increase of $45,000. A decision must be made by Friday regarding whether to use spot instances for maximum savings or reserved instances for stability.",
+  "score": 5,
+  "cost": 9.6e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 52
+  }
+}

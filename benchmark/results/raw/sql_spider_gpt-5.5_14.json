@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT cm.FullName, cm.Id, COUNT(ml.ModelId) AS number_of_models\nFROM car_makers AS cm\nLEFT JOIN model_list AS ml\n  ON cm.Id = ml.Maker\nGROUP BY cm.FullName, cm.Id;",
+  "score": 5,
+  "cost": 0.004158,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 327
+  }
+}

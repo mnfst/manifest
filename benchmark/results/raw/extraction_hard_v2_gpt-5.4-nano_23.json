@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "extraction_hard_v2",
+  "case": 23,
+  "response": "{\n  \"severity\": \"high\",\n  \"component\": \"Checkout page (checkout.bundle.js)\",\n  \"summary\": \"Checkout fails in Chrome (Windows 11) with spinner followed by white screen after payment submission; console shows CORS error and 'undefined is not a function'.\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart.\",\n    \"Go to the checkout page.\",\n    \"Enter card information.\",\n    \"Click/submit 'Pay'.\",\n    \"Observe the loading spinner for ~30 seconds, then a white screen.\"\n  ],\n  \"expected_behavior\": \"Payment submission should complete successfully or show an appropriate error message if the request fails.\",\n  \"actual_behavior\": \"After clicking 'Pay', a spinner appears for about 30 seconds and then the page turns into a white screen with no user-facing error message; console reports a CORS error and 'undefined is not a function' in checkout.bundle.js:847.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 5,
+  "cost": 0.0001047,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 221
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "To solve this problem, we need to calculate the total time spent on TV and reading per week, and then multiply it by 4.\n\nStep 1: Calculate the time spent on TV per week\nJim spends 2 hours watching TV per day. Since he does this 3 times a week, the total time spent on TV per week is:\n2 hours/day x 3 days/week = 6 hours/week\n\nStep 2: Calculate the time spent reading per week\nJim reads for half as long as he watches TV. Since he spends 2 hours watching TV per week, he spends 2/2 = 1 hour reading per week.\n\nStep 3: Calculate the total time spent on TV and reading per week\nThe total time spent on TV and reading per week is the sum of the time spent on TV and the time spent reading:\n6 hours/week + 1 hour/week = 7 hours/week\n\nStep 4: Calculate the total time spent on TV and reading in 4 weeks\nTo find the total time spent in 4 weeks, multiply the total time spent per week by 4:\n7 hours/week x 4 weeks = 28 hours",
+  "score": 4,
+  "cost": 9.18e-06,
+  "expected": "36",
+  "tokens": {
+    "input": 94,
+    "output": 246
+  }
+}

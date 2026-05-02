@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Each of the 10 stalls starts with 20 cows, so the total number of cows is:\n\n- \\(10 \\times 20 = 200\\)\n\nMr. Sylas buys 40 more cows, making the new total:\n\n- \\(200 + 40 = 240\\)\n\nHe divides these 240 cows equally among 20 stalls, so each stall has:\n\n- \\(240 \\div 20 = 12\\) cows\n\nNow we need the number of cows in 8 stalls:\n\n- \\(8 \\times 12 = 96\\)\n\nANSWER: 96",
+  "score": 2,
+  "cost": 0.00017729999999999997,
+  "expected": "192",
+  "tokens": {
+    "input": 87,
+    "output": 126
+  }
+}

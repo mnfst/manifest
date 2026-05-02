@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "Let's break down the problem step by step.\n\n1. **Determine the number of days in each half of the month:**\n   - April has 30 days.\n   - First half: 15 days\n   - Second half: 15 days\n\n2. **Let \\( x \\) be the amount saved each day in the first half.**\n   - Then, the amount saved each day in the second half is \\( 2x \\).\n\n3. **Calculate the total savings for the month:**\n   - First half savings: \\( 15x \\)\n   - Second half savings: \\( 15 \\times 2x = 30x \\)\n   - Total savings: \\( 15x + 30x = 45x \\)\n\n4. **Set the total savings equal to the target and solve for \\( x \\):**\n   \\[\n   45x = 1125\n   \\]\n   \\[\n   x = \\frac{1125}{45} = 25\n   \\]\n\n5. **Find the amount saved each day in the second half:**\n   \\[\n   2x = 2 \\times 25 = 50\n   \\]\n\n**Final Answer:**\nANSWER: 50",
+  "score": 5,
+  "cost": 9.1e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 100,
+    "output": 270
+  }
+}

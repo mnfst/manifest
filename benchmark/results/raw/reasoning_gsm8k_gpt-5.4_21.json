@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Elliott wants to walk a total of 10,000 steps.\n\n- Half of his steps were done walking to and from school:\n  10,000 \u00f7 2 = 5,000 steps\n\n- He then did another 1,000 steps with his friend:\n  5,000 + 1,000 = 6,000 steps\n\n- After his jog, he had 2,000 steps left to reach 10,000:\n  10,000 - 2,000 = 8,000 steps completed after the jog\n\nSo his jog must have added:\n8,000 - 6,000 = 2,000 steps\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.001418,
+  "expected": "2000",
+  "tokens": {
+    "input": 125,
+    "output": 146
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The email outlines key Q1 metrics (127% revenue target, 115% NRR, 22% higher CAC) and requests the product roadmap section by Wednesday for the board deck. The board meeting is scheduled for next Tuesday.",
+  "score": 5,
+  "cost": 1.6200000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 231
+  }
+}

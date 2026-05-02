@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 36,
+  "response": "account_blocked",
+  "score": 0,
+  "cost": 1.377e-05,
+  "expected": "insurance",
+  "tokens": {
+    "input": 507,
+    "output": 3
+  }
+}

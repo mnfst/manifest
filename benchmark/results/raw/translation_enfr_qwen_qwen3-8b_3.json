@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n'y a pas d'autre explication pour la subvention tr\u00e8s restreinte de 10 ou 12 millions d'ECU, qui, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 de moyens modernes pour exercer une fonction de surveillance dans le secteur des p\u00eaches.",
+  "score": 4,
+  "cost": 4.47e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 815
+  }
+}

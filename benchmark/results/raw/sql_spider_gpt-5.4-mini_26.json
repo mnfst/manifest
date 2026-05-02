@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "SELECT COUNT(*) AS flight_count\nFROM flights f\nJOIN airports a1 ON f.departure_airport_id = a1.airport_id\nJOIN airports a2 ON f.destination_airport_id = a2.airport_id\nWHERE a1.city = 'Aberdeen'\n  AND a2.city = 'Ashley';",
+  "score": 5,
+  "cost": 0.00010349999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 67
+  }
+}

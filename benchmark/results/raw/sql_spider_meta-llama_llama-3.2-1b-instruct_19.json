@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "```sql\nSELECT DISTINCT m.name \nFROM car_1 \nWHERE YEAR(production_year) = 1970;\n```",
+  "score": 2,
+  "cost": 2.916e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 26
+  }
+}

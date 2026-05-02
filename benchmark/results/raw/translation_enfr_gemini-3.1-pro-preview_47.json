@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "**French:**\nUne r\u00e9pression de cette nature, ainsi que les arrestations, ces derni\u00e8res semaines, de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de pr\u00e9tendues fausses informations, ont \u00e0 juste titre suscit\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale. \n\n*(Note: In French, it is more natural to translate the singular \"arrest\" as the plural \"les arrestations\" when referring to multiple groups of people. \"Suscit\u00e9 l'inqui\u00e9tude\" or \"suscit\u00e9 la pr\u00e9occupation\" are the standard, formal equivalents for \"awakened the concern\".)*",
+  "score": 5,
+  "cost": 0.00215,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 133
+  }
+}

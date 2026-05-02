@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "L'\u00e9vasion fiscale a augment\u00e9 en Tunisie, ce qui a entra\u00een\u00e9 un d\u00e9ficit significatif en termes de ressources publiques, selon Ali Larayedh, ancien premier ministre, cit\u00e9 par le journal Business Flood.",
+  "score": 5,
+  "cost": 3.294e-06,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 53
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Elliott finished half of 10,000 = 5,000 steps walking to/from school.\nHe did another 1,000 steps with his friend.\nTotal before jog: 5,000 + 1,000 = 6,000 steps.\n\nAfter the jog, he had 2,000 steps left, meaning he had taken 10,000 - 2,000 = 8,000 steps.\n\nSteps during jog: 8,000 - 6,000 = 2,000 steps.\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.002433,
+  "expected": "2000",
+  "tokens": {
+    "input": 136,
+    "output": 135
+  }
+}

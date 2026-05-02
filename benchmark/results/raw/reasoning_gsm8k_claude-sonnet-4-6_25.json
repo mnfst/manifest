@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "## Step-by-Step Solution\n\n**Step 1: Calculate the loan amount**\nJohn gets a loan worth 40% of his house value.\n- House value: $250,000\n- Loan amount: $250,000 \u00d7 40% = $250,000 \u00d7 0.40 = **$100,000**\n\n**Step 2: Calculate how much he used to pay off debts**\nHe uses 60% of the loan to pay off debts.\n- Amount used for debt: $100,000 \u00d7 60% = $100,000 \u00d7 0.60 = **$60,000**\n\n**Step 3: Calculate the leftover amount**\n- Leftover = Loan amount - Amount used for debt\n- Leftover = $100,000 - $60,000 = **$40,000**\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.003354,
+  "expected": "40,000",
+  "tokens": {
+    "input": 108,
+    "output": 202
+  }
+}

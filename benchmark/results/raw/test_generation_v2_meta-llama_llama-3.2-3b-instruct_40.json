@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 40,
+  "response": "Here's an example of how you can write unit tests for the `rgb_to_hex` function using pytest:\n\n```python\nimport pytest\n\ndef test_rgb_to_hex_happy_path():\n    \"\"\"Test the happy path of the rgb_to_hex function\"\"\"\n    assert rgb_to_hex(255, 0, 0) == '#ff0000'\n\ndef test_rgb_to_hex_edge_case_0():\n    \"\"\"Test the edge case where r is 0\"\"\"\n    assert rgb_to_hex(0, 255, 0) == '#00ff00'\n\ndef test_rgb_to_hex_edge_case_255():\n    \"\"\"Test the edge case where r is 255\"\"\"\n    assert rgb_to_hex(255, 255, 0) == '#ffff00'\n\ndef test_rgb_to_hex_edge_case_g0():\n    \"\"\"Test the edge case where g is 0\"\"\"\n    assert rgb_to_hex(0, 0, 255) == '#0000ff'\n\ndef test_rgb_to_hex_edge_case_b0():\n    \"\"\"Test the edge case where b is 0\"\"\"\n    assert rgb_to_hex(0, 255, 0) == '#00ff00'\n\ndef test_rgb_to_hex_invalid_value():\n    \"\"\"Test the error case where r, g, or b is not 0-255\"\"\"\n    with pytest.raises(ValueError):\n        rgb_to_hex(256, 0, 0)\n\ndef test_rgb_to_hex_negative_value():\n    \"\"\"Test the error case where r, g, or b is negative\"\"\"\n    with pytest.raises(ValueError):\n        rgb_to_hex(-1, 0, 0)\n\ndef test_rgb_to_hex_non_integer_value():\n    \"\"\"Test the error case where r, g, or b is not an integer\"\"\"\n    with pytest.raises(TypeError):\n        rgb_to_hex(0.5, 0, 0)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test the function with valid RGB values.\n* Edge cases:\n\t+ r is 0\n\t+ r is 255\n\t+ g is 0\n\t+ b is 0\n* Error cases:\n\t+ Invalid RGB value (not 0-255)\n\t+ Negative RGB value\n\t+ Non-integer RGB value\n\nNote that these tests are just a starting point, and you may want to add more test cases to cover additional scenarios.",
+  "score": 4,
+  "cost": 3.0293999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 483
+  }
+}

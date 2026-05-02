@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 41,
+  "response": "{\n  \"persons\": [\"LeBron James\"],\n  \"organizations\": [\"Los Angeles Lakers\"],\n  \"locations\": [\"Los Angeles\"]\n}",
+  "score": 5,
+  "cost": 1.9600000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 31
+  }
+}

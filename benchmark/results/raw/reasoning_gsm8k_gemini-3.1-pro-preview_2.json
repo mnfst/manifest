@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "To find out how long it takes Tom to get back, we first need to determine the distance he traveled on his initial trip. \n\n1. **Calculate the time of the first trip:** \nTom sails from 1 PM to 4 PM, which is a total of 3 hours.\n\n2. **Calculate the distance traveled:** \nUsing the formula *Distance = Speed \u00d7 Time*, we multiply his speed by the time he traveled.\nDistance = 10 miles per hour \u00d7 3 hours = 30 miles.\n\n3. **Calculate the time for the return trip:** \nNow, Tom needs to travel those same 30 miles back, but this time at a speed of 6 miles per hour. Using the formula *Time = Distance / Speed*, we can find the return time.\nTime = 30 miles / 6 miles per hour = 5 hours.\n\nIt takes him 5 hours to get back.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0032625,
+  "expected": "5",
+  "tokens": {
+    "input": 87,
+    "output": 203
+  }
+}

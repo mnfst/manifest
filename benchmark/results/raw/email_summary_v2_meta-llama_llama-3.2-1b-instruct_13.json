@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe customer success team has reported positive Q1 results, with a 62% increase in Net Promoter Score (NPS) and a 4.3/5 support score, indicating high customer satisfaction. The team has also identified three key feature requests: Single Sign-On (SSO), custom dashboards, and API rate limit increase, and has secured three enterprise expansions totaling $800,000.",
+  "score": 5,
+  "cost": 5.8049999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 94
+  }
+}

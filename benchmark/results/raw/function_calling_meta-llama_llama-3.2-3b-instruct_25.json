@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 25,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Standup Meeting\", \"duration_minutes\": 30, \"time\": \"09:00\", \"recurrence\": \"daily\", \"attendees\": [\"dev\"]}}\n```\n\nNote: I assumed the recurrence is daily, as it's a common use case for standup meetings. If the recurrence should be weekly or monthly, you can adjust the value accordingly.",
+  "score": 4,
+  "cost": 1.1322e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 101
+  }
+}

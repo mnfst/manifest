@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company is proposing to split the Platform into two teams: Infrastructure (networking, compute, storage) and Developer Experience (CI/CD, tooling, onboarding), which will help address the bottleneck of DevOps issues. The proposed restructuring aims to improve the overall efficiency and reliability of the platform by separating the technical and business aspects of the organization.",
+  "score": 3,
+  "cost": 4.914e-06,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 84
+  }
+}

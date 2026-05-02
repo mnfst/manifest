@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "SELECT SUM(Population) AS population\nFROM city\nWHERE District = 'Gelderland';",
+  "score": 3,
+  "cost": 0.002148,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 162
+  }
+}

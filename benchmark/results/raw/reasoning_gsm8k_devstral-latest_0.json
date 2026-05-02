@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Let's break down the problem step by step to find out how much money the girls raised in total.\n\n1. **Alexandra's Contribution:**\n   - Alexandra raises **$430**.\n\n2. **Kim's Contribution:**\n   - Kim raises **$320 more** than Alexandra.\n   - Calculation: $430 (Alexandra) + $320 = **$750**\n\n3. **Sarah's Contribution:**\n   - Sarah raises **$300**.\n\n4. **Maryam's Contribution:**\n   - Maryam raises **$400 more** than Sarah.\n   - Calculation: $300 (Sarah) + $400 = **$700**\n\n5. **Total Money Raised:**\n   - Add up all the contributions:\n   - Alexandra: $430\n   - Kim: $750\n   - Sarah: $300\n   - Maryam: $700\n   - **Total = $430 + $750 + $300 + $700 = $2180**\n\n**Final Answer:**\nANSWER: 2180",
+  "score": 5,
+  "cost": 8.55e-05,
+  "expected": "2280",
+  "tokens": {
+    "input": 102,
+    "output": 251
+  }
+}

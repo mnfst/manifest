@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint successfully delivered the auth redesign on time with strong design team collaboration, but suffered from too many context switches and overly long standups. Going forward, the team will limit work-in-progress to two items per developer and enforce timeboxed standups with a parking lot for off-topic discussions.",
+  "score": 5,
+  "cost": 0.001362,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 67
+  }
+}

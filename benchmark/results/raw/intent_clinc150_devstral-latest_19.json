@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "calendar",
+  "score": 5,
+  "cost": 5.6000000000000006e-05,
+  "expected": "calendar",
+  "tokens": {
+    "input": 554,
+    "output": 2
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 46,
+  "response": "```json\n{\"name\": \"restart_service\", \"arguments\": {\"name\": \"redis\"}}\n```",
+  "score": 5,
+  "cost": 1.5399999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 23
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a $450K ARR customer, is threatening to churn due to three weeks of API latency issues and five days of unresponsive support. James has assigned a dedicated engineer and requires an executive sponsor to join a call with the customer this week.",
+  "score": 5,
+  "cost": 0.001263,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 61
+  }
+}

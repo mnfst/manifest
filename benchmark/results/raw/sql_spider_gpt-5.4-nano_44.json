@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT a.code\nFROM airport a\nJOIN flight f ON (f.departure_airport_id = a.id OR f.arrival_airport_id = a.id)\nGROUP BY a.code\nORDER BY COUNT(*) ASC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 2.86e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 54
+  }
+}

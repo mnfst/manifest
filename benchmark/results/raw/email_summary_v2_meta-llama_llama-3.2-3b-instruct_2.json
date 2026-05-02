@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "Here is a 2-sentence summary of the email:\n\nA critical SQL injection vulnerability has been discovered in the /api/v2/auth/login endpoint, affecting versions 3.2.0-v3.4.1, and requires immediate attention. The vulnerability is to be fixed by parameterizing the query in auth_controller.py:142, with a recommended hotfix to be reviewed and implemented within 24 hours.",
+  "score": 5,
+  "cost": 9.536999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 84
+  }
+}

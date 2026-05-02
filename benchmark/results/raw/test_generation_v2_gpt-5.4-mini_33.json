@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 33,
+  "response": "```python\nimport pytest\n\nfrom your_module import flatten_dict\n\n\ndef test_flatten_dict_simple_nested():\n    d = {\"a\": 1, \"b\": {\"c\": 2, \"d\": 3}}\n    expected = {\"a\": 1, \"b.c\": 2, \"b.d\": 3}\n    assert flatten_dict(d) == expected\n\n\ndef test_flatten_dict_deeply_nested():\n    d = {\"a\": {\"b\": {\"c\": {\"d\": 4}}}}\n    expected = {\"a.b.c.d\": 4}\n    assert flatten_dict(d) == expected\n\n\ndef test_flatten_dict_empty_dict():\n    assert flatten_dict({}) == {}\n\n\ndef test_flatten_dict_custom_separator():\n    d = {\"a\": {\"b\": 1}}\n    expected = {\"a__b\": 1}\n    assert flatten_dict(d, sep=\"__\") == expected\n\n\ndef test_flatten_dict_with_parent_key():\n    d = {\"b\": 1, \"c\": {\"d\": 2}}\n    expected = {\"a.b\": 1, \"a.c.d\": 2}\n    assert flatten_dict(d, parent_key=\"a\") == expected\n\n\ndef test_flatten_dict_preserves_non_dict_values():\n    d = {\n        \"a\": 1,\n        \"b\": None,\n        \"c\": True,\n        \"d\": 3.14,\n        \"e\": \"text\",\n        \"f\": [1, 2, 3],\n    }\n    assert flatten_dict(d) == d\n\n\ndef test_flatten_dict_flattens_empty_nested_dict():\n    d = {\"a\": {}, \"b\": 1}\n    expected = {\"b\": 1}\n    assert flatten_dict(d) == expected\n\n\ndef test_flatten_dict_handles_non_string_keys():\n    d = {1: {\"x\": 2}, (3, 4): 5}\n    expected = {\"1.x\": 2, (3, 4): 5}\n    assert flatten_dict(d) == expected\n\n\ndef test_flatten_dict_nested_empty_dict_results_in_no_entries():\n    d = {\"a\": {\"b\": {}}}\n    assert flatten_dict(d) == {}\n\n\ndef test_flatten_dict_overwrites_duplicate_flat_keys():\n    d = {\"a\": {\"b\": 1}, \"a.b\": 2}\n    # dict construction keeps the last value for duplicate keys\n    expected = {\"a.b\": 2}\n    assert flatten_dict(d) == expected\n\n\ndef test_flatten_dict_raises_attribute_error_for_non_dict_input():\n    with pytest.raises(AttributeError):\n        flatten_dict(None)  # type: ignore[arg-type]\n\n\ndef test_flatten_dict_raises_attribute_error_for_list_input():\n    with pytest.raises(AttributeError):\n        flatten_dict([(\"a\", 1)])  # type: ignore[arg-type]\n```\n\nIf you want, I can also provide a version organized into a `TestFlattenDict` class and/or with parametrized tests.",
+  "score": 5,
+  "cost": 0.0007826999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 621
+  }
+}

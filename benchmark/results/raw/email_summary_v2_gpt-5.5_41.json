@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Ops recommends upgrading from 1Gbps to 10Gbps because peak usage is already at 78% capacity and growth projections suggest the cheaper traffic shaping/CDN option may only be temporary. Action item: approve the proposed 10Gbps upgrade at $45K one-time plus $2K/month to avoid revisiting capacity in six months.",
+  "score": 5,
+  "cost": 0.0015,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 98
+  }
+}

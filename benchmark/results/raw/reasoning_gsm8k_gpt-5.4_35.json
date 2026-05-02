@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Peaches: 6 pounds \u00d7 $2.00 = $12.00\n\nPlums: 8 pounds \u00d7 $1.00 = $8.00\n\nApricots: 6 pounds \u00d7 $3.00 = $18.00\n\nTotal spent:\n$12.00 + $8.00 + $18.00 = $38.00\n\nANSWER: 38",
+  "score": 5,
+  "cost": 0.00089,
+  "expected": "38",
+  "tokens": {
+    "input": 117,
+    "output": 82
+  }
+}

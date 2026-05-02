@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 employee engagement survey showed an overall score of 7.8/10, with team collaboration as the top strength and career growth clarity as the key area for improvement. The People Team has proposed three initiatives\u2014quarterly career conversations, an internal mobility program, and mentorship matching\u2014to be discussed at a town hall on Friday.",
+  "score": 5,
+  "cost": 0.001458,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 72
+  }
+}

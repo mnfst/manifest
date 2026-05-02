@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 15,
+  "response": "Here's a set of **pytest-style unit tests** for the `rotate_list` function. These tests cover:\n\n- **Happy path**: Normal rotation with valid inputs.\n- **Edge cases**: Empty list, k = 0, k equal to the length of the list.\n- **Error cases**: Invalid input types (e.g., `k` is not an integer, `lst` is not a list).\n\n### \u2705 `test_rotate_list.py`\n\n```python\nimport pytest\n\ndef rotate_list(lst: list, k: int) -> list:\n    if not lst:\n        return lst\n    k = k % len(lst)\n    return lst[-k:] + lst[:-k]\n\n# Test cases\n\ndef test_rotate_list_happy_path():\n    assert rotate_list([1, 2, 3, 4, 5], 2) == [4, 5, 1, 2, 3]\n    assert rotate_list([1, 2, 3, 4, 5], 3) == [3, 4, 5, 1, 2]\n    assert rotate_list(['a', 'b', 'c', 'd'], 1) == ['d', 'a', 'b', 'c']\n\ndef test_rotate_list_empty_list():\n    assert rotate_list([], 5) == []\n\ndef test_rotate_list_k_zero():\n    assert rotate_list([1, 2, 3], 0) == [1, 2, 3]\n\ndef test_rotate_list_k_equal_to_length():\n    assert rotate_list([1, 2, 3], 3) == [1, 2, 3]\n\ndef test_rotate_list_k_larger_than_length():\n    assert rotate_list([1, 2, 3, 4], 5) == [4, 1, 2, 3]\n\ndef test_rotate_list_negative_k():\n    assert rotate_list([1, 2, 3, 4], -1) == [4, 1, 2, 3]\n\ndef test_rotate_list_non_integer_k():\n    with pytest.raises(TypeError):\n        rotate_list([1, 2, 3], \"2\")\n\ndef test_rotate_list_non_list_input():\n    with pytest.raises(TypeError):\n        rotate_list(\"not a list\", 2)\n```\n\n### \ud83d\udd0d Notes:\n\n- The `rotate_list` function uses `k % len(lst)` to handle large or negative `k` values.\n- The `pytest.raises` context manager is used to test for expected exceptions.\n- All tests are written in a **pytest-style** using the `assert` syntax.\n\n### \ud83d\ude80 How to run the tests:\n\nMake sure you have `pytest` installed:\n\n```bash\npip install pytest\n```\n\nThen run:\n\n```bash\npytest test_rotate_list.py\n```\n\nThis will execute all the tests and report any failures.",
+  "score": 5,
+  "cost": 2.244e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 599
+  }
+}

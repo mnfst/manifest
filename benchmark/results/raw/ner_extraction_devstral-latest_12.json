@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "```json\n{\n  \"persons\": [\"Jensen Huang\"],\n  \"organizations\": [\"Nvidia\", \"GTC\"],\n  \"locations\": [\"San Jose\"]\n}\n```",
+  "score": 5,
+  "cost": 1.88e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 38
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "```sql\nSELECT SUM(s2.area) \nFROM country as s1 \nJOIN continent as s2 ON s1.continent = s2.name \nWHERE s2.name = 'Caribbean';\n```",
+  "score": 2,
+  "cost": 6.119999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 42
+  }
+}

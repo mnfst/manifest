@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "To solve this problem, we need to follow the steps below:\n\n1. Calculate 40% of the house's value:\n40% of $250,000 = 0.4 x $250,000 = $100,000\n\n2. Calculate 60% of the house's value:\n60% of $250,000 = 0.6 x $250,000 = $150,000\n\n3. Add the two amounts together:\n$100,000 + $150,000 = $250,000\n\n4. Subtract the amount used to pay off debts from the total amount:\n$250,000 - $150,000 = $100,000\n\nANSWER: $100,000",
+  "score": 2,
+  "cost": 6.804e-06,
+  "expected": "40,000",
+  "tokens": {
+    "input": 108,
+    "output": 144
+  }
+}

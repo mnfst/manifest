@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 21,
+  "response": "Here's a set of **pytest-style unit tests** for the `truncate` function. These tests cover:\n\n- **Happy path** (normal usage)\n- **Edge cases** (e.g. `max_len` is 0, `suffix` is longer than `max_len`)\n- **Error cases** (invalid input types)\n\n---\n\n### \u2705 `test_truncate.py`\n\n```python\nimport pytest\n\ndef truncate(s: str, max_len: int, suffix: str = '...') -> str:\n    if len(s) <= max_len:\n        return s\n    return s[:max_len - len(suffix)] + suffix\n\ndef test_truncate_happy_path():\n    assert truncate(\"hello world\", 5) == \"hello\"\n    assert truncate(\"hello world\", 11) == \"hello world\"\n    assert truncate(\"hello world\", 10, \">>\") == \"hello worl>>\"\n\ndef test_truncate_edge_cases():\n    # max_len is 0\n    assert truncate(\"test\", 0) == \"\"\n    # suffix longer than max_len\n    assert truncate(\"test\", 3, \"abc\") == \"test\"  # len(\"test\") is 4, so it's not truncated\n    assert truncate(\"abcde\", 2, \"xyz\") == \"abcde\"  # len(\"abcde\") is 5, so not truncated\n    # max_len is exactly the length of the string\n    assert truncate(\"abc\", 3) == \"abc\"\n    # max_len is exactly the length of the string minus suffix length\n    assert truncate(\"abcdef\", 3, \"...\") == \"abc...\"\n\ndef test_truncate_error_cases():\n    with pytest.raises(TypeError):\n        truncate(123, 5)  # s is not a string\n    with pytest.raises(TypeError):\n        truncate(\"test\", \"5\")  # max_len is not an integer\n    with pytest.raises(ValueError):\n        truncate(\"test\", -1)  # max_len is negative\n    with pytest.raises(ValueError):\n        truncate(\"test\", 3, \"longer suffix\")  # suffix is longer than max_len\n```\n\n---\n\n### \ud83d\udd0d Explanation of Edge Cases\n\n- **`max_len = 0`**: The function returns an empty string.\n- **`suffix` longer than `max_len`**: If the string is not long enough to be truncated, it is not modified.\n- **`max_len` equal to the string length**: The string is returned as-is.\n- **`max_len` equal to the string length minus suffix length**: The suffix is added, and the string is truncated to fit.\n\n---\n\n### \u2705 To Run the Tests\n\nMake sure you have `pytest` installed:\n\n```bash\npip install pytest\n```\n\nThen run:\n\n```bash\npytest test_truncate.py\n```\n\nThis will execute all the test cases and report any failures.",
+  "score": 5,
+  "cost": 2.2737000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 603
+  }
+}

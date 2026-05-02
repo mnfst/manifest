@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "John\u2019s house is worth \\$250,000.\n\nHe gets a loan worth 40% of that:\n\n\\[\n0.40 \\times 250{,}000 = 100{,}000\n\\]\n\nSo, the loan amount is \\$100,000.\n\nHe uses 60% of the loan to pay off debts:\n\n\\[\n0.60 \\times 100{,}000 = 60{,}000\n\\]\n\nSo, he spent \\$60,000 on debt.\n\nMoney leftover:\n\n\\[\n100{,}000 - 60{,}000 = 40{,}000\n\\]\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.001298,
+  "expected": "40,000",
+  "tokens": {
+    "input": 101,
+    "output": 137
+  }
+}

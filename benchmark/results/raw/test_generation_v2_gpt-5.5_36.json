@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 36,
+  "response": "```python\nimport pytest\n\nfrom your_module import validate_password  # Replace with the actual module name\n\n\n@pytest.mark.parametrize(\n    (\"password\", \"expected\"),\n    [\n        # Happy path\n        (\"Abcdefg1\", True),          # exactly 8 chars\n        (\"StrongPass123\", True),     # longer valid password\n        (\"A1bcdef!\", True),          # symbols are allowed\n        (\"Abc def1\", True),          # spaces are allowed\n\n        # Edge cases: length\n        (\"\", False),\n        (\"A1b\", False),\n        (\"Abcdef1\", False),         # 7 chars, otherwise valid\n        (\"Abcdefg\", False),         # 7 chars, missing digit\n\n        # Missing required character classes\n        (\"abcdefg1\", False),        # missing uppercase\n        (\"ABCDEFG1\", False),        # missing lowercase\n        (\"Abcdefgh\", False),        # missing digit\n        (\"12345678\", False),        # missing upper and lower\n        (\"!!!!!!!!\", False),        # missing upper, lower, and digit\n    ],\n)\ndef test_validate_password(password, expected):\n    assert validate_password(password) is expected\n\n\n@pytest.mark.parametrize(\n    \"invalid_password\",\n    [\n        None,\n        12345678,\n    ],\n)\ndef test_validate_password_invalid_type_raises_type_error(invalid_password):\n    with pytest.raises(TypeError):\n        validate_password(invalid_password)\n```",
+  "score": 5,
+  "cost": 0.010245,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 826
+  }
+}

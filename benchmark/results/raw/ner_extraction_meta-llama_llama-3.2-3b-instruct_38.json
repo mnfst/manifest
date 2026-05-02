@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 38,
+  "response": "```\n{\n  \"persons\": [\"Kamala Harris\"],\n  \"organizations\": [\"General Motors\"],\n  \"locations\": [\"Detroit\"]\n}\n```",
+  "score": 5,
+  "cost": 5.4059999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 31
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 35,
+  "response": "```json\n{\n  \"name\": \"get_order\",\n  \"arguments\": {\n    \"order_id\": \"12345\"\n  }\n}\n```",
+  "score": 3,
+  "cost": 8.775e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 31
+  }
+}

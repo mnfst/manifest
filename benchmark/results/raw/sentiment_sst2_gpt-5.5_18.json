@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sentiment_sst2",
+  "case": 18,
+  "response": "positive",
+  "score": 5,
+  "cost": 0.00078,
+  "expected": "positive",
+  "tokens": {
+    "input": 72,
+    "output": 47
+  }
+}

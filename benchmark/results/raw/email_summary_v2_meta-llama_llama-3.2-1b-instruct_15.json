@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company has approved two changes to the terms of service, including an arbitration clause for enterprise tier and a revised data retention period from 180 to 90 days, which will go live on May 1. The changes will be prepared and implemented by the legal team, with the final version ready for review before the EU launch.",
+  "score": 4,
+  "cost": 4.9950000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 79
+  }
+}

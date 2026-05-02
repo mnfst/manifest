@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To find the number of students enrolled this year, we need to calculate 20% of the original number of students and add it to the original number.\n\nFirst, we calculate 20% of 50:\n20% of 50 = 0.20 x 50 = 10\n\nNext, we add the 20% increase to the original number:\n50 + 10 = 60\n\nTherefore, there are 60 students enrolled in the calligraphy class this year.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 9.689999999999997e-06,
+  "expected": "60",
+  "tokens": {
+    "input": 87,
+    "output": 103
+  }
+}

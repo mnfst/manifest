@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT T1.Name FROM network_1.Students AS T1 INNER JOIN Likes AS T2 ON T1.StudentID = T2.StudentID GROUP BY T1.Name ORDER BY COUNT(T2.Likes) DESC LIMIT 1;\n```",
+  "score": 4,
+  "cost": 3.4289999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 52
+  }
+}

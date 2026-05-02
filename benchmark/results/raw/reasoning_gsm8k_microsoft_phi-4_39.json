@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "To solve this problem, we need to determine the total number of grapes initially available. Let's break down the information given:\n\n1. **Madeline's Grapes**: Madeline ate 6 grapes.\n\n2. **Her Brother's Grapes**: Her brother used 5 times as many grapes as Madeline to make a full glass of grape juice. Therefore, he used:\n   \\[\n   5 \\times 6 = 30 \\text{ grapes}\n   \\]\n\n3. **Mother's Grapes**: Their mother used the remaining grapes to make 4 pies, with each pie requiring 12 grapes. Therefore, she used:\n   \\[\n   4 \\times 12 = 48 \\text{ grapes}\n   \\]\n\nNow, let's calculate the total number of grapes initially:\n\n- Madeline ate 6 grapes.\n- Her brother used 30 grapes.\n- Their mother used 48 grapes.\n\nThe total number of grapes used by Madeline, her brother, and their mother is:\n\\[\n6 + 30 + 48 = 84 \\text{ grapes}\n\\]\n\nThus, the initial number of grapes was 84.\n\nANSWER: 84",
+  "score": 5,
+  "cost": 2.288e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 111,
+    "output": 241
+  }
+}

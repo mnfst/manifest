@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime... bien que je ne sache pas pourquoi.",
+  "score": 4,
+  "cost": 3.4450000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 16
+  }
+}

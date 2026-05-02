@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 32,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"run_security_scan\", \"arguments\": {\"target\": \"10.0.0.1\"}}\n```\n\nThis function call tells the system to run a full security scan on the target server at the specified IP address.",
+  "score": 5,
+  "cost": 8.363999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 60
+  }
+}

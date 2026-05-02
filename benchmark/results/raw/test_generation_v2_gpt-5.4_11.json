@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 11,
+  "response": "```python\nimport pytest\n\nfrom your_module import merge_sorted\n\n\nclass TestMergeSorted:\n    def test_merges_two_sorted_lists(self):\n        assert merge_sorted([1, 3, 5], [2, 4, 6]) == [1, 2, 3, 4, 5, 6]\n\n    def test_handles_duplicates(self):\n        assert merge_sorted([1, 2, 2, 5], [2, 2, 3]) == [1, 2, 2, 2, 2, 3, 5]\n\n    def test_preserves_all_equal_values(self):\n        assert merge_sorted([1, 1, 1], [1, 1]) == [1, 1, 1, 1, 1]\n\n    def test_first_list_empty(self):\n        assert merge_sorted([], [1, 2, 3]) == [1, 2, 3]\n\n    def test_second_list_empty(self):\n        assert merge_sorted([1, 2, 3], []) == [1, 2, 3]\n\n    def test_both_lists_empty(self):\n        assert merge_sorted([], []) == []\n\n    def test_negative_numbers(self):\n        assert merge_sorted([-5, -2, 0], [-4, -1, 3]) == [-5, -4, -2, -1, 0, 3]\n\n    def test_one_list_entirely_smaller_than_other(self):\n        assert merge_sorted([1, 2, 3], [4, 5, 6]) == [1, 2, 3, 4, 5, 6]\n\n    def test_one_list_entirely_larger_than_other(self):\n        assert merge_sorted([4, 5, 6], [1, 2, 3]) == [1, 2, 3, 4, 5, 6]\n\n    def test_does_not_modify_inputs(self):\n        a = [1, 3, 5]\n        b = [2, 4, 6]\n        a_original = a[:]\n        b_original = b[:]\n\n        result = merge_sorted(a, b)\n\n        assert result == [1, 2, 3, 4, 5, 6]\n        assert a == a_original\n        assert b == b_original\n\n    @pytest.mark.parametrize(\n        \"a,b,expected\",\n        [\n            ([1], [2], [1, 2]),\n            ([2], [1], [1, 2]),\n            ([1, 2, 4], [1, 3, 4], [1, 1, 2, 3, 4, 4]),\n            ([0, 10], [1, 2, 3], [0, 1, 2, 3, 10]),\n        ],\n    )\n    def test_various_valid_inputs(self, a, b, expected):\n        assert merge_sorted(a, b) == expected\n\n    def test_raises_type_error_when_first_arg_is_none(self):\n        with pytest.raises(TypeError):\n            merge_sorted(None, [1, 2, 3])\n\n    def test_raises_type_error_when_second_arg_is_none(self):\n        with pytest.raises(TypeError):\n            merge_sorted([1, 2, 3], None)\n\n    def test_raises_type_error_for_non_list_like_input(self):\n        with pytest.raises(TypeError):\n            merge_sorted(123, [1, 2, 3])\n\n    def test_raises_type_error_for_uncomparable_elements(self):\n        with pytest.raises(TypeError):\n            merge_sorted([1, \"a\"], [2, 3])\n```\n\nIf you want, I can also provide:\n- a version using plain test functions instead of a test class\n- a `tests/test_merge_sorted.py` file layout\n- property-based tests with `hypothesis`",
+  "score": 4,
+  "cost": 0.00688,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 829
+  }
+}

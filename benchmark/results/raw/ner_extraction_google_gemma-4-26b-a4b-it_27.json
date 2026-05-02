@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "```json\n{\n  \"persons\": [\"Cristiano Ronaldo\"],\n  \"organizations\": [\"Al Nassr\", \"Manchester United\"],\n  \"locations\": [\"Riyadh\"]\n}\n```",
+  "score": 5,
+  "cost": 7.32e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 42
+  }
+}

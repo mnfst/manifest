@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "intent_clinc150",
+  "case": 36,
+  "response": "insurance",
+  "score": 5,
+  "cost": 3.7919999999999996e-05,
+  "expected": "insurance",
+  "tokens": {
+    "input": 630,
+    "output": 2
+  }
+}

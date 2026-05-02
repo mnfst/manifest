@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "John\u2019s house is worth $250,000.\n\nHe gets a loan worth 40% of that:\n\n$250,000 \u00d7 0.40 = $100,000\n\nHe uses 60% of the loan to pay debts:\n\n$100,000 \u00d7 0.60 = $60,000\n\nMoney leftover:\n\n$100,000 \u2212 $60,000 = $40,000\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.002139,
+  "expected": "40,000",
+  "tokens": {
+    "input": 101,
+    "output": 153
+  }
+}

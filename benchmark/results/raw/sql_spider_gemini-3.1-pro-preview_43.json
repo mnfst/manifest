@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "SELECT count(*) FROM cars_data WHERE cylinders  >  6",
+  "score": 5,
+  "cost": 0.0003625,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 13
+  }
+}

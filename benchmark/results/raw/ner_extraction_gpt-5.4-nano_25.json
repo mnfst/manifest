@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 25,
+  "response": "{\n  \"persons\": [\n    \"Mark Zuckerberg\"\n  ],\n  \"organizations\": [\n    \"Meta\"\n  ],\n  \"locations\": [\n    \"Menlo Park\"\n  ]\n}",
+  "score": 5,
+  "cost": 2.3700000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 41
+  }
+}

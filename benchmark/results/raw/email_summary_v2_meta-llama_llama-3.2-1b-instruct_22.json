@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company is planning to launch an international expansion plan, with key milestones including setting up a legal entity in Japan, completing localization of the product, and launching a beta test with 10 customers in July. The company needs CEO approval to proceed with the plan, which includes a budget of $200,000, with $50,000 allocated to legal, $80,000 to localization, and $70,000 to local hiring.",
+  "score": 5,
+  "cost": 5.4e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 100
+  }
+}

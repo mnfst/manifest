@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "The length of Billie's room is given as 3 yards.\n\nConvert yards to feet:\n\n3 yards = 3 \u00d7 3 = 9 feet\n\nThe area of a rectangle is:\n\nArea = length \u00d7 width\n\nSo:\n\n360 = 9 \u00d7 width\n\nwidth = 360 \u00f7 9 = 40 feet\n\nNow find the perimeter:\n\nPerimeter = 2(length + width)\n\nPerimeter = 2(9 + 40) = 2 \u00d7 49 = 98 feet\n\nANSWER: 98",
+  "score": 5,
+  "cost": 0.00219,
+  "expected": "98",
+  "tokens": {
+    "input": 74,
+    "output": 164
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Let me solve this step by step.\n\n**Adam's points:** 50\n\n**Betty's points:** Betty collected 30% more than Adam\n- Betty = 50 + 30% of 50 = 50 + 15 = 65 points\n\n**Tom's points:** Tom has 30 points less than Betty\n- Tom = 65 - 30 = 35 points\n\n**Martha's points:** Martha collected 3 times more than Tom\n- \"3 times more\" - I'll interpret this as 3 times as many (common usage)\n- Martha = 3 \u00d7 35 = 105 points\n\n**Total points:**\n- Total = Adam + Betty + Tom + Martha\n- Total = 50 + 65 + 35 + 105 = 255 points\n\n**Points missing:**\n- Missing = 400 - 255 = 145 points\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.003675,
+  "expected": "145",
+  "tokens": {
+    "input": 155,
+    "output": 214
+  }
+}

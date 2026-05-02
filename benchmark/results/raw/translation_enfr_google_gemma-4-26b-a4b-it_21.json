@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 21,
+  "response": "Depending on the level of formality you wish to convey, here are the best translations:\n\n**1. Formal / Polite (Standard)**\n> \u00ab Maintenant, voudriez-vous lire ceci, s'il vous pla\u00eet ? \u00bb\n\n**2. Slightly more natural/common (Polite)**\n> \u00ab Maintenant, pourriez-vous lire ceci, s'il vous pla\u00eet ? \u00bb\n\n**3. Informal (To a friend or peer)**\n> \u00ab Maintenant, est-ce que tu pourrais lire \u00e7a, s'il te pla\u00eet ? \u00bb\n\n**Note on tone:** The English phrase \"would you have a read of this\" is a polite, slightly formal way of making a request. The first two French options best capture that respectful tone.",
+  "score": 5,
+  "cost": 1.188e-05,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 153
+  }
+}

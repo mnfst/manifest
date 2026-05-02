@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "```sql\nSELECT TYPE_CODE FROM CRE_DOC_TEMPLATE_MGT WHERE DESCRIPTION = 'Book';\n```",
+  "score": 3,
+  "cost": 2.727e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 20
+  }
+}

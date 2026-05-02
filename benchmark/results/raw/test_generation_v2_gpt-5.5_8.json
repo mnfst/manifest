@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 8,
+  "response": "```python\n# test_binary_search.py\nimport pytest\n\n# Adjust this import to match where your function is defined\n# from your_module import binary_search\n\n\ndef binary_search(arr: list, target: int) -> int:\n    low, high = 0, len(arr) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n\n\n@pytest.mark.parametrize(\n    \"arr,target,expected\",\n    [\n        ([1, 2, 3, 4, 5], 1, 0),   # first element\n        ([1, 2, 3, 4, 5], 3, 2),   # middle element\n        ([1, 2, 3, 4, 5], 5, 4),   # last element\n        ([10], 10, 0),             # single-element found\n        ([-10, -5, 0, 5, 10], -5, 1),  # negative values\n    ],\n)\ndef test_binary_search_found(arr, target, expected):\n    assert binary_search(arr, target) == expected\n\n\n@pytest.mark.parametrize(\n    \"arr,target\",\n    [\n        ([1, 2, 3, 4, 5], 6),      # greater than all elements\n        ([1, 2, 3, 4, 5], 0),      # less than all elements\n        ([1, 3, 5, 7], 4),         # between elements\n        ([10], 5),                 # single-element not found\n        ([], 1),                   # empty list\n    ],\n)\ndef test_binary_search_not_found(arr, target):\n    assert binary_search(arr, target) == -1\n\n\ndef test_binary_search_with_duplicates_returns_valid_matching_index():\n    arr = [1, 2, 2, 2, 3]\n    result = binary_search(arr, 2)\n\n    assert result in {1, 2, 3}\n    assert arr[result] == 2\n\n\ndef test_binary_search_large_list():\n    arr = list(range(0, 10_000, 2))\n\n    assert binary_search(arr, 2468) == 1234\n    assert binary_search(arr, 2469) == -1\n\n\ndef test_binary_search_tuple_input_still_works():\n    # Although the type hint says list, the implementation works with indexable sequences.\n    arr = (1, 2, 3, 4, 5)\n\n    assert binary_search(arr, 4) == 3\n\n\ndef test_binary_search_none_array_raises_type_error():\n    with pytest.raises(TypeError):\n        binary_search(None, 1)\n\n\ndef test_binary_search_mixed_incomparable_types_raises_type_error():\n    arr = [1, 2, \"3\", 4]\n\n    with pytest.raises(TypeError):\n        binary_search(arr, 3)\n\n\ndef test_binary_search_unsorted_array_behavior_not_guaranteed():\n    # Binary search requires sorted input. This test documents that unsorted input\n    # should not be relied upon.\n    arr = [3, 1, 2]\n\n    result = binary_search(arr, 1)\n\n    assert result in {-1, 1}\n```",
+  "score": 4,
+  "cost": 0.01032,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 829
+  }
+}

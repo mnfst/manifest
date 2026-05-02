@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 3,
+  "response": "```json\n{\n  \"name\": \"create_task\",\n  \"arguments\": {\n    \"title\": \"Review PR 42\",\n    \"priority\": \"high\",\n    \"assignee\": \"alice\",\n    \"due_date\": \"next Friday\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 2.9100000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 59
+  }
+}

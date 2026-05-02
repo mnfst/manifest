@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "intent_clinc150",
+  "case": 40,
+  "response": "mpg",
+  "score": 5,
+  "cost": 2.6600000000000003e-05,
+  "expected": "mpg",
+  "tokens": {
+    "input": 505,
+    "output": 27
+  }
+}

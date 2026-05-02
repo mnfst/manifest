@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 34,
+  "response": "```json\n{\"name\": \"scale_deployment\", \"arguments\": {\"service\": \"web\", \"replicas\": 5}}\n```",
+  "score": 5,
+  "cost": 1.75e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 30
+  }
+}

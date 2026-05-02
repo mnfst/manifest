@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test was completed, but the recovery time missed the 4-hour RTO target, taking 6 hours 23 minutes instead because the database restore took 3 hours due to a larger-than-expected dataset. Recommended actions are to increase backup frequency and pre-provision a standby database before the next test in October.",
+  "score": 5,
+  "cost": 0.00011609999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 70
+  }
+}

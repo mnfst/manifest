@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 15,
+  "response": "```python\n# test_rotate_list.py\nimport pytest\n\nfrom your_module import rotate_list  # update import to your actual module\n\n\nclass TestRotateList:\n    # ---------- Happy path ----------\n    def test_basic_rotation_left_equivalent_right(self):\n        # k=1 => last element moves to front\n        assert rotate_list([1, 2, 3, 4], 1) == [4, 1, 2, 3]\n\n    def test_rotation_by_length_returns_same_list(self):\n        assert rotate_list([1, 2, 3, 4], 4) == [1, 2, 3, 4]\n\n    def test_rotation_by_multiple_of_length_returns_same_list(self):\n        assert rotate_list([1, 2, 3, 4], 8) == [1, 2, 3, 4]\n\n    def test_rotation_with_negative_k(self):\n        # Python's % makes this well-defined:\n        # k=-1 => (-1 % 4) = 3 => rotate by 3 (right), equivalent to left by 1\n        assert rotate_list([1, 2, 3, 4], -1) == [2, 3, 4, 1]\n\n    def test_rotation_with_zero_k(self):\n        assert rotate_list([1, 2, 3], 0) == [1, 2, 3]\n\n    # ---------- Edge cases ----------\n    def test_empty_list_returns_empty_list(self):\n        assert rotate_list([], 10) == []\n\n    def test_single_element_list_any_k_returns_same(self):\n        assert rotate_list([42], 0) == [42]\n        assert rotate_list([42], 1) == [42]\n        assert rotate_list([42], -3) == [42]\n\n    def test_rotation_with_large_k(self):\n        assert rotate_list([1, 2, 3, 4, 5], 123) == rotate_list([1, 2, 3, 4, 5], 123 % 5)\n\n    def test_does_not_mutate_original_list(self):\n        original = [1, 2, 3]\n        result = rotate_list(original, 1)\n        assert result == [3, 1, 2]\n        assert original == [1, 2, 3]\n\n    # ---------- Error cases ----------\n    def test_non_list_input_raises_type_error(self):\n        # function uses len() and slicing, so a non-list should typically fail\n        with pytest.raises(TypeError):\n            rotate_list(None, 1)\n\n    def test_k_non_int_raises_type_error(self):\n        with pytest.raises(TypeError):\n            rotate_list([1, 2, 3], \"2\")\n\n    def test_k_float_raises_type_error(self):\n        # float % int returns float, then slicing with float indices fails\n        with pytest.raises(TypeError):\n            rotate_list([1, 2, 3], 1.5)\n\n    def test_list_with_no_len_or_slicing_capability_raises(self):\n        # e.g., an int has no __len__ / slicing\n        with pytest.raises(TypeError):\n            rotate_list(123, 1)\n```",
+  "score": 4,
+  "cost": 0.0002783,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 677
+  }
+}

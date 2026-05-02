@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "FTI \u2014 Privil\u00e8ges et conditions",
+  "score": 5,
+  "cost": 1.551e-06,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 9
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "extraction_hard_v2",
+  "case": 5,
+  "response": "```json\n{\"passenger\": {\"name\": \"Maria Gonzalez\", \"title\": \"Dr.\"}, \"booking_ref\": \"XKJP42\", \"flight\": {\"number\": \"872\", \"airline\": \"UA\", \"origin\": \"SFO\", \"destination\": \"NRT\", \"departure\": \"2024-06-15 11:40 AM PDT\", \"arrival\": \"2024-06-16 3:20 PM JST\"}, \"seat\": {\"number\": \"12A\", \"class\": \"Business\"}, \"extras\": {\"baggage\": \"2 checked bags included\", \"meal\": \"Vegetarian pre-ordered\", \"ff_status\": \"Gold\", \"ff_number\": \"MP2847291\"}}\n```",
+  "score": 4,
+  "cost": 9.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 237,
+    "output": 172
+  }
+}

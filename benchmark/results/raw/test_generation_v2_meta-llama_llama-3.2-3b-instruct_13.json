@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "Here are the unit tests for the `fizzbuzz` function using pytest style:\n\n```python\nimport pytest\n\ndef test_fizzbuzz_happy_path():\n    assert fizzbuzz(15) == 'FizzBuzz'\n    assert fizzbuzz(3) == 'Fizz'\n    assert fizzbuzz(5) == 'Buzz'\n\ndef test_fizzbuzz_multiple_multiples():\n    assert fizzbuzz(30) == 'FizzBuzz'\n    assert fizzbuzz(45) == 'FizzBuzz'\n    assert fizzbuzz(60) == 'FizzBuzz'\n\ndef test_fizzbuzz_single_multiple():\n    assert fizzbuzz(15) == 'FizzBuzz'\n\ndef test_fizzbuzz_no_multiples():\n    assert fizzbuzz(2) == '2'\n\ndef test_fizzbuzz_zero():\n    assert fizzbuzz(0) == '0'\n\ndef test_fizzbuzz_negative_number():\n    with pytest.raises(ValueError):\n        fizzbuzz(-1)\n\ndef test_fizzbuzz_non_integer():\n    with pytest.raises(TypeError):\n        fizzbuzz(3.14)\n```\n\nNote that I've added a `ValueError` and `TypeError` exception to the last two tests, as the function does not currently handle these cases. You may want to add error handling to the function to raise these exceptions in these cases.\n\nAlso, I've used the `pytest.raises` context manager to test that the function raises the expected exceptions. This is a more concise and readable way to write these tests compared to using `try`-`except` blocks.\n\nYou can run these tests using the `pytest` command, and they should all pass if the `fizzbuzz` function is implemented correctly.",
+  "score": 4,
+  "cost": 2.2287e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 338
+  }
+}

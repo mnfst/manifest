@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Joey starts with 214 points and scores 26 points, so his total becomes $214 + 26 = 240$. Marcy starts with 225 points and scores 10 points, so her total becomes $225 + 10 = 235$. The difference between Joey's and Marcy's scores is $240 - 235 = 5$.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 3.64e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 92,
+    "output": 636
+  }
+}

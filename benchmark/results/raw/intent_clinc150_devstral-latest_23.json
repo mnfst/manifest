@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 5.700000000000001e-05,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 558,
+    "output": 4
+  }
+}

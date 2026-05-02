@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sentiment_sst2",
+  "case": 23,
+  "response": "negative",
+  "score": 5,
+  "cost": 8.7e-06,
+  "expected": "negative",
+  "tokens": {
+    "input": 81,
+    "output": 2
+  }
+}

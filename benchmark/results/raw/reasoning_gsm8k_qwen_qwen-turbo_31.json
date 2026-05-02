@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "We are told:\n\n1. The classroom has 30 boys.\n2. There are 3 times as many girls as boys.\n3. There are 1/10 as many nongendered children as boys.\n\n### Step 1: Calculate the number of girls\nSince there are 3 times as many girls as boys:\n$$\n\\text{Number of girls} = 3 \\times 30 = 90\n$$\n\n### Step 2: Calculate the number of nongendered children\nSince there are 1/10 as many nongendered children as boys:\n$$\n\\text{Number of nongendered children} = \\frac{1}{10} \\times 30 = 3\n$$\n\n### Step 3: Calculate the total number of children\n$$\n\\text{Total children} = \\text{boys} + \\text{girls} + \\text{nongendered children}\n$$\n$$\n\\text{Total children} = 30 + 90 + 3 = 123\n$$\n\n### Final Answer:\nANSWER: 123",
+  "score": 2,
+  "cost": 1.1187000000000001e-05,
+  "expected": "123",
+  "tokens": {
+    "input": 99,
+    "output": 240
+  }
+}

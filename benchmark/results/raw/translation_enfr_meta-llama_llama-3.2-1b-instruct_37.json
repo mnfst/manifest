@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "La sous-section 104(1.1) est modifi\u00e9e pour clarifier que cela s'applique \u00e0 l'exception de la sous-section 248(25) de l'Acte. La sous-section 248(25) de l'Acte d\u00e9crit, pour d'autres fins de l'Acte, les circonstances dans lesquelles un individu ou une soci\u00e9t\u00e9 est consid\u00e9r\u00e9 comme \"int\u00e9r\u00eats b\u00e9n\u00e9ficiaires\" dans un trust.",
+  "score": 3,
+  "cost": 5.2919999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 101
+  }
+}

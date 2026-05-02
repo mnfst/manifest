@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT cm.FullName, cm.Id, COUNT(md.ModelId) AS NumberOfModels\nFROM car_makers cm\nLEFT JOIN model_list md ON cm.Id = md.Maker\nGROUP BY cm.Id, cm.FullName;\n```",
+  "score": 5,
+  "cost": 0.001245,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 66
+  }
+}

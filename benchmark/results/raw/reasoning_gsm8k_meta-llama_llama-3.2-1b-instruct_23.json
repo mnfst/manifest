@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "To solve this problem, we need to first find the original price of each balloon before the price increase.\n\nLet's denote the original price of each balloon as x. Since the total cost of filling 20 balloons was $900, we can set up the equation:\n\n20x = 900\n\nTo find the original price of each balloon, we can divide both sides of the equation by 20:\n\nx = 900 / 20\nx = 45\n\nNow that we know the original price of each balloon, we can find the new price after the price increase. The price increase is $20, so the new price of each balloon is:\n\nNew price = original price + price increase\n= 45 + 20\n= 65\n\nSince Bentley filled 170 balloons, the total cost of filling them after the price increase is:\n\nTotal cost = number of balloons * new price per balloon\n= 170 * 65\n= 11,150\n\nANSWER: 11150",
+  "score": 5,
+  "cost": 8.235e-06,
+  "expected": "11050",
+  "tokens": {
+    "input": 103,
+    "output": 202
+  }
+}

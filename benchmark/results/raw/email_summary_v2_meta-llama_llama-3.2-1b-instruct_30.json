@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Here is a 2-sentence summary of the email:\n\nCompetitor X has launched AI features, but their pricing is 2x ours, which may impact market response. The company's better API and integration capabilities are seen as a key advantage, and the team recommends fast-tracking the AI roadmap to capitalize on this opportunity.",
+  "score": 4,
+  "cost": 4.455e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 66
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 35,
+  "response": "{\n  \"persons\": [\"The European Space Agency\", \"NASA\"],\n  \"organizations\": [\"European Space Agency\", \"NASA\"],\n  \"locations\": [\"lunar south pole\"]",
+  "score": 2,
+  "cost": 3.0780000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 37
+  }
+}

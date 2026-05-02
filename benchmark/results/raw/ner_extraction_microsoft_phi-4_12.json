@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "```json\n{\n  \"persons\": [\"Jensen Huang\"],\n  \"organizations\": [\"Nvidia\", \"GTC\"],\n  \"locations\": [\"San Jose\"]\n}\n```",
+  "score": 5,
+  "cost": 7.15e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 36
+  }
+}

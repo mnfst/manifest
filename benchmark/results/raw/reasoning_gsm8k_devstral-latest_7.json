@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Let's break down the problem step by step to find the total cost of buying each cup.\n\n### **Given:**\n1. **Twenty dozen cups** cost **$1200 less** than the total cost of **half a dozen plates**.\n2. Each plate is sold at **$6000**.\n\n### **Step 1: Calculate the Total Cost of Half a Dozen Plates**\n- **Number of plates in half a dozen:** 6 plates\n- **Cost per plate:** $6000\n\n\\[\n\\text{Total cost of plates} = 6 \\times 6000 = 36000 \\text{ dollars}\n\\]\n\n### **Step 2: Determine the Cost of Twenty Dozen Cups**\n- The cost of twenty dozen cups is **$1200 less** than the total cost of the plates.\n\n\\[\n\\text{Cost of cups} = 36000 - 1200 = 34800 \\text{ dollars}\n\\]\n\n### **Step 3: Find the Number of Cups in Twenty Dozen**\n- **Number of cups in one dozen:** 12 cups\n- **Number of cups in twenty dozen:** \\( 20 \\times 12 = 240 \\) cups\n\n### **Step 4: Calculate the Cost per Cup**\n\\[\n\\text{Cost per cup} = \\frac{\\text{Total cost of cups}}{\\text{Number of cups}} = \\frac{34800}{240} = 145 \\text{ dollars}\n\\]\n\n### **Final Answer:**\n\\[\n\\boxed{145}\n\\]",
+  "score": 5,
+  "cost": 0.000113,
+  "expected": "145",
+  "tokens": {
+    "input": 77,
+    "output": 351
+  }
+}

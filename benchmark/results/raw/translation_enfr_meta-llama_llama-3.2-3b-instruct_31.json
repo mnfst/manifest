@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Nous pourrions vous r\u00e9server pour pros\u00e9licitation.\n\nNote: \"solicitation\" peut \u00e9galement \u00eatre traduit par \"pros\u00e9licitation\" ou \"pros\u00e9cuter\", mais \"pros\u00e9licitation\" est plus couramment utilis\u00e9 en fran\u00e7ais pour d\u00e9signer l'action de solliciter quelqu'un pour une activit\u00e9 ou un but sp\u00e9cifique.",
+  "score": 3,
+  "cost": 5.967e-06,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 80
+  }
+}

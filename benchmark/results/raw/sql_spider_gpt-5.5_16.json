@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 16,
+  "response": "SELECT COUNT(DISTINCT country_code) FROM players;",
+  "score": 5,
+  "cost": 0.001713,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 125
+  }
+}

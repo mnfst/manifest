@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout\",\n  \"summary\": \"Checkout page is broken\",\n  \"steps_to_reproduce\": [\n    \"Add stuff to cart, go to checkout, enter card info and hit pay\",\n    \"spinner for 30 seconds then white screen\"\n  ],\n  \"expected_behavior\": \"Error message\",\n  \"actual_behavior\": \"No error message\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 7.5869999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 114
+  }
+}

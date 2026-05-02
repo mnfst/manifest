@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Ops reports that current 1Gbps links are reaching 78% utilization at peak and proposes upgrading to 10Gbps for a $45K one-time cost plus $2K/month. An alternative is traffic shaping and CDN optimization for $15K, but the recommended action is to approve the 10Gbps upgrade to support projected growth and avoid revisiting the issue in six months.",
+  "score": 5,
+  "cost": 0.00088,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 83
+  }
+}

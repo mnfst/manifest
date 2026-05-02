@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 48,
+  "response": "Here are the unit tests for the `trie_insert_search` function using pytest style:\n\n```python\nimport pytest\nfrom trie_insert_search import trie_insert_search\n\ndef test_insert():\n    # Happy path\n    insert, search = trie_insert_search()\n    insert('apple')\n    assert search('apple') == True\n    assert search('banana') == False\n\n    # Edge case: empty string\n    insert, search = trie_insert_search('')\n    assert search('') == True\n    assert search('a') == False\n\n    # Edge case: single character string\n    insert, search = trie_insert_search('a')\n    assert search('a') == True\n    assert search('b') == False\n\ndef test_search():\n    # Happy path\n    insert, search = trie_insert_search()\n    insert('apple')\n    assert search('apple') == True\n    assert search('banana') == False\n\n    # Edge case: empty string\n    insert, search = trie_insert_search('')\n    assert search('') == True\n    assert search('a') == False\n\n    # Edge case: single character string\n    insert, search = trie_insert_search('a')\n    assert search('a') == True\n    assert search('b') == False\n\ndef test_insert_empty_string():\n    # Happy path\n    insert, search = trie_insert_search('')\n    insert('')\n    assert search('') == True\n    assert search('a') == False\n\ndef test_insert_single_character():\n    # Happy path\n    insert, search = trie_insert_search('a')\n    insert('a')\n    assert search('a') == True\n    assert search('b') == False\n\ndef test_insert_non_alphabetical_characters():\n    # Happy path\n    insert, search = trie_insert_search('abc')\n    insert('abc')\n    assert search('abc') == True\n    assert search('def') == False\n\ndef test_search_non_string():\n    # Happy path\n    insert, search = trie_insert_search(123)\n    insert(123)\n    assert search(123) == True\n    assert search(456) == False\n\ndef test_search_non_string():\n    # Happy path\n    insert, search = trie_insert_search(123)\n    insert(123)\n    assert search(123) == True\n    assert search(456) == False\n```\n\nThese tests cover the following scenarios:\n\n*   Happy path: Test the basic functionality of the `insert` and `search` functions.\n*   Edge cases: Test the functions with empty strings, single character strings, and non-alphabetical characters.\n*   Error cases: Test the functions with non-string inputs.\n\nNote that these tests are just a starting point, and you may want to add more tests to cover additional edge cases or scenarios.",
+  "score": 2,
+  "cost": 1.8846e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 573
+  }
+}

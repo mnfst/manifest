@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 9,
+  "response": "weather",
+  "score": 5,
+  "cost": 5.6300000000000006e-05,
+  "expected": "weather",
+  "tokens": {
+    "input": 557,
+    "output": 2
+  }
+}

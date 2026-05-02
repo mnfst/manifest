@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "SELECT pp.money_rank\nFROM poker_player.player_stats ps\nJOIN poker_player.player_profile pp\n  ON pp.player_id = ps.player_id\nWHERE ps.height_cm = (\n  SELECT MAX(ps2.height_cm)\n  FROM poker_player.player_stats ps2\n);",
+  "score": 4,
+  "cost": 2.9300000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 56
+  }
+}

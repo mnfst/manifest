@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 19,
+  "response": "```json\n{\n  \"persons\": [\n    \"Thierry Breton\"\n  ],\n  \"organizations\": [\n    \"European Parliament\"\n  ],\n  \"locations\": [\n    \"Brussels\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 7.799999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 54
+  }
+}

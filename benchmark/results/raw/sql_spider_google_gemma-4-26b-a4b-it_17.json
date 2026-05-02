@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT name \nFROM stadium \nWHERE name NOT IN (\n    SELECT s.name \n    FROM stadium s \n    JOIN concert c ON s.id = c.stadium_id \n    WHERE strftime('%Y', c.concert_date) = '2014'\n);\n```",
+  "score": 4,
+  "cost": 9.719999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 72
+  }
+}

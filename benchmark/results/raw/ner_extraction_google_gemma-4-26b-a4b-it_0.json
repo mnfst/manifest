@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "```json\n{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\"],\n  \"locations\": [\"Las Vegas\"]\n}\n```",
+  "score": 5,
+  "cost": 7.02e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 38
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 1,
+  "response": "{\n  \"name\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Paris\"\n  }\n}",
+  "score": 4,
+  "cost": 0.000695,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 30
+  }
+}

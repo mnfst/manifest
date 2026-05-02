@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 1,
+  "response": "To solve this problem, we need to first find out how many pieces Kalinda and her mom can place per minute.\n\nKalinda can add 4 pieces per minute.\nHer mom can add half as many pieces per minute, so her mom can add 4 / 2 = 2 pieces per minute.\n\nTogether, they can add 4 + 2 = 6 pieces per minute.\n\nSince there are 360 pieces in the puzzle, we need to divide 360 by 6 to find out how many minutes it will take them to complete the puzzle.\n\n360 / 6 = 60 minutes\n\nThere are 60 minutes in 1 hour, so we can convert 60 minutes to hours by dividing by 60.\n\n60 / 60 = 1 hour\n\nTherefore, it will take Kalinda and her mom 1 hour to complete the puzzle.\n\nANSWER: 1",
+  "score": 5,
+  "cost": 1.4279999999999999e-05,
+  "expected": "1",
+  "tokens": {
+    "input": 100,
+    "output": 180
+  }
+}

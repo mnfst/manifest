@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "To solve the problem, we need to calculate the total amount Janet paid by adding up the costs of the materials, the construction, and the insurance.\n\n1. **Cost of materials**: $500  \n2. **Cost to construct**: $800  \n3. **Insurance cost**: 10% of the total cost of materials and construction.\n\nFirst, find the total cost of materials and construction:\n$$\n500 + 800 = 1300\n$$\n\nNext, calculate 10% of that total for insurance:\n$$\n10\\% \\text{ of } 1300 = 0.10 \\times 1300 = 130\n$$\n\nFinally, add the insurance cost to the total of materials and construction:\n$$\n1300 + 130 = 1430\n$$\n\nSo, the total amount Janet paid is:\nANSWER: 1430",
+  "score": 5,
+  "cost": 1.0329e-05,
+  "expected": "1430",
+  "tokens": {
+    "input": 109,
+    "output": 204
+  }
+}

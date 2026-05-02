@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "SELECT DISTINCT a.airline_name\nFROM flights f\nJOIN airlines a ON f.airline_id = a.airline_id\nWHERE f.destination_airport = 'AHD';",
+  "score": 5,
+  "cost": 3.95e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 718
+  }
+}

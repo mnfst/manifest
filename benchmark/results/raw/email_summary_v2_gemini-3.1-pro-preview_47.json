@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "March onboarding satisfaction dropped to 7.2/10 due to delayed tool access, missing culture handbooks, and confusion over benefits deadlines. To address this decline, the immediate action item is to prioritize and fix the tool access delays.",
+  "score": 4,
+  "cost": 0.000995,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 48
+  }
+}

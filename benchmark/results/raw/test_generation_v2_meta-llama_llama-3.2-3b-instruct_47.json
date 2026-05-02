@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 47,
+  "response": "Here are the unit tests for the `run_length_encode` function using pytest style:\n\n```python\nimport pytest\n\ndef test_run_length_encode_empty_string():\n    \"\"\"Test that an empty string returns an empty list\"\"\"\n    assert run_length_encode(\"\") == []\n\ndef test_run_length_encode_single_character():\n    \"\"\"Test that a single character returns a list with a single tuple\"\"\"\n    assert run_length_encode(\"a\") == [(\"a\", 1)]\n\ndef test_run_length_encode_multiple_characters():\n    \"\"\"Test that multiple characters with the same value return a list with a single tuple\"\"\"\n    assert run_length_encode(\"aaabbbccc\") == [(\"a\", 3), (\"b\", 3), (\"c\", 3)]\n\ndef test_run_length_encode_mixed_characters():\n    \"\"\"Test that multiple characters with different values return a list with multiple tuples\"\"\"\n    assert run_length_encode(\"abcabcabc\") == [(\"a\", 3), (\"b\", 2), (\"c\", 3)]\n\ndef test_run_length_encode_consecutive_duplicates():\n    \"\"\"Test that consecutive duplicates return a list with a single tuple\"\"\"\n    assert run_length_encode(\"aaaa\") == [(\"a\", 4)]\n\ndef test_run_length_encode_no_duplicates():\n    \"\"\"Test that no duplicates return a list with a single tuple\"\"\"\n    assert run_length_encode(\"abcdef\") == [(\"a\", 1), (\"b\", 1), (\"c\", 1), (\"d\", 1), (\"e\", 1), (\"f\", 1)]\n\ndef test_run_length_encode_non_string_input():\n    \"\"\"Test that a non-string input raises a TypeError\"\"\"\n    with pytest.raises(TypeError):\n        run_length_encode(123)\n\ndef test_run_length_encode_non_string_input_list():\n    \"\"\"Test that a non-string input list raises a TypeError\"\"\"\n    with pytest.raises(TypeError):\n        run_length_encode([\"a\", \"b\", \"c\"])\n```\n\nThese tests cover the following scenarios:\n\n*   An empty string\n*   A single character\n*   Multiple characters with the same value\n*   Multiple characters with different values\n*   Consecutive duplicates\n*   No duplicates\n*   Non-string input\n*   Non-string input list\n\nEach test is concise and easy to read, and they cover all the possible edge cases.",
+  "score": 4,
+  "cost": 3.0089999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 461
+  }
+}

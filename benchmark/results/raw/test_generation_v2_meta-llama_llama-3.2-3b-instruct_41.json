@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 41,
+  "response": "Here's an example of how you can write unit tests for the `hex_to_rgb` function using pytest:\n\n```python\nimport pytest\nfrom your_module import hex_to_rgb  # Replace 'your_module' with the actual name of your module\n\ndef test_hex_to_rgb_happy_path():\n    \"\"\"Test the happy path with a valid hex color code.\"\"\"\n    hex_color = '#123456'\n    expected_rgb = (18, 52, 86)\n    assert hex_to_rgb(hex_color) == expected_rgb\n\ndef test_hex_to_rgb_invalid_length():\n    \"\"\"Test the function with an invalid hex color code length.\"\"\"\n    hex_color = '#1234567'  # Too long\n    with pytest.raises(ValueError):\n        hex_to_rgb(hex_color)\n\ndef test_hex_to_rgb_invalid_characters():\n    \"\"\"Test the function with an invalid hex color code character.\"\"\"\n    hex_color = '#123abc'  # Invalid character 'a'\n    with pytest.raises(ValueError):\n        hex_to_rgb(hex_color)\n\ndef test_hex_to_rgb_invalid_hex_digits():\n    \"\"\"Test the function with an invalid hex digit.\"\"\"\n    hex_color = '#123def'  # Invalid hex digit 'f'\n    with pytest.raises(ValueError):\n        hex_to_rgb(hex_color)\n\ndef test_hex_to_rgb_empty_string():\n    \"\"\"Test the function with an empty string.\"\"\"\n    hex_color = ''\n    with pytest.raises(ValueError):\n        hex_to_rgb(hex_color)\n\ndef test_hex_to_rgb_single_character():\n    \"\"\"Test the function with a single character.\"\"\"\n    hex_color = '#1'  # Too short\n    with pytest.raises(ValueError):\n        hex_to_rgb(hex_color)\n\ndef test_hex_to_rgb_non_hex_string():\n    \"\"\"Test the function with a non-hex string.\"\"\"\n    hex_color = '123456'  # Not a hex string\n    with pytest.raises(ValueError):\n        hex_to_rgb(hex_color)\n```\n\nNote that you'll need to modify the `hex_to_rgb` function to raise a `ValueError` when it encounters an invalid input. Here's an example of how you can do this:\n\n```python\ndef hex_to_rgb(h: str) -> tuple:\n    if not isinstance(h, str):\n        raise ValueError(\"Input must be a string\")\n    if len(h) != 7 or not all(c in '0123456789abcdefABCDEF' for c in h):\n        raise ValueError(\"Invalid hex color code\")\n    h = h.lstrip('#')\n    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))\n```\n\nThis implementation checks that the input is a string, and that it's a valid hex color code (i.e., it has the correct length and only contains valid hex digits). If the input is invalid, it raises a `ValueError`.",
+  "score": 4,
+  "cost": 3.3354e-05,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 572
+  }
+}

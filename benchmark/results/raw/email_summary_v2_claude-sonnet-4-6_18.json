@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering is proposing to split the Platform team into two separate teams\u2014Infrastructure and Developer Experience\u2014to prevent DX work from being deprioritized during infrastructure incidents. Stakeholders should review the attached draft org chart and provide feedback on the restructuring proposal.",
+  "score": 5,
+  "cost": 0.001197,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 59
+  }
+}

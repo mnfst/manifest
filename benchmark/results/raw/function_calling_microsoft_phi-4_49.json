@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 49,
+  "response": "```json\n{\n  \"name\": \"resize_instance\",\n  \"arguments\": {\n    \"instance_id\": \"app-server-1\",\n    \"new_type\": \"t3.large\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 1.027e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 43
+  }
+}

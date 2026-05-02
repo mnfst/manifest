@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 6,
+  "response": "Here is the correct function call:\n\n`{\"name\": \"translate\", \"arguments\": {\"text\": \"The meeting has been rescheduled to Monday\", \"target_language\": \"es\", \"source_language\": \"en\"}}`\n\nExplanation:\n\n* The function name is `translate`.\n* The `text` argument is the text to be translated.\n* The `target_language` argument is the language to translate to, which is Spanish (`\"es\"`).\n* The `source_language` argument is the language of the original text, which is English (`\"en\"`).",
+  "score": 5,
+  "cost": 1.122e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 114
+  }
+}

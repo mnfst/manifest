@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "To find the total number of children in the classroom, we need to calculate the number of each group of children and then add them together.\n\n1. **Find the number of boys:**\nWe are given that there are 30 boys in the classroom.\nBoys = 30\n\n2. **Find the number of girls:**\nThe problem states there are 3 times as many girls as boys. \nGirls = 3 * 30 = 90\n\n3. **Find the number of nongendered children:**\nThe problem states there are 1/10 as many nongendered children as boys.\nNongendered children = (1/10) * 30 = 3\n\n4. **Find the total number of children:**\nAdd the number of boys, girls, and nongendered children together.\nTotal children = 30 (boys) + 90 (girls) + 3 (nongendered) = 123\n\nANSWER: 123",
+  "score": 2,
+  "cost": 0.0034575,
+  "expected": "123",
+  "tokens": {
+    "input": 87,
+    "output": 216
+  }
+}

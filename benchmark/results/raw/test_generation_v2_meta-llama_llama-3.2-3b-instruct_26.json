@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 26,
+  "response": "Here's an example of how you can write unit tests for the `safe_divide` function using pytest:\n\n```python\nimport pytest\n\ndef test_safe_divide_happy_path():\n    \"\"\"Test the happy path of the safe_divide function.\"\"\"\n    assert safe_divide(10, 2) == 5.0\n\ndef test_safe_divide_zero_divisor():\n    \"\"\"Test the safe_divide function with a zero divisor.\"\"\"\n    assert safe_divide(10, 0) == 0.0\n\ndef test_safe_divide_negative_numbers():\n    \"\"\"Test the safe_divide function with negative numbers.\"\"\"\n    assert safe_divide(-10, -2) == -5.0\n\ndef test_safe_divide_zero_dividend():\n    \"\"\"Test the safe_divide function with a zero dividend.\"\"\"\n    assert safe_divide(0, 2) == 0.0\n\ndef test_safe_divide_default_value():\n    \"\"\"Test the safe_divide function with a default value.\"\"\"\n    assert safe_divide(10, 0, 5) == 5.0\n\ndef test_safe_divide_non_numeric_input():\n    \"\"\"Test the safe_divide function with non-numeric input.\"\"\"\n    with pytest.raises(TypeError):\n        safe_divide(\"a\", 2)\n\ndef test_safe_divide_non_numeric_default_value():\n    \"\"\"Test the safe_divide function with a non-numeric default value.\"\"\"\n    with pytest.raises(TypeError):\n        safe_divide(10, \"a\", 5)\n```\n\nIn this example, we cover the following scenarios:\n\n*   Happy path: Test the function with valid input.\n*   Zero divisor: Test the function with a zero divisor.\n*   Negative numbers: Test the function with negative numbers.\n*   Zero dividend: Test the function with a zero dividend.\n*   Default value: Test the function with a default value.\n*   Non-numeric input: Test the function with non-numeric input.\n*   Non-numeric default value: Test the function with a non-numeric default value.\n\nNote that we use the `pytest.raises` context manager to test for expected exceptions.",
+  "score": 5,
+  "cost": 2.6316e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 435
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT c1.Name\nFROM CountryLanguage cl1\nJOIN Country c1 ON cl1.CountryCode = c1.Code\nJOIN CountryLanguage cl2 ON cl1.CountryCode = cl2.CountryCode\nWHERE cl1.Language = 'English'\n  AND cl2.Language = 'French'\nGROUP BY c1.Name;",
+  "score": 4,
+  "cost": 0.00010169999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 67
+  }
+}

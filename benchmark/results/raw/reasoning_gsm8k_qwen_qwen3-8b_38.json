@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Gerald and Julia divided $100 in the ratio 3:2. First, calculate the total number of parts: 3 + 2 = 5. Each part is worth $100 \u00f7 5 = $20. Gerald's share is 3 parts: 3 \u00d7 $20 = $60. After spending $10 on a book, Gerald has $60 - $10 = $50 left.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 3.5300000000000004e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 78,
+    "output": 628
+  }
+}

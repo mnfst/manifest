@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "Sydney, Esther sera dans mon bureau.",
+  "score": 5,
+  "cost": 2.32e-05,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 429
+  }
+}

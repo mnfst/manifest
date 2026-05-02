@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "translation_enfr",
+  "case": 21,
+  "response": "Maintenant, voudriez-vous lire ceci, s\u2019il vous pla\u00eet ?",
+  "score": 4,
+  "cost": 3.119999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 17
+  }
+}

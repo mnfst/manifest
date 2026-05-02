@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 31,
+  "response": "```python\n# test_camel_to_snake.py\n\nimport pytest\n\n# Replace `your_module` with the actual module name where camel_to_snake is defined.\nfrom your_module import camel_to_snake\n\n\n@pytest.mark.parametrize(\n    (\"input_value\", \"expected\"),\n    [\n        (\"camelCase\", \"camel_case\"),\n        (\"CamelCase\", \"camel_case\"),\n        (\"longCamelCaseString\", \"long_camel_case_string\"),\n        (\"simpleTest\", \"simple_test\"),\n        (\"alreadyLowercase\", \"already_lowercase\"),\n    ],\n)\ndef test_camel_to_snake_happy_path(input_value, expected):\n    assert camel_to_snake(input_value) == expected\n\n\n@pytest.mark.parametrize(\n    (\"input_value\", \"expected\"),\n    [\n        (\"\", \"\"),\n        (\"a\", \"a\"),\n        (\"A\", \"a\"),\n        (\"already_snake\", \"already_snake\"),\n        (\"ABC\", \"abc\"),\n        (\"HTTPRequest\", \"httprequest\"),\n        (\"getHTTPResponse\", \"get_httpresponse\"),\n        (\"version2Value\", \"version2value\"),\n        (\"versionValue2\", \"version_value2\"),\n        (\"hello World\", \"hello world\"),\n    ],\n)\ndef test_camel_to_snake_edge_cases(input_value, expected):\n    assert camel_to_snake(input_value) == expected\n\n\n@pytest.mark.parametrize(\n    \"invalid_input\",\n    [\n        None,\n        123,\n        12.34,\n        [],\n        {},\n        b\"camelCase\",\n    ],\n)\ndef test_camel_to_snake_invalid_input_raises_type_error(invalid_input):\n    with pytest.raises(TypeError):\n        camel_to_snake(invalid_input)\n```",
+  "score": 5,
+  "cost": 0.010551,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 861
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 34,
+  "response": "Here's a set of **pytest-style unit tests** for the `levenshtein` function. These tests cover:\n\n- **Happy path**: Normal case with different strings.\n- **Edge cases**: One or both strings are empty, strings are equal.\n- **Error cases**: Non-string inputs (though the function is typed with `str`, so we test for invalid types).\n\n### \u2705 `test_levenshtein.py`\n\n```python\nimport pytest\n\nfrom your_module import levenshtein  # Replace with the actual import path\n\ndef test_levenshtein_happy_path():\n    assert levenshtein(\"kitten\", \"sitting\") == 3\n    assert levenshtein(\"hello\", \"world\") == 3\n    assert levenshtein(\"abc\", \"def\") == 3\n    assert levenshtein(\"abc\", \"abc\") == 0\n    assert levenshtein(\"abc\", \"abcd\") == 1\n\ndef test_levenshtein_edge_cases():\n    assert levenshtein(\"\", \"\") == 0\n    assert levenshtein(\"\", \"a\") == 1\n    assert levenshtein(\"a\", \"\") == 1\n    assert levenshtein(\"a\", \"a\") == 0\n    assert levenshtein(\"abc\", \"abc\") == 0\n    assert levenshtein(\"abc\", \"ab\") == 1\n\ndef test_levenshtein_error_cases():\n    with pytest.raises(TypeError):\n        levenshtein(123, \"abc\")\n    with pytest.raises(TypeError):\n        levenshtein(\"abc\", 123)\n    with pytest.raises(TypeError):\n        levenshtein(123, 456)\n    with pytest.raises(TypeError):\n        levenshtein(None, \"abc\")\n    with pytest.raises(TypeError):\n        levenshtein(\"abc\", None)\n```\n\n### \ud83d\udcdd Notes:\n\n- Replace `your_module` with the actual module name where the `levenshtein` function is defined.\n- The `TypeError` tests are included to ensure that the function gracefully handles invalid input, even though it\u2019s typed with `str`. This is good practice for robustness.\n\n### \ud83d\udd27 To run the tests:\n\n```bash\npytest test_levenshtein.py\n```\n\nLet me know if you want to add more tests (e.g., for performance or specific edge cases).",
+  "score": 5,
+  "cost": 2.2737000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 513
+  }
+}

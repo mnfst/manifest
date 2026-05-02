@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint successfully delivered the auth redesign on time with strong cross-team collaboration, but faced challenges with excessive context switching and lengthy standups. Action items include limiting work in progress to two items per developer and enforcing timeboxed standups with a parking lot for off-topic discussions.",
+  "score": 5,
+  "cost": 2.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 57
+  }
+}

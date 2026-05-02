@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "To solve this problem, let's break it down step by step.\n\nLet's denote the cost of one cup as x.\n\nThe total cost of twenty dozen cups is 20 * 12 = 240 cups.\n\nThe total cost of half a dozen plates is 0.5 * 6000 = 3000 dollars.\n\nThe problem states that the total cost of twenty dozen cups is $1200 less than the total cost of half a dozen plates. So, we can set up the equation:\n\n240x - 3000 = 1200\n\nTo solve for x, we can add 3000 to both sides of the equation:\n\n240x = 4200\n\nNext, we can divide both sides by 240 to solve for x:\n\nx = 4200 / 240\nx = 17.5\n\nTherefore, the cost of one cup is $17.50.",
+  "score": 5,
+  "cost": 7.0739999999999995e-06,
+  "expected": "145",
+  "tokens": {
+    "input": 80,
+    "output": 182
+  }
+}

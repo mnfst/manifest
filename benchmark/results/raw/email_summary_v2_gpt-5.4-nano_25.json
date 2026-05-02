@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The company reported strong April momentum: passing 10K MAU, closing an $8M Series A term sheet at a $40M pre-money valuation, hiring a VP Sales, and achieving $85K MRR (+12% MoM) with a $120K/month burn rate and 11 months of runway post-raise. The key action item is that fundraising is scheduled to close on May 10.",
+  "score": 5,
+  "cost": 4.53e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 87
+  }
+}

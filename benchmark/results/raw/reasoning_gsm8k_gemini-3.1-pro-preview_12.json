@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "To find the total number of hours Jim spends watching TV and reading in 4 weeks, we can break the problem down into steps:\n\n1. **Calculate the time spent on both activities in one day:**\n   - Time spent watching TV = 2 hours\n   - Time spent reading = half as long as watching TV = 2 hours / 2 = 1 hour\n   - Total time spent per day = 2 hours + 1 hour = 3 hours\n\n2. **Calculate the time spent on both activities in one week:**\n   - Jim does this routine 3 times a week.\n   - Total time per week = 3 hours/day \u00d7 3 days/week = 9 hours/week\n\n3. **Calculate the time spent on both activities in 4 weeks:**\n   - Total time in 4 weeks = 9 hours/week \u00d7 4 weeks = 36 hours\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.00315,
+  "expected": "36",
+  "tokens": {
+    "input": 84,
+    "output": 196
+  }
+}

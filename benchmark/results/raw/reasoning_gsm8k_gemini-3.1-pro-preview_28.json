@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "To find out how many people got on the bus at the terminal, we can work backward from the total number of people heading to the third stop, or we can set up a simple equation. \n\nLet $x$ be the number of people who got on the bus at the terminal.\n\n1. **At the first bus stop:** 5 more people got in. \n   The number of people on the bus becomes: $x + 5$\n\n2. **At the second bus stop:** 7 people got down and 8 more got in. \n   The number of people on the bus becomes: $(x + 5) - 7 + 8$\n   Simplify this expression: $x + 6$\n\n3. **Heading to the third stop:** We are told there are 20 people on the bus.\n   So, we set our expression equal to 20:\n   $x + 6 = 20$\n\n4. **Solve for $x$:**\n   $x = 20 - 6$\n   $x = 14$\n\nTo double-check: 14 people start on the bus. 5 get on (14 + 5 = 19). Then 7 get off (19 - 7 = 12) and 8 get on (12 + 8 = 20). This perfectly matches the 20 people heading to the third stop.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.00499,
+  "expected": "14",
+  "tokens": {
+    "input": 106,
+    "output": 315
+  }
+}

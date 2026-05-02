@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "```python\n# test_interleave.py\nimport pytest\n\n# Replace \"your_module\" with the actual module name where interleave is defined.\nfrom your_module import interleave\n\n\n@pytest.mark.parametrize(\n    (\"a\", \"b\", \"expected\"),\n    [\n        ([1, 2, 3], [\"a\", \"b\", \"c\"], [1, \"a\", 2, \"b\", 3, \"c\"]),\n        ([1, 2, 3, 4], [\"a\", \"b\"], [1, \"a\", 2, \"b\", 3, 4]),\n        ([1], [\"a\", \"b\", \"c\"], [1, \"a\", \"b\", \"c\"]),\n        ([], [], []),\n        ([1, 2, 3], [], [1, 2, 3]),\n        ([], [\"a\", \"b\"], [\"a\", \"b\"]),\n        ([None, True], [0, False], [None, 0, True, False]),\n        ([[1], [2]], [[\"a\"], [\"b\"]], [[1], [\"a\"], [2], [\"b\"]]),\n    ],\n)\ndef test_interleave_returns_expected_result(a, b, expected):\n    assert interleave(a, b) == expected\n\n\ndef test_interleave_does_not_mutate_inputs():\n    a = [1, 2, 3]\n    b = [\"a\", \"b\"]\n\n    result = interleave(a, b)\n\n    assert result == [1, \"a\", 2, \"b\", 3]\n    assert a == [1, 2, 3]\n    assert b == [\"a\", \"b\"]\n\n\ndef test_interleave_returns_new_list():\n    a = [1, 2]\n    b = [\"a\", \"b\"]\n\n    result = interleave(a, b)\n\n    assert result is not a\n    assert result is not b\n\n\ndef test_interleave_with_tuple_inputs():\n    result = interleave((1, 2, 3), (\"a\", \"b\"))\n\n    assert result == [1, \"a\", 2, \"b\", 3]\n\n\n@pytest.mark.parametrize(\n    (\"a\", \"b\"),\n    [\n        (None, [1, 2]),\n        ([1, 2], None),\n        (123, [1, 2]),\n        ([1, 2], 123),\n    ],\n)\ndef test_interleave_raises_type_error_for_non_iterable_inputs(a, b):\n    with pytest.raises(TypeError):\n        interleave(a, b)\n\n\ndef test_interleave_raises_type_error_for_unsliceable_iterable():\n    a = iter([1, 2, 3])\n    b = [\"a\", \"b\"]\n\n    with pytest.raises(TypeError):\n        interleave(a, b)\n```",
+  "score": 5,
+  "cost": 0.011388,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 927
+  }
+}

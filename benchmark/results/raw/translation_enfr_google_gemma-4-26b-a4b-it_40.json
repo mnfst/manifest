@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Depending on the context and the level of formality you want, here are the best ways to translate this:\n\n**1. Natural/Standard (Most common):**\n> **Nous avons juste besoin d'obtenir plus d'informations.**\n\n**2. Slightly more casual (Spoken French):**\n> **On a juste besoin d'avoir plus d'infos.**\n\n**3. More formal/Professional:**\n> **Il nous faut simplement obtenir davantage d'informations.**\n\n**Key nuances:**\n* **\"Juste\"** vs **\"Simplement\"**: *Juste* is very common, but *simplement* sounds slightly more polished in a professional setting.\n* **\"Plus d'informations\"** vs **\"Davantage d'informations\"**: *Davantage* is a more elegant way to say \"more.\"\n* **\"Nous\"** vs **\"On\"**: Use *nous* for writing or formal speech; use *on* for everyday conversation.",
+  "score": 5,
+  "cost": 1.482e-05,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 206
+  }
+}

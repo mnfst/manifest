@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The company plans to launch in Japan from May through August, covering legal setup, localization, beta testing, and general availability, with a total budget of $200K. The CEO's approval is required to move forward with the expansion plan.",
+  "score": 5,
+  "cost": 0.001092,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 52
+  }
+}

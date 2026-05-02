@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "To solve the problem, we need to determine how many books Sarah bought and then how many books each child received.\n\n1. **Calculate the total number of books Sarah bought:**\n\n   Sarah spent $300 on books, and each book costs $15. To find the total number of books she bought, we divide the total amount spent by the cost per book:\n\n   \\[\n   \\text{Total number of books} = \\frac{\\text{Total amount spent}}{\\text{Cost per book}} = \\frac{300}{15} = 20\n   \\]\n\n   So, Sarah bought 20 books.\n\n2. **Determine how many books each child received:**\n\n   Sarah gave an equal number of books to her 4 kids. To find out how many books each child received, we divide the total number of books by the number of kids:\n\n   \\[\n   \\text{Books per child} = \\frac{\\text{Total number of books}}{\\text{Number of kids}} = \\frac{20}{4} = 5\n   \\]\n\n   Therefore, each child received 5 books.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 2.1190000000000002e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 90,
+    "output": 236
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "Du c\u00f4t\u00e9 de la deuxi\u00e8me atelier, il s'est concentr\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organismes de surveillance des organes conventionnels \u00e0 l'\u00c9tat du Cameroun, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones.",
+  "score": 4,
+  "cost": 4.620000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 68
+  }
+}

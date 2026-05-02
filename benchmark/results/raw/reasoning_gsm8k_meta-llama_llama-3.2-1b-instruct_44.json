@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "To solve this problem, we need to follow the steps below:\n\n1. First, we need to find out how many cows Mr. Sylas has in total. Since there are 10 stalls with 20 cows each, the total number of cows is 10 x 20 = 200.\n\n2. Then, Mr. Sylas buys 40 cows, so the new total number of cows is 200 + 40 = 240.\n\n3. Since he divides the cows equally among the 20 stalls, we need to divide the new total number of cows by 20 to find out how many cows are in each stall. 240 \u00f7 20 = 12.\n\n4. Now, we need to find out how many cows are in 8 of the stalls. Since each stall has 12 cows, we multiply 8 by 12 to find the answer. 8 x 12 = 96.\n\nANSWER: 96",
+  "score": 5,
+  "cost": 7.83e-06,
+  "expected": "192",
+  "tokens": {
+    "input": 95,
+    "output": 195
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 11,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"add_to_list\", \"arguments\": {\"list_name\": \"shopping list\", \"items\": [\"milk\", \"eggs\", \"bread\"]}}\n```\n\nNote: I assumed the list name is \"shopping list\" as it was not specified in the user request. If the actual list name is different, please let me know and I'll update the response accordingly.",
+  "score": 5,
+  "cost": 9.434999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 91
+  }
+}

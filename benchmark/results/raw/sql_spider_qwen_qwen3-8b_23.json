@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT production_code, channel\nFROM shows\nWHERE type = 'cartoon'\nORDER BY air_date DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 4.3700000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 801
+  }
+}

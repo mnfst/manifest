@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "SELECT Country\nFROM singer\nWHERE Age > 40\nINTERSECT\nSELECT Country\nFROM singer\nWHERE Age < 30;",
+  "score": 4,
+  "cost": 0.002715,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 207
+  }
+}

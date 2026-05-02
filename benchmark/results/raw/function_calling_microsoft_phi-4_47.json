@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 47,
+  "response": "```json\n{\n    \"name\": \"create_cron\",\n    \"arguments\": {\n        \"schedule\": \"0 0 * * *\",\n        \"command\": \"cleanup_script\",\n        \"name\": \"daily_cleanup\"\n    }\n}\n```",
+  "score": 5,
+  "cost": 9.165000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 51
+  }
+}

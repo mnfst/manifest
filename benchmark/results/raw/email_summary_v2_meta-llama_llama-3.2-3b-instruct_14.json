@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe AWS bill has increased by 40% month-over-month, primarily due to the use of p4d instances for machine learning training jobs, which is estimated to cost $45,000 per month. The sender is seeking a decision on whether to use spot instances (with 70% savings but potential interruption risk) or reserved instances (with 30% savings and commitment) by Friday.",
+  "score": 5,
+  "cost": 1.0404e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 92
+  }
+}

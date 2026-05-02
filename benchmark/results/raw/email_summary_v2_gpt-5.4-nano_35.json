@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The Trust & Safety team is updating the content moderation policy for AI-generated content, requiring AI-labeled images, prohibiting deepfakes, and allowing AI-assisted text only with disclosure. Enforcement begins June 1, and training materials are currently being prepared.",
+  "score": 5,
+  "cost": 3.13e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 54
+  }
+}

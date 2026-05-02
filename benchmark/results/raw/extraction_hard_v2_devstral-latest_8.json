@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "extraction_hard_v2",
+  "case": 8,
+  "response": "```json\n{\n  \"date\": \"2024-03-12\",\n  \"time\": \"16:45\",\n  \"location\": \"I-95 NB at Exit 42, Stamford CT\",\n  \"weather\": {\n    \"condition\": \"Light rain\",\n    \"temperature_f\": 48\n  },\n  \"vehicles\": [\n    {\n      \"year\": 2022,\n      \"make\": \"Tesla\",\n      \"model\": \"Model 3\",\n      \"plate\": \"AXR-4521\",\n      \"driver\": {\n        \"name\": \"James Mitchell\",\n        \"age\": 34\n      },\n      \"damage\": \"Front bumper, hood\",\n      \"injuries\": \"Minor neck pain\"\n    },\n    {\n      \"year\": 2019,\n      \"make\": \"Honda\",\n      \"model\": \"Civic\",\n      \"plate\": \"HKL-8890\",\n      \"driver\": {\n        \"name\": \"Susan Park\",\n        \"age\": 28\n      },\n      \"damage\": \"Rear bumper, trunk\",\n      \"injuries\": \"None reported\"\n    }\n  ],\n  \"description\": \"V1 rear-ended V2 at traffic slowdown. Estimated speed 25mph. No airbag deployment. Both vehicles drivable.\"\n}\n```",
+  "score": 5,
+  "cost": 0.0001199,
+  "expected": "",
+  "tokens": {
+    "input": 296,
+    "output": 301
+  }
+}

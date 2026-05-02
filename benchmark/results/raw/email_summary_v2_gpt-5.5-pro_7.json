@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The new office at 500 Market St will be ready June 1, with IT setup June 4\u20136 and the move scheduled for June 7\u20138 using approved professional movers. Each team must designate a move coordinator by Friday.",
+  "score": 5,
+  "cost": 0.0027,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 112
+  }
+}

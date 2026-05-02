@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "intent_clinc150",
+  "case": 37,
+  "response": "payday",
+  "score": 5,
+  "cost": 2.6060999999999997e-05,
+  "expected": "payday",
+  "tokens": {
+    "input": 508,
+    "output": 3
+  }
+}

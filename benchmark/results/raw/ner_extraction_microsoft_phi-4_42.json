@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 42,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"The African Union\"],\n  \"locations\": [\"Addis Ababa\", \"Sudan\", \"Egypt\", \"Ethiopia\"]\n}\n```",
+  "score": 4,
+  "cost": 7.93e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 44
+  }
+}

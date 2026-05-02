@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "ner_extraction",
+  "case": 4,
+  "response": "{\"persons\":[],\"organizations\":[\"Bank of England\",\"European Central Bank\"],\"locations\":[\"Frankfurt\"]}",
+  "score": 5,
+  "cost": 4.98e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 24
+  }
+}

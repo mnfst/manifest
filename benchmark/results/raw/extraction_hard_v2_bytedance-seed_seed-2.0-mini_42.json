@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "extraction_hard_v2",
+  "case": 42,
+  "response": "{\"meeting_title\": \"Product sync\", \"date\": \"2026-04-10\", \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"], \"decisions\": [\"Push the recommendation engine to Q3 since data pipeline won't be ready until June\", \"Allocate 20% of sprint capacity to tech debt\"], \"action_items\": [{\"owner\": \"Marcus\", \"task\": \"have onboarding mockups ready\", \"deadline\": \"2026-04-18\"}, {\"owner\": \"Jamie\", \"task\": \"send updated roadmap\", \"deadline\": \"2026-04-13\"}, {\"owner\": \"Lin\", \"task\": \"prepare analytics dashboard\", \"deadline\": \"before May board meeting\"}]}",
+  "score": 4,
+  "cost": 0.0020103,
+  "expected": "",
+  "tokens": {
+    "input": 223,
+    "output": 4970
+  }
+}

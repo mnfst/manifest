@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "To solve this problem, we need to calculate the total amount of money raised from selling lollipops and then subtract the cost of the lollipops to find the profit.\n\nStep 1: Calculate the total number of lollipops sold\nEach student sold 10 lollipops, and there are 30 students, so the total number of lollipops sold is 10 x 30 = 300.\n\nStep 2: Calculate the total revenue from selling lollipops\nEach lollipop costs $0.8, so the total revenue from selling 300 lollipops is 300 x $0.8 = $240.\n\nStep 3: Calculate the total cost of the lollipops\nEach lollipop costs $0.5, so the total cost of 300 lollipops is 300 x $0.5 = $150.\n\nStep 4: Calculate the profit\nThe profit is the difference between the total revenue and the total cost, so the profit is $240 - $150 = $90.\n\nANSWER: $90",
+  "score": 5,
+  "cost": 9.503999999999999e-06,
+  "expected": "90",
+  "tokens": {
+    "input": 127,
+    "output": 225
+  }
+}

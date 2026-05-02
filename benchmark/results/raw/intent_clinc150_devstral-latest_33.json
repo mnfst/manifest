@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 33,
+  "response": "direct_deposit",
+  "score": 5,
+  "cost": 5.72e-05,
+  "expected": "direct_deposit",
+  "tokens": {
+    "input": 560,
+    "output": 4
+  }
+}

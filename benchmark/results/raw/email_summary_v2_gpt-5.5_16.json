@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "April\u2019s marketing campaign generated 45K impressions, 2.3K clicks, and 187 signups at a $64 CAC, with CTR improving versus March but conversion declining slightly. Marketing recommends A/B testing the landing page CTA to improve conversion.",
+  "score": 5,
+  "cost": 0.001269,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 77
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The `/api/v2/search` endpoint's latency significantly increased after Thursday's deployment due to a missing index on a new query. To fix this, the backend team will deploy a GIN index on the content column tonight during the maintenance window.",
+  "score": 5,
+  "cost": 0.0010425,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 53
+  }
+}

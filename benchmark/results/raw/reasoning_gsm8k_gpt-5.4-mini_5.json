@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Katelyn first saw **50** fairies.\n\nHer friend later saw **half as many** as 50, which is:\n\n- \\(50 \\div 2 = 25\\)\n\nSo 25 more fairies joined, making:\n\n- \\(50 + 25 = 75\\)\n\nThen **30 fairies flew away**, so:\n\n- \\(75 - 30 = 45\\)\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.0001473,
+  "expected": "45",
+  "tokens": {
+    "input": 115,
+    "output": 94
+  }
+}

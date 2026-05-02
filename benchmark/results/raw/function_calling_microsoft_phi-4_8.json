@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 8,
+  "response": "```json\n{\n  \"name\": \"calculate_mortgage\",\n  \"arguments\": {\n    \"principal\": 300000.0,\n    \"annual_rate\": 6.5,\n    \"years\": 30\n  }\n}\n```",
+  "score": 5,
+  "cost": 1.118e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 51
+  }
+}

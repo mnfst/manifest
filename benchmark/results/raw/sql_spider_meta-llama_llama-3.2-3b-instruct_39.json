@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "```sql\nSELECT c.name, o.name AS orchestra_name\nFROM conductor c\nJOIN performance p ON c.id = p.conductor_id\nJOIN orchestra o ON p.orchestra_id = o.id;\n```",
+  "score": 5,
+  "cost": 6.527999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 45
+  }
+}

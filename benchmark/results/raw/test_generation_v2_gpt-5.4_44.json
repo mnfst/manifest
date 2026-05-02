@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 44,
+  "response": "```python\nimport pytest\n\nfrom your_module import compose\n\n\ndef test_compose_applies_functions_right_to_left():\n    def add_one(x):\n        return x + 1\n\n    def double(x):\n        return x * 2\n\n    fn = compose(double, add_one)\n    assert fn(3) == 8  # double(add_one(3)) = double(4) = 8\n\n\ndef test_compose_with_single_function():\n    def square(x):\n        return x * x\n\n    fn = compose(square)\n    assert fn(5) == 25\n\n\ndef test_compose_with_no_functions_returns_input_unchanged():\n    fn = compose()\n    assert fn(42) == 42\n    assert fn(\"hello\") == \"hello\"\n    obj = {\"a\": 1}\n    assert fn(obj) is obj\n\n\ndef test_compose_preserves_chained_transformation():\n    def strip_text(x):\n        return x.strip()\n\n    def uppercase(x):\n        return x.upper()\n\n    def exclaim(x):\n        return f\"{x}!\"\n\n    fn = compose(exclaim, uppercase, strip_text)\n    assert fn(\"  hello \") == \"HELLO!\"\n\n\ndef test_compose_propagates_exception_from_inner_function():\n    def raises(x):\n        raise ValueError(\"bad value\")\n\n    def double(x):\n        return x * 2\n\n    fn = compose(double, raises)\n\n    with pytest.raises(ValueError, match=\"bad value\"):\n        fn(3)\n\n\ndef test_compose_propagates_exception_from_outer_function():\n    def add_one(x):\n        return x + 1\n\n    def raises(x):\n        raise RuntimeError(\"outer failed\")\n\n    fn = compose(raises, add_one)\n\n    with pytest.raises(RuntimeError, match=\"outer failed\"):\n        fn(3)\n\n\ndef test_compose_type_error_when_non_callable_in_functions():\n    fn = compose(lambda x: x + 1, None)\n\n    with pytest.raises(TypeError):\n        fn(1)\n\n\ndef test_compose_type_error_when_input_incompatible_with_function():\n    def add_one(x):\n        return x + 1\n\n    fn = compose(add_one)\n\n    with pytest.raises(TypeError):\n        fn(\"not a number\")\n```\n\nReplace `from your_module import compose` with the actual module import path.",
+  "score": 5,
+  "cost": 0.003932,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 475
+  }
+}

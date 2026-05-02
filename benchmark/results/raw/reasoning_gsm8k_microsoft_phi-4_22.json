@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "To solve the problem, we need to calculate the total tips received by both Rafaela and Julieta.\n\n1. **Calculate Rafaela's total tips:**\n   - Each of the 40 customers gave Rafaela a $20 tip.\n   - Total tips for Rafaela = 40 customers \u00d7 $20 per customer = $800.\n\n2. **Calculate Julieta's total tips:**\n   - Julieta received 10% less in tips than Rafaela.\n   - 10% of Rafaela's total tips = 0.10 \u00d7 $800 = $80.\n   - Therefore, Julieta's total tips = Rafaela's total tips - 10% of Rafaela's total tips = $800 - $80 = $720.\n\n3. **Calculate the total tips received by both Rafaela and Julieta:**\n   - Total tips for both = Rafaela's tips + Julieta's tips = $800 + $720 = $1520.\n\nANSWER: 1520",
+  "score": 2,
+  "cost": 1.9565e-05,
+  "expected": "1520",
+  "tokens": {
+    "input": 98,
+    "output": 203
+  }
+}

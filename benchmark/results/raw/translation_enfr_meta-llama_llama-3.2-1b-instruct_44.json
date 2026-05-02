@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que la largeur non soutenue d\u00e9velopp\u00e9e en cons\u00e9quence de la d\u00e9formation du sol a une influence significative sur la r\u00e9ponse flexionnelle du tuyau de p\u00eache.",
+  "score": 2,
+  "cost": 2.916e-06,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 49
+  }
+}

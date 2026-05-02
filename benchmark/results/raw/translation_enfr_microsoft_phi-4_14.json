@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 accueille la soumission du premier rapport de l'\u00c9tat partie et est gratifi\u00e9 par le dialogue constructif et fructueux initi\u00e9 avec une d\u00e9l\u00e9gation de haut niveau comp\u00e9tente.",
+  "score": 5,
+  "cost": 7.0200000000000006e-06,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 47
+  }
+}

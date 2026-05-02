@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT name\nFROM concert_singer.stadiums\nWHERE id NOT IN (\n  SELECT s.id\n  FROM concert_singer.concerts c\n  JOIN concert_singer.stadiums s ON c.stadium_id = s.id\n  WHERE c.year = 2014\n);\n```",
+  "score": 5,
+  "cost": 7.4459999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 64
+  }
+}

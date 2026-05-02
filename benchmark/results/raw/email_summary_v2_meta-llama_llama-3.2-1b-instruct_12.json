@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company is currently in the process of hiring for 4 open positions: 2 backend, 1 frontend, and 1 machine learning (ML) role, with 23 candidates in the pipeline and 5 in the final rounds. The company is concerned that the frontend position is currently open for 60 days with no strong candidates, and recommends considering expanding the hiring process to remote work or adjusting the compensation package to attract top talent.",
+  "score": 5,
+  "cost": 5.481e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 101
+  }
+}

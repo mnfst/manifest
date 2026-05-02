@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Gerald and Julia divided $100 in the ratio 3:2, so there are 3 + 2 = 5 total parts.\n\nGerald\u2019s share is:\n\\[\n\\frac{3}{5} \\times 100 = 60\n\\]\n\nHe spent $10 on a book, so he had left:\n\\[\n60 - 10 = 50\n\\]\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00013169999999999998,
+  "expected": "50",
+  "tokens": {
+    "input": 71,
+    "output": 92
+  }
+}

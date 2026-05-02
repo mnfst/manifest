@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "```sql\nSELECT COUNT(*) AS car_count\nFROM cars\nWHERE cylinders > 6;\n```",
+  "score": 5,
+  "cost": 1.2800000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 21
+  }
+}

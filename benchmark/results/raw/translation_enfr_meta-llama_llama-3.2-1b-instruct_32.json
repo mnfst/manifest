@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et l'EUSR peuvent proposer la d\u00e9l\u00e9guation des personnels \u00e0 l'EUSR.",
+  "score": 2,
+  "cost": 2.322e-06,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 33
+  }
+}

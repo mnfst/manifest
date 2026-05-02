@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "Here are some unit tests for the `flatten` function using pytest:\n```python\nimport pytest\nfrom typing import List\n\ndef test_empty_list():\n    # Test that an empty list is flattened correctly\n    assert flatten([]) == []\n\ndef test_single_element_list():\n    # Test that a list with a single element is flattened correctly\n    assert flatten([1]) == [1]\n\ndef test_multiple_element_list():\n    # Test that a list with multiple elements is flattened correctly\n    assert flatten([1, 2, 3]) == [1, 2, 3]\n\ndef test_list_with_duplicates():\n    # Test that a list with duplicate elements is flattened correctly\n    assert flatten([1, 2, 2, 3]) == [1, 2, 2, 3]\n\ndef test_list_with_negative_numbers():\n    # Test that a list with negative numbers is flattened correctly\n    assert flatten([-1, -2, -3]) == [-1, -2, -3]\n\ndef test_list_with_non_list_elements():\n    # Test that a list with non-list elements is flattened correctly\n    assert flatten(\"hello\") == [\"h\", \"e\", \"l\", \"l\", \"o\"]\n\ndef test_list_with_non_list_elements_error():\n    # Test that an error is raised when a non-list element is encountered\n    with pytest.raises(TypeError):\n        flatten(\"hello\")\n\ndef test_list_with_non_list_elements_error():\n    # Test that an error is raised when a non-list element is encountered\n    with pytest.raises(TypeError):\n        flatten(123)\n\ndef test_list_with_non_list_elements_error():\n    # Test that an error is raised when a non-list element is encountered\n    with pytest.raises(TypeError):\n        flatten(\"hello\")\n\ndef test_list_with_non_list_elements_error():\n    # Test that an error is raised when a non-list element is encountered\n    with pytest.raises(TypeError):\n        flatten(123)\n```\nThese tests cover the following cases:\n\n* Happy path: an empty list, a list with a single element, a list with multiple elements, a list with duplicate elements, a list with negative numbers, and a list with non-list elements.\n* Edge cases: a list with non-list elements, a list with non-list elements that are not strings, and a list with non-list elements that are not integers.\n* Error cases: a non-list element is encountered in the input list.\n\nNote that the `test_list_with_non_list_elements_error` and `test_list_with_non_list_elements_error` tests are not actually testing the `flatten` function, but rather testing the `TypeError` that is raised when a non-list element is encountered.",
+  "score": 2,
+  "cost": 1.701e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 547
+  }
+}

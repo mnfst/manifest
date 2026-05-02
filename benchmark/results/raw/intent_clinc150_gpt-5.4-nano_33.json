@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "intent_clinc150",
+  "case": 33,
+  "response": "direct_deposit",
+  "score": 5,
+  "cost": 5.380000000000001e-05,
+  "expected": "direct_deposit",
+  "tokens": {
+    "input": 514,
+    "output": 6
+  }
+}

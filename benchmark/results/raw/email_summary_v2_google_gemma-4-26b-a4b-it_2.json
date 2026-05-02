@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "A critical SQL injection vulnerability has been identified in the authentication API affecting versions 3.2.0 through 3.4.1. A patch is ready for review, and a hotfix should be implemented within 24 hours.",
+  "score": 5,
+  "cost": 9.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 49
+  }
+}

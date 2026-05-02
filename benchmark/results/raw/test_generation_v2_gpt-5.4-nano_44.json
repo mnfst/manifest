@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 44,
+  "response": "```python\n# test_compose.py\nimport pytest\n\nfrom your_module import compose  # adjust import to where compose lives\n\n\ndef test_compose_happy_path_two_functions():\n    def add1(x): return x + 1\n    def mul2(x): return x * 2\n\n    # compose(add1, mul2)(x) applies mul2 first, then add1\n    f = compose(add1, mul2)\n    assert f(3) == 7  # mul2: 6, add1: 7\n\n\ndef test_compose_happy_path_three_functions_order():\n    calls = []\n\n    def f1(x):\n        calls.append(\"f1\")\n        return x + 1\n\n    def f2(x):\n        calls.append(\"f2\")\n        return x * 2\n\n    def f3(x):\n        calls.append(\"f3\")\n        return x - 3\n\n    # reversed execution: f3 -> f2 -> f1\n    g = compose(f1, f2, f3)\n    out = g(10)\n\n    assert out == ((10 - 3) * 2) + 1  # f3: 7, f2: 14, f1: 15\n    assert calls == [\"f3\", \"f2\", \"f1\"]\n\n\ndef test_compose_single_function():\n    def square(x): return x * x\n\n    f = compose(square)\n    assert f(5) == 25\n\n\ndef test_compose_no_functions_identity_error_case():\n    # With no fns, composed(x) returns x unchanged (identity).\n    f = compose()\n    assert f(\"abc\") == \"abc\"\n\n\ndef test_compose_preserves_exception_from_function():\n    def ok(x): return x + 1\n\n    def boom(x):\n        raise ValueError(\"boom\")\n\n    f = compose(ok, boom)  # boom runs first due to reverse order\n    with pytest.raises(ValueError, match=\"boom\"):\n        f(10)\n\n\ndef test_compose_type_error_propagates():\n    def expect_int(x):\n        # will raise TypeError when adding str + int\n        return x + 1\n\n    def identity(x):\n        return x\n\n    f = compose(expect_int, identity)\n    # identity runs first: keeps str, then expect_int tries str + 1\n    with pytest.raises(TypeError):\n        f(\"not an int\")\n\n\ndef test_compose_keeps_argument_object_mutations():\n    # Checks that the output is based on the same object mutated/returned.\n    # (Useful for mutable objects like dicts/lists.)\n    def mutate(d):\n        d[\"k\"] = \"v\"\n        return d\n\n    def read(d):\n        return d[\"k\"]\n\n    f = compose(mutate, read)  # read runs first; it will KeyError because k missing\n    with pytest.raises(KeyError):\n        f({})\n\n    # Now order that works: compose(read, mutate) => mutate runs first, then read\n    g = compose(read, mutate)\n    assert g({}) == \"v\"\n```",
+  "score": 4,
+  "cost": 0.00026500000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 646
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "SELECT p.first_name, t.description\nFROM professionals p\nJOIN treatments tr ON p.professional_id = tr.professional_id\nJOIN treatment_types t ON tr.treatment_type_code = t.treatment_type_code;",
+  "score": 4,
+  "cost": 0.001089,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 56
+  }
+}

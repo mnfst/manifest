@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 0,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe team is reviewing the Q3 budget and has identified a 15% increase in marketing spend due to the August campaign, which has resulted in a 8% under budget for engineering. The team proposes reallocating $50,000 from engineering to cover marketing's overspend, and would like to discuss the proposal on Thursday.",
+  "score": 4,
+  "cost": 4.806e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 79
+  }
+}

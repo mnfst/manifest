@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "March onboarding satisfaction dropped to 7.2/10 due to delayed tool access, benefits confusion, and missing handbooks, despite a highly rated buddy system. The immediate action item is to fix the tool access process to ensure new hires are set up within the one-day target.",
+  "score": 5,
+  "cost": 0.001145,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 58
+  }
+}

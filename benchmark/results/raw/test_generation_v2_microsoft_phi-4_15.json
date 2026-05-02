@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "test_generation_v2",
+  "case": 15,
+  "response": "To write unit tests for the `rotate_list` function using `pytest`, we need to cover various scenarios including the happy path, edge cases, and error cases. Here's how you can structure the tests:\n\n```python\nimport pytest\n\ndef rotate_list(lst: list, k: int) -> list:\n    if not lst:\n        return lst\n    k = k % len(lst)\n    return lst[-k:] + lst[:-k]\n\ndef test_rotate_list_happy_path():\n    assert rotate_list([1, 2, 3, 4, 5], 2) == [4, 5, 1, 2, 3]\n    assert rotate_list([1, 2, 3, 4, 5], 0) == [1, 2, 3, 4, 5]\n    assert rotate_list([1, 2, 3, 4, 5], 5) == [1, 2, 3, 4, 5]\n    assert rotate_list([1, 2, 3, 4, 5], -2) == [3, 4, 5, 1, 2]\n\ndef test_rotate_list_edge_cases():\n    assert rotate_list([], 3) == []\n    assert rotate_list([1], 100) == [1]\n    assert rotate_list([1, 2], 2) == [1, 2]\n    assert rotate_list([1, 2, 3], 3) == [1, 2, 3]\n    assert rotate_list([1, 2, 3], -3) == [1, 2, 3]\n\ndef test_rotate_list_large_k():\n    assert rotate_list([1, 2, 3, 4, 5], 7) == [4, 5, 1, 2, 3]\n    assert rotate_list([1, 2, 3, 4, 5], -7) == [3, 4, 5, 1, 2]\n\ndef test_rotate_list_negative_k():\n    assert rotate_list([1, 2, 3, 4, 5], -1) == [2, 3, 4, 5, 1]\n    assert rotate_list([1, 2, 3, 4, 5], -6) == [2, 3, 4, 5, 1]\n\ndef test_rotate_list_non_integer_k():\n    with pytest.raises(TypeError):\n        rotate_list([1, 2, 3], \"2\")\n    with pytest.raises(TypeError):\n        rotate_list([1, 2, 3], 2.5)\n\n# To run the tests, use the command: pytest <filename>.py\n```\n\n### Explanation:\n\n1. **Happy Path Tests**: These tests check the function's behavior with typical inputs where the function is expected to work correctly.\n\n2. **Edge Cases**: These tests cover scenarios like an empty list, a single-element list, and rotations that are equal to the list length or its negative.\n\n3. **Large `k` Values**: These tests ensure that the function correctly handles large positive and negative values of `k` by using the modulo operation.\n\n4. **Negative `k` Values**: These tests verify that negative rotations work as expected.\n\n5. **Non-integer `k` Values**: These tests check that the function raises a `TypeError` when `k` is not an integer, ensuring type safety.\n\nTo run these tests, save the code in a file (e.g., `test_rotate_list.py`) and execute it using `pytest` from the command line.",
+  "score": 4,
+  "cost": 5.5055e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 771
+  }
+}

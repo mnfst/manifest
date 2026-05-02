@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 0,
+  "response": "rollover_401k",
+  "score": 5,
+  "cost": 5.86e-05,
+  "expected": "rollover_401k",
+  "tokens": {
+    "input": 562,
+    "output": 8
+  }
+}

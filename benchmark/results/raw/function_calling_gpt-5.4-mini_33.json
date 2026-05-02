@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "function_calling",
+  "case": 33,
+  "response": "{\"name\":\"git_create_branch\",\"arguments\":{\"name\":\"feature-payments\",\"from_branch\":\"main\"}}",
+  "score": 5,
+  "cost": 5.37e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 23
+  }
+}

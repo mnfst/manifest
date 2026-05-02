@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "function_calling",
+  "case": 39,
+  "response": "{\"name\": \"export_table\", \"arguments\": {\"table\": \"users\", \"format\": \"csv\"}}",
+  "score": 5,
+  "cost": 0.000735,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 27
+  }
+}

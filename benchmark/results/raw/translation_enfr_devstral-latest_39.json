@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Here\u2019s the translation while maintaining the tone and meaning:\n\n**French:** *Tu sais d\u2019o\u00f9 vient l\u2019argent ?*\n\nAlternatively, if you want a slightly more formal or neutral tone:\n**French:** *Savez-vous d\u2019o\u00f9 vient l\u2019argent ?*\n\nBoth versions keep the original meaning and conversational feel.",
+  "score": 5,
+  "cost": 2.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 63
+  }
+}

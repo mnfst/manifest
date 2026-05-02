@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "```\n{\n  \"persons\": [],\n  \"organizations\": [\"United Nations\", \"North Korea\"],\n  \"locations\": [\"New York\"]\n}\n```",
+  "score": 3,
+  "cost": 5.457e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 31
+  }
+}

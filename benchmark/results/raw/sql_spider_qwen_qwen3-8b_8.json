@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT languages.language) FROM countries JOIN languages ON countries.code = languages.country_code WHERE countries.independence_year < 1930 AND languages.is_official = TRUE;",
+  "score": 4,
+  "cost": 3.26e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 568
+  }
+}

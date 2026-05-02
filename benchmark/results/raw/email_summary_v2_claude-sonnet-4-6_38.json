@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The first month of the Bug Bounty Program yielded 47 reports, with 12 valid findings (including 3 critical vulnerabilities\u2014IDOR, SSRF, and an exposed JWT secret), resulting in $15K in payouts, all of which were patched within 24 hours. The Security team reports strong ROI and recommends continuing the program.",
+  "score": 5,
+  "cost": 0.001632,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 84
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 40,
+  "response": "```\n{\n  \"persons\": [\"The Reserve Bank of Australia\", \"economists at Goldman Sachs\"],\n  \"organizations\": [\"Reserve Bank of Australia\", \"Goldman Sachs\"],\n  \"locations\": []\n}\n```",
+  "score": 3,
+  "cost": 6.170999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 46
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 31,
+  "response": "```python\n# test_camel_to_snake.py\nimport pytest\n\nfrom your_module import camel_to_snake  # change to the actual module name\n\n\n@pytest.mark.parametrize(\n    \"inp, expected\",\n    [\n        (\"camelCase\", \"camel_case\"),\n        (\"CamelCase\", \"camel_case\"),\n        (\"simple\", \"simple\"),  # no capitals\n        (\"already_snake\", \"already_snake\"),  # underscore + no internal camel boundary\n        (\"HTTPRequest\", \"http_request\"),\n        (\"JSONData\", \"json_data\"),\n        (\"myURLValue\", \"my_url_value\"),\n        (\"aB\", \"a_b\"),\n    ],\n)\ndef test_camel_to_snake_happy_paths(inp, expected):\n    assert camel_to_snake(inp) == expected\n\n\ndef test_camel_to_snake_edge_cases():\n    # Empty string\n    assert camel_to_snake(\"\") == \"\"\n\n    # Single character\n    assert camel_to_snake(\"A\") == \"a\"\n    assert camel_to_snake(\"z\") == \"z\"\n\n    # Only uppercase letters (no [a-z][A-Z] boundary)\n    assert camel_to_snake(\"ABC\") == \"abc\"\n\n    # Trailing/leading underscores remain unchanged other than lowercasing\n    assert camel_to_snake(\"_LeadingUnderscore\") == \"_leading_underscore\"\n    assert camel_to_snake(\"TrailingUnderscore_\") == \"trailingunderscore_\"\n\n    # Consecutive capitals: boundary occurs before the last capital when preceded by lowercase\n    # \"TestHTTPServer\" -> \"test_http_server\"\n    assert camel_to_snake(\"TestHTTPServer\") == \"test_http_server\"\n\n\n@pytest.mark.parametrize(\"bad_value\", [None, 123, 1.23, [\"aB\"], {\"k\": \"v\"}, object()])\ndef test_camel_to_snake_error_cases_type_errors(bad_value):\n    with pytest.raises(TypeError):\n        camel_to_snake(bad_value)\n```\n\n**Note:** Replace `from your_module import camel_to_snake` with the actual import path for your function.",
+  "score": 5,
+  "cost": 0.00018090000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 434
+  }
+}

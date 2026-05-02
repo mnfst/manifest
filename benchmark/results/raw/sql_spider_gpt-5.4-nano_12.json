@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "SELECT\n  p.professional_id AS professional_id,\n  p.role AS role,\n  p.first_name AS first_name\nFROM professionals p\nJOIN treatments t\n  ON t.professional_id = p.professional_id\nGROUP BY\n  p.professional_id,\n  p.role,\n  p.first_name\nHAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 3.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 74
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign generated 45K impressions, 2.3K clicks, and 187 signups with a CAC of $64, showing a 1.2% increase in CTR but a 0.8% drop in conversion compared to March. The recommendation is to conduct A/B testing on the landing page CTA to improve performance.",
+  "score": 5,
+  "cost": 6.8309999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 77
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 26,
+  "response": "Here are some unit tests for the `safe_divide` function using pytest:\n```python\nimport pytest\n\ndef test_safe_divide_happy_path():\n    # Test with a valid division\n    assert safe_divide(10, 2) == 5.0\n\ndef test_safe_divide_zero_divisor():\n    # Test with a zero divisor\n    assert safe_divide(10, 0) == 0.0\n\ndef test_safe_divide_negative_numbers():\n    # Test with negative numbers\n    assert safe_divide(-10, 2) == -5.0\n\ndef test_safe_divide_mixed_types():\n    # Test with mixed types\n    assert safe_divide(10, 'a') == 10.0\n\ndef test_safe_divide_non_floated():\n    # Test with non-float inputs\n    with pytest.raises(TypeError):\n        safe_divide(10, 'a')\n\ndef test_safe_divide_non_floated_default():\n    # Test with default value\n    assert safe_divide(10, 2, default=0.0) == 5.0\n\ndef test_safe_divide_negative_default():\n    # Test with negative default value\n    assert safe_divide(10, 2, default=-0.0) == -5.0\n```\nThese tests cover the following scenarios:\n\n* Happy path: dividing two positive numbers\n* Edge case: dividing by zero\n* Edge case: negative numbers\n* Mixed types: dividing a float and a string\n* Non-float inputs: dividing a float and a non-float\n* Default value: using the default value of 0.0\n* Negative default value: using a negative default value",
+  "score": 4,
+  "cost": 1.1744999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 354
+  }
+}

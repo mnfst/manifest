@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "SELECT a.abbreviation, a.country\nFROM airlines a\nJOIN flights f ON a.airline_id = f.airline_id\nGROUP BY a.abbreviation, a.country\nORDER BY COUNT(*) ASC\nLIMIT 1;",
+  "score": 4,
+  "cost": 4.158000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 45
+  }
+}

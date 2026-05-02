@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 35,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"European Space Agency\", \"NASA\"],\n  \"locations\": [\"lunar south pole\"]\n}\n```",
+  "score": 4,
+  "cost": 7.085e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 34
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 40,
+  "response": "{\"name\": \"search_messages\", \"arguments\": {\"channel\": \"announcements\", \"query\": \"release\"}}",
+  "score": 2,
+  "cost": 0.0006175,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 24
+  }
+}

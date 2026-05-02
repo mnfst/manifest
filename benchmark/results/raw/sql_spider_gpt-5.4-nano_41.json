@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "SELECT COUNT(*) AS people_in_gelderland\nFROM world_1.persons p\nJOIN world_1.districts d\n  ON p.district_id = d.district_id\nWHERE d.name = 'Gelderland';",
+  "score": 4,
+  "cost": 2.7200000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 51
+  }
+}

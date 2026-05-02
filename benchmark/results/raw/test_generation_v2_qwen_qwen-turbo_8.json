@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 8,
+  "response": "Here's a set of **pytest-style unit tests** for the `binary_search` function. These tests cover:\n\n- **Happy path**: When the target is in the list.\n- **Edge cases**: When the target is at the start, end, or in a single-element list.\n- **Error cases**: When the list is empty, or the target is not found.\n\n### \u2705 Test File: `test_binary_search.py`\n\n```python\nimport pytest\n\ndef test_binary_search_happy_path():\n    assert binary_search([1, 2, 3, 4, 5], 3) == 2\n    assert binary_search([10, 20, 30, 40, 50], 40) == 3\n    assert binary_search([5, 10, 15, 20], 5) == 0\n    assert binary_search([5, 10, 15, 20], 20) == 3\n\ndef test_binary_search_edge_cases():\n    assert binary_search([1], 1) == 0\n    assert binary_search([1, 2], 1) == 0\n    assert binary_search([1, 2], 2) == 1\n    assert binary_search([1, 3, 5, 7, 9], 9) == 4\n    assert binary_search([1, 3, 5, 7, 9], 1) == 0\n\ndef test_binary_search_not_found():\n    assert binary_search([1, 2, 3, 4, 5], 6) == -1\n    assert binary_search([1, 2, 3, 4, 5], 0) == -1\n    assert binary_search([], 5) == -1\n\ndef test_binary_search_with_negative_numbers():\n    assert binary_search([-5, -3, 0, 2, 4], -3) == 1\n    assert binary_search([-5, -3, 0, 2, 4], 4) == 4\n    assert binary_search([-5, -3, 0, 2, 4], -6) == -1\n\ndef test_binary_search_with_duplicates():\n    assert binary_search([1, 2, 2, 3, 4], 2) == 1  # returns the first occurrence\n    assert binary_search([2, 2, 2, 2], 2) == 0\n    assert binary_search([2, 2, 2, 2], 3) == -1\n```\n\n### \ud83d\udd27 How to Run the Tests\n\nMake sure you have `pytest` installed:\n\n```bash\npip install pytest\n```\n\nThen run:\n\n```bash\npytest test_binary_search.py\n```\n\n### \ud83d\udcdd Notes\n\n- The function assumes the input list is **sorted**. If the list is unsorted, the function may return incorrect results. This is not tested here, but it's important to note.\n- The function returns the **first occurrence** of the target if there are duplicates. If you need to find the last occurrence or all occurrences, the logic would need to be modified.\n\nLet me know if you want to add more advanced test cases (e.g., with custom objects or handling non-integer inputs).",
+  "score": 5,
+  "cost": 2.7819e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 713
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT country.name\nFROM country\nJOIN car_maker ON country.id = car_maker.country_id\nGROUP BY country.id, country.name\nORDER BY COUNT(car_maker.id) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 2.22e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 51
+  }
+}

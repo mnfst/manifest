@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "ner_extraction",
+  "case": 43,
+  "response": "```json\n{\n  \"persons\": [\"Satya Nadella\"],\n  \"organizations\": [\"Microsoft\", \"OpenAI\"],\n  \"locations\": []\n}\n```",
+  "score": 5,
+  "cost": 0.000882,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 43
+  }
+}

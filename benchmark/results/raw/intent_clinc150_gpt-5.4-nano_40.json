@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "intent_clinc150",
+  "case": 40,
+  "response": "mpg",
+  "score": 5,
+  "cost": 5.3e-05,
+  "expected": "mpg",
+  "tokens": {
+    "input": 510,
+    "output": 5
+  }
+}

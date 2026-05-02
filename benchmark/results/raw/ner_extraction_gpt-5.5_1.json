@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "ner_extraction",
+  "case": 1,
+  "response": "{\"persons\":[\"President Biden\",\"French President Macron\"],\"organizations\":[\"NATO\"],\"locations\":[\"White House\"]}",
+  "score": 5,
+  "cost": 0.001794,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 132
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Mariah used:\n\n\\( \\frac{1}{4} \\times 364 = 91 \\) yards\n\nHer grandma used:\n\n\\( \\frac{1}{2} \\times 364 = 182 \\) yards\n\nAltogether, they used:\n\n\\( 91 + 182 = 273 \\) yards\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.00162,
+  "expected": "273",
+  "tokens": {
+    "input": 100,
+    "output": 110
+  }
+}

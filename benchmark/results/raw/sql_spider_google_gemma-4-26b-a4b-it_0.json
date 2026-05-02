@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "```sql\nSELECT money_rank \nFROM poker_players \nORDER BY height DESC \nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 5.46e-06,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 21
+  }
+}

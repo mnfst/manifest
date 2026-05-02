@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "Madeline ate 6 grapes, leaving some grapes for her brother and mother.\n\n1) Brother used 5 times as many grapes as Madeline:\n- \\(5 \\times 6 = 30\\) grapes\n\n2) Total grapes used so far:\n- \\(6 + 30 = 36\\) grapes\n\n3) Remaining grapes were used to make 4 pies at 12 grapes per pie:\n- \\(4 \\times 12 = 48\\) grapes\n\n4) Total grapes at the beginning:\n- \\(36 + 48 = 84\\)\n\nANSWER: 84",
+  "score": 5,
+  "cost": 5.97e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 105,
+    "output": 123
+  }
+}

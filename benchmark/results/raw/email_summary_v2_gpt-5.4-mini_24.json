@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Design System v3 is ready for adoption, with updates including new dark mode color tokens, a revised 4px spacing scale, and refreshed Button and Modal components, plus a migration tool. The recommended action is to roll it out team by team, starting with the Settings page.",
+  "score": 5,
+  "cost": 9.63e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 59
+  }
+}

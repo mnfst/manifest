@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "ner_extraction",
+  "case": 42,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"African Union\"],\n  \"locations\": [\"Addis Ababa\", \"Sudan\", \"Egypt\", \"Ethiopia\"]\n}",
+  "score": 4,
+  "cost": 2.6050000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 444
+  }
+}

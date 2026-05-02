@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "French: Savez-vous d'o\u00f9 vient l'argent ?",
+  "score": 5,
+  "cost": 0.000414,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 20
+  }
+}

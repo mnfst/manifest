@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT country.name, COUNT(country_language.language) AS language_count\nFROM country\nJOIN country_language ON country.code = country_language.country_code\nGROUP BY country.name\nHAVING COUNT(country_language.language) > 2;\n```",
+  "score": 4,
+  "cost": 2.3799999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 53
+  }
+}

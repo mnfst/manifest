@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 23,
+  "response": "```json\n{\"name\": \"send_message\", \"arguments\": {\"channel\": \"engineering\", \"text\": \"Deploy complete\"}}\n```",
+  "score": 5,
+  "cost": 8.52e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 30
+  }
+}

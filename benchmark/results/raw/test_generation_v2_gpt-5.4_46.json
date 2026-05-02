@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 46,
+  "response": "```python\nimport pytest\n\nfrom your_module import unique_permutations\n\n\ndef test_unique_permutations_empty_list():\n    assert unique_permutations([]) == [[]]\n\n\ndef test_unique_permutations_single_element():\n    assert unique_permutations([1]) == [[1]]\n\n\ndef test_unique_permutations_two_distinct_elements():\n    result = unique_permutations([1, 2])\n    expected = [[1, 2], [2, 1]]\n    assert sorted(result) == sorted(expected)\n\n\ndef test_unique_permutations_three_distinct_elements():\n    result = unique_permutations([1, 2, 3])\n    expected = [\n        [1, 2, 3],\n        [1, 3, 2],\n        [2, 1, 3],\n        [2, 3, 1],\n        [3, 1, 2],\n        [3, 2, 1],\n    ]\n    assert sorted(result) == sorted(expected)\n    assert len(result) == 6\n\n\ndef test_unique_permutations_with_duplicates():\n    result = unique_permutations([1, 1, 2])\n    expected = [\n        [1, 1, 2],\n        [1, 2, 1],\n        [2, 1, 1],\n    ]\n    assert sorted(result) == sorted(expected)\n    assert len(result) == 3\n\n\ndef test_unique_permutations_all_duplicates():\n    assert unique_permutations([1, 1, 1]) == [[1, 1, 1]]\n\n\ndef test_unique_permutations_preserves_input():\n    lst = [1, 1, 2]\n    original = lst[:]\n    unique_permutations(lst)\n    assert lst == original\n\n\ndef test_unique_permutations_strings():\n    result = unique_permutations([\"a\", \"b\", \"a\"])\n    expected = [\n        [\"a\", \"a\", \"b\"],\n        [\"a\", \"b\", \"a\"],\n        [\"b\", \"a\", \"a\"],\n    ]\n    assert sorted(result) == sorted(expected)\n\n\ndef test_unique_permutations_unhashable_elements_raises_type_error():\n    with pytest.raises(TypeError):\n        unique_permutations([[1], [1]])\n\n\ndef test_unique_permutations_mixed_hashable_types():\n    result = unique_permutations([1, \"a\", 1])\n    expected = [\n        [1, 1, \"a\"],\n        [1, \"a\", 1],\n        [\"a\", 1, 1],\n    ]\n    assert sorted(result, key=str) == sorted(expected, key=str)\n```\n\nIf you want, I can also provide:\n1. a `test_*.py` filename-ready version,\n2. parametrized pytest tests,\n3. or a version that avoids depending on permutation order entirely.",
+  "score": 5,
+  "cost": 0.005054,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 601
+  }
+}

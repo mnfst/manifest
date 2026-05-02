@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "To solve this problem, we need to find the number of votes candidate C received.\n\nFirst, we know that candidate A got 20% of the votes. Since there were 100 voters, we can calculate the number of votes candidate A received:\n\n20% of 100 = 0.20 x 100 = 20 votes\n\nNext, we know that candidate B got 50% more than candidate A's votes. To find the number of votes candidate B received, we need to calculate 50% of candidate A's votes and add it to candidate A's votes:\n\n50% of 20 votes = 0.50 x 20 = 10 votes\nTotal votes for candidate B = 20 votes + 10 votes = 30 votes\n\nNow, we know that the rest of the votes were given to candidate C. To find the number of votes candidate C received, we can subtract the total votes received by candidates A and B from the total number of voters:\n\nTotal votes = 100\nVotes for A and B = 20 votes + 30 votes = 50 votes\nVotes for C = Total votes - Votes for A and B = 100 - 50 = 50 votes\n\nTherefore, candidate C received 50 votes.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 1.8512999999999997e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 102,
+    "output": 261
+  }
+}

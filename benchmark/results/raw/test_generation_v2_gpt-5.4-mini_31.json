@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 31,
+  "response": "```python\nimport pytest\n\nfrom your_module import camel_to_snake\n\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        (\"camelCase\", \"camel_case\"),\n        (\"CamelCase\", \"camelcase\"),   # only lowercase-to-uppercase transitions are split\n        (\"simpleTestCase\", \"simple_test_case\"),\n        (\"already_snake\", \"already_snake\"),\n        (\"with123Numbers\", \"with123_numbers\"),\n        (\"JSONData\", \"jsondata\"),     # no split for uppercase-to-uppercase transitions\n        (\"aB\", \"a_b\"),\n        (\"\", \"\"),\n    ],\n)\ndef test_camel_to_snake_happy_and_edge_cases(input_str, expected):\n    assert camel_to_snake(input_str) == expected\n\n\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        None,\n        123,\n        12.5,\n        [],\n        {},\n        b\"camelCase\",\n    ],\n)\ndef test_camel_to_snake_error_cases(bad_input):\n    with pytest.raises(TypeError):\n        camel_to_snake(bad_input)\n```\n\nNotes:\n- Replace `your_module` with the actual module name where `camel_to_snake` is defined.\n- The error cases rely on `re.sub` raising `TypeError` when given non-string inputs.",
+  "score": 5,
+  "cost": 0.00034349999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 268
+  }
+}

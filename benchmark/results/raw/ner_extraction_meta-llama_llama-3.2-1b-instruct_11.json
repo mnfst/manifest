@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "{\n  \"persons\": [\"United Nations Security Council\", \"North Korea\"],\n  \"organizations\": [\"United Nations\", \"New York\"],\n  \"locations\": [\"United Nations Headquarters\"]",
+  "score": 2,
+  "cost": 3.051e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 37
+  }
+}

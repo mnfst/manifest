@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 2,
+  "response": "To find all Python files modified in the last 7 days in the `src` directory, you can use the `os` and `datetime` modules in Python. Here's a function that accomplishes this:\n\n```python\nimport os\nimport datetime\n\ndef find_modified_python_files(directory: str, pattern: str) -> dict:\n    \"\"\"\n    Find all Python files modified in the last 7 days in the specified directory.\n\n    Args:\n        directory (str): The path to the directory to search in.\n        pattern (str): The pattern to match in the file names.\n\n    Returns:\n        dict: A dictionary with the name of the function and the modified dates.\n    \"\"\"\n    modified_files = {}\n\n    # Get the current date\n    today = datetime.date.today()\n\n    # Calculate the 7-day ago date\n    seven_days_ago = today - datetime.timedelta(days=7)\n\n    # Walk through the directory and its subdirectories\n    for root, dirs, files in os.walk(directory):\n        for file in files:\n            # Check if the file matches the pattern\n            if file.endswith('.py'):\n                # Get the full path to the file\n                file_path = os.path.join(root, file)\n\n                # Get the modified date of the file\n                modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))\n\n                # Check if the file is modified within the last 7 days\n                if modified_date > seven_days_ago:",
+  "score": 1,
+  "cost": 1.0854e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 300
+  }
+}

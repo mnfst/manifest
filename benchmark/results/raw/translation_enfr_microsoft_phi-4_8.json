@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit : \"Bien s\u00fbr.\" Et moi, j'ai r\u00e9pondu : \"Eh bien, je me demande o\u00f9 \u00e7a va \u00eatre.\"",
+  "score": 5,
+  "cost": 5.394999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 32
+  }
+}

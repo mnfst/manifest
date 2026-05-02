@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Janet pays:\n\n- Material: $500  \n- Jeweler: $800  \n\nSubtotal:  \n$500 + $800 = $1,300\n\nInsurance is 10% of $1,300:  \n0.10 \u00d7 $1,300 = $130\n\nTotal paid:  \n$1,300 + $130 = $1,430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.002076,
+  "expected": "1430",
+  "tokens": {
+    "input": 96,
+    "output": 149
+  }
+}

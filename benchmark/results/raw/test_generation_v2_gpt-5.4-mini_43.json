@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 43,
+  "response": "```python\nimport pytest\n\nfrom your_module import partial  # adjust import as needed\n\n\ndef test_partial_happy_path_positional_and_keyword_args():\n    def fn(a, b, c=0, d=0):\n        return a, b, c, d\n\n    wrapped = partial(fn, 1, c=3)\n\n    assert wrapped(2, d=4) == (1, 2, 3, 4)\n\n\ndef test_partial_happy_path_no_bound_args():\n    def fn(a, b):\n        return a + b\n\n    wrapped = partial(fn)\n\n    assert wrapped(2, 3) == 5\n\n\ndef test_partial_merges_kwargs_with_call_kwargs_overriding_bound_kwargs():\n    def fn(**kwargs):\n        return kwargs\n\n    wrapped = partial(fn, a=1, b=2)\n\n    assert wrapped(b=99, c=3) == {\"a\": 1, \"b\": 99, \"c\": 3}\n\n\ndef test_partial_allows_binding_only_kwargs():\n    def fn(x, y=10):\n        return x, y\n\n    wrapped = partial(fn, y=7)\n\n    assert wrapped(5) == (5, 7)\n\n\ndef test_partial_empty_args_and_kwargs():\n    def fn():\n        return \"ok\"\n\n    wrapped = partial(fn)\n\n    assert wrapped() == \"ok\"\n\n\ndef test_partial_preserves_callable_behavior_for_varargs_and_varkwargs():\n    def fn(*args, **kwargs):\n        return args, kwargs\n\n    wrapped = partial(fn, 1, 2, a=3)\n\n    assert wrapped(4, 5, b=6) == ((1, 2, 4, 5), {\"a\": 3, \"b\": 6})\n\n\ndef test_partial_raises_typeerror_when_underlying_function_missing_required_args():\n    def fn(a, b):\n        return a + b\n\n    wrapped = partial(fn, 1)\n\n    with pytest.raises(TypeError):\n        wrapped()\n\n\ndef test_partial_raises_typeerror_when_too_many_positional_args_passed():\n    def fn(a, b):\n        return a + b\n\n    wrapped = partial(fn, 1)\n\n    with pytest.raises(TypeError):\n        wrapped(2, 3)\n\n\ndef test_partial_raises_typeerror_for_unexpected_keyword_argument():\n    def fn(a):\n        return a\n\n    wrapped = partial(fn)\n\n    with pytest.raises(TypeError):\n        wrapped(a=1, unexpected=2)\n\n\ndef test_partial_raises_typeerror_when_bound_and_call_kwargs_conflict_with_positional_only_param():\n    # positional-only params require Python 3.8+\n    def fn(a, /, b):\n        return a, b\n\n    wrapped = partial(fn, a=1)\n\n    with pytest.raises(TypeError):\n        wrapped(2)\n```",
+  "score": 4,
+  "cost": 0.0007254,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 584
+  }
+}

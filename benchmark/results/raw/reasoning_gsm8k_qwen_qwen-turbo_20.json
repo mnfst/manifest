@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "To solve this problem, we need to calculate how much Jen spends on fish food in the month of May.\n\nStep 1: Determine how many fish Jen has.  \nJen has 3 fish.\n\nStep 2: Determine the cost of food per fish per day.  \nEach fish needs $1 worth of food per day.\n\nStep 3: Calculate the daily cost for all fish.  \n3 fish \u00d7 $1 per fish = $3 per day.\n\nStep 4: Determine how many days are in May.  \nMay has 31 days.\n\nStep 5: Calculate the total cost for the month of May.  \n$3 per day \u00d7 31 days = $93.\n\nFinal Answer:  \nANSWER: 93",
+  "score": 5,
+  "cost": 7.656000000000001e-06,
+  "expected": "93",
+  "tokens": {
+    "input": 80,
+    "output": 152
+  }
+}

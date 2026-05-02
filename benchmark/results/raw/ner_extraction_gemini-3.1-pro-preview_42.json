@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 42,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"African Union\"\n  ],\n  \"locations\": [\n    \"Addis Ababa\",\n    \"Sudan\",\n    \"Egypt\",\n    \"Ethiopia\"\n  ]\n}",
+  "score": 4,
+  "cost": 0.0010275,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 57
+  }
+}

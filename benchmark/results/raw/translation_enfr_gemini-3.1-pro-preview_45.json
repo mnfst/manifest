@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "**French:**\nL'\u00e9vasion fiscale s'est accrue en Tunisie, provoquant un manque \u00e0 gagner significatif en termes de ressources publiques, a d\u00e9clar\u00e9 l'ancien chef du gouvernement provisoire Ali Larayedh en juin 2013, cit\u00e9 par le journal Business Flood. \n\n*(Note: \"manque \u00e0 gagner\" is the standard French economic term for a financial \"shortfall\". \"Gouvernement provisoire\" is the official French term used for Tunisia's interim government during that period).*",
+  "score": 5,
+  "cost": 0.0017475,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 106
+  }
+}

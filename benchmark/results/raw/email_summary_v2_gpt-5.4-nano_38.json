@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "In the first month of the bug bounty program, 47 reports were received (12 valid, including 3 critical), resulting in $15K in payouts, with critical issues identified as an IDOR on user profiles, SSRF via a webhook URL, and a JWT secret exposed in a client bundle that were all patched within 24 hours. Action item: Security recommends continuing the program since the ROI is strong.",
+  "score": 5,
+  "cost": 4.54e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 86
+  }
+}

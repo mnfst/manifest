@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins on January 15, and the team needs to complete key prep tasks including finalizing Q4 revenue recognition, reconciling bank accounts, verifying stock option records, and preparing the related-party transaction disclosure. A controller meeting is scheduled for next Tuesday to assign responsibilities for these action items.",
+  "score": 5,
+  "cost": 0.0001065,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 65
+  }
+}

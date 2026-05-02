@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Step 1: Calculate the total number of cows initially in the stalls.  \nThere are 10 stalls, and each has 20 cows.  \n$$\n10 \\times 20 = 200 \\text{ cows}\n$$\n\nStep 2: Mr. Sylas buys 40 cows and divides them equally among 20 stalls.  \n$$\n\\frac{40}{20} = 2 \\text{ cows per stall}\n$$\n\nStep 3: Now, each stall has the original 20 cows plus 2 new cows.  \n$$\n20 + 2 = 22 \\text{ cows per stall}\n$$\n\nStep 4: Calculate the total number of cows in 8 stalls.  \n$$\n8 \\times 22 = 176\n$$\n\nANSWER: 176",
+  "score": 5,
+  "cost": 9.24e-06,
+  "expected": "192",
+  "tokens": {
+    "input": 98,
+    "output": 182
+  }
+}

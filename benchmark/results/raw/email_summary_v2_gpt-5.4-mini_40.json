@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "Engineering met its quarterly target, Sales and Support exceeded theirs, but Product fell short because the AI feature was delayed.  \nAction items are to carry forward the AI OKR with increased allocation and begin next quarter planning on Monday.",
+  "score": 5,
+  "cost": 9.419999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 48
+  }
+}

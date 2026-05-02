@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines the Japan expansion plan: legal entity setup in May, localization in June, a beta with 10 customers in July, and general availability in August, with a total budget of $200K. The main action item is to obtain CEO approval to proceed.",
+  "score": 5,
+  "cost": 0.000646,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 57
+  }
+}

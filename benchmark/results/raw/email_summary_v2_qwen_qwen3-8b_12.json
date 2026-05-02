@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The email outlines four open engineering roles (2 backend, 1 frontend, 1 ML) with 23 candidates in process and 5 in final rounds. The frontend position, open for 60 days with no strong candidates, requires action to expand to remote hiring or adjust the compensation band.",
+  "score": 5,
+  "cost": 2.2700000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 353
+  }
+}

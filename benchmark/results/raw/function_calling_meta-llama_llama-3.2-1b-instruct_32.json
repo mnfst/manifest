@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 32,
+  "response": "To generate the correct function call for the user request, we need to identify the function that matches the request. Based on the provided information, the function that matches the request is `get_scan_results`. Here's the correct function call:\n\n```json\n{\"name\": \"get_scan_results\", \"arguments\": {\"target\": \"10.0.0.1\", \"scan_type\": \"full\"}}\n```\n\nThis function call includes the required arguments: `target` and `scan_type`.",
+  "score": 1,
+  "cost": 5.481e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 99
+  }
+}

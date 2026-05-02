@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "{\n  \"persons\": [\"Jensen Huang\"],\n  \"organizations\": [\"Nvidia\"],\n  \"locations\": [\"GTC\", \"San Jose\"]\n}",
+  "score": 4,
+  "cost": 2.0900000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 34
+  }
+}

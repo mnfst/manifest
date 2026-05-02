@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "{\n  \"persons\": [\"Warren Buffett\"],\n  \"organizations\": [\"Bank of America\", \"SEC\"],\n  \"locations\": []\n}",
+  "score": 5,
+  "cost": 3.465e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 28
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "From 1 PM to 4 PM is 3 hours of travel.\n\nAt 10 mph, Tom travels:\n\n3 \u00d7 10 = 30 miles\n\nSo he is 30 miles away when he starts back.\n\nOn the return trip, he travels at 6 mph, so the time to get back is:\n\n30 \u00f7 6 = 5 hours\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00013079999999999998,
+  "expected": "5",
+  "tokens": {
+    "input": 88,
+    "output": 87
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 1,
+  "response": "To find out how many hours it will take Kalinda and her mom to complete the puzzle, we first need to determine how many pieces they can place together per minute.\n\n1. Kalinda can place 4 pieces per minute.\n2. Her mom can place half as many pieces as Kalinda, which is 4 / 2 = 2 pieces per minute.\n3. Working together, they can place 4 + 2 = 6 pieces per minute.\n\nNext, we calculate how many minutes it will take them to complete the 360-piece puzzle:\n360 pieces / 6 pieces per minute = 60 minutes.\n\nFinally, we convert the time from minutes to hours:\n60 minutes = 1 hour.\n\nANSWER: 1",
+  "score": 5,
+  "cost": 0.002675,
+  "expected": "1",
+  "tokens": {
+    "input": 92,
+    "output": 163
+  }
+}

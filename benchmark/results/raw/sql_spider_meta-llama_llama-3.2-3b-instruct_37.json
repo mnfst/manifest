@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT s.name, s.release_year\nFROM singer s\nJOIN song ON s.id = song.singer_id\nORDER BY s.age ASC\nLIMIT 1;\n```",
+  "score": 3,
+  "cost": 5.967e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 38
+  }
+}

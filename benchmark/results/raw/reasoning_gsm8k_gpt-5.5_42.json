@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "Each school has:\n\n8 children in each row \u00d7 7 rows = 56 children\n\nFor 5 schools:\n\n56 \u00d7 5 = 280 children\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.001416,
+  "expected": "280",
+  "tokens": {
+    "input": 92,
+    "output": 95
+  }
+}

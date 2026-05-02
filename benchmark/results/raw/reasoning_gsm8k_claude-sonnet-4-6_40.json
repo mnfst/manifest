@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "## Step-by-Step Solution\n\n**Understanding the problem:**\n- Elvis wants to save $1,125 in April\n- April has 30 days\n- First half: days 1-15 (15 days)\n- Second half: days 16-30 (15 days)\n- He saves twice as much daily in the second half as in the first half\n\n**Setting up the equation:**\n\nLet the daily savings in the first half = x\nThen daily savings in the second half = 2x\n\n**Total savings equation:**\n- First half savings: 15 \u00d7 x\n- Second half savings: 15 \u00d7 2x\n- Total: 15x + 15(2x) = 1,125\n\n**Solving:**\n15x + 30x = 1,125\n45x = 1,125\nx = 1,125 \u00f7 45\nx = 25\n\n**Daily savings in the second half:**\n2x = 2 \u00d7 25 = **$50**\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.003909,
+  "expected": "50",
+  "tokens": {
+    "input": 103,
+    "output": 240
+  }
+}

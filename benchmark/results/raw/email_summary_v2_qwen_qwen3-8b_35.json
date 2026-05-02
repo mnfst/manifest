@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The policy update introduces new rules for AI-generated content, including labeling AI images, banning deepfakes, and requiring disclosure for AI-assisted text, with enforcement starting June 1. Training materials are being prepared to support the implementation of these changes.",
+  "score": 5,
+  "cost": 1.9350000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 287
+  }
+}

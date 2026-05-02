@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 3,
+  "response": "```json\n{\n  \"name\": \"create_task\",\n  \"arguments\": {\n    \"title\": \"Review PR 42\",\n    \"priority\": \"high\",\n    \"assignee\": \"alice\",\n    \"due_date\": \"next Friday\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 1.0985e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 56
+  }
+}

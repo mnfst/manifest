@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 49,
+  "response": "Here are some unit tests for the `intersection` function using pytest style:\n\n```python\nimport pytest\n\ndef test_empty_lists():\n    # Test with empty lists\n    assert intersection([], []) == []\n\ndef test_single_element_lists():\n    # Test with single element lists\n    assert intersection([1], [1]) == [1]\n    assert intersection([1], []) == []\n\ndef test_no_common_elements():\n    # Test with lists that have no common elements\n    assert intersection([1, 2, 3], [4, 5, 6]) == []\n\ndef test_no_common_elements_with_duplicates():\n    # Test with lists that have no common elements and duplicates\n    assert intersection([1, 2, 2, 3], [2, 3, 4]) == [2, 3]\n\ndef test_empty_list1():\n    # Test with an empty list as the first argument\n    with pytest.raises(TypeError):\n        intersection([], [])\n\ndef test_empty_list2():\n    # Test with an empty list as the second argument\n    with pytest.raises(TypeError):\n        intersection([], [])\n\ndef test_list_with_duplicates():\n    # Test with a list that has duplicate elements\n    assert intersection([1, 2, 2, 3], [2, 2, 4]) == [2, 2]\n\ndef test_list_with_duplicates_and_empty():\n    # Test with a list that has duplicate elements and an empty list\n    assert intersection([1, 2, 2, 3], []) == [2, 3]\n\ndef test_list_with_negative_numbers():\n    # Test with a list that contains negative numbers\n    assert intersection([-1, -2, -3], [-4, -5, -6]) == [-4, -5, -6]\n\ndef test_list_with_non_list_input():\n    # Test with a non-list input\n    with pytest.raises(TypeError):\n        intersection(123, [1, 2, 3])\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test with lists that have common elements and no duplicates.\n* Edge cases: Test with empty lists, lists with no common elements, lists with duplicates, and lists with negative numbers.\n* Error cases: Test with non-list inputs and test that a TypeError is raised when an empty list is passed as the first argument.",
+  "score": 3,
+  "cost": 1.5768000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 481
+  }
+}

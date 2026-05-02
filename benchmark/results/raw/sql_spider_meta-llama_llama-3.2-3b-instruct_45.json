@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "```sql\nSELECT p.first_name, t.description\nFROM professionals p\nJOIN treatments t ON p.id = t.professional_id;\n```",
+  "score": 5,
+  "cost": 5.61e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 29
+  }
+}

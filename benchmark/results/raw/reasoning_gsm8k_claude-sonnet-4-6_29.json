@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Let me solve this step by step.\n\n**Red cars:** 12\n\n**Green cars:** 2 fewer than red cars\n= 12 - 2 = 10\n\n**Blue cars:** 3 times the number of green cars\n= 3 \u00d7 10 = 30\n\n**Total of red, green, and blue cars:**\n= 12 + 10 + 30 = 52\n\n**Yellow cars:** Total minus the other colors\n= 75 - 52 = 23\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.002211,
+  "expected": "23",
+  "tokens": {
+    "input": 117,
+    "output": 124
+  }
+}

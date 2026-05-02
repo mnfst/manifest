@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 25,
+  "response": "```json\n{\n  \"persons\": [\"Mark Zuckerberg\"],\n  \"organizations\": [\"Meta\"],\n  \"locations\": [\"Menlo Park\"]\n}\n```",
+  "score": 5,
+  "cost": 7.139999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 36
+  }
+}

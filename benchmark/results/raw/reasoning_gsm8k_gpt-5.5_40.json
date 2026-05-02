@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "April has 30 days, so each half has 15 days.\n\nLet the amount Elvis saves each day in the first half be \\(x\\).\n\nThen in the second half, he saves twice as much each day:\n\n\\[\n2x\n\\]\n\nTotal savings:\n\n\\[\n15x + 15(2x) = 1125\n\\]\n\n\\[\n15x + 30x = 1125\n\\]\n\n\\[\n45x = 1125\n\\]\n\n\\[\nx = 25\n\\]\n\nSo the daily amount in the second half is:\n\n\\[\n2x = 2(25) = 50\n\\]\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.002814,
+  "expected": "50",
+  "tokens": {
+    "input": 98,
+    "output": 210
+  }
+}

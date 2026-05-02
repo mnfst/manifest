@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Q1 Customer Success report highlights improved metrics, including a higher NPS (62), strong support satisfaction (4.3/5), and reduced churn (1.2%), while noting top feature requests like SSO and custom dashboards. Additionally, three enterprise expansions worth $800K are in the pipeline, requiring follow-up on these opportunities and prioritizing the requested features.",
+  "score": 5,
+  "cost": 3.5799999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 80
+  }
+}

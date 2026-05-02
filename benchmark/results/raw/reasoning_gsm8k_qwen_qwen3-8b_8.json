@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To determine the number of students enrolled this year in the calligraphy class, we start with the information that last year there were 50 students. This year, there was a 20% increase in enrollment.\n\n---\n\n### Step 1: Convert the percentage increase to a decimal\nA 20% increase means we are adding 20% of the original number of students to the original number. To convert 20% to a decimal, divide by 100:\n\n$$\n20\\% = \\frac{20}{100} = 0.20\n$$\n\n---\n\n### Step 2: Calculate the increase\nMultiply the original number of students (50) by the decimal form of the percentage increase (0.20):\n\n$$\n0.20 \\times 50 = 10\n$$\n\nSo, there is an increase of 10 students.\n\n---\n\n### Step 3: Add the increase to the original number\nNow, add the increase to the original number of students:\n\n$$\n50 + 10 = 60\n$$\n\n---\n\n### Final Answer:\n$$\n\\boxed{60}\n$$",
+  "score": 5,
+  "cost": 3.935e-05,
+  "expected": "60",
+  "tokens": {
+    "input": 86,
+    "output": 701
+  }
+}

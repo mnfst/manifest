@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "Here's an example of how you can write unit tests for the `flatten` function using pytest:\n\n```python\nimport pytest\n\ndef test_flatten_happy_path():\n    \"\"\"Test that the function correctly flattens a list of lists.\"\"\"\n    input_list = [1, [2, 3], [4, [5, 6]], 7]\n    expected_output = [1, 2, 3, 4, 5, 6, 7]\n    assert flatten(input_list) == expected_output\n\ndef test_flatten_empty_list():\n    \"\"\"Test that the function returns an empty list when given an empty list.\"\"\"\n    input_list = []\n    expected_output = []\n    assert flatten(input_list) == expected_output\n\ndef test_flatten_single_element_list():\n    \"\"\"Test that the function returns a list with a single element when given a list with a single element.\"\"\"\n    input_list = [1]\n    expected_output = [1]\n    assert flatten(input_list) == expected_output\n\ndef test_flatten_nested_lists_of_different_depth():\n    \"\"\"Test that the function correctly flattens lists of different depths.\"\"\"\n    input_list = [1, [2, [3, [4, 5]]], 6]\n    expected_output = [1, 2, 3, 4, 5, 6]\n    assert flatten(input_list) == expected_output\n\ndef test_flatten_non_list_items():\n    \"\"\"Test that the function ignores non-list items.\"\"\"\n    input_list = [1, 'a', 2, [3, 4], None]\n    expected_output = [1, 2, 3, 4]\n    assert flatten(input_list) == expected_output\n\ndef test_flatten_none_items():\n    \"\"\"Test that the function ignores None items.\"\"\"\n    input_list = [1, None, 2, [3, 4]]\n    expected_output = [1, 2, 3, 4]\n    assert flatten(input_list) == expected_output\n\ndef test_flatten_empty_sublists():\n    \"\"\"Test that the function ignores empty sublists.\"\"\"\n    input_list = [1, [], [2, []], 3]\n    expected_output = [1, 2, 3]\n    assert flatten(input_list) == expected_output\n\ndef test_flatten_nested_lists_with_duplicates():\n    \"\"\"Test that the function correctly handles nested lists with duplicates.\"\"\"\n    input_list = [1, [2, 2, 3], [4, [5, 5]], 6]\n    expected_output = [1, 2, 2, 3, 4, 5, 5, 6]\n    assert flatten(input_list) == expected_output\n```\n\nThese tests cover a variety of scenarios, including:\n\n* Happy path: A list with nested lists of different depths.\n* Edge cases: Empty lists, single-element lists, lists with non-list items, None items, and empty sublists.\n* Error cases: None items and nested lists with duplicates.\n\nNote that these tests are not exhaustive, and you may want to add additional tests to cover other scenarios.",
+  "score": 5,
+  "cost": 3.6923999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 641
+  }
+}

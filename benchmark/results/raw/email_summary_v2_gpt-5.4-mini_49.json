@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The payment integration is not passing PCI compliance, so the product launch needs to be delayed by two weeks, with two options under consideration: launch without payments and add them later, or delay the full launch to May 15. Action items are to review the updated terms and conditions if option 1 is chosen and attend the meeting tomorrow at 10am to decide the path forward.",
+  "score": 5,
+  "cost": 0.0001245,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 79
+  }
+}

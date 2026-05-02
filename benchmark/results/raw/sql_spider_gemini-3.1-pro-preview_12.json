@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "```sql\nSELECT T1.professional_id, T1.role_code, T1.first_name FROM Professionals AS T1 JOIN Treatments AS T2 ON T1.professional_id = T2.professional_id GROUP BY T1.professional_id HAVING COUNT(*) >= 2\n```",
+  "score": 4,
+  "cost": 0.0011625,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 64
+  }
+}

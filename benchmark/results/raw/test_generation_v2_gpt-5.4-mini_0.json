@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "```python\nimport pytest\n\nfrom your_module import add\n\n\n@pytest.mark.parametrize(\n    \"a, b, expected\",\n    [\n        (1, 2, 3),\n        (0, 0, 0),\n        (-1, 1, 0),\n        (-5, -7, -12),\n        (123456, 654321, 777777),\n    ],\n)\ndef test_add_happy_and_edge_cases(a, b, expected):\n    assert add(a, b) == expected\n\n\n@pytest.mark.parametrize(\n    \"a, b\",\n    [\n        (1.5, 2),        # float input\n        (\"1\", \"2\"),      # string input\n        (None, 1),       # None input\n        ([1], [2]),      # list input\n        (object(), 1),   # unsupported object input\n    ],\n)\ndef test_add_error_cases(a, b):\n    with pytest.raises(TypeError):\n        add(a, b)\n```\n\nNote: for this implementation, Python\u2019s `+` operator does **not** always raise `TypeError` for non-`int` inputs. For example, `add(\"1\", \"2\")` returns `\"12\"`, and `add([1], [2])` returns `[1, 2]`. If you want strict integer validation, the function would need input checks before addition.",
+  "score": 4,
+  "cost": 0.000366,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 292
+  }
+}

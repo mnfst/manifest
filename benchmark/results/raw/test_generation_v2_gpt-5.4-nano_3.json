@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "```python\n# test_flatten.py\nimport pytest\n\n# Update the import path to where your flatten function lives.\nfrom your_module import flatten\n\n\ndef test_flatten_happy_path_nested():\n    assert flatten([1, [2, 3], [4, [5]]]) == [1, 2, 3, 4, 5]\n\n\ndef test_flatten_happy_path_shallow_nested():\n    assert flatten([[1, 2], 3, [4]]) == [1, 2, 3, 4]\n\n\ndef test_flatten_happy_path_no_nesting():\n    assert flatten([1, 2, 3]) == [1, 2, 3]\n\n\ndef test_flatten_empty_list():\n    assert flatten([]) == []\n\n\ndef test_flatten_edge_case_empty_nested_lists():\n    assert flatten([[], [[]], [[], [1]], []]) == [1]\n\n\ndef test_flatten_edge_case_preserves_non_list_types():\n    # Includes dict/tuple/set as non-list items; they should be kept as-is.\n    data = [1, {\"a\": 2}, (3, 4), {5, 6}, \"x\", None, True]\n    assert flatten(data) == data\n\n\ndef test_flatten_error_case_iterable_but_not_list():\n    # Function expects a list; passing a tuple should raise AttributeError\n    # because it tries to iterate (works) but violates annotation; however\n    # the function will still work for any iterable. Instead, test actual\n    # error by passing a non-iterable.\n    with pytest.raises(TypeError):\n        flatten(None)  # None is not iterable\n\n\ndef test_flatten_error_case_incorrect_inner_structure_type():\n    # If an item is a list-like subclass should still work, but if we pass\n    # an element that breaks recursion? Recursion only checks isinstance(item, list),\n    # so only non-iterable lists (impossible) would fail. A better error case:\n    # passing an integer at top-level should fail because it's not iterable.\n    with pytest.raises(TypeError):\n        flatten(123)\n\n\ndef test_flatten_does_not_mutate_input():\n    data = [1, [2, 3], []]\n    original = repr(data)\n    result = flatten(data)\n    assert result == [1, 2, 3]\n    assert repr(data) == original  # input remains unchanged\n\n\ndef test_flatten_handles_multiple_levels_of_nesting():\n    assert flatten([[[[1]]], 2, [[[3], 4], 5]]) == [1, 2, 3, 4, 5]\n```",
+  "score": 5,
+  "cost": 0.00023140000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 559
+  }
+}

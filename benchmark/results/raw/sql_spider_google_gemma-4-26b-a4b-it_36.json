@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT name\nFROM students\nJOIN likes ON students.id = likes.student_id\nGROUP BY students.id, name\nORDER BY COUNT(likes.id) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 7.68e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 47
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 24,
+  "response": "```python\nimport pytest\n\n# Assuming retry is imported from the module under test, e.g.:\n# from your_module import retry\n\n\ndef test_retry_happy_path_returns_value_first_attempt():\n    calls = {\"n\": 0}\n\n    def fn():\n        calls[\"n\"] += 1\n        return \"ok\"\n\n    assert retry(fn, max_attempts=3) == \"ok\"\n    assert calls[\"n\"] == 1\n\n\ndef test_retry_happy_path_succeeds_after_retries():\n    calls = {\"n\": 0}\n\n    def fn():\n        calls[\"n\"] += 1\n        if calls[\"n\"] < 3:\n            raise ValueError(\"temporary failure\")\n        return \"success\"\n\n    assert retry(fn, max_attempts=5) == \"success\"\n    assert calls[\"n\"] == 3  # fails twice, succeeds on 3rd attempt\n\n\ndef test_retry_error_when_always_fails_raises_last_exception():\n    calls = {\"n\": 0}\n\n    def fn():\n        calls[\"n\"] += 1\n        raise RuntimeError(\"always failing\")\n\n    with pytest.raises(RuntimeError, match=\"always failing\"):\n        retry(fn, max_attempts=3)\n\n    assert calls[\"n\"] == 3  # exhausted all attempts\n\n\ndef test_retry_edge_case_max_attempts_1_raises_after_first_failure():\n    calls = {\"n\": 0}\n\n    def fn():\n        calls[\"n\"] += 1\n        raise KeyError(\"boom\")\n\n    with pytest.raises(KeyError, match=\"boom\"):\n        retry(fn, max_attempts=1)\n\n    assert calls[\"n\"] == 1\n\n\ndef test_retry_edge_case_max_attempts_0_no_attempts_returns_none():\n    # Note: with max_attempts=0, the loop never runs and function falls through.\n    calls = {\"n\": 0}\n\n    def fn():\n        calls[\"n\"] += 1\n        return \"would not be called\"\n\n    assert retry(fn, max_attempts=0) is None\n    assert calls[\"n\"] == 0\n\n\ndef test_retry_error_case_invalid_max_attempts_negative_acts_like_zero():\n    # Current implementation: range(negative) is empty, so no calls; returns None.\n    calls = {\"n\": 0}\n\n    def fn():\n        calls[\"n\"] += 1\n        return \"would not be called\"\n\n    assert retry(fn, max_attempts=-3) is None\n    assert calls[\"n\"] == 0\n\n\ndef test_retry_propagates_non_standard_exceptions_generally():\n    # Ensures it catches \"Exception\" subclasses; if you want to confirm it doesn't\n    # catch BaseException types like KeyboardInterrupt, include such a test.\n    def fn():\n        raise KeyboardInterrupt(\"stop\")\n\n    with pytest.raises(KeyboardInterrupt, match=\"stop\"):\n        retry(fn, max_attempts=3)\n```",
+  "score": 4,
+  "cost": 0.00024960000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 604
+  }
+}

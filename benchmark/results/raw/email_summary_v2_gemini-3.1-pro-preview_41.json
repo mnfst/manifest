@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Ops recommends upgrading the near-capacity network to 10Gbps for $45K upfront and $2K monthly to accommodate projected growth, rather than implementing a $15K optimization alternative. Please review and approve this proposal to prevent recurring capacity issues within the next six months.",
+  "score": 5,
+  "cost": 0.00116,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 59
+  }
+}

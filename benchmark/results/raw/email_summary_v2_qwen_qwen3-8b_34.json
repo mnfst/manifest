@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The database team is migrating from MySQL 5.7 to PostgreSQL 16, with schema conversion and testing in May, a dual-write period in June, and a cutover in July, using a blue-green deployment to avoid downtime. Key risks include rewriting three stored procedures, though the testing environment is already prepared.",
+  "score": 5,
+  "cost": 1.605e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 221
+  }
+}

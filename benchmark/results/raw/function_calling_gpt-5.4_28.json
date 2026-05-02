@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "function_calling",
+  "case": 28,
+  "response": "{\"name\":\"block_ip\",\"arguments\":{\"ip\":\"192.168.1.100\"}}",
+  "score": 4,
+  "cost": 0.000342,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 21
+  }
+}

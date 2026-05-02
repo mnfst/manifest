@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "extraction_hard_v2",
+  "case": 9,
+  "response": "```json\n{\n  \"restaurant\": \"Chez Marcel\",\n  \"reviewer\": \"@foodie_jane\",\n  \"date\": \"March 2024\",\n  \"wait_time_min\": 40,\n  \"dishes\": [\n    {\n      \"name\": \"duck confit\",\n      \"rating\": \"4.5/5\"\n    },\n    {\n      \"name\": \"creme brulee\",\n      \"rating\": \"3/5\"\n    }\n  ],\n  \"wine\": {\n    \"name\": \"2019 Chateau Margaux\",\n    \"year\": 2019\n  },\n  \"bill_total\": 247,\n  \"party_size\": 2,\n  \"ratings\": {\n    \"food\": 3.5,\n    \"service\": 3.5,\n    \"ambiance\": 4,\n    \"value\": 3,\n    \"overall\": 3.75\n  },\n  \"would_return\": true\n}\n```",
+  "score": 4,
+  "cost": 1.3202999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 288,
+    "output": 201
+  }
+}

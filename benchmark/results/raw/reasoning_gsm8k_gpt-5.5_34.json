@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Tickets cost: $20.25\n\nFood cost was $4.50 less than tickets:\n\n$20.25 - $4.50 = $15.75\n\nThey went on 2 rides, and each ride cost $33:\n\n2 \u00d7 $33 = $66\n\nTotal cost:\n\n$20.25 + $15.75 + $66 = $102\n\nThey split the cost evenly among 3 friends:\n\n$102 \u00f7 3 = $34\n\nANSWER: 34",
+  "score": 4,
+  "cost": 0.002856,
+  "expected": "34",
+  "tokens": {
+    "input": 104,
+    "output": 212
+  }
+}

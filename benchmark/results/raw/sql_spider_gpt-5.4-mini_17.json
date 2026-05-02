@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "SELECT s.name\nFROM stadium AS s\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM concert AS c\n    WHERE c.stadium_id = s.stadium_id\n      AND EXTRACT(YEAR FROM c.concert_date) = 2014\n);",
+  "score": 5,
+  "cost": 9.9e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 63
+  }
+}

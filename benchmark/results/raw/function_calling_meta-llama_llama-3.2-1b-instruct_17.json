@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 17,
+  "response": "To generate a QR code for the given URL, you can use the `generate_qr` function. Here's how you can do it:\n\n```python\nimport qrcode\n\ndef generate_qr(data: str, size: int = 256) -> dict:\n    qr = qrcode.QRCode(\n        version=1,\n        error_correction=qrcode.constants.ERROR_CORRECT_L,\n        box_size=size,\n        border=4,\n    )\n    qr.add_data(data)\n    qr.make(fit=True)\n    img = qr.make_image(fill_color=\"black\", back_color=\"white\")\n    img.save(\"qr_code.png\")\n    return {\"name\": \"generate_qr\", \"arguments\": {\"data\": data, \"size\": size}}\n\n# Usage\nqr_data = generate_qr(\"https://example.com/signup\")\nprint(qr_data)\n```\n\nThis will generate a QR code for the given URL and save it as a PNG image named `qr_code.png`. The `generate_qr` function returns a dictionary with the function name and the arguments passed to it, which in this case are the URL and the size of the QR code.",
+  "score": 1,
+  "cost": 9.018e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 234
+  }
+}

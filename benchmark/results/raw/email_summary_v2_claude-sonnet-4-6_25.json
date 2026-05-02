@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The company hit 10K monthly active users, closed an $8M Series A term sheet at a $40M pre-money valuation, and hired a VP of Sales, with MRR at $85K and 11 months of runway post-raise. Investors should note that the fundraising round closes on May 10.",
+  "score": 5,
+  "cost": 0.001461,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 74
+  }
+}

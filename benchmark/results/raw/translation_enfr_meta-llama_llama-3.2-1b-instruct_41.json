@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "Je suis pas dans le DGA. Juste zoom in et arr\u00eate de parler.\n\nNote: The translation is literal and maintains the tone and meaning of the original English text. However, please keep in mind that the translation may not be idiomatic or natural-sounding in French, as the original text is quite informal and confrontational.",
+  "score": 3,
+  "cost": 3.105e-06,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 69
+  }
+}

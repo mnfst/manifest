@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Depending on the desired level of formality, here are the best ways to translate this:\n\n**1. Most natural/standard:**\n> \u00ab Cela ne peut mener qu'au chaos et \u00e0 la terreur. \u00bb\n\n**2. Slightly more formal/literary:**\n> \u00ab Cela ne peut conduire qu'au chaos et \u00e0 la terreur. \u00bb\n\n**3. More emphatic/dramatic:**\n> \u00ab Cela ne peut aboutir qu'au chaos et \u00e0 la terreur. \u00bb\n\n**Key nuances:**\n* **Cela/\u00c7a:** *Cela* is better for written or formal speech; *\u00c7a* is used in casual conversation.\n* **Mener/Conduire/Aboutir:** All mean \"to lead to,\" but *aboutir* implies a final, inevitable result.\n* **Ne... que:** This is the most accurate way to translate \"only\" in this context (meaning \"nothing but\").",
+  "score": 5,
+  "cost": 1.4099999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 193
+  }
+}

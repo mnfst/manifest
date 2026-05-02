@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Step 1: We are told that Mike is 24 years old.  \nStep 2: Martha is 4 years younger than Mike. So, Martha's age = Mike's age - 4 = 24 - 4 = 20.  \nStep 3: Jeff is 10 years older than Martha. So, Jeff's age = Martha's age + 10 = 20 + 10 = 30.  \n\nFinal Answer:  \nANSWER: 30",
+  "score": 5,
+  "cost": 6.6e-06,
+  "expected": "30",
+  "tokens": {
+    "input": 94,
+    "output": 106
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 29,
+  "response": "{\"name\": \"ocr_document\", \"arguments\": {\"path\": \"uploads contract.pdf\", \"language\": \"en\"}}",
+  "score": 5,
+  "cost": 3.7620000000000006e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 24
+  }
+}

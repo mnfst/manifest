@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT year\nFROM concerts\nGROUP BY year\nORDER BY COUNT(*) DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 6.359999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 26
+  }
+}

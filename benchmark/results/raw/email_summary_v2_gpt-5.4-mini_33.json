@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 employee engagement survey showed strong overall engagement at 7.8/10, above the industry average, with team collaboration as the highest score and career growth clarity as the lowest. The People Team will discuss the results at Friday\u2019s town hall and plans to implement quarterly career conversations, an internal mobility program, and mentorship matching.",
+  "score": 5,
+  "cost": 0.00011819999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 70
+  }
+}

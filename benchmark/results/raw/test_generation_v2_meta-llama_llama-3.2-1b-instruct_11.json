@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 11,
+  "response": "Here are some unit tests for the `merge_sorted` function using pytest style:\n\n```python\nimport pytest\n\ndef test_merge_sorted_empty_lists():\n    # Test with empty lists\n    assert merge_sorted([], []) == []\n\ndef test_merge_sorted_single_element_lists():\n    # Test with single element lists\n    assert merge_sorted([1], [2]) == [1, 2]\n    assert merge_sorted([2], [1]) == [1, 2]\n\ndef test_merge_sorted_lists_with_duplicates():\n    # Test with lists with duplicates\n    assert merge_sorted([1, 2, 3], [3, 2, 1]) == [1, 2, 3, 3, 2, 1]\n    assert merge_sorted([1, 2, 3], [3, 2, 1, 4]) == [1, 2, 3, 3, 2, 4]\n\ndef test_merge_sorted_lists_with_negative_numbers():\n    # Test with lists containing negative numbers\n    assert merge_sorted([-5, -3, -1], [-8, -6, -4]) == [-8, -6, -5, -4, -3, -1]\n    assert merge_sorted([-5, -3, -1], [-8, -6, -4, -2]) == [-8, -6, -5, -4, -3, -2]\n\ndef test_merge_sorted_lists_with_large_numbers():\n    # Test with large lists\n    import random\n    a = [random.randint(0, 100) for _ in range(1000)]\n    b = [random.randint(0, 100) for _ in range(1000)]\n    assert merge_sorted(a, b) == sorted(a + b)\n\ndef test_merge_sorted_lists_with_negative_large_numbers():\n    # Test with lists containing negative large numbers\n    a = [-100, -50, -20]\n    b = [-200, -150, -80]\n    assert merge_sorted(a, b) == [-200, -150, -100, -80, -50, -20]\n\ndef test_merge_sorted_lists_with_non_numeric_values():\n    # Test with lists containing non-numeric values\n    assert merge_sorted([1, 'a', 2, 'b'], [3, 4, 'c']) == [1, 2, 3, 4, 'a', 'b']\n    assert merge_sorted([1, 'a', 2, 'b'], [3, 4, 'c', 'd']) == [1, 2, 3, 4, 'a', 'b', 'd']\n\ndef test_merge_sorted_lists_with_duplicates_and_negative_numbers():\n    # Test with lists containing duplicates and negative numbers\n    a = [-5, -3, -1, 0, 1]\n    b = [3, 2, 4, 5, 6]\n    assert merge_sorted(a, b) == [-5, -3, -1, 0, 1, 2, 3, 4, 5, 6]\n```\n\nThese tests cover the following scenarios:\n\n* Empty lists\n* Single element lists\n* Lists with duplicates\n* Lists with negative numbers\n* Lists with large numbers\n* Lists with negative large numbers\n* Lists with non-numeric values\n* Lists with duplicates and negative numbers\n\nNote that these tests are not exhaustive, and you may want to add additional tests to cover more edge cases.",
+  "score": 3,
+  "cost": 2.3355e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 736
+  }
+}

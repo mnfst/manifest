@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "extraction_hard_v2",
+  "case": 35,
+  "response": "{\"show\":\"The Changelog\",\"episode_number\":587,\"title\":\"Why SQLite is taking over the world\",\"guest\":{\"name\":\"Dr. Richard Hipp\",\"role\":\"SQLite creator\"},\"recorded\":\"March 12, 2024\",\"duration_minutes\":83,\"downloads_first_week\":47291,\"chapters\":[{\"timestamp\":\"00:00\",\"title\":\"Intro\"},{\"timestamp\":\"03:45\",\"title\":\"How SQLite started as a Tcl extension\"},{\"timestamp\":\"12:30\",\"title\":\"The testing philosophy (100% MC/DC coverage)\"},{\"timestamp\":\"28:15\",\"title\":\"SQLite in unexpected places (phones, browsers, aircraft)\"},{\"timestamp\":\"45:00\",\"title\":\"WASM compilation and running in the browser\"},{\"timestamp\":\"58:30\",\"title\":\"Competing with PostgreSQL?\"},{\"timestamp\":\"1:12:00\",\"title\":\"Future plans and the SQLite consortium\"},{\"timestamp\":\"1:20:00\",\"title\":\"Outro\"}],\"sponsors\":[\"Fly.io\",\"Sentry\",\"Retool\"]}",
+  "score": 4,
+  "cost": 0.0003279,
+  "expected": "",
+  "tokens": {
+    "input": 265,
+    "output": 207
+  }
+}

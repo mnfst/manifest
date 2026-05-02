@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "{\n  \"persons\": [\"Hurricane Maria\"],\n  \"organizations\": [\"Puerto Rico\", \"Dominican Republic\"],\n  \"locations\": [\"September\"]",
+  "score": 1,
+  "cost": 2.8620000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 32
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "French: J'ai des \u00e9clairs \u00e0 la cr\u00e8me, des confiseries, du hareng marin\u00e9 et des dattes cristallis\u00e9es.",
+  "score": 4,
+  "cost": 0.00069,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 36
+  }
+}

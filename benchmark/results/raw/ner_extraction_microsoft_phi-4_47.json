@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "```json\n{\n  \"persons\": [\"Alain Aspect\"],\n  \"organizations\": [\"Nobel Prize in Physics\", \"Universite Paris-Saclay\"],\n  \"locations\": [\"Stockholm\"]\n}\n```",
+  "score": 4,
+  "cost": 7.735e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 43
+  }
+}

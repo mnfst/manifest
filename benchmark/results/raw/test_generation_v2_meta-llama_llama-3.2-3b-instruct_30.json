@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "Here's an example of how you can write unit tests for the `snake_to_camel` function using pytest:\n\n```python\nimport pytest\n\ndef test_snake_to_camel_happy_path():\n    \"\"\"Test happy path: snake case string is converted to camel case\"\"\"\n    assert snake_to_camel('hello_world') == 'HelloWorld'\n\ndef test_snake_to_camel_multiple_words():\n    \"\"\"Test multiple words in snake case\"\"\"\n    assert snake_to_camel('hello_world_this_is_a_test') == 'HelloWorldThisIsATest'\n\ndef test_snake_to_camel_empty_string():\n    \"\"\"Test empty string\"\"\"\n    assert snake_to_camel('') == ''\n\ndef test_snake_to_camel_single_word():\n    \"\"\"Test single word in snake case\"\"\"\n    assert snake_to_camel('hello') == 'Hello'\n\ndef test_snake_to_camel_no_underscores():\n    \"\"\"Test string without underscores\"\"\"\n    assert snake_to_camel('hello') == 'hello'\n\ndef test_snake_to_camel_all_uppercase():\n    \"\"\"Test string with all uppercase letters\"\"\"\n    assert snake_to_camel('HELLO') == 'HELLO'\n\ndef test_snake_to_camel_all_lowercase():\n    \"\"\"Test string with all lowercase letters\"\"\"\n    assert snake_to_camel('hello') == 'hello'\n\ndef test_snake_to_camel_non_string_input():\n    \"\"\"Test non-string input\"\"\"\n    with pytest.raises(TypeError):\n        snake_to_camel(123)\n\ndef test_snake_to_camel_none_input():\n    \"\"\"Test None input\"\"\"\n    with pytest.raises(TypeError):\n        snake_to_camel(None)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: a string with underscores\n* Multiple words in snake case\n* Empty string\n* Single word in snake case\n* String without underscores\n* String with all uppercase letters\n* String with all lowercase letters\n* Non-string input (should raise a TypeError)\n* None input (should raise a TypeError)\n\nNote that these tests are just a starting point, and you may want to add more tests to cover additional edge cases or scenarios.",
+  "score": 5,
+  "cost": 2.5857e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 431
+  }
+}

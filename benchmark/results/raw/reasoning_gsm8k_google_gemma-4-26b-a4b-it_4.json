@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "To find the total amount of yarn used by Mariah and her grandma, we can follow these steps:\n\n**Step 1: Determine the total fraction of the skein used.**\nMariah used $\\frac{1}{4}$ of a skein.\nHer grandma used $\\frac{1}{2}$ of a skein.\nTo add these fractions, we need a common denominator. The common denominator for 4 and 2 is 4.\n$\\frac{1}{2} = \\frac{2}{4}$\n\nNow, add the fractions together:\n$\\frac{1}{4} + \\frac{2}{4} = \\frac{3}{4}$\nSo, they used $\\frac{3}{4}$ of a skein of yarn altogether.\n\n**Step 2: Calculate the total number of yards used.**\nWe know that one full skein contains 364 yards. To find $\\frac{3}{4}$ of 364 yards, we multiply the total yards by the fraction used:\n$\\text{Total yards} = 364 \\times \\frac{3}{4}$\n\nFirst, divide 364 by 4:\n$364 \\div 4 = 91$\n\nNext, multiply the result by 3:\n$91 \\times 3 = 273$\n\nAlternatively, you can multiply 364 by 3 first and then divide by 4:\n$364 \\times 3 = 1092$\n$1092 \\div 4 = 273$\n\n**Conclusion:**\nMariah and her grandma used 273 yards of yarn altogether.\n\nANSWER: 273",
+  "score": 5,
+  "cost": 2.868e-05,
+  "expected": "273",
+  "tokens": {
+    "input": 110,
+    "output": 368
+  }
+}

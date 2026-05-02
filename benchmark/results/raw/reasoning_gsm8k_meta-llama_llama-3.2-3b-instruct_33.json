@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "To solve this problem, we need to first find the total cost of the lollipops and the total cost of the candies separately.\n\nThe cost of 5 lollipops is 5 x $0.40 = $2.00.\n\nThe cost of 4 candies is $3.20 - $2.00 = $1.20.\n\nNow, we need to find the cost of 10 lollipops and 10 candies. \n\nThe cost of 10 lollipops is 10 x $0.40 = $4.00.\n\nThe cost of 10 candies is 10 x $1.20 = $12.00.\n\nThe total cost of 10 lollipops and 10 candies is $4.00 + $12.00 = $16.00.\n\nANSWER: 16",
+  "score": 2,
+  "cost": 1.3463999999999998e-05,
+  "expected": "7",
+  "tokens": {
+    "input": 91,
+    "output": 173
+  }
+}

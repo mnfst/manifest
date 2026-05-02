@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Nous pourrions vous r\u00e9server pour de la sollicitation.",
+  "score": 4,
+  "cost": 9.1e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 15
+  }
+}

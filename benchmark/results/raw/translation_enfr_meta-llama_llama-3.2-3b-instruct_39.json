@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Connaissez-vous d'o\u00f9 vient l'argent ?",
+  "score": 5,
+  "cost": 2.601e-06,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 13
+  }
+}

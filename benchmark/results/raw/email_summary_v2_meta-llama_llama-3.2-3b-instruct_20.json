@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "Here is a 2-sentence summary of the email:\n\nA disk space alert was triggered on the prod-db-01 server on Saturday morning, prompting an automated cleanup that freed 40GB of space but failed to resize the disk. The issue was resolved manually at 8 AM, and the root cause was determined to be a misconfigured log rotation after the last migration, with no customer impact due to a planned maintenance window.",
+  "score": 5,
+  "cost": 9.485999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 87
+  }
+}

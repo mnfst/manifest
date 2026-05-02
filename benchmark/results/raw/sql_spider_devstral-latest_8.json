@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT cl.language) AS total_unique_languages\nFROM country c\nJOIN countrylanguage cl ON c.code = cl.countrycode\nWHERE c.independenceyear < 1930\nAND cl.isofficial = TRUE;\n```",
+  "score": 4,
+  "cost": 2.44e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 55
+  }
+}

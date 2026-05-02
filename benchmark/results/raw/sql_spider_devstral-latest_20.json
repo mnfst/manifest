@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT a.abbreviation, a.country\nFROM airlines a\nJOIN flights f ON a.id = f.airline_id\nGROUP BY a.id, a.abbreviation, a.country\nORDER BY COUNT(f.id) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 2.4599999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 58
+  }
+}

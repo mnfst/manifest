@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "To solve this problem, we need to first find the original cost of filling one balloon. \n\nLet's start by finding the original cost of filling one balloon. We know that 20 balloons cost $900, so we can divide $900 by 20 to find the cost of one balloon:\n\n$900 \u00f7 20 = $45\n\nThis means that the original cost of filling one balloon was $45.\n\nTwo days later, the cost of filling each balloon was increased by $20. So, the new cost of filling one balloon is:\n\n$45 + $20 = $65\n\nNow, we need to find the cost of filling 170 balloons at the new price. We can multiply the new cost of one balloon by 170:\n\n$65 \u00d7 170 = $11,100\n\nTherefore, Bentley paid $11,100 to fill 170 balloons after the price increase.\n\nANSWER: 110100",
+  "score": 4,
+  "cost": 1.4738999999999997e-05,
+  "expected": "11050",
+  "tokens": {
+    "input": 103,
+    "output": 186
+  }
+}

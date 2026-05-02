@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 43,
+  "response": "To revert the last commit on the `develop` branch, you would use the `git revert` command. Here's the correct function call:\n\n```bash\ngit revert develop\n```\n\nThis command will revert the last commit on the `develop` branch to its previous state, effectively undoing the changes made in the last commit.",
+  "score": 1,
+  "cost": 4.536e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 68
+  }
+}

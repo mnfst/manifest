@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "Engineering, Sales, and Support met or exceeded their OKR targets this quarter, while Product fell short due to a delayed AI feature. The AI OKR should be carried forward with increased resource allocation, and next quarter planning begins Monday.",
+  "score": 5,
+  "cost": 0.001191,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 52
+  }
+}

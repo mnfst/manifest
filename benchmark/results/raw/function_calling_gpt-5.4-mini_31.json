@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "function_calling",
+  "case": 31,
+  "response": "{\"name\":\"archive_emails\",\"arguments\":{\"folder\":\"inbox\",\"older_than_days\":180}}",
+  "score": 5,
+  "cost": 5.6099999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 23
+  }
+}

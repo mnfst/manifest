@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "{\n  \"persons\": [\"Jensen Huang\"],\n  \"organizations\": [\"Nvidia\", \"GTC\"],\n  \"locations\": [\"San Jose\"]\n}",
+  "score": 5,
+  "cost": 3.6960000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 31
+  }
+}

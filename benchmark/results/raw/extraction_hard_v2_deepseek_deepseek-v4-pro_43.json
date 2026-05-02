@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "extraction_hard_v2",
+  "case": 43,
+  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout\",\n  \"summary\": \"Checkout page crashes after payment with white screen and console errors\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Go to checkout\",\n    \"Enter card information\",\n    \"Click pay button\",\n    \"Observe spinner for 30 seconds then white screen\"\n  ],\n  \"expected_behavior\": \"Payment processes successfully and order confirmation is displayed\",\n  \"actual_behavior\": \"Spinner appears for 30 seconds, then white screen with no error message; console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 5,
+  "cost": 0.00116145,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 625
+  }
+}

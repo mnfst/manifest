@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "First month: Elaine had 20 cards initially. After a month, she collected three times that number, so in month 1 she has  \n\\(3 \\times 20 = 60\\) cards.\n\nSecond month: She collected 20 fewer cards than in the first month, so month 2 is  \n\\(60 - 20 = 40\\) cards.\n\nThird month: She collected twice the combined number from the first and second months, so  \n\\(2 \\times (60 + 40) = 2 \\times 100 = 200\\) cards.\n\nTotal cards now (add all three months):  \n\\(60 + 40 + 200 = 300\\).\n\nANSWER: 300",
+  "score": 5,
+  "cost": 7.010000000000001e-05,
+  "expected": "320",
+  "tokens": {
+    "input": 113,
+    "output": 147
+  }
+}

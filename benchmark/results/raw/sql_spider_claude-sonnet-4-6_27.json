@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT c.Name\nFROM country c\nJOIN countrylanguage cl1 ON c.Code = cl1.CountryCode\nJOIN countrylanguage cl2 ON c.Code = cl2.CountryCode\nWHERE cl1.Language = 'English'\nAND cl2.Language = 'French';",
+  "score": 5,
+  "cost": 0.001329,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 73
+  }
+}

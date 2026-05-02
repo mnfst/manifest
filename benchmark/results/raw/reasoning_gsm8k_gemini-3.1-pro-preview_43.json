@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "To find Jeff's age, we can work backwards from the information given about Mike.\n\nStep 1: Find Martha's age.\nWe know that Mike is 24 years old and Martha is 4 years younger than Mike. \nMartha's age = 24 - 4 = 20 years old.\n\nStep 2: Find Jeff's age.\nWe know that Jeff is 10 years older than Martha.\nJeff's age = 20 + 10 = 30 years old.\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.0020225,
+  "expected": "30",
+  "tokens": {
+    "input": 83,
+    "output": 121
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page crashes to a white screen after submitting payment\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Go to checkout\",\n    \"Enter card info\",\n    \"Hit pay\"\n  ],\n  \"expected_behavior\": \"Payment processes successfully and completes the checkout\",\n  \"actual_behavior\": \"Spinner shows for 30 seconds followed by a white screen with no error message. Console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 5,
+  "cost": 0.0030525,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 175
+  }
+}

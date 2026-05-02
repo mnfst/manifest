@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT airport_code\nFROM airports\nJOIN flights ON airports.airport_code = flights.destairport OR airports.airport_code = flights.sourceairport\nGROUP BY airport_code\nORDER BY COUNT(*) ASC\nLIMIT 1;",
+  "score": 4,
+  "cost": 0.001086,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 57
+  }
+}

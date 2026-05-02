@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "Five lollipops cost:\n\n\\(5 \\times 0.40 = 2.00\\)\n\nSo the four candies cost:\n\n\\(3.20 - 2.00 = 1.20\\)\n\nEach candy costs:\n\n\\(1.20 \\div 4 = 0.30\\)\n\nNow, 10 lollipops cost:\n\n\\(10 \\times 0.40 = 4.00\\)\n\nAnd 10 candies cost:\n\n\\(10 \\times 0.30 = 3.00\\)\n\nTotal cost:\n\n\\(4.00 + 3.00 = 7.00\\)\n\nANSWER: 7.00",
+  "score": 5,
+  "cost": 0.003168,
+  "expected": "7",
+  "tokens": {
+    "input": 84,
+    "output": 243
+  }
+}

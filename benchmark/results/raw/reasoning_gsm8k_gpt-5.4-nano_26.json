@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Liam made $63 total for the weekend.\n\nMitchell \u201csold 21 lemonades at $4 apiece\u201d the same weekend, so Mitchell\u2019s total earnings were:\n\\[\n21 \\times 4 = 84\n\\]\n\nThe question asks how many more dollars Mitchell made than Liam:\n\\[\n84 - 63 = 21\n\\]\n\nANSWER: 21",
+  "score": 5,
+  "cost": 4.1800000000000006e-05,
+  "expected": "21",
+  "tokens": {
+    "input": 102,
+    "output": 79
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 13,
+  "response": "{\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}}\n{\"name\": \"set_thermostat\", \"arguments\": {\"temperature\": 72}}",
+  "score": 3,
+  "cost": 4.851000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 42
+  }
+}

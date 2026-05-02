@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "To find out how much Winston spent on fruit, we need to calculate the cost for each type of fruit he picked and then add them all together.\n\n1. **Cost of peaches:** \nWinston picked 6 pounds of peaches at $2.00 per pound.\n6 pounds * $2.00/pound = $12.00\n\n2. **Cost of plums:** \nWinston picked 8 pounds of plums at $1.00 per pound.\n8 pounds * $1.00/pound = $8.00\n\n3. **Cost of apricots:** \nWinston picked 6 pounds of apricots at $3.00 per pound.\n6 pounds * $3.00/pound = $18.00\n\n4. **Total cost:** \nNow, we add the cost of all the fruits together.\n$12.00 (peaches) + $8.00 (plums) + $18.00 (apricots) = $38.00\n\nANSWER: 38",
+  "score": 5,
+  "cost": 0.0037425,
+  "expected": "38",
+  "tokens": {
+    "input": 111,
+    "output": 231
+  }
+}

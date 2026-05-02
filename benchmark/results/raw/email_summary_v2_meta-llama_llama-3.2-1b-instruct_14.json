@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "Here is a 2-sentence summary of the email:\n\nAWS has reported a 40% increase in monthly costs due to the increased demand for machine learning training jobs, resulting in a $45,000 monthly impact. The company is offering two options to mitigate the cost increase: purchasing spot instances with a 70% savings, or reserving instances with a 30% savings, with a deadline of Friday.",
+  "score": 5,
+  "cost": 5.2919999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 84
+  }
+}

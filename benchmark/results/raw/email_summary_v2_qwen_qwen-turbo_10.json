@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has shared the Q1 board deck draft, highlighting strong revenue and NRR but increased CAC. They need the product roadmap section by Wednesday for the upcoming board meeting.",
+  "score": 5,
+  "cost": 4.389e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 36
+  }
+}

@@ -3,8 +3,8 @@
   "task": "extraction_hard_v2",
   "case": 2,
   "response": "{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"],\n  \"decisions\": [\"Push the recommendation engine to Q3 since data pipeline won't be ready until June\", \"Allocate 20% of sprint capacity to tech debt\"],\n  \"action_items\": [\n    {\"owner\": \"Marcus\", \"task\": \"Have onboarding mockups\", \"deadline\": \"2026-04-18\"},\n    {\"owner\": \"Jamie\", \"task\": \"Send updated roadmap\", \"deadline\": \"2026-04-13\"},\n    {\"owner\": \"Lin\", \"task\": \"Analytics dashboard before May board meeting\", \"deadline\": \"2026-05-01\"}\n  ]\n}",
-  "score": 0,
-  "cost": 0.001888,
+  "score": 4,
+  "cost": 0.00118,
   "expected": "",
   "tokens": {
     "input": 284,

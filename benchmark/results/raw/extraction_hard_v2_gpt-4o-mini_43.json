@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "extraction_hard_v2",
+  "case": 43,
+  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page is completely broken on Chrome.\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Go to checkout\",\n    \"Enter card information\",\n    \"Hit pay\"\n  ],\n  \"expected_behavior\": \"Successful payment processing without errors.\",\n  \"actual_behavior\": \"Spinner for 30 seconds then white screen with no error message.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 5,
+  "cost": 9.659999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 120
+  }
+}

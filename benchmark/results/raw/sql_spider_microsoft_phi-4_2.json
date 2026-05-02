@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "```sql\nSELECT stadium_name, capacity\nFROM concert_singer\nWHERE concert_date > '2013-12-31'\nGROUP BY stadium_name, capacity\nORDER BY COUNT(stadium_name) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 8.710000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 48
+  }
+}

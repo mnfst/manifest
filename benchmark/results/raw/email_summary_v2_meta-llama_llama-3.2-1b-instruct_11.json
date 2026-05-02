@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe SOC 2 Type II audit has been completed, and the results indicate no critical findings, but three areas of concern were identified that require remediation: insufficient access review frequency, a lack of testing of the incident response plan, and incomplete vendor risk assessments. The Compliance Team has identified a remediation plan to address these issues and will implement it within 30 days.",
+  "score": 5,
+  "cost": 5.13e-06,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 87
+  }
+}

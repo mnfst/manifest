@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "SELECT name \nFROM country \nWHERE continent = 'Africa' \nAND population < ANY (SELECT population FROM country WHERE continent = 'Asia')",
+  "score": 5,
+  "cost": 3.63e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 28
+  }
+}

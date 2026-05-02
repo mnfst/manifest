@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "To solve this problem, we need to determine how many pounds of insects a flock of ten ducks requires per day.\n\n1. **Determine the weekly insect requirement for one duck:**\n   - Each duck needs 3.5 pounds of insects per week.\n\n2. **Calculate the total weekly insect requirement for ten ducks:**\n   - Total weekly requirement = 3.5 pounds/duck \u00d7 10 ducks = 35 pounds of insects per week.\n\n3. **Convert the weekly requirement to a daily requirement:**\n   - There are 7 days in a week.\n   - Total daily requirement = Total weekly requirement / 7 days = 35 pounds / 7 days.\n\n4. **Perform the division:**\n   - 35 pounds \u00f7 7 days = 5 pounds per day.\n\nTherefore, the flock of ten ducks needs 5 pounds of insects per day.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 1.7355e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 82,
+    "output": 185
+  }
+}

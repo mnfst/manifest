@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "To solve this problem, we need to first find out how much money Gerald and Julia had initially.\n\nLet's say the total amount of money they had is x. Since they divided the money in the ratio 3:2, we can set up the equation:\n\n3x / 5x = 3/2\n\nTo solve for x, we can cross-multiply:\n\n3x = 3/2 * 5x\n3x = 15x/2\n6x = 15x/2\n6 = 15/2\n6 * 2 = 15\n12 = 15\n\nNow, we can divide both sides by 15:\n\nx = 12/15\nx = 4/5\n\nSo, Gerald and Julia initially had 4/5 of $100, which is $80.\n\nGerald spent $10 on a book, so he has:\n\n$100 - $10 = $90\n\nANSWER: 90",
+  "score": 1,
+  "cost": 7.479e-06,
+  "expected": "50",
+  "tokens": {
+    "input": 78,
+    "output": 199
+  }
+}

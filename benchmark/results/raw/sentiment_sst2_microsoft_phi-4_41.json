@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sentiment_sst2",
+  "case": 41,
+  "response": "positive",
+  "score": 5,
+  "cost": 4.94e-06,
+  "expected": "positive",
+  "tokens": {
+    "input": 74,
+    "output": 2
+  }
+}

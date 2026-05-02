@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 12,
+  "response": "Ce premier r\u00e9sultat, jug\u00e9 exceptionnel, a permis l'identification de 80 signaux acoustiques diff\u00e9rents \u00e0 proximit\u00e9 du Rocas Consag. Ces r\u00e9sultats confirment les \u00e9tudes pr\u00e9c\u00e9dentes sur la r\u00e9partition de la vaquita dans la r\u00e9gion.",
+  "score": 5,
+  "cost": 7.5e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 50
+  }
+}

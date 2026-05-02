@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "To determine how many wheels will be left after Henry assembles all the toys, we follow these steps:\n\n---\n\n### **Step 1: Calculate the number of wheels needed for the cars**\nEach car requires **4 wheels**, and there are **57 cars**.\n\n$$\n57 \\times 4 = 228 \\text{ wheels}\n$$\n\n---\n\n### **Step 2: Calculate the number of wheels needed for the motorcycles**\nEach motorcycle requires **2 wheels**, and there are **73 motorcycles**.\n\n$$\n73 \\times 2 = 146 \\text{ wheels}\n$$\n\n---\n\n### **Step 3: Find the total number of wheels needed**\nAdd the wheels required for cars and motorcycles:\n\n$$\n228 + 146 = 374 \\text{ wheels}\n$$\n\n---\n\n### **Step 4: Subtract the total wheels needed from the available wheels**\nHenry has **650 wheels** in total. Subtract the wheels used:\n\n$$\n650 - 374 = 276 \\text{ wheels}\n$$\n\n---\n\n### **Final Answer:**\n$$\n\\boxed{276}\n$$",
+  "score": 5,
+  "cost": 5.8750000000000005e-05,
+  "expected": "276",
+  "tokens": {
+    "input": 107,
+    "output": 1068
+  }
+}

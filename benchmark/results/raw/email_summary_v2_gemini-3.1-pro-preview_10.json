@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO shared the draft Q1 board deck, highlighting strong revenue and retention metrics despite an increase in customer acquisition costs. You must submit your section on the product roadmap by Wednesday in preparation for next Tuesday's board meeting.",
+  "score": 5,
+  "cost": 0.00089,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 45
+  }
+}

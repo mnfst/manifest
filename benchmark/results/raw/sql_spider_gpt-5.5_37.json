@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "SELECT Song_Name, Song_release_year\nFROM singer\nWHERE Age = (SELECT MIN(Age) FROM singer);",
+  "score": 3,
+  "cost": 0.002514,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 191
+  }
+}

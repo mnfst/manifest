@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The Q1 board deck draft shows strong performance at 127% of revenue target and 115% NRR, but CAC is up 22%. The CEO needs your product roadmap section by Wednesday ahead of next Tuesday\u2019s board meeting.",
+  "score": 5,
+  "cost": 0.003175,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 137
+  }
+}

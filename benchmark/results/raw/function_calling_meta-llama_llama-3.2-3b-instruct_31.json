@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 31,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"archive_emails\", \"arguments\": {\"folder\": \"inbox\", \"older_than_days\": 183}}\n```\n\nExplanation:\n\n* The `archive_emails` function is called with the `folder` argument set to `\"inbox\"`, which is the default value.\n* The `older_than_days` argument is set to `183`, which is equivalent to 6 months (30 days x 6).",
+  "score": 5,
+  "cost": 9.792e-06,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 96
+  }
+}

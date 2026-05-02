@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 29,
+  "response": "```json\n{\"name\": \"ocr_document\", \"arguments\": {\"path\": \"uploads contract.pdf\"}}\n```",
+  "score": 4,
+  "cost": 7.86e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 26
+  }
+}

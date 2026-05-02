@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "```python\n# test_palindrome.py\nimport pytest\n\nfrom your_module import is_palindrome  # Replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"value, expected\",\n    [\n        (\"racecar\", True),\n        (\"RaceCar\", True),\n        (\"nurses run\", True),\n        (\"Was it a car or a cat I saw\", True),\n        (\"hello\", False),\n        (\"palindrome\", False),\n        (\"ab\", False),\n    ],\n)\ndef test_is_palindrome_happy_path(value, expected):\n    assert is_palindrome(value) is expected\n\n\n@pytest.mark.parametrize(\n    \"value, expected\",\n    [\n        (\"\", True),\n        (\" \", True),\n        (\"     \", True),\n        (\"a\", True),\n        (\"A\", True),\n        (\"aa\", True),\n        (\"Aa\", True),\n    ],\n)\ndef test_is_palindrome_edge_cases(value, expected):\n    assert is_palindrome(value) is expected\n\n\ndef test_is_palindrome_ignores_spaces_only():\n    assert is_palindrome(\"a b a\") is True\n\n\ndef test_is_palindrome_does_not_ignore_punctuation():\n    assert is_palindrome(\"Madam, I'm Adam\") is False\n\n\ndef test_is_palindrome_does_not_ignore_tabs():\n    assert is_palindrome(\"a\\tba\") is False\n\n\n@pytest.mark.parametrize(\"value\", [None, 123, [\"racecar\"]])\ndef test_is_palindrome_invalid_types_raise_attribute_error(value):\n    with pytest.raises(AttributeError):\n        is_palindrome(value)\n\n\ndef test_is_palindrome_bytes_raise_type_error():\n    with pytest.raises(TypeError):\n        is_palindrome(b\"racecar\")\n```",
+  "score": 5,
+  "cost": 0.010566,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 865
+  }
+}

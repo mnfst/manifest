@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement du personnel au EUSR.",
+  "score": 4,
+  "cost": 2.739e-06,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 29
+  }
+}

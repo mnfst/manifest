@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "To solve this problem, we need to determine how much Elvis needs to save each day in the **second half** of April, given that he wants to save **twice as much daily in the second half** as he does in the **first half**, while still meeting his **monthly target of $1125**.\n\n---\n\n### Step 1: Understand the structure of April\nApril has **30 days**.  \n- The **first half** of April is the first **15 days**.  \n- The **second half** of April is the next **15 days**.\n\n---\n\n### Step 2: Define variables\nLet $ x $ be the amount Elvis saves per day in the **first half** of the month.\n\nThen, in the **second half**, he saves $ 2x $ per day (twice as much as the first half).\n\n---\n\n### Step 3: Set up the equation\nHe saves $ x $ per day for 15 days in the first half:  \nThat\u2019s $ 15x $.\n\nHe saves $ 2x $ per day for 15 days in the second half:  \nThat\u2019s $ 15 \\times 2x = 30x $.\n\nTotal savings for the month:  \n$$\n15x + 30x = 45x\n$$\n\nHe wants this total to equal his target:  \n$$\n45x = 1125\n$$\n\n---\n\n### Step 4: Solve for $ x $\n$$\nx = \\frac{1125}{45} = 25\n$$\n\nSo, Elvis saves **$25 per day** in the first half.\n\nIn the second half, he saves $ 2x = 2 \\times 25 = 50 $ per day.\n\n---\n\n### Final Answer:\nANSWER: 50",
+  "score": 5,
+  "cost": 1.65e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 108,
+    "output": 392
+  }
+}

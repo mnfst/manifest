@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 39,
+  "response": "```json\n{\n  \"name\": \"export_table\",\n  \"arguments\": {\n    \"table\": \"users\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 9.1e-06,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 29
+  }
+}

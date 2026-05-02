@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "**French:** \nIl a plut\u00f4t sugg\u00e9r\u00e9 que l'arm\u00e9e devrait jouer un r\u00f4le secondaire dans les op\u00e9rations antiterroristes. \n\n*(Note: \"Il\" is used as the default translation for \"It\", assuming it refers to a masculine noun like a report or a document. If \"It\" refers to a feminine noun in context, such as a study or a commission, you would use \"Elle\".)*",
+  "score": 4,
+  "cost": 0.0013925,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 86
+  }
+}

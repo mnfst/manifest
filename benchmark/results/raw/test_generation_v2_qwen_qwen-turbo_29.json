@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 29,
+  "response": "Here's a set of **pytest-style unit tests** for the `moving_average` function. These tests cover:\n\n- **Happy path**: Normal input with valid window size.\n- **Edge cases**: When the window is equal to the length of the data, or when the data is empty.\n- **Error cases**: When the window is invalid (e.g., zero or negative, or larger than the data length).\n\n### \u2705 `test_moving_average.py`\n\n```python\nimport pytest\n\ndef moving_average(data: list, window: int) -> list:\n    if window <= 0 or window > len(data):\n        return []\n    result = []\n    for i in range(len(data) - window + 1):\n        result.append(sum(data[i:i+window]) / window)\n    return result\n\n# Test cases\n\ndef test_moving_average_happy_path():\n    assert moving_average([1, 2, 3, 4, 5], 2) == [1.5, 2.5, 3.5, 4.5]\n\ndef test_moving_average_window_equal_to_data_length():\n    assert moving_average([10, 20, 30], 3) == [20.0]\n\ndef test_moving_average_window_larger_than_data_length():\n    assert moving_average([1, 2, 3], 4) == []\n\ndef test_moving_average_window_zero():\n    assert moving_average([1, 2, 3], 0) == []\n\ndef test_moving_average_negative_window():\n    assert moving_average([1, 2, 3], -1) == []\n\ndef test_moving_average_empty_data():\n    assert moving_average([], 2) == []\n\ndef test_moving_average_single_element():\n    assert moving_average([5], 1) == [5.0]\n\ndef test_moving_average_mixed_values():\n    assert moving_average([2, 4, 6, 8], 3) == [4.0, 6.0]\n\ndef test_moving_average_with_floats():\n    assert moving_average([1.5, 2.5, 3.5], 2) == [2.0, 3.0]\n```\n\n### \u2705 How to Run the Tests\n\nSave the above code in a file called `test_moving_average.py` and run it using pytest:\n\n```bash\npytest test_moving_average.py\n```\n\n### \ud83d\udca1 Notes\n\n- The function returns an empty list when the window is invalid (e.g., `window <= 0` or `window > len(data)`).\n- The function returns a list of floats, even if the input is all integers.\n- All test cases are designed to be simple and self-contained, using `assert` statements.\n\nLet me know if you want to test with more complex data or use fixtures.",
+  "score": 5,
+  "cost": 2.2968000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 593
+  }
+}

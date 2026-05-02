@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 9,
+  "response": "Here are some unit tests for the `max_subarray_sum` function using pytest style:\n\n```python\nimport pytest\n\ndef test_max_subarray_sum_happy_path():\n    # Test with a simple array\n    arr = [1, 2, 3, 4, 5]\n    expected = 15\n    assert max_subarray_sum(arr) == expected\n\ndef test_max_subarray_sum_edge_case_empty_array():\n    # Test with an empty array\n    arr = []\n    expected = 0\n    assert max_subarray_sum(arr) == expected\n\ndef test_max_subarray_sum_single_element_array():\n    # Test with an array containing a single element\n    arr = [5]\n    expected = 5\n    assert max_subarray_sum(arr) == expected\n\ndef test_max_subarray_sum_negative_numbers():\n    # Test with an array containing negative numbers\n    arr = [-1, -2, -3, -4, -5]\n    expected = -1\n    assert max_subarray_sum(arr) == expected\n\ndef test_max_subarray_sum_large_numbers():\n    # Test with a large array\n    arr = [1000, 2000, 3000, 4000, 5000]\n    expected = 15000\n    assert max_subarray_sum(arr) == expected\n\ndef test_max_subarray_sum_zero():\n    # Test with an array containing zeros\n    arr = [0, 0, 0, 0, 0]\n    expected = 0\n    assert max_subarray_sum(arr) == expected\n\ndef test_max_subarray_sum_negative_zero():\n    # Test with an array containing negative zeros\n    arr = [-1, -2, -3, -4, -5]\n    expected = -5\n    assert max_subarray_sum(arr) == expected\n\ndef test_max_subarray_sum_large_negative_numbers():\n    # Test with a large array containing negative numbers\n    arr = [-1000, -2000, -3000, -4000, -5000]\n    expected = -10000\n    assert max_subarray_sum(arr) == expected\n\ndef test_max_subarray_sum_large_negative_zero():\n    # Test with an array containing a large negative zero\n    arr = [-1000, -2000, -3000, -4000, -5000]\n    expected = -5000\n    assert max_subarray_sum(arr) == expected\n```\n\nThese tests cover the following cases:\n\n* Happy path: Test with a simple array\n* Edge case: Test with an empty array\n* Edge case: Test with an array containing a single element\n* Edge case: Test with an array containing negative numbers\n* Edge case: Test with a large array\n* Edge case: Test with a large array containing negative numbers\n* Edge case: Test with a large array containing a large negative zero\n* Edge case: Test with an array containing a large negative zero",
+  "score": 4,
+  "cost": 1.9251e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 610
+  }
+}

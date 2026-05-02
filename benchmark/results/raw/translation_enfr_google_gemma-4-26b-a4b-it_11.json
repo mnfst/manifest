@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "Voici une proposition de traduction qui conserve le ton formel et professionnel du texte original :\n\n**\u00ab Un grand nombre d'attractions et de produits touristiques (th\u00e9, itin\u00e9raires culturels, complexes de sant\u00e9 et de bien-\u00eatre et spas, gastronomie, activit\u00e9s nautiques, etc.) a \u00e9t\u00e9 identifi\u00e9 dans la destination ; ceux-ci n\u00e9cessitent un d\u00e9veloppement interd\u00e9pendant en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne. \u00bb**\n\n### Remarques sur les choix de traduction :\n*   **\"A wide number of\"** : Traduit par \u00ab Un grand nombre de \u00bb pour maintenir le registre soutenu.\n*   **\"Health and wellness resorts and spa\"** : Traduit par \u00ab complexes de sant\u00e9 et de bien-\u00eatre et spas \u00bb pour refl\u00e9ter l'aspect infrastructurel du terme *resort*.\n*   **\"Inter-dependent development\"** : Traduit par \u00ab d\u00e9veloppement interd\u00e9pendant \u00bb, ce qui est le terme technique appropri\u00e9 en gestion de destination.\n*   **\"Homogenous profile\"** : Traduit par \u00ab profil homog\u00e8ne \u00bb, respectant le vocabulaire de l'analyse de march\u00e9.",
+  "score": 5,
+  "cost": 1.9920000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 246
+  }
+}

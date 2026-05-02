@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "Sales hosted a workshop with 15 enterprise customers, who highlighted better bulk import, SSO support, and positive feedback on the new analytics dashboard, with some interest in the internal tool as a standalone product. Review the attached follow-up report and prioritize action on bulk import and SSO blockers.",
+  "score": 5,
+  "cost": 0.00132,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 83
+  }
+}

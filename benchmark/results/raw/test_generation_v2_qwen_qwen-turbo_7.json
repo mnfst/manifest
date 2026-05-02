@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 7,
+  "response": "Here's a set of **pytest-style unit tests** for the `remove_duplicates` function. These tests cover:\n\n- **Happy path**: A list with duplicates.\n- **Edge cases**:\n  - Empty list.\n  - A list with all unique elements.\n  - A list with all elements the same.\n- **Error cases**:\n  - Non-list input (though the function is typed as `list`, but to be safe, we can test with other types).\n\n```python\nimport pytest\n\ndef remove_duplicates(lst: list) -> list:\n    seen = set()\n    result = []\n    for item in lst:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result\n\n# Test cases\n\ndef test_remove_duplicates_happy_path():\n    assert remove_duplicates([1, 2, 2, 3, 4, 4, 5]) == [1, 2, 3, 4, 5]\n\ndef test_remove_duplicates_all_unique():\n    assert remove_duplicates([1, 2, 3]) == [1, 2, 3]\n\ndef test_remove_duplicates_all_same():\n    assert remove_duplicates(['a', 'a', 'a']) == ['a']\n\ndef test_remove_duplicates_empty_list():\n    assert remove_duplicates([]) == []\n\ndef test_remove_duplicates_with_none():\n    assert remove_duplicates([None, None, 1, 2]) == [None, 1, 2]\n\ndef test_remove_duplicates_with_mixed_types():\n    assert remove_duplicates([1, '1', 1, '1']) == [1, '1']\n\ndef test_remove_duplicates_non_list_input():\n    with pytest.raises(TypeError):\n        remove_duplicates(\"not a list\")\n\ndef test_remove_duplicates_non_list_input_with_int():\n    with pytest.raises(TypeError):\n        remove_duplicates(123)\n\ndef test_remove_duplicates_non_list_input_with_dict():\n    with pytest.raises(TypeError):\n        remove_duplicates({\"a\": 1})\n```\n\n### How to Run the Tests\n\nSave the above code in a file, say `test_remove_duplicates.py`, and run it with:\n\n```bash\npytest test_remove_duplicates.py\n```\n\nThis will execute all the test cases and report any failures.",
+  "score": 5,
+  "cost": 1.7886e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 457
+  }
+}

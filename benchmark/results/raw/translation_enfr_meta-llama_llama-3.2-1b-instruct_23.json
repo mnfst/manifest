@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les escaliers de d\u00e9charge qui sont cens\u00e9s assumer les \u00e9v\u00e9nements de crue sont int\u00e9gr\u00e9s soit dans les structures du barrage, soit construits comme des structures s\u00e9par\u00e9es.",
+  "score": 2,
+  "cost": 2.619e-06,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 42
+  }
+}

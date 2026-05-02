@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 26,
+  "response": "```json\n{\"name\": \"upload_file\", \"arguments\": {\"path\": \"report.pdf\", \"destination\": \"shared documents folder\"}}\n```",
+  "score": 5,
+  "cost": 6.9e-06,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 29
+  }
+}

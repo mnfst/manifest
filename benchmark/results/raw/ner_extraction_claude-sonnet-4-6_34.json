@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "```json\n{\n  \"persons\": [\"Gordon Ramsay\"],\n  \"organizations\": [\"Bellagio\"],\n  \"locations\": [\"Las Vegas\"]\n}\n```",
+  "score": 4,
+  "cost": 0.000876,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 43
+  }
+}

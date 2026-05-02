@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 17,
+  "response": "```python\nimport pytest\n\n# Assuming the function is imported from the module under test:\n# from your_module import is_balanced_parens\n\ndef test_happy_path_simple_balanced_parentheses():\n    assert is_balanced_parens(\"()\") is True\n\n\ndef test_happy_path_balanced_with_nested_mixed_types():\n    assert is_balanced_parens(\"({[]})\") is True\n\n\ndef test_happy_path_balanced_multiple_groups():\n    assert is_balanced_parens(\"()[]{}(([])){()}\") is True\n\n\ndef test_edge_case_empty_string():\n    assert is_balanced_parens(\"\") is True\n\n\ndef test_edge_case_only_opening_brackets():\n    assert is_balanced_parens(\"(((\") is False\n    assert is_balanced_parens(\"[[\") is False\n    assert is_balanced_parens(\"{\") is False\n\n\ndef test_edge_case_only_closing_brackets():\n    assert is_balanced_parens(\")\") is False\n    assert is_balanced_parens(\"]]\") is False\n    assert is_balanced_parens(\"}\") is False\n\n\ndef test_edge_case_misordered_but_all_brackets():\n    assert is_balanced_parens(\"([)]\") is False  # crossing pairs\n    assert is_balanced_parens(\"{[)]}\") is False\n\n\ndef test_edge_case_correct_type_order_but_extra_closing():\n    assert is_balanced_parens(\"()())\") is False\n    assert is_balanced_parens(\"([]]\") is False\n\n\ndef test_edge_case_correct_type_order_but_extra_opening():\n    assert is_balanced_parens(\"((())\") is False\n    assert is_balanced_parens(\"{[()\") is False\n\n\ndef test_happy_path_ignores_non_bracket_characters():\n    # Non-bracket characters should simply be skipped by the algorithm.\n    assert is_balanced_parens(\"a(b[c]{d})e\") is True\n    assert is_balanced_parens(\"no brackets here\") is True  # empty stack remains\n\n\ndef test_error_case_non_string_input_raises_type_error():\n    with pytest.raises(TypeError):\n        is_balanced_parens(None)\n\n    with pytest.raises(TypeError):\n        is_balanced_parens(123)\n\n    # This is also typically TypeError because integers aren't iterable\n    with pytest.raises(TypeError):\n        is_balanced_parens(1.23)\n```",
+  "score": 5,
+  "cost": 0.00021,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 496
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "Each duck needs 3.5 pounds of insects per week.\n\nFor 10 ducks:\n\n3.5 \u00d7 10 = 35 pounds per week\n\nThere are 7 days in a week, so per day:\n\n35 \u00f7 7 = 5\n\nThe flock needs 5 pounds of insects per day.\n\nANSWER: 5",
+  "score": 4,
+  "cost": 0.001656,
+  "expected": "5",
+  "tokens": {
+    "input": 76,
+    "output": 119
+  }
+}

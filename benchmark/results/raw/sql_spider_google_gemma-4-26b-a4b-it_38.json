@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT country_name, COUNT(language_name) AS language_count\nFROM country_languages\nGROUP BY country_name\nHAVING COUNT(language_name) > 2;\n```",
+  "score": 4,
+  "cost": 7.08e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 35
+  }
+}

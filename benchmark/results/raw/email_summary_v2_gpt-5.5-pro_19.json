@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "Datadog\u2019s $180K/year contract expires June 30, with a renewal offer of $155K/year for 3 years versus Grafana Cloud at $95K/year requiring a 3-month migration. Finance needs a decision on which option to choose by May 15.",
+  "score": 5,
+  "cost": 0.00256,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 103
+  }
+}

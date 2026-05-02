@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "La r\u00e9pression de ce type, conjointement avec l'arrestation r\u00e9cente de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de soi-disant fausses informations, a justement suscit\u00e9 la pr\u00e9occupation de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 8.580000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 67
+  }
+}

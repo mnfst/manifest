@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t\u2019aime bien\u2026 m\u00eame si je ne sais pas pourquoi.",
+  "score": 5,
+  "cost": 1.0300000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 17
+  }
+}

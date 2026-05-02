@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "ner_extraction",
+  "case": 28,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Johns Hopkins University\"],\n  \"locations\": [\"Baltimore\"]\n}\n```",
+  "score": 4,
+  "cost": 0.00075,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 35
+  }
+}

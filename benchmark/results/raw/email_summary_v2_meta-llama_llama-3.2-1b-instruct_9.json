@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe nightly ETL job failed due to an upstream schema change in Salesforce, causing data to be out of sync with dashboards. The issue has been fixed, and the backfill process is now running, but the data is still showing stale data since yesterday, and a full recovery is expected to be completed by 4 PM today.",
+  "score": 4,
+  "cost": 4.779e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 80
+  }
+}

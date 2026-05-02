@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The Database Team plans to migrate from MySQL 5.7 to PostgreSQL 16, with schema conversion and testing in May, a dual-write period in June, and cutover in July using a blue-green deployment to avoid downtime. Action items are to rewrite the 3 stored procedures identified as migration risks and continue testing in the ready test environment.",
+  "score": 5,
+  "cost": 0.000786,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 74
+  }
+}

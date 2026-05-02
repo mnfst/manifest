@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "function_calling",
+  "case": 6,
+  "response": "{\"name\":\"translate\",\"arguments\":{\"text\":\"The meeting has been rescheduled to Monday\",\"target_language\":\"Spanish\"}}",
+  "score": 4,
+  "cost": 0.00041,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 26
+  }
+}

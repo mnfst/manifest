@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "```python\nimport pytest\n\nfrom your_module import fizzbuzz  # change to the actual module name\n\n\n@pytest.mark.parametrize(\n    \"n, expected\",\n    [\n        (1, \"1\"),      # happy path: neither 3 nor 5\n        (2, \"2\"),\n        (3, \"Fizz\"),   # divisible by 3\n        (5, \"Buzz\"),   # divisible by 5\n        (6, \"Fizz\"),   # divisible by 3 only\n        (10, \"Buzz\"),  # divisible by 5 only\n        (15, \"FizzBuzz\"),  # divisible by both 3 and 5\n        (30, \"FizzBuzz\"),\n    ],\n)\ndef test_fizzbuzz_returns_expected_output(n, expected):\n    assert fizzbuzz(n) == expected\n\n\n@pytest.mark.parametrize(\n    \"n\",\n    [\n        0,    # edge case: 0 is divisible by 15\n        -3,   # negative divisible by 3\n        -5,   # negative divisible by 5\n        -15,  # negative divisible by 15\n    ],\n)\ndef test_fizzbuzz_handles_zero_and_negative_numbers(n):\n    result = fizzbuzz(n)\n    if n % 15 == 0:\n        assert result == \"FizzBuzz\"\n    elif n % 3 == 0:\n        assert result == \"Fizz\"\n    elif n % 5 == 0:\n        assert result == \"Buzz\"\n    else:\n        assert result == str(n)\n\n\n@pytest.mark.parametrize(\n    \"n\",\n    [\n        1.5,\n        \"3\",\n        None,\n        [],\n        {},\n    ],\n)\ndef test_fizzbuzz_raises_type_error_for_invalid_inputs(n):\n    with pytest.raises(TypeError):\n        fizzbuzz(n)\n```\n\nA note on the \u201cerror cases\u201d above: this function does not explicitly validate types, so invalid inputs fail naturally when `%` is applied. If you want stricter behavior, you\u2019d need to add input validation to `fizzbuzz` itself.",
+  "score": 5,
+  "cost": 0.0005406,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 427
+  }
+}

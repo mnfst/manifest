@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "calendar_update",
+  "score": 5,
+  "cost": 1.6797000000000002e-05,
+  "expected": "calendar",
+  "tokens": {
+    "input": 507,
+    "output": 2
+  }
+}

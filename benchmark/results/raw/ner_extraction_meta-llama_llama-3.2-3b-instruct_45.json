@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 45,
+  "response": "```\n{\n  \"persons\": [\"Leonardo da Vinci\"],\n  \"organizations\": [\"The Louvre Museum\", \"Royal Collection\"],\n  \"locations\": [\"Paris\"]\n}\n```",
+  "score": 5,
+  "cost": 5.864999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 37
+  }
+}

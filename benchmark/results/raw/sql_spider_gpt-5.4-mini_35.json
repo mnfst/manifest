@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "SELECT c.name\nFROM conductors c\nJOIN orchestras o\n  ON o.conductor_id = c.id\nGROUP BY c.id, c.name\nORDER BY COUNT(*) DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 5,
+  "cost": 7.95e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 48
+  }
+}

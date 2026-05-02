@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Nous pourrions vous inscrire pour une sollicitation.",
+  "score": 3,
+  "cost": 1.683e-06,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 13
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "{\n  \"persons\": [\n    \"Warren Buffett\"\n  ],\n  \"organizations\": [\n    \"Bank of America\",\n    \"SEC\"\n  ],\n  \"locations\": []\n}",
+  "score": 4,
+  "cost": 0.00084,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 45
+  }
+}

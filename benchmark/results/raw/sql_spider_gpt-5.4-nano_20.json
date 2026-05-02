@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "SELECT a.abbreviation, a.country\nFROM airlines a\nJOIN flights f ON f.airline_id = a.airline_id\nGROUP BY a.abbreviation, a.country\nORDER BY COUNT(*) ASC\nLIMIT 1;",
+  "score": 4,
+  "cost": 2.6700000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 48
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 26,
+  "response": "```python\nimport pytest\n\nfrom your_module import safe_divide\n\n\nclass TestSafeDivide:\n    def test_divides_two_numbers(self):\n        assert safe_divide(10, 2) == 5.0\n\n    def test_divides_negative_numbers(self):\n        assert safe_divide(-9, 3) == -3.0\n        assert safe_divide(9, -3) == -3.0\n        assert safe_divide(-9, -3) == 3.0\n\n    def test_returns_float_result(self):\n        result = safe_divide(5, 2)\n        assert result == 2.5\n        assert isinstance(result, float)\n\n    def test_returns_default_when_dividing_by_zero(self):\n        assert safe_divide(10, 0) == 0.0\n\n    def test_returns_custom_default_when_dividing_by_zero(self):\n        assert safe_divide(10, 0, default=99.9) == 99.9\n\n    def test_zero_divided_by_nonzero_is_zero(self):\n        assert safe_divide(0, 5) == 0.0\n\n    @pytest.mark.parametrize(\n        \"a,b,expected\",\n        [\n            (1, 1, 1.0),\n            (3.5, 0.5, 7.0),\n            (1e6, 1e3, 1000.0),\n            (-1e6, 1e3, -1000.0),\n        ],\n    )\n    def test_various_valid_inputs(self, a, b, expected):\n        assert safe_divide(a, b) == expected\n\n    def test_zero_divided_by_zero_returns_default(self):\n        assert safe_divide(0, 0) == 0.0\n\n    def test_zero_divided_by_zero_returns_custom_default(self):\n        assert safe_divide(0, 0, default=-1.0) == -1.0\n\n    def test_propagates_type_error_for_invalid_inputs(self):\n        with pytest.raises(TypeError):\n            safe_divide(\"10\", 2)\n\n        with pytest.raises(TypeError):\n            safe_divide(10, \"2\")\n\n    def test_propagates_non_zero_division_errors(self):\n        with pytest.raises(TypeError):\n            safe_divide(None, 2)\n```\n\nIf you want, I can also provide:\n- a version using plain test functions instead of a test class\n- 100% branch-coverage-focused tests\n- the same tests with `pytest.mark.parametrize` used more extensively",
+  "score": 5,
+  "cost": 0.004432,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 535
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "calendar",
+  "score": 5,
+  "cost": 0.001048,
+  "expected": "calendar",
+  "tokens": {
+    "input": 508,
+    "output": 4
+  }
+}

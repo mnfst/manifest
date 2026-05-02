@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 accueille favorablement la soumission du premier rapport du \u00c9tat partie et est satisfait du dialogue constructif et fructueux initi\u00e9 avec une d\u00e9l\u00e9gation de haut niveau comp\u00e9tente.",
+  "score": 4,
+  "cost": 3.465e-06,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 44
+  }
+}

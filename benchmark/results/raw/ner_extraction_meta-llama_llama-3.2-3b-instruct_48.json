@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 48,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"TSMC\", \"Department of Commerce\"],\n  \"locations\": [\"Phoenix\", \"Arizona\"]\n}\n```",
+  "score": 5,
+  "cost": 5.916000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 36
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Q1 results show improved NPS (62), higher support CSAT (4.3/5), and reduced churn (1.2%) compared to previous quarters. Key action items include addressing top feature requests (SSO, custom dashboards, API rate limits) and advancing three enterprise expansions totaling $800K.",
+  "score": 5,
+  "cost": 2.7050000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 419
+  }
+}

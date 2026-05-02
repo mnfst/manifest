@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The Q1 board deck draft shows strong revenue (127% of target) and net revenue retention (115%), but rising customer acquisition costs (CAC up 22%), and the CEO requests your product roadmap section by Wednesday for the upcoming board meeting on Tuesday. Please submit your updates promptly to meet the deadline.",
+  "score": 5,
+  "cost": 2.97e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 69
+  }
+}

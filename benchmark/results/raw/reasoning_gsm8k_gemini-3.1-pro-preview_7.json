@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "To find the cost of each cup, we first need to determine the total cost of the plates. \n\n1. **Calculate the total cost of the plates:**\nA dozen is 12, so half a dozen plates is 6 plates. \nSince each plate is sold at $6000, the total cost for the 6 plates is:\n6 plates \u00d7 $6000/plate = $36,000\n\n2. **Calculate the total cost of the cups:**\nThe problem states that twenty dozen cups cost $1200 less than the total cost of the plates. \n$36,000 - $1200 = $34,800\nSo, the total cost for all the cups is $34,800.\n\n3. **Calculate the number of cups:**\nA dozen is 12, so twenty dozen cups is:\n20 \u00d7 12 = 240 cups\n\n4. **Calculate the cost of each cup:**\nNow, we divide the total cost of the cups by the number of cups to find the price of a single cup:\n$34,800 \u00f7 240 cups = $145\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.004235,
+  "expected": "145",
+  "tokens": {
+    "input": 74,
+    "output": 270
+  }
+}

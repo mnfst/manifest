@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "To solve this problem, we will work backward from the final number of people to the initial number of people who got on at the terminal.\n\n1.  **Identify the final state:**\n    At the third stop, there were a total of 20 people on the bus.\n\n2.  **Reverse the events at the second bus stop:**\n    At the second stop, 8 people got in and 7 people got down.\n    To find the number of people on the bus *before* the second stop, we perform the opposite operations:\n    - Subtract the people who got in: $20 - 8 = 12$\n    - Add the people who got down: $12 + 7 = 19$\n    So, there were 19 people on the bus after the first stop.\n\n3.  **Reverse the events at the first bus stop:**\n    At the first stop, 5 more people got in.\n    To find the number of people on the bus *before* the first stop (which is the number of people who got on at the terminal), we perform the opposite operation:\n    - Subtract the people who got in: $19 - 5 = 14$\n\n4.  **Verify the steps forward:**\n    - Start at terminal: 14 people\n    - First stop: $14 + 5 = 19$ people\n    - Second stop: $19 - 7 + 8 = 12 + 8 = 20$ people\n    The result matches the information given in the problem.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 2.7899999999999997e-05,
+  "expected": "14",
+  "tokens": {
+    "input": 118,
+    "output": 347
+  }
+}

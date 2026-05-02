@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "```python\nimport pytest\n\nfrom your_module import is_palindrome\n\n\n@pytest.mark.parametrize(\n    \"value,expected\",\n    [\n        (\"racecar\", True),\n        (\"RaceCar\", True),\n        (\"never odd or even\", True),\n        (\"hello\", False),\n        (\"abcba\", True),\n        (\"abca\", False),\n    ],\n)\ndef test_is_palindrome_happy_path(value, expected):\n    assert is_palindrome(value) is expected\n\n\n@pytest.mark.parametrize(\n    \"value,expected\",\n    [\n        (\"\", True),              # empty string is equal to its reverse\n        (\"a\", True),             # single character\n        (\" \", True),             # spaces are removed\n        (\"   \", True),           # only spaces\n        (\"A\", True),             # single uppercase character\n        (\"Aa\", True),            # case-insensitive\n        (\"a a\", True),           # spaces ignored\n        (\"nurses run\", True),    # common palindrome phrase\n        (\"No lemon no melon\", True),\n        (\"abc cba\", True),\n    ],\n)\ndef test_is_palindrome_edge_cases(value, expected):\n    assert is_palindrome(value) is expected\n\n\n@pytest.mark.parametrize(\n    \"value,expected\",\n    [\n        (\"race a car\", False),\n        (\"palindrome\", False),\n        (\"ab\", False),\n        (\"A man a plan a canal Panama!\", False),  # punctuation is not removed\n        (\"123abccba321\", True),\n        (\"123abccbx321\", False),\n    ],\n)\ndef test_is_palindrome_non_palindromes_and_special_cases(value, expected):\n    assert is_palindrome(value) is expected\n\n\n@pytest.mark.parametrize(\"value\", [None, 123, [\"racecar\"], {\"s\": \"racecar\"}])\ndef test_is_palindrome_invalid_types_raise(value):\n    with pytest.raises(AttributeError):\n        is_palindrome(value)\n```",
+  "score": 5,
+  "cost": 0.0033,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 397
+  }
+}

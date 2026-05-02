@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "```sql\nSELECT c.name\nFROM conductors c\nJOIN conducting_sessions cs ON c.conductor_id = cs.conductor_id\nJOIN orchestras o ON cs.orchestra_id = o.orchestra_id\nGROUP BY c.conductor_id, c.name\nORDER BY COUNT(DISTINCT o.orchestra_id) DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 9e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 76
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 25,
+  "response": "Here's a set of **pytest-style unit tests** for the `deduplicate_sorted` function. The tests cover:\n\n- **Happy path**: a normal sorted list with duplicates.\n- **Edge cases**: empty list, single-element list, all elements the same.\n- **Error cases**: non-list input (though the function's type hint suggests it's intended for lists, we can still test for invalid types).\n\n### \u2705 Test File: `test_deduplicate_sorted.py`\n\n```python\nimport pytest\n\nfrom your_module import deduplicate_sorted  # Replace with the actual module name\n\ndef test_deduplicate_sorted_happy_path():\n    assert deduplicate_sorted([1, 1, 2, 2, 3, 3]) == [1, 2, 3]\n\ndef test_deduplicate_sorted_single_element():\n    assert deduplicate_sorted([5]) == [5]\n\ndef test_deduplicate_sorted_empty_list():\n    assert deduplicate_sorted([]) == []\n\ndef test_deduplicate_sorted_all_same_elements():\n    assert deduplicate_sorted([7, 7, 7, 7]) == [7]\n\ndef test_deduplicate_sorted_mixed_types():\n    assert deduplicate_sorted([1, 'a', 'a', 1]) == [1, 'a', 1]\n\ndef test_deduplicate_sorted_non_list_input():\n    with pytest.raises(TypeError):\n        deduplicate_sorted(\"not a list\")\n\ndef test_deduplicate_sorted_non_sorted_list():\n    assert deduplicate_sorted([1, 3, 2, 2, 4]) == [1, 3, 2, 4]\n    # Note: The function assumes the input is sorted.\n    # If the input is not sorted, it will not deduplicate correctly.\n    # This test shows how it behaves, but it's not a \"correct\" deduplication.\n    # You may want to add a test to ensure the input is sorted if required.\n```\n\n### \ud83d\udcdd Notes:\n\n- The function is designed to work on **sorted lists**. If the input is not sorted, it will not deduplicate properly (e.g., `[1, 3, 2, 2, 4]` will return `[1, 3, 2, 4]`).\n- The test `test_deduplicate_sorted_non_list_input` checks for a `TypeError` when a non-list is passed, as the function expects a `list` type.\n- You can replace `your_module` with the name of the module where the function is defined.\n\n### \u2705 To Run the Tests:\n\n```bash\npytest test_deduplicate_sorted.py\n```\n\nLet me know if you want to add more tests or enforce that the input list is sorted.",
+  "score": 4,
+  "cost": 2.1813000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 570
+  }
+}

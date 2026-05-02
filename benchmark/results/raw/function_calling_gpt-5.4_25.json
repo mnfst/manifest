@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "function_calling",
+  "case": 25,
+  "response": "{\"name\":\"schedule_meeting\",\"arguments\":{\"title\":\"Standup meeting\",\"duration_minutes\":30,\"time\":\"9am\",\"recurrence\":\"every weekday\",\"attendees\":[\"dev team\"]}}",
+  "score": 4,
+  "cost": 0.00056,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 41
+  }
+}

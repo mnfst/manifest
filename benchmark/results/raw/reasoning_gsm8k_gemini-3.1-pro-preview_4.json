@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "To find out how many yards of yarn Mariah and her grandma used altogether, we can first determine how many yards each of them used.\n\n1. **Calculate the yards Mariah used:**\nMariah used 1/4 of a skein. Since there are 364 yards in a skein, we multiply 364 by 1/4 (or divide by 4).\n364 / 4 = 91 yards\n\n2. **Calculate the yards her grandma used:**\nHer grandma used 1/2 of a skein. We multiply 364 by 1/2 (or divide by 2).\n364 / 2 = 182 yards\n\n3. **Calculate the total yards used altogether:**\nNow, we add the yards Mariah used and the yards her grandma used together.\n91 yards + 182 yards = 273 yards\n\n*(Alternatively, you can add the fractions first: 1/4 + 1/2 = 3/4 of a skein. Then find 3/4 of 364: 364 / 4 = 91, and 91 * 3 = 273 yards.)*\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.004265,
+  "expected": "273",
+  "tokens": {
+    "input": 98,
+    "output": 268
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 4,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"convert_format\", \"arguments\": {\"path\": \"uploads/photo.jpg\", \"target_format\": \"png\"}}\n```\n\nThis function call will resize the image at \"uploads/photo.jpg\" to 800x600 and convert it to PNG format.",
+  "score": 1,
+  "cost": 8.619e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 65
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Depending on the context (who you are talking to), here are the best ways to translate this:\n\n**1. Standard/Neutral (Most common):**\n> **Je sais comment aider, et je le veux.**\n\n**2. Informal (To a friend or family member):**\n> **Je sais comment aider, et j'en ai envie.**\n*(Note: In French, \"j'en ai envie\" often sounds more natural than \"je le veux\" when expressing a desire to do something.)*\n\n**3. Formal (To a superior or a stranger):**\n> **Je sais comment aider, et je le souhaite.**",
+  "score": 5,
+  "cost": 1.0739999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 135
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "First, we calculate the loan amount, which is 40% of the house's value:\n\n$$\n40\\% \\text{ of } 250,000 = 0.40 \\times 250,000 = 100,000\n$$\n\nNext, we calculate how much he uses to pay off his debts, which is 60% of the loan amount:\n\n$$\n60\\% \\text{ of } 100,000 = 0.60 \\times 100,000 = 60,000\n$$\n\nFinally, we subtract the amount used to pay off debts from the total loan to find how much he has leftover:\n\n$$\n100,000 - 60,000 = 40,000\n$$\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 1.0329e-05,
+  "expected": "40,000",
+  "tokens": {
+    "input": 115,
+    "output": 198
+  }
+}

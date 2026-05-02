@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 21,
+  "response": "```python\nimport pytest\n\nfrom your_module import truncate\n\n\n@pytest.mark.parametrize(\n    \"s,max_len,suffix,expected\",\n    [\n        (\"hello\", 5, \"...\", \"hello\"),          # exact length\n        (\"hello\", 10, \"...\", \"hello\"),         # shorter than max_len\n        (\"hello world\", 5, \"...\", \"he...\"),    # truncation with default suffix\n        (\"hello world\", 8, \">>>\", \"hello>>>\"), # truncation with custom suffix\n        (\"abcdef\", 3, \"...\", \"...\"),           # max_len equal to suffix length\n        (\"abcdef\", 1, \"x\", \"a\"),               # single-char suffix\n    ],\n)\ndef test_truncate_happy_and_edge_cases(s, max_len, suffix, expected):\n    assert truncate(s, max_len, suffix) == expected\n\n\ndef test_truncate_empty_string():\n    assert truncate(\"\", 5) == \"\"\n\n\n@pytest.mark.parametrize(\n    \"s,max_len,suffix,expected\",\n    [\n        (\"hello\", 0, \"...\", \"...\"),           # truncates to suffix only\n        (\"hello\", 2, \"...\", \"...\"),           # max_len smaller than suffix length\n        (\"hello\", -1, \"...\", \"he...\"),        # negative max_len behavior with slicing\n    ],\n)\ndef test_truncate_edge_cases_with_small_or_negative_max_len(s, max_len, suffix, expected):\n    assert truncate(s, max_len, suffix) == expected\n\n\ndef test_truncate_suffix_longer_than_max_len():\n    # Python slicing behavior means this still returns a string, though not necessarily intuitive.\n    assert truncate(\"abcdef\", 2, \"longsuffix\") == \"ablongsuffix\"\n\n\ndef test_truncate_raises_type_error_for_non_string_s():\n    with pytest.raises(TypeError):\n        truncate(None, 5)  # type: ignore[arg-type]\n\n\ndef test_truncate_raises_type_error_for_non_int_max_len():\n    with pytest.raises(TypeError):\n        truncate(\"hello\", \"5\")  # type: ignore[arg-type]\n\n\ndef test_truncate_raises_type_error_for_non_string_suffix():\n    with pytest.raises(TypeError):\n        truncate(\"hello\", 3, suffix=None)  # type: ignore[arg-type]\n```\n\n### Notes\n- Replace `your_module` with the actual module name where `truncate` is defined.\n- The function has no explicit validation, so many \u201cerror cases\u201d are driven by Python\u2019s built-in type errors.\n- One important behavioral edge case: if `max_len < len(suffix)`, the slice `s[:max_len - len(suffix)]` can produce unexpected results due to negative indexing.",
+  "score": 5,
+  "cost": 0.0006950999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 559
+  }
+}

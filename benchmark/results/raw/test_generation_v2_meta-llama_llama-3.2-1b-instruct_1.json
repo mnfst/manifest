@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "Here are some unit tests for the `is_palindrome` function using pytest style:\n\n```python\nimport pytest\n\ndef test_is_palindrome_happy_path():\n    # Test with a palindrome\n    assert is_palindrome(\"A man, a plan, a canal, Panama\") == True\n\ndef test_is_palindrome_edge_case():\n    # Test with a non-palindrome\n    assert is_palindrome(\"hello\") == False\n\ndef test_is_palindrome_empty_string():\n    # Test with an empty string\n    assert is_palindrome(\"\") == True\n\ndef test_is_palindrome_single_character():\n    # Test with a single character\n    assert is_palindrome(\"a\") == True\n\ndef test_is_palindrome_non_alphanumeric():\n    # Test with a string containing non-alphanumeric characters\n    assert is_palindrome(\"A man, a plan, a canal, Panama!@#\") == True\n\ndef test_is_palindrome_case_insensitive():\n    # Test with a string in lowercase\n    assert is_palindrome(\"A man, a plan, a canal, Panama\") == True\n\ndef test_is_palindrome_case_sensitive():\n    # Test with a string in uppercase\n    assert is_palindrome(\"MAN, A PLAN, A CANAL, PANAMA\") == True\n\ndef test_is_palindrome_whitespace():\n    # Test with a string containing whitespace\n    assert is_palindrome(\"   A man, a plan, a canal, Panama\") == True\n\ndef test_is_palindrome_non_string_input():\n    # Test with a non-string input\n    with pytest.raises(TypeError):\n        is_palindrome(123)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test that the function returns `True` for a palindrome string.\n* Edge cases: Test that the function returns `False` for non-palindromes, empty strings, single characters, non-alphanumeric strings, and strings containing whitespace.\n* Error cases: Test that the function raises a `TypeError` when given a non-string input.",
+  "score": 5,
+  "cost": 1.2905999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 411
+  }
+}

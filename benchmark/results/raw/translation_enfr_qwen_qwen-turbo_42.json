@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 42,
+  "response": "Cette premi\u00e8re enqu\u00eate fut effectu\u00e9e lorsqu'Quirinus \u00e9tait gouverneur de Syrie. Toute personne devait \u00eatre enregistr\u00e9e dans sa propre ville. Ainsi, chacun partit pour sa propre ville ; Joseph partit \u00e9galement de Nazareth de Galil\u00e9e. \u00c9tant issu de la famille de David, descendant de celui-ci, il alla en Jud\u00e9e, dans la ville de Bethl\u00e9em de David, pour s'enregistrer avec Marie, son \u00e9pouse, qui \u00e9tait enceinte.",
+  "score": 4,
+  "cost": 7.326000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 108
+  }
+}

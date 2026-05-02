@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "ner_extraction",
+  "case": 38,
+  "response": "```json\n{\n  \"persons\": [\"Kamala Harris\"],\n  \"organizations\": [\"General Motors\"],\n  \"locations\": [\"Detroit\"]\n}\n```",
+  "score": 5,
+  "cost": 0.000804,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 39
+  }
+}

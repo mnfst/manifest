@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT\n    EXTRACT(YEAR FROM concert_date) AS year,\n    COUNT(*) AS concert_count\nFROM\n    concerts\nGROUP BY\n    year\nORDER BY\n    concert_count DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 2.1899999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 51
+  }
+}

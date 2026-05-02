@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 38,
+  "response": "Here are some unit tests for the `rate_limiter` function using pytest:\n```python\nimport pytest\nimport time\nfrom rate_limiter import rate_limiter\n\ndef test_rate_limiter_happy_path():\n    # Test with a small number of allowed calls\n    limiter = rate_limiter(5, 1.0)\n    for _ in range(10):\n        limiter()\n\n    # Test with a large number of allowed calls\n    limiter = rate_limiter(10, 1.0)\n    for _ in range(100):\n        limiter()\n\ndef test_rate_limiter_edge_case_zero_period():\n    # Test with a period of 0 seconds\n    limiter = rate_limiter(5, 0.0)\n    for _ in range(10):\n        limiter()\n\ndef test_rate_limiter_edge_case_negative_period():\n    # Test with a negative period\n    with pytest.raises(ValueError):\n        rate_limiter(-1, 1.0)\n\ndef test_rate_limiter_edge_case_zero_max_calls():\n    # Test with a max_calls of 0\n    with pytest.raises(ValueError):\n        rate_limiter(5, 0.0)\n\ndef test_rate_limiter_edge_case_negative_max_calls():\n    # Test with a max_calls of a negative number\n    with pytest.raises(ValueError):\n        rate_limiter(5, -1.0)\n\ndef test_rate_limiter_edge_case_zero_period_and_max_calls():\n    # Test with a period of 0 and a max_calls of 0\n    with pytest.raises(ValueError):\n        rate_limiter(0, 1.0)\n\ndef test_rate_limiter_edge_case_negative_period_and_max_calls():\n    # Test with a period of -1 and a max_calls of 0\n    with pytest.raises(ValueError):\n        rate_limiter(-1, 0.0)\n```\nThese tests cover the following scenarios:\n\n* Happy path: Testing the function with a small number of allowed calls and a large number of allowed calls.\n* Edge cases:\n\t+ Zero period: Testing with a period of 0 seconds.\n\t+ Negative period: Testing with a negative period.\n\t+ Zero max_calls: Testing with a max_calls of 0.\n\t+ Negative max_calls: Testing with a max_calls of a negative number.\n\t+ Zero period and max_calls: Testing with a period of 0 and a max_calls of 0.\n\t+ Negative period and max_calls: Testing with a period of -1 and a max_calls of 0.\n\nNote that the `pytest.raises` context manager is used to test for errors, and the `with pytest.raises` context manager is used to test for specific error cases.",
+  "score": 4,
+  "cost": 1.8009e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 552
+  }
+}

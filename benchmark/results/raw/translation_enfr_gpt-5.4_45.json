@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "La fraude fiscale s\u2019est accrue en Tunisie, entra\u00eenant un manque important de ressources publiques, a d\u00e9clar\u00e9 en juin 2013 Ali Larayedh, ancien chef du gouvernement int\u00e9rimaire, cit\u00e9 par le journal *Business Flood*.",
+  "score": 5,
+  "cost": 0.000532,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "To solve this problem, we follow these steps:\n\n1.  **Identify the original number of pomelos:**\n    Eve originally had 20 pieces of pomelos.\n\n2.  **Calculate how many pomelos Eve has left:**\n    The problem states that Eve is left with $\\frac{1}{4}$ of the pomelos she originally had.\n    $\\text{Pomelos left} = \\frac{1}{4} \\times 20$\n    $\\text{Pomelos left} = 5$\n\n3.  **Calculate how many pomelos Eve gave away:**\n    The number of pomelos given away is the difference between the original amount and the amount she has left.\n    $\\text{Pomelos given away} = \\text{Original amount} - \\text{Amount left}$\n    $\\text{Pomelos given away} = 20 - 5$\n    $\\text{Pomelos given away} = 15$\n\n**Verification:**\nIf Eve gave away 15 pomelos, she would have $20 - 15 = 5$ left.\nSince $5$ is $\\frac{1}{4}$ of $20$ ($5 \\times 4 = 20$), the calculation is correct.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 2.214e-05,
+  "expected": "15",
+  "tokens": {
+    "input": 92,
+    "output": 277
+  }
+}

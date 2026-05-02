@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "The Doubtfire sisters are driving home with 7 adopted kittens. Their mother informs them that their two house cats, Patchy and Trixie, have also had kittens. Patchy has thrice the number of adopted kittens (which is 7), so Patchy has $3 \\times 7 = 21$ kittens. Trixie has 12 kittens. Adding all the kittens together: $7$ (adopted) $+$ $21$ (Patchy) $+$ $12$ (Trixie) $= 40$.\n\nANSWER: 40",
+  "score": 5,
+  "cost": 0.00011235000000000001,
+  "expected": "40",
+  "tokens": {
+    "input": 126,
+    "output": 2121
+  }
+}

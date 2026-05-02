@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sentiment_sst2",
+  "case": 24,
+  "response": "positive",
+  "score": 5,
+  "cost": 2.64e-06,
+  "expected": "positive",
+  "tokens": {
+    "input": 43,
+    "output": 1
+  }
+}

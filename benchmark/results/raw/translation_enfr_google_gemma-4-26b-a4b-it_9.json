@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "De son c\u00f4t\u00e9, le second atelier s'est concentr\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de contr\u00f4le des organes de trait\u00e9s au profit de l'\u00c9tat du Cameroun, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones.",
+  "score": 4,
+  "cost": 7.86e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 57
+  }
+}

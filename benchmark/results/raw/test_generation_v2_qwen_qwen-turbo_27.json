@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "Here's a set of **pytest-style unit tests** for the `interleave` function. These tests cover:\n\n- **Happy path**: Normal interleaving of two lists of equal length.\n- **Edge cases**: One or both lists are empty.\n- **Error cases**: Non-list inputs (though the function is typed as `list`, so it's more of a type-checking scenario).\n\n---\n\n### \u2705 `test_interleave.py`\n\n```python\nimport pytest\n\ndef test_interleave_happy_path():\n    assert interleave([1, 2, 3], [4, 5, 6]) == [1, 4, 2, 5, 3, 6]\n\ndef test_interleave_a_longer():\n    assert interleave([1, 2, 3, 4], [5, 6]) == [1, 5, 2, 6, 3, 4]\n\ndef test_interleave_b_longer():\n    assert interleave([1, 2], [3, 4, 5, 6]) == [1, 3, 2, 4, 5, 6]\n\ndef test_interleave_empty_a():\n    assert interleave([], [1, 2, 3]) == [1, 2, 3]\n\ndef test_interleave_empty_b():\n    assert interleave([1, 2, 3], []) == [1, 2, 3]\n\ndef test_interleave_both_empty():\n    assert interleave([], []) == []\n\ndef test_interleave_mixed_types():\n    assert interleave([1, 'a'], [2, 'b']) == [1, 2, 'a', 'b']\n\ndef test_interleave_non_list_input():\n    with pytest.raises(TypeError):\n        interleave(\"not a list\", [1, 2])\n\ndef test_interleave_non_list_input_other_side():\n    with pytest.raises(TypeError):\n        interleave([1, 2], \"not a list\")\n```\n\n---\n\n### \u2705 `interleave.py`\n\nMake sure your function is defined like this:\n\n```python\ndef interleave(a: list, b: list) -> list:\n    result = []\n    for x, y in zip(a, b):\n        result.extend([x, y])\n    result.extend(a[len(b):] or b[len(a):])\n    return result\n```\n\n---\n\n### \ud83e\uddea To Run the Tests\n\nInstall `pytest` if you haven't already:\n\n```bash\npip install pytest\n```\n\nThen run:\n\n```bash\npytest test_interleave.py\n```\n\n---\n\n### \ud83d\udcdd Notes\n\n- The `result.extend(a[len(b):] or b[len(a):])` ensures that any remaining elements from the longer list are appended to the result.\n- The `zip(a, b)` stops at the shorter list, so the remaining elements are handled separately.\n- The function is typed with `list`, so it expects list inputs. The tests handle `TypeError` in case of non-list inputs.\n\nLet me know if you'd like to test with more complex data types or add mock inputs.",
+  "score": 5,
+  "cost": 2.4387e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 645
+  }
+}

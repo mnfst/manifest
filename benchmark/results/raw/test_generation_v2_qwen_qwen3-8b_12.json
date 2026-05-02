@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "Here is a comprehensive set of unit tests for the `chunk_list` function using the `pytest` style. These tests cover the **happy path**, **edge cases**, and **error cases** to ensure the function behaves as expected under various conditions.\n\n---\n\n### \u2705 Test Overview\n\n| Test Case | Description |\n|----------|-------------|\n| `test_chunk_list_happy_path_even_split` | List length divisible by size |\n| `test_chunk_list_happy_path_odd_split` | List length not divisible by size |\n| `test_chunk_list_size_one` | Size is 1 (each item in its own chunk) |\n| `test_chunk_list_size_equal_length` | Size equals list length (one chunk) |\n| `test_chunk_list_empty_list` | Empty list, any valid size |\n| `test_chunk_list_size_zero` | Size is 0 \u2192 raises `ValueError` |\n| `test_chunk_list_negative_size` | Size is negative \u2192 raises `ValueError` |\n\n---\n\n### \ud83e\uddea Unit Tests\n\n```python\nimport pytest\n\ndef chunk_list(lst: list, size: int) -> list:\n    if size <= 0:\n        raise ValueError('size must be positive')\n    return [lst[i:i+size] for i in range(0, len(lst), size)]\n\ndef test_chunk_list_happy_path_even_split():\n    assert chunk_list([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]\n\ndef test_chunk_list_happy_path_odd_split():\n    assert chunk_list([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n\ndef test_chunk_list_size_one():\n    assert chunk_list([1, 2, 3], 1) == [[1], [2], [3]]\n\ndef test_chunk_list_size_equal_length():\n    assert chunk_list([1, 2, 3], 3) == [[1, 2, 3]]\n\ndef test_chunk_list_empty_list():\n    assert chunk_list([], 2) == []\n\ndef test_chunk_list_size_zero():\n    with pytest.raises(ValueError):\n        chunk_list([1, 2, 3], 0)\n\ndef test_chunk_list_negative_size():\n    with pytest.raises(ValueError):\n        chunk_list([1, 2, 3], -1)\n```\n\n---\n\n### \ud83d\udccc Notes\n\n- The function is designed to work with **integers** and **lists**.\n- The function **does not validate** the input type of `lst` or `size` (e.g., if `lst` is a string or `size` is a float). However, the function is expected to be used with valid inputs as per its type hints.\n- The tests ensure that:\n  - The function **splits the list** correctly.\n  - The function **raises a `ValueError`** for invalid `size` values.\n  - The function handles **empty lists** gracefully.\n\nThis test suite ensures robustness and correctness of the `chunk_list` function.",
+  "score": 5,
+  "cost": 0.00014270000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 2768
+  }
+}

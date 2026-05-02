@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "SELECT DISTINCT p.first_name, t.description\nFROM professionals p\nJOIN treatments t\n  ON p.professional_id = t.professional_id;",
+  "score": 5,
+  "cost": 6.12e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 32
+  }
+}

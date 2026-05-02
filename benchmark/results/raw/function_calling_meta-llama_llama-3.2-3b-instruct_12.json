@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 12,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"get_stock_price\", \"arguments\": {\"symbol\": \"AAPL\"}}\n```\n\nExplanation:\n\n* The user is asking for the current stock price of Apple, which is represented by the symbol \"AAPL\".\n* The `get_stock_price` function is the correct function to use for this request.\n* The `symbol` argument is passed as a string, which is the symbol of the stock (in this case, \"AAPL\").\n* The `get_stock_price` function does not have any additional arguments, so the `arguments` object is empty.",
+  "score": 5,
+  "cost": 1.1015999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 128
+  }
+}

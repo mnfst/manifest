@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "Summary: The P99 latency for /api/v2/search increased to 800ms due to a new full-text search query not using the index. The fix involves adding a GIN index on the content column and will be deployed tonight during the maintenance window.",
+  "score": 5,
+  "cost": 5.28e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 55
+  }
+}

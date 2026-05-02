@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 35,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"European Space Agency\",\n    \"NASA\"\n  ],\n  \"locations\": [\n    \"lunar south pole\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 7.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 53
+  }
+}

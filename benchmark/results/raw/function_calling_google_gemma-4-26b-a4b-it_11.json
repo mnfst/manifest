@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 11,
+  "response": "{\"name\": \"add_to_list\", \"arguments\": {\"list_name\": \"shopping list\", \"items\": [\"milk\", \"eggs\", \"bread\"]}}",
+  "score": 5,
+  "cost": 9e-06,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 36
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "**French:** \nSi les revenus et/ou la situation professionnelle d'une personne changent, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle, auquel cas une nouvelle \u00e9valuation sera effectu\u00e9e. \n\n*(Note: \"Situation professionnelle\" is the standard French administrative equivalent for \"employment status\", and \"sera effectu\u00e9e\" [will be conducted] sounds more natural and formal in French administrative contexts than a literal translation of \"there will be\" [il y aura].)*",
+  "score": 5,
+  "cost": 0.0015875,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 97
+  }
+}

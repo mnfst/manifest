@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 8,
+  "response": "```json\n{\"name\": \"calculate_mortgage\", \"arguments\": {\"principal\": 300000, \"annual_rate\": 0.065, \"years\": 30}}\n```",
+  "score": 5,
+  "cost": 9.539999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 38
+  }
+}

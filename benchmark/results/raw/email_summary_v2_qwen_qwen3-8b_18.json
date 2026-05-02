@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP Engineering proposes splitting the Platform team into Infrastructure (networking, compute, storage) and Developer Experience (CI/CD, tooling, onboarding) to address the bottleneck where DX work is consistently deprioritized during infra incidents. A draft organizational chart is attached for review.",
+  "score": 5,
+  "cost": 1.325e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 170
+  }
+}

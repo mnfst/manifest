@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe email reports the results of an open source license audit, which identified 2 issues: one dependency uses a viral license (AGPL) that is incompatible with the company's SaaS model, and another package lacks a license. The recommended actions are to switch to an Apache-licensed alternative for the incompatible dependency and remove the unlicensed package before the next release.",
+  "score": 5,
+  "cost": 1.0097999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 86
+  }
+}

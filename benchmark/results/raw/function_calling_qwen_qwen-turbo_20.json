@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 20,
+  "response": "{\"name\": \"git_merge\", \"arguments\": {\"source\": \"feature-auth\", \"target\": \"main\"}}",
+  "score": 5,
+  "cost": 3.399e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 23
+  }
+}

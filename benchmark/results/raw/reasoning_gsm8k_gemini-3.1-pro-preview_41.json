@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "To find out how many copies Harald sold, we can set up a simple algebraic equation. \n\nLet's say Harald sold **$x$** copies.\nSince Marilyn sold 10 times as many copies as Harald, Marilyn sold **$10x$** copies.\n\nWe know that combined, they sold 88,000 copies. So, we can write the equation:\n$x + 10x = 88,000$\n\nCombine the like terms:\n$11x = 88,000$\n\nNow, divide both sides by 11 to solve for $x$:\n$x = \\frac{88,000}{11}$\n$x = 8,000$\n\nHarald sold 8,000 copies. (And to check our work, Marilyn would have sold 80,000 copies, which adds up perfectly to 88,000).\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.0034275,
+  "expected": "8000",
+  "tokens": {
+    "input": 75,
+    "output": 216
+  }
+}

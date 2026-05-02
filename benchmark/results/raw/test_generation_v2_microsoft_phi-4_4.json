@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "test_generation_v2",
+  "case": 4,
+  "response": "To write unit tests for the `celsius_to_fahrenheit` function using `pytest`, we need to cover the happy path, edge cases, and error cases. Here's how you can structure the tests:\n\n```python\nimport pytest\n\ndef celsius_to_fahrenheit(c: float) -> float:\n    return c * 9/5 + 32\n\ndef test_celsius_to_fahrenheit_happy_path():\n    # Test typical conversion\n    assert celsius_to_fahrenheit(0) == 32.0\n    assert celsius_to_fahrenheit(100) == 212.0\n    assert celsius_to_fahrenheit(-40) == -40.0  # Freezing point of water and freezing point of mercury\n\ndef test_celsius_to_fahrenheit_edge_cases():\n    # Test edge cases with very large and very small numbers\n    assert celsius_to_fahrenheit(1e10) == 1e10 * 9/5 + 32\n    assert celsius_to_fahrenheit(-1e10) == -1e10 * 9/5 + 32\n    assert celsius_to_fahrenheit(1e-10) == 1e-10 * 9/5 + 32\n    assert celsius_to_fahrenheit(-1e-10) == -1e-10 * 9/5 + 32\n\ndef test_celsius_to_fahrenheit_error_cases():\n    # Test error cases with non-numeric input\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(\"a string\")\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(None)\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit([1, 2, 3])\n\n# Run the tests\nif __name__ == \"__main__\":\n    pytest.main()\n```\n\n### Explanation:\n\n1. **Happy Path Tests**:\n   - Test typical conversions like 0\u00b0C to 32\u00b0F, 100\u00b0C to 212\u00b0F, and -40\u00b0C to -40\u00b0F.\n\n2. **Edge Cases**:\n   - Test with very large and very small numbers to ensure the function handles them correctly.\n\n3. **Error Cases**:\n   - Test with non-numeric inputs to ensure the function raises a `TypeError`. This is because the function expects a float, and passing other types should raise an error.\n\nThese tests cover the expected behavior of the function and ensure it handles various inputs correctly.",
+  "score": 5,
+  "cost": 3.6270000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 499
+  }
+}

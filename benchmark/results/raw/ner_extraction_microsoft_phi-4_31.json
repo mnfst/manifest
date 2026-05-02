@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 31,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Samsung Electronics\"],\n  \"locations\": [\"South Korea\"]\n}\n```",
+  "score": 5,
+  "cost": 6.5e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 28
+  }
+}

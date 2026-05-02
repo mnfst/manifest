@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT c.Name\nFROM Country AS c\nJOIN CountryLanguage AS cl\n  ON c.Code = cl.CountryCode\nWHERE cl.Language IN ('English', 'French')\nGROUP BY c.Code, c.Name\nHAVING COUNT(DISTINCT cl.Language) = 2;",
+  "score": 5,
+  "cost": 0.001833,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 135
+  }
+}

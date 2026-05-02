@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 46,
+  "response": "calculate",
+  "score": 0,
+  "cost": 1.3797e-05,
+  "expected": "calculator",
+  "tokens": {
+    "input": 509,
+    "output": 2
+  }
+}

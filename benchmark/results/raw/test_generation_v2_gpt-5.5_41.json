@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 41,
+  "response": "```python\n# test_hex_to_rgb.py\n\nimport pytest\n\n# Replace `your_module` with the module where hex_to_rgb is defined.\nfrom your_module import hex_to_rgb\n\n\n@pytest.mark.parametrize(\n    \"value, expected\",\n    [\n        (\"#000000\", (0, 0, 0)),\n        (\"#ffffff\", (255, 255, 255)),\n        (\"#FFFFFF\", (255, 255, 255)),\n        (\"#1a2B3c\", (26, 43, 60)),\n        (\"123456\", (18, 52, 86)),\n        (\"abcdef\", (171, 205, 239)),\n    ],\n)\ndef test_hex_to_rgb_happy_path(value, expected):\n    assert hex_to_rgb(value) == expected\n\n\ndef test_hex_to_rgb_returns_tuple():\n    result = hex_to_rgb(\"#010203\")\n\n    assert isinstance(result, tuple)\n    assert result == (1, 2, 3)\n\n\ndef test_hex_to_rgb_strips_multiple_leading_hashes():\n    # The implementation uses lstrip('#'), so all leading # characters are removed.\n    assert hex_to_rgb(\"###010203\") == (1, 2, 3)\n\n\ndef test_hex_to_rgb_ignores_characters_after_six_hex_digits():\n    # The implementation only reads positions 0:2, 2:4, and 4:6.\n    assert hex_to_rgb(\"#010203ff\") == (1, 2, 3)\n\n\ndef test_hex_to_rgb_allows_five_hex_digits_due_to_int_single_digit_chunk():\n    # Current behavior: \"12345\" becomes \"12\", \"34\", \"5\".\n    assert hex_to_rgb(\"#12345\") == (18, 52, 5)\n\n\n@pytest.mark.parametrize(\n    \"value\",\n    [\n        \"\",\n        \"#\",\n        \"#1\",\n        \"#12\",\n        \"#123\",\n        \"#1234\",\n    ],\n)\ndef test_hex_to_rgb_too_short_raises_value_error(value):\n    with pytest.raises(ValueError):\n        hex_to_rgb(value)\n\n\n@pytest.mark.parametrize(\n    \"value\",\n    [\n        \"#gg0000\",\n        \"#00zz00\",\n        \"#0000xx\",\n        \"#12-456\",\n        \"#12 456\",\n    ],\n)\ndef test_hex_to_rgb_invalid_hex_characters_raise_value_error(value):\n    with pytest.raises(ValueError):\n        hex_to_rgb(value)\n\n\n@pytest.mark.parametrize(\n    \"value\",\n    [\n        None,\n        123456,\n        [\"#ffffff\"],\n    ],\n)\ndef test_hex_to_rgb_non_string_inputs_raise_attribute_error(value):\n    with pytest.raises(AttributeError):\n        hex_to_rgb(value)\n\n\ndef test_hex_to_rgb_bytes_input_raises_type_error():\n    with pytest.raises(TypeError):\n        hex_to_rgb(b\"#ffffff\")\n```",
+  "score": 5,
+  "cost": 0.019635,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 1617
+  }
+}

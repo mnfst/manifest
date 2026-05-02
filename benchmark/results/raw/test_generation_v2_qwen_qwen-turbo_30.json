@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "Here's a set of **pytest-style unit tests** for the `snake_to_camel` function. These tests cover:\n\n- **Happy path**: Normal snake_case input.\n- **Edge cases**: Empty string, single word, multiple underscores.\n- **Error cases**: Non-string input (should raise a `TypeError`).\n\n---\n\n### \u2705 `test_snake_to_camel.py`\n\n```python\nimport pytest\n\nfrom your_module import snake_to_camel  # Replace with your actual module name\n\ndef test_snake_to_camel_happy_path():\n    assert snake_to_camel(\"hello_world\") == \"helloWorld\"\n    assert snake_to_camel(\"this_is_a_test\") == \"thisIsATest\"\n    assert snake_to_camel(\"snake_case_to_camel\") == \"snakeCaseToCamel\"\n\ndef test_snake_to_camel_edge_cases():\n    assert snake_to_camel(\"\") == \"\"  # Empty string\n    assert snake_to_camel(\"single\") == \"single\"  # No underscores\n    assert snake_to_camel(\"a_b_c_d\") == \"aBCD\"  # Multiple underscores\n    assert snake_to_camel(\"__double__underscore\") == \"DoubleUnderscore\"\n\ndef test_snake_to_camel_error_cases():\n    with pytest.raises(TypeError):\n        snake_to_camel(123)  # Non-string input\n    with pytest.raises(TypeError):\n        snake_to_camel(None)  # None input\n    with pytest.raises(TypeError):\n        snake_to_camel([\"list\"])  # List input\n\ndef test_snake_to_camel_special_characters():\n    assert snake_to_camel(\"my_var_123\") == \"myVar123\"\n    assert snake_to_camel(\"var_with__multiple__underscores\") == \"varWithMultipleUnderscores\"\n```\n\n---\n\n### \ud83d\udd27 Notes:\n- Replace `your_module` with the actual module name where `snake_to_camel` is defined.\n- The function `snake_to_camel` assumes the input is a string and handles underscores properly.\n- The function does **not** handle cases where the input is not a string. That\u2019s why we test for `TypeError` in error cases.\n\n---\n\n### \ud83e\uddea To run the tests:\n\nInstall `pytest` if not already installed:\n\n```bash\npip install pytest\n```\n\nThen run:\n\n```bash\npytest test_snake_to_camel.py\n```",
+  "score": 5,
+  "cost": 1.8975e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 498
+  }
+}

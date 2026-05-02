@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe SSL certificate for api.company.com is set to expire in 7 days and auto-renewal has failed due to a DNS validation issue caused by a recent DNS migration. To resolve the issue, the CNAME record for _acme-challenge.api.company.com needs to be re-added, which will be handled by the DevOps team today.",
+  "score": 5,
+  "cost": 9.893999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 83
+  }
+}

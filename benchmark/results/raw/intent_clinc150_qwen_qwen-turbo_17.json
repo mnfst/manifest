@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "intent_clinc150",
+  "case": 17,
+  "response": "todo_list_update",
+  "score": 0,
+  "cost": 1.6896000000000002e-05,
+  "expected": "reminder",
+  "tokens": {
+    "input": 509,
+    "output": 3
+  }
+}

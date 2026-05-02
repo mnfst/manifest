@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT country, COUNT(*) as num_makers FROM car_makers GROUP BY country ORDER BY num_makers DESC LIMIT 1;",
+  "score": 4,
+  "cost": 2.025e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 331
+  }
+}

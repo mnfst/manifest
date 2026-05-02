@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Candidate A got 20% of 100 votes:\n\n- A = 20 votes\n\nCandidate B got 50% more than A, so:\n\n- 50% of 20 = 10\n- B = 20 + 10 = 30 votes\n\nTotal votes for A and B:\n\n- 20 + 30 = 50 votes\n\nThe rest went to candidate C:\n\n- 100 - 50 = 50 votes\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00015209999999999998,
+  "expected": "50",
+  "tokens": {
+    "input": 95,
+    "output": 103
+  }
+}

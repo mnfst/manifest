@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo is interested in acqui-hiring the 5-person ML team and has offered $15M, but the CEO believes the offer undervalues the team. The recommended next steps are to discuss internally before responding, consider countering or politely declining, and inform the board.",
+  "score": 5,
+  "cost": 0.000678,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 60
+  }
+}

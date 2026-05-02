@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "To solve this problem, we need to determine how many cows are in 8 of the stalls after Mr. Sylas buys and distributes 40 new cows.\n\n1. **Initial Setup**: There are 10 stalls, each with 20 cows. Therefore, the total number of cows initially is:\n   \\[\n   10 \\text{ stalls} \\times 20 \\text{ cows per stall} = 200 \\text{ cows}\n   \\]\n\n2. **Adding New Cows**: Mr. Sylas buys 40 new cows and divides them equally among the 10 stalls. To find out how many new cows are added to each stall, we divide the total number of new cows by the number of stalls:\n   \\[\n   \\frac{40 \\text{ new cows}}{10 \\text{ stalls}} = 4 \\text{ new cows per stall}\n   \\]\n\n3. **Total Cows per Stall**: Each stall initially has 20 cows, and with the addition of 4 new cows, each stall now has:\n   \\[\n   20 \\text{ initial cows} + 4 \\text{ new cows} = 24 \\text{ cows per stall}\n   \\]\n\n4. **Cows in 8 Stalls**: To find the total number of cows in 8 stalls, we multiply the number of cows per stall by the number of stalls:\n   \\[\n   8 \\text{ stalls} \\times 24 \\text{ cows per stall} = 192 \\text{ cows}\n   \\]\n\nTherefore, the total number of cows in 8 of the stalls is 192.\n\nANSWER: 192",
+  "score": 5,
+  "cost": 2.8405e-05,
+  "expected": "192",
+  "tokens": {
+    "input": 94,
+    "output": 343
+  }
+}

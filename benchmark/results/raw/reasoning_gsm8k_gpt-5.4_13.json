@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Material cost: \\$500  \nJeweler cost: \\$800  \n\nFirst, find the total before insurance:\n\n\\[\n500 + 800 = 1300\n\\]\n\nInsurance costs 10% of that amount:\n\n\\[\n0.10 \\times 1300 = 130\n\\]\n\nNow add the insurance cost to the original total:\n\n\\[\n1300 + 130 = 1430\n\\]\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.00092,
+  "expected": "1430",
+  "tokens": {
+    "input": 96,
+    "output": 91
+  }
+}

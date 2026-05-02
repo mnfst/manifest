@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 17,
+  "response": "{\n  \"persons\": [\"Toyota\"],\n  \"organizations\": [\"Toyota\"],\n  \"locations\": [\"Greensboro\", \"North Carolina\"]",
+  "score": 3,
+  "cost": 2.8079999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 29
+  }
+}

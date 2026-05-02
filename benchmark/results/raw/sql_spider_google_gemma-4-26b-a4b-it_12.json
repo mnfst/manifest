@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "```sql\nSELECT professional_id, role, first_name\nFROM professionals\nJOIN treatments ON professionals.professional_id = treatments.professional_id\nGROUP BY professional_id, role, first_name\nHAVING COUNT(treatment_id) >= 2;\n```",
+  "score": 4,
+  "cost": 7.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 50
+  }
+}

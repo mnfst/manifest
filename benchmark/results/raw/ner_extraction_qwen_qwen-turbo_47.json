@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "{\n  \"persons\": [\"Alain Aspect\", \"Professor Alain Aspect\"],\n  \"organizations\": [\"Nobel Prize\", \"Universite Paris-Saclay\"],\n  \"locations\": [\"Stockholm\"]\n}",
+  "score": 3,
+  "cost": 4.0590000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 42
+  }
+}

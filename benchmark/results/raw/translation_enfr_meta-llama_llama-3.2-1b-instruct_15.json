@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Le secteur Source est un site web d\u00e9di\u00e9 aux personnes qui g\u00e8rent des associations et des organisations caritatives pour rester inform\u00e9es sur...",
+  "score": 4,
+  "cost": 2.1870000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 33
+  }
+}

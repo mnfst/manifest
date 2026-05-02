@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "```python\n# test_gcd.py\nimport pytest\n\nfrom your_module import gcd  # replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    (\"a\", \"b\", \"expected\"),\n    [\n        (48, 18, 6),\n        (18, 48, 6),\n        (54, 24, 6),\n        (17, 13, 1),\n        (13, 13, 13),\n        (1, 999, 1),\n        (999, 1, 1),\n    ],\n)\ndef test_gcd_happy_path(a, b, expected):\n    assert gcd(a, b) == expected\n\n\n@pytest.mark.parametrize(\n    (\"a\", \"b\", \"expected\"),\n    [\n        (0, 5, 5),\n        (5, 0, 5),\n        (0, -5, 5),\n        (-5, 0, 5),\n        (0, 0, 0),\n    ],\n)\ndef test_gcd_with_zero(a, b, expected):\n    assert gcd(a, b) == expected\n\n\n@pytest.mark.parametrize(\n    (\"a\", \"b\", \"expected\"),\n    [\n        (-48, 18, 6),\n        (48, -18, 6),\n        (-48, -18, 6),\n        (-7, -3, 1),\n        (-12, -12, 12),\n    ],\n)\ndef test_gcd_with_negative_numbers(a, b, expected):\n    assert gcd(a, b) == expected\n\n\ndef test_gcd_large_numbers():\n    assert gcd(1234567890, 9876543210) == 90\n\n\n@pytest.mark.parametrize(\n    (\"a\", \"b\"),\n    [\n        (10, \"5\"),\n        (\"10\", 5),\n        (None, 5),\n        (10, None),\n        ([10], 5),\n        (10, [5]),\n    ],\n)\ndef test_gcd_invalid_types_raise_type_error(a, b):\n    with pytest.raises(TypeError):\n        gcd(a, b)\n```",
+  "score": 5,
+  "cost": 0.008394,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 683
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et tu me plais... m\u00eame si je ne sais pas pourquoi.",
+  "score": 5,
+  "cost": 0.001449,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 112
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "Let\u2019s compute the amount removed at each setting.\n\n- **Low setting:** 1 liter per day  \n  For 3 days: \\(3 \\times 1 = 3\\) liters\n\n- **Medium setting:** twice the low setting, so 2 liters per day  \n  For 3 days: \\(3 \\times 2 = 6\\) liters\n\n- **High setting:** twice the medium setting, so 4 liters per day  \n  For 5 days: \\(5 \\times 4 = 20\\) liters\n\nNow add them all:\n\\[\n3 + 6 + 20 = 29\n\\]\n\nANSWER: 29",
+  "score": 5,
+  "cost": 0.0002337,
+  "expected": "29",
+  "tokens": {
+    "input": 199,
+    "output": 145
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "Here\u2019s the translation while maintaining the tone and meaning:\n\n**\"Votre mari avait-il invit\u00e9 le lieutenant Gilbert chez vous ?\"**\n\nThis keeps the formal and slightly interrogative tone of the original English sentence. If the context is more casual, you could also say:\n**\"Est-ce que votre mari avait invit\u00e9 le lieutenant Gilbert chez vous ?\"**\n\nWould you like any adjustments based on a specific context?",
+  "score": 5,
+  "cost": 2.75e-05,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 81
+  }
+}

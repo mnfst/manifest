@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "```python\nimport pytest\n\nfrom your_module import chunk_list\n\n\nclass TestChunkList:\n    def test_happy_path_even_chunks(self):\n        assert chunk_list([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]\n\n    def test_happy_path_uneven_chunks(self):\n        assert chunk_list([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n\n    def test_size_larger_than_list(self):\n        assert chunk_list([1, 2, 3], 10) == [[1, 2, 3]]\n\n    def test_size_one_returns_single_item_chunks(self):\n        assert chunk_list([1, 2, 3], 1) == [[1], [2], [3]]\n\n    def test_empty_list_returns_empty_list(self):\n        assert chunk_list([], 3) == []\n\n    def test_preserves_nested_list_elements(self):\n        data = [[1], [2], [3]]\n        assert chunk_list(data, 2) == [[[1], [2]], [[3]]]\n\n    @pytest.mark.parametrize(\"size\", [0, -1, -5])\n    def test_invalid_size_raises_value_error(self, size):\n        with pytest.raises(ValueError, match=\"size must be positive\"):\n            chunk_list([1, 2, 3], size)\n\n    def test_invalid_size_raises_value_error_for_empty_list_too(self):\n        with pytest.raises(ValueError, match=\"size must be positive\"):\n            chunk_list([], 0)\n```\n\nIf you want, I can also provide:\n1. a version using plain test functions instead of a test class, or\n2. a parameterized version with fewer repetitive tests.",
+  "score": 5,
+  "cost": 0.003218,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 381
+  }
+}

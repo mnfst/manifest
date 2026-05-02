@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "Here's a set of **pytest-style unit tests** for the `gcd` function. These tests cover:\n\n- **Happy path** (positive integers)\n- **Edge cases** (e.g. zero, one number being zero)\n- **Error cases** (e.g. non-integer inputs)\n\n### \u2705 `test_gcd.py`\n\n```python\nimport pytest\n\nfrom your_module import gcd  # Replace with the actual module name\n\ndef test_gcd_happy_path():\n    assert gcd(48, 18) == 6\n    assert gcd(17, 5) == 1\n    assert gcd(100, 200) == 100\n    assert gcd(105, 231) == 21\n\ndef test_gcd_zero():\n    assert gcd(0, 5) == 5\n    assert gcd(5, 0) == 5\n    assert gcd(0, 0) == 0\n\ndef test_gcd_negative_numbers():\n    assert gcd(-48, -18) == 6\n    assert gcd(-48, 18) == 6\n    assert gcd(48, -18) == 6\n\ndef test_gcd_one_number():\n    assert gcd(7, 0) == 7  # handled by the function\n    assert gcd(0, 7) == 7  # same as above\n\ndef test_gcd_non_integer_input():\n    with pytest.raises(TypeError):\n        gcd(\"12\", 6)\n    with pytest.raises(TypeError):\n        gcd(12, \"6\")\n    with pytest.raises(TypeError):\n        gcd(\"12\", \"6\")\n\ndef test_gcd_large_numbers():\n    assert gcd(123456789, 987654321) == 9\n```\n\n### \ud83d\udd27 Notes:\n\n- Replace `your_module` with the actual module name where the `gcd` function is defined.\n- The `gcd` function uses the **Euclidean algorithm** and returns the **absolute value** of the result, which is why negative numbers are handled correctly.\n- The function **does not raise an error** when one of the inputs is 0, as per the logic: `gcd(a, 0) == abs(a)`.\n\n### \u2705 To run the tests:\n\n```bash\npytest test_gcd.py\n```\n\nLet me know if you want to test this using `unittest` or `pytest` with fixtures!",
+  "score": 5,
+  "cost": 1.9833e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 529
+  }
+}

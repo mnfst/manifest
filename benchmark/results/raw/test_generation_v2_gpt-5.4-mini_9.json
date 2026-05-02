@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 9,
+  "response": "```python\nimport pytest\n\nfrom your_module import max_subarray_sum\n\n\ndef test_max_subarray_sum_empty_list_returns_zero():\n    assert max_subarray_sum([]) == 0\n\n\ndef test_max_subarray_sum_single_positive_element():\n    assert max_subarray_sum([5]) == 5\n\n\ndef test_max_subarray_sum_single_negative_element():\n    assert max_subarray_sum([-7]) == -7\n\n\ndef test_max_subarray_sum_all_positive_returns_total_sum():\n    assert max_subarray_sum([1, 2, 3, 4]) == 10\n\n\ndef test_max_subarray_sum_typical_mixed_values_happy_path():\n    # Maximum subarray is [4, -1, 2, 1] = 6\n    assert max_subarray_sum([-2, 1, -3, 4, -1, 2, 1, -5, 4]) == 6\n\n\ndef test_max_subarray_sum_all_negative_returns_largest_negative():\n    assert max_subarray_sum([-8, -3, -6, -2, -5, -4]) == -2\n\n\ndef test_max_subarray_sum_zero_values():\n    assert max_subarray_sum([0, 0, 0]) == 0\n\n\ndef test_max_subarray_sum_mixed_with_zero():\n    assert max_subarray_sum([0, -1, 2, 3, -5, 4]) == 5\n\n\n@pytest.mark.parametrize(\n    \"arr, expected\",\n    [\n        ([1, -1, 1, -1, 1], 1),\n        ([2, -1, 2, 3, 4, -5], 10),\n        ([-1, 0, -2], 0),\n    ],\n)\ndef test_max_subarray_sum_parametrized_cases(arr, expected):\n    assert max_subarray_sum(arr) == expected\n\n\ndef test_max_subarray_sum_non_list_input_raises_type_error_for_none():\n    with pytest.raises(TypeError):\n        max_subarray_sum(None)\n\n\ndef test_max_subarray_sum_non_numeric_elements_raise_type_error():\n    with pytest.raises(TypeError):\n        max_subarray_sum([1, \"a\", 3])\n\n\ndef test_max_subarray_sum_unsupported_element_type_raises_type_error():\n    with pytest.raises(TypeError):\n        max_subarray_sum([1, object(), 3])\n```\n\nNotes:\n- Replace `from your_module import max_subarray_sum` with the actual import path.\n- The function itself does not explicitly validate input types, so error-case tests cover Python-level `TypeError` behavior from invalid operations.",
+  "score": 5,
+  "cost": 0.0006849,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 546
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 37,
+  "response": "To fulfill the user's request to invalidate the CDN cache for all CSS and JS files, you can use the `purge_all()` function provided by the CDN. Here's how you can do it:\n\n```python\nimport requests\n\ndef invalidate_cache(pattern: str):\n    \"\"\"Invalidate the CDN cache for all CSS and JS files.\"\"\"\n    response = requests.get(f\"https://cdn.example.com/purge/{pattern}\")\n    return response.json()\n\n# Example usage:\npattern = \"css/*\"\nresponse = invalidate_cache(pattern)\nprint(response)\n```\n\nIn this example, the `invalidate_cache()` function takes a pattern as a string, which in this case is `\"css/*\"`. This pattern will invalidate the cache for all CSS files in the CDN. The response from the CDN will be returned as a JSON object, which you can then print or use as needed.\n\nPlease note that the actual URL of the CDN and the pattern you use may vary depending on the specific CDN you are using. Make sure to replace `\"https://cdn.example.com\"` with the actual URL of your CDN and `\"css/*\"` with the actual pattern you want to invalidate.",
+  "score": 1,
+  "cost": 8.343e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 232
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 20,
+  "response": "Here's an example of how you can write unit tests for the `zip_dicts` function using pytest:\n\n```python\nimport pytest\n\ndef test_zip_dicts_happy_path():\n    dict1 = {'a': 1, 'b': 2}\n    dict2 = {'b': 3, 'c': 4}\n    dict3 = {'c': 5, 'd': 6}\n\n    expected_result = {\n        'a': [1, None, None],\n        'b': [2, 3, None],\n        'c': [None, 4, 5],\n        'd': [None, None, 6]\n    }\n\n    assert zip_dicts(dict1, dict2, dict3) == expected_result\n\ndef test_zip_dicts_empty_dicts():\n    dict1 = {}\n    dict2 = {}\n    dict3 = {}\n\n    expected_result = {}\n\n    assert zip_dicts(dict1, dict2, dict3) == expected_result\n\ndef test_zip_dicts_no_common_keys():\n    dict1 = {'a': 1, 'b': 2}\n    dict2 = {'c': 3, 'd': 4}\n    dict3 = {'e': 5, 'f': 6}\n\n    expected_result = {\n        'a': [1, None, None],\n        'b': [2, None, None],\n        'c': [None, 3, None],\n        'd': [None, 4, None],\n        'e': [None, None, 5],\n        'f': [None, None, 6]\n    }\n\n    assert zip_dicts(dict1, dict2, dict3) == expected_result\n\ndef test_zip_dicts_no_common_keys_empty_dicts():\n    dict1 = {'a': 1, 'b': 2}\n    dict2 = {}\n    dict3 = {}\n\n    expected_result = {\n        'a': [1, None, None],\n        'b': [2, None, None]\n    }\n\n    assert zip_dicts(dict1, dict2, dict3) == expected_result\n\ndef test_zip_dicts_empty_dicts_empty():\n    dict1 = {}\n    dict2 = {}\n    dict3 = {}\n\n    expected_result = {}\n\n    assert zip_dicts(dict1, dict2, dict3) == expected_result\n\ndef test_zip_dicts_none_dict():\n    dict1 = {'a': 1, 'b': 2}\n    dict2 = None\n    dict3 = {'c': 3, 'd': 4}\n\n    with pytest.raises(TypeError):\n        zip_dicts(dict1, dict2, dict3)\n\ndef test_zip_dicts_none_dict_empty():\n    dict1 = {'a': 1, 'b': 2}\n    dict2 = None\n    dict3 = {}\n\n    expected_result = {\n        'a': [1, None, None],\n        'b': [2, None, None]\n    }\n\n    assert zip_dicts(dict1, dict2, dict3) == expected_result\n\ndef test_zip_dicts_none_dict_none():\n    dict1 = {'a': 1, 'b': 2}\n    dict2 = None\n    dict3 = None\n\n    expected_result = {}\n\n    assert zip_dicts(dict1, dict2, dict3) == expected_result\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test that the function works correctly when all input dictionaries have common keys.\n* Edge cases: Test that the function handles empty dictionaries and dictionaries with no common keys.\n* Error cases: Test that the function raises a `TypeError` when one of the input dictionaries is `None`.",
+  "score": 4,
+  "cost": 4.207499999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 747
+  }
+}

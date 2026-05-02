@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "SELECT *\nFROM shows\nWHERE genre = 'cartoon'\n  AND director = 'Ben Jones';",
+  "score": 5,
+  "cost": 4.7699999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 23
+  }
+}

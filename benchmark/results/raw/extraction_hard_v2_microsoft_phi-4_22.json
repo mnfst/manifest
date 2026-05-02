@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "extraction_hard_v2",
+  "case": 22,
+  "response": "```json\n{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\n    \"Jamie (PM)\",\n    \"Priya (eng lead)\",\n    \"Marcus (design)\",\n    \"Lin (data)\"\n  ],\n  \"decisions\": [\n    \"Push the recommendation engine to Q3\",\n    \"Allocate 20% of sprint capacity to tech debt\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"Have onboarding mockups by April 18\",\n      \"deadline\": \"2026-04-18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"Send updated roadmap by Monday\",\n      \"deadline\": \"2026-04-11\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"Needs analytics dashboard before May board meeting\",\n      \"deadline\": \"2026-05-01\"\n    }\n  ]\n}\n```",
+  "score": 4,
+  "cost": 2.548e-05,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 209
+  }
+}

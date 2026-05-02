@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "```sql\nSELECT id\nFROM cre_Doc_Template_Mgt\nWHERE description = 'Presentation';\n```",
+  "score": 4,
+  "cost": 6.305e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 22
+  }
+}

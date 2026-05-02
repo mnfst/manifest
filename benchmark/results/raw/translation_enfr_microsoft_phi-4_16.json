@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Je me sens comme si mon p\u00e9nis n'est pas assez grand pour toi.  \n\nNote: This translation maintains the informal tone and meaning of the original text.",
+  "score": 4,
+  "cost": 4.875e-06,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 34
+  }
+}

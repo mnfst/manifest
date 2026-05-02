@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT name \nFROM students \nWHERE likes = (SELECT MAX(likes) FROM students);\n```",
+  "score": 4,
+  "cost": 4.997999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 23
+  }
+}

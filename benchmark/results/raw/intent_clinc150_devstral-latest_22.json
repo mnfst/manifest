@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 22,
+  "response": "transfer",
+  "score": 5,
+  "cost": 5.66e-05,
+  "expected": "transfer",
+  "tokens": {
+    "input": 560,
+    "output": 2
+  }
+}

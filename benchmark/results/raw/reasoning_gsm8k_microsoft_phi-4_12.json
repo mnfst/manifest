@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "To solve the problem, we need to calculate the total time Jim spends watching TV and reading over a period of 4 weeks.\n\n1. **Time spent watching TV per week:**\n   - Jim spends 2 hours watching TV each day.\n   - He does this 3 times a week.\n   - Total time spent watching TV per week = \\(2 \\text{ hours/day} \\times 3 \\text{ days/week} = 6 \\text{ hours/week}\\).\n\n 2. **Time spent reading per week:**\n   - Jim reads for half as long as he watches TV each day.\n   - Time spent reading per day = \\( \\frac{2}{2} = 1 \\text{ hour/day}\\).\n   - Total time spent reading per week = \\(1 \\text{ hour/day} \\times 3 \\text{ days/week} = 3 \\text{ hours/week}\\).\n\n3. **Total time spent on TV and reading per week:**\n   - Total time per week = Time spent watching TV + Time spent reading\n   - Total time per week = \\(6 \\text{ hours/week} + 3 \\text{ hours/week} = 9 \\text{ hours/week}\\).\n\n4. **Total time spent in 4 weeks:**\n   - Total time in 4 weeks = \\(9 \\text{ hours/week} \\times 4 \\text{ weeks} = 36 \\text{ hours}\\).\n\nTherefore, Jim spends a total of 36 hours on TV and reading in 4 weeks.\n\nANSWER: 36",
+  "score": 5,
+  "cost": 2.7560000000000004e-05,
+  "expected": "36",
+  "tokens": {
+    "input": 93,
+    "output": 331
+  }
+}

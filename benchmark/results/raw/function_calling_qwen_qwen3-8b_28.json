@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "function_calling",
+  "case": 28,
+  "response": "{\"name\": \"block_ip\", \"arguments\": {\"ip\": \"192.168.1.100\"}}",
+  "score": 4,
+  "cost": 1.4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 186
+  }
+}

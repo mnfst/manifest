@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "Here are some unit tests for the `reverse_words` function using pytest style:\n\n```python\nimport pytest\n\ndef test_reverse_words_happy_path():\n    # Test with a simple string\n    input = \"Hello World\"\n    expected = \"World Hello\"\n    assert reverse_words(input) == expected\n\ndef test_reverse_words_edge_case():\n    # Test with an empty string\n    input = \"\"\n    expected = \"\"\n    assert reverse_words(input) == expected\n\ndef test_reverse_words_empty_string():\n    # Test with a string containing only spaces\n    input = \"   Hello World\"\n    expected = \" World Hello\"\n    assert reverse_words(input) == expected\n\ndef test_reverse_words_single_word():\n    # Test with a single word\n    input = \"Hello\"\n    expected = \"olleH\"\n    assert reverse_words(input) == expected\n\ndef test_reverse_words_multiple_words():\n    # Test with multiple words\n    input = \"Hello World this is a test\"\n    expected = \"test a is this World Hello\"\n    assert reverse_words(input) == expected\n\ndef test_reverse_words_non_string_input():\n    # Test with a non-string input\n    input = 123\n    with pytest.raises(TypeError):\n        reverse_words(input)\n\ndef test_reverse_words_non_string_input_type():\n    # Test with a non-string type input\n    input = 123.45\n    with pytest.raises(TypeError):\n        reverse_words(input)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test with a simple string, an empty string, and a string containing only spaces.\n* Edge cases: Test with an empty string, a string containing only spaces, and a string with multiple words.\n* Error cases: Test with a non-string input and a non-string type input.\n\nNote that the `reverse_words` function is expected to raise a `TypeError` when given a non-string input, so we use `pytest.raises(TypeError)` to test for this.",
+  "score": 4,
+  "cost": 1.2257999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 395
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit : \u00ab Bien s\u00fbr. \u00bb Et moi, j\u2019ai dit : \u00ab Eh bien, je me demande o\u00f9 \u00e7a va \u00eatre. \u00bb",
+  "score": 4,
+  "cost": 1.7700000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 33
+  }
+}

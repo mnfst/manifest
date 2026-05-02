@@ -3,7 +3,7 @@
   "task": "extraction_hard_v2",
   "case": 44,
   "response": "```json\n{\n  \"title\": \"Senior Backend Engineer\",\n  \"company\": \"CloudMatrix\",\n  \"location\": {\n    \"city\": \"Austin\",\n    \"remote\": true\n  },\n  \"salary\": {\n    \"min\": 165000,\n    \"max\": 195000\n  },\n  \"requirements\": {\n    \"min_years\": 5,\n    \"skills\": [\n      \"Go\",\n      \"Rust\",\n      \"Kubernetes\",\n      \"event-driven architectures\",\n      \"distributed systems\"\n    ]\n  },\n  \"benefits\": [\n    \"unlimited PTO\",\n    \"health insurance\",\n    \"dental insurance\",\n    \"vision insurance\",\n    \"401k match\",\n    \"$3K learning budget\"\n  ]\n}\n```",
-  "score": 4,
+  "score": 3,
   "cost": 0.0008927999999999999,
   "expected": "",
   "tokens": {

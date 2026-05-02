@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "function_calling",
+  "case": 42,
+  "response": "{\"name\":\"create_bucket\",\"arguments\":{\"name\":\"data-lake-prod\",\"region\":\"us-east-1\"}}",
+  "score": 5,
+  "cost": 1.9200000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 25
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "## Step 1: Calculate the amount of water removed on the low setting for 3 days\nThe low setting removes 1 liter of water per day. So, for 3 days, it removes 3 * 1 = 3 liters.\n\n## Step 2: Calculate the amount of water removed on the medium setting for 3 days\nThe medium setting removes twice as much water per day as the low setting, which is 2 * 1 = 2 liters per day. For 3 days, it removes 3 * 2 = 6 liters.\n\n## Step 3: Calculate the amount of water removed on the high setting for 5 days\nThe high setting removes twice as much water per day as the medium setting, which is 2 * 2 = 4 liters per day. For 5 days, it removes 5 * 4 = 20 liters.\n\n## Step 4: Calculate the total amount of water removed\nTo find the total amount of water removed, we need to add the water removed on each setting: 3 (low) + 6 (medium) + 20 (high) = 29 liters.\n\nThe final answer is: $\\boxed{29}$",
+  "score": 5,
+  "cost": 1.2366e-05,
+  "expected": "29",
+  "tokens": {
+    "input": 209,
+    "output": 249
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT airport_code\nFROM airport\nWHERE id NOT IN (\n  SELECT origin_airport\n  FROM flight\n  UNION\n  SELECT destination_airport\n  FROM flight\n);\n```",
+  "score": 4,
+  "cost": 5.864999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 41
+  }
+}

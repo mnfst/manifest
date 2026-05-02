@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "```sql\nSELECT model FROM car WHERE weight < (SELECT avg(weight) FROM car);\n```",
+  "score": 5,
+  "cost": 2.673e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 20
+  }
+}

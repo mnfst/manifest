@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 41,
+  "response": "```json\n{\n  \"persons\": [\"LeBron James\"],\n  \"organizations\": [\"Los Angeles Lakers\"],\n  \"locations\": [\"Los Angeles\"]\n}\n```",
+  "score": 5,
+  "cost": 6.890000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 33
+  }
+}

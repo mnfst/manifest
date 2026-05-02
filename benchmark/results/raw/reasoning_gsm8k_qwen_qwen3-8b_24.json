@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "To determine how much money the class was able to raise from the profit of selling lollipops, we need to calculate the **profit per lollipop** and then multiply it by the total number of lollipops sold by all students.\n\n---\n\n### Step 1: Determine the Selling Price and Cost Price per Lollipop\n- The problem states that the students **sold lollipops for $0.8 each**.\n- They **bought the lollipops for $0.5 each**.\n\nTherefore, the **profit per lollipop** is:\n$$\n\\text{Profit per lollipop} = \\text{Selling price} - \\text{Cost price} = 0.8 - 0.5 = 0.3\n$$\n\n---\n\n### Step 2: Calculate Total Lollipops Sold\n- Each of the 30 students sold an **average of 10 lollipops**.\n- So, the **total number of lollipops sold** is:\n$$\n\\text{Total lollipops} = 30 \\times 10 = 300\n$$\n\n---\n\n### Step 3: Calculate Total Profit\n- Total profit is the **profit per lollipop** multiplied by the **total number of lollipops sold**:\n$$\n\\text{Total profit} = 300 \\times 0.3 = 90\n$$\n\n---\n\n### Final Answer:\n$$\n\\boxed{90}\n$$",
+  "score": 5,
+  "cost": 0.00010645,
+  "expected": "90",
+  "tokens": {
+    "input": 126,
+    "output": 2003
+  }
+}

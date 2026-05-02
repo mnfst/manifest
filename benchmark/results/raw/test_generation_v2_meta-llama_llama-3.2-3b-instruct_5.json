@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "Here's an example of how you can write unit tests for the `count_vowels` function using pytest:\n\n```python\nimport pytest\n\ndef test_count_vowels_happy_path():\n    \"\"\"Test that the function correctly counts vowels in a string.\"\"\"\n    assert count_vowels(\"hello\") == 2\n\ndef test_count_vowels_empty_string():\n    \"\"\"Test that the function returns 0 for an empty string.\"\"\"\n    assert count_vowels(\"\") == 0\n\ndef test_count_vowels_single_vowel():\n    \"\"\"Test that the function correctly counts a single vowel.\"\"\"\n    assert count_vowels(\"a\") == 1\n\ndef test_count_vowels_multiple_vowels():\n    \"\"\"Test that the function correctly counts multiple vowels.\"\"\"\n    assert count_vowels(\"aeiou\") == 5\n\ndef test_count_vowels_non_vowel_characters():\n    \"\"\"Test that the function ignores non-vowel characters.\"\"\"\n    assert count_vowels(\"hello world\") == 3\n\ndef test_count_vowels_non_string_input():\n    \"\"\"Test that the function raises a TypeError for a non-string input.\"\"\"\n    with pytest.raises(TypeError):\n        count_vowels(123)\n\ndef test_count_vowels_none_input():\n    \"\"\"Test that the function raises a TypeError for a None input.\"\"\"\n    with pytest.raises(TypeError):\n        count_vowels(None)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: A string with multiple vowels.\n* Edge case: An empty string.\n* Edge case: A string with a single vowel.\n* Edge case: A string with multiple vowels.\n* Edge case: A string with non-vowel characters.\n* Error case: A non-string input.\n* Error case: A None input.\n\nNote that these tests assume that the `count_vowels` function raises a `TypeError` for non-string inputs, as it is not clear from the function signature whether it should handle such cases. If the function is intended to handle such cases differently, the tests should be updated accordingly.",
+  "score": 5,
+  "cost": 2.4785999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 418
+  }
+}

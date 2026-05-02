@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "To find the total amount of money raised by all the girls, we need to calculate the amount raised by each individual girl and then sum them up.\n\n1.  **Identify the amount raised by Alexandra:**\n    The problem states that Alexandra raises $430.\n    Alexandra = $430\n\n2.  **Calculate the amount raised by Kim:**\n    The problem states that Kim raises $320 more than Alexandra.\n    Kim = Alexandra + $320\n    Kim = $430 + $320 = $750\n\n3.  **Identify the amount raised by Sarah:**\n    The problem states that Sarah raises $300.\n    Sarah = $300\n\n4.  **Calculate the amount raised by Maryam:**\n    The problem states that Maryam raises $400 more than Sarah.\n    Maryam = Sarah + $400\n    Maryam = $300 + $400 = $700\n\n5.  **Calculate the total amount raised by all the girls:**\n    Total = Kim + Alexandra + Maryam + Sarah\n    Total = $750 + $430 + $700 + $300\n\n    Let's add them step by step:\n    $750 + $430 = $1180\n    $1180 + $700 = $1880\n    $1880 + $300 = $2180\n\nAlternatively:\n(Kim + Alexandra) + (Maryam + Sarah)\n($750 + $430) + ($700 + $300)\n$1180 + $1000 = $2180\n\nThe total amount raised is $2180.\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 2.5079999999999997e-05,
+  "expected": "2280",
+  "tokens": {
+    "input": 96,
+    "output": 322
+  }
+}

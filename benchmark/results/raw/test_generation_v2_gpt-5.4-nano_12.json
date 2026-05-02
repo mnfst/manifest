@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "```python\nimport pytest\n\n# Assuming chunk_list is imported from your module, e.g.:\n# from your_module import chunk_list\n\n\ndef test_chunk_list_happy_path_exact_multiple():\n    assert chunk_list([1, 2, 3, 4, 5, 6], 2) == [[1, 2], [3, 4], [5, 6]]\n\n\ndef test_chunk_list_happy_path_not_multiple():\n    assert chunk_list([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n\n\ndef test_chunk_list_size_one_returns_individual_elements():\n    assert chunk_list([1, 2, 3], 1) == [[1], [2], [3]]\n\n\ndef test_chunk_list_size_greater_than_length_returns_single_chunk():\n    assert chunk_list([1, 2, 3], 10) == [[1, 2, 3]]\n\n\ndef test_chunk_list_empty_list_returns_empty_list():\n    assert chunk_list([], 3) == []\n\n\ndef test_chunk_list_with_zero_size_raises_value_error():\n    with pytest.raises(ValueError, match=r\"size must be positive\"):\n        chunk_list([1, 2, 3], 0)\n\n\ndef test_chunk_list_with_negative_size_raises_value_error():\n    with pytest.raises(ValueError, match=r\"size must be positive\"):\n        chunk_list([1, 2, 3], -1)\n\n\ndef test_chunk_list_size_non_int_raises_type_error_from_range():\n    # size <= 0 check passes only for numeric types; for non-numeric,\n    # it should fail at comparison or during range.\n    with pytest.raises(TypeError):\n        chunk_list([1, 2, 3], \"2\")  # triggers TypeError in size <= 0 comparison\n```\n\nIf you\u2019d like, I can adapt the \u201cnon-int\u201d test to match the exact exception/message you prefer depending on how you handle input validation.",
+  "score": 5,
+  "cost": 0.00017930000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 427
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "```sql\nSELECT DISTINCT maker\nFROM car_1\nWHERE year = 1970;\n```",
+  "score": 5,
+  "cost": 5.2529999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 21
+  }
+}

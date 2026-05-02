@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Sarah spent $300 on books, with each book costing $15. To find the total number of books, divide the total amount spent by the price per book:  \n$$\n\\frac{300}{15} = 20 \\text{ books}.\n$$  \nShe then distributed these 20 books equally among her 4 kids. To find the number of books per child, divide the total number of books by the number of kids:  \n$$\n\\frac{20}{4} = 5 \\text{ books per child}.\n$$  \n\nANSWER: 5",
+  "score": 5,
+  "cost": 2.5300000000000002e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 91,
+    "output": 415
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "Summary: The Platform Team proposes a cleanup sprint to remove 15 fully rolled-out feature flags and archive 8 dead code flags, reducing configuration complexity and improving test suite performance by 12%. Action items include planning the cleanup and reviewing the flags to be removed or archived.",
+  "score": 4,
+  "cost": 5.511e-06,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 56
+  }
+}

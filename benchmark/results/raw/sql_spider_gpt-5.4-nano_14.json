@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT\n  mk.full_name AS maker_full_name,\n  mk.id AS maker_id,\n  COUNT(mo.id) AS model_count\nFROM car_1.car_maker mk\nJOIN car_1.car_model mo\n  ON mo.maker_id = mk.id\nGROUP BY mk.full_name, mk.id\nORDER BY mk.full_name;",
+  "score": 5,
+  "cost": 3.7e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 73
+  }
+}

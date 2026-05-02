@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "He starts with an 8-pound weight.\n\n1. Increase by 50%:\n   - 50% of 8 is 4\n   - 8 + 4 = 12 pounds\n\n2. Use a weight 2 pounds lighter:\n   - 12 - 2 = 10 pounds\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.0001212,
+  "expected": "10",
+  "tokens": {
+    "input": 100,
+    "output": 76
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "intent_clinc150",
+  "case": 34,
+  "response": "replacement_card_duration",
+  "score": 5,
+  "cost": 3.87e-05,
+  "expected": "replacement_card_duration",
+  "tokens": {
+    "input": 639,
+    "output": 6
+  }
+}

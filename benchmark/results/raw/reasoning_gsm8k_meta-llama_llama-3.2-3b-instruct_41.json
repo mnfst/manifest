@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "To solve this problem, we can start by letting H be the number of copies Harald sold. Since Marilyn's record sold 10 times as many copies as Harald's, we can represent the number of copies Marilyn sold as 10H.\n\nWe know that the total number of copies sold is 88,000, so we can set up the equation:\n\nH + 10H = 88,000\n\nCombine like terms:\n\n11H = 88,000\n\nDivide both sides by 11:\n\nH = 8,000\n\nSo Harald sold 8,000 copies.\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 1.0658999999999999e-05,
+  "expected": "8000",
+  "tokens": {
+    "input": 81,
+    "output": 128
+  }
+}

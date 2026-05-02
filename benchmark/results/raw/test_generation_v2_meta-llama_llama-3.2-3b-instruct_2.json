@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "Here's an example of how you can write unit tests for the `factorial` function using pytest:\n\n```python\nimport pytest\n\ndef test_factorial_happy_path():\n    \"\"\"Test the factorial function with a positive integer\"\"\"\n    assert factorial(5) == 120\n\ndef test_factorial_edge_case_1():\n    \"\"\"Test the factorial function with n = 1\"\"\"\n    assert factorial(1) == 1\n\ndef test_factorial_edge_case_2():\n    \"\"\"Test the factorial function with n = 0\"\"\"\n    assert factorial(0) == 1\n\ndef test_factorial_negative_number():\n    \"\"\"Test the factorial function with a negative number\"\"\"\n    with pytest.raises(ValueError):\n        factorial(-1)\n\ndef test_factorial_non_integer():\n    \"\"\"Test the factorial function with a non-integer input\"\"\"\n    with pytest.raises(TypeError):\n        factorial(3.5)\n\ndef test_factorial_non_numeric_input():\n    \"\"\"Test the factorial function with a non-numeric input\"\"\"\n    with pytest.raises(TypeError):\n        factorial(\"hello\")\n```\n\nIn this example, we have five test cases:\n\n1. `test_factorial_happy_path`: Tests the function with a positive integer.\n2. `test_factorial_edge_case_1` and `test_factorial_edge_case_2`: Test the function with `n = 1` and `n = 0`, respectively, which are edge cases.\n3. `test_factorial_negative_number`: Tests the function with a negative number, which raises a `ValueError`.\n4. `test_factorial_non_integer` and `test_factorial_non_numeric_input`: Test the function with a non-integer and non-numeric input, respectively, which should raise a `TypeError`.\n\nNote that we use the `pytest.raises` context manager to test that the function raises the expected exception when given invalid input.",
+  "score": 5,
+  "cost": 2.3664e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 378
+  }
+}

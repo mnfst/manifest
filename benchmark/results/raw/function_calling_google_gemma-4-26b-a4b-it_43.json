@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 43,
+  "response": "{\"name\": \"git_revert\", \"arguments\": {\"commit\": \"HEAD\"}}",
+  "score": 4,
+  "cost": 7.98e-06,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 19
+  }
+}

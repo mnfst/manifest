@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Customer success is trending positively, with Q1 metrics improving across NPS, support CSAT, and churn, while the pipeline includes three enterprise expansions worth $800K. The main action items are to prioritize top feature requests\u2014SSO, custom dashboards, and a higher API rate limit\u2014and continue advancing the enterprise expansion opportunities.",
+  "score": 5,
+  "cost": 0.00011609999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 68
+  }
+}

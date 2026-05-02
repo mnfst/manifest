@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Let's solve the problem step by step.\n\n1. **Number of Red Cars:**\n   - Given: 12 red cars.\n\n2. **Number of Green Cars:**\n   - They have 2 fewer green cars than red cars.\n   - Calculation: \\( 12 - 2 = 10 \\) green cars.\n\n3. **Number of Blue Cars:**\n   - They have 3 times the number of blue cars as green cars.\n   - Calculation: \\( 3 \\times 10 = 30 \\) blue cars.\n\n4. **Total Number of Red, Green, and Blue Cars:**\n   - Calculation: \\( 12 \\) (red) \\( + 10 \\) (green) \\( + 30 \\) (blue) \\( = 52 \\) cars.\n\n5. **Number of Yellow Cars:**\n   - The rink has a total of 75 cars.\n   - Calculation: \\( 75 - 52 = 23 \\) yellow cars.\n\n**Final Answer:**\nANSWER: 23",
+  "score": 5,
+  "cost": 7.879999999999999e-05,
+  "expected": "23",
+  "tokens": {
+    "input": 107,
+    "output": 227
+  }
+}

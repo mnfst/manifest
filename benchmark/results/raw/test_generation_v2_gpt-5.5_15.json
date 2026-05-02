@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 15,
+  "response": "```python\n# test_rotate_list.py\nimport pytest\n\nfrom your_module import rotate_list  # Replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"lst,k,expected\",\n    [\n        ([1, 2, 3, 4, 5], 1, [5, 1, 2, 3, 4]),\n        ([1, 2, 3, 4, 5], 2, [4, 5, 1, 2, 3]),\n        ([1, 2, 3, 4, 5], 5, [1, 2, 3, 4, 5]),\n        ([1, 2, 3, 4, 5], 7, [4, 5, 1, 2, 3]),\n        ([\"a\", \"b\", \"c\"], 1, [\"c\", \"a\", \"b\"]),\n        ([True, False, True], 2, [False, True, True]),\n    ],\n)\ndef test_rotate_list_happy_path(lst, k, expected):\n    assert rotate_list(lst, k) == expected\n\n\n@pytest.mark.parametrize(\n    \"lst,k,expected\",\n    [\n        ([1, 2, 3], 0, [1, 2, 3]),\n        ([1, 2, 3], -1, [2, 3, 1]),\n        ([1, 2, 3], -2, [3, 1, 2]),\n        ([1, 2, 3], -3, [1, 2, 3]),\n        ([1, 2, 3], -4, [2, 3, 1]),\n        ([42], 0, [42]),\n        ([42], 1, [42]),\n        ([42], 100, [42]),\n        ([42], -100, [42]),\n    ],\n)\ndef test_rotate_list_edge_cases(lst, k, expected):\n    assert rotate_list(lst, k) == expected\n\n\ndef test_rotate_empty_list_returns_empty_list():\n    assert rotate_list([], 3) == []\n\n\ndef test_rotate_empty_list_returns_same_object():\n    lst = []\n\n    result = rotate_list(lst, 3)\n\n    assert result is lst\n\n\ndef test_rotate_empty_list_does_not_error_with_zero_k():\n    assert rotate_list([], 0) == []\n\n\ndef test_rotate_empty_list_does_not_validate_k():\n    assert rotate_list([], \"invalid\") == []\n\n\ndef test_rotate_non_empty_list_returns_new_list():\n    lst = [1, 2, 3]\n\n    result = rotate_list(lst, 1)\n\n    assert result == [3, 1, 2]\n    assert result is not lst\n\n\ndef test_rotate_list_does_not_mutate_original_list():\n    lst = [1, 2, 3, 4]\n    original = lst.copy()\n\n    rotate_list(lst, 2)\n\n    assert lst == original\n\n\n@pytest.mark.parametrize(\"invalid_k\", [\"1\", 1.5, None, [], {}])\ndef test_rotate_list_with_invalid_k_raises_type_error(invalid_k):\n    with pytest.raises(TypeError):\n        rotate_list([1, 2, 3], invalid_k)\n\n\ndef test_rotate_truthy_non_sequence_raises_type_error():\n    with pytest.raises(TypeError):\n        rotate_list(123, 1)\n\n\ndef test_rotate_none_returns_none_due_to_falsy_check():\n    assert rotate_list(None, 1) is None\n```",
+  "score": 5,
+  "cost": 0.015369,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 1262
+  }
+}

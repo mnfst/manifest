@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "function_calling",
+  "case": 41,
+  "response": "{\"name\": \"add_comment\", \"arguments\": {\"pr_id\": 789, \"body\": \"LGTM approved\"}}",
+  "score": 5,
+  "cost": 1.875e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 276
+  }
+}

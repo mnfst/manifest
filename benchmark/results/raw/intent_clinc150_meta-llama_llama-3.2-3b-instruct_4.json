@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "intent_clinc150",
+  "case": 4,
+  "response": "book_ride",
+  "score": 0,
+  "cost": 2.6316e-05,
+  "expected": "uber",
+  "tokens": {
+    "input": 512,
+    "output": 4
+  }
+}

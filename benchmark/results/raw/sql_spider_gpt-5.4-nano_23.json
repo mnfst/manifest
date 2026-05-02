@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT\n  ts.production_code,\n  ts.channel\nFROM\n  tvshow.tvschedule ts\nWHERE\n  ts.genre = 'cartoon'\nORDER BY\n  ts.air_date DESC,\n  ts.air_time DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 2.9500000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 56
+  }
+}

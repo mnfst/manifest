@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 48,
+  "response": "```json\n{\n  \"name\": \"git_tag\",\n  \"arguments\": {\n    \"name\": \"v3.0.0\",\n    \"message\": null\n  }\n}\n```\n\n```json\n{\n  \"name\": \"git_push\",\n  \"arguments\": {\n    \"remote\": \"origin\",\n    \"branch\": null,\n    \"tags\": true\n  }\n}\n```",
+  "score": 5,
+  "cost": 1.287e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 81
+  }
+}

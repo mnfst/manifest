@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Here is the translation:\n\n**French:** Sector Source est un site web de ressources d\u00e9di\u00e9 \u00e0 aider ceux qui dirigent des organismes de bienfaisance et des organisations \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...\n\nThe tone and meaning have been maintained, keeping the formal and informative style of the original text.",
+  "score": 5,
+  "cost": 0.001326,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 78
+  }
+}

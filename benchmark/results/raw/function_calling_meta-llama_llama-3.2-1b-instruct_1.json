@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 1,
+  "response": "To generate the correct function call for the user request, we need to identify the function that matches the request. In this case, the function that matches the request is `get_weather`.\n\nHere is the correct function call:\n\n```json\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\", \"units\": \"celsius\"}}\n```\n\nThis function call returns the current weather in Paris in Celsius.",
+  "score": 5,
+  "cost": 4.941e-06,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 85
+  }
+}

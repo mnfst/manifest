@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "```sql\nSELECT SUM(population) AS total_population\nFROM city\nWHERE district = 'Gelderland';\n```",
+  "score": 4,
+  "cost": 1.5e-05,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 28
+  }
+}

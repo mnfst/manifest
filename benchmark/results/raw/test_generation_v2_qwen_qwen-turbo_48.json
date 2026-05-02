@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 48,
+  "response": "Here's a **pytest-style** test suite for the `trie_insert_search` function. This includes:\n\n- **Happy path**: Insert and search a valid word.\n- **Edge cases**:\n  - Inserting an empty string.\n  - Searching for a word that was not inserted.\n  - Inserting and searching a word with special characters.\n- **Error cases**:\n  - Inserting a non-string.\n  - Searching with a non-string.\n\n---\n\n### \u2705 `test_trie.py`\n\n```python\nimport pytest\n\ndef trie_insert_search():\n    trie = {}\n    def insert(word):\n        node = trie\n        for c in word:\n            node = node.setdefault(c, {})\n        node['$'] = True\n    def search(word):\n        node = trie\n        for c in word:\n            if c not in node:\n                return False\n            node = node[c]\n        return '$' in node\n    return insert, search\n\n# Create the insert and search functions\ninsert, search = trie_insert_search()\n\ndef test_happy_path():\n    insert(\"apple\")\n    assert search(\"apple\") is True\n    assert search(\"apples\") is False\n\ndef test_empty_string():\n    insert(\"\")\n    assert search(\"\") is True\n\ndef test_search_missing_word():\n    assert search(\"banana\") is False\n\ndef test_insert_special_characters():\n    insert(\"hello!\")\n    assert search(\"hello!\") is True\n    assert search(\"hello\") is False\n\ndef test_insert_non_string():\n    with pytest.raises(TypeError):\n        insert(123)\n\ndef test_search_non_string():\n    with pytest.raises(TypeError):\n        search(123)\n\ndef test_multiple_inserts():\n    insert(\"cat\")\n    insert(\"cater\")\n    assert search(\"cat\") is True\n    assert search(\"cater\") is True\n    assert search(\"c\") is False\n    assert search(\"catt\") is False\n```\n\n---\n\n### \ud83d\udd27 To Run the Tests\n\nMake sure you have `pytest` installed:\n\n```bash\npip install pytest\n```\n\nThen run the tests:\n\n```bash\npytest test_trie.py\n```\n\n---\n\n### \ud83e\udde0 Notes\n\n- The `trie_insert_search` function returns a closure with `insert` and `search`, which share the same `trie` dictionary.\n- The `setdefault` method is used to build the trie structure.\n- The `$` key is used to mark the end of a word.\n- The `search` function returns `False` if any character in the word is not found in the trie.\n\nLet me know if you want to test with multiple tries or add more advanced test cases like deletion.",
+  "score": 5,
+  "cost": 2.2176000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 546
+  }
+}

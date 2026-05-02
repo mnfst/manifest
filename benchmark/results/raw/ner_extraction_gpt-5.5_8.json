@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "ner_extraction",
+  "case": 8,
+  "response": "{\"persons\":[\"Elon Musk\"],\"organizations\":[\"Tesla\"],\"locations\":[\"Fremont factory\",\"California\"]}",
+  "score": 4,
+  "cost": 0.002595,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 199
+  }
+}

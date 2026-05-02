@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "To find out how many vacuum cleaners Melanie started with, we can work backward from the final amount or set up an algebraic equation. Let $x$ be the total number of vacuum cleaners Melanie started with.\n\n**Step 1: Translate the sales into algebraic expressions.**\n\n1.  **Green House:** She sold a third of her vacuum cleaners.\n    Amount sold: $\\frac{1}{3}x$\n    Amount remaining after green house: $x - \\frac{1}{3}x = \\frac{2}{3}x$\n\n2.  **Red House:** She sold 2 more to the red house.\n    Amount remaining after red house: $\\frac{2}{3}x - 2$\n\n3.  **Orange House:** She sold half of what was left at the orange house.\n    Amount sold: $\\frac{1}{2}(\\frac{2}{3}x - 2)$\n    Amount remaining after orange house: $\\frac{1}{2}(\\frac{2}{3}x - 2)$\n\n**Step 2: Set up the equation based on the final amount.**\nWe are told that after all these sales, she has 5 vacuum cleaners left.\n$$\\frac{1}{2}\\left(\\frac{2}{3}x - 2\\right) = 5$$\n\n**Step 3: Solve for $x$.**\nMultiply both sides by 2 to eliminate the fraction:\n$$\\frac{2}{3}x - 2 = 10$$\n\nAdd 2 to both sides:\n$$\\frac{2}{3}x = 12$$\n\nMultiply both sides by 3:\n$$2x = 36$$\n\nDivide by 2:\n$$x = 18$$\n\n**Step 4: Verify the result.**\n- Start with 18.\n- Green house: $\\frac{1}{3}$ of 18 is 6. Remaining: $18 - 6 = 12$.\n- Red house: 2 more. Remaining: $12 - 2 = 10$.\n- Orange house: Half of what was left (half of 10) is 5. Remaining: $10 - 5 = 5$.\nThe result matches the problem statement.\n\nANSWER: 18",
+  "score": 5,
+  "cost": 3.6299999999999995e-05,
+  "expected": "18",
+  "tokens": {
+    "input": 108,
+    "output": 497
+  }
+}

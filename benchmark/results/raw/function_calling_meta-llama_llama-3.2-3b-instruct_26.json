@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 26,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"upload_file\", \"arguments\": {\"path\": \"report.pdf\", \"destination\": \"shared documents\"}}\n```\n\nThis function call tells the system to upload the file `report.pdf` to the `shared documents` folder.",
+  "score": 4,
+  "cost": 7.701e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 61
+  }
+}

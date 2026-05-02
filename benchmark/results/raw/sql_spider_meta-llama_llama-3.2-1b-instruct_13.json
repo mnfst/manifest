@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 13,
+  "response": "```sql\nSELECT MAX(ReleaseDate) FROM student_transcripts;\n```",
+  "score": 5,
+  "cost": 2.403e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 16
+  }
+}

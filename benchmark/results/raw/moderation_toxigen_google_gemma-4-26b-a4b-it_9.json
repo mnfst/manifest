@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "moderation_toxigen",
+  "case": 9,
+  "response": "toxic",
+  "score": 5,
+  "cost": 3.54e-06,
+  "expected": "toxic",
+  "tokens": {
+    "input": 57,
+    "output": 2
+  }
+}

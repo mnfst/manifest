@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "The Design Team has released DS v3 with updates including new dark mode color tokens, a revised 4px spacing scale, and refreshed Button and Modal components, along with a migration tool. They recommend a phased rollout starting with the Settings page.",
+  "score": 5,
+  "cost": 2.3899999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 52
+  }
+}

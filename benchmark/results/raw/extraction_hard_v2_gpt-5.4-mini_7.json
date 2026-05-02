@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "extraction_hard_v2",
+  "case": 7,
+  "response": "{\"mls_number\":\"24-08847\",\"property\":{\"bedrooms\":3,\"bathrooms\":2.5,\"type\":\"Colonial\",\"sqft\":2400,\"lot_acres\":0.35,\"year_built\":1987,\"renovated\":2021},\"price\":{\"asking\":675000,\"original\":699000},\"taxes_annual\":12450,\"hoa\":\"None\",\"agent\":{\"name\":\"Lisa Torres\",\"company\":\"Coldwell Banker\",\"phone\":\"(908-555-0147)\"},\"features\":[\"updated kitchen w/ quartz counters\",\"hardwood floors throughout\",\"finished basement\",\"2-car garage\",\"central AC\",\"new roof 2023\"]}",
+  "score": 4,
+  "cost": 0.0002475,
+  "expected": "",
+  "tokens": {
+    "input": 265,
+    "output": 140
+  }
+}

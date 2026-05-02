@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "To find out how many wheels will be left, we first need to calculate the total number of wheels Henry needs to assemble all the cars and motorcycles.\n\n1. **Calculate the wheels needed for the cars:**\n   Henry has 57 cars, and each car needs 4 wheels.\n   57 cars \u00d7 4 wheels/car = 228 wheels\n\n2. **Calculate the wheels needed for the motorcycles:**\n   Henry has 73 motorcycles, and each motorcycle needs 2 wheels.\n   73 motorcycles \u00d7 2 wheels/motorcycle = 146 wheels\n\n3. **Calculate the total number of wheels needed:**\n   228 wheels (for cars) + 146 wheels (for motorcycles) = 374 wheels\n\n4. **Calculate the number of wheels left in the box:**\n   Henry starts with a box of 650 wheels. We subtract the total number of wheels he needs from the total number of wheels in the box.\n   650 wheels - 374 wheels = 276 wheels\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.003745,
+  "expected": "276",
+  "tokens": {
+    "input": 100,
+    "output": 233
+  }
+}

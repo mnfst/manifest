@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 24,
+  "response": "{\"name\": \"rotate_api_key\", \"arguments\": {\"service\": \"production\", \"environment\": \"production\"}}",
+  "score": 4,
+  "cost": 3.96e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 23
+  }
+}

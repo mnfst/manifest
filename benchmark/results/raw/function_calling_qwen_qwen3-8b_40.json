@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "function_calling",
+  "case": 40,
+  "response": "{\"name\": \"pin_message\", \"arguments\": {\"channel\": \"announcements\", \"message_id\": \"release_message_id\"}}",
+  "score": 5,
+  "cost": 2.135e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 331
+  }
+}

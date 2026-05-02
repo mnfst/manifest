@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "intent_clinc150",
+  "case": 13,
+  "response": "nutrition_info",
+  "score": 5,
+  "cost": 4.121e-05,
+  "expected": "nutrition_info",
+  "tokens": {
+    "input": 631,
+    "output": 3
+  }
+}

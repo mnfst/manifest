@@ -1,13 +1,13 @@
 {
-  "model": "Kimi-K2.6",
+  "model": "kimi-k2.6",
   "task": "extraction_hard_v2",
   "case": 6,
   "response": "{\"patient_id\":\"PT-20240315-089\",\"collected\":\"03/15/2024 08:30\",\"physician\":\"Dr. R. Patel\",\"results\":[{\"test\":\"WBC\",\"value\":7.2,\"unit\":\"x10^9/L\",\"normal_range\":\"4.5-11.0\",\"flag\":\"\"},{\"test\":\"RBC\",\"value\":4.8,\"unit\":\"x10^12/L\",\"normal_range\":\"4.7-6.1\",\"flag\":\"\"},{\"test\":\"Hemoglobin\",\"value\":14.2,\"unit\":\"g/dL\",\"normal_range\":\"14.0-18.0\",\"flag\":\"\"},{\"test\":\"Platelets\",\"value\":245,\"unit\":\"x10^9/L\",\"normal_range\":\"150-400\",\"flag\":\"\"},{\"test\":\"Glucose\",\"value\":128,\"unit\":\"mg/dL\",\"normal_range\":\"70-100\",\"flag\":\"HIGH\"},{\"test\":\"Creatinine\",\"value\":0.9,\"unit\":\"mg/dL\",\"normal_range\":\"0.7-1.3\",\"flag\":\"\"},{\"test\":\"eGFR\",\"value\":95,\"unit\":\"mL/min\",\"normal_range\":\">60\",\"flag\":\"\"}]}",
-  "score": 0,
-  "cost": 0.004863599999999999,
+  "score": 4,
+  "cost": 0.0037254000000000002,
   "expected": "",
   "tokens": {
-    "input": 274,
-    "output": 1958
+    "input": 273,
+    "output": 1484
   }
 }

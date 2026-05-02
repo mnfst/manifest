@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "```python\nimport pytest\n\nfrom your_module import chunk_list\n\n\ndef test_chunk_list_happy_path_even_chunks():\n    assert chunk_list([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]\n\n\ndef test_chunk_list_happy_path_uneven_chunks():\n    assert chunk_list([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n\n\ndef test_chunk_list_size_larger_than_list():\n    assert chunk_list([1, 2], 5) == [[1, 2]]\n\n\ndef test_chunk_list_empty_list():\n    assert chunk_list([], 3) == []\n\n\ndef test_chunk_list_size_one():\n    assert chunk_list([1, 2, 3], 1) == [[1], [2], [3]]\n\n\n@pytest.mark.parametrize(\"size\", [0, -1, -10])\ndef test_chunk_list_invalid_size_raises_value_error(size):\n    with pytest.raises(ValueError, match=\"size must be positive\"):\n        chunk_list([1, 2, 3], size)\n\n\ndef test_chunk_list_does_not_mutate_input():\n    lst = [1, 2, 3, 4]\n    result = chunk_list(lst, 2)\n    assert lst == [1, 2, 3, 4]\n    assert result == [[1, 2], [3, 4]]\n```\n\nIf you want, I can also provide a version using `unittest.mock` or add type/error tests for non-integer `size` values.",
+  "score": 5,
+  "cost": 0.0004431,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 348
+  }
+}

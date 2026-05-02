@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "La sous-section 104(1.1) est modifi\u00e9e pour clarifier qu'elle s'applique malgr\u00e9 la sous-section 248(25) de la Loi. La sous-section 248(25) de la Loi d\u00e9crit, \u00e0 des fins autres de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 en commandite est consid\u00e9r\u00e9e comme \"int\u00e9r\u00eat\u00e9e \u00e0 profit\" d'une fiducie.",
+  "score": 4,
+  "cost": 9.843e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 98
+  }
+}

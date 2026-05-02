@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Let's solve the problem step by step.\n\n1. **Initial Weight:**\n   - Jamaal starts with an 8-pound weight.\n\n2. **Increase by 50%:**\n   - To find 50% of 8 pounds:\n     \\[\n     50\\% \\text{ of } 8 = 0.5 \\times 8 = 4 \\text{ pounds}\n     \\]\n   - Add this to the original weight:\n     \\[\n     8 \\text{ pounds} + 4 \\text{ pounds} = 12 \\text{ pounds}\n     \\]\n\n3. **Decrease by 2 Pounds:**\n   - The 12-pound weight is too heavy, so Jamaal reduces it by 2 pounds:\n     \\[\n     12 \\text{ pounds} - 2 \\text{ pounds} = 10 \\text{ pounds}\n     \\]\n\n**Final Weight:**\n\\[\n\\boxed{10}\n\\]\n\nANSWER: 10",
+  "score": 5,
+  "cost": 7.379999999999999e-05,
+  "expected": "10",
+  "tokens": {
+    "input": 102,
+    "output": 212
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "J'ai des g\u00e2teaux au cr\u00e8me, des viandes sucr\u00e9es, des harengs pick\u00e9s et des dates cristallis\u00e9es.",
+  "score": 4,
+  "cost": 4.08e-06,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 32
+  }
+}

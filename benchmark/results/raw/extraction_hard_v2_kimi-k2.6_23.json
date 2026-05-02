@@ -1,13 +1,13 @@
 {
-  "model": "Kimi-K2.6",
+  "model": "kimi-k2.6",
   "task": "extraction_hard_v2",
   "case": 23,
-  "response": "{\"severity\": \"critical\", \"component\": \"checkout\", \"summary\": \"Checkout page fails with white screen after payment submission in Chrome\", \"steps_to_reproduce\": [\"Add items to cart\", \"Navigate to the checkout page\", \"Enter card information\", \"Click the pay button\"], \"expected_behavior\": \"Payment should process successfully and complete the checkout flow\", \"actual_behavior\": \"Page displays a loading spinner for 30 seconds, then shows a blank white screen with no error message. Browser console shows a CORS error and 'undefined is not a function' in checkout.bundle.js:847\", \"environment\": {\"os\": \"Windows 11\", \"browser\": \"Chrome 121\"}}",
-  "score": 0,
-  "cost": 0.0027126,
+  "response": "{\"severity\": \"high\", \"component\": \"checkout\", \"summary\": \"Checkout page fails with white screen after submitting payment in Chrome\", \"steps_to_reproduce\": [\"Add items to cart\", \"Navigate to checkout page\", \"Enter card information\", \"Click the pay button\"], \"expected_behavior\": \"Payment processes successfully and checkout completes without errors\", \"actual_behavior\": \"A loading spinner appears for 30 seconds, then the page turns into a white screen with no error message shown. The browser console shows a CORS error and an 'undefined is not a function' error in checkout.bundle.js:847.\", \"environment\": {\"os\": \"Windows 11\", \"browser\": \"Chrome 121\"}}",
+  "score": 5,
+  "cost": 0.0029831999999999997,
   "expected": "",
   "tokens": {
-    "input": 165,
-    "output": 1089
+    "input": 164,
+    "output": 1202
   }
 }

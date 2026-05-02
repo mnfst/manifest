@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 41,
+  "response": "```python\nimport pytest\n\nfrom your_module import hex_to_rgb\n\n\nclass TestHexToRgb:\n    @pytest.mark.parametrize(\n        \"value, expected\",\n        [\n            (\"#ffffff\", (255, 255, 255)),\n            (\"#000000\", (0, 0, 0)),\n            (\"#ff0000\", (255, 0, 0)),\n            (\"#00ff00\", (0, 255, 0)),\n            (\"#0000ff\", (0, 0, 255)),\n            (\"abcdef\", (171, 205, 239)),\n            (\"#AbCdEf\", (171, 205, 239)),\n            (\"123456\", (18, 52, 86)),\n        ],\n    )\n    def test_hex_to_rgb_happy_path(self, value, expected):\n        assert hex_to_rgb(value) == expected\n\n    @pytest.mark.parametrize(\n        \"value, expected\",\n        [\n            (\"\", ()),\n            (\"#\", ()),\n            (\"##ffffff\", (255, 255, 255)),\n            (\"ffffff\\n\", (255, 255, 255)),\n        ],\n    )\n    def test_hex_to_rgb_edge_cases_current_behavior(self, value, expected):\n        assert hex_to_rgb(value) == expected\n\n    @pytest.mark.parametrize(\n        \"value\",\n        [\n            (\"fff\"),         # too short, last chunk is incomplete\n            (\"ffff\"),        # incomplete final chunk\n            (\"fffff\"),       # incomplete final chunk\n            (\"gggggg\"),      # invalid hex characters\n            (\"#gggggg\"),     # invalid hex characters with prefix\n            (\"12x456\"),      # invalid character in middle\n            (\"white\"),       # non-hex string\n        ],\n    )\n    def test_hex_to_rgb_error_cases(self, value):\n        with pytest.raises(ValueError):\n            hex_to_rgb(value)\n\n    def test_hex_to_rgb_ignores_only_leading_hashes(self):\n        assert hex_to_rgb(\"###112233\") == (17, 34, 51)\n\n    def test_hex_to_rgb_more_than_six_characters_returns_more_values_current_behavior(self):\n        assert hex_to_rgb(\"11223344\") == (17, 34, 51, 68)\n```\n\nNotes:\n- Replace `from your_module import hex_to_rgb` with the actual module import.\n- Some tests intentionally capture the function\u2019s current behavior, even if it may be surprising:\n  - `\"\"` and `\"#\"` return `()`\n  - strings longer than 6 hex chars return extra tuple elements\n  - multiple leading `#` characters are stripped\n- If you want, I can also provide a stricter test suite that reflects how this function probably *should* behave for valid 6-digit hex colors only.",
+  "score": 4,
+  "cost": 0.004818,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 583
+  }
+}

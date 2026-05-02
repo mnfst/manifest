@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 49,
+  "response": "To generate the correct function call for the user request, you would use the `resize_instance` function. Here's the correct function call:\n\n```json\n{\"name\": \"resize_instance\", \"arguments\": {\"instance_id\": \"app-server-1\", \"new_type\": \"t3.large\"}}\n```\n\nThis function call specifies the instance ID (`app-server-1`) and the new instance type (`t3.large`).",
+  "score": 5,
+  "cost": 4.941e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 86
+  }
+}

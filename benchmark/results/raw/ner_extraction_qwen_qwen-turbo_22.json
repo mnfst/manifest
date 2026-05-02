@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 22,
+  "response": "{\n  \"persons\": [\"Jamie Dimon\", \"JPMorgan Chase\"],\n  \"organizations\": [\"JPMorgan Chase\", \"Davos World Economic Forum\"],\n  \"locations\": [\"Switzerland\"]\n}",
+  "score": 3,
+  "cost": 4.092000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 43
+  }
+}

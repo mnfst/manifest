@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "To solve this problem, we need to follow two main steps: first, determine the total number of books Sarah bought, and second, divide that total number of books among her 4 children.\n\n**Step 1: Find the total number of books purchased.**\nWe know the total amount spent was $300 and the cost of each individual book was $15. To find the total number of books, we divide the total cost by the cost per book:\n$$\\text{Total books} = \\frac{\\text{Total spent}}{\\text{Cost per book}}$$\n$$\\text{Total books} = \\frac{300}{15}$$\n\nTo calculate $300 \\div 15$:\n$15 \\times 2 = 30$\nSo, $15 \\times 20 = 300$.\nTherefore, Sarah bought 20 books.\n\n**Step 2: Find how many books each child received.**\nSarah gave an equal number of books to her 4 kids. To find the number of books per child, we divide the total number of books by the number of children:\n$$\\text{Books per child} = \\frac{\\text{Total books}}{\\text{Number of children}}$$\n$$\\text{Books per child} = \\frac{20}{4}$$\n$$\\text{Books per child} = 5$$\n\nEach child received 5 books.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 2.4060000000000003e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 96,
+    "output": 305
+  }
+}

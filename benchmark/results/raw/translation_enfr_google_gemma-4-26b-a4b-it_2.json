@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "Voici une traduction qui respecte le ton solennel et le sens du texte original :\n\n**\u00ab J\u00e9sus vint et dit d'une voix distincte et bienveillante : \"C'est moi.\" Cette expression devint le fondement de la foi des ap\u00f4tres. \u00bb**",
+  "score": 5,
+  "cost": 7.02e-06,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 60
+  }
+}

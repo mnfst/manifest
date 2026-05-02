@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT a.airline_abbreviation, a.country\nFROM airline a\nJOIN (\n    SELECT airline_id, COUNT(*) as flight_count\n    FROM flight\n    GROUP BY airline_id\n    ORDER BY flight_count ASC\n    LIMIT 1\n) f ON a.airline_id = f.airline_id;\n```",
+  "score": 4,
+  "cost": 9.295000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 67
+  }
+}

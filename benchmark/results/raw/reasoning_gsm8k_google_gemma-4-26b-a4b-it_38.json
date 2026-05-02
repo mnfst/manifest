@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "To solve this problem, we follow these steps:\n\n1.  **Identify the total amount and the ratio:**\n    The total amount of money is $100.\n    The ratio in which Gerald and Julia divided the money is 3:2.\n\n2.  **Calculate the total number of parts in the ratio:**\n    The ratio is 3 parts for Gerald and 2 parts for Julia.\n    Total parts = $3 + 2 = 5$ parts.\n\n3.  **Determine the value of one part:**\n    To find the value of one part, divide the total amount by the total number of parts:\n    Value of one part = $\\frac{\\$100}{5} = \\$20$.\n\n4.  **Calculate Gerald's initial share:**\n    Gerald's share is 3 parts.\n    Gerald's initial amount = $3 \\times \\$20 = \\$60$.\n\n5.  **Calculate how much money Gerald has left after his purchase:**\n    Gerald spent $10 on a book.\n    Money left = Initial amount - Amount spent\n    Money left = $\\$60 - \\$10 = \\$50$.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 2.058e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 83,
+    "output": 260
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT player_first_name, AVG(ranking) AS average_ranking\nFROM players\nJOIN rankings ON players.player_id = rankings.player_id\nGROUP BY player_first_name;",
+  "score": 5,
+  "cost": 3.7620000000000006e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 34
+  }
+}

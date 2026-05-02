@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "Q1 employee engagement is strong at 7.8/10, above the 7.2 industry average, with team collaboration highest and career growth clarity lowest. Proposed next steps are quarterly career conversations, an internal mobility program, mentorship matching, and a Friday town hall to discuss the results.",
+  "score": 5,
+  "cost": 0.001326,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 82
+  }
+}

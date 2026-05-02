@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 14,
+  "response": "Here's an example of how you can write unit tests for the `deep_get` function using pytest:\n\n```python\nimport pytest\nfrom your_module import deep_get  # replace 'your_module' with the actual module name\n\ndef test_deep_get_happy_path():\n    \"\"\"Test happy path with nested dictionary.\"\"\"\n    d = {'a': {'b': {'c': 'value'}}}\n    assert deep_get(d, 'a.b.c') == 'value'\n\ndef test_deep_get_happy_path_with_default():\n    \"\"\"Test happy path with default value.\"\"\"\n    d = {'a': {'b': {'c': 'value'}}}\n    assert deep_get(d, 'a.b.c', 'default') == 'default'\n\ndef test_deep_get_edge_case_empty_string():\n    \"\"\"Test edge case with empty string.\"\"\"\n    d = {'a': {'b': {'c': 'value'}}}\n    assert deep_get(d, '') == 'value'\n\ndef test_deep_get_edge_case_empty_keys():\n    \"\"\"Test edge case with empty keys.\"\"\"\n    d = {'a': {'b': {'c': 'value'}}}\n    assert deep_get(d, '') == 'value'\n\ndef test_deep_get_edge_case_non_dict():\n    \"\"\"Test edge case with non-dict value.\"\"\"\n    d = 'value'\n    assert deep_get(d, 'a.b.c') is None\n\ndef test_deep_get_edge_case_non_string_keys():\n    \"\"\"Test edge case with non-string keys.\"\"\"\n    d = {'a': {'b': {'c': 'value'}}}\n    with pytest.raises(TypeError):\n        deep_get(d, [1, 2, 3])\n\ndef test_deep_get_edge_case_non_string_keys_with_default():\n    \"\"\"Test edge case with non-string keys and default value.\"\"\"\n    d = {'a': {'b': {'c': 'value'}}}\n    assert deep_get(d, [1, 2, 3], 'default') == 'default'\n\ndef test_deep_get_edge_case_none():\n    \"\"\"Test edge case with None value.\"\"\"\n    d = None\n    assert deep_get(d, 'a.b.c') is None\n\ndef test_deep_get_edge_case_none_with_default():\n    \"\"\"Test edge case with None value and default value.\"\"\"\n    d = None\n    assert deep_get(d, 'a.b.c', 'default') == 'default'\n```\n\nThese tests cover the following scenarios:\n\n* Happy path with nested dictionary\n* Happy path with default value\n* Edge case with empty string\n* Edge case with empty keys\n* Edge case with non-dict value\n* Edge case with non-string keys\n* Edge case with non-string keys and default value\n* Edge case with None value\n* Edge case with None value and default value\n\nNote that the `deep_get` function does not handle the case where the input dictionary is not a dictionary. You may want to add additional tests to cover this case.",
+  "score": 4,
+  "cost": 3.5291999999999993e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 594
+  }
+}

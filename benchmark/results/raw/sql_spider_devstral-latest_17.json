@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT s.name\nFROM stadiums s\nWHERE s.id NOT IN (\n    SELECT c.stadium_id\n    FROM concerts c\n    WHERE EXTRACT(YEAR FROM c.date) = 2014\n);\n```",
+  "score": 5,
+  "cost": 2.3e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 51
+  }
+}

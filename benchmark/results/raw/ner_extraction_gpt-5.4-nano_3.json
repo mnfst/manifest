@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 3,
+  "response": "{\n  \"persons\": [\"Maria Garcia\"],\n  \"organizations\": [\"Microsoft\", \"ACM\"],\n  \"locations\": [\"Seattle\"]\n}",
+  "score": 5,
+  "cost": 1.95e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 31
+  }
+}

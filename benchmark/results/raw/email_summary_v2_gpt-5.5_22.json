@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The Japan expansion plan targets legal setup in May, localization in June, a 10-customer beta in July, and general availability in August, with a total budget of $200K. CEO approval is needed to proceed with the plan.",
+  "score": 5,
+  "cost": 0.001137,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 71
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "SELECT conductor_name, COUNT(*) AS num_orchestras\nFROM Orchestras\nJOIN Conductors ON Orchestras.conductor_id = Conductors.conductor_id\nGROUP BY conductor_id\nORDER BY num_orchestras DESC\nLIMIT 1;",
+  "score": 3,
+  "cost": 9.030000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 1731
+  }
+}

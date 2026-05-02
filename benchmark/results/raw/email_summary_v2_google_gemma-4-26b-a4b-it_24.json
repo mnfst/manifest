@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Design System v3 is now ready for adoption, featuring updated color tokens, a revised spacing scale, and new component designs. Teams should begin a phased rollout starting with the Settings page using the provided migration tool.",
+  "score": 5,
+  "cost": 8.28e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 43
+  }
+}

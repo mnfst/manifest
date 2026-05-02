@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "There are originally 10 stalls with 20 cows each.\n\nSo the original number of cows is:\n10 \u00d7 20 = 200\n\nMr. Sylas buys 40 more cows, making:\n200 + 40 = 240\n\nHe puts the cows equally into 20 stalls, so each stall gets:\n240 \u00f7 20 = 12 cows\n\nNow we need the number of cows in 8 stalls:\n8 \u00d7 12 = 96\n\nANSWER: 96",
+  "score": 5,
+  "cost": 0.000974,
+  "expected": "192",
+  "tokens": {
+    "input": 87,
+    "output": 100
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The international expansion plan outlines a phased launch in Japan from May to August with a total budget of $200,000. The team requires CEO approval to proceed with the legal setup, localization, and hiring processes.",
+  "score": 4,
+  "cost": 9.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 47
+  }
+}

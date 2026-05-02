@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "SELECT model\nFROM cars\nWHERE weight < (SELECT AVG(weight) FROM cars);",
+  "score": 5,
+  "cost": 4.6200000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 20
+  }
+}

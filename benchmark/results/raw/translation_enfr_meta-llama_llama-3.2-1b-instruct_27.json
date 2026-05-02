@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Les crit\u00e8res DSMIV pour l'alcoolisme sont similaires \u00e0 l'ajout d'un ou plusieurs des signes suivants : un langage h\u00e9sitant, une coordination, un pas instable, des vertiges, une perte d'attention ou de m\u00e9moire, un \u00e9tat de somnolence ou un coma.",
+  "score": 3,
+  "cost": 4.131e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 71
+  }
+}

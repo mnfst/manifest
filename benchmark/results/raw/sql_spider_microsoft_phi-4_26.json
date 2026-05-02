@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT COUNT(*) AS flight_count\nFROM flight_2\nWHERE departure_city = 'Aberdeen' AND destination_city = 'Ashley';\n```",
+  "score": 5,
+  "cost": 7.8e-06,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 34
+  }
+}

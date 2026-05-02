@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 33,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"International Monetary Fund\"\n  ],\n  \"locations\": [\n    \"Latin America\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 7.319999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 46
+  }
+}

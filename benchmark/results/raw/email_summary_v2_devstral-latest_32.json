@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "The SSL certificate for api.company.com will expire in 7 days due to a failed auto-renewal caused by a missing CNAME record from a recent DNS migration. The DevOps team will re-add the required CNAME record today, but this is flagged for visibility.",
+  "score": 5,
+  "cost": 2.74e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 57
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "Jen has 3 fish.\n\nEach fish needs $1 of food per day, so per day she spends:\n\n3 \u00d7 $1 = $3\n\nMay has 31 days, so total cost is:\n\n31 \u00d7 $3 = $93\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.00138,
+  "expected": "93",
+  "tokens": {
+    "input": 72,
+    "output": 97
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[journaliste masculin #1 \u00e0 la t\u00e9l\u00e9] l'accident s'est produit juste apr\u00e8s 10 heures du matin.",
+  "score": 4,
+  "cost": 4.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 27
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "D\u00e9versoirs capables d\u2019\u00e9vacuer les crues hypoth\u00e9tiques sont int\u00e9gr\u00e9s soit aux structures des barrages, soit construits comme des ouvrages distincts.",
+  "score": 4,
+  "cost": 0.000386,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 36
+  }
+}

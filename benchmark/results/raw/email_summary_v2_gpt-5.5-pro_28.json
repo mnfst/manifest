@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual DR test missed the 4-hour RTO target, completing in 6 hours 23 minutes due to the database restore taking 3 hours instead of 1 because the dataset was larger than expected. SRE recommends increasing backup frequency and pre-provisioning a standby database, with the next test scheduled for October.",
+  "score": 5,
+  "cost": 0.002805,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 113
+  }
+}

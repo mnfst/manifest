@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "SELECT YEAR(concert_date) AS year, COUNT(*) AS concert_count\nFROM concerts\nGROUP BY YEAR(concert_date)\nORDER BY concert_count DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 3.63e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 35
+  }
+}

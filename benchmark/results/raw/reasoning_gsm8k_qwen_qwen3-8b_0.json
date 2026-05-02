@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "To determine the total amount of money raised by the girls, we need to calculate the contributions of each individual and then sum them up.\n\n1. **Alexandra's contribution**:  \n   Given as $430.\n\n2. **Kim's contribution**:  \n   Kim raises $320 more than Alexandra.  \n   $$\n   \\text{Kim} = 430 + 320 = 750\n   $$\n\n3. **Sarah's contribution**:  \n   Given as $300.\n\n4. **Maryam's contribution**:  \n   Maryam raises $400 more than Sarah.  \n   $$\n   \\text{Maryam} = 300 + 400 = 700\n   $$\n\nNow, summing up all contributions:\n\n$$\n\\text{Total} = \\text{Kim} + \\text{Alexandra} + \\text{Maryam} + \\text{Sarah}\n$$\n$$\n\\text{Total} = 750 + 430 + 700 + 300\n$$\n$$\n\\text{Total} = (750 + 430) + (700 + 300) = 1180 + 1000 = 2180\n$$\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 6e-05,
+  "expected": "2280",
+  "tokens": {
+    "input": 105,
+    "output": 1095
+  }
+}

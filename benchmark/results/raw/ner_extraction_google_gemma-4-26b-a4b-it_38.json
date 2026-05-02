@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 38,
+  "response": "```json\n{\n  \"persons\": [\"Kamala Harris\"],\n  \"organizations\": [\"General Motors\"],\n  \"locations\": [\"Detroit\"]\n}\n```",
+  "score": 5,
+  "cost": 6.72e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 36
+  }
+}

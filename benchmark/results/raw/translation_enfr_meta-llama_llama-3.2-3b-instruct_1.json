@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)",
+  "score": 5,
+  "cost": 3.7229999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 22
+  }
+}

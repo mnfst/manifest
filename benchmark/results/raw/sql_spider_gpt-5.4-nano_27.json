@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT n.name\nFROM country AS n\nJOIN country_language AS cl_en\n  ON cl_en.country_code = n.code\nJOIN country_language AS cl_fr\n  ON cl_fr.country_code = n.code\nWHERE cl_en.language = 'English'\n  AND cl_en.is_official = 'T'\n  AND cl_fr.language = 'French'\n  AND cl_fr.is_official = 'T';",
+  "score": 5,
+  "cost": 4.11e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 85
+  }
+}

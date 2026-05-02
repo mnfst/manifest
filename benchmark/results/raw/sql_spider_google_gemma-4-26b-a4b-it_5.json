@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT airport_code\nFROM airports\nWHERE airport_code NOT IN (SELECT departure_airport FROM flights)\n  AND airport_code NOT IN (SELECT arrival_airport FROM flights);\n```",
+  "score": 5,
+  "cost": 7.44e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 44
+  }
+}

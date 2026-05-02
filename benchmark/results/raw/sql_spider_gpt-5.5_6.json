@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "SELECT DISTINCT a.Airline\nFROM airlines AS a\nJOIN flights AS f\n  ON a.uid = f.Airline\nWHERE f.DestAirport = 'AHD';",
+  "score": 4,
+  "cost": 0.005946,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 478
+  }
+}

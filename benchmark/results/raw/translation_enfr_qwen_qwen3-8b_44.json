@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'extension de la longueur non appuy\u00e9e d\u00e9velopp\u00e9e en raison de l'\u00e9rosion a une influence significative sur la r\u00e9ponse en flexion tube-sol.",
+  "score": 4,
+  "cost": 2.9100000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 526
+  }
+}

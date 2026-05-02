@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "Here's a set of **pytest-style unit tests** for the `count_vowels` function. These tests cover:\n\n- **Happy path**: Normal string with vowels.\n- **Edge cases**: Empty string, all vowels, all consonants.\n- **Error cases**: Non-string input (e.g., `None`, integer, list).\n\n### `test_count_vowels.py`\n\n```python\nimport pytest\n\nfrom your_module import count_vowels  # Replace with the actual module name\n\ndef test_count_vowels_happy_path():\n    assert count_vowels(\"Hello World\") == 3  # e, o, o\n\ndef test_count_vowels_empty_string():\n    assert count_vowels(\"\") == 0\n\ndef test_count_vowels_all_vowels():\n    assert count_vowels(\"aeiouAEIOU\") == 10  # 5 lowercase + 5 uppercase\n\ndef test_count_vowels_all_consonants():\n    assert count_vowels(\"bcdfg\") == 0\n\ndef test_count_vowels_mixed_case():\n    assert count_vowels(\"PyThOn\") == 2  # y is not a vowel, o and o\n\ndef test_count_vowels_with_numbers_and_special_chars():\n    assert count_vowels(\"a1b@e\") == 2  # a and e\n\ndef test_count_vowels_non_string_input():\n    with pytest.raises(TypeError):\n        count_vowels(123)\n    with pytest.raises(TypeError):\n        count_vowels(None)\n    with pytest.raises(TypeError):\n        count_vowels([\"a\", \"e\"])\n\ndef test_count_vowels_unicode():\n    assert count_vowels(\"caf\u00e9\") == 2  # a and e\n    assert count_vowels(\"na\u00efve\") == 3  # a, i, e\n```\n\n### Notes:\n\n- Replace `your_module` with the actual module name where `count_vowels` is defined.\n- The function uses `.lower()` to make the check case-insensitive, which is correct.\n- The tests use `pytest.raises` to check for `TypeError` when non-string types are passed.\n\n### To run the tests\n\nInstall `pytest` if needed:\n\n```bash\npip install pytest\n```\n\nThen run:\n\n```bash\npytest test_count_vowels.py\n```\n\nThis will execute all the test cases and report any failures.",
+  "score": 5,
+  "cost": 1.9008e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 507
+  }
+}

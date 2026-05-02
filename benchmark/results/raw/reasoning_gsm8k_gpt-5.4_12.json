@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Jim watches TV for 2 hours.\n\nHe then reads for half as long:\n- Half of 2 hours = 1 hour\n\nSo each time, he spends:\n- 2 hours watching TV\n- 1 hour reading\n- Total = 3 hours\n\nHe does this 3 times a week:\n- 3 hours \u00d7 3 = 9 hours per week\n\nOver 4 weeks:\n- 9 \u00d7 4 = 36 hours\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.000974,
+  "expected": "36",
+  "tokens": {
+    "input": 87,
+    "output": 100
+  }
+}

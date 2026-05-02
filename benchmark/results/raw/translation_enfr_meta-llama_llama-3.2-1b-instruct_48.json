@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 48,
+  "response": "Choisissez l'un de ces Renaults pour louer \u00e0 Galati ou dans d'autres villes telles que : Arad, Timisoara, Sibiu, Oradea, Brasov, Bucharest, Iasi ou Suceava et vous arriverez \u00e0 destination en peu de temps. Et vous \u00e9conomiserez beaucoup d'argent que vous pourriez d\u00e9penser sur quelque chose d'autre.",
+  "score": 4,
+  "cost": 5.103e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 87
+  }
+}

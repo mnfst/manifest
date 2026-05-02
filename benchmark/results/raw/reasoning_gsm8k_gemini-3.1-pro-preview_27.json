@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "To find out how many vacuum cleaners Melanie started with, we can work backwards from the number of vacuum cleaners she had left at the end.\n\n1. **After the orange house:** Melanie has 5 vacuum cleaners left. Since she sold *half* of what she had at the orange house, the 5 she has left represents the other half. \n   So, before visiting the orange house, she had: \n   5 x 2 = 10 vacuum cleaners.\n\n2. **After the red house:** Before going to the orange house, she had 10 vacuum cleaners. We know she sold 2 vacuum cleaners at the red house. \n   So, before visiting the red house, she had: \n   10 + 2 = 12 vacuum cleaners.\n\n3. **After the green house:** Before going to the red house, she had 12 vacuum cleaners. We know she sold a *third* (1/3) of her original amount at the green house, which means the 12 vacuum cleaners represent the remaining two-thirds (2/3) of her starting amount.\n   To find the total starting amount, we can divide 12 by 2 to find what one-third is, and then multiply by 3:\n   12 / 2 = 6 (this is one-third)\n   6 x 3 = 18 vacuum cleaners.\n\nMelanie started with 18 vacuum cleaners.\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.004965,
+  "expected": "18",
+  "tokens": {
+    "input": 96,
+    "output": 315
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "En son sens, le deuxi\u00e8me atelier se concentrait sur l'impl\u00e9mentation des recommandations faites par les organes de supervision des organisations de trait\u00e9s aux organes du gouvernement, en conformit\u00e9 aux trait\u00e9s internationaux et r\u00e9gionaux, envers les populations indig\u00e8nes.",
+  "score": 3,
+  "cost": 3.645e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 64
+  }
+}

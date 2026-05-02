@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "Depending on the level of formality and the context (whether you are speaking to a friend or someone you address formally), there are a few ways to translate this.\n\n**Option 1: Formal (Standard/Polite)**\nThis is the most accurate translation for a formal setting or if you are addressing the woman as \"vous.\"\n> **Votre mari avait-il invit\u00e9 le lieutenant Gilbert chez vous ?**\n\n**Option 2: Semi-formal (Common in literature/speech)**\nThis uses \"est-ce que,\" which is very common in standard French.\n> **Est-ce que votre mari avait invit\u00e9 le lieutenant Gilbert chez vous ?**\n\n**Option 3: Informal (If you are close friends/using \"tu\")**\nUse this if you are speaking to a friend.\n> **Ton mari avait-il invit\u00e9 le lieutenant Gilbert chez toi ?**\n*(Or: **Est-ce que ton mari avait invit\u00e9 le lieutenant Gilbert chez toi ?**)*\n\n**Key Translation Notes:**\n* **Had... invited:** Translated using the *plus-que-parfait* tense (*avait invit\u00e9*).\n* **Lieutenant:** In French, military titles are not capitalized unless they start a sentence, but \"le lieutenant Gilbert\" is the correct way to address him.\n* **To your house:** Translated as \"*chez vous*\" or \"*chez toi*,\" which is the natural way to say \"to someone's home\" in French.",
+  "score": 5,
+  "cost": 2.094e-05,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 306
+  }
+}

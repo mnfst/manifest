@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 45,
+  "response": "Here's an example of how you can write unit tests for the `sliding_window` function using pytest:\n\n```python\nimport pytest\nfrom your_module import sliding_window  # Replace 'your_module' with the actual name of the module where the function is defined\n\ndef test_sliding_window_happy_path():\n    \"\"\"Test the happy path of the sliding window function.\"\"\"\n    iterable = [1, 2, 3, 4, 5]\n    size = 3\n    expected_output = [(1, 2, 3), (2, 3, 4), (3, 4, 5)]\n    assert list(sliding_window(iterable, size)) == expected_output\n\ndef test_sliding_window_edge_case_empty_iterable():\n    \"\"\"Test the edge case where the iterable is empty.\"\"\"\n    iterable = []\n    size = 3\n    with pytest.raises(StopIteration):\n        list(sliding_window(iterable, size))\n\ndef test_sliding_window_edge_case_zero_size():\n    \"\"\"Test the edge case where the window size is zero.\"\"\"\n    iterable = [1, 2, 3, 4, 5]\n    size = 0\n    with pytest.raises(ValueError):\n        list(sliding_window(iterable, size))\n\ndef test_sliding_window_edge_case_negative_size():\n    \"\"\"Test the edge case where the window size is negative.\"\"\"\n    iterable = [1, 2, 3, 4, 5]\n    size = -1\n    with pytest.raises(ValueError):\n        list(sliding_window(iterable, size))\n\ndef test_sliding_window_edge_case_non_integer_size():\n    \"\"\"Test the edge case where the window size is not an integer.\"\"\"\n    iterable = [1, 2, 3, 4, 5]\n    size = 3.5\n    with pytest.raises(TypeError):\n        list(sliding_window(iterable, size))\n\ndef test_sliding_window_edge_case_non_iterable_input():\n    \"\"\"Test the edge case where the input is not an iterable.\"\"\"\n    iterable = \"hello\"\n    size = 3\n    with pytest.raises(TypeError):\n        list(sliding_window(iterable, size))\n```\n\nNote that these tests cover the following scenarios:\n\n* Happy path: Test the function with a non-empty iterable and a valid window size.\n* Edge cases:\n\t+ Empty iterable: Test that the function raises a `StopIteration` exception.\n\t+ Zero window size: Test that the function raises a `ValueError`.\n\t+ Negative window size: Test that the function raises a `ValueError`.\n\t+ Non-integer window size: Test that the function raises a `TypeError`.\n\t+ Non-iterable input: Test that the function raises a `TypeError`.\n\nYou can run these tests using the `pytest` command, and they should all pass if the `sliding_window` function is implemented correctly.",
+  "score": 4,
+  "cost": 3.5343e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 590
+  }
+}

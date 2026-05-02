@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 31,
+  "response": "SELECT DISTINCT airline\nFROM flights\nWHERE departure_airport = 'AHD';",
+  "score": 5,
+  "cost": 3.168e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 16
+  }
+}

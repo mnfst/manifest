@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT a.airport_code,\n       a.airport_name\nFROM airports AS a\nLEFT JOIN flights AS f\n  ON a.airport_code = f.departure_airport\n  OR a.airport_code = f.arrival_airport\nWHERE f.flight_id IS NULL;",
+  "score": 4,
+  "cost": 0.00061,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 59
+  }
+}

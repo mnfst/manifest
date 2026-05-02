@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "The translation depends on the context (legal/police vs. casual), but here are the most accurate options:\n\n**1. Formal/Legal (Police context):**\n> **\u00ab Nous pourrions vous arr\u00eater pour sollicitation. \u00bb**\n*(This is the most direct translation if \"book\" implies being processed or arrested by authorities.)*\n\n**2. Slightly more technical/Legalistic:**\n> **\u00ab Nous pourrions vous inculper pour sollicitation. \u00bb**\n*(Use this if \"book\" refers specifically to the formal act of charging someone with a crime.)*\n\n**3. Common/Direct (If \"solicitation\" refers to street solicitation/prostitution):**\n> **\u00ab On pourrait vous interpeller pour sollicitation. \u00bb**\n*(In French, \"interpeller\" is a common term used by law enforcement for stopping and questioning/detaining someone.)*\n\n**Note on \"Solicitation\":** \nIn French, the word **\"sollicitation\"** is used, but depending on the specific crime, it might be more natural to use a more specific term:\n*   If it refers to prostitution: **\u00ab d\u00e9bauche \u00bb** or **\u00ab racolage \u00bb**.\n*   If it refers to illegal solicitation of business/bribery: **\u00ab sollicitation de pots-de-vin \u00bb**.",
+  "score": 5,
+  "cost": 1.9439999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 284
+  }
+}

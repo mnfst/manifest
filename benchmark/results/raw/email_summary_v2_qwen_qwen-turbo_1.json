@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "Summary: A server outage was caused by a misconfigured load balancer, resulting in 47 minutes of degraded service for 12,000 users. The action items include adding LB config validation to CI, updating the runbook, and implementing traffic distribution alerts.",
+  "score": 5,
+  "cost": 5.6100000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 56
+  }
+}

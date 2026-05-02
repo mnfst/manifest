@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines an international expansion plan for Japan, with milestones for legal entity setup in May, localization in June, beta launch with 10 customers in July, and general availability in August, supported by a $200K budget. The main action item is to get CEO approval to proceed with the plan and budget.",
+  "score": 5,
+  "cost": 0.0001077,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 66
+  }
+}

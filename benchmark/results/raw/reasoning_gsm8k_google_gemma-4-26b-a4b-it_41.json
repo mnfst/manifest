@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "To solve this problem, we can use algebra to represent the number of copies sold by each person.\n\n**Step 1: Define the variables.**\nLet $x$ be the number of copies Harald sold.\nAccording to the problem, Marilyn's first record sold 10 times as many copies as Harald's. Therefore, the number of copies Marilyn sold can be represented as $10x$.\n\n**Step 2: Set up the equation.**\nThe problem states that the total number of copies sold by both Marilyn and Harald combined is 88,000. We can write this as an equation:\n$\\text{Harald's sales} + \\text{Marilyn's sales} = 88,000$\n$x + 10x = 88,000$\n\n**Step 3: Solve for $x$.**\nCombine the like terms on the left side of the equation:\n$11x = 88,000$\n\nNow, divide both sides by 11 to isolate $x$:\n$x = \\frac{88,000}{11}$\n$x = 8,000$\n\n**Step 4: Verify the result.**\nIf Harald sold 8,000 copies, then Marilyn sold $10 \\times 8,000 = 80,000$ copies.\nAdding their sales together: $8,000 + 80,000 = 88,000$.\nThe total matches the information given in the problem.\n\nHarald sold 8,000 copies.\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 2.718e-05,
+  "expected": "8000",
+  "tokens": {
+    "input": 87,
+    "output": 366
+  }
+}

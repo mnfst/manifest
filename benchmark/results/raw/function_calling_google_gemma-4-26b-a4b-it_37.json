@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 37,
+  "response": "```json\n{\"name\": \"invalidate_cache\", \"arguments\": {\"pattern\": \"*.css *.js\"}}\n```",
+  "score": 4,
+  "cost": 6.899999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 25
+  }
+}

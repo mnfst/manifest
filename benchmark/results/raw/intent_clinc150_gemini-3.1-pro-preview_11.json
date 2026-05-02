@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "intent_clinc150",
+  "case": 11,
+  "response": "travel_alert",
+  "score": 5,
+  "cost": 0.0015875,
+  "expected": "travel_alert",
+  "tokens": {
+    "input": 617,
+    "output": 3
+  }
+}

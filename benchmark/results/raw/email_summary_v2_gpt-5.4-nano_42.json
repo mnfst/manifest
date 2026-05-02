@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "15 enterprise customers attended the workshop; top feedback was that bulk import needs improvement (8/15), SSO is blocking 5 accounts, and the new analytics dashboard was well received, with 3 customers expressing interest in the internal tool as a standalone product. Action items: review the attached follow-up report and use it to guide next steps for bulk import, resolve SSO issues, and follow up on standalone tool interest.",
+  "score": 5,
+  "cost": 4.6e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 88
+  }
+}

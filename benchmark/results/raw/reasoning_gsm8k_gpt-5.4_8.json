@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Last year, there were 50 students.\n\nA 20% increase means we find 20% of 50:\n\\[\n0.20 \\times 50 = 10\n\\]\n\nAdd this increase to the original number:\n\\[\n50 + 10 = 60\n\\]\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.000688,
+  "expected": "60",
+  "tokens": {
+    "input": 80,
+    "output": 66
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Let me solve this step by step.\n\n1. Initially, Katelyn saw 50 fairies flying above the forest.\n\n2. After twenty minutes, one of her friends saw half as many fairies as Katelyn saw come from the east.\n   - Half of what Katelyn saw = 50 \u00f7 2 = 25 fairies joined\n   - Total fairies now = 50 + 25 = 75 fairies\n\n3. Ten minutes later, 30 fairies flew away.\n   - Remaining fairies = 75 - 30 = 45 fairies\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.002586,
+  "expected": "45",
+  "tokens": {
+    "input": 122,
+    "output": 148
+  }
+}

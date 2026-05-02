@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT Country FROM singer WHERE Age > 40 INTERSECT SELECT Country FROM singer WHERE Age < 30\n```",
+  "score": 4,
+  "cost": 0.000615,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 28
+  }
+}

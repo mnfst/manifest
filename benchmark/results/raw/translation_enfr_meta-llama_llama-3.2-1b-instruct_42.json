@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 42,
+  "response": "La premi\u00e8re censue a \u00e9t\u00e9 prise pendant que Quirinus \u00e9tait gouverneur de Syrie. Chaque personne devait s'inscrire dans son propre village. Ainsi, chacun se d\u00e9pla\u00e7a pour son propre ville; Joseph aussi se d\u00e9pla\u00e7a de Nazareth de Galil\u00e9e. En tant que membre de la famille de David, \u00e9tant le descendant de son, il se rendit \u00e0 J\u00e9rusalem pour s'inscrire \u00e0 la ville de J\u00e9rusalem avec sa femme, qui \u00e9tait enceinte.",
+  "score": 2,
+  "cost": 6.075e-06,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 112
+  }
+}

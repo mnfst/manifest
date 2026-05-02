@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "ner_extraction",
+  "case": 42,
+  "response": "{\"persons\":[],\"organizations\":[\"African Union\"],\"locations\":[\"Addis Ababa\",\"Sudan\",\"Egypt\",\"Ethiopia\"]}",
+  "score": 4,
+  "cost": 0.001074,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 71
+  }
+}

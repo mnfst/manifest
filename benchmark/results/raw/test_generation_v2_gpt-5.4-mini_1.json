@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "```python\nimport pytest\n\nfrom your_module import is_palindrome\n\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        (\"\", True),                 # empty string\n        (\"a\", True),                # single character\n        (\"aa\", True),               # even length palindrome\n        (\"aba\", True),              # odd length palindrome\n        (\"Aba\", True),              # case-insensitive\n        (\"A man a plan a canal Panama\", True),  # spaces ignored\n        (\"No lemon no melon\", True),           # spaces ignored\n        (\"abc\", False),             # not a palindrome\n        (\"ab\", False),              # simple non-palindrome\n        (\"hello world\", False),     # spaces ignored but still not palindrome\n        (\"race a car\", False),      # common non-palindrome\n    ],\n)\ndef test_is_palindrome(input_str, expected):\n    assert is_palindrome(input_str) == expected\n\n\ndef test_is_palindrome_with_only_spaces():\n    assert is_palindrome(\"   \") is True\n\n\ndef test_is_palindrome_with_mixed_spaces_and_case():\n    assert is_palindrome(\"Taco Cat\") is True\n\n\ndef test_is_palindrome_with_punctuation_not_ignored():\n    # Punctuation is not removed by the function, so this is not considered a palindrome\n    assert is_palindrome(\"A man, a plan, a canal: Panama\") is False\n\n\ndef test_is_palindrome_non_string_raises_attribute_error():\n    with pytest.raises(AttributeError):\n        is_palindrome(None)\n\n\ndef test_is_palindrome_integer_raises_attribute_error():\n    with pytest.raises(AttributeError):\n        is_palindrome(123)\n```\n\nA few notes:\n- Replace `your_module` with the actual module name where `is_palindrome` is defined.\n- The function does not validate input types, so passing non-strings raises `AttributeError` because `.lower()` is called.",
+  "score": 5,
+  "cost": 0.000495,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 397
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe OKRs (Objectives and Key Results) for the current quarter have been reviewed, with Engineering, Product, Sales, and Support all meeting their targets. However, the Product team's AI feature missed its target, and the OKR for AI is being carried forward with increased allocation for the next quarter, with the next planning meeting scheduled for Monday.",
+  "score": 5,
+  "cost": 5.696999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 84
+  }
+}

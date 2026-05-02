@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The v1 API is scheduled for deprecation on June 30 and complete removal on September 30. To manage the transition, the team will conduct personal outreach to the top 20 non-migrated customers and host a webinar for the remaining users.",
+  "score": 5,
+  "cost": 9.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 55
+  }
+}

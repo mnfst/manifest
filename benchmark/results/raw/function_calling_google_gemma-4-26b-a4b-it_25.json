@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 25,
+  "response": "```json\n{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"standup meeting\", \"duration_minutes\": 30, \"time\": \"09:00\", \"recurrence\": \"every weekday\", \"attendees\": [\"dev team\"]}}\n```",
+  "score": 5,
+  "cost": 1.032e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 55
+  }
+}

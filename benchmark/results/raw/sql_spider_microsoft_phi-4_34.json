@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "```sql\nSELECT *\nFROM employee_hire_evaluation;\n```",
+  "score": 1,
+  "cost": 5.915e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 14
+  }
+}

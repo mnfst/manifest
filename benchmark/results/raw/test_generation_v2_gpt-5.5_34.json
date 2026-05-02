@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 34,
+  "response": "```python\n# test_levenshtein.py\n\nimport pytest\n\nfrom your_module import levenshtein  # Replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    (\"s1\", \"s2\", \"expected\"),\n    [\n        (\"\", \"\", 0),\n        (\"abc\", \"\", 3),\n        (\"\", \"abc\", 3),\n        (\"abc\", \"abc\", 0),\n        (\"a\", \"b\", 1),\n        (\"kitten\", \"sitting\", 3),\n        (\"flaw\", \"lawn\", 2),\n        (\"gumbo\", \"gambol\", 2),\n        (\"book\", \"back\", 2),\n        (\"abc\", \"yabd\", 2),\n    ],\n)\ndef test_levenshtein_known_distances(s1, s2, expected):\n    assert levenshtein(s1, s2) == expected\n\n\ndef test_levenshtein_handles_first_string_shorter_than_second():\n    assert levenshtein(\"a\", \"abc\") == 2\n\n\ndef test_levenshtein_is_symmetric():\n    assert levenshtein(\"kitten\", \"sitting\") == levenshtein(\"sitting\", \"kitten\")\n    assert levenshtein(\"abc\", \"yabd\") == levenshtein(\"yabd\", \"abc\")\n    assert levenshtein(\"\", \"abc\") == levenshtein(\"abc\", \"\")\n\n\ndef test_levenshtein_is_case_sensitive():\n    assert levenshtein(\"abc\", \"ABC\") == 3\n    assert levenshtein(\"a\", \"A\") == 1\n\n\n@pytest.mark.parametrize(\n    (\"s1\", \"s2\", \"expected\"),\n    [\n        (\"caf\u00e9\", \"cafe\", 1),\n        (\"\ud83d\ude42\", \"\ud83d\ude42\", 0),\n        (\"\ud83d\ude42\ud83d\ude43\", \"\ud83d\ude42\", 1),\n        (\"\u4f60\u597d\", \"\u4f60\u4eec\u597d\", 1),\n    ],\n)\ndef test_levenshtein_unicode_strings(s1, s2, expected):\n    assert levenshtein(s1, s2) == expected\n\n\ndef test_levenshtein_longer_strings():\n    s1 = \"a\" * 100\n    s2 = \"a\" * 99 + \"b\"\n\n    assert levenshtein(s1, s2) == 1\n\n\n@pytest.mark.parametrize(\n    (\"s1\", \"s2\"),\n    [\n        (None, \"abc\"),\n        (\"abc\", None),\n        (123, \"abc\"),\n        (\"abc\", 123),\n        (object(), \"abc\"),\n        (\"abc\", object()),\n    ],\n)\ndef test_levenshtein_invalid_inputs_raise_type_error(s1, s2):\n    with pytest.raises(TypeError):\n        levenshtein(s1, s2)\n```",
+  "score": 5,
+  "cost": 0.013512,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 1084
+  }
+}

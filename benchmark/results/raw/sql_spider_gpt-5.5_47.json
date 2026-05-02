@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "SELECT template_type_code\nFROM Ref_Template_Types\nWHERE template_type_description = 'Book';",
+  "score": 5,
+  "cost": 0.002496,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 189
+  }
+}

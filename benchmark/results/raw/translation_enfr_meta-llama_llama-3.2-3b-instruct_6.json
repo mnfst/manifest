@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "Actuellement, conduire sur Wangan est un diable.\n\nNote: \"Wangan\" seems to be a colloquial or informal term, possibly referring to a specific road or area. If you could provide more context, I can try to provide a more accurate translation.",
+  "score": 3,
+  "cost": 4.896e-06,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 57
+  }
+}

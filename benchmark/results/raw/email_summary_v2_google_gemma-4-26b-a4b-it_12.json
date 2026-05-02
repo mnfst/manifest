@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The engineering team currently has four open requisitions with 23 candidates in the pipeline, though the frontend role remains unfilled after 60 days. To resolve this, recruiting recommends expanding the search to remote candidates or adjusting the compensation band.",
+  "score": 5,
+  "cost": 9.299999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 49
+  }
+}

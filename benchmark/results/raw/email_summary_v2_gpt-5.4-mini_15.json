@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Legal approved the updated terms with two required changes: add an arbitration clause for the enterprise tier and revise data retention from 180 days to 90 days. The final version needs to go live before the EU launch on May 1, and the sender will prepare it today.",
+  "score": 5,
+  "cost": 9.96e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 58
+  }
+}

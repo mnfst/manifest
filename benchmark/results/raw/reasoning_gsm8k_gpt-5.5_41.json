@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let Harald\u2019s sales be \\(x\\).\n\nMarilyn sold 10 times as many, so Marilyn\u2019s sales were \\(10x\\).\n\nTogether they sold 88,000 copies:\n\n\\[\nx + 10x = 88000\n\\]\n\n\\[\n11x = 88000\n\\]\n\n\\[\nx = 8000\n\\]\n\nSo Harald sold 8,000 copies.\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.0015,
+  "expected": "8000",
+  "tokens": {
+    "input": 72,
+    "output": 107
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 24,
+  "response": "Here are some unit tests for the `retry` function using pytest:\n```python\nimport pytest\nfrom retry import retry\n\ndef test_retry_happy_path():\n    \"\"\"Test the retry function with a successful call\"\"\"\n    def test_function():\n        return \"Hello, World!\"\n\n    result = retry(test_function, max_attempts=3)\n    assert result == \"Hello, World!\"\n\ndef test_retry_edge_case():\n    \"\"\"Test the retry function with an exception\"\"\"\n    def test_function():\n        raise Exception(\"Test exception\")\n\n    result = retry(test_function, max_attempts=3)\n    assert result == \"Test exception\"\n\ndef test_retry_edge_case_no_attempts():\n    \"\"\"Test the retry function with no attempts\"\"\"\n    def test_function():\n        raise Exception(\"Test exception\")\n\n    result = retry(test_function)\n    assert result == \"Test exception\"\n\ndef test_retry_edge_case_max_attempts():\n    \"\"\"Test the retry function with a max attempts\"\"\"\n    def test_function():\n        raise Exception(\"Test exception\")\n\n    result = retry(test_function, max_attempts=0)\n    assert result == \"Test exception\"\n\ndef test_retry_edge_case_negative_attempts():\n    \"\"\"Test the retry function with a negative attempts\"\"\"\n    def test_function():\n        raise Exception(\"Test exception\")\n\n    with pytest.raises(ValueError):\n        retry(test_function, max_attempts=-1)\n```\nThese tests cover the following scenarios:\n\n* A successful call to the `retry` function with a successful call\n* An exception raised by the `retry` function\n* A call to the `retry` function with no attempts\n* A call to the `retry` function with a max attempts of 0\n* A call to the `retry` function with a negative attempts\n\nNote that the `retry` function raises a `ValueError` when the max attempts is negative, so we use a pytest fixture to test that case.",
+  "score": 3,
+  "cost": 1.242e-05,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 378
+  }
+}

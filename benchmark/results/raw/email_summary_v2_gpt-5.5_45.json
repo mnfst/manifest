@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 45,
+  "response": "A misconfigured load balancer caused a 47-minute service degradation starting at 2:14 PM, affecting 12K users. Action items are to add load balancer config validation to CI, update the runbook, and implement traffic distribution alerts.",
+  "score": 5,
+  "cost": 0.001215,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 75
+  }
+}

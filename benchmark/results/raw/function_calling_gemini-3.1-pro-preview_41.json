@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 41,
+  "response": "{\"name\": \"add_comment\", \"arguments\": {\"pr_id\": 789, \"body\": \"LGTM approved\"}}",
+  "score": 5,
+  "cost": 0.0007075,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 29
+  }
+}

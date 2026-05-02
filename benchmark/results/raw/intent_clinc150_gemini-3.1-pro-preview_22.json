@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "intent_clinc150",
+  "case": 22,
+  "response": "transfer",
+  "score": 5,
+  "cost": 0.0015675,
+  "expected": "transfer",
+  "tokens": {
+    "input": 621,
+    "output": 1
+  }
+}

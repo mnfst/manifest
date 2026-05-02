@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "{\"persons\":[\"Cristiano Ronaldo\"],\"organizations\":[\"Al Nassr\",\"Manchester United\"],\"locations\":[\"Riyadh\"]}",
+  "score": 5,
+  "cost": 0.000966,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 62
+  }
+}

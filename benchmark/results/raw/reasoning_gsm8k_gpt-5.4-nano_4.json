@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Mariah used \\(\\frac{1}{4}\\) of a skein, and her grandma used \\(\\frac{1}{2}\\) of a skein.\n\n1. Add the fractions:\n\\[\n\\frac{1}{4}+\\frac{1}{2}=\\frac{1}{4}+\\frac{2}{4}=\\frac{3}{4}\n\\]\nSo, they used \\(\\frac{3}{4}\\) of a skein total.\n\n2. Convert to yards:\n\\[\n\\frac{3}{4}\\times 364 = 3 \\times 91 = 273\n\\]\n\nANSWER: 273",
+  "score": 5,
+  "cost": 6.480000000000002e-05,
+  "expected": "273",
+  "tokens": {
+    "input": 100,
+    "output": 137
+  }
+}

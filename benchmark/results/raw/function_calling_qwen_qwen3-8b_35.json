@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\"name\": \"get_order\", \"arguments\": {\"order_id\": \"12345\"}}",
+  "score": 3,
+  "cost": 1.9350000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 292
+  }
+}

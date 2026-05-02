@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe CEO has attached a draft of the Q1 board deck, which shows strong revenue growth (127% of target) and a high net revenue retention rate (115%), but also a 22% increase in customer acquisition cost (CAC). The CEO is requesting that the section on the product roadmap be completed by Wednesday, with a board meeting scheduled for next Tuesday.",
+  "score": 5,
+  "cost": 9.027000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 86
+  }
+}

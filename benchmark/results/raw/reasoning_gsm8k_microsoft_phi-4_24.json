@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "To solve this problem, we need to calculate the total profit made by the class from selling lollipops. Here's how we can do it step by step:\n\n1. **Calculate the total number of lollipops sold:**\n   - Each student sold an average of 10 lollipops.\n   - There are 30 students.\n   - Total lollipops sold = 30 students \u00d7 10 lollipops/student = 300 lollipops.\n\n2. **Calculate the total revenue from selling the lollipops:**\n   - Each lollipop was sold for $0.8.\n   - Total revenue = 300 lollipops \u00d7 $0.8/lollipop = $240.\n\n3. **Calculate the total cost of buying the lollipops:**\n   - Each lollipop was bought for $0.5.\n   - Total cost = 300 lollipops \u00d7 $0.5/lollipop = $150.\n\n4. **Calculate the total profit:**\n   - Profit = Total revenue - Total cost\n   - Profit = $240 - $150 = $90.\n\nTherefore, the class was able to raise $90 from the profit of selling lollipops.\n\nANSWER: 90",
+  "score": 5,
+  "cost": 2.4895000000000005e-05,
+  "expected": "90",
+  "tokens": {
+    "input": 123,
+    "output": 260
+  }
+}

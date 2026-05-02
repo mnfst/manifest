@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "To find out how many more dollars Mitchell made than Liam, we need to calculate Mitchell's total earnings and then find the difference between his earnings and Liam's earnings.\n\n**Step 1: Calculate Mitchell's total earnings.**\nMitchell sold 21 lemonades at a price of $4 each.\nTotal earnings for Mitchell = (Number of lemonades sold) \u00d7 (Price per lemonade)\nTotal earnings for Mitchell = $21 \\times 4$\n\nTo calculate $21 \\times 4$:\n$20 \\times 4 = 80$\n$1 \\times 4 = 4$\n$80 + 4 = 84$\nSo, Mitchell made $84.\n\n**Step 2: Identify Liam's total earnings.**\nThe problem states that Liam made $63.\n\n**Step 3: Calculate the difference between Mitchell's earnings and Liam's earnings.**\nDifference = (Mitchell's earnings) - (Liam's earnings)\nDifference = $84 - $63\n\nTo calculate $84 - 63$:\n$84 - 60 = 24$\n$24 - 3 = 21$\nSo, the difference is $21.\n\nMitchell made $21 more than Liam.\n\nANSWER: 21",
+  "score": 4,
+  "cost": 2.388e-05,
+  "expected": "21",
+  "tokens": {
+    "input": 112,
+    "output": 286
+  }
+}

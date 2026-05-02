@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "```python\nimport pytest\n\nfrom your_module import add\n\n\ndef test_add_happy_path():\n    assert add(2, 3) == 5\n\n\ndef test_add_with_zero():\n    assert add(0, 5) == 5\n    assert add(5, 0) == 5\n    assert add(0, 0) == 0\n\n\ndef test_add_negative_numbers():\n    assert add(-2, -3) == -5\n    assert add(-2, 3) == 1\n    assert add(2, -3) == -1\n\n\ndef test_add_large_numbers():\n    assert add(10**10, 10**10) == 2 * 10**10\n\n\n@pytest.mark.parametrize(\n    \"a,b,expected\",\n    [\n        (1, 2, 3),\n        (100, 200, 300),\n        (-10, 5, -5),\n        (7, 0, 7),\n    ],\n)\ndef test_add_parametrized(a, b, expected):\n    assert add(a, b) == expected\n\n\ndef test_add_with_non_integer_inputs_still_follows_python_addition():\n    # Although annotated for ints, Python does not enforce type hints at runtime.\n    assert add(1.5, 2.5) == 4.0\n    assert add(\"a\", \"b\") == \"ab\"\n\n\ndef test_add_raises_type_error_for_incompatible_types():\n    with pytest.raises(TypeError):\n        add(1, \"2\")\n```\n\nReplace `your_module` with the actual module name where `add` is defined.",
+  "score": 5,
+  "cost": 0.002824,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 340
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "```python\nimport pytest\n\nfrom your_module import title_case\n\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        (\"hello world\", \"Hello World\"),\n        (\"HELLO WORLD\", \"Hello World\"),\n        (\"hElLo wOrLd\", \"Hello World\"),\n        (\"python\", \"Python\"),\n        (\"multiple   spaces here\", \"Multiple Spaces Here\"),\n        (\" leading and trailing \", \"Leading And Trailing\"),\n        (\"mixed\\twhitespace\\nworks\", \"Mixed Whitespace Works\"),\n        (\"a\", \"A\"),\n        (\"a b c\", \"A B C\"),\n    ],\n)\ndef test_title_case_happy_path(input_str, expected):\n    assert title_case(input_str) == expected\n\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        (\"\", \"\"),\n        (\"   \", \"\"),\n        (\"\\t\\n\", \"\"),\n        (\"  hello   \", \"Hello\"),\n        (\"  hello   world  \", \"Hello World\"),\n    ],\n)\ndef test_title_case_edge_cases(input_str, expected):\n    assert title_case(input_str) == expected\n\n\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        None,\n        123,\n        12.5,\n        [\"hello world\"],\n        {\"text\": \"hello world\"},\n        (\"hello\", \"world\"),\n        b\"hello world\",\n    ],\n)\ndef test_title_case_error_cases(bad_input):\n    with pytest.raises(AttributeError):\n        title_case(bad_input)\n```\n\nIf you want, I can also provide a version using `unittest.mock`/`hypothesis`, or tailor the tests to your project\u2019s module name and test layout.",
+  "score": 5,
+  "cost": 0.0004215,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 337
+  }
+}

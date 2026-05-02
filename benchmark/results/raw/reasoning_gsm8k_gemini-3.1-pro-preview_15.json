@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "To find out by how many points Joey is winning, we first need to calculate the total points for both Joey and Marcy after their turns.\n\n1. **Calculate Joey's total points:**\nJoey starts with 214 points and scores 26 points on his turn.\n214 + 26 = 240 points\n\n2. **Calculate Marcy's total points:**\nMarcy starts with 225 points and scores 10 points on her turn.\n225 + 10 = 235 points\n\n3. **Calculate the difference:**\nSubtract Marcy's total points from Joey's total points to see how much Joey is winning by.\n240 - 235 = 5 points\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0026875,
+  "expected": "5",
+  "tokens": {
+    "input": 85,
+    "output": 165
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "To find out how many pounds of insects the ducks need per day, we need to divide the total amount of insects they need per week by 7 (since there are 7 days in a week).\n\nFirst, we multiply the total amount of insects needed per week by the number of ducks:\n3.5 pounds/duck * 10 ducks = 35 pounds\n\nNext, we divide the total amount of insects needed per week by 7:\n35 pounds / 7 days = 5 pounds per day\n\nTherefore, the ducks need 5 pounds of insects per day.\n\nANSWER: 5",
+  "score": 4,
+  "cost": 1.0454999999999999e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 83,
+    "output": 122
+  }
+}

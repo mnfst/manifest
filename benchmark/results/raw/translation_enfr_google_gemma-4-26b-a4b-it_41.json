@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "To maintain the aggressive, informal, and vulgar tone of the original, here are a few ways to translate this depending on the specific context of \"DGA\" (which usually refers to a specific group, organization, or \"Department of Government Efficiency\" in recent slang):\n\n**Option 1: Most natural/slang (Recommended)**\n> \"T'es pas dans la DGA, bordel. Zoome et ferme ta gueule.\"\n\n**Option 2: Slightly more aggressive**\n> \"Tu fais pas partie de la DGA. Contente-toi de zoomer et ferme ta putain de gueule.\"\n\n**Option 3: Short and punchy**\n> \"T'es pas \u00e0 la DGA. Zoome et la ferme.\"\n\n**Key Translation Choices:**\n*   **\"You ain't\"**: Translated as *\"T'es pas\"* (contraction of *Tu n'es pas*) to reflect the non-standard English grammar.\n*   **\"Shut the fuck up\"**: Translated as *\"Ferme ta gueule\"* (standard vulgarity) or *\"Ferme ta putain de gueule\"* (to add the extra emphasis of the \"f-word\").\n*   **\"Just zoom in\"**: Translated as *\"Zoome\"* or *\"Contente-toi de zoomer\"* (Just content yourself with zooming).",
+  "score": 5,
+  "cost": 2.0159999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 285
+  }
+}

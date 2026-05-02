@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "The mobile app's crash rate has spiked to 2.3% following yesterday's release, caused by a null pointer issue in the notification handler affecting Android 12+ devices (iOS is unaffected). A fix has already been merged and an emergency release has been submitted to the Play Store, so the team should monitor the rollout for resolution.",
+  "score": 5,
+  "cost": 0.001458,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 76
+  }
+}

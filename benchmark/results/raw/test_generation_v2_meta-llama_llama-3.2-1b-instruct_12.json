@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "Here are some unit tests for the `chunk_list` function using pytest style:\n\n```python\nimport pytest\nfrom typing import List\n\ndef test_chunk_list_happy_path():\n    # Test with a list of positive integers\n    lst = [1, 2, 3, 4, 5, 6, 7, 8, 9]\n    expected_result = [1, 2, 3, 4, 5, 6, 7, 8, 9]\n    result = chunk_list(lst, 3)\n    assert result == expected_result, f\"Expected chunk_list({lst}, 3) to return {expected_result}, but got {result}\"\n\ndef test_chunk_list_edge_case_empty_list():\n    # Test with an empty list\n    lst = []\n    expected_result = []\n    result = chunk_list(lst, 3)\n    assert result == expected_result, f\"Expected chunk_list({lst}, 3) to return {expected_result}, but got {result}\"\n\ndef test_chunk_list_edge_case_single_element_list():\n    # Test with a list containing a single element\n    lst = [1]\n    expected_result = [1]\n    result = chunk_list(lst, 3)\n    assert result == expected_result, f\"Expected chunk_list({lst}, 3) to return {expected_result}, but got {result}\"\n\ndef test_chunk_list_edge_case_negative_size():\n    # Test with a negative size\n    lst = [1, 2, 3, 4, 5, 6, 7, 8, 9]\n    with pytest.raises(ValueError):\n        chunk_list(lst, -1)\n\ndef test_chunk_list_edge_case_zero_size():\n    # Test with a size of zero\n    lst = [1, 2, 3, 4, 5, 6, 7, 8, 9]\n    with pytest.raises(ValueError):\n        chunk_list(lst, 0)\n\ndef test_chunk_list_edge_case_non_list_input():\n    # Test with a non-list input\n    with pytest.raises(TypeError):\n        chunk_list(\"hello\", 3)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test that the function returns the correct chunked list when given a positive size.\n* Edge case: Test that the function raises a `ValueError` when given a negative size.\n* Edge case: Test that the function raises a `ValueError` when given a zero size.\n* Edge case: Test that the function raises a `TypeError` when given a non-list input.",
+  "score": 5,
+  "cost": 1.6713e-05,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 530
+  }
+}

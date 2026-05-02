@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let's break down the problem step by step:\n\n1. At the first bus stop, 5 more people got on the bus, so the total number of people on the bus is 5 + 20 = 25.\n2. At the second bus stop, 7 people got down and 8 more got in, so the total number of people on the bus is 25 - 7 + 8 = 30.\n\nTherefore, the total number of people who got on the bus at the terminal is 30.",
+  "score": 1,
+  "cost": 6.021e-06,
+  "expected": "14",
+  "tokens": {
+    "input": 115,
+    "output": 108
+  }
+}

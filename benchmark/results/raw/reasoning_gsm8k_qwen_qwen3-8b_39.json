@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "To determine the total number of grapes at the beginning, we analyze the sequence of events and calculate the total consumption step by step.\n\n---\n\n### Step 1: Grapes eaten by Madeline  \nMadeline ate **6 grapes**.\n\n---\n\n### Step 2: Grapes used by her brother  \nHer brother used **5 times as many grapes as Madeline**.  \n$$\n5 \\times 6 = 30 \\text{ grapes}\n$$\n\n---\n\n### Step 3: Grapes used by their mother  \nTheir mother used the **remaining grapes** to make **4 pies**, and each pie requires **12 grapes**.  \n$$\n4 \\times 12 = 48 \\text{ grapes}\n$$\n\n---\n\n### Step 4: Total grapes at the beginning  \nTo find the initial number of grapes, we sum up all the grapes used by Madeline, her brother, and their mother:\n$$\n6 + 30 + 48 = 84\n$$\n\n---\n\n### Final Answer:\n$$\n\\boxed{84}\n$$",
+  "score": 5,
+  "cost": 6.895000000000001e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 110,
+    "output": 1269
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "function_calling",
+  "case": 8,
+  "response": "{\"name\":\"calculate_mortgage\",\"arguments\":{\"principal\":300000,\"annual_rate\":6.5,\"years\":30}}",
+  "score": 5,
+  "cost": 2.36e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 29
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "intent_clinc150",
+  "case": 3,
+  "response": "schedule_maintenance",
+  "score": 5,
+  "cost": 1.6863e-05,
+  "expected": "schedule_maintenance",
+  "tokens": {
+    "input": 508,
+    "output": 3
+  }
+}

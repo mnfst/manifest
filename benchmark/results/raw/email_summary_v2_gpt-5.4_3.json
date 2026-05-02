@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "Lisa reported that March onboarding satisfaction fell to 7.2/10 from 8.1, with strong marks for the buddy system and on-time IT setup but problems around benefits deadline confusion, delayed tools access, and missing culture handbooks.  \nThe main action item is to prioritize fixing tools access delays, while also clarifying benefits deadlines and ensuring new hires receive the culture handbook.",
+  "score": 5,
+  "cost": 0.000864,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 80
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Mitchell sold 21 lemonades at \\$4 each, so he made:\n\n21 \u00d7 4 = 84\n\nLiam made \\$63.\n\nNow find how much more Mitchell made:\n\n84 - 63 = 21\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.000628,
+  "expected": "21",
+  "tokens": {
+    "input": 102,
+    "output": 53
+  }
+}

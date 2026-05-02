@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "extraction_hard_v2",
+  "case": 13,
+  "response": "{\"trial_id\":\"NCT04982562\",\"phase\":\"III\",\"sponsor\":\"NovaPharma Inc.\",\"drug\":\"NP-401\",\"indication\":\"Treatment-Resistant Major Depression\",\"enrollment\":842,\"sites\":28,\"arms\":[{\"name\":\"NP-401\",\"dose\":\"60mg\",\"n\":421},{\"name\":\"placebo\",\"dose\":\"\",\"n\":421}],\"duration_weeks\":12,\"primary_endpoint\":\"Change in MADRS score from baseline\",\"results\":{\"treatment_effect\":-18.4,\"placebo_effect\":-12.1,\"p_value\":\"<0.001\",\"nnt\":5.2},\"adverse_events\":[{\"event\":\"nausea\",\"rate_pct\":23},{\"event\":\"headache\",\"rate_pct\":18},{\"event\":\"insomnia\",\"rate_pct\":12}]}",
+  "score": 4,
+  "cost": 0.002018,
+  "expected": "",
+  "tokens": {
+    "input": 333,
+    "output": 169
+  }
+}

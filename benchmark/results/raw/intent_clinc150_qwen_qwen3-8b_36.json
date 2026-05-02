@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "intent_clinc150",
+  "case": 36,
+  "response": "insurance",
+  "score": 5,
+  "cost": 5.760000000000001e-05,
+  "expected": "insurance",
+  "tokens": {
+    "input": 506,
+    "output": 646
+  }
+}

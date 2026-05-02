@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "## Solution\n\n**Step 1: Find the total number of books Sarah bought.**\n\nTotal spent = $300\nCost per book = $15\n\nTotal books = $300 \u00f7 $15 = **20 books**\n\n**Step 2: Find how many books each child received.**\n\nTotal books = 20\nNumber of kids = 4\n\nBooks per child = 20 \u00f7 4 = **5 books**\n\nEach child received **5 books**.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.002016,
+  "expected": "5",
+  "tokens": {
+    "input": 92,
+    "output": 116
+  }
+}

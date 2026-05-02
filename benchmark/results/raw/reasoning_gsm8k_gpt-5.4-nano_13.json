@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Janet first pays:\n- $500 (material) + $800 (jeweler) = $1300\n\nThen she pays 10% of that amount for insurance:\n- 10% of $1300 = 0.10 \u00d7 1300 = $130\n\nTotal she pays:\n- $1300 + $130 = $1430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 4.2e-05,
+  "expected": "1430",
+  "tokens": {
+    "input": 96,
+    "output": 81
+  }
+}

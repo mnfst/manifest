@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company is proposing a new pricing tier called \"Starter\" at $29/month, which would offer 5 users, 10,000 API calls, and email support, with the goal of recovering 15% of price-churned users who cite price as a reason for leaving. The proposed pricing tier is designed to retain existing customers and increase revenue by $180,000 per year.",
+  "score": 5,
+  "cost": 5.615999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 93
+  }
+}

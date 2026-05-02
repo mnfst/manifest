@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "To write unit tests for the `interleave` function using `pytest`, we need to cover various scenarios including the happy path, edge cases, and error cases. Here's how you can structure the tests:\n\n```python\nimport pytest\n\ndef interleave(a: list, b: list) -> list:\n    result = []\n    for x, y in zip(a, b):\n        result.extend([x, y])\n    result.extend(a[len(b):] or b[len(a):])\n    return result\n\ndef test_interleave_happy_path():\n    # Test with two lists of equal length\n    assert interleave([1, 2, 3], [4, 5, 6]) == [1, 4, 2, 5, 3, 6]\n    \n    # Test with two lists of different lengths\n    assert interleave([1, 2], [3, 4, 5, 6]) == [1, 3, 2, 4, 5, 6]\n    assert interleave([1, 2, 3, 4], [5, 6]) == [1, 5, 2, 6, 3, 4]\n\ndef test_interleave_edge_cases():\n    # Test with empty lists\n    assert interleave([], []) == []\n    assert interleave([1, 2, 3], []) == [1, 2, 3]\n    assert interleave([], [4, 5, 6]) == [4, 5, 6]\n    \n    # Test with one element in each list\n    assert interleave([1], [2]) == [1, 2]\n    assert interleave([1], []) == [1]\n    assert interleave([], [2]) == [2]\n\ndef test_interleave_error_cases():\n    # Test with non-list inputs\n    with pytest.raises(TypeError):\n        interleave(\"not a list\", [1, 2, 3])\n    with pytest.raises(TypeError):\n        interleave([1, 2, 3], \"not a list\")\n    \n    # Test with lists containing non-comparable elements\n    # This is not an error case for the function itself, but it's good to ensure it handles it gracefully\n    assert interleave([1, 2, 3], [4, 5, 6]) == [1, 4, 2, 5, 3, 6]\n    assert interleave([1, 2, 3], [\"a\", \"b\", \"c\"]) == [1, \"a\", 2, \"b\", 3, \"c\"]\n\n# Run the tests\nif __name__ == \"__main__\":\n    pytest.main()\n```\n\n### Explanation:\n\n- **Happy Path**: Tests where the function is expected to work correctly with typical inputs.\n  - Lists of equal length.\n  - Lists of different lengths.\n\n- **Edge Cases**: Tests with minimal or boundary inputs.\n  - Empty lists.\n  - Lists with one element.\n\n- **Error Cases**: Tests where the function should handle incorrect inputs gracefully.\n  - Non-list inputs (expecting a `TypeError`).\n  - Lists with non-comparable elements (ensuring the function still works).\n\nThese tests cover a wide range of scenarios to ensure the `interleave` function behaves as expected.",
+  "score": 4,
+  "cost": 5.122e-05,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 699
+  }
+}

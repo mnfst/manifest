@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test revealed a 2-hour, 23-minute delay in meeting the 4-hour RTO due to a slower-than-expected database restore caused by a larger dataset. The SRE team recommends increasing backup frequency and pre-provisioning a standby database, with the next test scheduled for October.",
+  "score": 5,
+  "cost": 3.01e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 65
+  }
+}

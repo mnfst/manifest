@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 22,
+  "response": "{\n  \"persons\": [\n    \"Jamie Dimon\"\n  ],\n  \"organizations\": [\n    \"JPMorgan Chase\",\n    \"World Economic Forum\"\n  ],\n  \"locations\": [\n    \"Davos\",\n    \"Switzerland\"\n  ]\n}",
+  "score": 5,
+  "cost": 0.0010875,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 61
+  }
+}

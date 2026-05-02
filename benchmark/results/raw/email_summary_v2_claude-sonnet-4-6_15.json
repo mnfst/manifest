@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Legal has approved the updated terms with two required changes: adding an arbitration clause for the enterprise tier and reducing data retention from 180 to 90 days, both needed before the May 1 EU launch. The legal team will prepare the final version today.",
+  "score": 5,
+  "cost": 0.0012,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 58
+  }
+}

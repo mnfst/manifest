@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "## Step-by-Step Solution\n\n**Step 1: Find the distance traveled from 1 to 4 PM**\n\nTom sails from 1 PM to 4 PM, which is 3 hours.\n\nDistance = Speed \u00d7 Time = 10 mph \u00d7 3 hours = **30 miles**\n\n**Step 2: Find the time to travel back**\n\nHe travels back 30 miles at 6 mph.\n\nTime = Distance \u00f7 Speed = 30 miles \u00f7 6 mph = **5 hours**\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.002316,
+  "expected": "5",
+  "tokens": {
+    "input": 97,
+    "output": 135
+  }
+}

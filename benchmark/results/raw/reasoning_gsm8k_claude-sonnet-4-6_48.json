@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Step 1: Start with the original weight: 8 pounds\n\nStep 2: Increase by 50%: 8 \u00d7 1.5 = 12 pounds\n\nStep 3: Use a weight two pounds lighter: 12 - 2 = 10 pounds\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.001416,
+  "expected": "10",
+  "tokens": {
+    "input": 107,
+    "output": 73
+  }
+}

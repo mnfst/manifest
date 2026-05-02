@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "intent_clinc150",
+  "case": 9,
+  "response": "weather",
+  "score": 5,
+  "cost": 3.2825000000000005e-05,
+  "expected": "weather",
+  "tokens": {
+    "input": 503,
+    "output": 2
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je le veux.",
+  "score": 5,
+  "cost": 0.000174,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 13
+  }
+}

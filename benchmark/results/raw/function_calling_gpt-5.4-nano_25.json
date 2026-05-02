@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "function_calling",
+  "case": 25,
+  "response": "{\"name\":\"schedule_meeting\",\"arguments\":{\"title\":\"Standup\",\"duration_minutes\":30,\"time\":\"09:00\",\"recurrence\":\"every weekday\",\"attendees\":[\"dev team\"]}}",
+  "score": 4,
+  "cost": 2.8000000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 41
+  }
+}

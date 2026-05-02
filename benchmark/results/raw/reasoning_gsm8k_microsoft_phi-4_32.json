@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "To solve the problem, we need to find the perimeter of Billie's rectangular bedroom given its area and length.\n\n1. **Convert the length from yards to feet:**\n   - Since 1 yard equals 3 feet, the length of the room in feet is:\n     \\[\n     3 \\text{ yards} \\times 3 \\text{ feet/yard} = 9 \\text{ feet}\n     \\]\n\n2. **Use the area to find the width:**\n   - The area of the rectangle is given by the formula:\n     \\[\n     \\text{Area} = \\text{Length} \\times \\text{Width}\n     \\]\n   - We know the area is 360 square feet and the length is 9 feet. Let \\( w \\) be the width in feet. Then:\n     \\[\n     360 = 9 \\times w\n     \\]\n   - Solving for \\( w \\):\n     \\[\n     w = \\frac{360}{9} = 40 \\text{ feet}\n     \\]\n\n3. **Calculate the perimeter:**\n   - The perimeter \\( P \\) of a rectangle is given by:\n     \\[\n     P = 2 \\times (\\text{Length} + \\text{Width})\n     \\]\n   - Substituting the known values:\n     \\[\n     P = 2 \\times (9 + 40) = 2 \\times 49 = 98 \\text{ feet}\n     \\]\n\nTherefore, the perimeter of Billie's room is 98 feet.\n\nANSWER: 98",
+  "score": 5,
+  "cost": 2.665e-05,
+  "expected": "98",
+  "tokens": {
+    "input": 81,
+    "output": 329
+  }
+}

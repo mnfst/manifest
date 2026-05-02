@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 46,
+  "response": "Here's a **pytest-style** test suite for the `unique_permutations` function. This includes:\n\n- **Happy path**: Basic list with unique elements.\n- **Edge cases**: Empty list, single-element list, duplicate elements.\n- **Error cases**: Non-list input (though the function expects a list, so we test with non-list inputs to ensure it raises an error).\n\n---\n\n### \u2705 `test_unique_permutations.py`\n\n```python\nimport pytest\nfrom your_module import unique_permutations  # Replace with actual module name\n\ndef test_unique_permutations_happy_path():\n    assert unique_permutations([1, 2, 3]) == [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]\n\ndef test_unique_permutations_with_duplicates():\n    assert unique_permutations([1, 1, 2]) == [[1, 1, 2], [1, 2, 1], [2, 1, 1]]\n\ndef test_unique_permutations_empty_list():\n    assert unique_permutations([]) == [[]]\n\ndef test_unique_permutations_single_element():\n    assert unique_permutations([5]) == [[5]]\n\ndef test_unique_permutations_non_list_input():\n    with pytest.raises(TypeError):\n        unique_permutations(\"not a list\")\n\ndef test_unique_permutations_non_list_input_2():\n    with pytest.raises(TypeError):\n        unique_permutations(123)\n\ndef test_unique_permutations_with_mixed_types():\n    assert unique_permutations([1, 'a', 1]) == [[1, 'a', 1], [1, 1, 'a'], ['a', 1, 1]]\n```\n\n---\n\n### \ud83d\udcdd Notes:\n\n- Make sure to replace `your_module` with the actual name of the module where `unique_permutations` is defined.\n- The function assumes that the input is a list. If the input is not a list, it raises a `TypeError`.\n- The function ensures that only **unique permutations** are generated, even when the input contains duplicate elements.\n\n---\n\n### \u2705 To run tests:\n\n```bash\npytest test_unique_permutations.py\n```\n\nLet me know if you want to test with **custom objects** (like `datetime` or `collections`), or want to use **parameterized tests**.",
+  "score": 5,
+  "cost": 2.1021e-05,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 510
+  }
+}

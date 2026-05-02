@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "extraction_hard_v2",
   "case": 18,
-  "response": "{\"date\":\"2024-03-15\",\"athlete\":\"Mike Torres\",\"bodyweight_lbs\":185,\"sleep_hours\":7,\"exercises\":[{\"name\":\"Back Squat\",\"sets\":[{\"weight\":225,\"reps\":5},{\"weight\":245,\"reps\":5},{\"weight\":265,\"reps\":3},{\"weight\":275,\"reps\":2}],\"note\":\"PR!\"},{\"name\":\"Romanian Deadlift\",\"sets\":[{\"weight\":185,\"reps\":8},{\"weight\":205,\"reps\":8},{\"weight\":205,\"reps\":8}],\"note\":\"\"},{\"name\":\"Leg Press\",\"sets\":[{\"weight\":360,\"reps\":10},{\"weight\":410,\"reps\":10},{\"weight\":450,\"reps\":8}],\"note\":\"\"},{\"name\":\"Leg Curl\",\"sets\":[{\"weight\":90,\"reps\":12},{\"weight\":100,\"reps\":10},{\"weight\":100,\"reps\":10}],\"note\":\"\"},{\"name\":\"Calf Raises\",\"sets\":[{\"weight\":0,\"reps\":15},{\"weight\":0,\"reps\":15},{\"weight\":0,\"reps\":15}],\"note\":\"3x15\"},{\"name\":\"Ab Wheel\",\"sets\":[{\"weight\":0,\"reps\":12},{\"weight\":0,\"reps\":12},{\"weight\":0,\"reps\":12}],\"note\":\"3x12\"}],\"duration_minutes\":72,\"rpe\":8.5,\"notes\":\"Hit squat PR at 275. Right knee felt tight on last set. Need to stretch more.\"}",
-  "score": 0,
-  "cost": 0.0029304,
+  "response": "```json\n{\n  \"date\": \"March 15, 2024\",\n  \"athlete\": \"Mike Torres\",\n  \"bodyweight_lbs\": 185,\n  \"sleep_hours\": 7,\n  \"exercises\": [\n    {\n      \"name\": \"Back Squat\",\n      \"sets\": [\n        {\"weight\": 225, \"reps\": 5},\n        {\"weight\": 245, \"reps\": 5},\n        {\"weight\": 265, \"reps\": 3},\n        {\"weight\": 275, \"reps\": 2}\n      ],\n      \"note\": \"PR!\"\n    },\n    {\n      \"name\": \"Romanian Deadlift\",\n      \"sets\": [\n        {\"weight\": 185, \"reps\": 8},\n        {\"weight\": 205, \"reps\": 8},\n        {\"weight\": 205, \"reps\": 8}\n      ],\n      \"note\": \"\"\n    },\n    {\n      \"name\": \"Leg Press\",\n      \"sets\": [\n        {\"weight\": 360, \"reps\": 10},\n        {\"weight\": 410, \"reps\": 10},\n        {\"weight\": 450, \"reps\": 8}\n      ],\n      \"note\": \"\"\n    },\n    {\n      \"name\": \"Leg Curl\",\n      \"sets\": [\n        {\"weight\": 90, \"reps\": 12},\n        {\"weight\": 100, \"reps\": 10},\n        {\"weight\": 100, \"reps\": 10}\n      ],\n      \"note\": \"\"\n    },\n    {\n      \"name\": \"Calf Raises\",\n      \"sets\": [\n        {\"weight\": null, \"reps\": 15},\n        {\"weight\": null, \"reps\": 15},\n        {\"weight\": null, \"reps\": 15}\n      ],\n      \"note\": \"\"\n    },\n    {\n      \"name\": \"Ab Wheel\",\n      \"sets\": [\n        {\"weight\": null, \"reps\": 12},\n        {\"weight\": null, \"reps\": 12},\n        {\"weight\": null, \"reps\": 12}\n      ],\n      \"note\": \"\"\n    }\n  ],\n  \"duration_minutes\": 72,\n  \"rpe\": 8.5,\n  \"notes\": \"Hit squat PR at 275. Right knee felt tight on last set. Need to stretch more.\"\n}\n```",
+  "score": 4,
+  "cost": 0.0049544,
   "expected": "",
   "tokens": {
     "input": 316,
-    "output": 587
+    "output": 1047
   }
 }

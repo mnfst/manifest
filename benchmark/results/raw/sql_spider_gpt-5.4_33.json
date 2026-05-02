@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "SELECT\n  e.title,\n  e.rating\nFROM episodes e\nORDER BY e.rating DESC\nFETCH FIRST 3 ROWS ONLY;",
+  "score": 4,
+  "cost": 0.000402,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 31
+  }
+}

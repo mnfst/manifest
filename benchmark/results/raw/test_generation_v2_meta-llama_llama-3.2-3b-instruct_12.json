@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "Here's an example of how you can write unit tests for the `chunk_list` function using pytest:\n\n```python\nimport pytest\nfrom your_module import chunk_list  # replace 'your_module' with the actual name of the module where the function is defined\n\ndef test_chunk_list_happy_path():\n    \"\"\"Test that the function returns a list of chunks of the correct size\"\"\"\n    lst = [1, 2, 3, 4, 5, 6, 7, 8, 9]\n    size = 3\n    expected_output = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]\n    assert chunk_list(lst, size) == expected_output\n\ndef test_chunk_list_edge_case_zero_size():\n    \"\"\"Test that the function raises a ValueError when size is zero\"\"\"\n    lst = [1, 2, 3, 4, 5, 6, 7, 8, 9]\n    with pytest.raises(ValueError):\n        chunk_list(lst, 0)\n\ndef test_chunk_list_edge_case_negative_size():\n    \"\"\"Test that the function raises a ValueError when size is negative\"\"\"\n    lst = [1, 2, 3, 4, 5, 6, 7, 8, 9]\n    with pytest.raises(ValueError):\n        chunk_list(lst, -1)\n\ndef test_chunk_list_edge_case_empty_list():\n    \"\"\"Test that the function returns an empty list when the input list is empty\"\"\"\n    lst = []\n    size = 3\n    expected_output = []\n    assert chunk_list(lst, size) == expected_output\n\ndef test_chunk_list_edge_case_single_element_list():\n    \"\"\"Test that the function returns a list with a single chunk when the input list has only one element\"\"\"\n    lst = [1]\n    size = 3\n    expected_output = [[1]]\n    assert chunk_list(lst, size) == expected_output\n\ndef test_chunk_list_edge_case_size_larger_than_list():\n    \"\"\"Test that the function returns the entire list when the size is larger than the list\"\"\"\n    lst = [1, 2, 3, 4, 5, 6, 7, 8, 9]\n    size = 1\n    expected_output = [lst]\n    assert chunk_list(lst, size) == expected_output\n```\n\nThese tests cover the following scenarios:\n\n*   Happy path: The function returns a list of chunks of the correct size.\n*   Edge case: The function raises a `ValueError` when the size is zero or negative.\n*   Edge case: The function returns an empty list when the input list is empty.\n*   Edge case: The function returns a list with a single chunk when the input list has only one element.\n*   Edge case: The function returns the entire list when the size is larger than the list.",
+  "score": 5,
+  "cost": 3.519e-05,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 601
+  }
+}

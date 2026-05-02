@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "First, find the loan amount:\n\n- House value = \\$250,000\n- Loan = 40% of \\$250,000  \n  = 0.40 \u00d7 250,000  \n  = \\$100,000\n\nNext, find how much he used to pay off debts:\n\n- He used 60% of the loan  \n  = 0.60 \u00d7 100,000  \n  = \\$60,000\n\nNow subtract that from the loan to find what was left over:\n\n- Leftover = \\$100,000 - \\$60,000  \n  = \\$40,000\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.0001863,
+  "expected": "40,000",
+  "tokens": {
+    "input": 101,
+    "output": 130
+  }
+}

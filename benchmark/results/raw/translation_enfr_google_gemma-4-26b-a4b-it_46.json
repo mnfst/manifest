@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 46,
+  "response": "J'ai re\u00e7u sept motions de r\u00e9solution conform\u00e9ment \u00e0 la R\u00e8gle 37 du R\u00e8glement de proc\u00e9dure.",
+  "score": 5,
+  "cost": 4.5e-06,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 23
+  }
+}

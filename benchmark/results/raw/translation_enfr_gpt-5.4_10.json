@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "translation_enfr",
+  "case": 10,
+  "response": "Peut-\u00eatre trouver quelques indices, nous rapprocher de l\u2019animal qui a fait \u00e7a.",
+  "score": 4,
+  "cost": 0.000254,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 22
+  }
+}

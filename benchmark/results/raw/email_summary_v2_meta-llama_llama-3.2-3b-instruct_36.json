@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe API performance has regressed, with latency increasing from 200ms to 800ms on the /api/v2/search endpoint, due to a new full-text search query not utilizing an index. The issue is expected to be resolved by adding a GIN index on the content column, which will be deployed tonight during the maintenance window.",
+  "score": 5,
+  "cost": 9.18e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 81
+  }
+}

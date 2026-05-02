@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "To solve this problem, we need to divide the total amount of money Sarah spent ($300) by the number of books she gave to her kids (4).\n\nStep 1: Divide the total amount of money by the number of books:\n$300 \u00f7 4 = $75\n\nStep 2: Since each book costs $15, we can divide the amount of money each child received ($75) by the cost of each book ($15) to find out how many books each child got:\n$75 \u00f7 $15 = 5\n\nTherefore, each child got 5 books.",
+  "score": 2,
+  "cost": 5.724000000000001e-06,
+  "expected": "5",
+  "tokens": {
+    "input": 91,
+    "output": 121
+  }
+}

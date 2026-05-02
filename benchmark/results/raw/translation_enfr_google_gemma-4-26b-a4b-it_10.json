@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 10,
+  "response": "Depending on the context (who is speaking to whom), here are the best ways to translate this:\n\n**1. Natural/Informal (Best for a movie script or casual conversation):**\n> \u00ab On pourrait peut-\u00eatre g\u00e9n\u00e9rer quelques indices, pour nous rapprocher de l'animal qui a fait \u00e7a. \u00bb\n\n**2. Slightly more formal/Direct:**\n> \u00ab Peut-\u00eatre pourrions-nous cr\u00e9er quelques indices, afin de nous rapprocher de l'animal responsable. \u00bb\n\n**3. Short/Punchy (If a character is making a quick suggestion):**\n> \u00ab On devrait peut-\u00eatre trouver des indices pour se rapprocher de l'animal qui a fait le coup. \u00bb\n\n**Key choices made:**\n* **\"Maybe generate\"**: Translated as *\"On pourrait peut-\u00eatre\"* (We could maybe) or *\"Peut-\u00eatre pourrions-nous\"* to sound more natural in French than a literal translation of \"generate.\"\n* **\"Who did this\"**: Translated as *\"qui a fait \u00e7a\"* (who did that) or *\"responsable\"* (responsible) to maintain the mystery/tone.",
+  "score": 5,
+  "cost": 1.7279999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 240
+  }
+}

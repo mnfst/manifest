@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly ETL job failed due to an upstream Salesforce schema change, causing dashboards to display stale data since yesterday. The issue has been resolved with a deployed fix and ongoing backfill, with full recovery expected by 4 PM today.",
+  "score": 5,
+  "cost": 1.7e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 246
+  }
+}

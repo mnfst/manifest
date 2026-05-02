@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "Annual DR test completed with an RTO target of 4 hours but achieved in 6 hours 23 minutes due to a 3-hour database restore delay caused by a larger dataset than expected. Action items include increasing backup frequency and pre-provisioning a standby DB, with the next test scheduled for October.",
+  "score": 5,
+  "cost": 2.36e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 362
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "Le plus proche de la plage est \u00e0 une distance de conduite facile, situ\u00e9 \u00e0 environ 6...\n\n(Note: The translation ends at \"environ 6\" because the original text is incomplete. If you provide the full sentence, I can offer a more complete translation.)",
+  "score": 3,
+  "cost": 6.565e-06,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 58
+  }
+}

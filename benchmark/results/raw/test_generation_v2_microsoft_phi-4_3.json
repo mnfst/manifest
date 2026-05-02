@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "To write unit tests for the `flatten` function using `pytest`, we need to cover various scenarios including the happy path, edge cases, and error cases. Here's how you can structure the tests:\n\n```python\nimport pytest\n\ndef flatten(lst: list) -> list:\n    result = []\n    for item in lst:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\ndef test_flatten_happy_path():\n    # Test with a simple nested list\n    assert flatten([1, [2, 3], [4, [5, 6]]]) == [1, 2, 3, 4, 5, 6]\n    # Test with a list containing empty lists\n    assert flatten([[], [1, [2, []]], 3]) == [1, 2, 3]\n    # Test with a list containing only nested lists\n    assert flatten([[[1]], [[2, [3]]]]) == [1, 2, 3]\n    # Test with a list containing non-list elements\n    assert flatten([1, 'a', [2, 'b', [3, 'c']]]) == [1, 'a', 2, 'b', 3, 'c']\n\ndef test_flatten_edge_cases():\n    # Test with an empty list\n    assert flatten([]) == []\n    # Test with a list containing only empty lists\n    assert flatten([[], [[]], [[[]]]]) == []\n    # Test with a list containing a single element\n    assert flatten([1]) == [1]\n    # Test with a list containing a single nested list\n    assert flatten([[1]]) == [1]\n\ndef test_flatten_error_cases():\n    # Test with a non-list input (should raise TypeError)\n    with pytest.raises(TypeError):\n        flatten(\"not a list\")\n    # Test with a list containing non-iterable elements\n    assert flatten([1, 2, 3, None, True, False]) == [1, 2, 3, None, True, False]\n    # Test with a list containing a dictionary (should not flatten)\n    assert flatten([1, {'a': 2}, [3, 4]]) == [1, {'a': 2}, 3, 4]\n\n# Run the tests\nif __name__ == \"__main__\":\n    pytest.main()\n```\n\n### Explanation:\n\n- **Happy Path Tests**: These tests cover typical use cases where the function is expected to work correctly, such as flattening nested lists with various data types.\n\n- **Edge Cases**: These tests handle scenarios like empty lists, lists with only empty lists, and lists with single elements.\n\n- **Error Cases**: These tests check how the function behaves with invalid inputs, such as non-list types. The function should raise a `TypeError` when the input is not a list.\n\nTo run these tests, save the code in a file (e.g., `test_flatten.py`) and execute it using `pytest` from the command line.",
+  "score": 5,
+  "cost": 4.68e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 641
+  }
+}

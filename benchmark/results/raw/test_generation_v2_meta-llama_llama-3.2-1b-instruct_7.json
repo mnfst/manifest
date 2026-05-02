@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 7,
+  "response": "Here are some unit tests for the `remove_duplicates` function using pytest style:\n\n```python\nimport pytest\n\ndef test_remove_duplicates_happy_path():\n    # Test with a list of unique elements\n    lst = [1, 2, 3, 2, 4, 5, 6, 2, 3]\n    expected_result = [1, 2, 3, 4, 5, 6]\n    assert remove_duplicates(lst) == expected_result\n\ndef test_remove_duplicates_empty_list():\n    # Test with an empty list\n    lst = []\n    expected_result = []\n    assert remove_duplicates(lst) == expected_result\n\ndef test_remove_duplicates_single_element_list():\n    # Test with a list containing a single element\n    lst = [1]\n    expected_result = [1]\n    assert remove_duplicates(lst) == expected_result\n\ndef test_remove_duplicates_multiple_elements_list():\n    # Test with a list containing multiple elements\n    lst = [1, 2, 2, 3, 3, 3]\n    expected_result = [1, 2, 3]\n    assert remove_duplicates(lst) == expected_result\n\ndef test_remove_duplicates_with_duplicates():\n    # Test with a list containing duplicate elements\n    lst = [1, 2, 2, 3, 3, 3]\n    expected_result = [1, 2, 3]\n    assert remove_duplicates(lst) == expected_result\n\ndef test_remove_duplicates_with_large_list():\n    # Test with a large list\n    lst = [1] * 1000\n    expected_result = [1]\n    assert remove_duplicates(lst) == expected_result\n\ndef test_remove_duplicates_with_negative_numbers():\n    # Test with a list containing negative numbers\n    lst = [-1, -2, -3, -2, -1]\n    expected_result = [-1, -2, -3]\n    assert remove_duplicates(lst) == expected_result\n\ndef test_remove_duplicates_with_non_list_input():\n    # Test with a non-list input\n    with pytest.raises(TypeError):\n        remove_duplicates(\"hello\")\n\ndef test_remove_duplicates_with_non_list_input_type():\n    # Test with a non-list input of different types\n    with pytest.raises(TypeError):\n        remove_duplicates(123)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test that the function works correctly when given a list of unique elements.\n* Edge cases: Test that the function handles empty lists, single-element lists, and lists with duplicate elements correctly.\n* Error cases: Test that the function raises a TypeError when given a non-list input or a non-list of different types.\n* Large list test: Test that the function works correctly with a large list.\n* Negative numbers test: Test that the function works correctly with a list containing negative numbers.",
+  "score": 4,
+  "cost": 1.7874e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 578
+  }
+}

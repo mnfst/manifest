@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "To solve the problem, we need to determine how many pomelos Eve gave away.\n\n1. **Determine the number of pomelos Eve has left:**\n\n   Eve originally had 20 pieces of pomelos. After giving some away, she is left with \\( \\frac{1}{4} \\) of the pomelos she originally had.\n\n   \\[\n   \\text{Pomelos left} = \\frac{1}{4} \\times 20 = 5\n   \\]\n\n2. **Calculate the number of pomelos Eve gave away:**\n\n   To find out how many pomelos Eve gave away, subtract the number of pomelos she has left from the original number of pomelos.\n\n   \\[\n   \\text{Pomelos given away} = 20 - 5 = 15\n   \\]\n\nTherefore, Eve gave away 15 pomelos.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 1.859e-05,
+  "expected": "15",
+  "tokens": {
+    "input": 89,
+    "output": 197
+  }
+}

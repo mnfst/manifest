@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "intent_clinc150",
+  "case": 37,
+  "response": "payday",
+  "score": 5,
+  "cost": 6.41e-05,
+  "expected": "payday",
+  "tokens": {
+    "input": 507,
+    "output": 775
+  }
+}

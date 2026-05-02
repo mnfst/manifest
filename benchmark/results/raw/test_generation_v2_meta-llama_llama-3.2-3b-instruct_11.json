@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 11,
+  "response": "Here are the unit tests for the `merge_sorted` function using pytest style:\n\n```python\nimport pytest\n\ndef test_merge_sorted_happy_path():\n    \"\"\"Test merging two sorted lists\"\"\"\n    a = [1, 3, 5, 7]\n    b = [2, 4, 6, 8]\n    expected = [1, 2, 3, 4, 5, 6, 7, 8]\n    assert merge_sorted(a, b) == expected\n\ndef test_merge_sorted_empty_lists():\n    \"\"\"Test merging two empty lists\"\"\"\n    a = []\n    b = []\n    expected = []\n    assert merge_sorted(a, b) == expected\n\ndef test_merge_sorted_single_element():\n    \"\"\"Test merging two lists with one element each\"\"\"\n    a = [1]\n    b = [2]\n    expected = [1, 2]\n    assert merge_sorted(a, b) == expected\n\ndef test_merge_sorted_repeated_elements():\n    \"\"\"Test merging two lists with repeated elements\"\"\"\n    a = [1, 1, 3, 3]\n    b = [1, 2, 2, 3]\n    expected = [1, 1, 1, 2, 2, 3, 3]\n    assert merge_sorted(a, b) == expected\n\ndef test_merge_sorted_negative_numbers():\n    \"\"\"Test merging two lists with negative numbers\"\"\"\n    a = [-3, -1, 0]\n    b = [-2, -1, 1]\n    expected = [-3, -2, -1, 0, 1]\n    assert merge_sorted(a, b) == expected\n\ndef test_merge_sorted_mixed_types():\n    \"\"\"Test merging two lists with mixed types\"\"\"\n    a = [1, 2, 'a', 'b']\n    b = [1, 'a', 2, 'c']\n    expected = [1, 1, 2, 2, 'a', 'a', 'b', 'c']\n    assert merge_sorted(a, b) == expected\n\ndef test_merge_sorted_none_input():\n    \"\"\"Test merging with None input\"\"\"\n    a = None\n    b = [1, 2, 3]\n    with pytest.raises(TypeError):\n        merge_sorted(a, b)\n\ndef test_merge_sorted_non_list_input():\n    \"\"\"Test merging with non-list input\"\"\"\n    a = 'hello'\n    b = [1, 2, 3]\n    with pytest.raises(TypeError):\n        merge_sorted(a, b)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Merging two sorted lists\n* Edge cases: Merging two empty lists, lists with one element each, lists with repeated elements, lists with negative numbers, and lists with mixed types\n* Error cases: Merging with None input and non-list input",
+  "score": 5,
+  "cost": 3.672e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 591
+  }
+}

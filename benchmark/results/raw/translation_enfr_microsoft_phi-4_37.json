@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "Section 104(1.1) est modifi\u00e9e pour clarifier qu'elle s'applique malgr\u00e9 la sous-section 248(25) de la Loi. La sous-section 248(25) de la Loi d\u00e9crit, pour d'autres objectifs de la Loi, les circonstances dans lesquelles une personne ou un partenariat est consid\u00e9r\u00e9 comme \"int\u00e9ress\u00e9 b\u00e9n\u00e9ficiairement\" dans un trust.",
+  "score": 4,
+  "cost": 1.2285e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 94
+  }
+}

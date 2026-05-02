@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Let\u2019s compute each student\u2019s points step by step.\n\n1. **Adam** has **50** points.\n\n2. **Betty** was **30% more than Adam**:\n   - \\( 30\\% \\) of 50 is \\( 0.3 \\times 50 = 15 \\)\n   - So Betty has \\( 50 + 15 = 65 \\) points\n\n3. **Tom** has **30 points less than Betty**:\n   - \\( 65 - 30 = 35 \\)\n   - So Tom has **35** points\n\n4. **Marta** collected **3 times as many points as Tom**:\n   - \\( 3 \\times 35 = 105 \\)\n   - So Marta has **105** points\n\n5. **Total points** for the class:\n   - \\( 50 + 65 + 35 + 105 = 255 \\)\n\n6. The trip requires **400** points, so the class is missing:\n   - \\( 400 - 255 = 145 \\)\n\nANSWER: 145",
+  "score": 4,
+  "cost": 0.0003204,
+  "expected": "145",
+  "tokens": {
+    "input": 144,
+    "output": 231
+  }
+}

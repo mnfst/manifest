@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Je me sens comme si mon coq n'\u00e9tait pas suffisamment grand pour toi.\n\nNote: In French, \"coq\" is a colloquial or informal term for a man's penis. If you want to maintain a more formal tone, you can use \"mon organ g\u00e9nital masculin\" or \"mon membre viril\", but the first option is more common in informal conversations.",
+  "score": 4,
+  "cost": 6.273e-06,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 82
+  }
+}

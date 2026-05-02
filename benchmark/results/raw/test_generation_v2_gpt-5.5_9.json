@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 9,
+  "response": "```python\n# test_max_subarray_sum.py\n\nimport pytest\n\n# Replace `your_module` with the module where max_subarray_sum is defined.\nfrom your_module import max_subarray_sum\n\n\n@pytest.mark.parametrize(\n    \"arr, expected\",\n    [\n        ([1, 2, 3, 4], 10),                         # all positive\n        ([-2, 1, -3, 4, -1, 2, 1, -5, 4], 6),       # classic mixed case\n        ([5, -2, 3, 4], 10),                        # best subarray includes a dip\n        ([-1, -2, -3, -4], -1),                     # all negative\n        ([0, 0, 0], 0),                             # all zeros\n        ([-2, 0, -1], 0),                           # zero is best\n        ([42], 42),                                 # single positive element\n        ([-42], -42),                               # single negative element\n        ([], 0),                                    # empty list\n        ([10, -20, 30], 30),                        # best subarray at end\n        ([30, -20, 10], 30),                        # best subarray at beginning\n    ],\n)\ndef test_max_subarray_sum(arr, expected):\n    assert max_subarray_sum(arr) == expected\n\n\ndef test_max_subarray_sum_with_large_values():\n    arr = [10**12, -1, 10**12]\n    assert max_subarray_sum(arr) == 2 * 10**12 - 1\n\n\ndef test_max_subarray_sum_does_not_modify_input():\n    arr = [-2, 1, -3, 4, -1, 2, 1, -5, 4]\n    original = arr.copy()\n\n    max_subarray_sum(arr)\n\n    assert arr == original\n\n\n@pytest.mark.parametrize(\n    \"arr\",\n    [\n        [1, \"2\", 3],       # incompatible int + str\n        [1, None, 3],      # incompatible int + None\n        [object(), 1],     # unsupported addition/comparison\n    ],\n)\ndef test_max_subarray_sum_invalid_element_types_raise_type_error(arr):\n    with pytest.raises(TypeError):\n        max_subarray_sum(arr)\n\n\ndef test_max_subarray_sum_non_sequence_truthy_input_raises_type_error():\n    with pytest.raises(TypeError):\n        max_subarray_sum(123)\n\n\ndef test_max_subarray_sum_none_returns_zero():\n    # Current implementation treats any falsy input like an empty list.\n    assert max_subarray_sum(None) == 0\n```",
+  "score": 4,
+  "cost": 0.013305,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 1084
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "To find out how much money Gerald has left, we first need to determine how much money he received from the $100.\n\n1. **Find the total number of parts in the ratio:**\n   The ratio of Gerald's share to Julia's share is 3:2. \n   Total parts = 3 + 2 = 5 parts.\n\n2. **Determine the value of one part:**\n   Divide the total amount of money by the total number of parts.\n   $100 \u00f7 5 = $20 per part.\n\n3. **Calculate Gerald's initial share:**\n   Gerald gets 3 parts of the money.\n   3 parts \u00d7 $20 = $60.\n\n4. **Calculate how much money Gerald has left:**\n   Gerald spent $10 on a book.\n   $60 - $10 = $50.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0031325,
+  "expected": "50",
+  "tokens": {
+    "input": 71,
+    "output": 197
+  }
+}

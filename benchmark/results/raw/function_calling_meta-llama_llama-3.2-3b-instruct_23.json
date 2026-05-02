@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 23,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"send_message\", \"arguments\": {\"channel\": \"engineering\", \"text\": \"Deploy complete\"}}\n```\n\nNote that the `thread_id` parameter is not specified in the user request, so it defaults to `None`.",
+  "score": 5,
+  "cost": 8.058e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 61
+  }
+}

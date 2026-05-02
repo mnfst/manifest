@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "L\u2019unit\u00e9 se fixe simplement \u00e0 l\u2019appuie-t\u00eate du si\u00e8ge conducteur \u00e0 l\u2019aide d\u2019une solide sangle \u00e9lastique. Dans ce...",
+  "score": 4,
+  "cost": 0.001281,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 95
+  }
+}

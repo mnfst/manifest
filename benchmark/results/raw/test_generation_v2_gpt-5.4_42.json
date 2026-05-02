@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 42,
+  "response": "```python\n# test_debounce.py\nimport time\nimport pytest\n\nfrom your_module import debounce\n\n\ndef test_debounce_calls_function_after_wait():\n    calls = []\n\n    def fn(*args, **kwargs):\n        calls.append((args, kwargs))\n\n    debounced = debounce(fn, 50)\n    debounced(1, 2, x=3)\n\n    time.sleep(0.1)\n\n    assert calls == [((1, 2), {\"x\": 3})]\n\n\ndef test_debounce_only_last_call_runs():\n    calls = []\n\n    def fn(value):\n        calls.append(value)\n\n    debounced = debounce(fn, 50)\n\n    debounced(\"first\")\n    time.sleep(0.02)\n    debounced(\"second\")\n    time.sleep(0.02)\n    debounced(\"third\")\n\n    time.sleep(0.1)\n\n    assert calls == [\"third\"]\n\n\ndef test_debounce_multiple_independent_wrappers():\n    calls_a = []\n    calls_b = []\n\n    def fn_a(value):\n        calls_a.append(value)\n\n    def fn_b(value):\n        calls_b.append(value)\n\n    debounced_a = debounce(fn_a, 30)\n    debounced_b = debounce(fn_b, 30)\n\n    debounced_a(\"a1\")\n    debounced_b(\"b1\")\n\n    time.sleep(0.08)\n\n    assert calls_a == [\"a1\"]\n    assert calls_b == [\"b1\"]\n\n\ndef test_debounce_zero_wait_runs_quickly():\n    calls = []\n\n    def fn(value):\n        calls.append(value)\n\n    debounced = debounce(fn, 0)\n    debounced(\"now\")\n\n    time.sleep(0.05)\n\n    assert calls == [\"now\"]\n\n\ndef test_debounce_negative_wait_raises():\n    def fn():\n        pass\n\n    debounced = debounce(fn, -10)\n\n    with pytest.raises(ValueError):\n        debounced()\n\n\ndef test_debounce_passes_kwargs_correctly():\n    calls = []\n\n    def fn(a, b=0, *, c=0):\n        calls.append((a, b, c))\n\n    debounced = debounce(fn, 20)\n    debounced(1, b=2, c=3)\n\n    time.sleep(0.05)\n\n    assert calls == [(1, 2, 3)]\n\n\ndef test_debounce_returns_callable():\n    def fn():\n        pass\n\n    debounced = debounce(fn, 10)\n\n    assert callable(debounced)\n\n\ndef test_debounce_does_not_call_immediately():\n    calls = []\n\n    def fn():\n        calls.append(\"called\")\n\n    debounced = debounce(fn, 50)\n    debounced()\n\n    assert calls == []\n\n    time.sleep(0.1)\n\n    assert calls == [\"called\"]\n```\n\nA couple of notes:\n- Replace `from your_module import debounce` with the actual module import.\n- These tests use `time.sleep(...)` because the implementation uses `threading.Timer`.",
+  "score": 4,
+  "cost": 0.005054,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 605
+  }
+}

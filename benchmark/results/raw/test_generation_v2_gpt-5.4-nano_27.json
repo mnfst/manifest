@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "```python\n# test_interleave.py\nimport pytest\n\nfrom your_module import interleave\n\n\nclass TestInterleave:\n    def test_happy_path_equal_length(self):\n        assert interleave([1, 2, 3], [\"a\", \"b\", \"c\"]) == [1, \"a\", 2, \"b\", 3, \"c\"]\n\n    def test_happy_path_a_longer(self):\n        assert interleave([1, 2, 3, 4], [\"a\", \"b\"]) == [1, \"a\", 2, \"b\", 3, 4]\n\n    def test_happy_path_b_longer(self):\n        assert interleave([1, 2], [\"a\", \"b\", \"c\"]) == [1, \"a\", 2, \"b\", \"c\"]\n\n    def test_happy_path_with_empty_a(self):\n        assert interleave([], [\"a\", \"b\"]) == [\"a\", \"b\"]\n\n    def test_happy_path_with_empty_b(self):\n        assert interleave([1, 2], []) == [1, 2]\n\n    def test_happy_path_both_empty(self):\n        assert interleave([], []) == []\n\n    def test_edge_cases_with_duplicates_and_none(self):\n        a = [None, 1, 1]\n        b = [1, None]\n        assert interleave(a, b) == [None, 1, 1, None, 1]\n\n    def test_edge_cases_with_mismatched_types_allowed(self):\n        assert interleave([True, 2], [\"x\", \"y\", \"z\"]) == [True, \"x\", 2, \"y\", \"z\"]\n\n    def test_error_non_list_inputs_raise_type_error_on_len(self):\n        # Function expects list-like supporting len and slicing.\n        with pytest.raises(TypeError):\n            interleave(None, [1, 2])\n\n        with pytest.raises(TypeError):\n            interleave([1, 2], None)\n\n    def test_error_non_sized_iterable_raise_type_error(self):\n        # len() will fail for generators.\n        gen = (x for x in [1, 2, 3])\n        with pytest.raises(TypeError):\n            interleave(gen, [\"a\", \"b\"])\n\n    def test_error_objects_without_len_raise_type_error(self):\n        class NoLen:\n            pass\n\n        with pytest.raises(TypeError):\n            interleave(NoLen(), [1])\n\n        with pytest.raises(TypeError):\n            interleave([1], NoLen())\n```",
+  "score": 5,
+  "cost": 0.00021960000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 527
+  }
+}

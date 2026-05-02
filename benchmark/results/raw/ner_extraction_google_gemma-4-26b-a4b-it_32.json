@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "```json\n{\n  \"persons\": [\"Serena Williams\"],\n  \"organizations\": [\"ESPY\"],\n  \"locations\": [\"Los Angeles\"]\n}\n```",
+  "score": 5,
+  "cost": 6.899999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 37
+  }
+}

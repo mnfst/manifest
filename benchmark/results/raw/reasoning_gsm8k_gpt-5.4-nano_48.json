@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Jamaal starts with an 8-pound weight.  \nHe increases it by 50%, so the new weight after the increase is:\n- \\(8 \\times (1 + 0.50) = 8 \\times 1.5 = 12\\)\n\nIt is too heavy, so he uses a weight two pounds lighter than 12:\n- \\(12 - 2 = 10\\)\n\nANSWER: 10",
+  "score": 5,
+  "cost": 4.6e-05,
+  "expected": "10",
+  "tokens": {
+    "input": 100,
+    "output": 90
+  }
+}

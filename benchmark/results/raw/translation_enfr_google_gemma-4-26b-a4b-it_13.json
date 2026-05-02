@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Depending on the level of formality or the relationship between the speakers, here are the best ways to translate this:\n\n**1. Informal (Standard/Natural):**\n> **Dis juste \u00e0 Kumagaya que le d\u00e9tective est l\u00e0.**\n*(Use this if you are speaking to a friend or someone you know well.)*\n\n**2. Formal (Polite/Professional):**\n> **Dites juste \u00e0 Kumagaya que le d\u00e9tective est l\u00e0.**\n*(Use this if you are speaking to a stranger, a superior, or a group of people.)*\n\n**3. Slightly more emphatic (Closer to \"Just tell him...\"):**\n> **Dis simplement \u00e0 Kumagaya que le d\u00e9tective est arriv\u00e9.**\n*(Using \"simplement\" instead of \"juste\" sounds a bit more polished in French, and \"est arriv\u00e9\" implies the detective has just arrived.)*",
+  "score": 4,
+  "cost": 1.4099999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 190
+  }
+}

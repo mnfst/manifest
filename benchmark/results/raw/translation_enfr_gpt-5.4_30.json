@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie pour les contrats d\u2019apprentissage des jeunes dans les PME, les ETI et les collectivit\u00e9s locales",
+  "score": 5,
+  "cost": 0.00031,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 28
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 4,
+  "response": "```json\n{\n  \"name\": \"resize_image\",\n  \"arguments\": {\n    \"path\": \"uploads/photo.jpg\",\n    \"width\": 800,\n    \"height\": 600\n  }\n}\n```",
+  "score": 4,
+  "cost": 2.5300000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT c.Name, COUNT(cl.Language) AS NumberOfLanguages\nFROM country c\nJOIN countrylanguage cl ON c.Code = cl.CountryCode\nGROUP BY c.Code, c.Name\nHAVING COUNT(cl.Language) > 2\nORDER BY NumberOfLanguages DESC;\n```",
+  "score": 4,
+  "cost": 0.00141,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 76
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company has achieved significant milestones, including crossing the 10K monthly active user (MAU) milestone, securing a Series A funding round of $8M at $40M pre-money valuation, and hiring a new Vice President of Sales. The company's fundraising efforts are set to close on May 10, with a projected 11-month runway post-raise.",
+  "score": 5,
+  "cost": 5.318999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 87
+  }
+}

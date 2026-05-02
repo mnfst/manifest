@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 12,
+  "response": "{\"name\": \"get_stock_price\", \"arguments\": {\"symbol\": \"AAPL\"}}",
+  "score": 5,
+  "cost": 0.000515,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 19
+  }
+}

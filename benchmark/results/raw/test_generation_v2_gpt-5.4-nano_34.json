@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 34,
+  "response": "```python\nimport pytest\n\n# Adjust the import path to where your function lives.\n# from your_module import levenshtein\n\n\ndef test_levenshtein_identical_strings():\n    assert levenshtein(\"kitten\", \"kitten\") == 0\n\n\ndef test_levenshtein_classic_example():\n    # Common benchmark: distance(\"kitten\", \"sitting\") = 3\n    assert levenshtein(\"kitten\", \"sitting\") == 3\n\n\ndef test_levenshtein_empty_to_nonempty():\n    assert levenshtein(\"\", \"abc\") == 3\n    assert levenshtein(\"abc\", \"\") == 3  # symmetry via recursion branch\n\n\ndef test_levenshtein_both_empty():\n    assert levenshtein(\"\", \"\") == 0\n\n\ndef test_levenshtein_one_character_diff():\n    assert levenshtein(\"a\", \"b\") == 1\n    assert levenshtein(\"a\", \"a\") == 0\n\n\ndef test_levenshtein_single_insert_or_delete():\n    # \"a\" -> \"ab\": one insertion\n    assert levenshtein(\"a\", \"ab\") == 1\n    # \"ab\" -> \"a\": one deletion\n    assert levenshtein(\"ab\", \"a\") == 1\n\n\ndef test_levenshtein_symmetry_property():\n    assert levenshtein(\"flaw\", \"lawn\") == levenshtein(\"lawn\", \"flaw\") == 2\n\n\n@pytest.mark.parametrize(\n    \"s1,s2,expected\",\n    [\n        (\"gumbo\", \"gambol\", 2),     # insert/delete + substitution mix\n        (\"book\", \"back\", 2),       # substitutions\n        (\"Saturday\", \"Sunday\", 3), # classic example: 3\n    ],\n)\ndef test_levenshtein_various_known_distances(s1, s2, expected):\n    assert levenshtein(s1, s2) == expected\n\n\ndef test_levenshtein_handles_unicode():\n    # Different unicode characters\n    assert levenshtein(\"caf\u00e9\", \"cafe\") == 1  # \u00e9 vs e\n    # Same unicode string\n    assert levenshtein(\"\u0434\u043e\u0431\u0440\u043e\", \"\u0434\u043e\u0431\u0440\u043e\") == 0\n\n\n@pytest.mark.parametrize(\"s1,s2\", [(None, \"abc\"), (\"abc\", None)])\ndef test_levenshtein_invalid_type_raises(s1, s2):\n    with pytest.raises(TypeError):\n        levenshtein(s1, s2)  # type: ignore[arg-type]\n\n\n@pytest.mark.parametrize(\"s1,s2\", [(1, \"abc\"), (\"abc\", 2), (3, 4)])\ndef test_levenshtein_non_string_raises(s1, s2):\n    with pytest.raises(TypeError):\n        levenshtein(s1, s2)  # type: ignore[arg-type]\n```",
+  "score": 5,
+  "cost": 0.000262,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 613
+  }
+}

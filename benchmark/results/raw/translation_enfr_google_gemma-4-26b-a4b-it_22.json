@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Depending on the desired level of formality, here are two ways to translate this:\n\n**Option 1: Formal/Administrative (Recommended for official documents)**\n> \u00ab Si les revenus et/ou le statut professionnel d'une personne changent, un transfert de responsabilit\u00e9 institutionnelle peut avoir lieu, auquel cas une nouvelle \u00e9valuation sera effectu\u00e9e. \u00bb\n\n**Option 2: Slightly more direct**\n> \u00ab En cas de changement des revenus et/ou de la situation d'emploi d'une personne, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle, ce qui entra\u00eenera une nouvelle \u00e9valuation. \u00bb\n\n**Key Terminology Used:**\n*   *Income:* Revenus\n*   *Employment status:* Statut professionnel / Situation d'emploi\n*   *Institutional responsibility:* Responsabilit\u00e9 institutionnelle\n*   *Assessment:* \u00c9valuation",
+  "score": 5,
+  "cost": 1.4579999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 188
+  }
+}

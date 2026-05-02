@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "Here are some unit tests for the `factorial` function using pytest:\n```python\nimport pytest\nfrom your_module import factorial  # Replace 'your_module' with the actual module name\n\ndef test_factorial_happy_path():\n    assert factorial(5) == 120\n\ndef test_factorial_edge_case_zero():\n    assert factorial(0) == 1\n\ndef test_factorial_edge_case_negative():\n    with pytest.raises(ValueError):\n        factorial(-1)\n\ndef test_factorial_edge_case_one():\n    assert factorial(1) == 1\n\ndef test_factorial_edge_case_large():\n    assert factorial(10) == 3628800\n\ndef test_factorial_edge_case_negative_large():\n    with pytest.raises(ValueError):\n        factorial(-10)\n\ndef test_factorial_edge_case_non_integer():\n    with pytest.raises(TypeError):\n        factorial(3.5)\n```\nHere's an explanation of the tests:\n\n* `test_factorial_happy_path`: Verifies that the function returns the correct result for a positive input (5).\n* `test_factorial_edge_case_zero`: Verifies that the function raises a `ValueError` when the input is 0.\n* `test_factorial_edge_case_negative`: Verifies that the function raises a `ValueError` when the input is negative.\n* `test_factorial_edge_case_one`: Verifies that the function returns 1 when the input is 1.\n* `test_factorial_edge_case_large`: Verifies that the function returns the correct result for a large input (10).\n* `test_factorial_edge_case_negative_large`: Verifies that the function raises a `ValueError` when the input is negative.\n* `test_factorial_edge_case_non_integer`: Verifies that the function raises a `TypeError` when the input is not an integer.\n\nNote that you should replace `'your_module'` with the actual name of the module where the `factorial` function is defined.",
+  "score": 5,
+  "cost": 1.2960000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 394
+  }
+}

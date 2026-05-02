@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 29,
+  "response": "To extract text from a scanned document, you can use the `extract_tables` function. Here's the correct function call:\n\n```python\nget_document_metadata(path=\"uploads/contract.pdf\")\n```\n\nThis will return the metadata of the document, which includes the text content.",
+  "score": 1,
+  "cost": 3.915e-06,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 56
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT country, COUNT(*) as num_makers\nFROM car\nGROUP BY country\nORDER BY num_makers DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 5.61e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 33
+  }
+}

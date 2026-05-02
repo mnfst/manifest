@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "ner_extraction",
+  "case": 22,
+  "response": "{\"persons\":[\"Jamie Dimon\"],\"organizations\":[\"JPMorgan Chase\",\"Davos World Economic Forum\"],\"locations\":[\"Switzerland\",\"Davos\"]}",
+  "score": 5,
+  "cost": 7.05e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 40
+  }
+}

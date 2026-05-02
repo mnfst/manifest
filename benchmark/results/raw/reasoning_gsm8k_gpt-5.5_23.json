@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "The total cost to fill 20 balloons was $900.\n\nCost per balloon before the increase:\n\n\\[\n900 \\div 20 = 45\n\\]\n\nSo each balloon cost $45.\n\nAfter the price increase of $20 per balloon:\n\n\\[\n45 + 20 = 65\n\\]\n\nSo each balloon now costs $65.\n\nBentley filled 170 balloons:\n\n\\[\n170 \\times 65 = 11050\n\\]\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.002004,
+  "expected": "11050",
+  "tokens": {
+    "input": 96,
+    "output": 143
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 40,
+  "response": "```json\n{\"name\": \"pin_message\", \"arguments\": {\"channel\": \"announcements\", \"message_id\": \"release\"}}\n```",
+  "score": 4,
+  "cost": 1.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 31
+  }
+}

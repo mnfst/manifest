@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The email recommends upgrading from 1Gbps to 10Gbps links for $45K (one-time) + $2K/month to address peak capacity issues and avoid revisiting the problem in six months. Alternative options include traffic shaping + CDN optimization for $15K, but the 10Gbps upgrade is advised due to growth projections.",
+  "score": 5,
+  "cost": 2.5300000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 391
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT country_name\nFROM car_1\nGROUP BY country_name\nORDER BY COUNT(car_maker) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 7.2149999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 31
+  }
+}

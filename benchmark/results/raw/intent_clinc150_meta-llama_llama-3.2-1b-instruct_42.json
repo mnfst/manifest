@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 42,
+  "response": "play_music",
+  "score": 0,
+  "cost": 1.3661999999999999e-05,
+  "expected": "next_song",
+  "tokens": {
+    "input": 503,
+    "output": 3
+  }
+}

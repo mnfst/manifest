@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "{\"persons\":[],\"organizations\":[],\"locations\":[\"Puerto Rico\",\"Dominican Republic\"]}",
+  "score": 4,
+  "cost": 0.000298,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 20
+  }
+}

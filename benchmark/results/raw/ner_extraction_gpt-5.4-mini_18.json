@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "{\"persons\":[\"Sarah Chen\"],\"organizations\":[\"MIT\",\"Science magazine\"],\"locations\":[]}",
+  "score": 5,
+  "cost": 4.56e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 21
+  }
+}

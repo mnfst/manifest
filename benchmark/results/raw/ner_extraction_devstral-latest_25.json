@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "ner_extraction",
+  "case": 25,
+  "response": "```json\n{\n  \"persons\": [\"Mark Zuckerberg\"],\n  \"organizations\": [\"Meta\"],\n  \"locations\": [\"Menlo Park\"]\n}\n```",
+  "score": 5,
+  "cost": 1.7800000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 34
+  }
+}

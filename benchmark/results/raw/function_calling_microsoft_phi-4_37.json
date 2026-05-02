@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 37,
+  "response": "```json\n{\n  \"name\": \"invalidate_cache\",\n  \"arguments\": {\n    \"pattern\": \"*.css,*.js\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 6.825e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 32
+  }
+}

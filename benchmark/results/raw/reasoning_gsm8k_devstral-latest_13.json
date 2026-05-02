@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Let's break down the costs step by step:\n\n1. **Material Cost**: Janet pays $500 for the material.\n2. **Construction Cost**: She pays an additional $800 for the jeweler to construct the brooch.\n3. **Total Cost Before Insurance**: Add the material and construction costs.\n   \\[\n   500 + 800 = 1300 \\text{ dollars}\n   \\]\n4. **Insurance Cost**: She pays 10% of the total cost before insurance.\n   \\[\n   10\\% \\text{ of } 1300 = 0.10 \\times 1300 = 130 \\text{ dollars}\n   \\]\n5. **Total Cost**: Add the insurance cost to the previous total.\n   \\[\n   1300 + 130 = 1430 \\text{ dollars}\n   \\]\n\n**Final Answer**:\nANSWER: 1430",
+  "score": 5,
+  "cost": 7.329999999999999e-05,
+  "expected": "1430",
+  "tokens": {
+    "input": 103,
+    "output": 210
+  }
+}

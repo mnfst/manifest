@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "The annual performance review cycle begins May 1, with self-reviews due May 15, manager reviews May 22, calibration May 28, and final delivery on June 5, using a new competency framework this year. Managers should attend the training session on April 30 and complete their review-related tasks by the stated deadlines.",
+  "score": 5,
+  "cost": 0.000111,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 70
+  }
+}

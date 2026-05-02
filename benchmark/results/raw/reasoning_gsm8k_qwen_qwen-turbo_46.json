@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "Step 1: Calculate the number of each type of fish Anakin caught:\n- Starfish: 10\n- Sea horses: 6\n- Clownfish: 3\n\nStep 2: Calculate the number of each type of fish Locsin caught:\n- Starfish: 10 - 5 = 5\n- Sea horses: 6 - 3 = 3\n- Clownfish: 3 + 2 = 5\n\nStep 3: Add up all the fish caught by both Anakin and Locsin:\n- Total starfish: 10 + 5 = 15\n- Total sea horses: 6 + 3 = 9\n- Total clownfish: 3 + 5 = 8\n\nStep 4: Add all the fish together:\n- Total fish: 15 + 9 + 8 = 32\n\nANSWER: 32",
+  "score": 5,
+  "cost": 1.023e-05,
+  "expected": "32",
+  "tokens": {
+    "input": 120,
+    "output": 190
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe sprint retrospective meeting was successful, with the team shipping the auth redesign on time and demonstrating good cross-team collaboration. However, the meeting was too long and had too many context switches, and the team identified action items to improve the process, including limiting work in progress to 2 items per developer and timeboxing standups with a \"parking lot\" for discussion.",
+  "score": 4,
+  "cost": 1.0097999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 87
+  }
+}

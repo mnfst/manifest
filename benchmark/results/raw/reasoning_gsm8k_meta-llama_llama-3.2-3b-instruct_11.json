@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "To find the total number of leftover burritos, we need to first calculate the total number of burritos given to the students. Since there were 50 students and each student was given 10 burritos, the total number of burritos given to the students is:\n\n50 students * 10 burritos/student = 500 burritos\n\nHowever, Mr. George ate 20 burritos, so we need to subtract those from the total number of burritos given to the students:\n\n500 burritos - 20 burritos = 480 burritos\n\nSince there were originally 600 burritos, we can find the number of leftover burritos by subtracting the number of burritos given to the students and eaten by Mr. George from the original total:\n\n600 burritos - 480 burritos = 120 burritos\n\nANSWER: 120",
+  "score": 4,
+  "cost": 1.4228999999999999e-05,
+  "expected": "80",
+  "tokens": {
+    "input": 107,
+    "output": 172
+  }
+}

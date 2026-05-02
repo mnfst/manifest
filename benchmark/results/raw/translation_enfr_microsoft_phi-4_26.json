@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "Il sugg\u00e9rait, au contraire, que l'arm\u00e9e devrait jouer un r\u00f4le secondaire dans les op\u00e9rations antiterroristes.",
+  "score": 5,
+  "cost": 5.135e-06,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 34
+  }
+}

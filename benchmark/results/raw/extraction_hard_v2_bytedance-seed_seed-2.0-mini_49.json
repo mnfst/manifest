@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "extraction_hard_v2",
+  "case": 49,
+  "response": "{\"restaurant\": \"Chez Marcel downtown\", \"reviewer\": \"@foodie_jane\", \"date\": \"March 2024\", \"wait_time_min\": 40, \"dishes\": [{\"name\": \"duck confit\", \"rating\": \"incredible, perfectly crispy skin, meat falling off the bone\"}, {\"name\": \"creme brulee\", \"rating\": \"just ok, slightly overcooked\"}], \"wine\": {\"name\": \"Chateau Margaux\", \"year\": 2019}, \"bill_total\": 247, \"party_size\": 2, \"ratings\": {\"food\": 4.5, \"service\": 3.5, \"ambiance\": 4, \"value\": 3, \"overall\": 3.75}, \"would_return\": true}",
+  "score": 4,
+  "cost": 0.0006507,
+  "expected": "",
+  "tokens": {
+    "input": 339,
+    "output": 1542
+  }
+}

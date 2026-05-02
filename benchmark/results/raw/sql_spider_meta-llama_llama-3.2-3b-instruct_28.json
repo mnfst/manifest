@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "```sql\nSELECT nationality\nFROM poker_player\nGROUP BY nationality\nHAVING COUNT(*) > 1;\n```",
+  "score": 5,
+  "cost": 5.0999999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 24
+  }
+}

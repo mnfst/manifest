@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 employee engagement survey shows above-average overall scores, featuring strong team collaboration but low clarity on career growth. To address this, the People Team will hold a town hall on Friday to discuss implementing quarterly career conversations, an internal mobility program, and mentorship matching.",
+  "score": 5,
+  "cost": 0.0010925,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 54
+  }
+}

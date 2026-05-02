@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 4,
+  "response": "Maria Chen, CEO of DataSync, is proposing a partnership following the TechConnect conference in which DataSync would handle the data sync infrastructure and your team would integrate its SDK. She says this could reduce customer latency by 60% and generate an estimated $2M in additional annual revenue for each company, and the action item is to decide whether to schedule a technical discussion next week.",
+  "score": 5,
+  "cost": 0.00082,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 80
+  }
+}

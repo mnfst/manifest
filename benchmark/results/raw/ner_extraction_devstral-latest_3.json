@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "ner_extraction",
+  "case": 3,
+  "response": "```json\n{\n  \"persons\": [\"Maria Garcia\"],\n  \"organizations\": [\"Microsoft\", \"ACM\"],\n  \"locations\": [\"Seattle\"]\n}\n```",
+  "score": 5,
+  "cost": 1.7899999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 36
+  }
+}

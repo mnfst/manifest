@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "Here's a complete set of **pytest-style unit tests** for the `chunk_list` function. The tests cover:\n\n- **Happy path**: Normal usage with valid inputs.\n- **Edge cases**: Empty list, list smaller than chunk size, list with exactly the chunk size.\n- **Error cases**: Invalid chunk size (non-positive).\n\n---\n\n### \u2705 `test_chunk_list.py`\n\n```python\nimport pytest\n\nfrom your_module import chunk_list  # Replace with your actual module name\n\ndef test_chunk_list_happy_path():\n    assert chunk_list([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n    assert chunk_list(['a', 'b', 'c'], 1) == [['a'], ['b'], ['c']]\n    assert chunk_list([10, 20, 30], 3) == [[10, 20, 30]]\n\ndef test_chunk_list_empty_list():\n    assert chunk_list([], 2) == []\n\ndef test_chunk_list_size_larger_than_list():\n    assert chunk_list([1, 2, 3], 5) == [[1, 2, 3]]\n\ndef test_chunk_list_negative_size():\n    with pytest.raises(ValueError, match='size must be positive'):\n        chunk_list([1, 2, 3], -1)\n\ndef test_chunk_list_zero_size():\n    with pytest.raises(ValueError, match='size must be positive'):\n        chunk_list([1, 2, 3], 0)\n```\n\n---\n\n### \ud83e\uddea How to Run the Tests\n\nMake sure you're in the same directory as `test_chunk_list.py`, and run:\n\n```bash\npytest test_chunk_list.py\n```\n\n---\n\n### \ud83d\udcdd Notes\n\n- Replace `your_module` with the actual name of the module where `chunk_list` is defined.\n- The `pytest.raises` check ensures that the function correctly raises a `ValueError` when the `size` is not positive.\n\nLet me know if you want to test it with different data types or more advanced scenarios.",
+  "score": 5,
+  "cost": 1.7522999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 441
+  }
+}

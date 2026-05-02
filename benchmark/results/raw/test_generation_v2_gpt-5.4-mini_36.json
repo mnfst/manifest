@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 36,
+  "response": "```python\nimport pytest\n\nfrom your_module import validate_password\n\n\n@pytest.mark.parametrize(\n    \"pw, expected\",\n    [\n        (\"Abcdef1g\", True),      # happy path: meets all requirements\n        (\"A1b2c3d4\", True),      # mixed characters, still valid\n        (\"Password123\", True),   # typical valid password\n\n        (\"Abc1\", False),         # too short\n        (\"abcdefgh\", False),     # no uppercase, no digit\n        (\"ABCDEFGH\", False),     # no lowercase, no digit\n        (\"abcd1234\", False),     # no uppercase\n        (\"ABCD1234\", False),     # no lowercase\n        (\"Abcdefgh\", False),     # no digit\n        (\"12345678\", False),     # no letters\n        (\"\", False),             # empty string\n        (\"        \", False),     # spaces only\n        (\"Abcdefg \", False),     # long enough but no digit\n    ],\n)\ndef test_validate_password_cases(pw, expected):\n    assert validate_password(pw) is expected\n\n\ndef test_validate_password_with_unicode_letters():\n    # Unicode uppercase/lowercase should work with str.isupper/islower\n    assert validate_password(\"\u00c5bcdef1g\") is True\n\n\ndef test_validate_password_exactly_eight_chars_valid():\n    assert validate_password(\"Abc1defg\") is True\n\n\ndef test_validate_password_exactly_eight_chars_invalid():\n    assert validate_password(\"Abcdefg1\") is True  # valid\n    assert validate_password(\"Abcdefgh\") is False  # invalid: no digit\n\n\n@pytest.mark.parametrize(\n    \"pw\",\n    [\n        None,       # type error: len(None)\n        12345678,   # type error: len(int)\n        [\"A\", \"b\", \"1\"],  # len works, but isupper/islower/digit on list items not applicable\n    ],\n)\ndef test_validate_password_error_cases(pw):\n    with pytest.raises(TypeError):\n        validate_password(pw)  # type: ignore[arg-type]\n```\n\nNotes:\n- Replace `your_module` with the actual module name.\n- The function itself doesn\u2019t explicitly raise errors for bad types, but non-string inputs will typically raise `TypeError` when `len()` or string methods are used.",
+  "score": 5,
+  "cost": 0.0006272999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 495
+  }
+}

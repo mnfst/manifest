@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "To solve this problem, we need to divide the total amount spent on books ($300) by the cost of each book ($15) to find the total number of books purchased. \n\nStep 1: Calculate the total number of books purchased\nTotal amount spent = $300\nCost per book = $15\nTotal number of books = Total amount spent / Cost per book\nTotal number of books = $300 / $15\nTotal number of books = 20\n\nStep 2: Divide the total number of books by the number of kids to find out how many books each child got\nNumber of kids = 4\nNumber of books per child = Total number of books / Number of kids\nNumber of books per child = 20 / 4\nNumber of books per child = 5\n\nANSWER: 5",
+  "score": 5,
+  "cost": 1.326e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 91,
+    "output": 169
+  }
+}

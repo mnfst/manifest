@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Je dirais qu'il est peu de valeur.\n\nNote: In French, the translation is more polite and formal than the English translation \"low-value\".",
+  "score": 3,
+  "cost": 1.917e-06,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 31
+  }
+}

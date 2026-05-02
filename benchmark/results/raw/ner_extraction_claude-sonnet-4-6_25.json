@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "ner_extraction",
+  "case": 25,
+  "response": "```json\n{\n  \"persons\": [\"Mark Zuckerberg\"],\n  \"organizations\": [\"Meta\"],\n  \"locations\": [\"Menlo Park\"]\n}\n```",
+  "score": 5,
+  "cost": 0.000891,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 43
+  }
+}

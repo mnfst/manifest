@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "ner_extraction",
+  "case": 46,
+  "response": "```json\n{\n  \"persons\": [\"Liang Rubo\"],\n  \"organizations\": [\"ByteDance\", \"TikTok\", \"Senate Commerce Committee\"],\n  \"locations\": [\"Washington\"]\n}\n```",
+  "score": 5,
+  "cost": 2.07e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 45
+  }
+}

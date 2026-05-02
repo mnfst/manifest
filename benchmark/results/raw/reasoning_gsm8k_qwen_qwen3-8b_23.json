@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "To solve the problem, we first determine the original cost per balloon. Given that 20 balloons cost $900, the cost per balloon is:\n\n$$\n\\frac{900}{20} = 45 \\text{ dollars per balloon}\n$$\n\nTwo days later, the cost per balloon increases by $20, making the new price:\n\n$$\n45 + 20 = 65 \\text{ dollars per balloon}\n$$\n\nBentley fills 170 balloons at the new price, so the total cost is:\n\n$$\n170 \\times 65 = 11,050\n$$\n\n**Answer:** 11050\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 5.3400000000000004e-05,
+  "expected": "11050",
+  "tokens": {
+    "input": 106,
+    "output": 962
+  }
+}

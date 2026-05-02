@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "Le dispositif est simplement attach\u00e9 au r\u00e9troviseur du si\u00e8ge du conducteur \u00e0 l'aide d'un strap \u00e9lastique robuste. Dans ce cas, \n\nNote: The translation maintains the technical tone and meaning of the original English text.",
+  "score": 2,
+  "cost": 6.890000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 54
+  }
+}

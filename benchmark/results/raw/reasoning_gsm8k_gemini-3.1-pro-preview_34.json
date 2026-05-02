@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "To find out how much each friend paid, we first need to calculate the total cost of their trip to the fair. \n\n**1. Cost of the tickets:**\nThe problem states that the 3 friends spent a total of $20.25 on tickets.\n\n**2. Cost of the food:**\nThey spent $4.50 less on food than they did on the tickets. \n$20.25 (tickets) - $4.50 = $15.75 spent on food.\n\n**3. Cost of the rides:**\nThey went on 2 different rides, and each ride cost $33 for the group. \n2 rides \u00d7 $33 = $66.00 spent on rides.\n\n**4. Total cost:**\nNow, we add the cost of the tickets, food, and rides together to find the total amount spent.\n$20.25 (tickets) + $15.75 (food) + $66.00 (rides) = $102.00 total.\n\n**5. Cost per person:**\nSince the 3 friends agreed to split all the costs evenly, we divide the total cost by 3.\n$102.00 \u00f7 3 = $34.00\n\nEach of them paid $34.\n\nANSWER: 34",
+  "score": 4,
+  "cost": 0.0046575,
+  "expected": "34",
+  "tokens": {
+    "input": 105,
+    "output": 293
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 5,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"book_restaurant\", \"arguments\": {\"name\": \"Italian place on Main Street\", \"party_size\": 4, \"date\": \"this Saturday\", \"time\": \"7pm\"}}\n```\n\nNote: I've assumed that \"this Saturday\" is a valid date, if it's not, you should provide the actual date in the format \"YYYY-MM-DD\".",
+  "score": 4,
+  "cost": 1.0404e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 91
+  }
+}

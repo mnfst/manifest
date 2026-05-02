@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 20,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"git_merge\", \"arguments\": {\"source\": \"feature-auth\", \"target\": \"main\"}}\n```\n\nThis function call merges the `feature-auth` branch into the `main` branch.",
+  "score": 5,
+  "cost": 6.833999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 55
+  }
+}

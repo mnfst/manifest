@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 9,
+  "response": "{\n  \"name\": \"search_flights\",\n  \"arguments\": {\n    \"origin\": \"New York\",\n    \"destination\": \"London\",\n    \"date\": \"December 15th\",\n    \"passengers\": 2\n  }\n}",
+  "score": 5,
+  "cost": 0.00118,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 59
+  }
+}

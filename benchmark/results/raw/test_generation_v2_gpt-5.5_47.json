@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 47,
+  "response": "```python\n# test_run_length_encode.py\n\nimport pytest\n\nfrom your_module import run_length_encode  # Replace with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        (\"\", []),\n        (\"a\", [(\"a\", 1)]),\n        (\"aaaa\", [(\"a\", 4)]),\n        (\"abc\", [(\"a\", 1), (\"b\", 1), (\"c\", 1)]),\n        (\"aaabbcaaa\", [(\"a\", 3), (\"b\", 2), (\"c\", 1), (\"a\", 3)]),\n        (\"aabcccccaaa\", [(\"a\", 2), (\"b\", 1), (\"c\", 5), (\"a\", 3)]),\n        (\"aaAA\", [(\"a\", 2), (\"A\", 2)]),\n        (\"112223\", [(\"1\", 2), (\"2\", 3), (\"3\", 1)]),\n        (\"  \\t\\t\", [(\" \", 2), (\"\\t\", 2)]),\n        (\"\ud83d\ude00\ud83d\ude00\ud83d\ude03\", [(\"\ud83d\ude00\", 2), (\"\ud83d\ude03\", 1)]),\n    ],\n)\ndef test_run_length_encode(input_str, expected):\n    assert run_length_encode(input_str) == expected\n\n\ndef test_run_length_encode_preserves_separate_runs_of_same_character():\n    assert run_length_encode(\"aaabbaaa\") == [\n        (\"a\", 3),\n        (\"b\", 2),\n        (\"a\", 3),\n    ]\n\n\ndef test_run_length_encode_empty_string_returns_empty_list():\n    assert run_length_encode(\"\") == []\n\n\ndef test_run_length_encode_none_returns_empty_list():\n    # This matches the current implementation because `not None` is True.\n    assert run_length_encode(None) == []\n\n\ndef test_run_length_encode_truthy_non_sequence_raises_type_error():\n    with pytest.raises(TypeError):\n        run_length_encode(123)\n\n\ndef test_run_length_encode_object_without_len_raises_type_error():\n    with pytest.raises(TypeError):\n        run_length_encode(object())\n```",
+  "score": 5,
+  "cost": 0.011808,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 953
+  }
+}

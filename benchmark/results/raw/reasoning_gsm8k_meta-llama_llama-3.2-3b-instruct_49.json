@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "To solve this problem, let's break it down step by step:\n\n1. We know that all 3 sisters are the same age, which is 16 years old.\n2. We also know that one of the brothers is 12 years old, which is half the age of the older brother.\n3. Since the 12-year-old brother is half the age of the older brother, we can set up an equation to find the age of the older brother: 12 = (1/2) \u00d7 older brother's age\n4. To find the older brother's age, we can multiply both sides of the equation by 2: older brother's age = 12 \u00d7 2 = 24 years old\n5. Now that we know the age of the older brother, we can find the total age of all the siblings:\n   - 3 sisters: 3 \u00d7 16 = 48 years\n   - 1 brother: 24 years\n   - The youngest brother's age is not given, but since the problem states that one of the brothers is 12 years old, we can assume the youngest brother is 12 years old.\n6. Add up the ages of all the siblings: 48 + 24 + 12 = 84 years\n\nANSWER: 84",
+  "score": 5,
+  "cost": 1.8767999999999997e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 103,
+    "output": 265
+  }
+}

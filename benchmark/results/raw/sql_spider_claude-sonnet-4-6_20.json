@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT a.abbreviation, a.country\nFROM airlines a\nJOIN flights f ON a.uid = f.airline\nGROUP BY a.uid, a.abbreviation, a.country\nORDER BY COUNT(*) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.001179,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 62
+  }
+}

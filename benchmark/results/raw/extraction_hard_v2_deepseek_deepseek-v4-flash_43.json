@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v4-flash",
   "task": "extraction_hard_v2",
   "case": 43,
-  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout\",\n  \"summary\": \"Checkout page shows white screen after payment attempt with CORS error and undefined is not a function\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout page\",\n    \"Enter card information\",\n    \"Click pay button\"\n  ],\n  \"expected_behavior\": \"Payment should complete successfully or display an error message\",\n  \"actual_behavior\": \"Spinner for 30 seconds then white screen. Console shows CORS error and undefined is not a function in checkout.bundle.js:847.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
-  "score": 0,
-  "cost": 0.00030828,
+  "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout\",\n  \"summary\": \"Checkout page shows white screen after payment submission with CORS error and JavaScript error\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout page\",\n    \"Enter card information\",\n    \"Click pay button\",\n    \"Observe spinner for 30 seconds then white screen\"\n  ],\n  \"expected_behavior\": \"Payment should process successfully and show confirmation or error message\",\n  \"actual_behavior\": \"Spinner appears for 30 seconds then white screen with no error message. Console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.00012628,
   "expected": "",
   "tokens": {
     "input": 170,
-    "output": 508
+    "output": 183
   }
 }

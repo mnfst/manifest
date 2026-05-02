@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 4,
+  "response": "```python\n# test_temperature.py\nimport pytest\n\n# Replace `your_module` with the actual module name where the function lives\nfrom your_module import celsius_to_fahrenheit\n\n\n@pytest.mark.parametrize(\n    (\"celsius\", \"expected\"),\n    [\n        (0, 32),\n        (100, 212),\n        (-40, -40),\n        (37, 98.6),\n        (-273.15, -459.67),\n        (1.5, 34.7),\n    ],\n)\ndef test_celsius_to_fahrenheit_happy_path(celsius, expected):\n    assert celsius_to_fahrenheit(celsius) == pytest.approx(expected)\n\n\n@pytest.mark.parametrize(\n    (\"celsius\", \"expected\"),\n    [\n        (0.0, 32.0),\n        (-0.0, 32.0),\n        (1e6, 1800032.0),\n        (-1e6, -1799968.0),\n    ],\n)\ndef test_celsius_to_fahrenheit_edge_cases(celsius, expected):\n    assert celsius_to_fahrenheit(celsius) == pytest.approx(expected)\n\n\n@pytest.mark.parametrize(\n    \"invalid_input\",\n    [\n        None,\n        \"100\",\n        [],\n        {},\n        object(),\n    ],\n)\ndef test_celsius_to_fahrenheit_invalid_types_raise_type_error(invalid_input):\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(invalid_input)\n```",
+  "score": 5,
+  "cost": 0.005286,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 426
+  }
+}

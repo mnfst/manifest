@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus vous vous battez, plus cela deviendra g\u00eanant pour tout le monde.",
+  "score": 4,
+  "cost": 4.225e-06,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 21
+  }
+}

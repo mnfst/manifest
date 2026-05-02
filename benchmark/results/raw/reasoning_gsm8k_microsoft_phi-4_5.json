@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "To solve the problem, we need to follow the sequence of events and perform the necessary calculations step by step.\n\n1. **Initial Number of Fairies:**\n   - Katelyn initially saw 50 fairies.\n\n2. **Additional Fairies Joining:**\n   - One of Katelyn's friends saw half as many fairies as Katelyn saw come from the east.\n   - Half of 50 is calculated as follows:\n     \\[\n     \\frac{50}{2} = 25\n     \\]\n   - So, 25 additional fairies joined the initial 50 fairies.\n\n3. **Total Number of Fairies After Joining:**\n   - Add the 25 new fairies to the initial 50 fairies:\n     \\[\n     50 + 25 = 75\n     \\]\n\n4. **Fairies Flying Away:**\n   - Ten minutes later, 30 fairies flew away.\n   - Subtract the 30 fairies that flew away from the total:\n     \\[\n     75 - 30 = 45\n     \\]\n\n5. **Final Number of Fairies Remaining:**\n   - After all these events, the number of fairies remaining is 45.\n\nThus, the final answer is:\n\nANSWER: 45",
+  "score": 5,
+  "cost": 2.4895000000000005e-05,
+  "expected": "45",
+  "tokens": {
+    "input": 118,
+    "output": 265
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Sarah proposes reallocating $50K from the engineering budget to cover marketing's Q3 overspend. The team needs to discuss this proposal together on Thursday.",
+  "score": 5,
+  "cost": 0.000745,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 34
+  }
+}

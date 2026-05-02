@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "FTI \u2014 Privil\u00e8ges et conditions",
+  "score": 5,
+  "cost": 5.7999999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 9
+  }
+}

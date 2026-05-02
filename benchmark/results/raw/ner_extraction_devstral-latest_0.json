@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "```json\n{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\", \"CES\"],\n  \"locations\": [\"Las Vegas\"]\n}\n```",
+  "score": 4,
+  "cost": 1.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 40
+  }
+}

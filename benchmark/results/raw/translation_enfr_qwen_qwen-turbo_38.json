@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Cela ne peut qu'entra\u00eener le chaos et la terreur.",
+  "score": 5,
+  "cost": 1.8480000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 17
+  }
+}

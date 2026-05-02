@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "Summary: The email outlines the key tasks to prepare for the year-end audit starting January 15, including finalizing revenue recognition, reconciling bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A controller meeting next Tuesday will assign responsibilities for these tasks.",
+  "score": 5,
+  "cost": 5.247e-06,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 56
+  }
+}

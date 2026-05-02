@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "## Solution\n\n**Last year's enrollment:** 50 students\n\n**Calculate the increase:**\n20% of 50 = 0.20 \u00d7 50 = 10 students\n\n**This year's enrollment:**\n50 + 10 = 60 students\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.001305,
+  "expected": "60",
+  "tokens": {
+    "input": 90,
+    "output": 69
+  }
+}

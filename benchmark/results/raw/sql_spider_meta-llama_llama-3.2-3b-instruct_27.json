@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT name \nFROM country \nWHERE language LIKE '% English' AND language LIKE '% French%';\n```",
+  "score": 2,
+  "cost": 5.0999999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 24
+  }
+}

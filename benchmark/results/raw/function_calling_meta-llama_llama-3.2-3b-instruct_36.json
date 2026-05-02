@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 36,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"subscribe\", \"arguments\": {\"email\": \"jane@example.com\", \"list_name\": \"monthly newsletter\"}}\n```\n\nThis function call will subscribe the user with the email address \"jane@example.com\" to the \"monthly newsletter\" list.",
+  "score": 5,
+  "cost": 8.007e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 66
+  }
+}

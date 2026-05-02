@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, ce diable descend Wangan en voiture.",
+  "score": 4,
+  "cost": 0.000196,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 16
+  }
+}

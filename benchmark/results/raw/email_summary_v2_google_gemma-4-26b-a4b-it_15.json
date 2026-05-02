@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Legal has approved the updated terms subject to adding an arbitration clause for the enterprise tier and reducing data retention to 90 days. These revisions must be implemented before the EU launch on May 1, with the final version being prepared today.",
+  "score": 5,
+  "cost": 9.719999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 49
+  }
+}

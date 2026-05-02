@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "L\u2019article 104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu\u2019il s\u2019applique malgr\u00e9 le paragraphe 248(25) de la Loi. Le paragraphe 248(25) de la Loi d\u00e9crit, \u00e0 d\u2019autres fins de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est consid\u00e9r\u00e9e comme \u00e9tant \u00ab v\u00e9ritablement int\u00e9ress\u00e9e \u00bb dans une fiducie.",
+  "score": 4,
+  "cost": 4.380000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 87
+  }
+}

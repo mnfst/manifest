@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 10,
+  "response": "```python\n# test_email_validation.py\nimport pytest\n\nfrom your_module import is_valid_email  # replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"email\",\n    [\n        \"test@example.com\",\n        \"user.name@example.com\",\n        \"user_name@example.com\",\n        \"user-name@example.com\",\n        \"user+tag@example.com\",\n        \"user%tag@example.com\",\n        \"user123@example.co\",\n        \"USER@example.COM\",\n        \"user@example-domain.com\",\n        \"user@example.subdomain.com\",\n        \"a@b.co\",\n    ],\n)\ndef test_is_valid_email_happy_path(email):\n    assert is_valid_email(email) is True\n\n\n@pytest.mark.parametrize(\n    \"email\",\n    [\n        \"\",\n        \"plainaddress\",\n        \"missing-at-sign.com\",\n        \"@example.com\",\n        \"user@\",\n        \"user@example\",\n        \"user@example.\",\n        \"user@example.c\",\n        \"user@example.123\",\n        \"user@.com\",\n        \"user@com\",\n        \"user name@example.com\",\n        \"user@example com\",\n        \"user@@example.com\",\n        \"user@example..com\",\n        \".user@example.com\",\n        \"user.@example.com\",\n        \"user@-example.com\",\n        \"user@example-.com\",\n    ],\n)\ndef test_is_valid_email_invalid_formats(email):\n    assert is_valid_email(email) is False\n\n\n@pytest.mark.parametrize(\n    \"email\",\n    [\n        \"test@example.com \",\n        \" test@example.com\",\n        \"\\ntest@example.com\",\n        \"test@example.com\\n\",\n    ],\n)\ndef test_is_valid_email_rejects_surrounding_whitespace(email):\n    assert is_valid_email(email) is False\n\n\n@pytest.mark.parametrize(\n    \"email\",\n    [\n        None,\n        123,\n        12.34,\n        [],\n        {},\n        b\"test@example.com\",\n    ],\n)\ndef test_is_valid_email_non_string_inputs_raise_type_error(email):\n    with pytest.raises(TypeError):\n        is_valid_email(email)\n```",
+  "score": 5,
+  "cost": 0.006738,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 538
+  }
+}

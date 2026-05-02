@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let the number of people who got on at the terminal be \\(x\\).\n\n- After the first stop, 5 more people got on, so the bus had:\n  \\[\n  x + 5\n  \\]\n\n- At the second stop, 7 people got off and 8 got on:\n  \\[\n  x + 5 - 7 + 8\n  \\]\n\nWe are told that after this, there were 20 people heading to the third stop:\n\\[\nx + 5 - 7 + 8 = 20\n\\]\n\nSimplify:\n\\[\nx + 6 = 20\n\\]\n\nSo:\n\\[\nx = 14\n\\]\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.001416,
+  "expected": "14",
+  "tokens": {
+    "input": 108,
+    "output": 150
+  }
+}

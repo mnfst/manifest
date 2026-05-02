@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "```sql\nSELECT country\nFROM world\nWHERE population < (SELECT MIN(population) FROM world WHERE continent = 'Asia');\n```",
+  "score": 5,
+  "cost": 5.457e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 28
+  }
+}

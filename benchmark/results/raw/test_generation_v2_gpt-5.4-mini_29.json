@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 29,
+  "response": "```python\nimport pytest\n\nfrom your_module import moving_average\n\n\ndef test_moving_average_happy_path():\n    data = [1, 2, 3, 4, 5]\n    window = 3\n    assert moving_average(data, window) == [2.0, 3.0, 4.0]\n\n\ndef test_moving_average_window_equals_length():\n    data = [10, 20, 30]\n    window = 3\n    assert moving_average(data, window) == [20.0]\n\n\ndef test_moving_average_window_of_one():\n    data = [4, 5, 6]\n    window = 1\n    assert moving_average(data, window) == [4.0, 5.0, 6.0]\n\n\ndef test_moving_average_empty_data():\n    assert moving_average([], 1) == []\n\n\n@pytest.mark.parametrize(\n    \"data, window\",\n    [\n        ([1, 2, 3], 0),    # zero window\n        ([1, 2, 3], -1),   # negative window\n        ([1, 2, 3], 4),    # window larger than data\n        ([], 1),           # empty data with positive window\n    ],\n)\ndef test_moving_average_invalid_window_returns_empty_list(data, window):\n    assert moving_average(data, window) == []\n\n\ndef test_moving_average_non_numeric_data_raises_type_error():\n    with pytest.raises(TypeError):\n        moving_average([1, \"a\", 3], 2)\n\n\ndef test_moving_average_non_integer_window_raises_type_error():\n    with pytest.raises(TypeError):\n        moving_average([1, 2, 3], 2.5)\n```\n\nNotes:\n- Replace `your_module` with the actual module name where `moving_average` is defined.\n- The function itself does not raise custom exceptions for invalid window sizes; it returns `[]`, so the tests reflect that behavior.\n- The two error-case tests cover Python-level `TypeError`s that occur when summing non-numeric data or comparing/slicing with a non-integer window.",
+  "score": 5,
+  "cost": 0.0005667000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 448
+  }
+}

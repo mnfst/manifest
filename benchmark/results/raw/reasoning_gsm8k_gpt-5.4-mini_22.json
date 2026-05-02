@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Rafaela received a tip from each of 40 customers, and each tip was $20.\n\nSo Rafaela\u2019s total tips were:\n- \\(40 \\times 20 = 800\\)\n\nJulieta received 10% less than Rafaela, so she received:\n- \\(800 - 0.10 \\times 800 = 800 - 80 = 720\\)\n\nAltogether, they received:\n- \\(800 + 720 = 1520\\)\n\nANSWER: 1520",
+  "score": 5,
+  "cost": 0.0001596,
+  "expected": "1520",
+  "tokens": {
+    "input": 92,
+    "output": 110
+  }
+}

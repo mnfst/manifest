@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Je me sens que mon coq n'est pas suffisant pour toi.",
+  "score": 2,
+  "cost": 1.5660000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 17
+  }
+}

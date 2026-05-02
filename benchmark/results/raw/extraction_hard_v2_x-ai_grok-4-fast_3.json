@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "{\"severity\":\"critical\",\"component\":\"checkout\",\"summary\":\"Checkout page fails with white screen and console errors on Chrome\",\"steps_to_reproduce\":[\"Add items to cart\",\"Navigate to checkout\",\"Enter card information\",\"Click pay\"],\"expected_behavior\":\"Payment processes successfully without errors\",\"actual_behavior\":\"Spinner loads for 30 seconds followed by a white screen; console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\"environment\":{\"os\":\"Windows 11\",\"browser\":\"Chrome 121\"}}",
+  "score": 5,
+  "cost": 0.0004344,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 465
+  }
+}

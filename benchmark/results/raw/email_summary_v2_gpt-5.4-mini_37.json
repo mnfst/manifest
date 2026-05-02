@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo wants to acqui-hire the 5-person ML team for $15M, but the CEO \u0441\u0447\u0438\u0442\u0430\u0435\u0442 this offer too low and believes the team is worth more. Action items are to discuss the response before replying, likely counter or decline politely, and inform the board.",
+  "score": 5,
+  "cost": 0.0001005,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 59
+  }
+}

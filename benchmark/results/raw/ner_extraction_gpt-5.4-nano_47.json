@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "{\n  \"persons\": [\"Alain Aspect\"],\n  \"organizations\": [\"Nobel Prize\", \"Universite Paris-Saclay\"],\n  \"locations\": [\"Stockholm\"]\n}",
+  "score": 4,
+  "cost": 2.3e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 39
+  }
+}

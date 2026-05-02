@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Q1 customer success metrics improved, with NPS rising to 62, CSAT at 4.3/5, churn dropping to 1.2%, and $800K in enterprise expansions in the pipeline. Action items are to prioritize top feature requests\u2014SSO, custom dashboards, and higher API rate limits\u2014and support the three expansion opportunities.",
+  "score": 5,
+  "cost": 0.003885,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 165
+  }
+}

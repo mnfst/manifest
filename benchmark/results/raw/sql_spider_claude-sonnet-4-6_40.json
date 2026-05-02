@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT DISTINCT c.Id, c.Make\nFROM car_names c\nJOIN cars_data cd ON c.Id = cd.Id\nWHERE cd.Horsepower > (SELECT MIN(Horsepower) FROM cars_data WHERE Horsepower IS NOT NULL)\nAND cd.Cylinders <= 3;\n```",
+  "score": 4,
+  "cost": 0.001497,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 80
+  }
+}

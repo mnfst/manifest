@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT\n    m.maker_id AS id,\n    m.maker_name AS full_name,\n    COUNT(DISTINCT md.model_id) AS number_of_models\nFROM\n    makers m\nLEFT JOIN\n    models md ON m.maker_id = md.maker_id\nGROUP BY\n    m.maker_id, m.maker_name\nORDER BY\n    number_of_models DESC;\n```",
+  "score": 5,
+  "cost": 3.24e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 83
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "Step 1: Calculate the total cost of the books.  \nTed buys 3 books for $16 each:  \n3 \u00d7 16 = 48 dollars  \n\nStep 2: Calculate the total cost of the pencils.  \nTed buys 3 pencils for $6 each:  \n3 \u00d7 6 = 18 dollars  \n\nStep 3: Add the cost of the books and pencils to find the total amount spent.  \n48 + 18 = 66 dollars  \n\nFinal Answer:  \nANSWER: 66",
+  "score": 5,
+  "cost": 6.501e-06,
+  "expected": "66",
+  "tokens": {
+    "input": 85,
+    "output": 112
+  }
+}

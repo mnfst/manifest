@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 28,
+  "response": "Here are some unit tests for the `memoize` function using pytest:\n```python\nimport pytest\nfrom functools import wraps\n\ndef memoize(fn):\n    cache = {}\n    def wrapper(*args):\n        if args not in cache:\n            cache[args] = fn(*args)\n        return cache[args]\n    return wrapper\n\ndef test_memoize_happy_path():\n    @memoize\n    def add(a, b):\n        return a + b\n\n    assert add(2, 3) == 5\n    assert add(2, 3) == 5\n    assert add(2, 3) == 5\n\ndef test_memoize_edge_case():\n    @memoize\n    def add(a, b):\n        if a == 0:\n            return 0\n        return a + b\n\n    assert add(0, 2) == 2\n    assert add(0, 2) == 2\n    assert add(0, 2) == 2\n\ndef test_memoize_error_case():\n    @memoize\n    def add(a, b):\n        if a == 0:\n            raise ValueError(\"Cannot divide by zero\")\n        return a + b\n\n    with pytest.raises(ValueError):\n        add(0, 2)\n    with pytest.raises(ValueError):\n        add(0, 0)\n    with pytest.raises(ValueError):\n        add(0, 2)\n```\nHere's a brief explanation of the tests:\n\n* `test_memoize_happy_path` tests the basic happy path of the `memoize` function, where the function is called with the same arguments multiple times and the result is the same.\n* `test_memoize_edge_case` tests the edge cases where the function is called with invalid arguments (e.g. `0` as the first argument, or `0` as the second argument).\n* `test_memoize_error_case` tests the error case where the function raises an exception when called with invalid arguments (e.g. `0` as the first argument, or `0` as the second argument).\n\nNote that the `@memoize` decorator is used to wrap the `add` function, and the `wrapper` function is defined inside the decorator. The `wrapper` function checks if the arguments are in the cache, and if not, it calls the original function with the arguments. The `cache` dictionary is used to store the results of the function calls.",
+  "score": 3,
+  "cost": 1.5795e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 507
+  }
+}

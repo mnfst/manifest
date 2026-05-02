@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "ner_extraction",
+  "case": 5,
+  "response": "{\"persons\":[\"James Wilson\"],\"organizations\":[\"Stanford University\",\"IEEE\"],\"locations\":[\"Tokyo\"]}",
+  "score": 5,
+  "cost": 0.000332,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 24
+  }
+}

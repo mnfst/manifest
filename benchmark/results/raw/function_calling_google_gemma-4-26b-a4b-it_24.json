@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 24,
+  "response": "```json\n{\"name\": \"rotate_api_key\", \"arguments\": {\"service\": \"production\", \"environment\": \"production\"}}\n```",
+  "score": 4,
+  "cost": 8.580000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 31
+  }
+}

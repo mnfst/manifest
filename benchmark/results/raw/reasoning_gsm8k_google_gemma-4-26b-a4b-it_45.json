@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "To find out how many wheels will be left, we need to calculate the total number of wheels required for all the toys and then subtract that number from the total number of wheels Henry has.\n\n**Step 1: Calculate the wheels needed for the cars.**\nHenry has 57 cars, and each car requires 4 wheels.\nNumber of wheels for cars = $57 \\times 4$\n$57 \\times 4 = (50 \\times 4) + (7 \\times 4) = 200 + 28 = 228$ wheels.\n\n**Step 2: Calculate the wheels needed for the motorcycles.**\nHenry has 73 motorcycles, and each motorcycle requires 2 wheels.\nNumber of wheels for motorcycles = $73 \\times 2$\n$73 \\times 2 = 146$ wheels.\n\n**Step 3: Calculate the total number of wheels needed.**\nTotal wheels needed = Wheels for cars + Wheels for motorcycles\nTotal wheels needed = $228 + 146$\n$228 + 146 = 374$ wheels.\n\n**Step 4: Calculate the number of wheels left over.**\nHenry starts with a box of 650 wheels.\nWheels left = Total wheels in box - Total wheels needed\nWheels left = $650 - 374$\n\nCalculation:\n$650 - 300 = 350$\n$350 - 70 = 280$\n$280 - 4 = 276$\n\nAlternatively:\n  650\n- 374\n-----\n  276\n\nHenry will have 276 wheels left.\n\nANSWER: 276",
+  "score": 5,
+  "cost": 2.9999999999999997e-05,
+  "expected": "276",
+  "tokens": {
+    "input": 112,
+    "output": 388
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 40,
+  "response": "```json\n{\n  \"name\": \"search_messages\",\n  \"arguments\": {\n    \"channel\": \"announcements\",\n    \"query\": \"release\"\n  }\n}\n```",
+  "score": 1,
+  "cost": 9.620000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 37
+  }
+}

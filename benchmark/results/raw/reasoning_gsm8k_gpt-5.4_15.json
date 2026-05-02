@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Joey starts with 214 points and scores 26 more:\n\n214 + 26 = 240\n\nMarcy starts with 225 points and scores 10 more:\n\n225 + 10 = 235\n\nNow find how many points Joey is ahead:\n\n240 - 235 = 5\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.000692,
+  "expected": "5",
+  "tokens": {
+    "input": 82,
+    "output": 66
+  }
+}

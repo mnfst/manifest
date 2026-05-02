@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "```sql\nSELECT AVG(miles_per_gallon) AS average_mpg\nFROM car_1\nWHERE cylinders = 4;\n```",
+  "score": 5,
+  "cost": 7.280000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 29
+  }
+}

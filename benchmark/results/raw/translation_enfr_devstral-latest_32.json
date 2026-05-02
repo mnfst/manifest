@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAUE peuvent proposer la mise \u00e0 disposition de personnel aupr\u00e8s du RUE.\n\n*Explanation of terms:*\n- **Member States** \u2192 **\u00c9tats membres** (standard EU terminology)\n- **institutions of the Union** \u2192 **institutions de l'Union** (direct translation, as the EU often refers to itself this way in French)\n- **EEAS** \u2192 **SEAUE** (*Service europ\u00e9en pour l'action ext\u00e9rieure*, the official French name for the European External Action Service)\n- **EUSR** \u2192 **RUE** (*Repr\u00e9sentant sp\u00e9cial de l'Union europ\u00e9enne*, the standard French acronym for EU Special Representative)\n- **secondment of staff** \u2192 **mise \u00e0 disposition de personnel** (common administrative/HR term in French for temporary assignment)\n\nThe tone remains formal and institutional, matching the original.",
+  "score": 5,
+  "cost": 5.9300000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 182
+  }
+}

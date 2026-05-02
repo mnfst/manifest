@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "```sql\nSELECT MIN(T1.show_name) AS min_share, MAX(T1.show_name) AS max_share\nFROM tvshow\nGROUP BY T1.show_name;\n```",
+  "score": 1,
+  "cost": 2.9700000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 37
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 22,
+  "response": "Here is the correct function call:\n\n```python\ncreate_database(name: str, engine: str = \"postgresql\")\n```\n\nThis function call is valid and will create a new PostgreSQL database called `analytics_prod` with the specified engine.",
+  "score": 1,
+  "cost": 3.726e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 48
+  }
+}

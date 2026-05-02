@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "intent_clinc150",
+  "case": 8,
+  "response": "what_can_i_ask_you",
+  "score": 0,
+  "cost": 5.4300000000000005e-05,
+  "expected": "maybe",
+  "tokens": {
+    "input": 507,
+    "output": 9
+  }
+}

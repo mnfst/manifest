@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "intent_clinc150",
+  "case": 28,
+  "response": "repeat",
+  "score": 5,
+  "cost": 0.001845,
+  "expected": "repeat",
+  "tokens": {
+    "input": 507,
+    "output": 27
+  }
+}

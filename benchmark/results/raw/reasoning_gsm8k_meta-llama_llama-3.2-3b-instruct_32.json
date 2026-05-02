@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "To solve this problem, we need to first convert the length of the room from yards to feet. Since there are 3 feet in 1 yard, we can multiply the length in yards by 3 to get the length in feet.\n\nLength in feet = 3 yards * 3 feet/yard = 9 feet\n\nNow that we have the length in feet, we can use the formula for the area of a rectangle to find the width. The formula for the area of a rectangle is:\n\nArea = Length * Width\n\nWe are given that the area is 360 square feet, so we can set up the equation:\n\n360 = 9 * Width\n\nTo solve for the width, we can divide both sides of the equation by 9:\n\nWidth = 360 / 9\nWidth = 40\n\nNow that we have the width, we can use the formula for the perimeter of a rectangle to find the perimeter. The formula for the perimeter of a rectangle is:\n\nPerimeter = 2 * (Length + Width)\n\nSubstituting the values we know, we get:\n\nPerimeter = 2 * (9 + 40)\nPerimeter = 2 * 49\nPerimeter = 98\n\nANSWER: 98",
+  "score": 5,
+  "cost": 1.7084999999999997e-05,
+  "expected": "98",
+  "tokens": {
+    "input": 82,
+    "output": 253
+  }
+}

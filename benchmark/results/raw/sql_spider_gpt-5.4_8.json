@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT cl.Language) AS total_unique_official_languages\nFROM Country c\nJOIN CountryLanguage cl ON c.Code = cl.CountryCode\nWHERE c.IndepYear < 1930\n  AND cl.IsOfficial = 'T';",
+  "score": 5,
+  "cost": 0.000592,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 54
+  }
+}

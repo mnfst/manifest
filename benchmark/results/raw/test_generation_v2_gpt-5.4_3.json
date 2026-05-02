@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "```python\nimport pytest\n\nfrom your_module import flatten\n\n\ndef test_flatten_simple_nested_list():\n    assert flatten([1, [2, 3], [4, [5, 6]]]) == [1, 2, 3, 4, 5, 6]\n\n\ndef test_flatten_already_flat_list():\n    assert flatten([1, 2, 3]) == [1, 2, 3]\n\n\ndef test_flatten_empty_list():\n    assert flatten([]) == []\n\n\ndef test_flatten_nested_empty_lists():\n    assert flatten([[], [[], []], []]) == []\n\n\ndef test_flatten_mixed_types():\n    assert flatten([1, \"a\", [True, None, [3.14]]]) == [1, \"a\", True, None, 3.14]\n\n\ndef test_flatten_preserves_non_list_iterables():\n    data = [1, (2, 3), [4, {\"a\": 1}], \"text\"]\n    assert flatten(data) == [1, (2, 3), 4, {\"a\": 1}, \"text\"]\n\n\ndef test_flatten_deeply_nested_list():\n    assert flatten([[[[[1]]]], 2, [[3, [4]]]]) == [1, 2, 3, 4]\n\n\ndef test_flatten_does_not_mutate_input():\n    data = [1, [2, [3, 4]], 5]\n    original = [1, [2, [3, 4]], 5]\n    result = flatten(data)\n\n    assert result == [1, 2, 3, 4, 5]\n    assert data == original\n\n\n@pytest.mark.parametrize(\n    \"value\",\n    [\n        None,\n        123,\n        \"abc\",\n        {\"a\": 1},\n        (1, 2, 3),\n    ],\n)\ndef test_flatten_raises_type_error_for_non_list_input(value):\n    with pytest.raises(TypeError):\n        flatten(value)\n```\n\nIf you want, I can also provide:\n- a version using `pytest.mark.parametrize` more extensively\n- a `tests/test_flatten.py` file layout\n- edge-case tests for recursion depth behavior",
+  "score": 5,
+  "cost": 0.0039,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 468
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Depending on the desired level of formality, here are the best ways to translate this:\n\n**Option 1: Professional & Natural (Recommended)**\n> \u00ab Sector Source est un site de ressources d\u00e9di\u00e9 \u00e0 l'accompagnement des responsables d'organismes de bienfaisance et d'organisations \u00e0 but non lucratif afin de les tenir inform\u00e9s de... \u00bb\n\n**Option 2: Direct & Concise (Good for a \"About Us\" page)**\n> \u00ab Sector Source est un site de ressources con\u00e7u pour aider les gestionnaires d'organismes de bienfaisance et d'organisations sans but lucratif \u00e0 rester inform\u00e9s sur... \u00bb\n\n**Key Terminology Used:**\n*   **Charities:** *Organismes de bienfaisance*\n*   **Nonprofits:** *Organisations \u00e0 but non lucratif* (or *organisations sans but lucratif*)\n*   **Those who run:** I translated this as *responsables* (leaders/those in charge) or *gestionnaires* (managers), as \"ceux qui dirigent\" can sound a bit clunky in a professional French context.",
+  "score": 5,
+  "cost": 1.728e-05,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 236
+  }
+}

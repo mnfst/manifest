@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "SELECT c.name AS conductor_name\nFROM orchestra.conductors c\nJOIN orchestra.conductor_orchestra coo\n  ON coo.conductor_id = c.conductor_id\nGROUP BY c.name\nORDER BY COUNT(DISTINCT coo.orchestra_id) DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 5,
+  "cost": 3.3299999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 65
+  }
+}

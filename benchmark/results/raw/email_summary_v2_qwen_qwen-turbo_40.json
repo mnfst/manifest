@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "Summary: The quarterly OKR review shows that Engineering met its target, while Product fell short due to a delayed AI feature, which should be carried forward with increased resources. Next quarter planning begins Monday.",
+  "score": 5,
+  "cost": 5.544000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 40
+  }
+}

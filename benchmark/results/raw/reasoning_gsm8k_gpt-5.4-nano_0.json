@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Let Alexandra\u2019s amount be \\(A\\).  \n- Kim raises \\(320\\) more than Alexandra: \\(\\;K = A + 320\\)  \n- Alexandra raises \\(A\\)\n- Maryam raises \\(400\\) more than Sarah: \\(\\;M = S + 400\\)\n- Sarah raises \\(S\\)\n- We are also told Kim raises \\(\\$320\\) more than Alexandra (already used) and Kim and Alexandra include the given \\(\\$430\\) as part of the relationship statement: Alexandra\u2019s amount is \\(\\$430\\).  \n  So \\(A = 430\\), hence \\(K = 430 + 320 = 750\\).\n\nNow for Maryam and Sarah, the statement gives Sarah\u2019s amount as \\(\\$300\\).  \nSo \\(S = 300\\), hence \\(M = 300 + 400 = 700\\).\n\nTotal raised:\n\\[\nA + K + S + M = 430 + 750 + 300 + 700 = 2180\n\\]\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 9.97e-05,
+  "expected": "2280",
+  "tokens": {
+    "input": 93,
+    "output": 226
+  }
+}

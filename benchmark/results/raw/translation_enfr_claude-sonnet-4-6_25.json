@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "translation_enfr",
+  "case": 25,
+  "response": "2. Le 21 f\u00e9vrier, le Sous-Secr\u00e9taire \u00e0 la Guerre, Jos\u00e9 Asenio, fut r\u00e9voqu\u00e9, puis rapidement arr\u00eat\u00e9 avec le Colonel Villalba, pour la trahison de Malaga.",
+  "score": 5,
+  "cost": 0.001131,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 61
+  }
+}

@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "extraction_hard_v2",
   "case": 12,
-  "response": "```json\n{\n    \"tracking_number\": \"1Z999AA10123456784\",\n    \"carrier\": \"UPS\",\n    \"service\": \"Ground\",\n    \"origin\": \"Warehouse #7, Memphis TN\",\n    \"weight_lbs\": 4.2,\n    \"dimensions\": \"12x8x6 in\",\n    \"events\": [\n        {\n            \"timestamp\": \"2026-04-25 18:30\",\n            \"status\": \"Picked up\",\n            \"location\": \"Memphis TN\"\n        },\n        {\n            \"timestamp\": \"2026-04-26 03:15\",\n            \"status\": \"Departed facility\",\n            \"location\": \"Memphis TN\"\n        },\n        {\n            \"timestamp\": \"2026-04-26 14:22\",\n            \"status\": \"In transit\",\n            \"location\": \"Nashville TN\"\n        },\n        {\n            \"timestamp\": \"2026-04-27 06:00\",\n            \"status\": \"Arrived at facility\",\n            \"location\": \"Louisville KY\"\n        },\n        {\n            \"timestamp\": \"2026-04-27 09:45\",\n            \"status\": \"Out for delivery\",\n            \"location\": \"\"\n        },\n        {\n            \"timestamp\": \"2026-04-27 14:12\",\n            \"status\": \"Delivered\",\n            \"location\": \"456 Oak Street, Lexington KY 40502\"\n        }\n    ],\n    \"delivery\": {\n        \"address\": \"456 Oak Street, Lexington KY 40502\",\n        \"signed_by\": \"FRONT DOOR\",\n        \"on_time\": true\n    }\n}\n```",
-  "score": 0,
-  "cost": 0.00046165,
+  "response": "```json\n{\n    \"tracking_number\": \"1Z999AA10123456784\",\n    \"carrier\": \"UPS\",\n    \"service\": \"Ground\",\n    \"origin\": \"Warehouse #7, Memphis TN\",\n    \"weight_lbs\": 4.2,\n    \"dimensions\": \"12x8x6 in\",\n    \"events\": [\n        {\n            \"timestamp\": \"2026-04-25 18:30\",\n            \"status\": \"Picked up\",\n            \"location\": \"Memphis TN\"\n        },\n        {\n            \"timestamp\": \"2026-04-26 03:15\",\n            \"status\": \"Departed facility\",\n            \"location\": \"Memphis TN\"\n        },\n        {\n            \"timestamp\": \"2026-04-26 14:22\",\n            \"status\": \"In transit\",\n            \"location\": \"Nashville TN\"\n        },\n        {\n            \"timestamp\": \"2026-04-27 06:00\",\n            \"status\": \"Arrived at facility\",\n            \"location\": \"Louisville KY\"\n        },\n        {\n            \"timestamp\": \"2026-04-27 09:45\",\n            \"status\": \"Out for delivery\",\n            \"location\": \"\"\n        },\n        {\n            \"timestamp\": \"2026-04-27 14:12\",\n            \"status\": \"Delivered\",\n            \"location\": \"\"\n        }\n    ],\n    \"delivery\": {\n        \"address\": \"456 Oak Street, Lexington KY 40502\",\n        \"signed_by\": \"FRONT DOOR\",\n        \"on_time\": true\n    }\n}\n```",
+  "score": 4,
+  "cost": 0.00045065000000000003,
   "expected": "",
   "tokens": {
     "input": 289,
-    "output": 354
+    "output": 344
   }
 }

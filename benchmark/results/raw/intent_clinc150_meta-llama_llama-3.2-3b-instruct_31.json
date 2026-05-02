@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "intent_clinc150",
+  "case": 31,
+  "response": "cancel",
+  "score": 0,
+  "cost": 2.6009999999999997e-05,
+  "expected": "freeze_account",
+  "tokens": {
+    "input": 508,
+    "output": 2
+  }
+}

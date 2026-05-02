@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 45,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"grant_access\", \"arguments\": {\"user\": \"bob\", \"resource\": \"analytics database\", \"permission\": \"read\"}}\n```\n\nThis function call grants read access to the analytics database for the user \"bob\".",
+  "score": 5,
+  "cost": 7.854e-06,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 60
+  }
+}

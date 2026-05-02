@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "SELECT conductors.name, orchestras.name\nFROM conductors\nJOIN orchestras_conductors ON conductors.id = orchestras_conductors.conductor_id\nJOIN orchestras ON orchestras_conductors.orchestra_id = orchestras.id;",
+  "score": 5,
+  "cost": 4.422e-06,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 50
+  }
+}

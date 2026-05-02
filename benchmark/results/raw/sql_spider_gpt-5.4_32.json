@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT\n  first_name,\n  AVG(ranking) AS average_ranking\nFROM players\nGROUP BY first_name;",
+  "score": 4,
+  "cost": 0.000364,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 27
+  }
+}

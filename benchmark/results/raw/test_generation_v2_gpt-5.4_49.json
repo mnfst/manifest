@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 49,
+  "response": "```python\nimport pytest\n\nfrom your_module import intersection\n\n\ndef test_intersection_happy_path_preserves_order_from_first_list():\n    assert intersection([1, 2, 3, 4], [3, 4, 5]) == [3, 4]\n\n\ndef test_intersection_removes_duplicates_from_first_list():\n    assert intersection([1, 2, 2, 3, 3, 3], [2, 3]) == [2, 3]\n\n\ndef test_intersection_preserves_first_occurrence_order():\n    assert intersection([3, 1, 2, 1, 3], [1, 2, 3]) == [3, 1, 2]\n\n\ndef test_intersection_returns_empty_when_no_overlap():\n    assert intersection([1, 2], [3, 4]) == []\n\n\ndef test_intersection_returns_empty_when_first_list_empty():\n    assert intersection([], [1, 2, 3]) == []\n\n\ndef test_intersection_returns_empty_when_second_list_empty():\n    assert intersection([1, 2, 3], []) == []\n\n\ndef test_intersection_both_lists_empty():\n    assert intersection([], []) == []\n\n\ndef test_intersection_handles_strings():\n    assert intersection([\"a\", \"b\", \"a\", \"c\"], [\"c\", \"a\"]) == [\"a\", \"c\"]\n\n\ndef test_intersection_handles_mixed_hashable_types():\n    assert intersection([1, \"a\", (1, 2), 1, \"b\"], [\"a\", (1, 2), \"x\"]) == [\"a\", (1, 2)]\n\n\ndef test_intersection_duplicates_in_second_list_do_not_affect_result():\n    assert intersection([1, 2, 3], [2, 2, 2, 3, 3]) == [2, 3]\n\n\ndef test_intersection_unhashable_item_in_second_list_raises_type_error():\n    with pytest.raises(TypeError):\n        intersection([1, 2, 3], [[2], [3]])\n\n\ndef test_intersection_unhashable_item_in_first_list_raises_type_error_when_checked_against_set():\n    with pytest.raises(TypeError):\n        intersection([[1], [2]], [1, 2, 3])\n\n\ndef test_intersection_none_values():\n    assert intersection([None, 1, None, 2], [None, 2]) == [None, 2]\n```\n\n\nIf you want, I can also provide these as a complete `test_intersection.py` file with an inline copy of the function for standalone execution.",
+  "score": 5,
+  "cost": 0.00454,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 543
+  }
+}

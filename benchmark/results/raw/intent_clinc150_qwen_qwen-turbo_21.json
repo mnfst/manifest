@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "intent_clinc150",
+  "case": 21,
+  "response": "recipe",
+  "score": 0,
+  "cost": 1.6797000000000002e-05,
+  "expected": "ingredient_substitution",
+  "tokens": {
+    "input": 508,
+    "output": 1
+  }
+}

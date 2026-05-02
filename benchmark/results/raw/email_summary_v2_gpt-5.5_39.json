@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins on January 15, and the team must complete the pre-audit checklist including Q4 revenue recognition, bank reconciliations, stock option record verification, and related-party transaction disclosure preparation. A controller meeting next Tuesday will assign responsibilities for these audit preparation tasks.",
+  "score": 5,
+  "cost": 0.001209,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 77
+  }
+}

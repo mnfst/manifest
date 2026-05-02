@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 7,
+  "response": "```python\n# test_remove_duplicates.py\nimport pytest\n\n# Replace `your_module` with the module where remove_duplicates is defined\nfrom your_module import remove_duplicates\n\n\ndef test_remove_duplicates_happy_path_preserves_order():\n    assert remove_duplicates([1, 2, 1, 3, 2, 4]) == [1, 2, 3, 4]\n\n\ndef test_remove_duplicates_strings():\n    assert remove_duplicates([\"a\", \"b\", \"a\", \"c\", \"b\"]) == [\"a\", \"b\", \"c\"]\n\n\ndef test_remove_duplicates_no_duplicates():\n    original = [1, 2, 3]\n    assert remove_duplicates(original) == [1, 2, 3]\n\n\ndef test_remove_duplicates_empty_list():\n    assert remove_duplicates([]) == []\n\n\ndef test_remove_duplicates_all_duplicates():\n    assert remove_duplicates([5, 5, 5, 5]) == [5]\n\n\ndef test_remove_duplicates_mixed_hashable_types():\n    assert remove_duplicates([1, \"1\", 1, None, \"1\", None]) == [1, \"1\", None]\n\n\ndef test_remove_duplicates_preserves_first_occurrence():\n    assert remove_duplicates([\"x\", \"y\", \"x\", \"z\", \"y\"]) == [\"x\", \"y\", \"z\"]\n\n\ndef test_remove_duplicates_does_not_modify_original_list():\n    original = [1, 2, 1, 3]\n    result = remove_duplicates(original)\n\n    assert result == [1, 2, 3]\n    assert original == [1, 2, 1, 3]\n\n\ndef test_remove_duplicates_with_tuple_items():\n    assert remove_duplicates([(1, 2), (3, 4), (1, 2)]) == [(1, 2), (3, 4)]\n\n\ndef test_remove_duplicates_bool_and_int_equality_edge_case():\n    # In Python, True == 1 and False == 0\n    assert remove_duplicates([1, True, 0, False]) == [1, 0]\n\n\ndef test_remove_duplicates_raises_type_error_for_unhashable_list_item():\n    with pytest.raises(TypeError):\n        remove_duplicates([[1], [1]])\n\n\ndef test_remove_duplicates_raises_type_error_for_unhashable_dict_item():\n    with pytest.raises(TypeError):\n        remove_duplicates([{\"a\": 1}, {\"a\": 1}])\n\n\ndef test_remove_duplicates_raises_type_error_for_none_input():\n    with pytest.raises(TypeError):\n        remove_duplicates(None)\n```",
+  "score": 5,
+  "cost": 0.010233,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 833
+  }
+}

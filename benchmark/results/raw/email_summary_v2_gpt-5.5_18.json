@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "VP Engineering proposes splitting the Platform team into Infrastructure (networking, compute, storage) and Developer Experience (CI/CD, tooling, onboarding) to prevent DX work from being deprioritized by infrastructure incidents. Review the attached draft org chart.",
+  "score": 5,
+  "cost": 0.001149,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 73
+  }
+}

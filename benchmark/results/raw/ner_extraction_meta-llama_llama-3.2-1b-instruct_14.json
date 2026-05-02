@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 14,
+  "response": "{\n  \"persons\": [\"Jerome Powell\"],\n  \"organizations\": [\"Federal Reserve\", \"Congress\"],\n  \"locations\": [\"Washington DC\"]",
+  "score": 5,
+  "cost": 2.781e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 30
+  }
+}

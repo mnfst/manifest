@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT\n  T1.abbreviation,\n  T1.country\nFROM airline AS T1\nJOIN flight AS T2\n  ON T1.airline_id = T2.airline_id\nGROUP BY\n  T1.airline_id,\n  T1.abbreviation,\n  T1.country\nORDER BY\n  COUNT(*) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 1.0379999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 88
+  }
+}

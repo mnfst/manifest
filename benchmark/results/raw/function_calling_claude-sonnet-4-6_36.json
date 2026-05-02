@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "function_calling",
+  "case": 36,
+  "response": "{\"name\": \"subscribe\", \"arguments\": {\"email\": \"jane@example.com\", \"list_name\": \"monthly newsletter\"}}",
+  "score": 5,
+  "cost": 0.000795,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 32
+  }
+}

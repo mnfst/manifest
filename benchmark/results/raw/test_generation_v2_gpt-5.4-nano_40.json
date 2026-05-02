@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 40,
+  "response": "```python\nimport pytest\n\n# Assuming rgb_to_hex is imported from the module under test:\n# from your_module import rgb_to_hex\n\n\ndef test_rgb_to_hex_happy_path_basic_values():\n    assert rgb_to_hex(0, 0, 0) == \"#000000\"\n    assert rgb_to_hex(255, 255, 255) == \"#ffffff\"\n    assert rgb_to_hex(255, 0, 0) == \"#ff0000\"\n    assert rgb_to_hex(0, 255, 0) == \"#00ff00\"\n    assert rgb_to_hex(0, 0, 255) == \"#0000ff\"\n\n\ndef test_rgb_to_hex_formats_with_leading_zeros():\n    # Ensure 1-digit/hex values are zero-padded to 2 characters each\n    assert rgb_to_hex(1, 2, 3) == \"#010203\"\n    assert rgb_to_hex(10, 11, 12) == \"#0a0b0c\"\n\n\ndef test_rgb_to_hex_accepts_boundary_values():\n    assert rgb_to_hex(0, 255, 128) == \"#00ff80\"\n    assert rgb_to_hex(255, 0, 64) == \"#ff0040\"\n\n\n@pytest.mark.parametrize(\n    \"r, g, b\",\n    [\n        (-1, 0, 0),     # r below range\n        (0, -1, 0),     # g below range\n        (0, 0, -1),     # b below range\n        (256, 0, 0),    # r above range\n        (0, 256, 0),    # g above range\n        (0, 0, 256),    # b above range\n        (-10, 260, 300),# multiple out of range\n    ],\n)\ndef test_rgb_to_hex_out_of_range_raises_value_error(r, g, b):\n    with pytest.raises(ValueError, match=r\"RGB values must be 0-255\"):\n        rgb_to_hex(r, g, b)\n\n\ndef test_rgb_to_hex_non_int_inputs_raise_type_error():\n    # The function uses comparisons; non-orderable/non-int types should fail.\n    # (Exact exception type may vary depending on Python behavior, but TypeError is expected.)\n    with pytest.raises(TypeError):\n        rgb_to_hex(\"0\", 0, 0)\n\n    with pytest.raises(TypeError):\n        rgb_to_hex(None, 0, 0)\n```",
+  "score": 5,
+  "cost": 0.0002211,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 526
+  }
+}

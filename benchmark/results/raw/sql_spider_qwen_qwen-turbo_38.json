@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "SELECT name, COUNT(language) AS num_languages\nFROM countries\nWHERE COUNT(language) > 2\nGROUP BY name;",
+  "score": 2,
+  "cost": 3.729e-06,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 25
+  }
+}

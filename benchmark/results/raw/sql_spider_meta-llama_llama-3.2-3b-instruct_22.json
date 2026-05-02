@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "```sql\nSELECT name\nFROM sections\nORDER BY name DESC;\n```",
+  "score": 5,
+  "cost": 4.742999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 16
+  }
+}

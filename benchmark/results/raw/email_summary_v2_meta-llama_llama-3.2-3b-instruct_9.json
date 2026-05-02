@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe nightly ETL job failed due to a schema change in Salesforce, resulting in stale data on dashboards since yesterday. The fix has been deployed and a backfill is running, with a full recovery expected by 4 PM today.",
+  "score": 5,
+  "cost": 8.007e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 60
+  }
+}

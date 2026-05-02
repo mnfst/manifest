@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "```python\n# test_fizzbuzz.py\nimport pytest\n\nfrom your_module import fizzbuzz  # adjust import to your actual module name\n\n\n@pytest.mark.parametrize(\n    \"n,expected\",\n    [\n        (1, \"1\"),\n        (2, \"2\"),\n        (4, \"4\"),\n        (7, \"7\"),\n        (8, \"8\"),\n        (10, \"Buzz\"),\n        (3, \"Fizz\"),\n        (6, \"Fizz\"),\n        (9, \"Fizz\"),\n        (5, \"Buzz\"),\n        (15, \"FizzBuzz\"),\n        (30, \"FizzBuzz\"),\n        (45, \"FizzBuzz\"),\n    ],\n)\ndef test_fizzbuzz_happy_path(n, expected):\n    assert fizzbuzz(n) == expected\n\n\n@pytest.mark.parametrize(\n    \"n,expected\",\n    [\n        (0, \"FizzBuzz\"),   # 0 is divisible by everything\n        (-3, \"Fizz\"),      # negative multiples still work with % in Python\n        (-5, \"Buzz\"),\n        (-15, \"FizzBuzz\"),\n        (-1, \"-1\"),        # non-multiples return str(n)\n        (-2, \"-2\"),\n    ],\n)\ndef test_fizzbuzz_edge_cases(n, expected):\n    assert fizzbuzz(n) == expected\n\n\n@pytest.mark.parametrize(\"n\", [None, 1.5, \"3\", [], {}, object()])\ndef test_fizzbuzz_error_cases_invalid_types(n):\n    with pytest.raises(TypeError):\n        fizzbuzz(n)\n\n\ndef test_fizzbuzz_error_cases_non_int_but_int_like():\n    # e.g., booleans are technically ints in Python: they won't error,\n    # but this test ensures we understand behavior (optional).\n    assert fizzbuzz(True) == \"1\"\n    assert fizzbuzz(False) == \"FizzBuzz\"  # 0 % 15 == 0\n\n\ndef test_fizzbuzz_error_cases_with_big_int():\n    # Happy-path with a large integer (should still be correct)\n    assert fizzbuzz(3_000_000) == \"Fizz\"\n    assert fizzbuzz(5_000_000) == \"Buzz\"\n    assert fizzbuzz(15_000_000) == \"FizzBuzz\"\n    assert fizzbuzz(15_000_001) == \"15000001\"\n```",
+  "score": 5,
+  "cost": 0.00020140000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 480
+  }
+}

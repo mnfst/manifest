@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 11,
+  "response": "travel_alert",
+  "score": 5,
+  "cost": 5.71e-05,
+  "expected": "travel_alert",
+  "tokens": {
+    "input": 556,
+    "output": 5
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "ner_extraction",
+  "case": 10,
+  "response": "{\n  \"persons\": [\"Jennifer Lopez\", \"Ben Affleck\"],\n  \"organizations\": [],\n  \"locations\": [\"Beverly Hills\"]\n}",
+  "score": 5,
+  "cost": 2.4300000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 413
+  }
+}

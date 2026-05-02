@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Operations is proposing a 10Gbps upgrade ($45K one-time + $2K/month) to address current network links running at 78% capacity, with a cheaper alternative of traffic shaping and CDN optimization available for $15K. A decision is needed on which option to pursue, with the 10Gbps upgrade being the recommended choice to accommodate projected growth and avoid short-term fixes.",
+  "score": 5,
+  "cost": 0.001743,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 91
+  }
+}

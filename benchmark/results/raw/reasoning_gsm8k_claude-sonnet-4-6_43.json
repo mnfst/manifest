@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "## Solution\n\n**Step 1: Find Martha's age**\n\nMike is 24 years old, and Martha is 4 years younger than Mike.\n\nMartha's age = 24 - 4 = **20 years old**\n\n**Step 2: Find Jeff's age**\n\nJeff is 10 years older than Martha.\n\nJeff's age = 20 + 10 = **30 years old**\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.001806,
+  "expected": "30",
+  "tokens": {
+    "input": 92,
+    "output": 102
+  }
+}

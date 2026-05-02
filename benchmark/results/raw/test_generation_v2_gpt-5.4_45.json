@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 45,
+  "response": "```python\nimport pytest\n\nfrom your_module import sliding_window\n\n\ndef test_sliding_window_happy_path_list():\n    result = list(sliding_window([1, 2, 3, 4], 2))\n    assert result == [(1, 2), (2, 3), (3, 4)]\n\n\ndef test_sliding_window_with_tuple_input():\n    result = list(sliding_window((1, 2, 3), 3))\n    assert result == [(1, 2, 3)]\n\n\ndef test_sliding_window_with_generator_input():\n    gen = (x for x in [10, 20, 30, 40])\n    result = list(sliding_window(gen, 3))\n    assert result == [(10, 20, 30), (20, 30, 40)]\n\n\ndef test_sliding_window_size_one():\n    result = list(sliding_window([1, 2, 3], 1))\n    assert result == [(1,), (2,), (3,)]\n\n\ndef test_sliding_window_size_equals_iterable_length():\n    result = list(sliding_window([1, 2, 3], 3))\n    assert result == [(1, 2, 3)]\n\n\ndef test_sliding_window_size_larger_than_iterable_raises_stopiteration():\n    with pytest.raises(StopIteration):\n        next(sliding_window([1, 2], 3))\n\n\ndef test_sliding_window_empty_iterable_with_positive_size_raises_stopiteration():\n    with pytest.raises(StopIteration):\n        next(sliding_window([], 1))\n\n\ndef test_sliding_window_empty_iterable_with_zero_size_yields_empty_tuple_once():\n    result = list(sliding_window([], 0))\n    assert result == [()]\n\n\ndef test_sliding_window_zero_size_on_nonempty_iterable_yields_empty_tuples():\n    result = list(sliding_window([1, 2, 3], 0))\n    assert result == [(), (), (), ()]\n\n\ndef test_sliding_window_negative_size_behaves_like_zero_sized_deque():\n    result = list(sliding_window([1, 2], -1))\n    assert result == [(), (), ()]\n\n\ndef test_sliding_window_non_iterable_raises_type_error():\n    with pytest.raises(TypeError):\n        list(sliding_window(123, 2))\n```\n\nNotes:\n- Replace `from your_module import sliding_window` with the actual module import.\n- The tests intentionally reflect the current implementation, including somewhat surprising behavior for `size=0` and negative sizes.",
+  "score": 5,
+  "cost": 0.004444,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 531
+  }
+}

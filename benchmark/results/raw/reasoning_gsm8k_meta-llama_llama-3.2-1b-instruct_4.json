@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "To solve this problem, we need to add the amount of yarn Mariah used and her grandma used.\n\nStep 1: Convert the fractions to decimals\nMariah used 1/4 of a skein, which is equal to 0.25 skeins.\nHer grandma used 1/2 of a skein, which is equal to 0.5 skeins.\n\nStep 2: Add the decimals\n0.25 + 0.5 = 0.75\n\nStep 3: Convert the decimal back to a fraction\n0.75 = 3/4\n\nStep 4: Multiply the fraction by the number of skeins\n3/4 * 364 = 273\n\nTherefore, Mariah and her grandma used 273 yards of yarn altogether.",
+  "score": 5,
+  "cost": 7.209e-06,
+  "expected": "273",
+  "tokens": {
+    "input": 107,
+    "output": 160
+  }
+}

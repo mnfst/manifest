@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "## Step-by-Step Solution\n\n**Find the ages of both sons:**\n- Son 1: 12 years old\n- Son 2: 12 - 4 = 8 years old\n\n**Find the total number of candles needed:**\n- Total candles = 12 + 8 = 20 candles\n\n**Find the number of packs needed:**\n- Each pack contains 5 candles\n- Packs needed = 20 \u00f7 5 = 4 packs\n\n**Calculate the total cost:**\n- Cost = 4 packs \u00d7 $3 per pack = $12\n\nANSWER: 12",
+  "score": 5,
+  "cost": 0.002595,
+  "expected": "12",
+  "tokens": {
+    "input": 100,
+    "output": 153
+  }
+}

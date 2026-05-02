@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 10,
+  "response": "Peut-\u00eatre g\u00e9n\u00e9rer quelques indices, nous rapprocher de l'animal qui a fait cela.",
+  "score": 4,
+  "cost": 3.3659999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 22
+  }
+}

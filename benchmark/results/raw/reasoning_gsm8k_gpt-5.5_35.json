@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Peaches: \\(6 \\times 2 = 12\\) dollars  \nPlums: \\(8 \\times 1 = 8\\) dollars  \nApricots: \\(6 \\times 3 = 18\\) dollars  \n\nTotal spent: \\(12 + 8 + 18 = 38\\) dollars\n\nANSWER: 38",
+  "score": 5,
+  "cost": 0.001803,
+  "expected": "38",
+  "tokens": {
+    "input": 117,
+    "output": 121
+  }
+}

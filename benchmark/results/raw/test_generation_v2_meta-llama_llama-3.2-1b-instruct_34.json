@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 34,
+  "response": "Here are some unit tests for the `levenshtein` function using pytest style:\n\n```python\nimport pytest\n\ndef test_levenshtein_happy_path():\n    # Test with two strings of equal length\n    assert levenshtein(\"kitten\", \"sitting\") == 3\n\ndef test_levenshtein_equal_length():\n    # Test with two strings of equal length\n    assert levenshtein(\"abc\", \"abc\") == 0\n\ndef test_levenshtein_short_string():\n    # Test with a short string\n    assert levenshtein(\"a\", \"b\") == 1\n\ndef test_levenshtein_long_string():\n    # Test with a long string\n    assert levenshtein(\"abcdefghijklmnopqrstuvwxyz\", \"abcdefghijklmnopqrstuvwxyz\") == 26\n\ndef test_levenshtein_empty_string():\n    # Test with an empty string\n    assert levenshtein(\"\", \"hello\") == 5\n\ndef test_levenshtein_single_character():\n    # Test with a single character\n    assert levenshtein(\"a\", \"a\") == 0\n\ndef test_levenshtein_no_matches():\n    # Test with two strings that don't match\n    assert levenshtein(\"abc\", \"def\") == 2\n\ndef test_levenshtein_no_matches_longer_string():\n    # Test with a long string that doesn't match\n    assert levenshtein(\"abcdefghijklmnopqrstuvwxyz\", \"abc\") == 5\n\ndef test_levenshtein_no_matches_shorter_string():\n    # Test with a short string that doesn't match\n    assert levenshtein(\"abc\", \"xyz\") == 5\n\ndef test_levenshtein_no_matches_empty_string():\n    # Test with an empty string that doesn't match\n    with pytest.raises(ValueError):\n        levenshtein(\"\", \"\")\n\ndef test_levenshtein_invalid_input_type():\n    # Test with non-string inputs\n    with pytest.raises(TypeError):\n        levenshtein(123, \"hello\")\n\ndef test_levenshtein_invalid_input_type_long():\n    # Test with a long string that's not a string\n    with pytest.raises(TypeError):\n        levenshtein(\"abc\", 123)\n```\n\nNote that I've also added a test for the `ValueError` that's raised when the input is not a string. This is because the function doesn't check for this case explicitly, but it's a good practice to include it in the test suite.",
+  "score": 4,
+  "cost": 1.8819e-05,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 522
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "```python\nimport pytest\n\nfrom your_module import gcd\n\n\n@pytest.mark.parametrize(\n    \"a,b,expected\",\n    [\n        (48, 18, 6),          # common case\n        (54, 24, 6),          # common case\n        (7, 3, 1),            # coprime\n        (0, 5, 5),            # zero and positive\n        (5, 0, 5),            # positive and zero\n        (0, 0, 0),            # both zero\n        (-48, 18, 6),         # negative a\n        (48, -18, 6),         # negative b\n        (-48, -18, 6),       # both negative\n        (13, 13, 13),         # same values\n    ],\n)\ndef test_gcd_returns_expected_value(a, b, expected):\n    assert gcd(a, b) == expected\n\n\ndef test_gcd_large_numbers():\n    assert gcd(1234567890, 987654321) == 9\n\n\ndef test_gcd_with_one():\n    assert gcd(1, 999999) == 1\n    assert gcd(999999, 1) == 1\n\n\n@pytest.mark.parametrize(\"a,b\", [(1.5, 3), (3, 1.5), (\"6\", 3), (3, None)])\ndef test_gcd_raises_type_error_for_invalid_types(a, b):\n    with pytest.raises(TypeError):\n        gcd(a, b)\n```\n\n### Notes\n- Replace `from your_module import gcd` with the actual module path.\n- The implementation does not explicitly validate input types, so non-integer inputs that do not support `%` or `while b` semantics appropriately will raise `TypeError`.",
+  "score": 5,
+  "cost": 0.0004794,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 383
+  }
+}

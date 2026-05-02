@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 21,
+  "response": "```python\n# tests/test_truncate.py\n\nimport pytest\n\nfrom your_module import truncate  # replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"s,max_len,expected\",\n    [\n        (\"hello\", 10, \"hello\"),\n        (\"hello\", 5, \"hello\"),\n        (\"\", 5, \"\"),\n        (\"\", 0, \"\"),\n    ],\n)\ndef test_truncate_returns_original_when_length_is_within_limit(s, max_len, expected):\n    assert truncate(s, max_len) == expected\n\n\n@pytest.mark.parametrize(\n    \"s,max_len,expected\",\n    [\n        (\"hello world\", 8, \"hello...\"),\n        (\"abcdef\", 4, \"a...\"),\n        (\"abcdef\", 3, \"...\"),\n    ],\n)\ndef test_truncate_with_default_suffix(s, max_len, expected):\n    assert truncate(s, max_len) == expected\n\n\n@pytest.mark.parametrize(\n    \"s,max_len,suffix,expected\",\n    [\n        (\"hello world\", 8, \"\u2026\", \"hello w\u2026\"),\n        (\"abcdef\", 4, \"~\", \"abc~\"),\n        (\"abcdef\", 5, \"--\", \"abc--\"),\n        (\"abcdef\", 3, \"\", \"abc\"),\n    ],\n)\ndef test_truncate_with_custom_suffix(s, max_len, suffix, expected):\n    assert truncate(s, max_len, suffix) == expected\n\n\ndef test_truncate_handles_unicode_characters():\n    assert truncate(\"\ud83d\ude00\ud83d\ude03\ud83d\ude04\ud83d\ude01\", 3, \"\u2026\") == \"\ud83d\ude00\ud83d\ude03\u2026\"\n\n\ndef test_truncate_when_max_len_is_less_than_suffix_length_documents_current_behavior():\n    # Current implementation uses negative slicing:\n    # \"abcdef\"[:2 - 3] + \"...\" == \"abcde...\"\n    assert truncate(\"abcdef\", 2) == \"abcde...\"\n\n\n@pytest.mark.parametrize(\n    \"max_len,expected\",\n    [\n        (0, \"abc...\"),\n        (-1, \"ab...\"),\n        (-10, \"...\"),\n    ],\n)\ndef test_truncate_with_zero_or_negative_max_len_documents_current_behavior(max_len, expected):\n    assert truncate(\"abcdef\", max_len) == expected\n\n\ndef test_suffix_is_not_used_when_string_does_not_need_truncation():\n    assert truncate(\"abc\", 3, suffix=None) == \"abc\"\n\n\n@pytest.mark.parametrize(\n    \"s,max_len,suffix\",\n    [\n        (None, 3, \"...\"),\n        (\"abcdef\", \"3\", \"...\"),\n        (\"abcdef\", 3, None),\n        (\"abcdef\", 3, [\"...\"]),\n    ],\n)\ndef test_truncate_raises_type_error_for_invalid_argument_types(s, max_len, suffix):\n    with pytest.raises(TypeError):\n        truncate(s, max_len, suffix)\n```",
+  "score": 4,
+  "cost": 0.019527,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 1607
+  }
+}

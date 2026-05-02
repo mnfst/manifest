@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "To find the total amount of water removed, we first determine the amount of water removed per day for each setting.\n\n1.  **Determine the daily removal rates:**\n    *   **Low setting:** The problem states the low setting removes 1 liter per day.\n        Rate_low = 1 liter/day\n    *   **Medium setting:** The medium setting removes twice as much as the low setting.\n        Rate_medium = 2 * Rate_low = 2 * 1 = 2 liters/day\n    *   **High setting:** The high setting removes twice as much as the medium setting.\n        Rate_high = 2 * Rate_medium = 2 * 2 = 4 liters/day\n\n2.  **Calculate the water removed during each period:**\n    *   **Low setting period:** Brian ran the device for 3 days on the low setting.\n        Water_low = 3 days * 1 liter/day = 3 liters\n    *   **Medium setting period:** Brian ran the device for an additional 3 days on the medium setting.\n        Water_medium = 3 days * 2 liters/day = 6 liters\n    *   **High setting period:** Brian ran the device for an additional 5 days on the high setting.\n        Water_high = 5 days * 4 liters/day = 20 liters\n\n3.  **Calculate the total amount of water removed:**\n    Total water = Water_low + Water_medium + Water_high\n    Total water = 3 + 6 + 20 = 29 liters\n\nANSWER: 29",
+  "score": 5,
+  "cost": 3.342e-05,
+  "expected": "29",
+  "tokens": {
+    "input": 207,
+    "output": 350
+  }
+}

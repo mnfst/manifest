@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 22,
+  "response": "{\"name\": \"create_database\", \"arguments\": {\"name\": \"analytics_prod\", \"engine\": \"postgresql\"}}",
+  "score": 5,
+  "cost": 3.762e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 23
+  }
+}

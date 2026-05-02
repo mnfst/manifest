@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "Here is a 2-sentence summary of the email:\n\nA customer has requested a GDPR data export of all personal data across all services, with a deadline of May 25, and has also requested documentation on processing purposes and third-party data sharing logs, including analytics data. The Privacy Team is responsible for fulfilling this request and ensuring compliance with the GDPR deadline.",
+  "score": 5,
+  "cost": 9.078e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 73
+  }
+}

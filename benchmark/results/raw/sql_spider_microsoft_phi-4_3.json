@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "```sql\nSELECT DISTINCT a.country_name\nFROM world_1.country AS a\nJOIN world_1.country AS b ON a.population < b.population\nWHERE a.continent = 'Africa'\nAND b.continent = 'Asia'\nAND NOT EXISTS (\n    SELECT 1\n    FROM world_1.country AS c\n    WHERE c.continent = 'Asia' AND a.population >= c.population\n);\n```",
+  "score": 4,
+  "cost": 1.0335e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 84
+  }
+}

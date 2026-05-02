@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "George ordered 600 burritos.  \n- **Students' consumption**: 50 students \u00d7 10 burritos = 500 burritos.  \n- **Mr. George's consumption**: 20 burritos.  \n- **Total consumed**: 500 + 20 = 520 burritos.  \n- **Leftover burritos**: 600 - 520 = 80.  \n\nANSWER: 80",
+  "score": 5,
+  "cost": 5.105000000000001e-05,
+  "expected": "80",
+  "tokens": {
+    "input": 108,
+    "output": 913
+  }
+}

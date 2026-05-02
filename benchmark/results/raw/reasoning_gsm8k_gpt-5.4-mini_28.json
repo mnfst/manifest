@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let the number of people who got on the bus at the terminal be \\(x\\).\n\n- At the first stop, 5 people got in, so the total became \\(x + 5\\).\n- At the second stop, 7 people got off and 8 got on, so the total became:\n  \\[\n  x + 5 - 7 + 8 = x + 6\n  \\]\n\nWe are told there were 20 people on the bus heading to the third stop, so:\n\\[\nx + 6 = 20\n\\]\n\nSolve for \\(x\\):\n\\[\nx = 20 - 6 = 14\n\\]\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0002064,
+  "expected": "14",
+  "tokens": {
+    "input": 108,
+    "output": 145
+  }
+}

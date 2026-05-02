@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "```sql\nSELECT T1.Name FROM Orchestra AS T1\nJOIN OrchestraConductors AS T2 ON T1.Name = T2.Conductor\nGROUP BY T1.Name\nORDER BY COUNT(T2.Name) DESC\nLIMIT 1;\n```",
+  "score": 3,
+  "cost": 3.51e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 52
+  }
+}

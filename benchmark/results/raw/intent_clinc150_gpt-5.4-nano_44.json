@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "intent_clinc150",
+  "case": 44,
+  "response": "insurance_change",
+  "score": 5,
+  "cost": 5.3400000000000004e-05,
+  "expected": "insurance_change",
+  "tokens": {
+    "input": 514,
+    "output": 5
+  }
+}

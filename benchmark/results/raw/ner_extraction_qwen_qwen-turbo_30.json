@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "{\n  \"persons\": [\"Justin Trudeau\"],\n  \"organizations\": [\"General Assembly\", \"United Nations\"],\n  \"locations\": [\"Canada\", \"New York\"]\n}",
+  "score": 4,
+  "cost": 3.597e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 33
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "```sql\nSELECT c.name AS conductor_name, o.name AS orchestra_name\nFROM conductors c\nJOIN performances p ON c.id = p.conductor_id\nJOIN orchestras o ON p.orchestra_id = o.id;\n```",
+  "score": 5,
+  "cost": 8.385e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 50
+  }
+}

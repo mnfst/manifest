@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 37,
+  "response": "```python\nimport pytest\n\nfrom your_module import parse_csv_line\n\n\ndef test_parse_csv_line_simple_happy_path():\n    assert parse_csv_line(\"a,b,c\") == [\"a\", \"b\", \"c\"]\n\n\ndef test_parse_csv_line_with_quoted_commas():\n    assert parse_csv_line('a,\"b,c\",d') == [\"a\", \"b,c\", \"d\"]\n\n\ndef test_parse_csv_line_with_empty_fields():\n    assert parse_csv_line(\"a,,c\") == [\"a\", \"\", \"c\"]\n\n\ndef test_parse_csv_line_leading_and_trailing_commas():\n    assert parse_csv_line(\",a,b,\") == [\"\", \"a\", \"b\", \"\"]\n\n\ndef test_parse_csv_line_empty_string():\n    assert parse_csv_line(\"\") == [\"\"]\n\n\ndef test_parse_csv_line_only_commas():\n    assert parse_csv_line(\",,\") == [\"\", \"\", \"\"]\n\n\ndef test_parse_csv_line_empty_quoted_field():\n    assert parse_csv_line('a,\"\",c') == [\"a\", \"\", \"c\"]\n\n\ndef test_parse_csv_line_quotes_preserve_internal_commas():\n    assert parse_csv_line('\"a,b,c\"') == [\"a,b,c\"]\n\n\ndef test_parse_csv_line_quotes_removed_from_output():\n    assert parse_csv_line('a,\"b\",c') == [\"a\", \"b\", \"c\"]\n\n\ndef test_parse_csv_line_unbalanced_open_quote():\n    # Function does not raise; it treats the rest of the line as quoted.\n    assert parse_csv_line('a,\"b,c') == [\"a\", \"b,c\"]\n\n\ndef test_parse_csv_line_unbalanced_closing_quote():\n    # Function toggles quoting on each quote character, so this does not error.\n    assert parse_csv_line('a\"b,c') == [\"ab,c\"]\n\n\ndef test_parse_csv_line_consecutive_quotes_inside_quotes():\n    # Two quotes toggle in/out of quoted mode and are not preserved.\n    assert parse_csv_line('a,\"b\"\"c\",d') == [\"a\", \"bc\", \"d\"]\n\n\ndef test_parse_csv_line_only_quotes():\n    assert parse_csv_line('\"\"') == [\"\"]\n\n\ndef test_parse_csv_line_whitespace_is_preserved():\n    assert parse_csv_line(' a , \"b c\" ,d ') == [\" a \", \" b c \", \"d \"]\n\n\ndef test_parse_csv_line_raises_type_error_on_none():\n    with pytest.raises(TypeError):\n        parse_csv_line(None)  # type: ignore[arg-type]\n\n\ndef test_parse_csv_line_raises_type_error_on_non_string_iterable():\n    with pytest.raises(TypeError):\n        parse_csv_line([\"a,b,c\"])  # type: ignore[arg-type]\n```\n\nNotes:\n- Replace `from your_module import parse_csv_line` with the actual import path.\n- Since the function has no explicit validation, most \u201cerror cases\u201d are Python type errors when the input is not iterable as a string.",
+  "score": 4,
+  "cost": 0.000759,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 604
+  }
+}

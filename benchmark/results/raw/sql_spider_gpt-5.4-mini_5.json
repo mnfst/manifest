@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT a.airport_name\nFROM airports a\nLEFT JOIN flights f_depart\n  ON a.airport_id = f_depart.departure_airport_id\nLEFT JOIN flights f_arrive\n  ON a.airport_id = f_arrive.arrival_airport_id\nWHERE f_depart.flight_id IS NULL\n  AND f_arrive.flight_id IS NULL;",
+  "score": 5,
+  "cost": 0.0001179,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 81
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premier cr\u00e9dit de garantie pour les apprentissages d'entreprises de petite et moyenne taille, de petites et moyennes entreprises et des autorit\u00e9s locales",
+  "score": 2,
+  "cost": 2.2679999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 35
+  }
+}

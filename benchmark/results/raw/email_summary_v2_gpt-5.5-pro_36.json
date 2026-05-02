@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "P99 latency for `/api/v2/search` rose from 200ms to 800ms after Thursday\u2019s deploy because the new full-text search query is not using an index. Backend will add a GIN index on the `content` column and deploy the fix during tonight\u2019s maintenance window.",
+  "score": 5,
+  "cost": 0.00252,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 102
+  }
+}

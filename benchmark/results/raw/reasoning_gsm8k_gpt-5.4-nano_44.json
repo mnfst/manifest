@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Ten stalls originally have \\(20\\) cows each, so there are\n\\[\n10 \\times 20 = 200\n\\]\ncows total at first.\n\nMr. Sylas buys \\(40\\) more cows, making\n\\[\n200 + 40 = 240\n\\]\ncows total.\n\nHe then divides the \\(40\\) new cows equally among the \\(20\\) stalls, so each stall gets\n\\[\n\\frac{40}{20} = 2\n\\]\nnew cows.\n\nEach of the \\(8\\) stalls asked about originally has \\(20\\) cows, and after adding the \\(2\\) new cows, each has\n\\[\n20 + 2 = 22\n\\]\ncows.\n\nSo the number of cows in 8 stalls is\n\\[\n8 \\times 22 = 176\n\\]\n\nANSWER: 176",
+  "score": 5,
+  "cost": 8.230000000000001e-05,
+  "expected": "192",
+  "tokens": {
+    "input": 87,
+    "output": 184
+  }
+}

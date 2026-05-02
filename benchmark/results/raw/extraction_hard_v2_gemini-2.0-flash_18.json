@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "extraction_hard_v2",
+  "case": 18,
+  "response": "```json\n{\"date\": \"March 15, 2024\", \"athlete\": \"Mike Torres\", \"bodyweight_lbs\": 185, \"sleep_hours\": 7, \"exercises\": [{\"name\": \"Back Squat\", \"sets\": [{\"weight\": 225, \"reps\": 5}, {\"weight\": 245, \"reps\": 5}, {\"weight\": 265, \"reps\": 3}, {\"weight\": 275, \"reps\": 2}], \"note\": \"PR!\"}, {\"name\": \"Romanian Deadlift\", \"sets\": [{\"weight\": 185, \"reps\": 8}, {\"weight\": 205, \"reps\": 8}, {\"weight\": 205, \"reps\": 8}], \"note\": null}, {\"name\": \"Leg Press\", \"sets\": [{\"weight\": 360, \"reps\": 10}, {\"weight\": 410, \"reps\": 10}, {\"weight\": 450, \"reps\": 8}], \"note\": null}, {\"name\": \"Leg Curl\", \"sets\": [{\"weight\": 90, \"reps\": 12}, {\"weight\": 100, \"reps\": 10}, {\"weight\": 100, \"reps\": 10}], \"note\": null}], \"duration_minutes\": 72, \"rpe\": 8.5, \"notes\": \"Hit squat PR at 275. Right knee felt tight on last set. Need to stretch more.\"}\n```",
+  "score": 4,
+  "cost": 0.00017700000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 338,
+    "output": 358
+  }
+}

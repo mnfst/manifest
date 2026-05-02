@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Here is a 2-sentence summary of the email:\n\nCompetitor X has launched AI features, including auto-categorization, but their pricing is 2x higher than ours, which has resulted in a neutral market response. The product team recommends fast-tracking our AI roadmap item to maintain our competitive advantage in terms of API and integrations.",
+  "score": 5,
+  "cost": 8.619e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 70
+  }
+}

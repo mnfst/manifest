@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Tom sails from 1 PM to 4 PM, which is:\n\n- \\(4 - 1 = 3\\) hours\n\nAt 10 miles per hour, the distance he travels is:\n\n- \\(10 \\times 3 = 30\\) miles\n\nHe returns at 6 miles per hour, so the time to get back is:\n\n- \\(30 \\div 6 = 5\\) hours\n\nANSWER: 5",
+  "score": 4,
+  "cost": 0.000912,
+  "expected": "5",
+  "tokens": {
+    "input": 88,
+    "output": 92
+  }
+}

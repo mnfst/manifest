@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 2,
+  "response": "```json\n{\"name\": \"search_files\", \"arguments\": {\"directory\": \"src\", \"pattern\": \"*.py\", \"modified_within_days\": 7}}\n```",
+  "score": 5,
+  "cost": 9.42e-06,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 39
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "AWS costs are up 40% month-over-month, mainly due to new ML training jobs on p4d instances, with an estimated $45K monthly impact. DevOps needs a decision by Friday on whether to use spot instances for up to 70% savings with interruption risk or reserved instances for 30% savings with a commitment.",
+  "score": 5,
+  "cost": 0.001401,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 90
+  }
+}

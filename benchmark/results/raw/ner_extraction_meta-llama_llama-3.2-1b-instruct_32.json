@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\n  \"persons\": [\"Serena Williams\"],\n  \"organizations\": [\"ESPY ceremony\"],\n  \"locations\": [\"Los Angeles\"]",
+  "score": 4,
+  "cost": 2.7809999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 28
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe Datadog contract is set to expire on June 30 and the vendor has offered a 3-year renewal at a discounted rate of $155,000 per year, which is a 14% reduction from the current $180,000 per year. The alternative option is Grafana Cloud at $95,000 per year, but it requires a 3-month migration and a decision is needed by May 15.",
+  "score": 5,
+  "cost": 1.0352999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 98
+  }
+}

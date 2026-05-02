@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "Here is a 2-sentence summary of the email:\n\nBigCo is interested in acquiring the company's machine learning (ML) team, offering $15M, but the CEO believes the team's value is higher and recommends either counter-offering or declining the offer. The CEO suggests discussing the proposal with the team and informing the board before responding to BigCo.",
+  "score": 5,
+  "cost": 9.231e-06,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 74
+  }
+}

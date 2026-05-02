@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "extraction_hard_v2",
+  "case": 13,
+  "response": "```json\n{\n  \"trial_id\": \"NCT04982562\",\n  \"phase\": \"III\",\n  \"sponsor\": \"NovaPharma Inc.\",\n  \"drug\": \"NP-401\",\n  \"indication\": \"Treatment-Resistant Major Depression\",\n  \"enrollment\": 842,\n  \"sites\": 28,\n  \"arms\": [\n    {\n      \"name\": \"NP-401 60mg\",\n      \"dose\": \"60mg\",\n      \"n\": 421\n    },\n    {\n      \"name\": \"Placebo\",\n      \"dose\": \"Placebo\",\n      \"n\": 421\n    }\n  ],\n  \"duration_weeks\": 36,\n  \"primary_endpoint\": \"Change in MADRS score from baseline\",\n  \"results\": {\n    \"treatment_effect\": -6.3,\n    \"placebo_effect\": -5.9,\n    \"p_value\": \"<0.001\",\n    \"nnt\": 5.2\n  },\n  \"adverse_events\": [\n    {\n      \"event\": \"nausea\",\n      \"rate_pct\": 23\n    },\n    {\n      \"event\": \"headache\",\n      \"rate_pct\": 18\n    },\n    {\n      \"event\": \"insomnia\",\n      \"rate_pct\": 12\n    }\n  ]\n}\n```",
+  "score": 3,
+  "cost": 3.1722e-05,
+  "expected": "",
+  "tokens": {
+    "input": 340,
+    "output": 282
+  }
+}

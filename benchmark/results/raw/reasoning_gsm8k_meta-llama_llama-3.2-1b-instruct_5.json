@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "To solve this problem, let's break it down step by step:\n\n1. Katelyn saw 50 fairies initially.\n2. One of her friends saw half as many fairies as Katelyn saw, which is 50 / 2 = 25 fairies.\n3. Ten minutes later, 30 fairies flew away, so we need to subtract 30 from the initial number of fairies to find the number of fairies that remained. 50 - 30 = 20 fairies.\n\nTherefore, the number of fairies remaining is 20.",
+  "score": 2,
+  "cost": 6.480000000000001e-06,
+  "expected": "45",
+  "tokens": {
+    "input": 122,
+    "output": 118
+  }
+}

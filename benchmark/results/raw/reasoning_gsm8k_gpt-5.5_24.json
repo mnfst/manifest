@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Each student sold an average of 10 lollipops.\n\nTotal lollipops sold:\n\n30 \u00d7 10 = 300\n\nProfit per lollipop:\n\n$0.80 - $0.50 = $0.30\n\nTotal profit:\n\n300 \u00d7 $0.30 = $90\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.001812,
+  "expected": "90",
+  "tokens": {
+    "input": 120,
+    "output": 121
+  }
+}

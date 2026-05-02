@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "SELECT episode_title, rating\nFROM episodes\nORDER BY rating DESC\nLIMIT 3;",
+  "score": 5,
+  "cost": 4.8299999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 21
+  }
+}

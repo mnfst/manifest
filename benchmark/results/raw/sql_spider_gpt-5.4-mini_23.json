@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT production_code, channel\nFROM tvshow\nWHERE genre = 'cartoon'\nORDER BY air_date DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 6.09e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 33
+  }
+}

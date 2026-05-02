@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 1,
+  "response": "```json\n{\n  \"name\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Paris\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 8.905e-06,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 30
+  }
+}

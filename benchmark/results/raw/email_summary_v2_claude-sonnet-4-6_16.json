@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign generated 45K impressions, 187 signups at a $64 CAC, with CTR improving 1.2 percentage points over March but conversion rate declining 0.8 percentage points. The marketing team recommends running an A/B test on the landing page CTA to address the conversion drop.",
+  "score": 5,
+  "cost": 0.001515,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 75
+  }
+}

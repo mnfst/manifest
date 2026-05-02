@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe team plans to migrate from MySQL 5.7 to PostgreSQL 16, with a timeline of May (schema conversion and testing), June (dual-write period), and July (cutover), with no planned downtime. The migration requires rewriting of 3 stored procedures, but a blue-green deployment approach will minimize disruption, and a testing environment is already ready.",
+  "score": 5,
+  "cost": 9.638999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 87
+  }
+}

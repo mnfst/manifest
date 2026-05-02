@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has shared a Q1 board deck draft highlighting strong performance (127% revenue target, 115% NRR) but a concerning 22% rise in CAC, with the board meeting scheduled for next Tuesday. You are required to submit your product roadmap section by Wednesday.",
+  "score": 5,
+  "cost": 0.001233,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 63
+  }
+}

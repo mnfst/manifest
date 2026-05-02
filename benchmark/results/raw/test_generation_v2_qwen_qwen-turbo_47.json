@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 47,
+  "response": "Here's a complete set of **pytest-style unit tests** for the `run_length_encode` function. These tests cover:\n\n- **Happy path**: Normal input with repeated characters.\n- **Edge cases**: Empty string, single character, all characters the same.\n- **Error cases**: Non-string input (though the function expects a `str`, we can still test for it with type checking).\n\n---\n\n### \u2705 `test_run_length_encode.py`\n\n```python\nimport pytest\nfrom your_module import run_length_encode  # Replace with the actual module name\n\ndef test_run_length_encode_happy_path():\n    assert run_length_encode(\"aabba\") == [('a', 2), ('b', 2), ('a', 1)]\n\ndef test_run_length_encode_empty_string():\n    assert run_length_encode(\"\") == []\n\ndef test_run_length_encode_single_character():\n    assert run_length_encode(\"a\") == [('a', 1)]\n\ndef test_run_length_encode_all_same_characters():\n    assert run_length_encode(\"aaaaa\") == [('a', 5)]\n\ndef test_run_length_encode_mixed_characters():\n    assert run_length_encode(\"abba\") == [('a', 1), ('b', 2), ('a', 1)]\n\ndef test_run_length_encode_with_numbers_and_letters():\n    assert run_length_encode(\"aab11\") == [('a', 2), ('b', 1), ('1', 2)]\n\ndef test_run_length_encode_non_string_input():\n    with pytest.raises(TypeError):\n        run_length_encode(123)\n\ndef test_run_length_encode_null_input():\n    with pytest.raises(TypeError):\n        run_length_encode(None)\n```\n\n---\n\n### \ud83d\udd0d Notes:\n\n- Replace `your_module` with the actual name of the module where `run_length_encode` is defined.\n- The function expects a `str` input. If someone passes a non-string, it will raise a `TypeError` when it tries to iterate over it.\n- You can run the tests using:\n  ```bash\n  pytest test_run_length_encode.py\n  ```\n\nLet me know if you'd like to add more test cases (e.g., Unicode characters, special symbols, etc.).",
+  "score": 5,
+  "cost": 1.8876e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 442
+  }
+}

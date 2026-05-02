@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "To find out how many steps Elliott took during his jog, we can follow these steps:\n\n1.  **Identify the total goal:**\n    Elliott's goal is 10,000 steps.\n\n2.  **Calculate the steps taken during school walks:**\n    He finished half of his steps on his walks to and from school.\n    $\\text{School steps} = \\frac{1}{2} \\times 10,000 = 5,000$ steps.\n\n3.  **Add the steps from the walk with his friend:**\n    He did another 1,000 steps with his friend.\n    $\\text{Subtotal (School + Friend)} = 5,000 + 1,000 = 6,000$ steps.\n\n4.  **Determine the total steps taken before the jog and after the jog:**\n    We are told that after his jog, he had 2,000 steps left to take. This means the total number of steps he had completed by the end of the jog is:\n    $\\text{Total steps completed} = 10,000 - 2,000 = 8,000$ steps.\n\n5.  **Calculate the steps taken during the jog:**\n    The difference between the total steps completed after the jog and the subtotal before the jog represents the steps taken during the jog.\n    $\\text{Jog steps} = \\text{Total steps completed} - \\text{Subtotal (School + Friend)}$\n    $\\text{Jog steps} = 8,000 - 6,000 = 2,000$ steps.\n\n**Verification:**\n- School: 5,000\n- Friend: 1,000\n- Jog: 2,000\n- Total so far: $5,000 + 1,000 + 2,000 = 8,000$\n- Steps remaining: $10,000 - 8,000 = 2,000$ (This matches the problem statement).\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 3.714e-05,
+  "expected": "2000",
+  "tokens": {
+    "input": 141,
+    "output": 478
+  }
+}

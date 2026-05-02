@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Step by step:\n\n1. Total lollipops sold = 30 students \u00d7 10 lollipops = 300 lollipops\n\n2. Revenue from selling = 300 \u00d7 $0.8 = $240\n\n3. Cost of buying lollipops = 300 \u00d7 $0.5 = $150\n\n4. Profit = $240 - $150 = $90\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.001905,
+  "expected": "90",
+  "tokens": {
+    "input": 130,
+    "output": 101
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 2,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Google DeepMind\", \"Nature\"],\n  \"locations\": []\n}",
+  "score": 4,
+  "cost": 3.2010000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 24
+  }
+}

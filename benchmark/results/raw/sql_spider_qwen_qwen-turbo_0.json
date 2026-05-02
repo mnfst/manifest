@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "SELECT money_rank\nFROM poker_player\nORDER BY height DESC\nLIMIT 1;",
+  "score": 4,
+  "cost": 3.0360000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 17
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 14,
+  "response": "{\n  \"persons\": [\n    \"Jerome Powell\"\n  ],\n  \"organizations\": [\n    \"Federal Reserve\",\n    \"Congress\"\n  ],\n  \"locations\": [\n    \"Washington DC\"\n  ]\n}",
+  "score": 5,
+  "cost": 0.000955,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 53
+  }
+}

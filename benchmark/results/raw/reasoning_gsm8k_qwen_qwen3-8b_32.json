@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "To find the **perimeter** of Billie's rectangular bedroom, we begin by analyzing the given information:\n\n- **Area** of the room = 360 square feet  \n- **Length** = 3 yards  \n\n---\n\n### Step 1: Convert the length to feet\n\nSince 1 yard = 3 feet, we convert the length:\n\n$$\n\\text{Length} = 3 \\text{ yards} \\times 3 = 9 \\text{ feet}\n$$\n\n---\n\n### Step 2: Use the area formula to find the width\n\nThe formula for the area of a rectangle is:\n\n$$\n\\text{Area} = \\text{Length} \\times \\text{Width}\n$$\n\nWe rearrange to solve for the width:\n\n$$\n\\text{Width} = \\frac{\\text{Area}}{\\text{Length}} = \\frac{360}{9} = 40 \\text{ feet}\n$$\n\n---\n\n### Step 3: Calculate the perimeter\n\nThe formula for the perimeter of a rectangle is:\n\n$$\n\\text{Perimeter} = 2 \\times (\\text{Length} + \\text{Width})\n$$\n\nSubstituting the known values:\n\n$$\n\\text{Perimeter} = 2 \\times (9 + 40) = 2 \\times 49 = 98 \\text{ feet}\n$$\n\n---\n\n### Final Answer:\n\n$$\n\\boxed{98}\n$$",
+  "score": 5,
+  "cost": 5.0950000000000005e-05,
+  "expected": "98",
+  "tokens": {
+    "input": 81,
+    "output": 938
+  }
+}

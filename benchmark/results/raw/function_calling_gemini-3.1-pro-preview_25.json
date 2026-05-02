@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 25,
+  "response": "{\n  \"name\": \"schedule_meeting\",\n  \"arguments\": {\n    \"title\": \"standup meeting\",\n    \"duration_minutes\": 30,\n    \"time\": \"9am\",\n    \"recurrence\": \"every weekday\",\n    \"attendees\": [\n      \"dev team\"\n    ]\n  }\n}",
+  "score": 5,
+  "cost": 0.001475,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 78
+  }
+}

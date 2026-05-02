@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The team successfully shipped the auth redesign on time with good cross-team collaboration, but faced challenges with context switching and lengthy standups. The action items include limiting work-in-progress to two items per developer and timeboxing standups with a parking lot for follow-up items.",
+  "score": 5,
+  "cost": 5.511e-06,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 53
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Finance reviewed Q3 results and found marketing exceeded budget by 15% due to the August campaign, while engineering is 8% under budget due to delayed hiring. Sarah proposes reallocating $50K from engineering to cover marketing\u2019s overspend and asks to discuss this on Thursday.",
+  "score": 5,
+  "cost": 3.3e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 59
+  }
+}

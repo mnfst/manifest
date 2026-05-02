@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Step 1: Find the total number of lollipops sold.  \nThere were 30 students, and each sold 10 lollipops on average:\n\n30 \u00d7 10 = 300 lollipops\n\nStep 2: Find the profit per lollipop.  \nThey sold each lollipop for $0.80 and bought each for $0.50:\n\n0.80 - 0.50 = $0.30 profit per lollipop\n\nStep 3: Multiply the profit per lollipop by the total number sold.  \n\n300 \u00d7 0.30 = $90\n\nSo, the class raised **$90** from the profit.\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.0002136,
+  "expected": "90",
+  "tokens": {
+    "input": 120,
+    "output": 148
+  }
+}

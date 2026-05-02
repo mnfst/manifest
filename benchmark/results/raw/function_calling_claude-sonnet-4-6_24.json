@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "function_calling",
+  "case": 24,
+  "response": "I need to perform two actions here, but I can only return one function call. Let me start with the primary action \u2014 rotating the API key \u2014 as the notification would logically follow after.\n\nHowever, since the user asked for **both** actions, here are the two required calls in sequence:\n\n**Step 1 \u2013 Rotate the API key:**\n```json\n{\"name\": \"rotate_api_key\", \"arguments\": {\"service\": \"production\", \"environment\": \"production\"}}\n```\n\n**Step 2 \u2013 Notify the team:**\n```json\n{\"name\": \"notify_team\", \"arguments\": {\"message\": \"The API keys for the production service have been rotated. Please update your configurations accordingly.\", \"channel\": \"general\"}}\n```\n\n> \u26a0\ufe0f **Note:** Your request requires **two sequential function calls**. The notification should be sent **after** the key rotation is confirmed successful. If your system supports chaining or multi-step execution, both calls should be made in order.",
+  "score": 1,
+  "cost": 0.003669,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 223
+  }
+}

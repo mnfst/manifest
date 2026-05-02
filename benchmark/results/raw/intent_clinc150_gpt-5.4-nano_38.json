@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "intent_clinc150",
+  "case": 38,
+  "response": "oil_change_how",
+  "score": 0,
+  "cost": 5.3899999999999996e-05,
+  "expected": "oil_change_when",
+  "tokens": {
+    "input": 511,
+    "output": 7
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT official_language) AS total_unique_official_languages\nFROM (\n    SELECT official_language\n    FROM country\n    JOIN countrylanguage ON country.code = countrylanguage.country_code\n    WHERE country.independence_year < 1930\n) AS languages;\n```",
+  "score": 4,
+  "cost": 9.100000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 59
+  }
+}

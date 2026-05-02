@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 17,
+  "response": "Here's a set of **pytest-style unit tests** for the `is_balanced_parens` function. These tests cover:\n\n- **Happy path**: Valid balanced parentheses.\n- **Edge cases**: Empty string, single pair, nested pairs.\n- **Error cases**: Mismatched brackets, unbalanced brackets, invalid characters.\n\n### \u2705 `test_is_balanced_parens.py`\n\n```python\nimport pytest\n\ndef test_is_balanced_parens():\n    # Happy path\n    assert is_balanced_parens(\"()\") == True\n    assert is_balanced_parens(\"()[]{}\") == True\n    assert is_balanced_parens(\"{[]}\") == True\n    assert is_balanced_parens(\"([{}])\") == True\n\n    # Edge cases\n    assert is_balanced_parens(\"\") == True\n    assert is_balanced_parens(\"()()\") == True\n    assert is_balanced_parens(\"()[]{}()\") == True\n    assert is_balanced_parens(\"([)]\") == False  # Mismatched, not balanced\n    assert is_balanced_parens(\"([)]\") == False\n    assert is_balanced_parens(\"(([]))\") == True\n    assert is_balanced_parens(\"([)]\") == False\n\n    # Error cases\n    assert is_balanced_parens(\"(\") == False\n    assert is_balanced_parens(\")\") == False\n    assert is_balanced_parens(\"([\") == False\n    assert is_balanced_parens(\"]({})\") == False\n    assert is_balanced_parens(\"({[)]}\") == False\n    assert is_balanced_parens(\"abc\") == True  # No brackets, should return True\n    assert is_balanced_parens(\"a(b)c\") == True  # Non-bracket characters are ignored\n    assert is_balanced_parens(\"a(b)c(d)e\") == True\n    assert is_balanced_parens(\"a(b)c(d)e(f)\") == True\n    assert is_balanced_parens(\"a(b)c(d)e(f)g\") == True\n\n    # Invalid characters (non-parentheses)\n    assert is_balanced_parens(\"abc123\") == True\n    assert is_balanced_parens(\"a!b@c#d\") == True\n```\n\n### \u2705 How to run the tests:\n\nMake sure the `is_balanced_parens` function is in the same file or imported properly. Then run:\n\n```bash\npytest test_is_balanced_parens.py\n```\n\n### \ud83e\udde0 Notes:\n\n- The function ignores any characters that are not parentheses (i.e., `(`, `)`, `[`, `]`, `{`, `}`).\n- The test `assert is_balanced_parens(\"abc\") == True` confirms that non-parentheses characters do **not** affect the result.\n- The test `assert is_balanced_parens(\"([)]\") == False` confirms that mismatched brackets are correctly detected.\n\nLet me know if you want a version that uses `pytest` fixtures or parametrized tests.",
+  "score": 4,
+  "cost": 2.6169e-05,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 670
+  }
+}

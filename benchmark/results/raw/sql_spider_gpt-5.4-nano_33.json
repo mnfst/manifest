@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "SELECT\n  e.episode_title,\n  e.rating\nFROM\n  tvshow.episodes e\nORDER BY\n  e.rating DESC\nLIMIT 3;",
+  "score": 5,
+  "cost": 2.2100000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 36
+  }
+}

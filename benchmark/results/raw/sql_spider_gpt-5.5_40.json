@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "SELECT cn.MakeId, cn.Make\nFROM car_names AS cn\nJOIN cars_data AS cd\n  ON cn.MakeId = cd.Id\nWHERE cd.Horsepower > (SELECT MIN(Horsepower) FROM cars_data)\n  AND cd.Cylinders <= 3;",
+  "score": 5,
+  "cost": 0.00414,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 323
+  }
+}

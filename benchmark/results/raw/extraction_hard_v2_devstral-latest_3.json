@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page fails with white screen after payment submission\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout page\",\n    \"Enter card information\",\n    \"Click 'Pay' button\"\n  ],\n  \"expected_behavior\": \"Payment should process successfully and redirect to confirmation page\",\n  \"actual_behavior\": \"Spinner appears for 30 seconds followed by white screen with no error message. Console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 6.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 168
+  }
+}

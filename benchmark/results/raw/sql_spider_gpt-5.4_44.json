@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT airport_code\nFROM (\n  SELECT source_airport AS airport_code, COUNT(*) AS flight_count\n  FROM flights\n  GROUP BY source_airport\n  UNION ALL\n  SELECT destination_airport AS airport_code, COUNT(*) AS flight_count\n  FROM flights\n  GROUP BY destination_airport\n) t\nGROUP BY airport_code\nORDER BY SUM(flight_count) ASC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 2,
+  "cost": 0.000852,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 89
+  }
+}

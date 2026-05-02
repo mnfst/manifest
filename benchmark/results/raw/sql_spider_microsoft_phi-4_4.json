@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 4,
+  "response": "```sql\nSELECT SUM(bonus) AS total_bonus\nFROM employee_hire_evaluation;\n```",
+  "score": 2,
+  "cost": 5.85e-06,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 20
+  }
+}

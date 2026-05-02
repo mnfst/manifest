@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "To solve this problem, we need to determine how many people initially got on the bus at the terminal. Let's break it down step by step:\n\n1. **Let \\( x \\) be the number of people who got on the bus at the terminal.**\n\n2. **At the first bus stop:**\n   - 5 more people got on the bus.\n   - Total number of people on the bus after the first stop = \\( x + 5 \\).\n\n3. **At the second bus stop:**\n   - 7 people got off the bus.\n   - 8 more people got on the bus.\n   - Total number of people on the bus after the second stop = \\( (x + 5) - 7 + 8 \\).\n\n4. **Simplify the expression:**\n   \\[\n   (x + 5) - 7 + 8 = x + 5 - 7 + 8 = x + 6\n   \\]\n\n5. **We know that there were 20 people on the bus heading to the third stop:**\n   \\[\n   x + 6 = 20\n   \\]\n\n6. **Solve for \\( x \\):**\n   \\[\n   x + 6 = 20 \\\\\n   x = 20 - 6 \\\\\n   x = 14\n   \\]\n\nTherefore, the number of people who got on the bus at the terminal is 14.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 2.678e-05,
+  "expected": "14",
+  "tokens": {
+    "input": 111,
+    "output": 301
+  }
+}

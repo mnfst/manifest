@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "```sql\nSELECT COUNT(*) \nFROM city \nWHERE region = 'Gelderland';\n```",
+  "score": 4,
+  "cost": 4.743e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 20
+  }
+}

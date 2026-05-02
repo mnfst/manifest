@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "To find the total number of kittens the Doubtfire family now has, we need to add the number of adopted kittens to the number of kittens born to their two house cats, Patchy and Trixie.\n\n1. **Adopted kittens:** The sisters are driving home with **7** kittens.\n2. **Patchy's kittens:** Patchy had thrice (three times) the number of adopted kittens. \n   3 * 7 = **21** kittens.\n3. **Trixie's kittens:** Trixie had **12** kittens.\n\nNow, we add all the kittens together to find the total:\n7 (adopted) + 21 (Patchy's) + 12 (Trixie's) = 40 kittens.\n\nANSWER: 40",
+  "score": 5,
+  "cost": 0.00287,
+  "expected": "40",
+  "tokens": {
+    "input": 116,
+    "output": 172
+  }
+}

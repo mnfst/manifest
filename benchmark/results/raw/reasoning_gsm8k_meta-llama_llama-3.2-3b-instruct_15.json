@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "To find out how many points Joey is winning, we need to calculate the total points he has after his turn and compare it to Marcy's total points.\n\nJoey starts with 214 points and scores 26 points, so his new total is:\n214 + 26 = 240 points\n\nMarcy starts with 225 points and scores 10 points, so her new total is:\n225 + 10 = 235 points\n\nTo find out how many points Joey is winning, we subtract Marcy's total from Joey's total:\n240 - 235 = 5 points\n\nANSWER: 5",
+  "score": 5,
+  "cost": 1.0863e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 89,
+    "output": 124
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "```python\n# test_title_case.py\nimport pytest\n\nfrom your_module import title_case\n\n\n@pytest.mark.parametrize(\n    \"inp, expected\",\n    [\n        (\"hello world\", \"Hello World\"),                 # basic happy path\n        (\"HELLO WORLD\", \"Hello World\"),                 # existing caps normalized\n        (\"a b c\", \"A B C\"),                             # single-letter words\n        (\"  hello   world  \", \"Hello World\"),          # extra spaces collapse via split()\n        (\"python programming\", \"Python Programming\"), # multiple words\n        (\"\", \"\"),                                        # empty string\n    ],\n)\ndef test_title_case_happy_path(inp, expected):\n    assert title_case(inp) == expected\n\n\n@pytest.mark.parametrize(\n    \"inp, expected\",\n    [\n        (\"hello\\tworld\", \"Hello World\"),               # tabs are treated as whitespace by split()\n        (\"hello\\nworld\", \"Hello World\"),               # newlines as whitespace\n        (\"   \", \"\"),                                     # only whitespace -> no words\n        (\" leading and trailing \", \"Leading And Trailing\"),  # leading/trailing whitespace\n        (\"multi   space   test\", \"Multi Space Test\"), # multiple internal spaces\n    ],\n)\ndef test_title_case_edge_cases_whitespace(inp, expected):\n    assert title_case(inp) == expected\n\n\ndef test_title_case_error_non_string():\n    with pytest.raises(AttributeError):\n        # Non-strings will likely fail because .split() is not present\n        title_case(None)\n\n\n@pytest.mark.parametrize(\"bad\", [123, 45.6, [\"a\", \"b\"], {\"k\": \"v\"}, object()])\ndef test_title_case_error_types(bad):\n    with pytest.raises(AttributeError):\n        title_case(bad)\n```",
+  "score": 5,
+  "cost": 0.0001485,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 357
+  }
+}

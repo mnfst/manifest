@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 6,
+  "response": "```json\n{\"name\": \"translate\", \"arguments\": {\"text\": \"The meeting has been rescheduled to Monday\", \"target_language\": \"es\", \"source_language\": \"auto\"}}\n```",
+  "score": 5,
+  "cost": 2.2800000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 42
+  }
+}

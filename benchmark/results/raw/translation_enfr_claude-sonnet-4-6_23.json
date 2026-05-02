@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "French: Des d\u00e9versoirs capables de g\u00e9rer les \u00e9v\u00e9nements d'inondation postul\u00e9s sont int\u00e9gr\u00e9s soit dans les structures de barrage, soit construits en tant que structures s\u00e9par\u00e9es.",
+  "score": 5,
+  "cost": 0.0009,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 49
+  }
+}

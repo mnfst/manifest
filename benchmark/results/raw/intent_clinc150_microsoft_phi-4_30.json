@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "intent_clinc150",
+  "case": 30,
+  "response": "where_are_you_from",
+  "score": 5,
+  "cost": 3.289e-05,
+  "expected": "where_are_you_from",
+  "tokens": {
+    "input": 501,
+    "output": 5
+  }
+}

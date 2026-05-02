@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "SELECT country\nFROM singers\nWHERE age > 40\nINTERSECT\nSELECT country\nFROM singers\nWHERE age < 30;",
+  "score": 3,
+  "cost": 6.425e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 1204
+  }
+}

@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "extraction_hard_v2",
   "case": 44,
-  "response": "{\"title\":\"Senior Backend Engineer\",\"company\":\"CloudMatrix\",\"location\":{\"city\":\"Austin\",\"remote\":true},\"salary\":{\"min\":165000,\"max\":195000},\"requirements\":{\"min_years\":5,\"skills\":[\"distributed systems\",\"Go\",\"Rust\",\"Kubernetes\",\"event-driven architectures\"]},\"benefits\":[\"unlimited PTO\",\"health/dental/vision\",\"401k match\",\"$3K learning budget\"]}",
+  "response": "{\n  \"title\": \"Senior Backend Engineer\",\n  \"company\": \"CloudMatrix\",\n  \"location\": {\n    \"city\": \"Austin\",\n    \"remote\": true\n  },\n  \"salary\": {\n    \"min\": 165000,\n    \"max\": 195000\n  },\n  \"requirements\": {\n    \"min_years\": 5,\n    \"skills\": [\n      \"distributed systems\",\n      \"Go\",\n      \"Rust\",\n      \"Kubernetes\",\n      \"event-driven architectures\"\n    ]\n  },\n  \"benefits\": [\n    \"unlimited PTO\",\n    \"health/dental/vision\",\n    \"401k match\",\n    \"$3K learning budget\"\n  ]\n}",
   "score": 0,
-  "cost": 0.00170225,
+  "cost": 0.00214325,
   "expected": "",
   "tokens": {
     "input": 177,
-    "output": 1658
+    "output": 2099
   }
 }

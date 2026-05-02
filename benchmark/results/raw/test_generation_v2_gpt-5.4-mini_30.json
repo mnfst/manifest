@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "```python\nimport pytest\n\nfrom your_module import snake_to_camel\n\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        (\"snake_case\", \"snakeCase\"),\n        (\"already_snake_case\", \"alreadySnakeCase\"),\n        (\"a_b_c\", \"aBC\"),\n        (\"hello_world\", \"helloWorld\"),\n        (\"single\", \"single\"),\n        (\"\", \"\"),\n    ],\n)\ndef test_snake_to_camel_happy_and_edge_cases(input_str, expected):\n    assert snake_to_camel(input_str) == expected\n\n\ndef test_snake_to_camel_leading_underscore():\n    assert snake_to_camel(\"_leading\") == \"Leading\"\n\n\ndef test_snake_to_camel_trailing_underscore():\n    assert snake_to_camel(\"trailing_\") == \"trailing\"\n\n\ndef test_snake_to_camel_multiple_consecutive_underscores():\n    assert snake_to_camel(\"multiple__underscores\") == \"multipleUnderscores\"\n\n\ndef test_snake_to_camel_only_underscores():\n    assert snake_to_camel(\"___\") == \"\"\n\n\ndef test_snake_to_camel_non_string_raises_attribute_error():\n    with pytest.raises(AttributeError):\n        snake_to_camel(None)  # type: ignore[arg-type]\n```",
+  "score": 4,
+  "cost": 0.0003345,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 261
+  }
+}

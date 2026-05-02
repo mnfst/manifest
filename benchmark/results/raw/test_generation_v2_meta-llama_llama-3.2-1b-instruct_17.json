@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 17,
+  "response": "Here are the unit tests for the `is_balanced_parens` function using pytest style:\n\n```python\nimport pytest\n\ndef test_balanced_parens_happy_path():\n    assert is_balanced_parens(\"()\") == True\n    assert is_balanced_parens(\"()[]{}\") == True\n    assert is_balanced_parens(\"(]\") == False\n    assert is_balanced_parens(\"([)]\") == False\n    assert is_balanced_parens(\"{[]}\") == True\n\ndef test_balanced_parens_edge_case():\n    assert is_balanced_parens(\"([)]\") == False\n    assert is_balanced_parens(\"{[}\") == False\n\ndef test_balanced_parens_empty_string():\n    assert is_balanced_parens(\"\") == True\n    assert is_balanced_parens(\"()\") == True\n\ndef test_balanced_parens_single_char():\n    assert is_balanced_parens(\"a\") == True\n    assert is_balanced_parens(\"b\") == False\n\ndef test_balanced_parens_non_string_input():\n    with pytest.raises(TypeError):\n        is_balanced_parens(123)\n    with pytest.raises(TypeError):\n        is_balanced_parens(123.45)\n    with pytest.raises(TypeError):\n        is_balanced_parens([1, 2, 3])\n    with pytest.raises(TypeError):\n        is_balanced_parens({1, 2, 3})\n    with pytest.raises(TypeError):\n        is_balanced_parens({1, 2, 3.4})\n    with pytest.raises(TypeError):\n        is_balanced_parens({1, 2, \"a\"})\n    with pytest.raises(TypeError):\n        is_balanced_parens({1, 2, [1, 2]})\n    with pytest.raises(TypeError):\n        is_balanced_parens({1, 2, {\"a\": 1, 2}})\n    with pytest.raises(TypeError):\n        is_balanced_parens({1, 2, [1, 2, \"a\"]})\n    with pytest.raises(TypeError):\n        is_balanced_parens({1, 2, {\"a\": 1, 2}})\n    with pytest.raises(TypeError):\n        is_balanced_parens({1, 2, [1, 2, {\"a\": 1, 2}]})\n```\n\nThese tests cover the following cases:\n\n* Happy path: Balanced parentheses in a string\n* Edge cases: Empty string, single character, non-string input\n* Error cases: Non-string input, non-integer input, non-list input, non-dict input, non-list of non-integer values, non-list of non-dict values, non-list of non-integer and non-dict values.",
+  "score": 4,
+  "cost": 1.9116e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 586
+  }
+}

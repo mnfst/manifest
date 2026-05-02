@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "SELECT s.title, s.release_year\nFROM songs s\nJOIN singers sg ON s.singer_id = sg.singer_id\nWHERE sg.birth_year = (SELECT MAX(birth_year) FROM singers);",
+  "score": 4,
+  "cost": 9.815e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 1887
+  }
+}

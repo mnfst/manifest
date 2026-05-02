@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let me denote the number of people who got on at the terminal as x.\n\n**Step 1:** Start with x people at the terminal.\n\n**Step 2:** At the first bus stop, 5 more people got in.\n- Total = x + 5\n\n**Step 3:** At the second bus stop, 7 people got off and 8 got on.\n- Total = (x + 5) - 7 + 8 = x + 6\n\n**Step 4:** After the second stop, there are 20 people heading to the third stop.\n- x + 6 = 20\n- x = 14\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.002676,
+  "expected": "14",
+  "tokens": {
+    "input": 117,
+    "output": 155
+  }
+}

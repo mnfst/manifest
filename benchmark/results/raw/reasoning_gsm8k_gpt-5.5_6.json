@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Ann is 9 years old.\n\nHer brother is twice her age:\n\n9 \u00d7 2 = 18\n\nSo her brother is 18 years old now.\n\nIn 3 years:\n\n18 + 3 = 21\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.001206,
+  "expected": "21",
+  "tokens": {
+    "input": 66,
+    "output": 84
+  }
+}

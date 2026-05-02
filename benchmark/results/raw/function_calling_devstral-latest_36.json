@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 36,
+  "response": "```json\n{\"name\": \"subscribe\", \"arguments\": {\"email\": \"jane@example.com\", \"list_name\": \"monthly newsletter\"}}\n```",
+  "score": 5,
+  "cost": 1.86e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 33
+  }
+}

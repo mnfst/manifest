@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "SELECT name FROM sections ORDER BY name DESC;",
+  "score": 5,
+  "cost": 2.64e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 454
+  }
+}

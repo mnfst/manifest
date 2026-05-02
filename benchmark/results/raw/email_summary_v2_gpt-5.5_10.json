@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "Q1 performance is strong with revenue at 127% of target and NRR at 115%, though CAC has increased 22%. The CEO needs your product roadmap section by Wednesday ahead of next Tuesday\u2019s board meeting.",
+  "score": 5,
+  "cost": 0.001059,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 67
+  }
+}

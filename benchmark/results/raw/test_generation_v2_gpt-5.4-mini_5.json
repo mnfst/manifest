@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "```python\nimport pytest\n\nfrom your_module import count_vowels\n\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        (\"\", 0),                          # empty string\n        (\"bcdfg\", 0),                     # no vowels\n        (\"a\", 1),                         # single vowel\n        (\"A\", 1),                         # uppercase vowel\n        (\"hello\", 2),                    # normal case\n        (\"HELLO\", 2),                    # uppercase word\n        (\"The quick brown fox\", 5),      # mixed case with spaces\n        (\"aeiou\", 5),                   # all vowels\n        (\"AEIOU\", 5),                   # all uppercase vowels\n        (\"Python\", 1),                 # one vowel\n        (\"12345\", 0),                    # digits\n        (\"h3ll0\", 0),                    # alphanumeric, no vowels\n        (\"rhythm\", 0),                   # vowel-less word\n        (\"Beautiful\", 5),              # mixed case with multiple vowels\n    ],\n)\ndef test_count_vowels_happy_and_edge_cases(input_str, expected):\n    assert count_vowels(input_str) == expected\n\n\ndef test_count_vowels_unicode_non_vowels():\n    # Characters outside ASCII vowels should not be counted\n    assert count_vowels(\"\u00e9\u00ef\u00f6\u00fc\") == 0\n\n\ndef test_count_vowels_with_punctuation():\n    assert count_vowels(\"hello, world!\") == 3\n\n\ndef test_count_vowels_non_string_raises_attribute_error():\n    # The function expects a string; non-strings without .lower() should fail\n    with pytest.raises(AttributeError):\n        count_vowels(123)\n\n\ndef test_count_vowels_none_raises_attribute_error():\n    with pytest.raises(AttributeError):\n        count_vowels(None)\n```\n\nIf you want, I can also provide a version organized into a `TestCountVowels` class or add property-based tests.",
+  "score": 5,
+  "cost": 0.0005034,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 404
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "Here is a 2-sentence summary of the email:\n\nA customer has requested that the company export their personal data across all services, including analytics data, for processing purposes, and also requires documentation of the data processing activities. The company must also include a third-party data sharing log in the export request, as per the GDPR regulations.",
+  "score": 4,
+  "cost": 4.671000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 68
+  }
+}

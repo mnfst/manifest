@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "Let me solve this step by step.\n\n**Anakin's catch:**\n- Starfish: 10\n- Sea horses: 6\n- Clownfish: 3\n\n**Locsin's catch:**\n- Starfish: 10 - 5 = 5\n- Sea horses: 6 - 3 = 3\n- Clownfish: 3 + 2 = 5\n\n**Total fish caught:**\n\nNote: The question asks about \"fish\" - starfish and sea horses are not technically fish, but I'll count all creatures caught.\n\nAnakin's total: 10 + 6 + 3 = 19\nLocsin's total: 5 + 3 + 5 = 13\n\n**Grand total: 19 + 13 = 32**\n\nANSWER: 32",
+  "score": 5,
+  "cost": 0.003363,
+  "expected": "32",
+  "tokens": {
+    "input": 131,
+    "output": 198
+  }
+}

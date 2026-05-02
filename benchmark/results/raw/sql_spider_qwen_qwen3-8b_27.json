@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT c.name\nFROM countries c\nJOIN country_languages cl ON c.id = cl.country_id\nJOIN languages l ON cl.language_id = l.id\nWHERE l.name IN ('English', 'French')\nGROUP BY c.id\nHAVING COUNT(DISTINCT l.name) = 2;",
+  "score": 5,
+  "cost": 3.84e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 695
+  }
+}

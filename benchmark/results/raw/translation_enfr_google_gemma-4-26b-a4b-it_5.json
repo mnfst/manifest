@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Voici une traduction qui conserve la pr\u00e9cision scientifique et le ton acad\u00e9mique du texte original :\n\n**\u00ab Le floc provenant de SRT (temps de s\u00e9jour des boues) plus \u00e9lev\u00e9s \u00e9tait moins hydrat\u00e9 et pr\u00e9sentait une couche dense de SEP (substances polym\u00e9riques extracellulaires) recouvrant une grande partie de sa surface. \u00bb**\n\n### Notes terminologiques :\n*   **Floc :** Terme technique identique en fran\u00e7ais pour le traitement des eaux.\n*   **SRT (Sludge Retention Time) :** Bien que l'on puisse utiliser \u00ab \u00e2ge des boues \u00bb, l'acronyme SRT est tr\u00e8s courant dans la litt\u00e9rature scientifique francophone. Si vous pr\u00e9f\u00e9rez une version enti\u00e8rement traduite, utilisez **\u00ab temps de s\u00e9jour des boues \u00bb**.\n*   **EPS (Extracellular Polymeric Substances) :** Se traduit par **\u00ab SEP \u00bb** (substances polym\u00e9riques extracellulaires).\n*   **Hydrated :** \u00ab Hydrat\u00e9 \u00bb est le terme exact pour d\u00e9crire la teneur en eau des flocs.",
+  "score": 5,
+  "cost": 1.668e-05,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 220
+  }
+}

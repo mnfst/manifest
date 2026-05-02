@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "intent_clinc150",
+  "case": 0,
+  "response": "rollover_401k",
+  "score": 5,
+  "cost": 0.002019,
+  "expected": "rollover_401k",
+  "tokens": {
+    "input": 633,
+    "output": 8
+  }
+}

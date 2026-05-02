@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "SELECT COUNT(*) FROM flights WHERE departure_city = 'Aberdeen' AND destination_city = 'Ashley';",
+  "score": 5,
+  "cost": 2.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 435
+  }
+}

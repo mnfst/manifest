@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "To find out how many pounds of insects the flock of ten ducks needs per day, we can follow these steps:\n\n1. First, calculate how many pounds of insects one duck needs per day. Since a duck needs 3.5 pounds per week and there are 7 days in a week, we divide the weekly amount by 7:\n3.5 pounds / 7 days = 0.5 pounds per day for one duck.\n\n2. Next, calculate how much the entire flock of ten ducks needs per day by multiplying the daily amount for one duck by the number of ducks:\n0.5 pounds/duck * 10 ducks = 5 pounds.\n\nAlternatively, you can find the weekly amount for the whole flock first (3.5 pounds * 10 ducks = 35 pounds per week) and then divide by 7 days (35 / 7 = 5 pounds per day). \n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0031375,
+  "expected": "5",
+  "tokens": {
+    "input": 73,
+    "output": 197
+  }
+}

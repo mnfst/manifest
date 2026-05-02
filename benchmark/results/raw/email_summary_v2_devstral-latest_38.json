@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The bug bounty program's first month yielded 12 valid reports (including 3 critical vulnerabilities, all patched within 24 hours) with $15K in payouts, demonstrating strong ROI. The security team recommends continuing the program.",
+  "score": 5,
+  "cost": 2.71e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 52
+  }
+}

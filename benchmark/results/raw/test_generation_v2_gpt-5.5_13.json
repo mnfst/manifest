@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "```python\n# test_fizzbuzz.py\nimport pytest\n\nfrom your_module import fizzbuzz  # Replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    (\"n\", \"expected\"),\n    [\n        (1, \"1\"),\n        (2, \"2\"),\n        (3, \"Fizz\"),\n        (6, \"Fizz\"),\n        (5, \"Buzz\"),\n        (10, \"Buzz\"),\n        (15, \"FizzBuzz\"),\n        (30, \"FizzBuzz\"),\n    ],\n)\ndef test_fizzbuzz_happy_path(n, expected):\n    assert fizzbuzz(n) == expected\n\n\n@pytest.mark.parametrize(\n    (\"n\", \"expected\"),\n    [\n        (0, \"FizzBuzz\"),\n        (-1, \"-1\"),\n        (-3, \"Fizz\"),\n        (-5, \"Buzz\"),\n        (-15, \"FizzBuzz\"),\n    ],\n)\ndef test_fizzbuzz_edge_cases(n, expected):\n    assert fizzbuzz(n) == expected\n\n\n@pytest.mark.parametrize(\n    (\"n\", \"expected\"),\n    [\n        (1_000_000, \"Buzz\"),\n        (999_999, \"Fizz\"),\n        (15_000_000, \"FizzBuzz\"),\n        (1_000_001, \"1000001\"),\n    ],\n)\ndef test_fizzbuzz_large_numbers(n, expected):\n    assert fizzbuzz(n) == expected\n\n\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        None,\n        \"15\",\n        [],\n        {},\n        object(),\n    ],\n)\ndef test_fizzbuzz_invalid_inputs_raise_type_error(bad_input):\n    with pytest.raises(TypeError):\n        fizzbuzz(bad_input)\n```",
+  "score": 5,
+  "cost": 0.01059,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 859
+  }
+}

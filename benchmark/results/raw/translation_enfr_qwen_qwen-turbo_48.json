@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 48,
+  "response": "- Choisissez l'un de ces Renault \u00e0 louer \u00e0 Galati ou dans d'autres villes telles que : Arad, T\u00eergu Jiu, Sibiu, Oradea, Bra\u0219ov, Bucarest, Ia\u0219i ou Suceava, et vous arriverez \u00e0 votre destination en un rien de temps. De plus, vous \u00e9conomiserez beaucoup d'argent que vous pourrez d\u00e9penser ailleurs.",
+  "score": 4,
+  "cost": 6.468e-06,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 93
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "To solve the problem, we begin by carefully interpreting the information provided and breaking it down step by step.\n\n---\n\n### Step 1: Understand the quantities\n\n- **Twenty dozen cups**:  \n  A dozen is 12, so  \n  $$\n  20 \\text{ dozen} = 20 \\times 12 = 240 \\text{ cups}\n  $$\n\n- **Half a dozen plates**:  \n  A dozen is 12, so  \n  $$\n  \\frac{1}{2} \\text{ dozen} = 6 \\text{ plates}\n  $$\n\n---\n\n### Step 2: Calculate the total cost of the plates\n\nEach plate is sold at $6000, so the total cost for 6 plates is:\n$$\n6 \\times 6000 = 36,000\n$$\n\n---\n\n### Step 3: Determine the cost of the cups\n\nThe problem states that the cost of 240 cups is **$1200 less** than the cost of the 6 plates. Therefore:\n$$\n\\text{Cost of 240 cups} = 36,000 - 1200 = 34,800\n$$\n\n---\n\n### Step 4: Calculate the cost per cup\n\nNow, to find the cost per cup, divide the total cost of the cups by the number of cups:\n$$\n\\text{Cost per cup} = \\frac{34,800}{240}\n$$\n\nLet\u2019s simplify:\n$$\n\\frac{34,800}{240} = \\frac{3480}{24} = \\frac{290}{2} = 145\n$$\n\n---\n\n### Final Answer\n\nThe total cost of buying each cup is  \n$$\n\\boxed{145}\n$$",
+  "score": 5,
+  "cost": 0.00011210000000000001,
+  "expected": "145",
+  "tokens": {
+    "input": 81,
+    "output": 2161
+  }
+}

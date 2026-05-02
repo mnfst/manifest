@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "intent_clinc150",
+  "case": 13,
+  "response": "nutrition_info",
+  "score": 5,
+  "cost": 0.001851,
+  "expected": "nutrition_info",
+  "tokens": {
+    "input": 509,
+    "output": 27
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Step by step:\n\n1. Peaches: 6 pounds \u00d7 $2.00 = $12.00\n2. Plums: 8 pounds \u00d7 $1.00 = $8.00\n3. Apricots: 6 pounds \u00d7 $3.00 = $18.00\n\nTotal: $12.00 + $8.00 + $18.00 = $38.00\n\nANSWER: 38",
+  "score": 5,
+  "cost": 0.001968,
+  "expected": "38",
+  "tokens": {
+    "input": 131,
+    "output": 105
+  }
+}

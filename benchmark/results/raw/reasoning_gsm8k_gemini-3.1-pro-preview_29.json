@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "To find the number of yellow cars, we need to determine the number of each of the other colored cars first and subtract their total from the overall total of cars.\n\nStep 1: Find the number of green cars.\nThe rink has 2 fewer green cars than red cars. \n12 red cars - 2 = 10 green cars.\n\nStep 2: Find the number of blue cars.\nThe rink has 3 times the number of blue cars as green cars.\n10 green cars * 3 = 30 blue cars.\n\nStep 3: Find the total number of red, green, and blue cars.\n12 red + 10 green + 30 blue = 52 cars.\n\nStep 4: Find the number of yellow cars.\nSubtract the number of red, green, and blue cars from the total number of cars.\n75 total cars - 52 cars = 23 yellow cars.\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.0033925,
+  "expected": "23",
+  "tokens": {
+    "input": 103,
+    "output": 209
+  }
+}

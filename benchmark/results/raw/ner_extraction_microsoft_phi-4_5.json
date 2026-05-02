@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 5,
+  "response": "```json\n{\n  \"persons\": [\"Dr. James Wilson\"],\n  \"organizations\": [\"Stanford University\", \"IEEE\"],\n  \"locations\": [\"Tokyo\"]\n}\n```",
+  "score": 5,
+  "cost": 7.15e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 37
+  }
+}

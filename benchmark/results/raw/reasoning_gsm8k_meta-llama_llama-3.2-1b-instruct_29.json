@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "To solve this problem, we need to find the number of blue cars first. Let's start by using the information that there are 2 fewer green cars than red cars. Since there are 12 red cars, there are 12 - 2 = 10 green cars.\n\nNext, we know that there are 3 times the number of blue cars as there are green cars. Since there are 10 green cars, there are 3 x 10 = 30 blue cars.\n\nNow, we know that the total number of cars is 75. We can add up the number of red, green, and blue cars to find the number of yellow cars. 12 (red) + 10 (green) + 30 (blue) = 52. \n\nTherefore, the number of yellow cars is 75 - 52 = 23.",
+  "score": 5,
+  "cost": 7.776e-06,
+  "expected": "23",
+  "tokens": {
+    "input": 114,
+    "output": 174
+  }
+}

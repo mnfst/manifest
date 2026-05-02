@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "Je ai des g\u00e2teaux de cr\u00e8me, des viandes sucr\u00e9es, du poisson pickl\u00e9 et des dates cristallis\u00e9es.",
+  "score": 3,
+  "cost": 2.133e-06,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 31
+  }
+}

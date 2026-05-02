@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Summary: Acme Corp is threatening to churn due to API latency issues and poor support response, and a dedicated engineer has been assigned. An executive needs to sponsor a call this week to address the issue.",
+  "score": 5,
+  "cost": 5.016e-06,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 41
+  }
+}

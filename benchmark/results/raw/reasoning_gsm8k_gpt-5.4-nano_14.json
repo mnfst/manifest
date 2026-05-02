@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "Step 1: Find the total weekly amount needed for 10 ducks.  \nEach duck needs 3.5 lb/week, so:  \n\\(10 \\times 3.5 = 35\\) lb/week\n\nStep 2: Convert weekly pounds to daily pounds.  \nThere are 7 days in a week, so:  \n\\(35 \\div 7 = 5\\) lb/day\n\nANSWER: 5",
+  "score": 5,
+  "cost": 4.36e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 76,
+    "output": 90
+  }
+}

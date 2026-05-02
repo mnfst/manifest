@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit : \"Oui.\" Et je lui ai dit : \"Et je me demande o\u00f9 cela va \u00eatre.\"",
+  "score": 4,
+  "cost": 2.079e-06,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 26
+  }
+}

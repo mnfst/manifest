@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "To solve this problem, we need to find out how many pomelos Eve gave away. We know that she is left with 1/4 of the original amount, which means she gave away 3/4 of the original amount.\n\nLet's start by finding 1/4 of the original amount of pomelos. Since Eve had 20 pieces of pomelos originally, we can multiply 20 by 1/4 to find the amount she has left:\n\n20 x 1/4 = 20/4 = 5\n\nSo, Eve has 5 pomelos left. To find out how many pomelos she gave away, we need to subtract the amount she has left from the original amount:\n\n20 - 5 = 15\n\nTherefore, Eve gave away 15 pomelos.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 1.3616999999999997e-05,
+  "expected": "15",
+  "tokens": {
+    "input": 93,
+    "output": 174
+  }
+}

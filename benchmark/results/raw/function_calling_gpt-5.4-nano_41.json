@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "function_calling",
+  "case": 41,
+  "response": "{\"name\":\"add_comment\",\"arguments\":{\"pr_id\":789,\"body\":\"LGTM approved\"}}",
+  "score": 5,
+  "cost": 1.8400000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 22
+  }
+}

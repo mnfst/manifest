@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "To find out how many books each child received, we need to follow these steps:\n\nStep 1: Calculate the total number of books Sarah bought.\nWe know she spent a total of $300 and each book cost $15. \nTotal books = Total amount spent / Cost per book\nTotal books = $300 / $15 = 20 books\n\nStep 2: Calculate how many books each child got.\nShe divided the 20 books equally among her 4 kids.\nBooks per child = Total books / Number of kids\nBooks per child = 20 / 4 = 5 books\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.002295,
+  "expected": "5",
+  "tokens": {
+    "input": 84,
+    "output": 139
+  }
+}

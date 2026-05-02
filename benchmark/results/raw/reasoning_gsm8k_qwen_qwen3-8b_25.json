@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "John's house is worth $250,000. He takes a loan of 40% of this value:  \n**Loan amount** = 40% of $250,000 = 0.4 \u00d7 250,000 = **$100,000**.  \n\nHe uses 60% of the loan to pay off debts:  \n**Debt payment** = 60% of $100,000 = 0.6 \u00d7 100,000 = **$60,000**.  \n\nThe leftover amount is the loan amount minus the debt payment:  \n**Leftover** = $100,000 \u2212 $60,000 = **$40,000**.  \n\nANSWER: 40000",
+  "score": 5,
+  "cost": 4.72e-05,
+  "expected": "40,000",
+  "tokens": {
+    "input": 111,
+    "output": 833
+  }
+}

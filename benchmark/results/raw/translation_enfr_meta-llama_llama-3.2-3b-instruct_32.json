@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et l'EEAS peuvent proposer le pr\u00e9l\u00e8vement de personnels au EUSR.",
+  "score": 3,
+  "cost": 4.385999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 33
+  }
+}

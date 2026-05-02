@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "SELECT DISTINCT m.Maker\nFROM car_makers m\nJOIN model_list ml ON m.Id = ml.Maker\nJOIN car_names cn ON ml.Model = cn.Model\nJOIN cars_data cd ON cn.MakeId = cd.Id\nWHERE cd.Year = 1970;",
+  "score": 4,
+  "cost": 0.001317,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 71
+  }
+}

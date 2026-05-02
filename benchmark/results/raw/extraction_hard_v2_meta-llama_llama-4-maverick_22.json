@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "extraction_hard_v2",
+  "case": 22,
+  "response": "```\n{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"],\n  \"decisions\": [\n    \"push the recommendation engine to Q3\",\n    \"allocate 20% of sprint capacity to tech debt\"\n  ],\n  \"action_items\": [\n    {\"owner\": \"Marcus\", \"task\": \"onboarding mockups\", \"deadline\": \"2026-04-18\"},\n    {\"owner\": \"Jamie\", \"task\": \"send updated roadmap\", \"deadline\": \"2026-04-12\"},\n    {\"owner\": \"Lin\", \"task\": \"analytics dashboard\", \"deadline\": \"2026-05-01\"}\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.0001257,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 166
+  }
+}

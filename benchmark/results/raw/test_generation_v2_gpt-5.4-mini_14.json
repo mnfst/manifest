@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 14,
+  "response": "```python\nimport pytest\n\nfrom your_module import deep_get\n\n\ndef test_deep_get_happy_path_nested_value():\n    data = {\"a\": {\"b\": {\"c\": 42}}}\n    assert deep_get(data, \"a.b.c\") == 42\n\n\ndef test_deep_get_happy_path_top_level_value():\n    data = {\"a\": 1}\n    assert deep_get(data, \"a\") == 1\n\n\ndef test_deep_get_missing_key_returns_default_none():\n    data = {\"a\": {\"b\": 1}}\n    assert deep_get(data, \"a.c\") is None\n\n\ndef test_deep_get_missing_key_returns_custom_default():\n    data = {\"a\": {\"b\": 1}}\n    assert deep_get(data, \"a.c\", default=\"missing\") == \"missing\"\n\n\ndef test_deep_get_returns_default_when_intermediate_value_is_not_dict():\n    data = {\"a\": 1}\n    assert deep_get(data, \"a.b\") is None\n\n\ndef test_deep_get_returns_custom_default_when_intermediate_value_is_not_dict():\n    data = {\"a\": 1}\n    assert deep_get(data, \"a.b\", default=\"missing\") == \"missing\"\n\n\ndef test_deep_get_empty_keys_returns_original_dict():\n    data = {\"a\": 1}\n    assert deep_get(data, \"\") == data\n\n\ndef test_deep_get_empty_dict_and_empty_keys_returns_empty_dict():\n    data = {}\n    assert deep_get(data, \"\") == {}\n\n\ndef test_deep_get_empty_dict_missing_key_returns_default():\n    data = {}\n    assert deep_get(data, \"a\") is None\n\n\ndef test_deep_get_non_dict_input_returns_default():\n    assert deep_get(\"not-a-dict\", \"a.b\") is None\n\n\ndef test_deep_get_non_dict_input_returns_custom_default():\n    assert deep_get([\"not\", \"a\", \"dict\"], \"a.b\", default=\"missing\") == \"missing\"\n\n\ndef test_deep_get_keys_with_consecutive_dots_uses_empty_string_key():\n    data = {\"a\": {\"\": {\"c\": 7}}}\n    assert deep_get(data, \"a..c\") == 7\n\n\ndef test_deep_get_key_value_none_still_resolves():\n    data = {\"a\": {\"b\": None}}\n    assert deep_get(data, \"a.b\") is None\n\n\ndef test_deep_get_key_value_none_and_custom_default():\n    data = {\"a\": {\"b\": None}}\n    assert deep_get(data, \"a.b\", default=\"missing\") is None\n```\n\n### Notes\n- Replace `from your_module import deep_get` with the actual module name.\n- These tests cover:\n  - happy paths\n  - missing keys / defaults\n  - non-dict intermediates\n  - non-dict inputs\n  - empty keys\n  - consecutive dots in key paths\n  - `None` values in the dictionary\n\nIf you want, I can also provide a version organized into a `TestDeepGet` class with parametrized tests.",
+  "score": 5,
+  "cost": 0.0007767,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 624
+  }
+}

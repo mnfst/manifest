@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"SpaceX\"\n  ],\n  \"locations\": [\n    \"Cape Canaveral\"\n  ]\n}",
+  "score": 4,
+  "cost": 0.0007875,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 41
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "Summary: The CEO is considering a $15M offer from BigCo to acquire the ML team and believes the offer is too low, recommending a counter or polite decline. The CEO suggests discussing the offer further and informing the board before responding.",
+  "score": 5,
+  "cost": 5.214e-06,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 49
+  }
+}

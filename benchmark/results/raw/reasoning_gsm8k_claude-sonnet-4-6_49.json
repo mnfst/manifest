@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Step 1: Find the ages of all siblings.\n\n- 3 sisters, each 16 years old\n- One brother is 12 years old\n- The other brother is 12 \u00d7 2 = 24 years old\n\nStep 2: Calculate the total age.\n\n- Sisters: 3 \u00d7 16 = 48\n- Brothers: 12 + 24 = 36\n- Total: 48 + 36 = 84\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.002022,
+  "expected": "84",
+  "tokens": {
+    "input": 104,
+    "output": 114
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X has launched AI features, including auto-categorization, but at twice our price, with a neutral market response, while we maintain advantages in API and integrations. The Product team recommends fast-tracking the AI roadmap item to stay competitive.",
+  "score": 5,
+  "cost": 0.001152,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 56
+  }
+}

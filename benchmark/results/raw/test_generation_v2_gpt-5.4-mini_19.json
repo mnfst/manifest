@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "```python\nimport pytest\n\nfrom your_module import clamp\n\n\n@pytest.mark.parametrize(\n    \"value,min_val,max_val,expected\",\n    [\n        (5.0, 0.0, 10.0, 5.0),      # within range\n        (-1.0, 0.0, 10.0, 0.0),     # below min\n        (11.0, 0.0, 10.0, 10.0),    # above max\n        (0.0, 0.0, 10.0, 0.0),      # at min\n        (10.0, 0.0, 10.0, 10.0),    # at max\n        (3, 1, 5, 3),               # integers work too\n        (1.5, 1.5, 2.5, 1.5),       # exact lower boundary\n        (2.5, 1.5, 2.5, 2.5),       # exact upper boundary\n    ],\n)\ndef test_clamp_happy_and_edge_cases(value, min_val, max_val, expected):\n    assert clamp(value, min_val, max_val) == expected\n\n\ndef test_clamp_with_negative_range():\n    assert clamp(-5.0, -10.0, -1.0) == -5.0\n    assert clamp(-15.0, -10.0, -1.0) == -10.0\n    assert clamp(0.0, -10.0, -1.0) == -1.0\n\n\ndef test_clamp_with_equal_bounds():\n    assert clamp(7.0, 7.0, 7.0) == 7.0\n    assert clamp(100.0, 7.0, 7.0) == 7.0\n    assert clamp(-100.0, 7.0, 7.0) == 7.0\n\n\ndef test_clamp_invalid_range_returns_unexpected_result():\n    # The function does not validate min_val <= max_val.\n    # This documents current behavior rather than enforcing an exception.\n    assert clamp(5.0, 10.0, 0.0) == 10.0\n    assert clamp(-5.0, 10.0, 0.0) == 10.0\n\n\ndef test_clamp_type_error_with_non_numeric_value():\n    with pytest.raises(TypeError):\n        clamp(\"5\", 0.0, 10.0)\n\n\ndef test_clamp_type_error_with_non_numeric_bounds():\n    with pytest.raises(TypeError):\n        clamp(5.0, \"0\", 10.0)\n    with pytest.raises(TypeError):\n        clamp(5.0, 0.0, \"10\")\n```\n\nNotes:\n- Replace `from your_module import clamp` with the actual import path.\n- Since the function does not validate `min_val <= max_val`, the \u201cinvalid range\u201d test documents current behavior rather than expecting an exception.",
+  "score": 5,
+  "cost": 0.0007992,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 650
+  }
+}

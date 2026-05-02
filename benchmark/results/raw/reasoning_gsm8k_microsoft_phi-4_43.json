@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "To solve the problem, we need to determine Jeff's age based on the given relationships between the ages of Jeff, Martha, and Mike.\n\n1. **Identify Mike's age:**\n   - Mike is 24 years old.\n\n2. **Determine Martha's age:**\n   - Martha is 4 years younger than Mike.\n   - Therefore, Martha's age is \\(24 - 4 = 20\\).\n\n3. **Determine Jeff's age:**\n   - Jeff is 10 years older than Martha.\n   - Therefore, Jeff's age is \\(20 + 10 = 30\\).\n\nThus, Jeff is 30 years old.\n\nANSWER: 30",
+  "score": 5,
+  "cost": 1.495e-05,
+  "expected": "30",
+  "tokens": {
+    "input": 90,
+    "output": 140
+  }
+}

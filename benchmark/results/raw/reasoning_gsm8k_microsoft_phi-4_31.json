@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "To solve this problem, we need to determine the number of girls, nongendered children, and then calculate the total number of children in the classroom.\n\n1. **Number of Boys**: The problem states that there are 30 boys in the classroom.\n\n2. **Number of Girls**: The classroom has 3 times as many girls as boys. Therefore, the number of girls is:\n   \\[\n   3 \\times 30 = 90\n   \\]\n\n3. **Number of Nongendered Children**: The classroom has \\(\\frac{1}{10}\\) as many nongendered children as boys. Therefore, the number of nongendered children is:\n   \\[\n   \\frac{1}{10} \\times 30 = 3\n   \\]\n\n4. **Total Number of Children**: To find the total number of children, we add the number of boys, girls, and nongendered children:\n   \\[\n   30 \\text{ (boys)} + 90 \\text{ (girls)} + 3 \\text{ (nongendered children)} = 123\n   \\]\n\nThus, the total number of children in the classroom is 123.\n\nANSWER: 123",
+  "score": 4,
+  "cost": 2.2815e-05,
+  "expected": "123",
+  "tokens": {
+    "input": 95,
+    "output": 256
+  }
+}

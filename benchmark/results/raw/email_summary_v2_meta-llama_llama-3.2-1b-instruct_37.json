@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company is interested in acquiring the ML team from the CEO, but the offer of $15M is considered too low, and the CEO recommends considering counter-offers or declining the offer. The company should discuss the offer with the board before responding to the CEO.",
+  "score": 3,
+  "cost": 4.670999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 66
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe sender is proposing a new pricing tier, \"Starter\", at $29/month, which would target users who are at risk of churning due to price concerns, and is expected to recover 15% of price-churned users and $180,000 in ARR. The proposed tier would include 5 users, 10,000 API calls, and email support, and is intended to address a key pain point for 40% of churned users.",
+  "score": 5,
+  "cost": 1.1322e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 107
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Here\u2019s the translation that maintains the tone and meaning of the original English sentence:\n\n**French:** *Cela ne peut mener qu\u2019au chaos et \u00e0 la terreur.*\n\nThis keeps the strong, ominous tone while accurately conveying the idea of inevitable disorder and fear.",
+  "score": 5,
+  "cost": 1.9600000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 55
+  }
+}

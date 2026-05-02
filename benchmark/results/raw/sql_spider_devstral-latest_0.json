@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "```sql\nSELECT\n    p.rank AS money_rank\nFROM\n    poker_player p\nJOIN\n    (SELECT MAX(height) AS max_height FROM poker_player) m\nON\n    p.height = m.max_height\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 2.3199999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 55
+  }
+}

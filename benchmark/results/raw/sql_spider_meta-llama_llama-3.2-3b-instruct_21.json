@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "```sql\nSELECT flight_number\nFROM flight_2\nWHERE airline = 'United';\n```",
+  "score": 4,
+  "cost": 4.743e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 20
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "To find the total amount Janet paid, we need to calculate the cost of the material, the cost of construction, and the cost of insurance.\n\nStep 1: Calculate the total cost of the brooch before insurance.\nCost of material = $500\nCost of construction = $800\nTotal cost before insurance = $500 + $800 = $1300\n\nStep 2: Calculate the cost of insurance.\nCost of insurance = 10% of $1300\n= 0.10 x $1300\n= $130\n\nStep 3: Calculate the total amount Janet paid.\nTotal amount paid = Total cost before insurance + Cost of insurance\n= $1300 + $130\n= $1430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 1.3055999999999998e-05,
+  "expected": "1430",
+  "tokens": {
+    "input": 103,
+    "output": 153
+  }
+}

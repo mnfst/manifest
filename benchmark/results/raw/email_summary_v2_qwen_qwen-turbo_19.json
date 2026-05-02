@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "The Datadog contract is expiring on June 30, and they are offering a 3-year renewal at a 14% discount, while Grafana Cloud is a cheaper alternative requiring a 3-month migration. Finance needs a decision by May 15.",
+  "score": 5,
+  "cost": 5.6100000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 56
+  }
+}

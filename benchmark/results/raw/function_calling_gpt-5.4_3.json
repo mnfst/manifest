@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "function_calling",
+  "case": 3,
+  "response": "{\"name\":\"create_task\",\"arguments\":{\"title\":\"Review PR 42\",\"priority\":\"high\",\"assignee\":\"alice\",\"due_date\":\"next Friday\"}}",
+  "score": 5,
+  "cost": 0.00049,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 33
+  }
+}

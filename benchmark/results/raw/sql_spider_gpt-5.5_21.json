@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "SELECT f.FlightNo\nFROM flights AS f\nJOIN airlines AS a ON f.Airline = a.uid\nWHERE a.Airline = 'United Airlines';",
+  "score": 4,
+  "cost": 0.00462,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 368
+  }
+}

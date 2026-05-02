@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les \u00e9vacuateurs de crues capables de g\u00e9rer les \u00e9v\u00e9nements d'inondation postul\u00e9s sont int\u00e9gr\u00e9s soit dans les structures du barrage, soit construits comme des structures s\u00e9par\u00e9es.",
+  "score": 5,
+  "cost": 1.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 37
+  }
+}

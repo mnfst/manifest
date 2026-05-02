@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "Par ailleurs, le deuxi\u00e8me atelier s'est concentr\u00e9 sur l'application des recommandations \u00e9mises par les organes de surveillance des organes de trait\u00e9s \u00e0 l'\u00c9tat du Cameroun, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, en ce qui concerne ses obligations envers les populations autochtones.",
+  "score": 4,
+  "cost": 7.3949999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 74
+  }
+}

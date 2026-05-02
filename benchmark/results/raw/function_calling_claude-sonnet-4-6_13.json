@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "function_calling",
+  "case": 13,
+  "response": "The user wants two actions performed. I'll provide both function calls:\n\n```json\n[\n  {\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}},\n  {\"name\": \"set_thermostat\", \"arguments\": {\"temperature\": 72}}\n]\n```",
+  "score": 2,
+  "cost": 0.001452,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 74
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "bill_due",
+  "score": 5,
+  "cost": 5.28e-05,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 508,
+    "output": 5
+  }
+}

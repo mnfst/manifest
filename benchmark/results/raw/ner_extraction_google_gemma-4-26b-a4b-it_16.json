@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "```json\n{\n  \"persons\": [\"Angela Merkel\"],\n  \"organizations\": [],\n  \"locations\": [\"White House\"]\n}\n```",
+  "score": 4,
+  "cost": 5.88e-06,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 28
+  }
+}

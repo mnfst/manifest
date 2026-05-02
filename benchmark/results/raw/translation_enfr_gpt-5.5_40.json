@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Nous avons juste besoin d\u2019obtenir plus d\u2019informations.",
+  "score": 5,
+  "cost": 0.000552,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 38
+  }
+}

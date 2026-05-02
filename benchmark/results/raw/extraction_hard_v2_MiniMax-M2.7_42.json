@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "extraction_hard_v2",
   "case": 42,
-  "response": "{\"meeting_title\":\"Product sync - April 10 2026\",\"date\":\"2026-04-10\",\"attendees\":[\"Jamie\",\"Priya\",\"Marcus\",\"Lin\"],\"decisions\":[\"Push the recommendation engine to Q3 since data pipeline won't be ready until June\",\"Allocate 20% of sprint capacity to tech debt\"],\"action_items\":[{\"owner\":\"Marcus\",\"task\":\"Create onboarding mockups\",\"deadline\":\"2026-04-18\"},{\"owner\":\"Jamie\",\"task\":\"Send updated roadmap\",\"deadline\":\"2026-04-13\"},{\"owner\":\"Lin\",\"task\":\"Build analytics dashboard\",\"deadline\":\"Before May board meeting\"}]}",
-  "score": 0,
-  "cost": 0.0033858,
+  "response": "{\"meeting_title\": \"Product sync - April 10 2026\", \"date\": \"2026-04-10\", \"attendees\": [\"Jamie (PM)\", \"Priya (eng lead)\", \"Marcus (design)\", \"Lin (data)\"], \"decisions\": [\"Push the recommendation engine to Q3 since data pipeline won't be ready until June\", \"Allocate 20% of sprint capacity to tech debt\"], \"action_items\": [{\"owner\": \"Marcus\", \"task\": \"Have onboarding mockups ready\", \"deadline\": \"2026-04-18\"}, {\"owner\": \"Jamie\", \"task\": \"Send updated roadmap\", \"deadline\": \"2026-04-14\"}, {\"owner\": \"Lin\", \"task\": \"Analytics dashboard ready before May board meeting\", \"deadline\": \"2026-04-30\"}]}",
+  "score": 4,
+  "cost": 0.003003,
   "expected": "",
   "tokens": {
     "input": 202,
-    "output": 719
+    "output": 632
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 19,
+  "response": "```json\n{\n  \"name\": \"run_tests\",\n  \"arguments\": {\n    \"module\": \"backend\",\n    \"verbose\": true\n  }\n}\n```",
+  "score": 5,
+  "cost": 9.49e-06,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 36
+  }
+}

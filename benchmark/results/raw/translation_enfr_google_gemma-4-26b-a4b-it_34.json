@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "Depending on the context (whether you are speaking to Sydney or about her), here are the most accurate translations:\n\n**1. If you are speaking TO Sydney (Direct address):**\n> **Sydney, Esther sera dans mon bureau.**\n\n**2. If you are speaking ABOUT Sydney (e.g., telling someone else that Sydney and Esther will be in your office):**\n> **Sydney et Esther seront dans mon bureau.**\n\n*Note: In English, the comma after \"Sydney\" usually implies you are addressing her. If that is the case, use the first option.*",
+  "score": 5,
+  "cost": 9.12e-06,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 118
+  }
+}

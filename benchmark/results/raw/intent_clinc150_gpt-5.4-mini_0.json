@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "intent_clinc150",
+  "case": 0,
+  "response": "rollover_401k",
+  "score": 5,
+  "cost": 0.00016379999999999997,
+  "expected": "rollover_401k",
+  "tokens": {
+    "input": 514,
+    "output": 8
+  }
+}

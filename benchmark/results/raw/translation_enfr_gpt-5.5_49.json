@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "J\u2019ai des g\u00e2teaux \u00e0 la cr\u00e8me, des friandises, du hareng marin\u00e9 et des dattes cristallis\u00e9es.",
+  "score": 5,
+  "cost": 0.001422,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 108
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "Here are comprehensive unit tests for the `clamp` function using pytest style, covering happy path, edge cases, and error cases:\n\n```python\nimport pytest\nfrom your_module import clamp  # Replace 'your_module' with the actual module name\n\ndef test_clamp_happy_path():\n    # Test normal cases where value is within bounds\n    assert clamp(5.0, 0.0, 10.0) == 5.0\n    assert clamp(-3.0, -5.0, 5.0) == -3.0\n    assert clamp(0.0, -1.0, 1.0) == 0.0\n\ndef test_clamp_below_min():\n    # Test when value is below min_val\n    assert clamp(-1.0, 0.0, 10.0) == 0.0\n    assert clamp(-100.0, -50.0, 50.0) == -50.0\n    assert clamp(0.0, 1.0, 10.0) == 1.0\n\ndef test_clamp_above_max():\n    # Test when value is above max_val\n    assert clamp(15.0, 0.0, 10.0) == 10.0\n    assert clamp(100.0, -50.0, 50.0) == 50.0\n    assert clamp(10.0, 0.0, 5.0) == 5.0\n\ndef test_clamp_edge_cases():\n    # Test when value equals min_val or max_val\n    assert clamp(5.0, 5.0, 10.0) == 5.0\n    assert clamp(10.0, 5.0, 10.0) == 10.0\n    assert clamp(0.0, 0.0, 0.0) == 0.0  # min and max are equal\n\ndef test_clamp_with_negative_values():\n    # Test with negative min and max values\n    assert clamp(-5.0, -10.0, -1.0) == -5.0\n    assert clamp(-15.0, -10.0, -1.0) == -10.0\n    assert clamp(5.0, -10.0, -1.0) == -1.0\n\ndef test_clamp_with_floats():\n    # Test with floating point precision\n    assert clamp(3.14159, 0.0, 3.1416) == 3.14159\n    assert clamp(3.14161, 0.0, 3.1416) == 3.1416\n    assert clamp(3.14159, 3.1416, 10.0) == 3.1416\n\ndef test_clamp_with_infinity():\n    # Test with infinity values\n    assert clamp(float('inf'), 0.0, 10.0) == 10.0\n    assert clamp(float('-inf'), 0.0, 10.0) == 0.0\n    assert clamp(5.0, float('-inf'), float('inf')) == 5.0\n\ndef test_clamp_with_nan():\n    # Test with NaN values\n    assert clamp(float('nan'), 0.0, 10.0) == 0.0  # NaN is less than any number\n    assert clamp(5.0, float('nan'), 10.0) == 5.0  # NaN comparisons are always False\n    assert clamp(5.0, 0.0, float('nan')) == 5.0\n\ndef test_clamp_type_errors():\n    # Test with invalid types\n    with pytest.raises(TypeError):\n        clamp(\"5.0\", 0.0, 10.0)\n    with pytest.raises(TypeError):\n        clamp(5.0, \"0.0\", 10.0)\n    with pytest.raises(TypeError):\n        clamp(5.0, 0.0, \"10.0\")\n    with pytest.raises(TypeError):\n        clamp(None, 0.0, 10.0)\n```\n\n### Notes about the test cases:\n\n1. **Happy Path**: Tests where the value is within the bounds (normal operation)\n2. **Edge Cases**:",
+  "score": 5,
+  "cost": 0.0003061,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 1000
+  }
+}

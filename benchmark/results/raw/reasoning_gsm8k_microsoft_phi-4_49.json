@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "To solve this problem, we need to determine the ages of all the siblings and then sum them up.\n\n1. **Ages of the Sisters:**\n   - There are 3 sisters, and each sister is 16 years old.\n   - Total age of the sisters = 3 sisters \u00d7 16 years/sister = 48 years.\n\n2. **Ages of the Brothers:**\n   - One brother is 12 years old.\n   - The problem states that this 12-year-old brother is half the age of the older brother.\n   - Therefore, the age of the older brother = 2 \u00d7 12 years = 24 years.\n\n3. **Total Age of All Siblings:**\n   - Total age of the sisters = 48 years.\n   - Age of the younger brother = 12 years.\n   - Age of the older brother = 24 years.\n   - Total age of all siblings = 48 years (sisters) + 12 years (younger brother) + 24 years (older brother).\n\n4. **Calculate the Total:**\n   - Total age = 48 + 12 + 24 = 84 years.\n\nThus, the total age of all the siblings is 84 years.\n\nANSWER: 84",
+  "score": 5,
+  "cost": 2.3205e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 99,
+    "output": 258
+  }
+}

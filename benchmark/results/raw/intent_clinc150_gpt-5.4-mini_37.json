@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "intent_clinc150",
+  "case": 37,
+  "response": "payday",
+  "score": 5,
+  "cost": 0.0001596,
+  "expected": "payday",
+  "tokens": {
+    "input": 512,
+    "output": 5
+  }
+}

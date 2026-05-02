@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "To solve this problem, let's break it down step by step.\n\nLet's start by using the information that the classroom has 30 boys.\n\nSince the classroom has 3 times as many girls as boys, we can multiply the number of boys by 3 to find the number of girls:\n30 boys x 3 = 90 girls\n\nNext, we know that the classroom has 1/10 as many nongendered children as boys. To find the number of nongendered children, we can multiply the number of boys by 1/10:\n30 boys x 1/10 = 3 nongendered children\n\nNow, we can add up the number of boys, girls, and nongendered children to find the total number of children in the classroom:\n30 boys + 90 girls + 3 nongendered children = 123 children\n\nTherefore, the total number of children in the classroom is 123.\n\nANSWER: 123",
+  "score": 1,
+  "cost": 1.5096e-05,
+  "expected": "123",
+  "tokens": {
+    "input": 96,
+    "output": 200
+  }
+}

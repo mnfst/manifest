@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 46,
+  "response": "```python\n# test_unique_permutations.py\nimport pytest\n\nfrom your_module import unique_permutations\n\n\ndef test_happy_path_distinct_elements():\n    assert unique_permutations([1, 2, 3]) == [\n        [1, 2, 3],\n        [1, 3, 2],\n        [2, 1, 3],\n        [2, 3, 1],\n        [3, 1, 2],\n        [3, 2, 1],\n    ]\n\n\ndef test_happy_path_with_duplicates_matches_expected_order():\n    # Expected order depends on recursion + \"seen\" per level.\n    assert unique_permutations([1, 1, 2]) == [\n        [1, 1, 2],\n        [1, 2, 1],\n        [2, 1, 1],\n    ]\n\n\ndef test_edge_case_empty_list():\n    # By current implementation, len([]) <= 1 returns [[]].\n    assert unique_permutations([]) == [[]]\n\n\ndef test_edge_case_single_element():\n    assert unique_permutations([42]) == [[42]]\n\n\ndef test_edge_case_all_elements_equal():\n    # Only one unique permutation should exist.\n    assert unique_permutations([7, 7, 7]) == [[7, 7, 7]]\n\n\ndef test_edge_case_with_negative_and_mixed_types_that_are_hashable():\n    # Function requires elements to be hashable because it uses `seen` set membership.\n    assert unique_permutations([-1, \"a\", 0]) == [\n        [-1, \"a\", 0],\n        [-1, 0, \"a\"],\n        [\"a\", -1, 0],\n        [\"a\", 0, -1],\n        [0, -1, \"a\"],\n        [0, \"a\", -1],\n    ]\n\n\ndef test_error_case_unhashable_elements_raise_type_error():\n    # `set()` membership requires hashable elements.\n    with pytest.raises(TypeError):\n        unique_permutations([[1], [2]])  # lists are unhashable\n\n\ndef test_error_case_none_is_valid_input_but_not_a_list():\n    # Current implementation uses len(lst), so non-sized input raises TypeError.\n    with pytest.raises(TypeError):\n        unique_permutations(None)\n\n\ndef test_error_case_string_input_is_iterable_but_not_list():\n    # Strings have len() and slicing/indexing works; return will be permutations of chars.\n    # If you want strict \"list only\" behavior, this test should fail.\n    out = unique_permutations(\"ab\")\n    assert out == [[\"a\", \"b\"], [\"b\", \"a\"]]\n```",
+  "score": 5,
+  "cost": 0.00024070000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 571
+  }
+}

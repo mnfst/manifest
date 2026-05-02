@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 30,
+  "response": "Here is the correct function call:\n\n```python\nlist_files(directory=\"gallery\", pattern=\"*.jpg\")\n```\n\nThis function call will return a list of image files in the specified directory that match the pattern `*.jpg`.",
+  "score": 1,
+  "cost": 4.185000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 46
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 7,
+  "response": "```json\n{\n  \"persons\": [\"Lionel Messi\"],\n  \"organizations\": [\"Inter Miami\", \"New York Red Bulls\"],\n  \"locations\": [\"Chase Stadium\", \"Fort Lauderdale\"]\n}\n```",
+  "score": 5,
+  "cost": 7.56e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 46
+  }
+}

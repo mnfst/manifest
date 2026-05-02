@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign delivered 45K impressions, 2.3K clicks (5.1% CTR), and 187 signups (8.1% conversion) at a cost of $12K, resulting in a CAC of $64 per signup. Compared to March, CTR increased by 1.2 percentage points while conversion decreased by 0.8 points, and the recommended action is to A/B test the landing page CTA.",
+  "score": 5,
+  "cost": 0.000974,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 93
+  }
+}

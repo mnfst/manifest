@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Let's solve the problem step by step.\n\n1. **Original number of pomelos:**\n   Eve initially has 20 pomelos.\n\n2. **Pomelos left after giving some away:**\n   Eve is left with \\( \\frac{1}{4} \\) of her original pomelos.\n   \\[\n   \\text{Pomelos left} = \\frac{1}{4} \\times 20 = 5\n   \\]\n\n3. **Pomelos given away:**\n   To find out how many pomelos Eve gave away, subtract the pomelos left from the original amount.\n   \\[\n   \\text{Pomelos given away} = 20 - 5 = 15\n   \\]\n\n**Final Answer:**\nANSWER: 15",
+  "score": 5,
+  "cost": 5.63e-05,
+  "expected": "15",
+  "tokens": {
+    "input": 83,
+    "output": 160
+  }
+}

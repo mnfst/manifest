@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "Jen has 3 fish, each requiring $1 worth of food per day. \n\n1. **Daily Cost**:  \n   $ 3 \\text{ fish} \\times \\$1/\\text{fish/day} = \\$3/\\text{day} $\n\n2. **Monthly Cost (May has 31 days)**:  \n   $ \\$3/\\text{day} \\times 31 \\text{ days} = \\$93 $\n\n**Final Answer**:  \nANSWER: 93",
+  "score": 5,
+  "cost": 2.9500000000000002e-05,
+  "expected": "93",
+  "tokens": {
+    "input": 76,
+    "output": 514
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "```python\n# test_count_vowels.py\nimport pytest\n\n# Replace `your_module` with the module where count_vowels is defined\nfrom your_module import count_vowels\n\n\n@pytest.mark.parametrize(\n    \"text, expected\",\n    [\n        (\"hello\", 2),\n        (\"world\", 1),\n        (\"aeiou\", 5),\n        (\"AEIOU\", 5),\n        (\"The quick brown fox\", 5),\n        (\"Python\", 1),\n        (\"Why?\", 0),\n    ],\n)\ndef test_count_vowels_happy_path(text, expected):\n    assert count_vowels(text) == expected\n\n\n@pytest.mark.parametrize(\n    \"text, expected\",\n    [\n        (\"\", 0),\n        (\"bcdfg\", 0),\n        (\"12345\", 0),\n        (\"!@#$%\", 0),\n        (\"   \", 0),\n        (\"a e i o u\", 5),\n        (\"AaEeIiOoUu\", 10),\n    ],\n)\ndef test_count_vowels_edge_cases(text, expected):\n    assert count_vowels(text) == expected\n\n\ndef test_count_vowels_does_not_count_y():\n    assert count_vowels(\"yellow\") == 2\n    assert count_vowels(\"rhythm\") == 0\n\n\ndef test_count_vowels_with_accented_characters():\n    # Accented vowels are not included in 'aeiou'\n    assert count_vowels(\"caf\u00e9\") == 1\n    assert count_vowels(\"\u00e1\u00e9\u00ed\u00f3\u00fa\") == 0\n\n\n@pytest.mark.parametrize(\n    \"invalid_input, expected_exception\",\n    [\n        (None, AttributeError),\n        (123, AttributeError),\n        ([\"a\", \"e\", \"i\"], AttributeError),\n        (b\"aeiou\", TypeError),\n    ],\n)\ndef test_count_vowels_invalid_input(invalid_input, expected_exception):\n    with pytest.raises(expected_exception):\n        count_vowels(invalid_input)\n```",
+  "score": 5,
+  "cost": 0.00735,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 597
+  }
+}

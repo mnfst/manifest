@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "international_visa",
+  "score": 5,
+  "cost": 5.77e-05,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 559,
+    "output": 6
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "First, let's break down the problem step by step.\n\n1. Jim spends 2 hours watching TV each time.\n2. He then reads for half as long as he watches TV, so he reads for $ \\frac{2}{2} = 1 $ hour each time.\n3. Each session (TV + reading) takes $ 2 + 1 = 3 $ hours.\n4. He does this 3 times a week, so in one week, he spends $ 3 \\times 3 = 9 $ hours on TV and reading.\n5. Over 4 weeks, he spends $ 9 \\times 4 = 36 $ hours.\n\nFinal Answer:\nANSWER: 36",
+  "score": 4,
+  "cost": 7.986000000000001e-06,
+  "expected": "36",
+  "tokens": {
+    "input": 95,
+    "output": 147
+  }
+}

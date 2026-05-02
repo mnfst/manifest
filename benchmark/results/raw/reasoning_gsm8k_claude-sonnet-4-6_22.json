@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "## Step-by-Step Solution\n\n**Step 1: Calculate Rafaela's total tips**\n- Number of customers: 40\n- Tip per customer: $20\n- Rafaela's total = 40 \u00d7 $20 = **$800**\n\n**Step 2: Calculate Julieta's total tips**\n- Julieta received 10% less than Rafaela\n- 10% of $800 = $80\n- Julieta's total = $800 - $80 = **$720**\n\n**Step 3: Calculate the combined total**\n- Total = $800 + $720 = **$1,520**\n\nANSWER: 1520",
+  "score": 4,
+  "cost": 0.002769,
+  "expected": "1520",
+  "tokens": {
+    "input": 108,
+    "output": 163
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe Platform Team proposes a feature flag cleanup sprint to remove 15 inactive feature flags that are 100% rolled out and archive 8 dead code feature flags, which will reduce config complexity and speed up the test suite by 12%.",
+  "score": 5,
+  "cost": 4.428e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 60
+  }
+}

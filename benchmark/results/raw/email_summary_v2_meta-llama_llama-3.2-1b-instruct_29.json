@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "Here is a 2-sentence summary of the email:\n\nA mobile app crash rate of 2.3% (0.5% above the threshold) has been reported since the app's release, with the primary crash being a null pointer in the notification handler on Android 12+. The issue has been fixed and a new emergency release is being submitted to the App Store.",
+  "score": 4,
+  "cost": 4.779e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 77
+  }
+}

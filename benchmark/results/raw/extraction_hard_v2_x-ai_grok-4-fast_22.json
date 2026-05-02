@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "extraction_hard_v2",
+  "case": 22,
+  "response": "{\"meeting_title\": \"Product sync\", \"date\": \"2026-04-10\", \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"], \"decisions\": [\"Push the recommendation engine to Q3 since data pipeline won't be ready until June.\", \"Allocate 20% of sprint capacity to tech debt.\", \"Lin needs analytics dashboard before May board meeting.\"], \"action_items\": [{\"owner\": \"Marcus\", \"task\": \"Have onboarding mockups\", \"deadline\": \"April 18\"}, {\"owner\": \"Jamie\", \"task\": \"Send updated roadmap\", \"deadline\": \"Monday\"}]}",
+  "score": 4,
+  "cost": 0.0008324000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 318,
+    "output": 961
+  }
+}

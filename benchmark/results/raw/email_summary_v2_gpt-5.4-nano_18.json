@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP Engineering proposes restructuring the Platform team into two groups\u2014Infrastructure (networking, compute, storage) and Developer Experience (CI/CD, tooling, onboarding)\u2014to reduce a bottleneck where DX work is consistently delayed by infrastructure incidents. A draft org chart has been attached for review, and the next action is to review the proposed organization.",
+  "score": 5,
+  "cost": 3.75e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 71
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 30,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"generate_thumbnail\", \"arguments\": {\"path\": \"gallery\", \"width\": 150, \"height\": 150}}\n```\n\nThis function call tells the `generate_thumbnail` function to generate a thumbnail for each image in the \"gallery\" folder, with a width and height of 150 pixels.",
+  "score": 3,
+  "cost": 9.485999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 77
+  }
+}

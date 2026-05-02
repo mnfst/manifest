@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 46,
+  "response": "{\"name\": \"restart_service\", \"arguments\": {\"name\": \"redis\"}}",
+  "score": 5,
+  "cost": 0.00049,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 17
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 13,
+  "response": "```json\n[\n    {\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}},\n    {\"name\": \"set_thermostat\", \"arguments\": {\"temperature\": 72}}\n]\n```",
+  "score": 4,
+  "cost": 9.685000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 50
+  }
+}

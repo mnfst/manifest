@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 49,
+  "response": "```python\n# test_intersection.py\nimport pytest\n\n# Import the function under test.\n# Adjust the import path/module name as needed.\nfrom your_module import intersection\n\n\ndef test_intersection_happy_path_basic_ordered_unique():\n    assert intersection([1, 2, 2, 3], [2, 3, 4]) == [2, 3]\n    # Ensures output keeps lst1 order and deduplicates within lst1.\n\n\ndef test_intersection_happy_path_with_strings():\n    assert intersection([\"b\", \"a\", \"b\", \"c\"], [\"c\", \"b\"]) == [\"b\", \"c\"]\n\n\ndef test_intersection_edge_case_empty_lst1():\n    assert intersection([], [1, 2, 3]) == []\n\n\ndef test_intersection_edge_case_empty_lst2():\n    assert intersection([1, 2, 3], []) == []\n\n\ndef test_intersection_edge_case_no_overlap():\n    assert intersection([1, 2, 3], [4, 5, 6]) == []\n\n\ndef test_intersection_edge_case_all_overlap_with_duplicates_in_lst1():\n    # Output should contain each common item only once, in first-seen order from lst1.\n    assert intersection([1, 1, 1, 2, 2], [2, 1]) == [1, 2]\n\n\ndef test_intersection_edge_case_duplicates_only_in_lst2():\n    # set(lst2) handles duplicates; result should still be unique by seen from lst1.\n    assert intersection([1, 2, 3], [2, 2, 2]) == [2]\n\n\ndef test_intersection_edge_case_mixed_types_no_overlap():\n    # Ensure membership check works with differing types.\n    assert intersection([1, \"1\", True], [\"1\"]) == [\"1\"]\n\n\ndef test_intersection_error_case_unhashable_items_in_lst2():\n    # The implementation converts lst2 to a set, so unhashable elements should raise TypeError.\n    with pytest.raises(TypeError):\n        intersection([[\"a\"], [\"b\"]], [[\"a\"], [\"c\"]])\n\n\ndef test_intersection_error_case_unhashable_items_in_lst1():\n    # If lst1 contains unhashable items, \"item not in seen\" will attempt hashing for set membership.\n    # This should raise TypeError.\n    with pytest.raises(TypeError):\n        intersection([[\"a\"], [\"a\"]], [[\"a\"]])\n\n\ndef test_intersection_error_case_inputs_not_lists():\n    # Function signature expects lists, but it doesn't enforce types.\n    # Provide clearly invalid inputs that will fail in set/list operations.\n    with pytest.raises(TypeError):\n        intersection(None, [1, 2, 3])  # None is not iterable\n\n\ndef test_intersection_error_case_lst2_not_iterable():\n    with pytest.raises(TypeError):\n        intersection([1, 2, 3], None)\n```",
+  "score": 4,
+  "cost": 0.000253,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 608
+  }
+}

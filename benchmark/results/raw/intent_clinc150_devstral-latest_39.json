@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 39,
+  "response": "how_old_are_you",
+  "score": 5,
+  "cost": 5.77e-05,
+  "expected": "how_old_are_you",
+  "tokens": {
+    "input": 556,
+    "output": 7
+  }
+}

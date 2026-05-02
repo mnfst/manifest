@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "extraction_hard_v2",
+  "case": 42,
+  "response": "{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\n    \"Jamie (PM)\",\n    \"Priya (eng lead)\",\n    \"Marcus (design)\",\n    \"Lin (data)\"\n  ],\n  \"decisions\": [\n    \"Push the recommendation engine to Q3 since the data pipeline won't be ready until June.\",\n    \"Allocate 20% of sprint capacity to tech debt.\",\n    \"Marcus will have onboarding mockups by April 18.\",\n    \"Jamie will send updated roadmap by Monday.\",\n    \"Lin needs analytics dashboard before May board meeting.\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus (design)\",\n      \"task\": \"Provide onboarding mockups\",\n      \"deadline\": \"2026-04-18\"\n    },\n    {\n      \"owner\": \"Jamie (PM)\",\n      \"task\": \"Send updated roadmap\",\n      \"deadline\": \"2026-04-13\"\n    },\n    {\n      \"owner\": \"Lin (data)\",\n      \"task\": \"Deliver analytics dashboard before the May board meeting\",\n      \"deadline\": \"2026-05-01\"\n    }\n  ]\n}",
+  "score": 4,
+  "cost": 0.00011690000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 250
+  }
+}

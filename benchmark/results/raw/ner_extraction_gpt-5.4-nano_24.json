@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 24,
+  "response": "{\"persons\":[],\"organizations\":[\"Indian Space Research Organisation\"],\"locations\":[\"Chandrayaan-4\",\"Sriharikota\"]}",
+  "score": 3,
+  "cost": 1.93e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 30
+  }
+}

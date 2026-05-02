@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "SELECT\n  t.hometown,\n  COUNT(*) AS teacher_count\nFROM course_teach.teachers t\nGROUP BY t.hometown\nHAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 2.26e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 39
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let \\(x\\) be the number of people on the bus at the terminal.\n\n- After the first stop, \\(5\\) more people get in: total becomes \\(x+5\\).\n- At the second stop, \\(7\\) people get down and \\(8\\) get in, so the net change is \\(8-7=1\\).  \n  Thus after the second stop, the total becomes:\n  \\[\n  (x+5) + 1 = x+6\n  \\]\n- The total heading to the third stop is \\(20\\), so:\n  \\[\n  x+6 = 20\n  \\]\n  \\[\n  x = 14\n  \\]\n\nANSWER: 14",
+  "score": 5,
+  "cost": 7.240000000000001e-05,
+  "expected": "14",
+  "tokens": {
+    "input": 108,
+    "output": 154
+  }
+}

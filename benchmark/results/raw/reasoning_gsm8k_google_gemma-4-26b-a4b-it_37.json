@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "To solve this problem, we will follow these steps:\n\n1.  **Identify the total number of voters:**\n    The problem states there are 100 voters.\n\n2.  **Calculate the number of votes for Candidate A:**\n    Candidate A received 20% of the total votes.\n    $\\text{Votes for A} = 20\\% \\text{ of } 100 = 0.20 \\times 100 = 20$ votes.\n\n3.  **Calculate the number of votes for Candidate B:**\n    Candidate B received 50% more votes than Candidate A.\n    First, find 50% of Candidate A's votes: $50\\% \\text{ of } 20 = 0.50 \\times 20 = 10$ votes.\n    Then, add this to Candidate A's votes: $\\text{Votes for B} = 20 + 10 = 30$ votes.\n    (Alternatively: $\\text{Votes for B} = 20 \\times (1 + 0.50) = 20 \\times 1.5 = 30$ votes).\n\n4.  **Calculate the number of votes for Candidate C:**\n    The rest of the votes went to Candidate C. We subtract the votes for A and B from the total number of voters.\n    $\\text{Total votes for A and B} = 20 + 30 = 50$ votes.\n    $\\text{Votes for C} = \\text{Total voters} - (\\text{Votes for A} + \\text{Votes for B})$\n    $\\text{Votes for C} = 100 - 50 = 50$ votes.\n\n**Summary of votes:**\n- Candidate A: 20\n- Candidate B: 30\n- Candidate C: 50\n- Total: 20 + 30 + 50 = 100\n\nANSWER: 50",
+  "score": 5,
+  "cost": 3.3060000000000005e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 109,
+    "output": 442
+  }
+}

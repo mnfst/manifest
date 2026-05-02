@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n'y a aucune autre explication \u00e0 la r\u00e9duction de 10 ou 12 millions d'ECU, qui, comme nous le savons, ne suffisent m\u00eame pas pour construire une seule embarcation \u00e9quip\u00e9e de moyens modernes de r\u00e9aliser une fonction de surveillance dans le secteur des p\u00eaches.",
+  "score": 4,
+  "cost": 4.05e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 70
+  }
+}

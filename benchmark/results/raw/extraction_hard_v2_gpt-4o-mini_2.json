@@ -2,12 +2,12 @@
   "model": "gpt-4o-mini",
   "task": "extraction_hard_v2",
   "case": 2,
-  "response": "{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\n    \"Jamie (PM)\",\n    \"Priya (eng lead)\",\n    \"Marcus (design)\",\n    \"Lin (data)\"\n  ],\n  \"decisions\": [\n    \"Push the recommendation engine to Q3 since data pipeline won't be ready until June.\",\n    \"Allocate 20% of sprint capacity to tech debt.\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"Have onboarding mockups\",\n      \"deadline\": \"2026-04-18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"Send updated roadmap\",\n      \"deadline\": \"2026-04-11\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"Needs analytics dashboard\",\n      \"deadline\": \"2026-05-01\"\n    }\n  ]\n}",
-  "score": 3,
-  "cost": 0.0001461,
+  "response": "{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\n    \"Jamie (PM)\",\n    \"Priya (eng lead)\",\n    \"Marcus (design)\",\n    \"Lin (data)\"\n  ],\n  \"decisions\": [\n    \"Push the recommendation engine to Q3 since data pipeline won't be ready until June.\",\n    \"Allocate 20% of sprint capacity to tech debt.\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"Have onboarding mockups ready\",\n      \"deadline\": \"2026-04-18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"Send updated roadmap\",\n      \"deadline\": \"2026-04-11\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"Prepare analytics dashboard\",\n      \"deadline\": \"2026-05-01\"\n    }\n  ]\n}",
+  "score": 4,
+  "cost": 0.0001467,
   "expected": "",
   "tokens": {
     "input": 170,
-    "output": 201
+    "output": 202
   }
 }

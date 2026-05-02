@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 47,
+  "response": "Nik has 200 crayons.\n\nEach group has 8 crayons, so the number of boxes needed is:\n\n200 \u00f7 8 = 25 boxes\n\nEach box weighs 8 ounces:\n\n25 \u00d7 8 = 200 ounces\n\nEach crayon weighs 1 ounce:\n\n200 \u00d7 1 = 200 ounces\n\nTotal weight:\n\n200 + 200 = 400 ounces\n\nConvert ounces to pounds:\n\n400 \u00f7 16 = 25 pounds\n\nANSWER: 25",
+  "score": 5,
+  "cost": 0.002226,
+  "expected": "25",
+  "tokens": {
+    "input": 114,
+    "output": 157
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "To solve the problem, let's define the variables:\n\n- Let \\( x \\) be the number of copies Harald sold.\n- Since Marilyn's record sold 10 times as many copies as Harald's, Marilyn sold \\( 10x \\) copies.\n\nAccording to the problem, the total number of copies sold by both Marilyn and Harald is 88,000. Therefore, we can set up the equation:\n\n\\[\nx + 10x = 88,000\n\\]\n\nSimplify the equation:\n\n\\[\n11x = 88,000\n\\]\n\nTo find \\( x \\), divide both sides of the equation by 11:\n\n\\[\nx = \\frac{88,000}{11}\n\\]\n\nCalculate the division:\n\n\\[\nx = 8,000\n\\]\n\nThus, Harald sold 8,000 copies.\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 1.677e-05,
+  "expected": "8000",
+  "tokens": {
+    "input": 77,
+    "output": 181
+  }
+}

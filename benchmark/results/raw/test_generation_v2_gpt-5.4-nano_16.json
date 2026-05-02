@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "```python\nimport pytest\n\nfrom your_module import gcd  # adjust import to where the function lives\n\n\n@pytest.mark.parametrize(\n    (\"a\", \"b\", \"expected\"),\n    [\n        (48, 18, 6),      # typical\n        (270, 192, 6),    # typical\n        (0, 5, 5),        # one is zero (happy edge)\n        (5, 0, 5),        # one is zero (happy edge)\n        (0, 0, 0),        # both zero\n        (54, -24, 6),     # negative b\n        (-54, 24, 6),     # negative a\n        (-54, -24, 6),    # both negative\n        (1, 1, 1),\n        (13, 13, 13),\n        (17, 31, 1),     # coprime\n    ],\n)\ndef test_gcd_happy_path_and_edge_cases(a, b, expected):\n    assert gcd(a, b) == expected\n\n\ndef test_gcd_returns_non_negative():\n    # abs(a) ensures non-negative output even when a is negative\n    assert gcd(-10, 5) >= 0\n    assert gcd(-10, -5) >= 0\n\n\n@pytest.mark.parametrize(\n    (\"a\", \"b\"),\n    [\n        (1.2, 3),     # non-int\n        (\"12\", 3),    # non-int\n        (3, None),    # non-int\n        ([], 3),      # non-int\n        (3, {\"x\": 1}),  # non-int\n    ],\n)\ndef test_gcd_error_non_integers(a, b):\n    # The function relies on modulo arithmetic; non-ints should raise TypeError.\n    with pytest.raises(TypeError):\n        gcd(a, b)\n\n\ndef test_gcd_overflow_not_applicable():\n    # Python integers are arbitrary precision; ensure large values work.\n    a = 10**100\n    b = 10**50\n    assert gcd(a, b) == 10**50\n```",
+  "score": 5,
+  "cost": 0.0001886,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 455
+  }
+}

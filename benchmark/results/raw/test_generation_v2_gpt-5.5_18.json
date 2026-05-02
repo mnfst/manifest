@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "```python\n# test_title_case.py\n\nimport pytest\n\n# Replace `your_module` with the module where title_case is defined\nfrom your_module import title_case\n\n\n@pytest.mark.parametrize(\n    \"input_value, expected\",\n    [\n        (\"hello world\", \"Hello World\"),\n        (\"the quick brown fox\", \"The Quick Brown Fox\"),\n        (\"python\", \"Python\"),\n        (\"PYTHON\", \"Python\"),\n        (\"pYtHoN\", \"Python\"),\n        (\"hello WORLD\", \"Hello World\"),\n    ],\n)\ndef test_title_case_happy_path(input_value, expected):\n    assert title_case(input_value) == expected\n\n\n@pytest.mark.parametrize(\n    \"input_value, expected\",\n    [\n        (\"\", \"\"),\n        (\"   \", \"\"),\n        (\"  hello   world  \", \"Hello World\"),\n        (\"\\thello\\tworld\\n\", \"Hello World\"),\n        (\"hello\\nworld\", \"Hello World\"),\n    ],\n)\ndef test_title_case_whitespace_edge_cases(input_value, expected):\n    assert title_case(input_value) == expected\n\n\n@pytest.mark.parametrize(\n    \"input_value, expected\",\n    [\n        (\"hello-world\", \"Hello-world\"),\n        (\"don't stop\", \"Don't Stop\"),\n        (\"123 abc\", \"123 Abc\"),\n        (\"abc123 def456\", \"Abc123 Def456\"),\n        (\"\u00e9clair caf\u00e9\", \"\u00c9clair Caf\u00e9\"),\n    ],\n)\ndef test_title_case_special_word_cases(input_value, expected):\n    assert title_case(input_value) == expected\n\n\n@pytest.mark.parametrize(\n    \"input_value\",\n    [\n        None,\n        123,\n        [\"hello\", \"world\"],\n    ],\n)\ndef test_title_case_invalid_non_string_inputs_raise_attribute_error(input_value):\n    with pytest.raises(AttributeError):\n        title_case(input_value)\n\n\ndef test_title_case_bytes_input_raises_type_error():\n    with pytest.raises(TypeError):\n        title_case(b\"hello world\")\n```",
+  "score": 5,
+  "cost": 0.008019,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 654
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 8,
+  "response": "```python\n# test_binary_search.py\nimport pytest\n\nfrom your_module import binary_search  # adjust import to your codebase\n\n\n# ---------- Happy paths ----------\n\ndef test_finds_existing_target_middle():\n    assert binary_search([1, 3, 5, 7, 9], 5) == 2\n\n\ndef test_finds_existing_target_first():\n    assert binary_search([1, 3, 5, 7, 9], 1) == 0\n\n\ndef test_finds_existing_target_last():\n    assert binary_search([1, 3, 5, 7, 9], 9) == 4\n\n\ndef test_target_in_single_element_array_present():\n    assert binary_search([42], 42) == 0\n\n\ndef test_target_not_present_returns_minus_one_normal_case():\n    assert binary_search([1, 3, 5, 7, 9], 6) == -1\n\n\n# ---------- Edge cases ----------\n\ndef test_empty_array_returns_minus_one():\n    assert binary_search([], 10) == -1\n\n\ndef test_single_element_array_absent():\n    assert binary_search([42], 7) == -1\n\n\ndef test_handles_duplicates_returns_an_index_of_target():\n    # Function returns the first index it encounters during search,\n    # which may be any valid position containing the target.\n    arr = [1, 2, 2, 2, 3]\n    idx = binary_search(arr, 2)\n    assert idx in {1, 2, 3}\n    assert arr[idx] == 2\n\n\ndef test_target_less_than_all_elements():\n    assert binary_search([10, 20, 30], 5) == -1\n\n\ndef test_target_greater_than_all_elements():\n    assert binary_search([10, 20, 30], 40) == -1\n\n\n# ---------- Error cases ----------\n\ndef test_non_list_raises_type_error():\n    with pytest.raises(TypeError):\n        binary_search(None, 1)  # len(None) fails\n\n\ndef test_arr_none_raises_type_error():\n    with pytest.raises(TypeError):\n        binary_search(None, 1)\n\n\ndef test_target_type_mismatch_raises_type_error():\n    # Comparison arr[mid] < target will fail if target is not comparable\n    with pytest.raises(TypeError):\n        binary_search([1, 2, 3], \"2\")\n\n\ndef test_unsorted_array_produces_incorrect_or_no_result():\n    # Binary search requires sorted input; for an unsorted list,\n    # the function may return -1 or an arbitrary index.\n    # This test checks an expected \"error behavior\" result.\n    arr = [3, 1, 2]\n    assert binary_search(arr, 1) in {-1, 1}  # document behavior for unsorted input\n```",
+  "score": 4,
+  "cost": 0.000248,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 589
+  }
+}

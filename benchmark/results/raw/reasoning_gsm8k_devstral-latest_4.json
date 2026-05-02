@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Let's solve the problem step by step.\n\n1. **Determine the amount of yarn Mariah used:**\n   - Mariah used \\( \\frac{1}{4} \\) of a skein.\n   - There are 364 yards in a skein.\n   - Yarn used by Mariah = \\( \\frac{1}{4} \\times 364 = 91 \\) yards.\n\n2. **Determine the amount of yarn Grandma used:**\n   - Grandma used \\( \\frac{1}{2} \\) of a skein.\n   - Yarn used by Grandma = \\( \\frac{1}{2} \\times 364 = 182 \\) yards.\n\n3. **Calculate the total yarn used:**\n   - Total yarn used = Yarn used by Mariah + Yarn used by Grandma\n   - Total yarn used = \\( 91 + 182 = 273 \\) yards.\n\n**Final Answer:**\nANSWER: 273",
+  "score": 5,
+  "cost": 7.589999999999999e-05,
+  "expected": "273",
+  "tokens": {
+    "input": 105,
+    "output": 218
+  }
+}

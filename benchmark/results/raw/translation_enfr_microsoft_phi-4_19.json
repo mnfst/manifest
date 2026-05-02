@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "FTI \u2014 Privil\u00e8ges et conditions\n\nFrench: FTI \u2014 Privil\u00e8ges et conditions\n\nThis translation maintains the formal tone and meaning of the original English text.",
+  "score": 5,
+  "cost": 4.745e-06,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 37
+  }
+}

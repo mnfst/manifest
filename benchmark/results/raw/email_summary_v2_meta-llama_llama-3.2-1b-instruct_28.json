@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe annual disaster recovery (DR) test resulted in a 3-hour delay, exceeding the target recovery time of 4 hours. To improve the test, the team recommends increasing the backup frequency and pre-provisioning standby databases to mitigate the impact of the delay.",
+  "score": 4,
+  "cost": 4.806e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 66
+  }
+}

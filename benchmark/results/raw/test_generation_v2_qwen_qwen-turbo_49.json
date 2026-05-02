@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 49,
+  "response": "Here's a set of **pytest-style unit tests** for the `intersection` function. These tests cover:\n\n- **Happy path** (normal case with overlapping elements)\n- **Edge cases** (empty lists, one list is empty, duplicate elements)\n- **Error cases** (non-list inputs)\n\n### \u2705 `test_intersection.py`\n\n```python\nimport pytest\n\ndef intersection(lst1: list, lst2: list) -> list:\n    set2 = set(lst2)\n    seen = set()\n    result = []\n    for item in lst1:\n        if item in set2 and item not in seen:\n            result.append(item)\n            seen.add(item)\n    return result\n\n# Test Happy Path\ndef test_intersection_happy_path():\n    assert intersection([1, 2, 3, 4], [3, 4, 5, 6]) == [3, 4]\n\n# Test Empty Lists\ndef test_intersection_empty_lists():\n    assert intersection([], []) == []\n\n# Test One Empty List\ndef test_intersection_one_empty_list():\n    assert intersection([1, 2, 3], []) == []\n    assert intersection([], [1, 2, 3]) == []\n\n# Test Duplicates in lst1\ndef test_intersection_duplicates_in_lst1():\n    assert intersection([1, 2, 2, 3], [2, 3, 4]) == [2, 3]\n\n# Test Duplicates in lst2\ndef test_intersection_duplicates_in_lst2():\n    assert intersection([1, 2, 3], [2, 2, 3, 4]) == [2, 3]\n\n# Test No Overlap\ndef test_intersection_no_overlap():\n    assert intersection([1, 2, 3], [4, 5, 6]) == []\n\n# Test Error Case: Non-list Inputs\ndef test_intersection_non_list_inputs():\n    with pytest.raises(TypeError):\n        intersection(\"not a list\", [1, 2, 3])\n    with pytest.raises(TypeError):\n        intersection([1, 2, 3], \"not a list\")\n    with pytest.raises(TypeError):\n        intersection(\"not a list\", \"also not a list\")\n```\n\n### \u2705 To Run\n\nSave the above code in a file named `test_intersection.py` and run:\n\n```bash\npytest test_intersection.py\n```\n\nThis will run all the tests and report any failures. The tests ensure that the `intersection` function behaves correctly under various conditions.",
+  "score": 5,
+  "cost": 2.0427e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 515
+  }
+}

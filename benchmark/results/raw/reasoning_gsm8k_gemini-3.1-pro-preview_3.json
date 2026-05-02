@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "To find out how much James spends on candles, we first need to determine the total number of candles he needs for both of his sons.\n\n1. **Find the age of each son:**\n   - The first son is 12 years old, so he needs 12 candles.\n   - The second son is 4 years younger than the first son, so he is 12 - 4 = 8 years old. He needs 8 candles.\n\n2. **Calculate the total number of candles needed:**\n   - Total candles = 12 (for the first son) + 8 (for the second son) = 20 candles.\n\n3. **Determine how many packs of candles James needs to buy:**\n   - The candles are sold in packs of 5.\n   - Number of packs = 20 total candles / 5 candles per pack = 4 packs.\n\n4. **Calculate the total cost:**\n   - Each pack costs $3.\n   - Total cost = 4 packs * $3 per pack = $12.\n\nANSWER: 12",
+  "score": 5,
+  "cost": 0.00371,
+  "expected": "12",
+  "tokens": {
+    "input": 86,
+    "output": 233
+  }
+}

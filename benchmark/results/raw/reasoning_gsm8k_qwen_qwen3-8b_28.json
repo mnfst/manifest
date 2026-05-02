@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "To determine how many people initially got on the bus at the terminal, we analyze the sequence of events:\n\n1. **Initial number of people**: Let the number of people who got on the bus at the terminal be $ x $.\n2. **After the first stop**: 5 more people got on, so the total becomes $ x + 5 $.\n3. **After the second stop**: 7 people got off and 8 people got on. This means the net change is $ -7 + 8 = +1 $. Thus, the total becomes:\n   $$\n   (x + 5) - 7 + 8 = x + 6\n   $$\n4. **At the third stop**: The problem states that there are 20 people heading to the third stop, which is the number of people after the second stop. Therefore:\n   $$\n   x + 6 = 20\n   $$\n5. **Solving for $ x $**:\n   $$\n   x = 20 - 6 = 14\n   $$\n\n**Verification**:\n- Start with 14 people.\n- After the first stop: $ 14 + 5 = 19 $.\n- After the second stop: $ 19 - 7 + 8 = 20 $.\n- This matches the given condition.\n\nThus, the number of people who got on the bus at the terminal is:\n\n$$\n\\boxed{14}\n$$\n\nANSWER: 14",
+  "score": 5,
+  "cost": 6.170000000000001e-05,
+  "expected": "14",
+  "tokens": {
+    "input": 113,
+    "output": 1121
+  }
+}

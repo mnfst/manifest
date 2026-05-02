@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "Here's a comprehensive set of unit tests for the `add` function using the `pytest` style. The tests cover the **happy path**, **edge cases**, and **error cases**, ensuring that the function behaves as expected under various input scenarios.\n\n---\n\n### \u2705 **Happy Path Tests**\n\nThese tests ensure the function works correctly when both inputs are valid integers.\n\n```python\ndef test_add_happy_path():\n    assert add(2, 3) == 5\n    assert add(-1, 2) == 1\n    assert add(0, 5) == 5\n    assert add(100, 200) == 300\n```\n\n---\n\n### \u2705 **Edge Case Tests**\n\nThese tests cover boundary conditions and unusual but valid inputs.\n\n```python\ndef test_add_edge_cases():\n    assert add(0, 0) == 0\n    assert add(1, -1) == 0\n    assert add(10, 20) == 30\n    assert add(-10, -20) == -30\n    assert add(1, 1) == 2\n```\n\n---\n\n### \u26a0\ufe0f **Error Case Tests**\n\nThese tests ensure that the function raises appropriate exceptions when invalid inputs are provided.\n\n```python\ndef test_add_error_cases():\n    with pytest.raises(TypeError):\n        add('a', 3)\n    with pytest.raises(TypeError):\n        add(2, 'b')\n    with pytest.raises(TypeError):\n        add(None, 3)\n    with pytest.raises(TypeError):\n        add(3, None)\n    with pytest.raises(TypeError):\n        add(2.5, 3)\n    with pytest.raises(TypeError):\n        add(3, 2.5)\n```\n\n---\n\n### \ud83d\udccc Notes\n\n- **Type Checking**: The `add` function does not perform explicit type checks. Thus, it will raise a `TypeError` when attempting to add incompatible types (like `str` or `None`) to integers.\n- **Float Inputs**: The function will return a `float` if either input is a float (e.g., `add(2.5, 3)` returns `5.5`). This is not explicitly handled in the function, so the tests include this as an error case.\n- **Boolean Inputs**: Since `True` and `False` are instances of `int` in Python, they are allowed. For example, `add(True, 2)` returns `3`.\n\n---\n\n### \u2705 Summary\n\n| Test Type     | Description                          | Expected Outcome |\n|---------------|--------------------------------------|------------------|\n| Happy Path    | Valid integer inputs                 | Correct sum      |\n| Edge Cases    | Zero, negatives, and boundary values | Correct sum      |\n| Error Cases   | Non-integer inputs (str, None, float)| TypeError        |\n\nThese tests ensure the `add` function is robust, reliable, and behaves as expected under a wide range of scenarios.",
+  "score": 5,
+  "cost": 0.00029265,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 5799
+  }
+}

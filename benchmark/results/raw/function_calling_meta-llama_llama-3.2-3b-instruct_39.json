@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 39,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"export_table\", \"arguments\": {\"table\": \"users\", \"format\": \"csv\", \"destination\": \"None\"}}\n```\n\nNote that I've included the `destination` argument with a value of `None`, as it is required for the `export_table` function.",
+  "score": 4,
+  "cost": 8.771999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 72
+  }
+}

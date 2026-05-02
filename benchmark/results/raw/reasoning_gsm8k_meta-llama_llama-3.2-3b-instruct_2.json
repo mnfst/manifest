@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "To solve this problem, we need to calculate the distance Tom travels from 1 to 4 PM, and then use that distance to calculate the time it takes him to travel back.\n\nSince Tom is sailing from 1 to 4 PM, we can assume he is traveling for 3 hours. \n\nDistance = Speed x Time\nDistance = 10 mph x 3 hours\nDistance = 30 miles\n\nNow, we need to calculate the time it takes Tom to travel back at a rate of 6 mph.\n\nTime = Distance / Speed\nTime = 30 miles / 6 mph\nTime = 5 hours\n\nTherefore, it takes Tom 5 hours to get back.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 1.2239999999999998e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 95,
+    "output": 145
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "Here are some unit tests for the `count_vowels` function using pytest style:\n\n```python\nimport pytest\n\ndef test_count_vowels_happy_path():\n    assert count_vowels(\"hello\") == 3\n    assert count_vowels(\"world\") == 3\n    assert count_vowels(\"Python\") == 3\n\ndef test_count_vowels_empty_string():\n    assert count_vowels(\"\") == 0\n    assert count_vowels(\"   \") == 0\n\ndef test_count_vowels_single_character():\n    assert count_vowels(\"a\") == 1\n    assert count_vowels(\"A\") == 1\n\ndef test_count_vowels_non_alphabetic():\n    assert count_vowels(\"123\") == 0\n    assert count_vowels(\"abc\") == 0\n\ndef test_count_vowels_case_insensitive():\n    assert count_vowels(\"Hello\") == 3\n    assert count_vowels(\"hELLO\") == 3\n\ndef test_count_vowels_multiple_vowels():\n    assert count_vowels(\"aeiou\") == 5\n    assert count_vowels(\"aeioua\") == 5\n\ndef test_count_vowels_non_string_input():\n    with pytest.raises(TypeError):\n        count_vowels(123)\n    with pytest.raises(TypeError):\n        count_vowels(123.45)\n    with pytest.raises(TypeError):\n        count_vowels(None)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test the function with a variety of inputs, including strings with multiple vowels, single characters, and non-alphabetic characters.\n* Edge cases: Test the function with empty strings, single-character strings, and non-string inputs.\n* Error cases: Test that the function raises a TypeError when given non-string inputs.",
+  "score": 5,
+  "cost": 1.2231e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 385
+  }
+}

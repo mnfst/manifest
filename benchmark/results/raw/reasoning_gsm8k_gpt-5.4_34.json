@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Let\u2019s find the total cost step by step.\n\n1. **Cost of tickets**  \n   They spent **$20.25** on tickets.\n\n2. **Cost of food**  \n   Food cost **$4.50 less** than the tickets:\n   \\[\n   20.25 - 4.50 = 15.75\n   \\]\n\n3. **Cost of rides**  \n   They went on **2 rides**, and each ride cost **$33**:\n   \\[\n   2 \\times 33 = 66\n   \\]\n\n4. **Total cost**  \n   Add tickets, food, and rides:\n   \\[\n   20.25 + 15.75 + 66 = 102\n   \\]\n\n5. **Split evenly among 3 friends**  \n   \\[\n   102 \\div 3 = 34\n   \\]\n\nSo each friend paid:\n\nANSWER: 34",
+  "score": 5,
+  "cost": 0.001768,
+  "expected": "34",
+  "tokens": {
+    "input": 104,
+    "output": 195
+  }
+}

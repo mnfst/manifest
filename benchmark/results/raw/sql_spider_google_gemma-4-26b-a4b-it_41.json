@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "```sql\nSELECT COUNT(*) \nFROM people \nWHERE district = 'Gelderland';\n```",
+  "score": 5,
+  "cost": 6.18e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 23
+  }
+}

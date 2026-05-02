@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Sarah spent $300 total.\n\nEach book cost $15, so the number of books she bought was:\n\n300 \u00f7 15 = 20\n\nShe gave the books equally to her 4 kids:\n\n20 \u00f7 4 = 5\n\nEach child got 5 books.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.001416,
+  "expected": "5",
+  "tokens": {
+    "input": 84,
+    "output": 97
+  }
+}

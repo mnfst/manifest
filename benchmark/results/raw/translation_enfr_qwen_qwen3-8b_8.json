@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit, \u00ab D'accord. \u00bb Et j'ai dit, \u00ab Ben, je me demande o\u00f9 \u00e7a va \u00eatre. \u00bb",
+  "score": 4,
+  "cost": 3.635e-05,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 679
+  }
+}

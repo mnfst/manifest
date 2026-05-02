@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "SELECT c.makeid, m.name\nFROM car_1.cars c\nJOIN car_1.makes m ON c.makeid = m.id\nWHERE c.horsepower > (SELECT MIN(horsepower) FROM car_1.cars)\nAND c.cylinders <= 3;",
+  "score": 5,
+  "cost": 5.082000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 60
+  }
+}

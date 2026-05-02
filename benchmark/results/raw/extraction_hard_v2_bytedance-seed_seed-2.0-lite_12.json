@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "extraction_hard_v2",
+  "case": 12,
+  "response": "{\"tracking_number\":\"1Z999AA10123456784\",\"carrier\":\"UPS\",\"service\":\"Ground\",\"origin\":\"Warehouse #7, Memphis TN\",\"weight_lbs\":4.2,\"dimensions\":\"12x8x6 in\",\"events\":[{\"timestamp\":\"04/25/2026 18:30\",\"status\":\"Picked up\",\"location\":\"Memphis TN\"},{\"timestamp\":\"04/26/2026 03:15\",\"status\":\"Departed facility\",\"location\":\"Memphis TN\"},{\"timestamp\":\"04/26/2026 14:22\",\"status\":\"In transit\",\"location\":\"Nashville TN\"},{\"timestamp\":\"04/27/2026 06:00\",\"status\":\"Arrived at facility\",\"location\":\"Louisville KY\"},{\"timestamp\":\"04/27/2026 09:45\",\"status\":\"Out for delivery\",\"location\":\"Lexington KY\"},{\"timestamp\":\"04/27/2026 14:12\",\"status\":\"Delivered, left at front door\",\"location\":\"Lexington KY\"}],\"delivery\":{\"address\":\"456 Oak Street, Lexington KY 40502\",\"signed_by\":\"FRONT DOOR\",\"on_time\":true}}",
+  "score": 4,
+  "cost": 0.001511,
+  "expected": "",
+  "tokens": {
+    "input": 368,
+    "output": 1419
+  }
+}

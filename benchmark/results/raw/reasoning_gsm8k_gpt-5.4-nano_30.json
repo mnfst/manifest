@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Adam has 50 points.  \nBetty collected 30% more than Adam:\n- Betty = 50 \u00d7 1.3 = 65\n\nMarta collected 3 times as many as Tom. Also, Tom has 30 points less than Betty:\n- Tom = 65 \u2212 30 = 35\n- Marta = 3 \u00d7 35 = 105\n\nNow add all points:\n- Total = Adam + Marta + Betty + Tom\n- Total = 50 + 105 + 65 + 35 = 255\n\nMinimum threshold is 400, so points missing are:\n- Missing = 400 \u2212 255 = 145\n\nANSWER: 145",
+  "score": 4,
+  "cost": 7.080000000000001e-05,
+  "expected": "145",
+  "tokens": {
+    "input": 144,
+    "output": 141
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Depending on the level of intimacy or the gender of the speaker, here are the best ways to translate this:\n\n**1. Natural/Standard (Most common):**\n> \"Et je t'aime bien... m\u00eame si je ne sais pas pourquoi.\"\n\n**2. Slightly more romantic/intense:**\n> \"Et je t'appr\u00e9cie... bien que je ne sache pas pourquoi.\"\n\n**3. Informal/Casual (Spoken style):**\n> \"Et je t'aime bien... m\u00eame si je sais pas pourquoi.\"\n\n**Note on \"I like you\":**\n*   **\"Je t'aime bien\"** is the standard way to say \"I like you\" (as a person or with a hint of affection) without it meaning \"I love you\" (*Je t'aime*).\n*   **\"Je t'appr\u00e9cie\"** is slightly more formal or polite.",
+  "score": 4,
+  "cost": 1.416e-05,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 190
+  }
+}

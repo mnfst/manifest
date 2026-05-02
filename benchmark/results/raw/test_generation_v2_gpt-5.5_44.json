@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 44,
+  "response": "```python\n# test_compose.py\nimport pytest\n\nfrom your_module import compose  # replace with the actual module name\n\n\ndef test_compose_happy_path_applies_functions_right_to_left():\n    def double(x):\n        return x * 2\n\n    def square(x):\n        return x**2\n\n    composed = compose(square, double)\n\n    assert composed(3) == 36  # square(double(3))\n\n\ndef test_compose_with_multiple_functions():\n    def add_one(x):\n        return x + 1\n\n    def double(x):\n        return x * 2\n\n    def to_string(x):\n        return f\"value={x}\"\n\n    composed = compose(to_string, double, add_one)\n\n    assert composed(4) == \"value=10\"  # to_string(double(add_one(4)))\n\n\ndef test_compose_preserves_call_order():\n    calls = []\n\n    def first(x):\n        calls.append(\"first\")\n        return x + \" first\"\n\n    def second(x):\n        calls.append(\"second\")\n        return x + \" second\"\n\n    def third(x):\n        calls.append(\"third\")\n        return x + \" third\"\n\n    composed = compose(first, second, third)\n\n    result = composed(\"start\")\n\n    assert result == \"start third second first\"\n    assert calls == [\"third\", \"second\", \"first\"]\n\n\ndef test_compose_with_single_function():\n    def add_one(x):\n        return x + 1\n\n    composed = compose(add_one)\n\n    assert composed(10) == 11\n\n\ndef test_compose_with_no_functions_returns_input_unchanged():\n    value = {\"key\": \"value\"}\n\n    composed = compose()\n\n    assert composed(value) is value\n\n\ndef test_compose_propagates_exception_from_function():\n    def raises_error(x):\n        raise ValueError(\"bad input\")\n\n    def add_one(x):\n        return x + 1\n\n    composed = compose(add_one, raises_error)\n\n    with pytest.raises(ValueError, match=\"bad input\"):\n        composed(10)\n\n\ndef test_compose_with_non_callable_raises_type_error_when_called():\n    composed = compose(lambda x: x + 1, \"not callable\")\n\n    with pytest.raises(TypeError):\n        composed(10)\n\n\ndef test_compose_stops_execution_after_exception():\n    calls = []\n\n    def first(x):\n        calls.append(\"first\")\n        return x\n\n    def failing(x):\n        calls.append(\"failing\")\n        raise RuntimeError(\"failure\")\n\n    def last(x):\n        calls.append(\"last\")\n        return x\n\n    composed = compose(first, failing, last)\n\n    with pytest.raises(RuntimeError, match=\"failure\"):\n        composed(\"input\")\n\n    assert calls == [\"last\", \"failing\"]\n```",
+  "score": 4,
+  "cost": 0.010218,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 835
+  }
+}

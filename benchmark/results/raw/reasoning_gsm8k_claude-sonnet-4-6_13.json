@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Step 1: Find the total cost of material and construction.\n$500 + $800 = $1,300\n\nStep 2: Calculate the insurance cost (10% of $1,300).\n$1,300 \u00d7 0.10 = $130\n\nStep 3: Find the total amount paid.\n$1,300 + $130 = $1,430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.00174,
+  "expected": "1430",
+  "tokens": {
+    "input": 105,
+    "output": 95
+  }
+}

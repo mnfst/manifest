@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Tokyo Stock Exchange\"],\n  \"locations\": [\"Tokyo\"]\n}\n```",
+  "score": 4,
+  "cost": 0.000759,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 35
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 31,
+  "response": "```sql\nSELECT DISTINCT\n  T1.airline_name\nFROM airlines AS T1\nJOIN flights AS T2\n  ON T1.airline_id = T2.airline_id\nWHERE\n  T2.departure_airport = 'AHD';\n```",
+  "score": 5,
+  "cost": 8.580000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 59
+  }
+}

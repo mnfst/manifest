@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "To solve this problem, we need to calculate the total number of wheels required to assemble the cars and motorcycles, and then subtract that from the total number of wheels Henry has in the box.\n\n### Step 1: Calculate the number of wheels needed for cars\nEach car requires 4 wheels, and there are 57 cars:\n$$\n57 \\times 4 = 228 \\text{ wheels}\n$$\n\n### Step 2: Calculate the number of wheels needed for motorcycles\nEach motorcycle requires 2 wheels, and there are 73 motorcycles:\n$$\n73 \\times 2 = 146 \\text{ wheels}\n$$\n\n### Step 3: Calculate the total number of wheels needed\n$$\n228 + 146 = 374 \\text{ wheels}\n$$\n\n### Step 4: Calculate the number of wheels left\nHenry has 650 wheels in the box. Subtract the total wheels needed:\n$$\n650 - 374 = 276\n$$\n\n### Final Answer:\nANSWER: 276",
+  "score": 5,
+  "cost": 1.1220000000000001e-05,
+  "expected": "276",
+  "tokens": {
+    "input": 111,
+    "output": 229
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 15,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"compress_video\", \"arguments\": {\"path\": \"downloads/presentation.mp4\", \"target_reduction\": 0.5}}\n```\n\nExplanation:\n\n* The `name` field specifies the function to be called, which is `compress_video`.\n* The `arguments` field is a dictionary that contains the arguments to be passed to the `compress_video` function.\n* The `path` argument specifies the file path of the video to be compressed, which is `downloads/presentation.mp4`.\n* The `target_reduction` argument specifies the target reduction in file size, which is 50% (i.e., 0.5).",
+  "score": 5,
+  "cost": 1.275e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 144
+  }
+}

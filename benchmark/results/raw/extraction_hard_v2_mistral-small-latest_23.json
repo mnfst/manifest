@@ -2,12 +2,12 @@
   "model": "mistral-small-latest",
   "task": "extraction_hard_v2",
   "case": 23,
-  "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout\",\n  \"summary\": \"Checkout page fails with white screen after payment attempt on Chrome\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Go to checkout page\",\n    \"Enter card information\",\n    \"Hit pay button\",\n    \"Spinner shows for 30 seconds then white screen appears\"\n  ],\n  \"expected_behavior\": \"Payment should process successfully and redirect to confirmation page\",\n  \"actual_behavior\": \"Payment attempt results in white screen after 30 seconds with no error message displayed to user\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
-  "score": 0,
-  "cost": 6.68e-05,
+  "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout\",\n  \"summary\": \"Checkout page fails with white screen after payment attempt on Chrome\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Go to checkout page\",\n    \"Enter card information\",\n    \"Hit pay button\",\n    \"Observe spinner for 30 seconds then white screen\"\n  ],\n  \"expected_behavior\": \"Payment should process successfully and redirect to confirmation page\",\n  \"actual_behavior\": \"Payment attempt results in a white screen after 30 seconds with no error message displayed\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 6.65e-05,
   "expected": "",
   "tokens": {
     "input": 185,
-    "output": 161
+    "output": 160
   }
 }

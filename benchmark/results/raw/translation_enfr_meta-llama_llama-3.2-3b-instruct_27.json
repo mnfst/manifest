@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Les crit\u00e8res du DSMIV pour l'intoxication par l'alcool sont similaires, avec l'ajout de l'un ou plusieurs des signes suivants : un langage hach\u00e9, une d\u00e9s coordination, un pas h\u00e9sitant, le nystagmus, une atteinte \u00e0 l'attention ou \u00e0 la m\u00e9moire, un \u00e9tat de somnolence ou une coma.",
+  "score": 3,
+  "cost": 8.466e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 84
+  }
+}

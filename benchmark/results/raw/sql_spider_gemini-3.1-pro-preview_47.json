@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "```sql\nSELECT Template_Type_Code FROM Ref_Template_Types WHERE Template_Type_Description = 'Book'\n```",
+  "score": 5,
+  "cost": 0.0005975,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 27
+  }
+}

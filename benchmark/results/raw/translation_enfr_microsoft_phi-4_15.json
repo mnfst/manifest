@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Sector Source est un site web d\u00e9di\u00e9 \u00e0 l'aide de ceux qui g\u00e8rent des associations caritatives et des organisations \u00e0 but non lucratif, en les gardant inform\u00e9s sur...",
+  "score": 4,
+  "cost": 5.915e-06,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 43
+  }
+}

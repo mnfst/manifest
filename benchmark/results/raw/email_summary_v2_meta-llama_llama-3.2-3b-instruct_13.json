@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company has seen positive Q1 metrics, with an increase in Net Promoter Score (NPS) to 62, a 4.3/5 customer satisfaction rating, and a decrease in churn rate to 1.2%. The customer success team is prioritizing three key feature requests, including Single Sign-On (SSO), custom dashboards, and API rate limit increase, and has also secured three enterprise expansions worth $800,000.",
+  "score": 5,
+  "cost": 1.1474999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 104
+  }
+}

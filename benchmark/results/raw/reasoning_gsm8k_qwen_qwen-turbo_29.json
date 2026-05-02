@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Step 1: The rink has 12 red cars.  \nStep 2: The number of green cars is 2 fewer than the number of red cars:  \n$$\n12 - 2 = 10 \\text{ green cars}\n$$  \nStep 3: The number of blue cars is 3 times the number of green cars:  \n$$\n3 \\times 10 = 30 \\text{ blue cars}\n$$  \nStep 4: Add up the number of red, green, and blue cars:  \n$$\n12 + 10 + 30 = 52 \\text{ cars}\n$$  \nStep 5: The total number of cars is 75. Subtract the number of red, green, and blue cars to find the number of yellow cars:  \n$$\n75 - 52 = 23 \\text{ yellow cars}\n$$  \n\nANSWER: 23",
+  "score": 5,
+  "cost": 1.0329e-05,
+  "expected": "23",
+  "tokens": {
+    "input": 117,
+    "output": 196
+  }
+}

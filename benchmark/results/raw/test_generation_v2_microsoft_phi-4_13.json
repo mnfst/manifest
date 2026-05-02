@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "To write unit tests for the `fizzbuzz` function using the `pytest` framework, we need to cover the happy path, edge cases, and error cases. Here's how you can structure the tests:\n\n```python\nimport pytest\n\ndef test_fizzbuzz_happy_path():\n    # Test the happy path for numbers divisible by 3, 5, and 15\n    assert fizzbuzz(15) == 'FizzBuzz'\n    assert fizzbuzz(3) == 'Fizz'\n    assert fizzbuzz(5) == 'Buzz'\n    assert fizzbuzz(1) == '1'\n    assert fizzbuzz(2) == '2'\n    assert fizzbuzz(4) == '4'\n    assert fizzbuzz(6) == 'Fizz'\n    assert fizzbuzz(10) == 'Buzz'\n    assert fizzbuzz(7) == '7'\n\ndef test_fizzbuzz_edge_cases():\n    # Test edge cases around numbers divisible by 3 and 5\n    assert fizzbuzz(0) == 'FizzBuzz'  # Edge case for 0\n    assert fizzbuzz(30) == 'FizzBuzz'  # Edge case for a larger number divisible by 15\n    assert fizzbuzz(31) == '31'  # Edge case for a number just after 30\n    assert fizzbuzz(29) == '29'  # Edge case for a number just before 30\n\ndef test_fizzbuzz_error_cases():\n    # Test error cases for invalid inputs\n    with pytest.raises(TypeError):\n        fizzbuzz(\"3\")  # Non-integer input\n\n    with pytest.raises(ValueError):\n        fizzbuzz(-1)  # Negative number input\n\n    with pytest.raises(ValueError):\n        fizzbuzz(0)  # Zero input, assuming zero is not handled as a special case\n\n# Note: The error cases assume that the function raises exceptions for invalid inputs.\n# If the function does not currently raise exceptions, you would need to modify the function\n# to handle these cases appropriately.\n```\n\n### Explanation:\n\n1. **Happy Path Tests**: These tests cover the expected behavior for numbers divisible by 3, 5, and 15, as well as numbers that are not divisible by either.\n\n2. **Edge Cases**: These tests cover numbers around the boundaries of divisibility by 3 and 5, including zero and a larger number divisible by 15.\n\n3. **Error Cases**: These tests assume that the function raises exceptions for invalid inputs. If the function does not currently handle these cases, you would need to modify it to raise `TypeError` for non-integer inputs and `ValueError` for negative numbers or zero, depending on your requirements.\n\nTo implement these tests, ensure that the `fizzbuzz` function is capable of handling exceptions for invalid inputs. If not, you might need to adjust the function to raise exceptions for non-integer and negative inputs.",
+  "score": 4,
+  "cost": 4.5695e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 596
+  }
+}

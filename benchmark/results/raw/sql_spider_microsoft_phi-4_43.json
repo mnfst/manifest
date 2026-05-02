@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "```sql\nSELECT COUNT(*) AS number_of_cars\nFROM car_1\nWHERE cylinders > 6;\n```",
+  "score": 5,
+  "cost": 6.11e-06,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 25
+  }
+}

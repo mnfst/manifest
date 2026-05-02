@@ -2,12 +2,12 @@
   "model": "x-ai/grok-4.20",
   "task": "extraction_hard_v2",
   "case": 19,
-  "response": "{\n  \"date\": \"March 15, 2024\",\n  \"time\": \"2:00-4:30 PM EST\",\n  \"location\": \"Conference Room A + Zoom\",\n  \"attendees\": [\"J. Smith (Chair)\", \"M. Johnson\", \"L. Chen\", \"R. Patel\", \"K. Williams\"],\n  \"absent\": [\"D. Brown (excused)\"],\n  \"secretary\": \"A. Taylor\",\n  \"agenda_items\": [\n    {\n      \"topic\": \"Q4 Financial Review\",\n      \"summary\": \"Revenue $12.3M (108% of target). EBITDA margin improved to 18%. Cash: $8.2M.\"\n    },\n    {\n      \"topic\": \"Series B Update\",\n      \"summary\": \"Term sheet from Sequoia at $80M pre-money. Board voted 4-1 to proceed (Williams dissenting, preferred higher valuation).\"\n    },\n    {\n      \"topic\": \"Hiring Plan\",\n      \"summary\": \"Approved 15 new hires in Q2 (8 eng, 4 sales, 3 ops). Budget: $1.8M.\"\n    }\n  ],\n  \"motions\": [\n    {\n      \"description\": \"Motion to approve Q4 financials\",\n      \"result\": \"Passed unanimously\",\n      \"vote\": \"unanimous\"\n    },\n    {\n      \"description\": \"Motion to authorize Series B negotiation\",\n      \"result\": \"Passed 4-1\",\n      \"vote\": \"4-1\"\n    },\n    {\n      \"description\": \"Motion to approve Q2 hiring budget\",\n      \"result\": \"Passed unanimously\",\n      \"vote\": \"unanimous\"\n    }\n  ],\n  \"next_meeting\": \"June 14, 2024\"\n}",
-  "score": 0,
-  "cost": 0.00386,
+  "response": "{\n  \"date\": \"March 15, 2024\",\n  \"time\": \"2:00-4:30 PM EST\",\n  \"location\": \"Conference Room A + Zoom\",\n  \"attendees\": [\"J. Smith\", \"M. Johnson\", \"L. Chen\", \"R. Patel\", \"K. Williams\"],\n  \"absent\": [\"D. Brown\"],\n  \"secretary\": \"A. Taylor\",\n  \"agenda_items\": [\n    {\n      \"topic\": \"Q4 Financial Review\",\n      \"summary\": \"Revenue $12.3M (108% of target). EBITDA margin improved to 18%. Cash: $8.2M.\"\n    },\n    {\n      \"topic\": \"Series B Update\",\n      \"summary\": \"Term sheet from Sequoia at $80M pre-money. Board voted 4-1 to proceed (Williams dissenting, preferred higher valuation).\"\n    },\n    {\n      \"topic\": \"Hiring Plan\",\n      \"summary\": \"Approved 15 new hires in Q2 (8 eng, 4 sales, 3 ops). Budget: $1.8M.\"\n    }\n  ],\n  \"motions\": [\n    {\n      \"description\": \"Motion to approve Q4 financials\",\n      \"result\": \"Passed unanimously\",\n      \"vote\": \"unanimous\"\n    },\n    {\n      \"description\": \"Motion to authorize Series B negotiation\",\n      \"result\": \"Passed 4-1\",\n      \"vote\": \"4-1\"\n    },\n    {\n      \"description\": \"Motion to approve Q2 hiring budget\",\n      \"result\": \"Passed unanimously\",\n      \"vote\": \"unanimous\"\n    }\n  ],\n  \"next_meeting\": \"June 14, 2024\"\n}",
+  "score": 4,
+  "cost": 0.0023825,
   "expected": "",
   "tokens": {
     "input": 450,
-    "output": 370
+    "output": 364
   }
 }

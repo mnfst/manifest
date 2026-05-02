@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 24,
+  "response": "Here is the correct function call:\n\n```python\nget_api_keys(service=\"production\", channel=\"general\").rotate_api_key()\n```\n\nThis function call will return the current API keys for the production service and then rotate them.",
+  "score": 1,
+  "cost": 3.834e-06,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 46
+  }
+}

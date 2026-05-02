@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "To determine the total amount of money that Julieta and Rafaela received in tips, we can break the problem into two parts: calculating Rafaela's tips and then calculating Julieta's tips based on the given relationship.\n\n---\n\n### Step 1: Calculate Rafaela's Tips\n\nEach of the 40 customers gave Rafaela a $20 tip. Therefore, the total amount Rafaela received is:\n\n$$\n40 \\times 20 = 800\n$$\n\nSo, **Rafaela received $800** in tips.\n\n---\n\n### Step 2: Calculate Julieta's Tips\n\nJulieta received **10% less** in tips than Rafaela. This means Julieta received **90%** of Rafaela's total tips. To find 90% of $800:\n\n$$\n0.90 \\times 800 = 720\n$$\n\nSo, **Julieta received $720** in tips.\n\n---\n\n### Step 3: Calculate the Total Tips Received by Both\n\nTo find the total amount of tips received by both Rafaela and Julieta, we add their amounts:\n\n$$\n800 + 720 = 1520\n$$\n\n---\n\n### Final Answer\n\n$$\n\\boxed{1520}\n$$",
+  "score": 5,
+  "cost": 5.1200000000000004e-05,
+  "expected": "1520",
+  "tokens": {
+    "input": 98,
+    "output": 926
+  }
+}

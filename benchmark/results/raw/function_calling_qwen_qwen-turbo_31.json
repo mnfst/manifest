@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 31,
+  "response": "{\"name\": \"archive_emails\", \"arguments\": {\"folder\": \"inbox\", \"older_than_days\": 180}}",
+  "score": 5,
+  "cost": 4.0590000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 26
+  }
+}

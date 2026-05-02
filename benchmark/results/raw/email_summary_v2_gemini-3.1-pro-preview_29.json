@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "Following yesterday's release, the Android app's crash rate spiked to 2.3% due to a null pointer issue in the notification handler. To resolve this, the Mobile Team has already merged a fix and submitted an emergency release request to the Play Store.",
+  "score": 5,
+  "cost": 0.00104,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 54
+  }
+}

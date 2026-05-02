@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "To solve this problem, we need to calculate the total number of wheels required for all the cars and motorcycles, and then determine how many wheels will be left from the box of 650 wheels.\n\n1. **Calculate the number of wheels needed for the cars:**\n   - Each car requires 4 wheels.\n   - Henry needs to assemble 57 cars.\n   - Total wheels for cars = \\( 57 \\text{ cars} \\times 4 \\text{ wheels/car} = 228 \\text{ wheels} \\).\n\n2. **Calculate the number of wheels needed for the motorcycles:**\n   - Each motorcycle requires 2 wheels.\n   - Henry needs to assemble 73 motorcycles.\n   - Total wheels for motorcycles = \\( 73 \\text{ motorcycles} \\times 2 \\text{ wheels/motorcycle} = 146 \\text{ wheels} \\).\n\n3. **Calculate the total number of wheels needed for all toys:**\n   - Total wheels needed = Wheels for cars + Wheels for motorcycles\n   - Total wheels needed = \\( 228 \\text{ wheels} + 146 \\text{ wheels} = 374 \\text{ wheels} \\).\n\n4. **Determine how many wheels will be left:**\n   - Henry has a box with 650 wheels.\n   - Wheels left = Total wheels in the box - Total wheels needed\n   - Wheels left = \\( 650 \\text{ wheels} - 374 \\text{ wheels} = 276 \\text{ wheels} \\).\n\nTherefore, the number of wheels that will be left is:\n\nANSWER: 276",
+  "score": 5,
+  "cost": 2.782e-05,
+  "expected": "276",
+  "tokens": {
+    "input": 102,
+    "output": 326
+  }
+}

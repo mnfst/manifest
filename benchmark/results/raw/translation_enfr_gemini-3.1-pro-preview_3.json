@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Here is the translation, maintaining the formal and slightly critical institutional tone of the original:\n\n**French:**\n\u00ab Il n'y a pas d'autre explication \u00e0 la dotation parcimonieuse de 10 ou 12 millions d'ECU, lesquels, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 de moyens modernes pour assurer une fonction de surveillance dans le secteur de la p\u00eache. \u00bb\n\n*Note on vocabulary choices:*\n*   *Grant:* Translated as \"**dotation**\" (or *subvention*), which is the standard administrative term for this kind of financial allocation.\n*   *Which... do not suffice:* Translated using \"**lesquels... ne suffisent**\" to grammatically link the verb directly to the plural \"millions\" rather than the singular \"dotation\", ensuring perfect French syntax. \n*   *Monitoring function:* Translated as \"**fonction de surveillance**\" (or *mission de contr\u00f4le*), which is the exact terminology used in European maritime and fisheries policies.",
+  "score": 5,
+  "cost": 0.00344,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 217
+  }
+}

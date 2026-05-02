@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "To solve this problem, we need to find the total number of points collected by the students.\n\nFirst, we know that Adam has 50 points.\n\nSince Betty collected 30% more points than Adam, we can calculate Betty's points as follows:\nBetty's points = Adam's points + 30% of Adam's points\n= 50 + 0.3(50)\n= 50 + 15\n= 65\n\nNext, we know that Marta collected 3 times more points than Tom. Let's denote Tom's points as x. Then, Marta's points are 3x.\n\nWe are also given that Tom has 30 points less than Betty, so we can set up the equation:\nx = Betty's points - 30\nx = 65 - 30\nx = 35\n\nNow that we know Tom's points, we can find Marta's points:\nMarta's points = 3x\n= 3(35)\n= 105\n\nNow, we have the points collected by each student:\nAdam: 50\nBetty: 65\nTom: 35\nMarta: 105\n\nTo find the total number of points, we add the points collected by each student:\nTotal points = Adam's points + Betty's points + Tom's points + Marta's points\n= 50 + 65 + 35 + 105\n= 255\n\nSince the minimum threshold to go on the trip is 400 points, we subtract the total points collected from the threshold to find the points the class is missing:\nPoints missing = Threshold - Total points\n= 400 - 255\n= 145\n\nANSWER: 145",
+  "score": 5,
+  "cost": 2.5499999999999996e-05,
+  "expected": "145",
+  "tokens": {
+    "input": 152,
+    "output": 348
+  }
+}

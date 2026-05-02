@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'\u00e9tendue de la longueur non soutenue d\u00e9velopp\u00e9e en raison de l'\u00e9rosion a une influence significative sur la r\u00e9ponse flexionnelle du tuyau dans le sol.",
+  "score": 4,
+  "cost": 6.890000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 51
+  }
+}

@@ -3,7 +3,7 @@
   "task": "extraction_hard_v2",
   "case": 43,
   "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout\",\n  \"summary\": \"Checkout page fails with white screen after 30 seconds of spinner\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout\",\n    \"Enter card information\",\n    \"Click 'Pay'\"\n  ],\n  \"expected_behavior\": \"Page should complete payment processing successfully without errors\",\n  \"actual_behavior\": \"Page shows a white screen after 30 seconds with a CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
-  "score": 0,
+  "score": 5,
   "cost": 1.3359999999999999e-05,
   "expected": "",
   "tokens": {

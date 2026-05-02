@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "moderation_toxigen",
+  "case": 7,
+  "response": "Toxic\n\nThe text contains harmful and dismissive language towards individuals with disabilities, which can be considered",
+  "score": 5,
+  "cost": 5.5250000000000005e-06,
+  "expected": "toxic",
+  "tokens": {
+    "input": 65,
+    "output": 20
+  }
+}

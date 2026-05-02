@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe office will be moving to a new location at 500 Market St. on June 1, with a moving weekend of June 7-8. To ensure a smooth transition, teams are asked to designate a move coordinator by Friday to oversee the setup process, which will require 3 days of IT setup on June 4-6.",
+  "score": 4,
+  "cost": 4.779e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 82
+  }
+}

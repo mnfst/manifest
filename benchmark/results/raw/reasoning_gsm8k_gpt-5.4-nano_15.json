@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Joey starts with 214 points and then scores 26 more:\n- Joey: \\(214 + 26 = 240\\)\n\nMarcy starts with 225 points and then scores 10 more:\n- Marcy: \\(225 + 10 = 235\\)\n\nNow find how much Joey is winning:\n- Difference: \\(240 - 235 = 5\\)\n\nANSWER: 5",
+  "score": 5,
+  "cost": 4.1400000000000003e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 82,
+    "output": 83
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Je dirais qu'il s'agit d'une valeur faible, au mieux.",
+  "score": 4,
+  "cost": 2.9580000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 18
+  }
+}

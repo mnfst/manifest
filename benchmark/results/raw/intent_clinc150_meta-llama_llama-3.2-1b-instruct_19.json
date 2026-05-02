@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "book_flight",
+  "score": 0,
+  "cost": 1.3689e-05,
+  "expected": "calendar",
+  "tokens": {
+    "input": 504,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "Here is the translation, maintaining the professional and administrative tone of the original tourism text:\n\n**French:**\nUn grand nombre d'attraits et de produits touristiques (th\u00e9, itin\u00e9raires culturels, complexes de sant\u00e9 et de bien-\u00eatre et spas, gastronomie, activit\u00e9s nautiques, etc.) a \u00e9t\u00e9 identifi\u00e9 au sein de la destination, n\u00e9cessitant un d\u00e9veloppement interd\u00e9pendant en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne.\n\n*Note on vocabulary:* \n*   *Attraits* is generally preferred over *attractions* in professional French tourism terminology (unless referring specifically to amusement parks), as it better encompasses natural, cultural, and general points of interest. \n*   Using the present participle *n\u00e9cessitant* (requiring) provides a much smoother and more professional flow in French than a literal translation of \"that requires\" (*qui n\u00e9cessite*).",
+  "score": 5,
+  "cost": 0.003005,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 188
+  }
+}

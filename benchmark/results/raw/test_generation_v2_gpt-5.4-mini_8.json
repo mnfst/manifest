@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 8,
+  "response": "```python\nimport pytest\n\nfrom your_module import binary_search\n\n\ndef test_binary_search_finds_target_in_middle():\n    arr = [1, 3, 5, 7, 9]\n    assert binary_search(arr, 5) == 2\n\n\ndef test_binary_search_finds_target_at_beginning():\n    arr = [1, 3, 5, 7, 9]\n    assert binary_search(arr, 1) == 0\n\n\ndef test_binary_search_finds_target_at_end():\n    arr = [1, 3, 5, 7, 9]\n    assert binary_search(arr, 9) == 4\n\n\ndef test_binary_search_returns_minus_one_when_target_not_found():\n    arr = [1, 3, 5, 7, 9]\n    assert binary_search(arr, 6) == -1\n\n\ndef test_binary_search_returns_minus_one_for_empty_list():\n    assert binary_search([], 1) == -1\n\n\ndef test_binary_search_handles_single_element_list_found():\n    assert binary_search([10], 10) == 0\n\n\ndef test_binary_search_handles_single_element_list_not_found():\n    assert binary_search([10], 5) == -1\n\n\ndef test_binary_search_handles_duplicate_values():\n    arr = [1, 2, 2, 2, 3]\n    idx = binary_search(arr, 2)\n    assert idx in {1, 2, 3}\n    assert arr[idx] == 2\n\n\ndef test_binary_search_with_negative_numbers():\n    arr = [-10, -5, 0, 5, 10]\n    assert binary_search(arr, -5) == 1\n    assert binary_search(arr, 10) == 4\n\n\ndef test_binary_search_raises_type_error_for_unsortable_mixed_types():\n    arr = [1, \"2\", 3]\n    with pytest.raises(TypeError):\n        binary_search(arr, 2)\n\n\ndef test_binary_search_raises_type_error_when_target_not_comparable():\n    arr = [1, 2, 3]\n    with pytest.raises(TypeError):\n        binary_search(arr, \"2\")\n```\n\nNotes:\n- Replace `your_module` with the actual module name where `binary_search` is defined.\n- The function assumes `arr` is sorted in ascending order; tests should only pass sorted lists unless you're intentionally checking invalid input behavior.",
+  "score": 5,
+  "cost": 0.000636,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 499
+  }
+}

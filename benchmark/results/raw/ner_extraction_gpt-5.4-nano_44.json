@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [],\n  \"locations\": [\"Hurricane Maria\", \"Puerto Rico\", \"Dominican Republic\"]\n}",
+  "score": 2,
+  "cost": 2.01e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 33
+  }
+}

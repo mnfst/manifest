@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 8,
+  "response": "{\n  \"persons\": [\"Elon Musk\"],\n  \"organizations\": [\"Tesla\"],\n  \"locations\": [\"Fremont\", \"California\"]\n}",
+  "score": 5,
+  "cost": 3.4980000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 30
+  }
+}

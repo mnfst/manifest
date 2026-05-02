@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Savez-vous d'o\u00f9 vient l'argent ?",
+  "score": 5,
+  "cost": 2.75e-05,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 515
+  }
+}

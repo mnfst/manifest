@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "Here's a set of **pytest-style unit tests** for the `flatten` function. These tests cover:\n\n- **Happy path** (normal nested list)\n- **Edge cases** (empty list, single-element list, deeply nested list)\n- **Error cases** (non-list inputs, but in this case, the function is designed to handle only lists, so we'll test what happens if non-list items are passed)\n\n### \u2705 `test_flatten.py`\n\n```python\nimport pytest\nfrom your_module import flatten  # Replace with the actual module name\n\ndef test_flatten_happy_path():\n    assert flatten([1, [2, [3, 4], 5]]) == [1, 2, 3, 4, 5]\n\ndef test_flatten_empty_list():\n    assert flatten([]) == []\n\ndef test_flatten_single_element():\n    assert flatten([42]) == [42]\n\ndef test_flatten_deeply_nested():\n    assert flatten([[[[[[1]]]]]]) == [1]\n\ndef test_flatten_mixed_types():\n    assert flatten([1, [2, 'a', [3, 4]], 5]) == [1, 2, 'a', 3, 4]\n\ndef test_flatten_with_non_list_input():\n    with pytest.raises(TypeError):\n        flatten(123)\n\ndef test_flatten_with_non_list_in_list():\n    assert flatten([1, 2, \"string\", [3, 4]]) == [1, 2, \"string\", 3, 4]\n```\n\n### \ud83d\udd0d Notes:\n\n- The function assumes that the input is a list. If it's not, it will raise a `TypeError` in the `isinstance(item, list)` check. However, in the current implementation, `flatten(123)` will raise a `TypeError` because `item` is not a list, and `isinstance(123, list)` is `False`, so it appends `123` to the result. So the test `test_flatten_with_non_list_input` may not raise an error. To make it raise an error, you might need to modify the function to only accept lists as input.\n\n### \u2705 Optional: Enhance the function to enforce list input\n\nIf you want the function to only accept lists, you can add a check at the start:\n\n```python\ndef flatten(lst: list) -> list:\n    if not isinstance(lst, list):\n        raise TypeError(\"Input must be a list\")\n    result = []\n    for item in lst:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n```\n\nThen the test `test_flatten_with_non_list_input` will raise a `TypeError` as expected.\n\nLet me know if you'd like the updated function and tests with that added safety check.",
+  "score": 4,
+  "cost": 2.2605000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 601
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l\u2019\u00e9tendue de la longueur non support\u00e9e r\u00e9sultant de l\u2019affouillement exerce une influence significative sur la r\u00e9ponse en flexion du syst\u00e8me conduite-sol.",
+  "score": 4,
+  "cost": 0.001866,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 142
+  }
+}

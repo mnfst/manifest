@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "SELECT\n  nationalities.nationality\nFROM poker_player.nationalities\nGROUP BY nationalities.nationality\nHAVING COUNT(*) >= 2;",
+  "score": 4,
+  "cost": 2.11e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 35
+  }
+}

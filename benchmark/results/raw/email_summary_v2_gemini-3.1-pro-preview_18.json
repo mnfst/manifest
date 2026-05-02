@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering proposes splitting the Platform team into separate Infrastructure and Developer Experience teams to ensure DX work is no longer blocked by infrastructure incidents. Please review the attached draft organizational chart detailing this proposed new structure.",
+  "score": 5,
+  "cost": 0.0008275,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 41
+  }
+}

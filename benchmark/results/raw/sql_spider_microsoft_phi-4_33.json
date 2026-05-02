@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "```sql\nSELECT episode_title, rating\nFROM tvshow.episodes\nORDER BY rating DESC\nLIMIT 3;\n```",
+  "score": 5,
+  "cost": 6.76e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 26
+  }
+}

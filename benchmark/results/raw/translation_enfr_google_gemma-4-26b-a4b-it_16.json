@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Depending on the context (casual vs. more intense), here are a few ways to translate this:\n\n**1. Natural/Casual (Most common):**\n> \"J'ai l'impression que ma queue n'est pas assez grande pour toi.\"\n\n**2. More vulgar/Explicit:**\n> \"J'ai l'impression que ma bite n'est pas assez grosse pour toi.\"\n\n**3. Slightly more \"literary\" or intense:**\n> \"Je sens que mon sexe n'est pas assez grand pour toi.\"\n\n**Note on word choice:**\n*   **Queue:** A very common, slightly less aggressive way to say \"cock.\"\n*   **Bite:** The direct equivalent of \"cock/dick\" in a vulgar sense.\n*   **Grande vs. Grosse:** In French, when talking about size in this context, \"grande\" (big/long) or \"grosse\" (thick/big) are both used, but \"grosse\" is more common when referring to girth/overall size.",
+  "score": 4,
+  "cost": 1.5e-05,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 213
+  }
+}

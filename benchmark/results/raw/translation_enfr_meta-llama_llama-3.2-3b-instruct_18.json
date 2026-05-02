@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "Le plus proche plages est \u00e0 une courte distance en voiture, situ\u00e9 \u00e0 environ 6...",
+  "score": 2,
+  "cost": 3.315e-06,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 22
+  }
+}

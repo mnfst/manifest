@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "To find out by how many points Joey is winning, we need to calculate the final scores for both Joey and Marcy and then find the difference between them.\n\n**Step 1: Calculate Joey's final score.**\nJoey starts with 214 points.\nHe scores 26 points.\nJoey's final score = $214 + 26$\n$214 + 26 = 240$\n\n**Step 2: Calculate Marcy's final score.**\nMarcy starts with 225 points.\nShe scores 10 points.\nMarcy's final score = $225 + 10$\n$225 + 10 = 235$\n\n**Step 3: Calculate the difference between Joey's score and Marcy's score.**\nTo find how many points Joey is winning by, subtract Marcy's score from Joey's score.\nDifference = Joey's score - Marcy's score\nDifference = $240 - 235$\nDifference = $5$\n\nJoey is winning by 5 points.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 1.734e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 85,
+    "output": 204
+  }
+}

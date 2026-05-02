@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "Here's a set of **pytest-style unit tests** for the `title_case` function. These tests cover:\n\n- **Happy path**: Normal input with multiple words.\n- **Edge cases**: Empty string, single word, multiple spaces, leading/trailing spaces.\n- **Error cases**: Non-string input (though the function is typed as `str`, we can still test with other types to ensure it handles them gracefully or raises a proper error).\n\n---\n\n### \u2705 `test_title_case.py`\n\n```python\nimport pytest\n\nfrom your_module import title_case  # Replace with the actual module name\n\ndef test_title_case_happy_path():\n    assert title_case(\"hello world\") == \"Hello World\"\n    assert title_case(\"python is fun\") == \"Python Is Fun\"\n    assert title_case(\"this is a test\") == \"This Is A Test\"\n\ndef test_title_case_edge_cases():\n    assert title_case(\"\") == \"\"\n    assert title_case(\"hello\") == \"Hello\"\n    assert title_case(\"   multiple   spaces   \") == \"Multiple Spaces\"\n    assert title_case(\"   leading   \") == \"Leading\"\n    assert title_case(\"trailing   \") == \"Trailing\"\n\ndef test_title_case_error_cases():\n    with pytest.raises(TypeError):\n        title_case(123)  # Non-string input\n    with pytest.raises(TypeError):\n        title_case(None)  # None input\n    with pytest.raises(TypeError):\n        title_case([\"a\", \"list\"])  # List input\n```\n\n---\n\n### \ud83d\udcdd Notes:\n\n- Replace `your_module` with the actual module name where `title_case` is defined.\n- The function is typed to accept a `str`, but the test includes error cases to ensure it doesn't silently accept other types.\n- The `split()` function in `s.split()` will split on any whitespace, including multiple spaces, tabs, or newlines, which is why the edge case with \"   multiple   spaces   \" is handled properly.\n\n---\n\n### \u2705 To Run the Tests:\n\nInstall `pytest` if not already installed:\n\n```bash\npip install pytest\n```\n\nThen run:\n\n```bash\npytest test_title_case.py\n```\n\nLet me know if you want to add more complex test cases or use parameterized tests!",
+  "score": 5,
+  "cost": 1.7391000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 464
+  }
+}

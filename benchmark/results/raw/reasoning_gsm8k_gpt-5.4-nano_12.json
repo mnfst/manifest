@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Jim watches TV for **2 hours** each time. Then he reads for **half as long**, so reading time is:\n- Reading = \\( \\frac{1}{2} \\times 2 = 1 \\) hour\n\nSo per session (TV + reading):\n- Total = \\(2 + 1 = 3\\) hours\n\nHe does this **3 times a week**, so weekly total is:\n- Weekly = \\(3 \\times 3 = 9\\) hours\n\nIn **4 weeks**:\n- Total = \\(9 \\times 4 = 36\\) hours\n\nANSWER: 36",
+  "score": 2,
+  "cost": 6.03e-05,
+  "expected": "36",
+  "tokens": {
+    "input": 87,
+    "output": 129
+  }
+}

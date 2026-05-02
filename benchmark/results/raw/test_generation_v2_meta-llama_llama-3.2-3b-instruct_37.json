@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 37,
+  "response": "Here's an example of how you can write unit tests for the `parse_csv_line` function using pytest:\n\n```python\nimport pytest\nimport io\nimport csv\n\ndef test_parse_csv_line_happy_path():\n    line = 'hello,\"world,foo,bar\"'\n    expected_result = ['hello', 'world,foo,bar']\n    assert parse_csv_line(line) == expected_result\n\ndef test_parse_csv_line_empty_line():\n    line = ''\n    expected_result = []\n    assert parse_csv_line(line) == expected_result\n\ndef test_parse_csv_line_single_value():\n    line = 'hello'\n    expected_result = ['hello']\n    assert parse_csv_line(line) == expected_result\n\ndef test_parse_csv_line_multiple_values():\n    line = 'hello,\"world,foo,bar\"'\n    expected_result = ['hello', 'world,foo,bar']\n    assert parse_csv_line(line) == expected_result\n\ndef test_parse_csv_line_quotes():\n    line = 'hello,\"hello, world,foo,bar\"'\n    expected_result = ['hello', 'hello, world,foo,bar']\n    assert parse_csv_line(line) == expected_result\n\ndef test_parse_csv_line_trailing_comma():\n    line = 'hello,'\n    expected_result = ['hello']\n    assert parse_csv_line(line) == expected_result\n\ndef test_parse_csv_line_trailing_comma_with_quotes():\n    line = 'hello,\"\",'\n    expected_result = ['hello,\"\"]\n    assert parse_csv_line(line) == expected_result\n\ndef test_parse_csv_line_newline():\n    line = 'hello\\nworld'\n    expected_result = ['hello', 'world']\n    assert parse_csv_line(line) == expected_result\n\ndef test_parse_csv_line_newline_with_quotes():\n    line = 'hello,\"world\\nfoo,bar\"'\n    expected_result = ['hello,\"world', 'foo,bar']\n    assert parse_csv_line(line) == expected_result\n\ndef test_parse_csv_line_invalid_input_type():\n    with pytest.raises(TypeError):\n        parse_csv_line(123)\n\ndef test_parse_csv_line_none_input():\n    with pytest.raises(TypeError):\n        parse_csv_line(None)\n```\n\nNote that the `test_parse_csv_line_invalid_input_type` and `test_parse_csv_line_none_input` tests are not exhaustive, but they cover the most common cases where the input is not a string.\n\nAlso, the `test_parse_csv_line_newline` and `test_parse_csv_line_newline_with_quotes` tests are not strictly necessary, as the function should ignore newlines in the input string. However, they are included to ensure that the function behaves correctly in these cases.\n\nYou can run these tests using the following command:\n```bash\npytest test_parse_csv_line.py\n```",
+  "score": 4,
+  "cost": 3.4323e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 554
+  }
+}

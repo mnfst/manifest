@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "A GDPR data export request has been received for user ID 45892, due by May 25, and it must include all personal data across services, processing purpose documentation, third-party sharing logs, and analytics data. Action item: gather the required data and documentation to complete the export within the 30-day deadline.",
+  "score": 5,
+  "cost": 0.001344,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 87
+  }
+}

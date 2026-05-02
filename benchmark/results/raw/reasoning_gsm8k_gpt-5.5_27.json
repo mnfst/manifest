@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let \\(x\\) be the number of vacuum cleaners Melanie started with.\n\nShe sold a third at the green house:\n\n\\[\nx - \\frac{x}{3} = \\frac{2x}{3}\n\\]\n\nThen she sold 2 more at the red house:\n\n\\[\n\\frac{2x}{3} - 2\n\\]\n\nAt the orange house, she sold half of what was left, and then had 5 remaining. So the amount before the orange house was:\n\n\\[\n5 \\times 2 = 10\n\\]\n\nThus:\n\n\\[\n\\frac{2x}{3} - 2 = 10\n\\]\n\nAdd 2 to both sides:\n\n\\[\n\\frac{2x}{3} = 12\n\\]\n\nMultiply both sides by 3:\n\n\\[\n2x = 36\n\\]\n\nDivide by 2:\n\n\\[\nx = 18\n\\]\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.003891,
+  "expected": "18",
+  "tokens": {
+    "input": 97,
+    "output": 300
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "SELECT professional.first_name, treatment.description\nFROM professional\nJOIN treatment ON professional.id = treatment.professional_id;",
+  "score": 5,
+  "cost": 3.432e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 22
+  }
+}

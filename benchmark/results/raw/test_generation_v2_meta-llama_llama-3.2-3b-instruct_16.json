@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "Here's how you can write unit tests for the given function using pytest:\n\n```python\nimport pytest\n\ndef test_gcd_happy_path():\n    \"\"\"Test the gcd function with positive numbers.\"\"\"\n    assert gcd(12, 15) == 3\n\ndef test_gcd_zero():\n    \"\"\"Test the gcd function with one of the numbers being zero.\"\"\"\n    assert gcd(12, 0) == 12\n\ndef test_gcd_negative_numbers():\n    \"\"\"Test the gcd function with negative numbers.\"\"\"\n    assert gcd(-12, -15) == 3\n\ndef test_gcd_equal_numbers():\n    \"\"\"Test the gcd function with equal numbers.\"\"\"\n    assert gcd(12, 12) == 12\n\ndef test_gcd_non_integer_input():\n    \"\"\"Test the gcd function with non-integer inputs.\"\"\"\n    with pytest.raises(TypeError):\n        gcd(12.5, 15)\n\ndef test_gcd_non_integer_input_with_zero():\n    \"\"\"Test the gcd function with a non-integer input and zero.\"\"\"\n    with pytest.raises(TypeError):\n        gcd(12, 0.5)\n\ndef test_gcd_non_integer_input_with_negative():\n    \"\"\"Test the gcd function with a non-integer input and a negative number.\"\"\"\n    with pytest.raises(TypeError):\n        gcd(-12, 15.5)\n\ndef test_gcd_non_integer_input_with_negative_and_zero():\n    \"\"\"Test the gcd function with a non-integer input, a negative number, and zero.\"\"\"\n    with pytest.raises(TypeError):\n        gcd(-12, -0.5)\n```\n\nHowever, the function `gcd` does not currently handle non-integer inputs. To make it work with non-integer inputs, you can modify it to check the type of the inputs and raise a TypeError if they are not integers. Here's how you can modify the function:\n\n```python\ndef gcd(a: int, b: int) -> int:\n    if not isinstance(a, int) or not isinstance(b, int):\n        raise TypeError(\"Both inputs must be integers.\")\n    while b:\n        a, b = b, a % b\n    return abs(a)\n```\n\nWith this modification, the tests will pass.",
+  "score": 5,
+  "cost": 2.6264999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 444
+  }
+}

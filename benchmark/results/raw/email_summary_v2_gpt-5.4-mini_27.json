@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The team shipped the auth redesign on time and had strong cross-team collaboration with design, but the sprint suffered from too many context switches across three projects and standups running longer than the 15-minute target. Action items are to limit work in progress to two items per developer and timebox standups with a parking lot for off-topic issues.",
+  "score": 5,
+  "cost": 0.00011640000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 71
+  }
+}

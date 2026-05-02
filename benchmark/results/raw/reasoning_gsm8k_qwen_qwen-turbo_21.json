@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Let's break down the problem step by step.\n\n1. **Total steps Elliott wants to walk in a day:** 10,000 steps.\n\n2. **Steps taken on his walks to and from school:**  \n   He finished **half of his steps** on these walks.  \n   So, that\u2019s:\n   $$\n   \\frac{1}{2} \\times 10,000 = 5,000 \\text{ steps}\n   $$\n\n3. **Steps taken during a short walk with his friend:**  \n   He did **1,000 steps** during this walk.\n\n4. **Total steps so far (before the jog):**  \n   $$\n   5,000 \\text{ (school walks)} + 1,000 \\text{ (friend walk)} = 6,000 \\text{ steps}\n   $$\n\n5. **Steps remaining after the jog:**  \n   After the jog, he had **2,000 steps left** to reach his goal of 10,000.\n\n6. **Therefore, the total steps taken before the jog and after the jog:**  \n   $$\n   10,000 - 2,000 = 8,000 \\text{ steps}\n   $$\n\n7. **Steps taken during the jog:**  \n   Subtract the steps taken before the jog from the total steps taken before the jog and after the jog:\n   $$\n   8,000 - 6,000 = 2,000 \\text{ steps}\n   $$\n\n### Final Answer:\nANSWER: 2000",
+  "score": 5,
+  "cost": 1.6335000000000002e-05,
+  "expected": "2000",
+  "tokens": {
+    "input": 140,
+    "output": 355
+  }
+}

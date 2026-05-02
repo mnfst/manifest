@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "```sql\nSELECT professional_id, role, first_name\nFROM treatments\nJOIN professionals ON treatments.professional_id = professionals.id\nGROUP BY professional_id, role, first_name\nHAVING COUNT(treatments.id) >= 2;\n```",
+  "score": 4,
+  "cost": 9.100000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 50
+  }
+}

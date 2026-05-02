@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\"],\n  \"locations\": [\"CES\", \"Las Vegas\"]\n}",
+  "score": 4,
+  "cost": 2.0700000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 34
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X launched new AI features last week, including auto-categorization that we currently lack, but their pricing is twice ours and market response has been neutral. Action item: fast-track our AI roadmap item while emphasizing our stronger API and integrations as competitive advantages.",
+  "score": 5,
+  "cost": 0.000634,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 56
+  }
+}

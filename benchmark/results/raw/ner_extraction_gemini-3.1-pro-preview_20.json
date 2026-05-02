@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 20,
+  "response": "{\n  \"persons\": [\n    \"Sundar Pichai\"\n  ],\n  \"organizations\": [\n    \"Google\"\n  ],\n  \"locations\": [\n    \"Malaysia\"\n  ]\n}",
+  "score": 5,
+  "cost": 0.0008925,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 48
+  }
+}

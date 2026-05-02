@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 1,
+  "response": "```json\n{\n  \"persons\": [\"President Biden\", \"French President Macron\"],\n  \"organizations\": [\"NATO\", \"White House\"],\n  \"locations\": [\"France\"]\n}\n```",
+  "score": 3,
+  "cost": 7.280000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 39
+  }
+}

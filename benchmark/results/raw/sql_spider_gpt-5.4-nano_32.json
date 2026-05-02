@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT\n  p.first_name,\n  AVG(r.rank) AS average_ranking\nFROM wta_1.players p\nJOIN wta_1.player_rankings r\n  ON r.player_id = p.player_id\nGROUP BY\n  p.first_name\nORDER BY\n  p.first_name;",
+  "score": 5,
+  "cost": 3.3e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 64
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe Design System (DS) v3 is now ready for adoption, featuring new color tokens for dark mode, revised spacing scale, and updated components. The Design Team recommends a team-by-team rollout, starting with the Settings page, to ensure a smooth transition.",
+  "score": 5,
+  "cost": 4.185000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 65
+  }
+}

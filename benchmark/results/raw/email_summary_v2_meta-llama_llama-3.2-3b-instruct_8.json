@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe annual performance review cycle is starting on May 1, with key dates including self-reviews on May 15, manager reviews on May 22, calibration on May 28, and delivery on June 5. This year, the review process will utilize a new competency framework, and a training session for managers is scheduled for April 30 to prepare them for the new framework.",
+  "score": 5,
+  "cost": 9.434999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 90
+  }
+}

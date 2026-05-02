@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 6,
+  "response": "{\n  \"name\": \"translate\",\n  \"arguments\": {\n    \"text\": \"The meeting has been rescheduled to Monday\",\n    \"target_language\": \"Spanish\"\n  }\n}",
+  "score": 4,
+  "cost": 0.0009325,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 44
+  }
+}

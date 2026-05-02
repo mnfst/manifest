@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "SELECT a.abbreviation, a.country\nFROM airlines a\nJOIN flights f ON f.airline_id = a.airline_id\nGROUP BY a.airline_id, a.abbreviation, a.country\nORDER BY COUNT(*) ASC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 0.000598,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 56
+  }
+}

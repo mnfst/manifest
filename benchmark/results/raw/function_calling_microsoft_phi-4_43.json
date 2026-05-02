@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 43,
+  "response": "```json\n{\n  \"name\": \"git_revert\",\n  \"arguments\": {\n    \"commit\": \"HEAD\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 9.100000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 30
+  }
+}

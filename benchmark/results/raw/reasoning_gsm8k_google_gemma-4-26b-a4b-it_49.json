@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "To find the total age of all the siblings, we need to identify the age of each individual sibling and then sum them up.\n\n1.  **Identify the sisters' ages:**\n    There are 3 sisters. The problem states that all sisters are the same age, which is 16.\n    Age of Sister 1 = 16\n    Age of Sister 2 = 16\n    Age of Sister 3 = 16\n    Total age of sisters = $16 + 16 + 16 = 48$\n\n2.  **Identify the brothers' ages:**\n    There are 2 brothers.\n    The problem states one brother is 12 years old.\n    Age of Brother 1 = 12\n    The problem also states that this 12-year-old is half the age of the older brother.\n    To find the age of the older brother: $12 \\times 2 = 24$.\n    Age of Brother 2 = 24\n    Total age of brothers = $12 + 24 = 36$\n\n3.  **Calculate the total age of all siblings:**\n    Total age = (Total age of sisters) + (Total age of brothers)\n    Total age = $48 + 36$\n    Total age = $84$\n\nANSWER: 84",
+  "score": 5,
+  "cost": 2.436e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 107,
+    "output": 299
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "To find the number of remaining fairies, we can break down the events step by step:\n\n1. **Initial number of fairies:** Katelyn initially saw 50 fairies.\n2. **Fairies joining:** Her friend saw half as many fairies as Katelyn saw join the group. Since Katelyn saw 50 fairies, half of that is 50 / 2 = 25 fairies. \n3. **Total fairies before any leave:** We add the new fairies to the initial group, which gives us 50 + 25 = 75 fairies.\n4. **Fairies flying away:** Ten minutes later, 30 fairies flew away. We subtract this from our total, which gives us 75 - 30 = 45 fairies.\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.0028525,
+  "expected": "45",
+  "tokens": {
+    "input": 109,
+    "output": 172
+  }
+}

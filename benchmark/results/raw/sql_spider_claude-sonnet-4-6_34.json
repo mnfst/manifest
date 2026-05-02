@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "```sql\nSELECT * FROM hiring;\n```",
+  "score": 3,
+  "cost": 0.000423,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 13
+  }
+}

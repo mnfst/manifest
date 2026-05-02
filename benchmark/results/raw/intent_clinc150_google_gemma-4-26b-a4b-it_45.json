@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "intent_clinc150",
+  "case": 45,
+  "response": "accept_reservations",
+  "score": 5,
+  "cost": 3.8159999999999994e-05,
+  "expected": "accept_reservations",
+  "tokens": {
+    "input": 631,
+    "output": 5
+  }
+}

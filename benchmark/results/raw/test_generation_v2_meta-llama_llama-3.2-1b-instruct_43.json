@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 43,
+  "response": "Here are some unit tests for the `partial` function using pytest style:\n\n```python\nimport pytest\nfrom functools import partial\n\ndef test_partial_default_kwargs():\n    # Happy path\n    def add(a, b):\n        return a + b\n\n    def partial_add(a, b):\n        return partial(add, 2)\n\n    assert partial_add(1, 2) == 3\n    assert partial_add(3, 4) == 7\n\n    # Edge case: no kwargs\n    def add(a, b):\n        return a + b\n\n    assert partial_add(1, 2) == 3\n\n    # Error case: invalid kwargs\n    with pytest.raises(TypeError):\n        partial(add, 1, 'a')\n\n    # Error case: invalid partial_args\n    with pytest.raises(TypeError):\n        partial(add, 1, 2, a=3)\n\n    # Error case: invalid partial_kwargs\n    with pytest.raises(TypeError):\n        partial(add, 1, a=2, b=3)\n\n    # Error case: too many kwargs\n    with pytest.raises(TypeError):\n        partial(add, 1, a=2, b=3, c=4)\n\n    # Error case: too few kwargs\n    with pytest.raises(TypeError):\n        partial(add, 1, a=2, b=3, c=4, d=5)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: testing the function with default kwargs and edge cases\n* Error cases: testing invalid kwargs, partial_args, and partial_kwargs\n* Edge cases: testing the function with too many kwargs and too few kwargs\n\nNote that the `pytest.raises` context manager is used to test for errors, and the `assert` statements are used to verify the expected behavior.",
+  "score": 3,
+  "cost": 1.2312e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 369
+  }
+}

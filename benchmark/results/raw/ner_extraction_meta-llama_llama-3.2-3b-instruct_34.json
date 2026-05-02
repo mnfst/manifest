@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "```\n{\n  \"persons\": [\"Gordon Ramsay\"],\n  \"organizations\": [],\n  \"locations\": [\"Bellagio\", \"Las Vegas\"]\n}\n```",
+  "score": 4,
+  "cost": 5.61e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 34
+  }
+}

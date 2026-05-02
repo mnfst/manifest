@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Here\u2019s the translation while maintaining the tone and meaning:\n\n**French:** *Il nous faut simplement obtenir plus d'informations.*\n\nAlternatively, depending on context, you could also say:\n- *Nous devons juste obtenir plus de renseignements.* (slightly more formal)\n- *On a juste besoin d\u2019avoir plus d\u2019infos.* (more casual)\n\nWould you like a specific tone (formal, casual, etc.)?",
+  "score": 5,
+  "cost": 2.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 87
+  }
+}

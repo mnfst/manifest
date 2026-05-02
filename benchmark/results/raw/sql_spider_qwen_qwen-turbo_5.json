@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT airport_code\nFROM airports\nWHERE airport_code NOT IN (\n    SELECT departure_airport FROM flights\n    UNION\n    SELECT arrival_airport FROM flights\n);",
+  "score": 5,
+  "cost": 3.564e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 33
+  }
+}

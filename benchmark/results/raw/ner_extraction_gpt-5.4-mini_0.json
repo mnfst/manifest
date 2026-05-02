@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "{\"persons\":[\"Tim Cook\"],\"organizations\":[\"Apple\",\"Samsung\",\"CES\"],\"locations\":[\"Las Vegas\"]}",
+  "score": 5,
+  "cost": 5.13e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 25
+  }
+}

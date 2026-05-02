@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The company reached 10K MAU, closed a $8M Series A term sheet ($40M pre-money valuation), and hired a VP of Sales, with fundraising closing May 10. Metrics show $85K MRR (+12% MoM), $120K monthly burn, and 11 months of runway post-raise.",
+  "score": 5,
+  "cost": 2.1700000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 319
+  }
+}

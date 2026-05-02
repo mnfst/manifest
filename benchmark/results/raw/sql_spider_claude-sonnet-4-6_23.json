@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "```sql\nSELECT production_code, channel\nFROM cartoon\nWHERE air_date = (SELECT MAX(air_date) FROM cartoon);\n```",
+  "score": 4,
+  "cost": 0.000744,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 34
+  }
+}

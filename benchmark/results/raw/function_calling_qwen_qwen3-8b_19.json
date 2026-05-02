@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "function_calling",
+  "case": 19,
+  "response": "{\"name\": \"run_tests\", \"arguments\": {\"module\": \"backend\", \"verbose\": true}}",
+  "score": 5,
+  "cost": 1.425e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 191
+  }
+}

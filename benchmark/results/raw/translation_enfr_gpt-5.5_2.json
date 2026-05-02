@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus vint et dit distinctement, avec bienveillance : \u00ab C\u2019est moi. \u00bb Ces mots devinrent le fondement de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 0.001872,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 144
+  }
+}

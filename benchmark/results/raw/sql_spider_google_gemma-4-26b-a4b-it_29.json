@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "```sql\nSELECT COUNT(DISTINCT language) FROM languages;\n```",
+  "score": 5,
+  "cost": 5.76e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 2,
+  "response": "report_fraud",
+  "score": 0,
+  "cost": 1.3851e-05,
+  "expected": "report_lost_card",
+  "tokens": {
+    "input": 509,
+    "output": 4
+  }
+}

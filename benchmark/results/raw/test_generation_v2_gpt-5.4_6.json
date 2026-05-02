@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "```python\nimport pytest\n\nfrom your_module import reverse_words\n\n\nclass TestReverseWords:\n    def test_reverses_words_in_normal_sentence(self):\n        assert reverse_words(\"hello world\") == \"world hello\"\n\n    def test_reverses_multiple_words(self):\n        assert reverse_words(\"one two three four\") == \"four three two one\"\n\n    def test_single_word_returns_same_word(self):\n        assert reverse_words(\"hello\") == \"hello\"\n\n    def test_empty_string_returns_empty_string(self):\n        assert reverse_words(\"\") == \"\"\n\n    def test_only_whitespace_returns_empty_string(self):\n        assert reverse_words(\"   \\t\\n  \") == \"\"\n\n    def test_collapses_multiple_spaces_between_words(self):\n        assert reverse_words(\"hello   world\") == \"world hello\"\n\n    def test_strips_leading_and_trailing_whitespace(self):\n        assert reverse_words(\"  hello world  \") == \"world hello\"\n\n    def test_handles_mixed_whitespace(self):\n        assert reverse_words(\"hello\\tworld\\npython\") == \"python world hello\"\n\n    @pytest.mark.parametrize(\n        \"value, expected\",\n        [\n            (\"a b\", \"b a\"),\n            (\"a    b    c\", \"c b a\"),\n            (\"  spaced   out  words \", \"words out spaced\"),\n            (\"123 abc !?\", \"!? abc 123\"),\n        ],\n    )\n    def test_various_happy_paths(self, value, expected):\n        assert reverse_words(value) == expected\n\n    @pytest.mark.parametrize(\"value\", [None, 123, [\"hello\", \"world\"], {\"a\": 1}])\n    def test_non_string_inputs_raise_type_error(self, value):\n        with pytest.raises(TypeError):\n            reverse_words(value)\n```\n\nIf you want, I can also provide:\n- a version using plain test functions instead of a test class\n- a complete `test_reverse_words.py` file\n- tests with 100% branch/statement coverage style comments",
+  "score": 5,
+  "cost": 0.00334,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 404
+  }
+}

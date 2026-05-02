@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "To solve this problem, we need to break it down into smaller steps.\n\nStep 1: Calculate the total cost of the tickets.\nThe cost of 3 tickets is $20.25.\n\nStep 2: Calculate the cost of the food.\nThe cost of the food is $4.50 less than the cost of the tickets.\nCost of food = Cost of tickets - $4.50\nCost of food = $20.25 - $4.50\nCost of food = $15.75\n\nStep 3: Calculate the total cost of the rides.\nThe cost of 2 rides is $33 each.\nTotal cost of rides = 2 x $33\nTotal cost of rides = $66\n\nStep 4: Calculate the total cost of all expenses.\nTotal cost = Cost of tickets + Cost of food + Total cost of rides\nTotal cost = $20.25 + $15.75 + $66\nTotal cost = $102\n\nStep 5: Calculate the amount each person paid.\nThe total cost is split evenly among the 3 friends.\nAmount each person paid = Total cost / 3\nAmount each person paid = $102 / 3\nAmount each person paid = $34\n\nANSWER: 34",
+  "score": 4,
+  "cost": 1.8665999999999997e-05,
+  "expected": "34",
+  "tokens": {
+    "input": 111,
+    "output": 255
+  }
+}

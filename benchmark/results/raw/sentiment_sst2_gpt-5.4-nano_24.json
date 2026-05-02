@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sentiment_sst2",
+  "case": 24,
+  "response": "positive",
+  "score": 5,
+  "cost": 5.8e-06,
+  "expected": "positive",
+  "tokens": {
+    "input": 42,
+    "output": 4
+  }
+}

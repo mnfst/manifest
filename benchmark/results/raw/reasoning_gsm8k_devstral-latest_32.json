@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "Let's solve the problem step by step.\n\n**Given:**\n- Area of the bedroom = 360 square feet\n- Length of the room = 3 yards\n\n**Step 1: Convert the length from yards to feet.**\nSince 1 yard = 3 feet,\nLength in feet = 3 yards \u00d7 3 feet/yard = 9 feet.\n\n**Step 2: Find the width of the room using the area formula for a rectangle.**\nArea = Length \u00d7 Width\n360 square feet = 9 feet \u00d7 Width\nWidth = 360 square feet / 9 feet = 40 feet.\n\n**Step 3: Calculate the perimeter of the room.**\nPerimeter = 2 \u00d7 (Length + Width)\nPerimeter = 2 \u00d7 (9 feet + 40 feet) = 2 \u00d7 49 feet = 98 feet.\n\n**Final Answer:**\nANSWER: 98",
+  "score": 5,
+  "cost": 6.58e-05,
+  "expected": "98",
+  "tokens": {
+    "input": 76,
+    "output": 194
+  }
+}

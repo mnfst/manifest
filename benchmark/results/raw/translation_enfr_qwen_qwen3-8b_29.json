@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime... bien que je ne sache pas pourquoi.",
+  "score": 4,
+  "cost": 2.865e-05,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 535
+  }
+}

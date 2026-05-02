@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "{\n  \"persons\": [\"Justin Trudeau\"],\n  \"organizations\": [\"Canadian Prime Minister\", \"General Assembly\", \"United Nations\"],\n  \"locations\": [\"Canada\", \"New York\"]\n}",
+  "score": 2,
+  "cost": 2.3400000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 41
+  }
+}

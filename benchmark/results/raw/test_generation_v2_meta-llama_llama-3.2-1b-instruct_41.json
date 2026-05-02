@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 41,
+  "response": "Here are some unit tests for the `hex_to_rgb` function using pytest:\n```python\nimport pytest\nfrom your_module import hex_to_rgb  # Replace 'your_module' with the actual module name\n\ndef test_happy_path():\n    # Test with a valid hex string\n    assert hex_to_rgb('#ff0000') == (255, 0, 0)\n\ndef test_edge_case_empty_string():\n    # Test with an empty string\n    assert hex_to_rgb('') == ()\n\ndef test_edge_case_single_char():\n    # Test with a single character\n    assert hex_to_rgb('a') == (0, 0, 0)\n\ndef test_edge_case_invalid_hex():\n    # Test with an invalid hex string\n    with pytest.raises(ValueError):\n        hex_to_rgb('abc')\n\ndef test_invalid_hex_length():\n    # Test with a hex string that is too long\n    with pytest.raises(ValueError):\n        hex_to_rgb('abcdefg')\n\ndef test_invalid_hex_length_multiple():\n    # Test with a hex string that is too short\n    with pytest.raises(ValueError):\n        hex_to_rgb('123')\n\ndef test_invalid_hex_length_multiple():\n    # Test with a hex string that is too long\n    with pytest.raises(ValueError):\n        hex_to_rgb('abcdefgabcdefg')\n\ndef test_invalid_hex_length_multiple():\n    # Test with a hex string that is too short\n    with pytest.raises(ValueError):\n        hex_to_rgb('123abc')\n\ndef test_invalid_hex():\n    # Test with an invalid hex character\n    with pytest.raises(ValueError):\n        hex_to_rgb('123abc#')\n```\nNote that I've assumed that the `hex_to_rgb` function raises a `ValueError` when given an invalid hex string. You may need to modify the test cases to match the actual error handling behavior of your function.",
+  "score": 3,
+  "cost": 1.2258e-05,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 372
+  }
+}

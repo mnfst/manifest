@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 8,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"calculate_mortgage\", \"arguments\": {\"principal\": 300000, \"annual_rate\": 0.065, \"years\": 30}}\n```\n\nThis function call will calculate the monthly payment for a mortgage with the specified principal, annual interest rate, and number of years.",
+  "score": 5,
+  "cost": 1.0148999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 74
+  }
+}

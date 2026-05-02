@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 30,
+  "response": "```json\n{\"name\": \"batch_process\", \"arguments\": {\"directory\": \"gallery\", \"operation\": \"generate_thumbnail\", \"params\": {\"width\": 150, \"height\": 150}}}\n```",
+  "score": 2,
+  "cost": 1.0620000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 50
+  }
+}

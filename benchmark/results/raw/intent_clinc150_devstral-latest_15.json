@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 15,
+  "response": "share_location",
+  "score": 5,
+  "cost": 5.6800000000000005e-05,
+  "expected": "share_location",
+  "tokens": {
+    "input": 559,
+    "output": 3
+  }
+}

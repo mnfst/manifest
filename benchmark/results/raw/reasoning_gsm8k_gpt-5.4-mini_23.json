@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "Let the original cost to fill one balloon be \\(x\\) dollars.\n\n### Step 1: Find the original price per balloon\nThe total cost of filling 20 balloons was \\$900, so:\n\n\\[\n20x = 900\n\\]\n\n\\[\nx = \\frac{900}{20} = 45\n\\]\n\nSo, the original cost per balloon was **\\$45**.\n\n### Step 2: Find the new price per balloon\nThe price increased by \\$20, so the new cost per balloon is:\n\n\\[\n45 + 20 = 65\n\\]\n\nSo, each balloon now costs **\\$65**.\n\n### Step 3: Find the cost for 170 balloons\n\\[\n170 \\times 65 = 11050\n\\]\n\nBentley paid **\\$11,050**.\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.0002472,
+  "expected": "11050",
+  "tokens": {
+    "input": 96,
+    "output": 182
+  }
+}

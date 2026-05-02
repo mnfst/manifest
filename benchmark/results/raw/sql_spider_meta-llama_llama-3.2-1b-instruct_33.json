@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "```sql\nSELECT TOP 3 rating, title FROM tvshow ORDER BY rating DESC LIMIT 3;\n```",
+  "score": 2,
+  "cost": 2.835e-06,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 23
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "SELECT p.professional_id, p.role_code, p.first_name\nFROM Professionals AS p\nJOIN Treatments AS t\n  ON p.professional_id = t.professional_id\nGROUP BY p.professional_id, p.role_code, p.first_name\nHAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 0.004623,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 365
+  }
+}

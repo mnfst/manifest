@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "To find out how many pomelos Eve gave away, we can follow these steps:\n\n1. First, calculate how many pomelos Eve has left. The problem states she is left with 1/4 of her original amount. \n   1/4 of 20 pomelos = 20 / 4 = 5 pomelos.\n\n2. Next, subtract the number of pomelos she has left from the original amount to find out how many she gave away.\n   20 (original pomelos) - 5 (pomelos left) = 15 pomelos.\n\nEve gave away 15 pomelos.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.002285,
+  "expected": "15",
+  "tokens": {
+    "input": 80,
+    "output": 139
+  }
+}

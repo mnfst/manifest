@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 0,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"send_email\", \"arguments\": {\"to\": \"john@example.com\", \"subject\": \"Meeting Tomorrow\", \"body\": \"Hi John can we meet at 2pm\"}}\n```\n\nLet me know if you need any further assistance!",
+  "score": 5,
+  "cost": 8.924999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 64
+  }
+}

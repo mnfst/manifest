@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "To solve this problem, we need to determine the total cost of feeding the fish for the entire month of May.\n\n**Step 1: Determine the daily cost of food for all fish.**\nJen has 3 fish.\nEach fish costs $1 per day to feed.\nDaily cost = (Number of fish) \u00d7 (Cost per fish per day)\nDaily cost = 3 \u00d7 $1 = $3\n\n**Step 2: Determine the number of days in the month of May.**\nThe month of May always has 31 days.\n\n**Step 3: Calculate the total cost for the month.**\nTotal cost = (Daily cost) \u00d7 (Number of days in May)\nTotal cost = $3 \u00d7 31\n\n**Step 4: Perform the multiplication.**\n3 \u00d7 30 = 90\n3 \u00d7 1 = 3\n90 + 3 = 93\n\nJen spends $93 on food in the month of May.\n\nANSWER: 93",
+  "score": 4,
+  "cost": 1.77e-05,
+  "expected": "93",
+  "tokens": {
+    "input": 81,
+    "output": 214
+  }
+}

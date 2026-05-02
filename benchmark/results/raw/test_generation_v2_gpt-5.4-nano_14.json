@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 14,
+  "response": "```python\n# test_deep_get.py\nimport pytest\n\n# Import the function under test.\n# Adjust the import path/name as needed.\nfrom your_module import deep_get\n\n\nclass TestDeepGet:\n    def test_happy_path_nested_value(self):\n        d = {\"a\": {\"b\": {\"c\": 123}}}\n        assert deep_get(d, \"a.b.c\") == 123\n\n    def test_happy_path_single_key(self):\n        d = {\"x\": 42}\n        assert deep_get(d, \"x\") == 42\n\n    def test_missing_key_returns_default(self):\n        d = {\"a\": {\"b\": 1}}\n        assert deep_get(d, \"a.c\", default=\"DEF\") == \"DEF\"\n\n    def test_missing_intermediate_key_returns_default(self):\n        d = {\"a\": {}}\n        assert deep_get(d, \"a.b.c\", default=None) is None\n        assert deep_get(d, \"a.b.c\", default=\"DEF\") == \"DEF\"\n\n    def test_edge_empty_keys_string_returns_original_dict(self):\n        # keys.split('.') -> [''] so loop runs once with key ''.\n        d = {\"\": \"value\", \"other\": 1}\n        assert deep_get(d, \"\", default=\"DEF\") == \"value\"\n\n    def test_edge_trailing_dot_results_in_empty_key_lookup(self):\n        d = {\"a\": {\"b\": {\"\": \"v\"}}}\n        assert deep_get(d, \"a.b.\", default=\"DEF\") == \"v\"\n\n    def test_error_case_none_d_returns_default_on_first_iteration(self):\n        # d is not a dict at the start -> returns default immediately.\n        assert deep_get(None, \"a.b\", default=\"DEF\") == \"DEF\"\n\n    def test_error_case_non_dict_intermediate_returns_default(self):\n        d = {\"a\": 5}\n        assert deep_get(d, \"a.b\", default=\"DEF\") == \"DEF\"\n\n    def test_error_case_non_dict_does_not_raise(self):\n        d = 10\n        assert deep_get(d, \"anything\", default=None) is None\n\n    def test_default_propagation_when_missing_deeper(self):\n        d = {\"a\": {\"b\": 7}}\n        assert deep_get(d, \"a.b.c\", default=\"NOPE\") == \"NOPE\"\n\n    def test_keys_not_str_raises_attribute_error(self):\n        # deep_get expects keys to be a str (uses .split)\n        with pytest.raises(AttributeError):\n            deep_get({\"a\": 1}, None)\n\n        with pytest.raises(AttributeError):\n            deep_get({\"a\": 1}, 123)\n```",
+  "score": 5,
+  "cost": 0.00022810000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 547
+  }
+}

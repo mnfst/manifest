@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "To solve the problem, we need to follow these steps:\n\n1. **Determine the initial weight Jamaal is using:**\n   - Jamaal starts with an 8-pound weight.\n\n2. **Calculate the increased weight:**\n   - Jamaal increases the weight by 50%.\n   - To find 50% of 8 pounds, calculate:\n     \\[\n     0.50 \\times 8 = 4 \\text{ pounds}\n     \\]\n   - Add this increase to the original weight:\n     \\[\n     8 + 4 = 12 \\text{ pounds}\n     \\]\n\n3. **Adjust the weight to be two pounds lighter:**\n   - The increased weight is 12 pounds, but it turns out to be too heavy.\n   - Jamaal uses a weight that is 2 pounds lighter than 12 pounds:\n     \\[\n     12 - 2 = 10 \\text{ pounds}\n     \\]\n\nTherefore, the weight that Jamaal now uses is 10 pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 2.0735e-05,
+  "expected": "10",
+  "tokens": {
+    "input": 103,
+    "output": 216
+  }
+}

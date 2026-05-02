@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "```sql\nSELECT SUM(surface_area) AS total_surface_area\nFROM world_1\nWHERE region = 'Caribbean';\n```",
+  "score": 3,
+  "cost": 6.565000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 27
+  }
+}

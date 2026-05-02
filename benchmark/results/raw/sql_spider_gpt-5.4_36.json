@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT s.name\nFROM students AS s\nJOIN (\n  SELECT liked_id, COUNT(*) AS like_count\n  FROM likes\n  GROUP BY liked_id\n  ORDER BY like_count DESC\n  LIMIT 1\n) AS t\n  ON s.id = t.liked_id;",
+  "score": 4,
+  "cost": 0.000628,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 61
+  }
+}

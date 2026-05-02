@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 4,
+  "response": "```python\nimport pytest\n\nfrom your_module import celsius_to_fahrenheit\n\n\nclass TestCelsiusToFahrenheit:\n    def test_freezing_point(self):\n        assert celsius_to_fahrenheit(0) == 32\n\n    def test_boiling_point(self):\n        assert celsius_to_fahrenheit(100) == 212\n\n    def test_negative_temperature(self):\n        assert celsius_to_fahrenheit(-40) == -40\n\n    def test_fractional_temperature(self):\n        assert celsius_to_fahrenheit(37.5) == 99.5\n\n    def test_large_value(self):\n        assert celsius_to_fahrenheit(1000) == 1832\n\n    @pytest.mark.parametrize(\n        \"celsius, expected\",\n        [\n            (0, 32),\n            (100, 212),\n            (-40, -40),\n            (25, 77),\n            (37, 98.6),\n            (-17.7777777778, 0),\n        ],\n    )\n    def test_multiple_values(self, celsius, expected):\n        assert celsius_to_fahrenheit(celsius) == pytest.approx(expected)\n\n    def test_string_input_raises_type_error(self):\n        with pytest.raises(TypeError):\n            celsius_to_fahrenheit(\"10\")\n\n    def test_none_input_raises_type_error(self):\n        with pytest.raises(TypeError):\n            celsius_to_fahrenheit(None)\n\n    def test_complex_input_returns_complex_result(self):\n        result = celsius_to_fahrenheit(1 + 2j)\n        assert result == (1 + 2j) * 9 / 5 + 32\n```\n\nNotes:\n- Replace `your_module` with the actual module name where `celsius_to_fahrenheit` is defined.\n- `pytest.approx` is used for floating-point comparisons where appropriate.\n- Although the function is annotated to accept `float`, Python does not enforce type hints at runtime, so some non-float inputs may still work unless explicitly validated.\n```",
+  "score": 5,
+  "cost": 0.003404,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 411
+  }
+}

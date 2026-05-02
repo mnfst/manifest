@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "To solve this problem, let's break it down step by step.\n\nStep 1: Elaine initially had 20 Pok\u00e9mon cards.\n\nStep 2: In the first month, she collected three times that number, which is 3 x 20 = 60 cards.\n\nStep 3: In the second month, she collected 20 fewer cards than those she collected in the first month, which is 60 - 20 = 40 cards.\n\nStep 4: In the third month, she collected twice the combined number of Pok\u00e9mon cards she collected in the first and second months. The combined number is 60 + 40 = 100. Twice that number is 2 x 100 = 200 cards.\n\nStep 5: To find the total number of Pok\u00e9mon cards Elaine has now, we need to add the cards from each month: 20 (initial) + 60 (first month) + 40 (second month) + 200 (third month) = 320.\n\nANSWER: 320",
+  "score": 5,
+  "cost": 1.6625999999999996e-05,
+  "expected": "320",
+  "tokens": {
+    "input": 120,
+    "output": 206
+  }
+}

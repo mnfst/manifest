@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 35,
+  "response": "Here are some unit tests for the `lru_cache` function using pytest style:\n\n```python\nimport pytest\nfrom collections import OrderedDict\n\ndef test_lru_cache_happy_path():\n    get, put = lru_cache(2)\n    put('key1', 'value1')\n    put('key2', 'value2')\n    assert get('key1') == 'value1'\n    assert get('key2') == 'value2'\n    put('key3', 'value3')\n    assert get('key1') == -1\n    assert get('key2') == 'value2'\n    assert get('key3') == 'value3'\n\ndef test_lru_cache_edge_case_empty_cache():\n    get, put = lru_cache(0)\n    put('key1', 'value1')\n    assert get('key1') == -1\n\ndef test_lru_cache_edge_case_full_cache():\n    get, put = lru_cache(1)\n    put('key1', 'value1')\n    put('key2', 'value2')\n    put('key3', 'value3')\n    assert get('key1') == -1\n    assert get('key2') == -1\n    assert get('key3') == 'value3'\n\ndef test_lru_cache_edge_case_non_string_key():\n    get, put = lru_cache(2)\n    put(123, 'value1')\n    assert get(123) == 'value1'\n    assert get(123) == -1\n\ndef test_lru_cache_edge_case_non_string_value():\n    get, put = lru_cache(2)\n    put('key1', 123)\n    assert get('key1') == -1\n\ndef test_lru_cache_edge_case_non_string_key_and_value():\n    get, put = lru_cache(2)\n    put('key1', 123)\n    assert get('key1') == -1\n\ndef test_lru_cache_edge_case_negative_capacity():\n    with pytest.raises(ValueError):\n        lru_cache(-1)\n\ndef test_lru_cache_edge_case_non_integer_capacity():\n    with pytest.raises(TypeError):\n        lru_cache('abc')\n```\n\nNote that I've added tests for the following edge cases:\n\n* Empty cache\n* Full cache\n* Non-string key\n* Non-string value\n* Non-string key and value\n* Negative capacity\n* Non-integer capacity\n\nI've also added a test for the happy path, which covers the normal usage of the `lru_cache` function.",
+  "score": 5,
+  "cost": 3.355799999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 524
+  }
+}

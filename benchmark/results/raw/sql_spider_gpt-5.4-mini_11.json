@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "SELECT c.name\nFROM country AS c\nJOIN continent AS cont ON c.continent = cont.name\nWHERE cont.name = 'Africa'\n  AND c.population < ALL (\n    SELECT c2.population\n    FROM country AS c2\n    JOIN continent AS cont2 ON c2.continent = cont2.name\n    WHERE cont2.name = 'Asia'\n  );",
+  "score": 5,
+  "cost": 0.0001164,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 78
+  }
+}

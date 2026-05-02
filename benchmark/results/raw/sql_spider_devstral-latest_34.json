@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "```sql\nSELECT *\nFROM hiring;\n```",
+  "score": 3,
+  "cost": 9.600000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 10
+  }
+}

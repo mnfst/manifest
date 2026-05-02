@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "Ted buys 3 books at $16 each:  \n3 \u00d7 $16 = $48  \n\nHe also buys 3 pencils at $6 each:  \n3 \u00d7 $6 = $18  \n\nTotal spent:  \n$48 + $18 = $66  \n\nANSWER: 66",
+  "score": 5,
+  "cost": 2.9950000000000003e-05,
+  "expected": "66",
+  "tokens": {
+    "input": 81,
+    "output": 518
+  }
+}

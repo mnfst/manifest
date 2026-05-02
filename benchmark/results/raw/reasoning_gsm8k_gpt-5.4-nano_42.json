@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "The drills are arranged in a rectangular grid.\n\n- In each row, there are **8** children.\n- There are **7** rows.\n- There are **5** different schools performing.\n\nSo, total children \\(= 8 \\times 7 \\times 5 = 56 \\times 5 = 280\\).\n\nANSWER: 280",
+  "score": 5,
+  "cost": 3.88e-05,
+  "expected": "280",
+  "tokens": {
+    "input": 92,
+    "output": 74
+  }
+}

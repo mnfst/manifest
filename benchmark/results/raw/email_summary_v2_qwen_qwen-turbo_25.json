@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The company surpassed 10,000 MAU, closed a $8M Series A term sheet at a $40M pre-money valuation, and hired a VP Sales, with key metrics showing strong growth. The fundraising is set to close on May 10, and the founders are providing a quarterly update.",
+  "score": 4,
+  "cost": 6.105000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 66
+  }
+}

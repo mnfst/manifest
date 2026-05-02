@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "extraction_hard_v2",
   "case": 2,
-  "response": "{\"meeting_title\": \"Product sync - April 10 2026\", \"date\": \"2026-04-10\", \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"], \"decisions\": [\"Push the recommendation engine to Q3 since data pipeline won't be ready until June\", \"Allocate 20% of sprint capacity to tech debt\"], \"action_items\": [{\"owner\": \"Marcus\", \"task\": \"Have onboarding mockups\", \"deadline\": \"2026-04-18\"}, {\"owner\": \"Jamie\", \"task\": \"Send updated roadmap by Monday\", \"deadline\": \"2026-04-13\"}, {\"owner\": \"Lin\", \"task\": \"Needs analytics dashboard before May board meeting\", \"deadline\": \"before May 2026\"}]}",
-  "score": 0,
-  "cost": 0.0031163000000000002,
+  "response": "```json\n{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\n    \"Jamie\",\n    \"Priya\",\n    \"Marcus\",\n    \"Lin\"\n  ],\n  \"decisions\": [\n    \"Push the recommendation engine to Q3 since data pipeline won't be ready until June.\",\n    \"Allocate 20% of sprint capacity to tech debt.\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"Have onboarding mockups ready\",\n      \"deadline\": \"April 18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"Send updated roadmap\",\n      \"deadline\": \"Monday\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"Analytics dashboard\",\n      \"deadline\": \"Before May board meeting\"\n    }\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.008661400000000001,
   "expected": "",
   "tokens": {
-    "input": 185,
-    "output": 662
+    "input": 202,
+    "output": 1918
   }
 }

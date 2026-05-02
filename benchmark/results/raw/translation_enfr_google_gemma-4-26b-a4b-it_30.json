@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Voici une traduction qui conserve le ton institutionnel et professionnel du texte original :\n\n**\u00ab Premier dispositif de ligne de cr\u00e9dit en Italie pour l'apprentissage des jeunes dans les PME, les entreprises de taille interm\u00e9diaire et les collectivit\u00e9s locales \u00bb**\n\n### Notes sur les choix de traduction :\n*   **Dispositif de ligne de cr\u00e9dit :** En fran\u00e7ais administratif/financier, on utilise souvent \u00ab dispositif \u00bb pour introduire un programme ou une initiative.\n*   **Apprentissage des jeunes :** Traduction standard de *youth apprenticeships*.\n*   **PME :** Acronyme standard pour *SMEs* (Petites et Moyennes Entreprises).\n*   **Entreprises de taille interm\u00e9diaire (ETI) :** C'est le terme technique exact utilis\u00e9 en France et en Europe pour traduire *midcaps*.\n*   **Collectivit\u00e9s locales :** Traduction la plus appropri\u00e9e pour *local authorities* dans un contexte de gestion publique.",
+  "score": 5,
+  "cost": 1.512e-05,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 201
+  }
+}

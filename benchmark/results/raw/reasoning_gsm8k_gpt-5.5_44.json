@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Each of the 20 stalls gets:\n\n40 \u00f7 20 = 2 new cows\n\nSo each stall that already had 20 cows now has:\n\n20 + 2 = 22 cows\n\nIn 8 stalls, there are:\n\n8 \u00d7 22 = 176 cows\n\nANSWER: 176",
+  "score": 2,
+  "cost": 0.013461,
+  "expected": "192",
+  "tokens": {
+    "input": 87,
+    "output": 1100
+  }
+}

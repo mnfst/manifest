@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT first_name, AVG(ranking) AS average_ranking\nFROM players\nJOIN rankings ON players.player_id = rankings.player_id\nGROUP BY first_name;",
+  "score": 4,
+  "cost": 0.000873,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 42
+  }
+}

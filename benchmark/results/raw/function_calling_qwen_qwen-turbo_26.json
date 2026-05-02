@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 26,
+  "response": "{\"name\": \"upload_file\", \"arguments\": {\"path\": \"report.pdf\", \"destination\": \"shared documents\"}}",
+  "score": 4,
+  "cost": 3.795e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 24
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product launch must be delayed by two weeks due to payment integration issues failing PCI compliance. The team needs to decide between launching without payment features or postponing the full launch to May 15, with a meeting scheduled for tomorrow at 10am.",
+  "score": 5,
+  "cost": 5.28e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 52
+  }
+}

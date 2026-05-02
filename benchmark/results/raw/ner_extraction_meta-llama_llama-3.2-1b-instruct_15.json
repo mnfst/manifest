@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "{\n  \"persons\": [\"SpaceX\", \"Falcon 9\", \"Cape Canaveral\"],\n  \"organizations\": [\"SpaceX\", \"Falcon 9\"],\n  \"locations\": [\"Cape Canaveral\"]",
+  "score": 2,
+  "cost": 3.402e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 48
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Q1 customer success improved with NPS rising to 62 (from 58), support CSAT at 4.3/5, and churn decreasing to 1.2% (from 1.8%). Action items: prioritize top feature requests\u2014SSO, custom dashboards, and an API rate limit increase\u2014and drive 3 enterprise expansion opportunities in the $800K pipeline.",
+  "score": 5,
+  "cost": 4.3899999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 81
+  }
+}

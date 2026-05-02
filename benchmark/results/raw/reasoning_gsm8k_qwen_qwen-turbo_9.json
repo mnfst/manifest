@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "Step 1: We are told that **Bo has 40 crabs**.  \nStep 2: Monic has **4 fewer crabs than Bo**, so Monic has:  \n$$\n40 - 4 = 36 \\text{ crabs}\n$$  \nStep 3: Rani has **10 more crabs than Monic**, so Rani has:  \n$$\n36 + 10 = 46 \\text{ crabs}\n$$  \nStep 4: To find the **total number of crabs** the three have together, add up Bo's, Monic's, and Rani's crabs:  \n$$\n40 + 36 + 46 = 122\n$$  \n\nANSWER: 122",
+  "score": 5,
+  "cost": 8.415000000000002e-06,
+  "expected": "122",
+  "tokens": {
+    "input": 90,
+    "output": 165
+  }
+}

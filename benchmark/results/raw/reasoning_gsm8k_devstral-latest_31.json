@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Let's solve the problem step by step.\n\n1. **Number of Boys:**\n   - Given: 30 boys.\n\n2. **Number of Girls:**\n   - The problem states there are 3 times as many girls as boys.\n   - Calculation: \\( 3 \\times 30 = 90 \\) girls.\n\n3. **Number of Nongendered Children:**\n   - The problem states there are \\( \\frac{1}{10} \\) as many nongendered children as boys.\n   - Calculation: \\( \\frac{1}{10} \\times 30 = 3 \\) nongendered children.\n\n4. **Total Number of Children:**\n   - Add the number of boys, girls, and nongendered children together.\n   - Calculation: \\( 30 \\) (boys) \\( + 90 \\) (girls) \\( + 3 \\) (nongendered) \\( = 123 \\) children.\n\n**Final Answer:**\nANSWER: 123",
+  "score": 2,
+  "cost": 7.63e-05,
+  "expected": "123",
+  "tokens": {
+    "input": 91,
+    "output": 224
+  }
+}

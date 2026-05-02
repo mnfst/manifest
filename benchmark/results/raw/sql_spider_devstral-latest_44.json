@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "```sql\nSELECT airport_code\nFROM airports\nORDER BY (SELECT COUNT(*) FROM flights WHERE flights.departure_airport = airports.airport_code OR flights.arrival_airport = airports.airport_code) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 2.35e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 56
+  }
+}

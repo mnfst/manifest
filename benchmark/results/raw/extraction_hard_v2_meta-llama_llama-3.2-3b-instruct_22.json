@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "extraction_hard_v2",
+  "case": 22,
+  "response": "```json\n{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\n    \"Jamie (PM)\",\n    \"Priya (eng lead)\",\n    \"Marcus (design)\",\n    \"Lin (data)\"\n  ],\n  \"decisions\": [\n    \"push the recommendation engine to Q3\",\n    \"allocate 20% of sprint capacity to tech debt\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"send updated roadmap by Monday\",\n      \"deadline\": \"Monday\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"analytics dashboard before May board meeting\",\n      \"deadline\": \"May board meeting\"\n    }\n  ]\n}\n```",
+  "score": 4,
+  "cost": 1.7238e-05,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 162
+  }
+}

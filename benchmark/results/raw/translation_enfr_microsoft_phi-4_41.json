@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "French: Tu n'es pas au DGA. Juste zoom et ferme-la.\n\nNote: The translation maintains the informal tone and directness of the original English text. The phrase \"shut the fuck up\" is translated to \"ferme-la,\" which conveys the same level of informality and urgency.",
+  "score": 4,
+  "cost": 7.215e-06,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 65
+  }
+}

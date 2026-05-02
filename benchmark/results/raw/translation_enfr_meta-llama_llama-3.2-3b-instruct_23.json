@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les \u00e9gouts capables de g\u00e9rer les \u00e9v\u00e9nements de crue postul\u00e9s sont incorpor\u00e9s dans les structures de barrage, ou sont construits comme des structures s\u00e9par\u00e9es.",
+  "score": 3,
+  "cost": 4.844999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 40
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The Trust & Safety team is updating the content moderation policy to regulate AI-generated content, requiring labels on AI images, prohibiting deepfakes, and mandating disclosure for AI-assisted text. Enforcement begins June 1, and team members should watch for upcoming training materials to prepare for compliance.",
+  "score": 5,
+  "cost": 0.001302,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 65
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "function_calling",
+  "case": 24,
+  "response": "{\"name\":\"rotate_api_key\",\"arguments\":{\"service\":\"service\",\"environment\":\"production\"}}",
+  "score": 3,
+  "cost": 5.13e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 20
+  }
+}

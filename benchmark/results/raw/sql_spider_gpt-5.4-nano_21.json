@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "SELECT f.flight_number\nFROM flights f\nWHERE LOWER(f.airline_name) = 'united airlines'\n   OR LOWER(f.airline_code) = 'ua';",
+  "score": 5,
+  "cost": 2.16e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 37
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 24,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Indian Space Research Organisation\"],\n  \"locations\": [\"Sriharikota\"]\n}\n```",
+  "score": 4,
+  "cost": 5.661e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 33
+  }
+}

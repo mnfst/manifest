@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(mpg) AS average_mpg\nFROM cars\nWHERE cylinders = 4;",
+  "score": 5,
+  "cost": 3.2999999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 19
+  }
+}

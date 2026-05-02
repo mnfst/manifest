@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Let me solve this step by step.\n\n**Step 1: Determine the initial setup.**\n- There are 10 stalls with 20 cows each.\n\n**Step 2: Mr. Sylas buys 40 cows and divides them equally into 20 stalls.**\n- Wait, the problem says \"twenty stalls\" but initially there are only 10 stalls. Let me re-read.\n\nThe problem says he puts the new cows \"into each of the twenty stalls.\" This seems to imply there are now 20 stalls (perhaps the 10 stalls are expanded or there's a discrepancy in the problem). I'll work with 20 stalls as stated for the distribution.\n\n**Step 3: Calculate new cows per stall.**\n- 40 cows divided equally into 20 stalls = 40 \u00f7 20 = 2 cows per stall\n\n**Step 4: Calculate total cows per stall after addition.**\n- Each stall originally had 20 cows + 2 new cows = 22 cows per stall\n\n**Step 5: Calculate cows in 8 stalls.**\n- 8 stalls \u00d7 22 cows = 176 cows\n\nANSWER: 176",
+  "score": 4,
+  "cost": 0.00483,
+  "expected": "192",
+  "tokens": {
+    "input": 105,
+    "output": 301
+  }
+}

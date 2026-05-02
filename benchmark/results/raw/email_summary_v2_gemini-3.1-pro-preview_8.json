@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "The annual performance review cycle begins May 1 using a new competency framework, with final reviews delivered to employees on June 5. Managers must attend a training session on April 30, and employees must submit self-reviews by May 15 before managers submit their reviews on May 22.",
+  "score": 5,
+  "cost": 0.00114,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "SELECT COUNT(*) FROM car_1 WHERE YEAR = 1980",
+  "score": 3,
+  "cost": 2.403e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 14
+  }
+}

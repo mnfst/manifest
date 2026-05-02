@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "Tu n'es pas dans la DGA. Fais juste zoom sur et ferme ta gueule.\n\nNote: The original text contains strong language, and I've tried to maintain the same tone and meaning while translating it into French. However, please keep in mind that the French translation is more direct and blunt than the original English text.",
+  "score": 3,
+  "cost": 5.916e-06,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 70
+  }
+}

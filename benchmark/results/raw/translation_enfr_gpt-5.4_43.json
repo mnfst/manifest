@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "L\u2019appareil se fixe simplement \u00e0 l\u2019appuie-t\u00eate du si\u00e8ge du conducteur \u00e0 l\u2019aide d\u2019une solide sangle \u00e9lastique. Dans ce",
+  "score": 4,
+  "cost": 0.000358,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 33
+  }
+}

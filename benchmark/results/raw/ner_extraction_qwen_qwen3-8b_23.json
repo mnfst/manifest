@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "ner_extraction",
+  "case": 23,
+  "response": "{\n  \"persons\": [\"Taylor Swift\"],\n  \"organizations\": [\"Eras Tour\"],\n  \"locations\": [\"Wembley Stadium\", \"London\"]\n}",
+  "score": 4,
+  "cost": 9.240000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 1773
+  }
+}

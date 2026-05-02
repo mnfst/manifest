@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je veux.",
+  "score": 3,
+  "cost": 2.7550000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 514
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins January 15, and the team must finalize Q4 revenue recognition, reconcile all bank accounts, verify stock option records, and prepare the related-party transaction disclosure. Attend the Controller meeting next Tuesday to assign responsibilities.",
+  "score": 5,
+  "cost": 0.003325,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 142
+  }
+}

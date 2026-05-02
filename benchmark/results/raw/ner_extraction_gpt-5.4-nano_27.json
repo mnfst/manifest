@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "{\n  \"persons\": [\"Cristiano Ronaldo\"],\n  \"organizations\": [\"Al Nassr\", \"Manchester United\"],\n  \"locations\": [\"Riyadh\"]\n}",
+  "score": 5,
+  "cost": 2.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 36
+  }
+}

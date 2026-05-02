@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Elliott\u2019s goal was 10,000 steps.\n\n- He completed half of them on the way to and from school:  \n  \\(10{,}000 \\div 2 = 5{,}000\\)\n\n- He then did another 1,000 steps on a walk with his friend:  \n  \\(5{,}000 + 1{,}000 = 6{,}000\\)\n\n- After his jog, he had 2,000 steps left, so before the jog he had already taken:  \n  \\(10{,}000 - 2{,}000 = 8{,}000\\)\n\n- Therefore, the number of steps he took during his jog was:  \n  \\(8{,}000 - 6{,}000 = 2{,}000\\)\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.00026189999999999997,
+  "expected": "2000",
+  "tokens": {
+    "input": 125,
+    "output": 187
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 48,
+  "response": "Here is a 2-sentence summary of the email:\n\nMaria Chen, CEO of DataSync, is proposing a partnership where DataSync will handle the data sync infrastructure and the recipient will integrate DataSync's SDK, potentially reducing customer latency by 60% and generating an estimated $2M in additional annual revenue. Maria invites the recipient to discuss the proposal further next week.",
+  "score": 5,
+  "cost": 8.721e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 76
+  }
+}

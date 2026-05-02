@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 43,
+  "response": "```json\n{\n  \"persons\": [\n    \"Satya Nadella\"\n  ],\n  \"organizations\": [\n    \"Microsoft\",\n    \"OpenAI\"\n  ],\n  \"locations\": []\n}\n```",
+  "score": 5,
+  "cost": 7.98e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 52
+  }
+}

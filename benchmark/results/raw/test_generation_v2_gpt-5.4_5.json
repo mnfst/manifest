@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "```python\nimport pytest\n\nfrom your_module import count_vowels\n\n\nclass TestCountVowels:\n    def test_counts_vowels_in_lowercase_string(self):\n        assert count_vowels(\"hello world\") == 3\n\n    def test_counts_vowels_in_uppercase_string(self):\n        assert count_vowels(\"AEIOU\") == 5\n\n    def test_counts_vowels_in_mixed_case_string(self):\n        assert count_vowels(\"PyThOn Is AwEsOmE\") == 5\n\n    def test_returns_zero_when_no_vowels_present(self):\n        assert count_vowels(\"rhythms\") == 0\n\n    def test_returns_zero_for_empty_string(self):\n        assert count_vowels(\"\") == 0\n\n    def test_counts_repeated_vowels(self):\n        assert count_vowels(\"beautiful\") == 5\n\n    def test_ignores_numbers_whitespace_and_punctuation(self):\n        assert count_vowels(\"H3ll0, w0rld! 123\") == 0\n        assert count_vowels(\"A1e2! i?O-u\") == 5\n\n    @pytest.mark.parametrize(\n        \"text,expected\",\n        [\n            (\"a\", 1),\n            (\"b\", 0),\n            (\"queue\", 4),\n            (\"sky\", 0),\n            (\"Why?\", 0),\n            (\"education\", 5),\n        ],\n    )\n    def test_various_inputs(self, text, expected):\n        assert count_vowels(text) == expected\n\n    def test_raises_attribute_error_for_non_string_input_none(self):\n        with pytest.raises(AttributeError):\n            count_vowels(None)\n\n    def test_raises_attribute_error_for_non_string_input_integer(self):\n        with pytest.raises(AttributeError):\n            count_vowels(123)\n```\n\nIf you want, I can also provide:\n- a version using only `@pytest.mark.parametrize`\n- a `unittest` version\n- a complete `test_count_vowels.py` file with import/path notes",
+  "score": 5,
+  "cost": 0.003428,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 413
+  }
+}

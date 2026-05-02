@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Voici une traduction qui conserve le ton acad\u00e9mique et technique du texte original :\n\n**\u00ab Les analyses de sensibilit\u00e9 indiquent que l'\u00e9tendue de la longueur non support\u00e9e r\u00e9sultant de l'affouillement exerce une influence significative sur la r\u00e9ponse flexionnelle de l'interaction conduite-sol. \u00bb**\n\n### Remarques terminologiques :\n*   **Scour :** Traduit par \u00ab affouillement \u00bb, le terme technique standard en g\u00e9nie civil et hydraulique.\n*   **Unsupported length :** \u00ab Longueur non support\u00e9e \u00bb est la formulation consacr\u00e9e.\n*   **Flexural pipe-soil response :** Traduit par \u00ab r\u00e9ponse flexionnelle de l'interaction conduite-sol \u00bb pour respecter la pr\u00e9cision de la m\u00e9canique des sols et des structures.",
+  "score": 5,
+  "cost": 1.3379999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 161
+  }
+}

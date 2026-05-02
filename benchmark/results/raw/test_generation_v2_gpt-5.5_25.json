@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 25,
+  "response": "```python\n# test_deduplicate_sorted.py\nimport pytest\n\nfrom your_module import deduplicate_sorted\n\n\n@pytest.mark.parametrize(\n    (\"lst\", \"expected\"),\n    [\n        ([], []),\n        ([1], [1]),\n        ([1, 1, 1], [1]),\n        ([1, 2, 3], [1, 2, 3]),\n        ([1, 1, 2, 2, 3, 3, 3], [1, 2, 3]),\n        ([-3, -3, -1, 0, 0, 2, 2], [-3, -1, 0, 2]),\n        ([\"a\", \"a\", \"b\", \"b\", \"c\"], [\"a\", \"b\", \"c\"]),\n        ([[1], [1], [2], [2]], [[1], [2]]),\n    ],\n)\ndef test_deduplicate_sorted_happy_paths(lst, expected):\n    assert deduplicate_sorted(lst) == expected\n\n\ndef test_empty_list_returns_new_empty_list():\n    lst = []\n\n    result = deduplicate_sorted(lst)\n\n    assert result == []\n    assert result is not lst\n\n\ndef test_input_list_is_not_modified():\n    lst = [1, 1, 2, 2, 3]\n    original = lst.copy()\n\n    result = deduplicate_sorted(lst)\n\n    assert result == [1, 2, 3]\n    assert lst == original\n\n\ndef test_only_removes_consecutive_duplicates():\n    \"\"\"\n    The function assumes sorted input. If input is not sorted, only adjacent\n    duplicates are removed.\n    \"\"\"\n    assert deduplicate_sorted([1, 1, 2, 1, 1]) == [1, 2, 1]\n\n\n@pytest.mark.parametrize(\"bad_input\", [1, 3.14, object()])\ndef test_truthy_non_sequence_inputs_raise_type_error(bad_input):\n    with pytest.raises(TypeError):\n        deduplicate_sorted(bad_input)\n\n\ndef test_none_returns_empty_list_due_to_falsy_check():\n    \"\"\"\n    Current behavior: None is treated like an empty list because of `if not lst`.\n    \"\"\"\n    assert deduplicate_sorted(None) == []\n```",
+  "score": 5,
+  "cost": 0.012066,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 984
+  }
+}

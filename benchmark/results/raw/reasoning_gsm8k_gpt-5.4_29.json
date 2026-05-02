@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Red cars = 12\n\nGreen cars = 2 fewer than red  \nSo, green cars = 12 - 2 = 10\n\nBlue cars = 3 times the number of green cars  \nSo, blue cars = 3 \u00d7 10 = 30\n\nNow add the red, green, and blue cars:  \n12 + 10 + 30 = 52\n\nTotal cars = 75, so yellow cars = 75 - 52 = 23\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.00104,
+  "expected": "23",
+  "tokens": {
+    "input": 104,
+    "output": 104
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "Henry needs wheels for:\n\n- 57 cars, with 4 wheels each:  \n  57 \u00d7 4 = 228 wheels\n\n- 73 motorcycles, with 2 wheels each:  \n  73 \u00d7 2 = 146 wheels\n\nTotal wheels needed:  \n228 + 146 = 374 wheels\n\nHe has 650 wheels, so the wheels left are:  \n650 - 374 = 276\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.001653,
+  "expected": "276",
+  "tokens": {
+    "input": 99,
+    "output": 113
+  }
+}

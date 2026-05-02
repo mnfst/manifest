@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 46,
+  "response": "```json\n{\n  \"persons\": [\"Liang Rubo\"],\n  \"organizations\": [\"ByteDance\", \"Senate Commerce Committee\", \"TikTok\"],\n  \"locations\": [\"Washington\"]\n}\n```",
+  "score": 5,
+  "cost": 7.5e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 45
+  }
+}

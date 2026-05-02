@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Cela ne peut mener qu\u2019au chaos et \u00e0 la terreur.",
+  "score": 5,
+  "cost": 9.7e-06,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 16
+  }
+}

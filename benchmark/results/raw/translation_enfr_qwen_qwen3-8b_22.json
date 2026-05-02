@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Si le revenu et/ou le statut d'emploi d'une personne varie, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle, dans ce cas, il y aura une nouvelle \u00e9valuation.",
+  "score": 5,
+  "cost": 5.955e-05,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 1135
+  }
+}

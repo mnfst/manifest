@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "Fifteen enterprise customers attended yesterday's workshop, with the top feedback being a need for better bulk import, SSO as a blocker for five accounts, and strong praise for the new analytics dashboard. Action items include reviewing the attached follow-up report and exploring the potential opportunity of offering the internal tool as a standalone product, given interest from three customers.",
+  "score": 5,
+  "cost": 0.00147,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 74
+  }
+}

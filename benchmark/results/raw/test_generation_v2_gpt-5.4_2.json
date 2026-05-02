@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "```python\nimport pytest\n\nfrom your_module import factorial\n\n\nclass TestFactorial:\n    def test_factorial_of_zero_returns_one(self):\n        assert factorial(0) == 1\n\n    def test_factorial_of_one_returns_one(self):\n        assert factorial(1) == 1\n\n    @pytest.mark.parametrize(\n        \"n, expected\",\n        [\n            (2, 2),\n            (3, 6),\n            (4, 24),\n            (5, 120),\n            (6, 720),\n            (10, 3628800),\n        ],\n    )\n    def test_factorial_happy_path(self, n, expected):\n        assert factorial(n) == expected\n\n    def test_factorial_large_input(self):\n        assert factorial(12) == 479001600\n\n    @pytest.mark.parametrize(\"n\", [-1, -5, -100])\n    def test_factorial_negative_input_raises_value_error(self, n):\n        with pytest.raises(ValueError, match=\"n must be non-negative\"):\n            factorial(n)\n```\n\nIf you want, I can also provide:\n- a complete `test_factorial.py` file,\n- a version with 100% branch coverage focus,\n- or tests that also validate behavior for non-integer inputs.",
+  "score": 5,
+  "cost": 0.002276,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 264
+  }
+}

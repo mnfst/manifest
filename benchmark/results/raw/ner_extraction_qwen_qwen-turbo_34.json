@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "{\n  \"persons\": [\"Chef Gordon Ramsay\"],\n  \"organizations\": [],\n  \"locations\": [\"Bellagio hotel\", \"Las Vegas\"]\n}",
+  "score": 4,
+  "cost": 3.564e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 31
+  }
+}

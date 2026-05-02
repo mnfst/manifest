@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 25,
+  "response": "```python\nimport pytest\n\n# Assume deduplicate_sorted is imported from the module under test:\n# from your_module import deduplicate_sorted\n\n\n@pytest.mark.parametrize(\n    \"inp, expected\",\n    [\n        ([1, 1, 2, 2, 3, 3, 3], [1, 2, 3]),          # typical happy path\n        ([0, 0, 0], [0]),                             # all duplicates\n        ([1, 2, 3, 4], [1, 2, 3, 4]),                 # already unique\n        ([-3, -3, -2, -2, -1], [-3, -2, -1]),         # works with negatives\n        ([\"a\", \"a\", \"b\", \"c\", \"c\"], [\"a\", \"b\", \"c\"]),  # works with strings\n    ],\n)\ndef test_deduplicate_sorted_happy_path(inp, expected):\n    assert deduplicate_sorted(inp) == expected\n\n\ndef test_deduplicate_sorted_empty_list():\n    assert deduplicate_sorted([]) == []  # edge case: empty input\n\n\ndef test_deduplicate_sorted_single_element():\n    assert deduplicate_sorted([42]) == [42]  # edge case: single element\n\n\n@pytest.mark.parametrize(\n    \"inp\",\n    [\n        None,        # error case: not a list\n        \"abc\",       # error case: not a list (iterable but not list)\n        123,         # error case: not iterable\n        {},          # error case: wrong type\n    ],\n)\ndef test_deduplicate_sorted_type_errors(inp):\n    with pytest.raises(TypeError):\n        deduplicate_sorted(inp)\n\n\ndef test_deduplicate_sorted_unsupported_elements_raise():\n    # error case: elements don't support != comparison (rare, but possible).\n    # Create objects whose __eq__ raises, causing != to propagate that error.\n    class BadEq:\n        def __eq__(self, other):\n            raise RuntimeError(\"cannot compare\")\n\n    with pytest.raises(RuntimeError, match=\"cannot compare\"):\n        deduplicate_sorted([BadEq(), BadEq()])\n```",
+  "score": 5,
+  "cost": 0.0001894,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 452
+  }
+}

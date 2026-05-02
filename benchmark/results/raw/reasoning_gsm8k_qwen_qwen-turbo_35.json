@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "First, calculate the cost of each type of fruit:\n\n- Peaches: 6 pounds \u00d7 $2.00 per pound = $12.00  \n- Plums: 8 pounds \u00d7 $1.00 per pound = $8.00  \n- Apricots: 6 pounds \u00d7 $3.00 per pound = $18.00  \n\nNext, add the costs together:\n\n$12.00 + $8.00 + $18.00 = $38.00\n\nANSWER: 38",
+  "score": 5,
+  "cost": 8.283000000000002e-06,
+  "expected": "38",
+  "tokens": {
+    "input": 131,
+    "output": 120
+  }
+}

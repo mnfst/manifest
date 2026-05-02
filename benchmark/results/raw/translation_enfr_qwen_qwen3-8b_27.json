@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Les crit\u00e8res DSM-IV de l'intoxication alcoolique sont similaires avec l'ajout de l'un ou plusieurs des signes suivants : parole brouill\u00e9e, dyscoordination, marche instable, nistagmus, alt\u00e9ration de l'attention ou de la m\u00e9moire, somnolence ou coma.",
+  "score": 4,
+  "cost": 3.525e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 626
+  }
+}

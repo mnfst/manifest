@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Here\u2019s a natural French translation that maintains the tone and meaning of the original:\n\n**\"Plus tu te d\u00e9battes, plus ce sera g\u00eanant pour tout le monde.\"**\n\nAlternatively, for a slightly more casual or emphatic tone (closer to the \"gonna be\" in the original), you could say:\n**\"Plus tu r\u00e9sistes, plus \u00e7a va \u00eatre bizarre pour tout le monde.\"**\n\nBoth versions work, but the first is slightly more neutral, while the second leans into the informal/colloquial feel of the English.",
+  "score": 5,
+  "cost": 3.64e-05,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 109
+  }
+}

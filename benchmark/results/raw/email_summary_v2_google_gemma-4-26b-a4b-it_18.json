@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering proposes splitting the Platform department into two distinct teams, Infrastructure and Developer Experience, to prevent infrastructure incidents from delaying DX progress. Please review the attached draft organizational chart for the proposed restructuring.",
+  "score": 5,
+  "cost": 8.279999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 41
+  }
+}

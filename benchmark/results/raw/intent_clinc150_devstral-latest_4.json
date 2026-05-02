@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 4,
+  "response": "uber",
+  "score": 5,
+  "cost": 5.700000000000001e-05,
+  "expected": "uber",
+  "tokens": {
+    "input": 564,
+    "output": 2
+  }
+}

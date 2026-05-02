@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Step 1: Find how many burritos the students ate.  \n50 students \u00d7 10 burritos each = 500 burritos\n\nStep 2: Add Mr. George\u2019s burritos.  \n500 + 20 = 520 burritos eaten\n\nStep 3: Subtract from the total ordered.  \n600 \u2212 520 = 80 burritos left\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.0001356,
+  "expected": "80",
+  "tokens": {
+    "input": 100,
+    "output": 88
+  }
+}

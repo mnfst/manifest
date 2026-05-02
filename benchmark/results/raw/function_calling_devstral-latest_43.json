@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 43,
+  "response": "```json\n{\"name\": \"git_revert\", \"arguments\": {\"commit\": \"HEAD\"}}\n```",
+  "score": 5,
+  "cost": 1.64e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 23
+  }
+}

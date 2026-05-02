@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "```python\nimport pytest\n\nfrom your_module import factorial\n\n\n@pytest.mark.parametrize(\n    \"n, expected\",\n    [\n        (0, 1),\n        (1, 1),\n        (2, 2),\n        (3, 6),\n        (5, 120),\n        (6, 720),\n    ],\n)\ndef test_factorial_happy_path(n, expected):\n    assert factorial(n) == expected\n\n\ndef test_factorial_negative_raises_value_error():\n    with pytest.raises(ValueError, match=\"n must be non-negative\"):\n        factorial(-1)\n\n\n@pytest.mark.parametrize(\"n\", [-10, -2, -999])\ndef test_factorial_negative_values_raise_value_error(n):\n    with pytest.raises(ValueError, match=\"n must be non-negative\"):\n        factorial(n)\n\n\ndef test_factorial_returns_int():\n    assert isinstance(factorial(4), int)\n```",
+  "score": 5,
+  "cost": 0.0002466,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 185
+  }
+}

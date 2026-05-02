@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "Here's a set of **pytest-style unit tests** for the `is_palindrome` function. The tests cover:\n\n- **Happy path**: Valid palindromes.\n- **Edge cases**: Empty string, single character, and strings with spaces.\n- **Error cases**: Non-string inputs.\n\n### \u2705 `test_is_palindrome.py`\n\n```python\nimport pytest\n\nfrom your_module import is_palindrome  # Replace 'your_module' with the actual module name\n\ndef test_is_palindrome_happy_path():\n    assert is_palindrome(\"madam\") == True\n    assert is_palindrome(\"racecar\") == True\n    assert is_palindrome(\"A man a plan a canal Panama\") == True\n    assert is_palindrome(\"No lemon no melon\") == True\n    assert is_palindrome(\"Was it a car or a cat I saw\") == True\n\ndef test_is_palindrome_edge_cases():\n    assert is_palindrome(\"\") == True  # Empty string is technically a palindrome\n    assert is_palindrome(\"a\") == True  # Single character\n    assert is_palindrome(\"ab\") == False  # Not a palindrome\n    assert is_palindrome(\"A a\") == True  # After processing: \"aa\"\n\ndef test_is_palindrome_error_cases():\n    with pytest.raises(TypeError):\n        is_palindrome(123)  # Non-string input\n    with pytest.raises(TypeError):\n        is_palindrome(None)  # None is not a string\n    with pytest.raises(TypeError):\n        is_palindrome([\"not\", \"a\", \"string\"])  # List is not a string\n```\n\n### \ud83d\udccc Notes:\n\n- The function `is_palindrome` converts the string to lowercase and removes spaces, so `\"A man a plan a canal Panama\"` becomes `\"amanaplanacanalpanama\"`, which is a palindrome.\n- The test `test_is_palindrome_edge_cases` includes an empty string, which is considered a palindrome.\n- The `TypeError` tests ensure that the function only accepts strings.\n\n### \ud83d\udd27 To run the tests:\n\nMake sure you have `pytest` installed:\n\n```bash\npip install pytest\n```\n\nThen run:\n\n```bash\npytest test_is_palindrome.py\n```\n\nLet me know if you want to add more test cases or integrate this into a larger test suite.",
+  "score": 5,
+  "cost": 1.8051e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 479
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT stadium_name\nFROM stadiums\nWHERE stadium_id NOT IN (\n    SELECT DISTINCT stadium_id\n    FROM concerts\n    WHERE concert_year = 2014\n);\n```",
+  "score": 5,
+  "cost": 8.06e-06,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 38
+  }
+}

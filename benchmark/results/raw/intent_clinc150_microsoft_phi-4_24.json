@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "intent_clinc150",
+  "case": 24,
+  "response": "bill_due\n\nThis message indicates a discrepancy in the bill, suggesting an issue with billing or charges",
+  "score": 0,
+  "cost": 4.29e-05,
+  "expected": "report_fraud",
+  "tokens": {
+    "input": 640,
+    "output": 20
+  }
+}

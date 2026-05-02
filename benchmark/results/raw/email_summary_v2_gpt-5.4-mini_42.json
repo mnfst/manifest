@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "Sales hosted 15 enterprise customers and heard strong interest in the new analytics dashboard, while the biggest pain points were better bulk import and SSO support. The attached follow-up report should be reviewed, and there is also an opportunity to evaluate packaging the internal tool as a standalone product.",
+  "score": 4,
+  "cost": 0.00010319999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 59
+  }
+}

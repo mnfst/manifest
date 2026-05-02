@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "ner_extraction",
+  "case": 9,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"World Health Organization\"],\n  \"locations\": [\"sub-Saharan Africa\", \"Geneva\"]\n}\n```",
+  "score": 4,
+  "cost": 1.7799999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 36
+  }
+}

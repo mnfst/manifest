@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe sender is proposing an international expansion plan for a product launch in Japan, with a timeline of May (legal entity setup), June (localization complete), July (beta with 10 customers), and August (general availability). The plan requires a budget of $200,000, broken down into $50,000 for legal setup, $80,000 for localization, and $70,000 for local hiring, and requires CEO approval to proceed.",
+  "score": 5,
+  "cost": 1.0352999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 103
+  }
+}

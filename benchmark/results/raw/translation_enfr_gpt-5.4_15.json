@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "French: **Sector Source est un site de ressources consacr\u00e9 \u00e0 aider les personnes qui dirigent des organismes de bienfaisance et des organismes sans but lucratif \u00e0 rester inform\u00e9es sur...**",
+  "score": 5,
+  "cost": 0.000422,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 42
+  }
+}

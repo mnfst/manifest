@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 5,
+  "response": "```json\n{\"name\": \"book_restaurant\", \"arguments\": {\"name\": \"Italian place on Main Street\", \"party_size\": 4, \"date\": \"this Saturday\", \"time\": \"7pm\"}}\n```",
+  "score": 4,
+  "cost": 1.044e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 49
+  }
+}

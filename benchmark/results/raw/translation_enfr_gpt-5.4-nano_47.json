@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "La r\u00e9pression de ce type, conjugu\u00e9e \u00e0 l\u2019arrestation, ces derni\u00e8res semaines, de repr\u00e9sentants d\u2019institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser ce que l\u2019on appelle de fausses informations, a \u00e0 juste titre suscit\u00e9 l\u2019inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 3.3600000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 68
+  }
+}

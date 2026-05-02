@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "Summary: A completed open source license audit found 2 issues: a charting library using AGPL and a package with no license. The recommendation is to switch to Apache-licensed Chart.js and remove the unlicensed package before the next release.",
+  "score": 5,
+  "cost": 5.412000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 49
+  }
+}

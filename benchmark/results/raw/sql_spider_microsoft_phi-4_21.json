@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "```sql\nSELECT flight_number\nFROM flight_2\nWHERE airline_name = 'United Airlines';\n```",
+  "score": 4,
+  "cost": 6.370000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 22
+  }
+}

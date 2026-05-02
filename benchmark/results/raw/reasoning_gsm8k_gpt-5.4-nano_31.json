@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Let the number of boys be \\(B = 30\\).\n\n- Girls are \\(3\\) times the boys:  \n  \\[\n  G = 3B = 3(30) = 90\n  \\]\n- Nongendered children are \\(\\frac{1}{10}\\) as many as boys:  \n  \\[\n  N = \\frac{1}{10}B = \\frac{1}{10}(30) = 3\n  \\]\n\nTotal children:\n\\[\nT = B + G + N = 30 + 90 + 3 = 123\n\\]\n\nANSWER: 123",
+  "score": 4,
+  "cost": 6.2e-05,
+  "expected": "123",
+  "tokens": {
+    "input": 88,
+    "output": 133
+  }
+}

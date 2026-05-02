@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 46,
+  "response": "```python\n# test_unique_permutations.py\n\nimport pytest\n\n# Adjust this import to match your project structure\n# from your_module import unique_permutations\n\n\ndef as_tuple_set(permutations):\n    return {tuple(p) for p in permutations}\n\n\ndef test_unique_permutations_empty_list():\n    assert unique_permutations([]) == [[]]\n\n\ndef test_unique_permutations_single_item():\n    assert unique_permutations([1]) == [[1]]\n\n\ndef test_unique_permutations_all_unique_items():\n    result = unique_permutations([1, 2, 3])\n\n    expected = {\n        (1, 2, 3),\n        (1, 3, 2),\n        (2, 1, 3),\n        (2, 3, 1),\n        (3, 1, 2),\n        (3, 2, 1),\n    }\n\n    assert len(result) == 6\n    assert as_tuple_set(result) == expected\n\n\ndef test_unique_permutations_with_duplicate_items():\n    result = unique_permutations([1, 1, 2])\n\n    expected = {\n        (1, 1, 2),\n        (1, 2, 1),\n        (2, 1, 1),\n    }\n\n    assert len(result) == 3\n    assert as_tuple_set(result) == expected\n\n\ndef test_unique_permutations_all_duplicate_items():\n    result = unique_permutations([7, 7, 7])\n\n    assert result == [[7, 7, 7]]\n\n\ndef test_unique_permutations_mixed_hashable_types():\n    result = unique_permutations([1, \"a\", 1])\n\n    expected = {\n        (1, \"a\", 1),\n        (1, 1, \"a\"),\n        (\"a\", 1, 1),\n    }\n\n    assert len(result) == 3\n    assert as_tuple_set(result) == expected\n\n\ndef test_unique_permutations_preserves_input_list():\n    original = [1, 1, 2]\n    copy = original[:]\n\n    unique_permutations(original)\n\n    assert original == copy\n\n\ndef test_unique_permutations_result_items_have_same_length_as_input():\n    original = [1, 2, 2]\n    result = unique_permutations(original)\n\n    assert all(len(permutation) == len(original) for permutation in result)\n\n\ndef test_unique_permutations_unhashable_items_raises_type_error():\n    with pytest.raises(TypeError):\n        unique_permutations([[1], [2]])\n\n\ndef test_unique_permutations_none_input_raises_type_error():\n    with pytest.raises(TypeError):\n        unique_permutations(None)\n```",
+  "score": 4,
+  "cost": 0.013413,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1087
+  }
+}

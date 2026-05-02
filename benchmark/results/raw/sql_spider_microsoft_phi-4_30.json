@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "```sql\nSELECT AVG(rank) AS average_rank\nFROM winners\n```",
+  "score": 4,
+  "cost": 6.175e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 16
+  }
+}

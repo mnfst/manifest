@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 40,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Reserve Bank of Australia\", \"Goldman Sachs\"],\n  \"locations\": []\n}",
+  "score": 4,
+  "cost": 3.432e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 28
+  }
+}

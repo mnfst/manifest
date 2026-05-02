@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "SELECT * FROM hiring;",
+  "score": 1,
+  "cost": 5.16e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 6
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT country FROM car_makers GROUP BY country ORDER BY COUNT(*) DESC LIMIT 1;\n```",
+  "score": 4,
+  "cost": 2.7e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 23
+  }
+}

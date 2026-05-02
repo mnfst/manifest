@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp (ARR $450K) is threatening to churn due to API latency spikes over the past three weeks and no support response for five days, and their CTO has escalated directly. James has already assigned a dedicated engineer, and the action item is to secure an exec sponsor for a call this week.",
+  "score": 5,
+  "cost": 3.65e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 66
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "IT Procurement says the Datadog contract expires June 30 and has offered a 3-year renewal at $155K/year, down from the current $180K/year. Alternatively, Grafana Cloud would cost $95K/year but would require a 3-month migration, and Finance needs a decision by May 15.",
+  "score": 5,
+  "cost": 0.00074,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 68
+  }
+}

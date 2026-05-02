@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 10,
+  "response": "{\"name\": \"play_song\", \"arguments\": {\"title\": \"Bohemian Rhapsody\", \"artist\": \"Queen\"}}",
+  "score": 5,
+  "cost": 7.8e-06,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 27
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Disse \u00e0 Kumagaya que le d\u00e9tective est l\u00e0.",
+  "score": 4,
+  "cost": 2.805e-06,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 14
+  }
+}

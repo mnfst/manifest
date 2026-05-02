@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 47,
+  "response": "{\"name\": \"create_cron\", \"arguments\": {\"schedule\": \"0 0 * * *\", \"command\": \"cleanup.sh\", \"name\": \"cleanup\"}}",
+  "score": 5,
+  "cost": 0.0007725,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 36
+  }
+}

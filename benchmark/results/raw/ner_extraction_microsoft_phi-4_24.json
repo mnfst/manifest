@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 24,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Indian Space Research Organisation\"],\n  \"locations\": [\"Sriharikota\"]\n}\n```",
+  "score": 4,
+  "cost": 7.085000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 33
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "ner_extraction",
+  "case": 13,
+  "response": "{\"persons\":[],\"organizations\":[\"Oxford University\",\"Pfizer\"],\"locations\":[]}",
+  "score": 4,
+  "cost": 0.00114,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 78
+  }
+}

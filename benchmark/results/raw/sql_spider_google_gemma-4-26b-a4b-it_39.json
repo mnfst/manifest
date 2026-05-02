@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "```sql\nSELECT\n  conductors.name,\n  orchestras.name\nFROM conductors\nJOIN conducting_sessions ON conductors.id = conducting_sessions.conductor_id\nJOIN orchestras ON conducting_sessions.orchestra_id = orchestras.id;\n```",
+  "score": 5,
+  "cost": 8.759999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 58
+  }
+}

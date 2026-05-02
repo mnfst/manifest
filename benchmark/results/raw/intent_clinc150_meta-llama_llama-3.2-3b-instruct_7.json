@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "intent_clinc150",
+  "case": 7,
+  "response": "change_user_name",
+  "score": 0,
+  "cost": 2.6111999999999997e-05,
+  "expected": "change_ai_name",
+  "tokens": {
+    "input": 508,
+    "output": 4
+  }
+}

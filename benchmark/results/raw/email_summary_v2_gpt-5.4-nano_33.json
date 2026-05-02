@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 employee engagement survey scored 7.8/10 (above the 7.2 industry average), with collaboration highest (8.9/10) and career growth clarity lowest (6.1/10). The People Team proposes quarterly career conversations, an internal mobility program, and mentorship matching, and will hold a town hall on Friday to discuss these actions.",
+  "score": 5,
+  "cost": 4.26e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 78
+  }
+}

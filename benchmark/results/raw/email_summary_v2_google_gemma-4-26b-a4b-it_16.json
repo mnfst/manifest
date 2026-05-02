@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign achieved 45K impressions and 187 signups with a $64 customer acquisition cost. To address a slight decrease in conversion rates, the team recommends performing A/B testing on the landing page CTA.",
+  "score": 5,
+  "cost": 9.899999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 45
+  }
+}

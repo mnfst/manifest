@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "intent_clinc150",
+  "case": 42,
+  "response": "next_song",
+  "score": 5,
+  "cost": 0.001968,
+  "expected": "next_song",
+  "tokens": {
+    "input": 626,
+    "output": 6
+  }
+}

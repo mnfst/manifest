@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "SELECT s.song_name,\n       s.release_year\nFROM song AS s\nJOIN singer AS si\n  ON s.singer_id = si.singer_id\nORDER BY si.age ASC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 0.000532,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 48
+  }
+}

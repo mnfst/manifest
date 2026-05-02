@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 20,
+  "response": "```python\nimport pytest\n\nfrom your_module import zip_dicts  # adjust import as needed\n\n\ndef test_zip_dicts_happy_path():\n    d1 = {\"a\": 1, \"b\": 2}\n    d2 = {\"a\": 10, \"c\": 30}\n\n    result = zip_dicts(d1, d2)\n\n    assert result == {\n        \"a\": [1, 10],\n        \"b\": [2, None],\n        \"c\": [None, 30],\n    }\n\n\ndef test_zip_dicts_with_three_dicts():\n    d1 = {\"x\": 1}\n    d2 = {\"x\": 2, \"y\": 20}\n    d3 = {\"z\": 300}\n\n    result = zip_dicts(d1, d2, d3)\n\n    assert result == {\n        \"x\": [1, 2, None],\n        \"y\": [None, 20, None],\n        \"z\": [None, None, 300],\n    }\n\n\ndef test_zip_dicts_empty_input_returns_empty_dict():\n    assert zip_dicts() == {}\n\n\ndef test_zip_dicts_with_empty_dicts_only():\n    assert zip_dicts({}, {}) == {}\n\n\ndef test_zip_dicts_preserves_none_values():\n    d1 = {\"a\": None}\n    d2 = {\"a\": 2}\n\n    result = zip_dicts(d1, d2)\n\n    assert result == {\"a\": [None, 2]}\n\n\ndef test_zip_dicts_with_non_overlapping_keys():\n    d1 = {\"a\": 1}\n    d2 = {\"b\": 2}\n\n    result = zip_dicts(d1, d2)\n\n    assert result == {\n        \"a\": [1, None],\n        \"b\": [None, 2],\n    }\n\n\n@pytest.mark.parametrize(\n    \"dicts\",\n    [\n        ({\"a\": 1}, [\"not\", \"a\", \"dict\"]),   # list is invalid\n        ({\"a\": 1}, None),                   # None is invalid\n        ({\"a\": 1}, 123),                    # int is invalid\n        ({\"a\": 1}, {\"b\": 2}, \"oops\"),       # str is invalid\n    ],\n)\ndef test_zip_dicts_raises_for_non_mapping_inputs(dicts):\n    with pytest.raises(AttributeError):\n        zip_dicts(*dicts)\n```\n\n### Notes\n- Replace `from your_module import zip_dicts` with the actual import path.\n- The error tests expect `AttributeError` because the implementation calls `d.get(k)` on each input; non-dict/non-mapping objects without `.get()` will fail there.\n- If you want stricter behavior (e.g., `TypeError` for invalid inputs), the function implementation would need validation.",
+  "score": 5,
+  "cost": 0.0007281,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 588
+  }
+}

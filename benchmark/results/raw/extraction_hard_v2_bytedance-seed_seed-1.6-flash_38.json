@@ -3,11 +3,11 @@
   "task": "extraction_hard_v2",
   "case": 38,
   "response": "{\n  \"date\": \"March 15, 2024\",\n  \"athlete\": \"Mike Torres\",\n  \"bodyweight_lbs\": 185,\n  \"sleep_hours\": 7,\n  \"exercises\": [\n    {\n      \"name\": \"Back Squat\",\n      \"sets\": [\n        {\n          \"weight\": 225,\n          \"reps\": 5\n        },\n        {\n          \"weight\": 245,\n          \"reps\": 5\n        },\n        {\n          \"weight\": 265,\n          \"reps\": 3\n        },\n        {\n          \"weight\": 275,\n          \"reps\": 2\n        }\n      ],\n      \"note\": \"PR!\"\n    },\n    {\n      \"name\": \"Romanian Deadlift\",\n      \"sets\": [\n        {\n          \"weight\": 185,\n          \"reps\": 8\n        },\n        {\n          \"weight\": 205,\n          \"reps\": 8\n        },\n        {\n          \"weight\": 205,\n          \"reps\": 8\n        }\n      ],\n      \"note\": \"\"\n    },\n    {\n      \"name\": \"Leg Press\",\n      \"sets\": [\n        {\n          \"weight\": 360,\n          \"reps\": 10\n        },\n        {\n          \"weight\": 410,\n          \"reps\": 10\n        },\n        {\n          \"weight\": 450,\n          \"reps\": 8\n        }\n      ],\n      \"note\": \"\"\n    },\n    {\n      \"name\": \"Leg Curl\",\n      \"sets\": [\n        {\n          \"weight\": 90,\n          \"reps\": 12\n        },\n        {\n          \"weight\": 100,\n          \"reps\": 10\n        },\n        {\n          \"weight\": 100,\n          \"reps\": 10\n        }\n      ],\n      \"note\": \"\"\n    },\n    {\n      \"name\": \"Calf raises\",\n      \"sets\": [\n        {\n          \"weight\": 0,\n          \"reps\": 15\n        },\n        {\n          \"weight\": 0,\n          \"reps\": 15\n        },\n        {\n          \"weight\": 0,\n          \"reps\": 15\n        }\n      ],\n      \"note\": \"\"\n    },\n    {\n      \"name\": \"Ab wheel\",\n      \"sets\": [\n        {\n          \"weight\": 0,\n          \"reps\": 12\n        },\n        {\n          \"weight\": 0,\n          \"reps\": 12\n        },\n        {\n          \"weight\": 0,\n          \"reps\": 12\n        }\n      ],\n      \"note\": \"\"\n    }\n  ],\n  \"duration_minutes\": 72,\n  \"rpe\": 8.5,\n  \"notes\": \"Hit squat PR at 275. Right knee felt tight on last set. Need to stretch more.\"\n}",
-  "score": 0,
-  "cost": 0.0006462000000000001,
+  "score": 4,
+  "cost": 0.0005543999999999999,
   "expected": "",
   "tokens": {
     "input": 428,
-    "output": 2047
+    "output": 1741
   }
 }

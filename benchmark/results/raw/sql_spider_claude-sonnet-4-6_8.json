@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT cl.Language) AS total_unique_languages\nFROM countrylanguage cl\nJOIN country c ON cl.CountryCode = c.Code\nWHERE c.IndepYear < 1930\nAND cl.IsOfficial = 'T';\n```",
+  "score": 5,
+  "cost": 0.001266,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 67
+  }
+}

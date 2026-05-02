@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 40,
+  "response": "Here is the correct function call in JSON format:\n\n`{\"name\": \"pin_message\", \"arguments\": {\"channel\": \"announcements\", \"message_id\": \"release\"}}`\n\nThis function call will pin the message with the ID \"release\" to the top of the \"announcements\" channel.",
+  "score": 4,
+  "cost": 8.16e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 61
+  }
+}

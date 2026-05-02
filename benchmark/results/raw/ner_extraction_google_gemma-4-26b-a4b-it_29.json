@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Tokyo Stock Exchange\"\n  ],\n  \"locations\": [\n    \"Tokyo\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 7.559999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 45
+  }
+}

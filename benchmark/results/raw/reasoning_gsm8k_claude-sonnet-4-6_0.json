@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Step by step:\n\n1. Alexandra raises $430\n2. Kim raises $320 more than Alexandra: $430 + $320 = $750\n3. Sarah raises $300\n4. Maryam raises $400 more than Sarah: $300 + $400 = $700\n\nTotal = $430 + $750 + $300 + $700 = $2,180\n\nANSWER: 2180",
+  "score": 4,
+  "cost": 0.001776,
+  "expected": "2280",
+  "tokens": {
+    "input": 102,
+    "output": 98
+  }
+}

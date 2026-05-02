@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 46,
+  "response": "A critical SQL injection vulnerability in `/api/v2/auth/login` affects versions v3.2.0 through v3.4.1, with a CVSS score of 9.8, and the fix is to parameterize the query in `auth_controller.py` at line 142. A patch is ready for review, and a hotfix is recommended within 24 hours.",
+  "score": 5,
+  "cost": 0.0001266,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 81
+  }
+}

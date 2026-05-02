@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "George ordered 600 burritos.\n\nThere were 50 students, and each student got 10 burritos:\n\n50 \u00d7 10 = 500 burritos\n\nMr. George ate 20 burritos:\n\n500 + 20 = 520 burritos used\n\nNow subtract from the total ordered:\n\n600 - 520 = 80\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.000792,
+  "expected": "80",
+  "tokens": {
+    "input": 100,
+    "output": 74
+  }
+}

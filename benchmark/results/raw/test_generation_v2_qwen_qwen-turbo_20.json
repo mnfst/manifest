@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 20,
+  "response": "Here's a set of **pytest-style unit tests** for the `zip_dicts` function. These tests cover:\n\n- **Happy path**: Normal usage with multiple dictionaries.\n- **Edge cases**: Empty dictionaries, one dictionary, and missing keys.\n- **Error cases**: Non-dictionary inputs (though the function is designed to take `*dicts`, which implies all arguments are dicts).\n\n### \u2705 `test_zip_dicts.py`\n\n```python\nimport pytest\nfrom your_module import zip_dicts  # Replace with actual import path\n\ndef test_zip_dicts_happy_path():\n    d1 = {'a': 1, 'b': 2}\n    d2 = {'b': 3, 'c': 4}\n    result = zip_dicts(d1, d2)\n    expected = {\n        'a': [1, None],\n        'b': [2, 3],\n        'c': [None, 4]\n    }\n    assert result == expected\n\ndef test_zip_dicts_single_dict():\n    d1 = {'a': 1, 'b': 2}\n    result = zip_dicts(d1)\n    expected = {\n        'a': [1],\n        'b': [2]\n    }\n    assert result == expected\n\ndef test_zip_dicts_empty_dicts():\n    result = zip_dicts()\n    assert result == {}\n\ndef test_zip_dicts_empty_dict_and_other():\n    d1 = {}\n    d2 = {'a': 1}\n    result = zip_dicts(d1, d2)\n    expected = {\n        'a': [None, 1]\n    }\n    assert result == expected\n\ndef test_zip_dicts_missing_keys():\n    d1 = {'a': 1}\n    d2 = {'b': 2}\n    result = zip_dicts(d1, d2)\n    expected = {\n        'a': [1, None],\n        'b': [None, 2]\n    }\n    assert result == expected\n\ndef test_zip_dicts_non_dict_arguments():\n    with pytest.raises(TypeError):\n        zip_dicts('not a dict', {'a': 1})\n```\n\n### \ud83d\udcdd Notes:\n\n- Make sure to replace `your_module` with the actual module name where `zip_dicts` is defined.\n- The function `zip_dicts` assumes all inputs are dictionaries. If you want to add validation for non-dictionary inputs, you\u2019d need to modify the function accordingly.\n- The `TypeError` test checks that the function raises an error if a non-dictionary is passed, which is an edge case (though not strictly required unless the function is expected to validate inputs).\n\nLet me know if you want to add input validation to the function as well.",
+  "score": 5,
+  "cost": 2.0691e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 548
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 12,
+  "response": "```json\n{\n    \"name\": \"get_stock_price\",\n    \"arguments\": {\n        \"symbol\": \"AAPL\"\n    }\n}\n```",
+  "score": 5,
+  "cost": 7.475e-06,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 31
+  }
+}

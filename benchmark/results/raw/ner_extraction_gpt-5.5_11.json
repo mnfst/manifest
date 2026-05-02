@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "{\"persons\":[],\"organizations\":[\"United Nations Security Council\"],\"locations\":[\"North Korea\",\"New York\"]}",
+  "score": 5,
+  "cost": 0.001161,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 79
+  }
+}

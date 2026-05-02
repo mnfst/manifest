@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 43,
+  "response": "Here's an example of how you can write unit tests for the `partial` function using pytest:\n\n```python\nimport pytest\nfrom your_module import partial  # Replace 'your_module' with the actual name of the module where the function is defined\n\ndef test_partial_happy_path():\n    @partial('add', 2, 3)\n    def add(a, b):\n        return a + b\n\n    assert add(4, 5) == 9\n\ndef test_partial_happy_path_with_kwargs():\n    @partial('add', 2, 3)\n    def add(a, b):\n        return a + b\n\n    assert add(4, 5, a=10) == 15\n\ndef test_partial_edge_case_empty_kwargs():\n    @partial('add', 2, 3)\n    def add(a, b):\n        return a + b\n\n    with pytest.raises(TypeError):\n        add(4, 5, b=10)\n\ndef test_partial_edge_case_empty_args():\n    @partial('add', 2, 3)\n    def add(a, b):\n        return a + b\n\n    with pytest.raises(TypeError):\n        add(a=10, b=20)\n\ndef test_partial_edge_case_invalid_fn():\n    with pytest.raises(TypeError):\n        @partial('non_existent_function', 2, 3)\n        def add(a, b):\n            return a + b\n\ndef test_partial_edge_case_invalid_partial_args():\n    with pytest.raises(TypeError):\n        @partial('add', 'a', 3)\n        def add(a, b):\n            return a + b\n\ndef test_partial_edge_case_invalid_partial_kwargs():\n    with pytest.raises(TypeError):\n        @partial('add', 2, 'b')\n        def add(a, b):\n            return a + b\n```\n\nIn these tests, we cover the following scenarios:\n\n*   Happy path: Test that the `partial` function works correctly when the function being partialled has the correct number of arguments.\n*   Happy path with keyword arguments: Test that the `partial` function works correctly when the function being partialled has keyword arguments.\n*   Edge case: Test that the `partial` function raises a `TypeError` when the function being partialled has no keyword arguments.\n*   Edge case: Test that the `partial` function raises a `TypeError` when the function being partialled has no positional arguments.\n*   Edge case: Test that the `partial` function raises a `TypeError` when the function being partialled is not a valid function.\n*   Edge case: Test that the `partial` function raises a `TypeError` when the partial arguments are not of the correct type.\n\nNote that these tests assume that the `partial` function is defined in a module named `your_module`. You should replace this with the actual name of the module where the function is defined.",
+  "score": 4,
+  "cost": 3.437399999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 587
+  }
+}

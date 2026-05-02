@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "SELECT id\nFROM cre_Doc_Template_Mgt.templates\nWHERE description = 'Presentation';",
+  "score": 5,
+  "cost": 1.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 21
+  }
+}

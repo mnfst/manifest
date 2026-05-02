@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Ann is currently 9 years old. Her brother is twice her age, so his current age is calculated as follows:\n\n$$\n\\text{Brother's current age} = 2 \\times 9 = 18\n$$\n\nTo find out how old her brother will be in 3 years, we add 3 to his current age:\n\n$$\n\\text{Brother's age in 3 years} = 18 + 3 = 21\n$$\n\nANSWER: 21",
+  "score": 5,
+  "cost": 3.3950000000000005e-05,
+  "expected": "21",
+  "tokens": {
+    "input": 70,
+    "output": 609
+  }
+}

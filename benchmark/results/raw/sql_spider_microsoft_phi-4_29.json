@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "```sql\nSELECT COUNT(DISTINCT Language) AS UniqueLanguages\nFROM country;\n```",
+  "score": 4,
+  "cost": 5.7850000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 19
+  }
+}

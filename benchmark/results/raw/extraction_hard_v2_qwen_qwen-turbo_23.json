@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "extraction_hard_v2",
+  "case": 23,
+  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page is broken on Chrome 121 on Windows 11\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Go to checkout\",\n    \"Enter card information\",\n    \"Hit pay\"\n  ],\n  \"expected_behavior\": \"Checkout process should complete successfully without errors\",\n  \"actual_behavior\": \"Spinner for 30 seconds, then white screen with no error message\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 5,
+  "cost": 1.0196999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 135
+  }
+}

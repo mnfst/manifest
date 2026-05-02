@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 7,
+  "response": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"6:30 AM\", \"label\": \"Morning Workout\", \"repeat\": \"tomorrow\"}}",
+  "score": 2,
+  "cost": 4.587e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 34
+  }
+}

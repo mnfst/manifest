@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success team reported improved Q1 metrics, including a rising NPS, higher support CSAT, and a decreased churn rate. Action items include addressing top feature requests and pursuing the $800K in potential enterprise expansions.",
+  "score": 5,
+  "cost": 5.709000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 47
+  }
+}

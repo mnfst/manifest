@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "extraction_hard_v2",
+  "case": 23,
+  "response": "{\"severity\":\"critical\",\"component\":\"checkout page\",\"summary\":\"Checkout flow breaks on Chrome 121 on Windows 11, resulting in a white screen after payment submission with console errors.\",\"steps_to_reproduce\":[\"Add items to cart.\",\"Go to checkout.\",\"Enter card information.\",\"Click Pay.\",\"Wait for the spinner to run for about 30 seconds.\"],\"expected_behavior\":\"Payment should process successfully and the checkout should complete or show a clear error message if something fails.\",\"actual_behavior\":\"The page shows a spinner for about 30 seconds, then turns into a white screen with no visible error message. Console logs show a CORS error and 'undefined is not a function' in checkout.bundle.js:847. The issue happened 3 times. It works fine in Firefox.\",\"environment\":{\"os\":\"Windows 11\",\"browser\":\"Chrome 121\"}}",
+  "score": 5,
+  "cost": 0.0002529,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 170
+  }
+}

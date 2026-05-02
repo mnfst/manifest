@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins on January 15, and Finance has outlined four preparation tasks: finalize Q4 revenue recognition, reconcile all bank accounts, verify stock option records, and prepare the related-party transaction disclosure. A controller meeting is scheduled for next Tuesday to assign responsibilities for these items.",
+  "score": 5,
+  "cost": 0.00067,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 60
+  }
+}

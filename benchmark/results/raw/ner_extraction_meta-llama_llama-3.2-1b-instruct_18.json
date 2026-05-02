@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "{\n  \"persons\": [\"Sarah Chen\"],\n  \"organizations\": [\"MIT\"],\n  \"locations\": [\"Science magazine\"]",
+  "score": 2,
+  "cost": 2.6459999999999997e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 25
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT \n  maker_full_name, \n  id, \n  COUNT(*) as num_models\nFROM \n  cars\nGROUP BY \n  maker_full_name, \n  id\n```",
+  "score": 4,
+  "cost": 6.324e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 41
+  }
+}

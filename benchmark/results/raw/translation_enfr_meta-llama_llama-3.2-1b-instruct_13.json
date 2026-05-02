@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Je vous demande de lui dire que le d\u00e9tective est l\u00e0.",
+  "score": 4,
+  "cost": 1.485e-06,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 14
+  }
+}

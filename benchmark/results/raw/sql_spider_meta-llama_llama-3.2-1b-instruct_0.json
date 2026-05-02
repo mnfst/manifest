@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "```sql\nSELECT rank FROM poker_player ORDER BY height DESC LIMIT 1;\n```",
+  "score": 3,
+  "cost": 2.484e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 18
+  }
+}

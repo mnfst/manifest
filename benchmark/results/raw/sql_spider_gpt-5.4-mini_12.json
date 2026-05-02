@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "SELECT p.id, p.role, p.first_name\nFROM professionals p\nJOIN treatments t ON t.professional_id = p.id\nGROUP BY p.id, p.role, p.first_name\nHAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 8.43e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 50
+  }
+}

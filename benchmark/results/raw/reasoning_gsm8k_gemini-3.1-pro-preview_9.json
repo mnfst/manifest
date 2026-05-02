@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "To find the total number of crabs the three have together, we need to calculate how many crabs each person has step by step:\n\n1. **Bo's crabs:** We are given that Bo has 40 crabs.\n2. **Monic's crabs:** Monic has 4 fewer crabs than Bo. \n   40 - 4 = 36 crabs.\n3. **Rani's crabs:** Rani has 10 more crabs than Monic. \n   36 + 10 = 46 crabs.\n\nNow, we add the number of crabs they all have together:\n40 (Bo) + 36 (Monic) + 46 (Rani) = 122 crabs.\n\nANSWER: 122",
+  "score": 5,
+  "cost": 0.002675,
+  "expected": "122",
+  "tokens": {
+    "input": 74,
+    "output": 166
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 39,
+  "response": "Here are some unit tests for the `topological_sort` function using pytest style:\n\n```python\nimport pytest\nfrom collections import defaultdict\n\ndef test_topological_sort_happy_path():\n    # Test a graph with a happy path\n    graph = {\n        'A': ['B', 'C'],\n        'B': ['D'],\n        'C': ['D'],\n        'D': []\n    }\n    expected = ['A', 'B', 'C', 'D']\n    assert topological_sort(graph) == expected\n\ndef test_topological_sort_edge_case():\n    # Test a graph with an edge case where there are no cycles\n    graph = {\n        'A': ['B'],\n        'B': ['C'],\n        'C': []\n    }\n    expected = ['A', 'B', 'C']\n    assert topological_sort(graph) == expected\n\ndef test_topological_sort_empty_graph():\n    # Test an empty graph\n    graph = {}\n    expected = []\n    assert topological_sort(graph) == expected\n\ndef test_topological_sort_single_node_graph():\n    # Test a graph with a single node\n    graph = {'A': []}\n    expected = ['A']\n    assert topological_sort(graph) == expected\n\ndef test_topological_sort_no_neighbors():\n    # Test a graph with a node that has no neighbors\n    graph = {'A': []}\n    expected = []\n    assert topological_sort(graph) == expected\n\ndef test_topological_sort_negative_cycle():\n    # Test a graph with a negative cycle\n    graph = {\n        'A': ['B'],\n        'B': ['C'],\n        'C': ['A']\n    }\n    expected = ['A', 'B', 'C']\n    assert topological_sort(graph) == expected\n\ndef test_topological_sort_large_graph():\n    # Test a large graph\n    graph = {\n        'A': ['B', 'C', 'D'],\n        'B': ['A', 'C', 'E'],\n        'C': ['A', 'B', 'F'],\n        'D': ['A'],\n        'E': ['B'],\n        'F': ['C']\n    }\n    expected = ['A', 'B', 'C', 'D', 'E', 'F']\n    assert topological_sort(graph) == expected\n\ndef test_topological_sort_invalid_input():\n    # Test an invalid input\n    with pytest.raises(TypeError):\n        topological_sort(123)\n    with pytest.raises(TypeError):\n        topological_sort('hello')\n```\n\nThese tests cover the following cases:\n\n*   A happy path with a graph that has a topological sort\n*   An edge case with an empty graph\n*   An empty graph\n*   A graph with a single node\n*   A graph with a node that has no neighbors\n*   A graph with a negative cycle\n*   A large graph\n*   An invalid input (a non-dictionary or non-string input)",
+  "score": 3,
+  "cost": 1.9467e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 608
+  }
+}

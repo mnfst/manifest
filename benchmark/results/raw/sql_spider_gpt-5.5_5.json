@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT a.AirportName\nFROM airports AS a\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM flights AS f\n    WHERE f.SourceAirport = a.AirportCode\n       OR f.DestAirport = a.AirportCode\n);",
+  "score": 5,
+  "cost": 0.007095,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 574
+  }
+}

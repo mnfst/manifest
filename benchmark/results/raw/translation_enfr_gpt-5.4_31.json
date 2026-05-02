@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Nous pourrions vous arr\u00eater pour racolage.",
+  "score": 2,
+  "cost": 0.000174,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 14
+  }
+}

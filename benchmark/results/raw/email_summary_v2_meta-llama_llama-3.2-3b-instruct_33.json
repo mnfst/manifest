@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe Q1 employee engagement survey results show that team collaboration is the strongest aspect of the company culture, with a score of 8.9/10, while career growth clarity is the weakest, with a score of 6.1/10. The proposed actions to address the latter include quarterly career conversations, an internal mobility program, and mentorship matching, which will be discussed at a town hall meeting on Friday.",
+  "score": 5,
+  "cost": 1.1067000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 97
+  }
+}

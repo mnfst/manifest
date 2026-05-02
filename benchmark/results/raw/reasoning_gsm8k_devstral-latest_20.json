@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "Let's break this down step by step:\n\n1. **Number of fish**: Jen has 3 fish.\n2. **Cost per fish per day**: Each fish needs $1 worth of food per day.\n3. **Total cost per day**: 3 fish \u00d7 $1/fish/day = $3/day.\n4. **Number of days in May**: May has 31 days.\n5. **Total cost for May**: $3/day \u00d7 31 days = $93.\n\nANSWER: 93",
+  "score": 5,
+  "cost": 3.99e-05,
+  "expected": "93",
+  "tokens": {
+    "input": 72,
+    "output": 109
+  }
+}

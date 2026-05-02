@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 20,
+  "response": "```python\n# test_zip_dicts.py\n\nimport pytest\n\n# Replace `your_module` with the actual module name where zip_dicts is defined.\nfrom your_module import zip_dicts\n\n\ndef test_zip_dicts_happy_path_same_keys():\n    result = zip_dicts(\n        {\"a\": 1, \"b\": 2},\n        {\"a\": 3, \"b\": 4},\n    )\n\n    assert result == {\n        \"a\": [1, 3],\n        \"b\": [2, 4],\n    }\n\n\ndef test_zip_dicts_happy_path_different_keys():\n    result = zip_dicts(\n        {\"a\": 1, \"b\": 2},\n        {\"b\": 3, \"c\": 4},\n        {\"a\": 5, \"c\": 6},\n    )\n\n    assert result == {\n        \"a\": [1, None, 5],\n        \"b\": [2, 3, None],\n        \"c\": [None, 4, 6],\n    }\n\n\ndef test_zip_dicts_single_dict():\n    result = zip_dicts({\"a\": 1, \"b\": 2})\n\n    assert result == {\n        \"a\": [1],\n        \"b\": [2],\n    }\n\n\ndef test_zip_dicts_no_dicts():\n    assert zip_dicts() == {}\n\n\ndef test_zip_dicts_with_empty_dicts():\n    result = zip_dicts(\n        {},\n        {\"a\": 1},\n        {},\n    )\n\n    assert result == {\n        \"a\": [None, 1, None],\n    }\n\n\ndef test_zip_dicts_all_empty_dicts():\n    assert zip_dicts({}, {}, {}) == {}\n\n\ndef test_zip_dicts_preserves_none_values():\n    result = zip_dicts(\n        {\"a\": None},\n        {\"a\": 1},\n        {},\n    )\n\n    assert result == {\n        \"a\": [None, 1, None],\n    }\n\n\ndef test_zip_dicts_with_non_string_keys():\n    result = zip_dicts(\n        {1: \"one\", (2, 3): \"tuple\"},\n        {1: \"uno\", \"x\": \"ex\"},\n    )\n\n    assert result == {\n        1: [\"one\", \"uno\"],\n        (2, 3): [\"tuple\", None],\n        \"x\": [None, \"ex\"],\n    }\n\n\ndef test_zip_dicts_with_falsey_values():\n    result = zip_dicts(\n        {\"a\": 0, \"b\": False, \"c\": \"\"},\n        {\"a\": None, \"b\": True},\n    )\n\n    assert result == {\n        \"a\": [0, None],\n        \"b\": [False, True],\n        \"c\": [\"\", None],\n    }\n\n\ndef test_zip_dicts_raises_type_error_for_none_argument():\n    with pytest.raises(TypeError):\n        zip_dicts({\"a\": 1}, None)\n\n\ndef test_zip_dicts_raises_attribute_error_for_non_mapping_argument():\n    with pytest.raises(AttributeError):\n        zip_dicts({\"a\": 1}, [\"a\"])\n\n\ndef test_zip_dicts_raises_type_error_for_unhashable_keys_from_iterable_argument():\n    with pytest.raises(TypeError):\n        zip_dicts({\"a\": 1}, [[\"a\"]])\n```",
+  "score": 4,
+  "cost": 0.014613,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 1199
+  }
+}

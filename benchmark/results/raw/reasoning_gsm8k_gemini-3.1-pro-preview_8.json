@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To find the number of students enrolled this year, we first need to calculate the increase in the number of students. \n\n1. Find 20% of last year's 50 students:\n20% = 0.20\n0.20 * 50 = 10 students\n\n2. Add the increase to last year's total to find this year's enrollment:\n50 + 10 = 60 students\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.0017525,
+  "expected": "60",
+  "tokens": {
+    "input": 77,
+    "output": 104
+  }
+}

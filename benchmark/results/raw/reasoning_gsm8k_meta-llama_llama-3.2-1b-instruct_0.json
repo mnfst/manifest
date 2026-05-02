@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "To solve this problem, we need to find the amount of money each girl raised and then add them together.\n\nLet's start by finding out how much money each girl raised:\n\n* Kim raises $320 more than Alexandra, who raises $430. So, Kim raises $430 + $320 = $750.\n* Maryam raises $400 more than Sarah, who raises $300. So, Maryam raises $300 + $400 = $700.\n* Alexandra raises $430, which is the same as Kim.\n\nNow, let's add up the money they raised:\n\n$430 (Alexandra) + $750 (Kim) + $700 (Maryam) = $2100\n\nANSWER: 2100",
+  "score": 3,
+  "cost": 6.642e-06,
+  "expected": "2280",
+  "tokens": {
+    "input": 100,
+    "output": 146
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 48,
+  "response": "```json\n{\"name\": \"git_tag\", \"arguments\": {\"name\": \"v3.0.0\"}}\n```\n\n*(Note: Since the request implies a sequence of actions, the first step is to create the tag. To complete the user's request fully, a second call to `git_push(remote=\"origin\", tags=True)` would be required in a real execution flow.)*",
+  "score": 4,
+  "cost": 1.242e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 86
+  }
+}

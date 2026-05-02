@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 40,
+  "response": "```python\nimport pytest\n\nfrom your_module import rgb_to_hex\n\n\nclass TestRgbToHex:\n    def test_returns_hex_for_basic_rgb_values(self):\n        assert rgb_to_hex(255, 0, 128) == \"#ff0080\"\n\n    def test_returns_hex_with_zero_padding(self):\n        assert rgb_to_hex(1, 2, 3) == \"#010203\"\n\n    def test_returns_hex_for_boundary_min_values(self):\n        assert rgb_to_hex(0, 0, 0) == \"#000000\"\n\n    def test_returns_hex_for_boundary_max_values(self):\n        assert rgb_to_hex(255, 255, 255) == \"#ffffff\"\n\n    @pytest.mark.parametrize(\n        \"r,g,b,expected\",\n        [\n            (16, 32, 48, \"#102030\"),\n            (173, 216, 230, \"#add8e6\"),\n            (15, 15, 15, \"#0f0f0f\"),\n        ],\n    )\n    def test_returns_expected_hex_for_multiple_valid_inputs(self, r, g, b, expected):\n        assert rgb_to_hex(r, g, b) == expected\n\n    @pytest.mark.parametrize(\n        \"r,g,b\",\n        [\n            (-1, 0, 0),\n            (0, -1, 0),\n            (0, 0, -1),\n            (256, 0, 0),\n            (0, 256, 0),\n            (0, 0, 256),\n            (-10, 300, 50),\n        ],\n    )\n    def test_raises_value_error_for_out_of_range_values(self, r, g, b):\n        with pytest.raises(ValueError, match=\"RGB values must be 0-255\"):\n            rgb_to_hex(r, g, b)\n```\n\nReplace `your_module` with the actual module name containing `rgb_to_hex`.",
+  "score": 5,
+  "cost": 0.003398,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 398
+  }
+}

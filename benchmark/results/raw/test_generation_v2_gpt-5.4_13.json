@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "```python\nimport pytest\n\nfrom your_module import fizzbuzz\n\n\n@pytest.mark.parametrize(\n    \"n, expected\",\n    [\n        (1, \"1\"),\n        (2, \"2\"),\n        (3, \"Fizz\"),\n        (5, \"Buzz\"),\n        (15, \"FizzBuzz\"),\n        (30, \"FizzBuzz\"),\n        (9, \"Fizz\"),\n        (10, \"Buzz\"),\n    ],\n)\ndef test_fizzbuzz_happy_path(n, expected):\n    assert fizzbuzz(n) == expected\n\n\n@pytest.mark.parametrize(\n    \"n, expected\",\n    [\n        (0, \"FizzBuzz\"),   # divisible by 15\n        (-3, \"Fizz\"),\n        (-5, \"Buzz\"),\n        (-15, \"FizzBuzz\"),\n        (-1, \"-1\"),\n    ],\n)\ndef test_fizzbuzz_edge_cases(n, expected):\n    assert fizzbuzz(n) == expected\n\n\n@pytest.mark.parametrize(\"n\", [\"3\", None, 3.14, [], {}])\ndef test_fizzbuzz_invalid_types_raise_type_error(n):\n    with pytest.raises(TypeError):\n        fizzbuzz(n)\n```\n\nIf you want, I can also provide:\n- a complete `test_fizzbuzz.py` file,\n- a version with separate test functions instead of parametrization,\n- or property-style tests.",
+  "score": 5,
+  "cost": 0.002372,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 273
+  }
+}

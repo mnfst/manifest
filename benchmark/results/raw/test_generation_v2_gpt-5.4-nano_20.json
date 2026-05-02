@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 20,
+  "response": "```python\nimport pytest\n\n# Assuming the function is imported from the module under test:\n# from your_module import zip_dicts\n\n\ndef test_zip_dicts_happy_path_multiple_dicts():\n    d1 = {\"a\": 1, \"b\": 2}\n    d2 = {\"b\": 20, \"c\": 30}\n    d3 = {\"a\": 10, \"c\": 300}\n\n    result = zip_dicts(d1, d2, d3)\n\n    # keys = {\"a\", \"b\", \"c\"}\n    assert result == {\n        \"a\": [1, None, 10],     # d1, d2 (missing), d3\n        \"b\": [2, 20, None],    # d1, d2, d3 (missing)\n        \"c\": [None, 30, 300], # d1 (missing), d2, d3\n    }\n\n\ndef test_zip_dicts_happy_path_single_dict():\n    d = {\"x\": 7, \"y\": 8}\n    result = zip_dicts(d)\n\n    assert result == {\"x\": [7], \"y\": [8]}\n\n\ndef test_zip_dicts_edge_case_no_dicts_returns_empty_dict():\n    result = zip_dicts()\n    assert result == {}\n\n\ndef test_zip_dicts_edge_case_all_dicts_empty():\n    result = zip_dicts({}, {}, {})\n    assert result == {}\n\n\ndef test_zip_dicts_edge_case_key_present_in_only_one_dict():\n    d1 = {\"only\": \"first\"}\n    d2 = {}\n    d3 = {}\n    result = zip_dicts(d1, d2, d3)\n\n    assert result == {\"only\": [\"first\", None, None]}\n\n\ndef test_zip_dicts_edge_case_mixed_value_types():\n    d1 = {\"k\": None}\n    d2 = {\"k\": [1, 2, 3]}\n    result = zip_dicts(d1, d2)\n\n    assert result == {\"k\": [None, [1, 2, 3]]}\n\n\ndef test_zip_dicts_error_case_non_dict_argument_raises_attribute_error():\n    # Accessing d.get(...) will fail for non-dicts.\n    with pytest.raises(AttributeError):\n        zip_dicts({\"a\": 1}, [\"not-a-dict\"])\n\n\ndef test_zip_dicts_error_case_at_least_one_argument_is_none_raises_attribute_error():\n    with pytest.raises(AttributeError):\n        zip_dicts(None)\n\n\ndef test_zip_dicts_error_case_non_hashable_dict_argument_raises_type_error_on_union():\n    # The function attempts: set().union(*dicts)\n    # Passing a non-hashable mapping (e.g., a list) to union triggers TypeError.\n    with pytest.raises(TypeError):\n        zip_dicts([\"not-a-dict\"])\n```\n\nThese tests cover:\n- Happy paths (multiple dicts, single dict)\n- Edge cases (no arguments, all empty dicts, keys present only in one dict, mixed value types)\n- Error cases (non-dict arguments, `None`, and non-hashable inputs affecting `set().union(*dicts)`)",
+  "score": 5,
+  "cost": 0.0002723,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 662
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "extraction_hard_v2",
+  "case": 42,
+  "response": "{\"meeting_title\":\"Product sync\",\"date\":\"2026-04-10\",\"attendees\":[\"Jamie\",\"Priya\",\"Marcus\",\"Lin\"],\"decisions\":[\"Push the recommendation engine to Q3 since the data pipeline won't be ready until June.\",\"Allocate 20% of sprint capacity to tech debt.\"],\"action_items\":[{\"owner\":\"Marcus\",\"task\":\"Have onboarding mockups ready\",\"deadline\":\"2026-04-18\"},{\"owner\":\"Jamie\",\"task\":\"Send updated roadmap\",\"deadline\":\"2026-04-13\"},{\"owner\":\"Lin\",\"task\":\"Prepare analytics dashboard before the May board meeting\",\"deadline\":\"2026-05-01\"}]}",
+  "score": 4,
+  "cost": 0.0002103,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 133
+  }
+}

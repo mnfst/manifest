@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 41,
+  "response": "{\n  \"persons\": [\"LeBron James\"],\n  \"organizations\": [\"Los Angeles Lakers\"],\n  \"locations\": [\"Los Angeles\"]\n}",
+  "score": 5,
+  "cost": 3.564e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 28
+  }
+}

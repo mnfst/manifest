@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 16,
+  "response": "```json\n{\n  \"name\": \"search_nearby\",\n  \"arguments\": {\n    \"category\": \"gas station\",\n    \"radius_km\": 5,\n    \"open_now\": true\n  }\n}\n```",
+  "score": 5,
+  "cost": 1.0335e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 48
+  }
+}

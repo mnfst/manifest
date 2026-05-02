@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "intent_clinc150",
+  "case": 32,
+  "response": "shopping_list_update",
+  "score": 5,
+  "cost": 1.6995000000000002e-05,
+  "expected": "shopping_list",
+  "tokens": {
+    "input": 512,
+    "output": 3
+  }
+}

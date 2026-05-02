@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT a.abbr, c.country\nFROM airline a\nJOIN flight f ON a.abbr = f.abbr\nJOIN country c ON a.country_id = c.country_id\nGROUP BY a.abbr, c.country\nORDER BY COUNT(f.flight_id) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 7.3439999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 64
+  }
+}

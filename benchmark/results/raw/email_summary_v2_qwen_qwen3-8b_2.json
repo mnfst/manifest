@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "A critical SQL injection vulnerability (CVSS 9.8) exists in the /api/v2/auth/login endpoint, affecting versions v3.2.0\u2013v3.4.1, requiring a fix by parameterizing the query in auth_controller.py:142. The patch is ready for review and a hotfix is strongly recommended within 24 hours to mitigate the risk.",
+  "score": 5,
+  "cost": 1.7800000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 253
+  }
+}

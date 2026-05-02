@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "```json\n{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\", \"CES\"],\n  \"locations\": [\"Las Vegas\"]\n}\n```",
+  "score": 4,
+  "cost": 7.02e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 36
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "function_calling",
+  "case": 36,
+  "response": "To fulfill the user request to subscribe the user `jane@example.com` to the monthly newsletter, you would use the `subscribe` function. Here's the correct function call:\n\n```json\n{\"name\": \"subscribe\", \"arguments\": {\"email\": \"jane@example.com\", \"list_name\": \"monthly-newsletter\"}}\n```\n\nThis function call would subscribe the user to the `monthly-newsletter` list.",
+  "score": 5,
+  "cost": 4.7519999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 85
+  }
+}

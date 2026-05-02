@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 22,
+  "response": "```python\nimport pytest\n\nfrom your_module import group_by\n\n\ndef test_group_by_happy_path_groups_items_by_key():\n    items = [\"apple\", \"apricot\", \"banana\", \"blueberry\", \"avocado\"]\n    result = group_by(items, key_fn=lambda s: s[0])\n\n    assert result == {\n        \"a\": [\"apple\", \"apricot\", \"avocado\"],\n        \"b\": [\"banana\", \"blueberry\"],\n    }\n\n\ndef test_group_by_preserves_input_order_within_each_group():\n    items = [1, 2, 3, 4, 5, 6]\n    result = group_by(items, key_fn=lambda n: n % 2)\n\n    assert result == {\n        1: [1, 3, 5],\n        0: [2, 4, 6],\n    }\n\n\ndef test_group_by_empty_input_returns_empty_dict():\n    assert group_by([], key_fn=lambda x: x) == {}\n\n\ndef test_group_by_all_items_same_key():\n    items = [10, 20, 30]\n    result = group_by(items, key_fn=lambda _: \"all\")\n\n    assert result == {\"all\": [10, 20, 30]}\n\n\ndef test_group_by_key_function_returning_none():\n    items = [\"a\", \"b\", \"c\"]\n    result = group_by(items, key_fn=lambda _: None)\n\n    assert result == {None: [\"a\", \"b\", \"c\"]}\n\n\ndef test_group_by_with_tuple_keys():\n    items = [{\"a\": 1}, {\"a\": 2}, {\"a\": 1}]\n    result = group_by(items, key_fn=lambda d: (d[\"a\"],))\n\n    assert result == {\n        (1,): [{\"a\": 1}, {\"a\": 1}],\n        (2,): [{\"a\": 2}],\n    }\n\n\ndef test_group_by_raises_when_key_fn_raises():\n    def key_fn(item):\n        if item == \"bad\":\n            raise ValueError(\"boom\")\n        return item[0]\n\n    with pytest.raises(ValueError, match=\"boom\"):\n        group_by([\"good\", \"bad\", \"ugly\"], key_fn=key_fn)\n\n\ndef test_group_by_raises_type_error_for_unhashable_key():\n    items = [\"a\", \"b\"]\n\n    with pytest.raises(TypeError):\n        group_by(items, key_fn=lambda _: [])  # list is unhashable\n\n\ndef test_group_by_works_with_non_string_and_non_numeric_items():\n    class Obj:\n        def __init__(self, category, value):\n            self.category = category\n            self.value = value\n\n    items = [Obj(\"x\", 1), Obj(\"y\", 2), Obj(\"x\", 3)]\n    result = group_by(items, key_fn=lambda o: o.category)\n\n    assert list(result.keys()) == [\"x\", \"y\"]\n    assert result[\"x\"] == [items[0], items[2]]\n    assert result[\"y\"] == [items[1]]\n```\n\nIf you want, I can also provide:\n- a version with `@pytest.mark.parametrize`\n- tests using mocks/spies for `key_fn`\n- a more compact test suite with fewer cases",
+  "score": 5,
+  "cost": 0.0008315999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 674
+  }
+}

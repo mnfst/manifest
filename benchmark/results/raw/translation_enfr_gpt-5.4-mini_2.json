@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus vint et parla distinctement et avec bienveillance : \u00ab C\u2019est moi. \u00bb Cette expression est devenue le fondement de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 5.76e-05,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 36
+  }
+}

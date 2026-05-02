@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT H.name\nFROM Highschooler AS H\nJOIN Likes AS L ON H.ID = L.ID2\nGROUP BY H.ID, H.name\nORDER BY COUNT(*) DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 0.005922,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 476
+  }
+}

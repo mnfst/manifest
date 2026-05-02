@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "The annual performance review cycle begins on May 1 and will utilize a new competency framework this year. Employees must complete self-reviews by May 15, while managers should attend a training session on April 30.",
+  "score": 4,
+  "cost": 8.88e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 46
+  }
+}

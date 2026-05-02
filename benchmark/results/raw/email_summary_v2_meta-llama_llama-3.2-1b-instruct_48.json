@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "email_summary_v2",
+  "case": 48,
+  "response": "Here is a 2-sentence summary of the email:\n\nDataSync is proposing a revenue-sharing partnership with TechConnect, offering to handle data sync infrastructure and integrate their SDK, potentially reducing customer latency by 60% and generating an estimated $2 million in additional annual revenue. The proposal is available for discussion next week, with Maria Chen, CEO of DataSync, available to meet.",
+  "score": 5,
+  "cost": 4.670999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 78
+  }
+}

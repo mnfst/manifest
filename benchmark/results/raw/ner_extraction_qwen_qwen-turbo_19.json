@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 19,
+  "response": "{\n  \"persons\": [\"Thierry Breton\"],\n  \"organizations\": [\"European Parliament\", \"Commissioner\"],\n  \"locations\": [\"Brussels\"]\n}",
+  "score": 3,
+  "cost": 3.597e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 33
+  }
+}

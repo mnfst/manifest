@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "## Step-by-step Solution\n\n**Step 1: Find the cost of 5 lollipops**\n\nEach lollipop costs $0.40, so:\n5 lollipops = 5 \u00d7 $0.40 = $2.00\n\n**Step 2: Find the cost of 4 candies**\n\nTotal cost of 5 lollipops and 4 candies = $3.20\nCost of 4 candies = $3.20 - $2.00 = $1.20\n\n**Step 3: Find the cost of 1 candy**\n\nCost of 1 candy = $1.20 \u00f7 4 = $0.30\n\n**Step 4: Calculate the cost of 10 lollipops and 10 candies**\n\n- 10 lollipops = 10 \u00d7 $0.40 = $4.00\n- 10 candies = 10 \u00d7 $0.30 = $3.00\n- Total = $4.00 + $3.00 = **$7.00**\n\nANSWER: 7",
+  "score": 5,
+  "cost": 0.004263,
+  "expected": "7",
+  "tokens": {
+    "input": 96,
+    "output": 265
+  }
+}

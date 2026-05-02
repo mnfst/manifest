@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "SELECT DISTINCT m.makeid,\n       m.make\nFROM car_names AS m\nJOIN cars_data AS c\n  ON m.makeid = c.id\nWHERE c.horsepower > (\n    SELECT MIN(horsepower)\n    FROM cars_data\n)\nAND c.cylinders <= 3;",
+  "score": 4,
+  "cost": 0.00068,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 63
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "To determine how many pounds of insects the flock of ten ducks needs per day, we can follow these steps:\n\n---\n\n### **Step 1: Calculate Weekly Insect Consumption for the Flock**\n\nEach duck consumes **3.5 pounds** of insects per week.  \nWith **10 ducks** in the flock:\n\n$$\n\\text{Total weekly consumption} = 3.5 \\, \\text{pounds/duck/week} \\times 10 \\, \\text{ducks} = 35 \\, \\text{pounds/week}\n$$\n\n---\n\n### **Step 2: Convert Weekly to Daily Consumption**\n\nThere are **7 days** in a week, so to find the daily requirement:\n\n$$\n\\text{Daily consumption} = \\frac{35 \\, \\text{pounds/week}}{7 \\, \\text{days}} = 5 \\, \\text{pounds/day}\n$$\n\n---\n\n### **Final Answer**\n\n$$\n\\boxed{5}\n$$",
+  "score": 5,
+  "cost": 3.6200000000000006e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 80,
+    "output": 644
+  }
+}

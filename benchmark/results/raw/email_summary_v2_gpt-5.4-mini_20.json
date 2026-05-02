@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "At 2 AM on Saturday, prod-db-01 triggered a disk space alert; automated cleanup freed 40GB but did not resize the disk, so manual intervention at 8 AM restored service, with the root cause traced to a log rotation misconfiguration after the last migration and no customer impact during the maintenance window. Action item: fix the log rotation configuration to prevent recurrence.",
+  "score": 5,
+  "cost": 0.000123,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 79
+  }
+}

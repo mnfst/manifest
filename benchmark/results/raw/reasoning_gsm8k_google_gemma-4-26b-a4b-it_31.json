@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "To find the total number of children in the classroom, we need to calculate the number of boys, girls, and nongendered children separately and then sum them up.\n\n**Step 1: Identify the number of boys.**\nThe problem states that there are 30 boys.\nNumber of boys = 30\n\n**Step 2: Calculate the number of girls.**\nThe problem states there are 3 times as many girls as there are boys.\nNumber of girls = 3 \u00d7 (Number of boys)\nNumber of girls = 3 \u00d7 30 = 90\n\n**Step 3: Calculate the number of nongendered children.**\nThe problem states there are 1/10 as many nongendered children as there are boys.\nNumber of nongendered children = (1/10) \u00d7 (Number of boys)\nNumber of nongendered children = (1/10) \u00d7 30 = 3\n\n**Step 4: Calculate the total number of children.**\nThe total number of children is the sum of boys, girls, and nongendered children.\nTotal children = Boys + Girls + Nongendered children\nTotal children = 30 + 90 + 3\nTotal children = 123\n\nANSWER: 123",
+  "score": 2,
+  "cost": 2.25e-05,
+  "expected": "123",
+  "tokens": {
+    "input": 99,
+    "output": 276
+  }
+}

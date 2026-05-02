@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The workshop with 15 enterprise customers highlighted key feedback including the need for improved bulk import (8/15), SSO issues blocking 5 accounts, and praise for the analytics dashboard, while three customers expressed interest in the internal tool as a standalone product. Sales has attached a follow-up report for further action on the identified priorities.",
+  "score": 5,
+  "cost": 3.7300000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 634
+  }
+}

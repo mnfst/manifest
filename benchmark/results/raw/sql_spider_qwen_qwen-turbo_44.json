@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT code\nFROM airports\nORDER BY flight_count ASC\nLIMIT 1;",
+  "score": 3,
+  "cost": 3.0360000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 16
+  }
+}

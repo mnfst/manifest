@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Tom sails from 1 to 4 PM, which is **3 hours** of travel.\n\n- Going out: at **10 mph** for **3 hours**  \n  Distance = \\(10 \\times 3 = 30\\) miles\n\nHe then travels back at **6 mph** to cover the same **30 miles**.\n\n- Time to return = \\( \\frac{30}{6} = 5 \\) hours\n\nSo, it takes him **5 hours** to get back.\n\nANSWER: 5",
+  "score": 4,
+  "cost": 5.2e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 88,
+    "output": 108
+  }
+}

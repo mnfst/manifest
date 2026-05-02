@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "{\n  \"persons\": [\"Warren Buffett\"],\n  \"organizations\": [\"Bank of America\"],\n  \"locations\": [\"Sec\"]",
+  "score": 3,
+  "cost": 2.781e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 27
+  }
+}

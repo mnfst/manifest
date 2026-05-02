@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[journaliste masculin n\u00b0 1 \u00e0 la t\u00e9l\u00e9vision] l\u2019accident s\u2019est produit peu apr\u00e8s 10 h.",
+  "score": 5,
+  "cost": 0.001329,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 100
+  }
+}

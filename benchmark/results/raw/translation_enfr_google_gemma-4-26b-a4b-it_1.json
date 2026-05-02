@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "Since the input appears to be a user profile or a snippet from a directory, the translation remains almost identical, as names and ages are formatted similarly in French.\n\n**French: Hommejeunechh, 49 ans, Pays de la Loire (Angers)**",
+  "score": 5,
+  "cost": 6.119999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 55
+  }
+}

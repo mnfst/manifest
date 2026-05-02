@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "ner_extraction",
+  "case": 20,
+  "response": "{\"persons\":[\"Sundar Pichai\"],\"organizations\":[\"Google\"],\"locations\":[\"Malaysia\"]}",
+  "score": 5,
+  "cost": 5.13e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 24
+  }
+}

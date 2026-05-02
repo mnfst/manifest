@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 10,
+  "response": "```json\n{\n  \"name\": \"play_song\",\n  \"arguments\": {\n    \"title\": \"Bohemian Rhapsody\",\n    \"artist\": \"Queen\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 9.295e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 41
+  }
+}

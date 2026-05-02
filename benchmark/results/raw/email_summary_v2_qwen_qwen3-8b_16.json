@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "April's marketing campaign achieved 45K impressions, 2.3K clicks (5.1% CTR), and 187 signups (8.1% conversion) at a $12K cost ($64 CAC), showing a 1.2pp CTR increase but 0.8pp conversion drop compared to March. The recommended action is to A/B test the landing page CTA to improve conversion rates.",
+  "score": 5,
+  "cost": 2.8500000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 444
+  }
+}

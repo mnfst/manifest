@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "## Solution\n\nEve originally had 20 pieces of pomelos.\n\nAfter giving some away, Eve is left with 1/4 of her original amount.\n\n**Pomelos remaining:**\n1/4 \u00d7 20 = 5 pomelos\n\n**Pomelos given away:**\n20 - 5 = 15 pomelos\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.001557,
+  "expected": "15",
+  "tokens": {
+    "input": 89,
+    "output": 86
+  }
+}

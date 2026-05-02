@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "To solve the problem, we need to calculate the total amount Ted spent on books and pencils.\n\n1. **Calculate the cost of the books:**\n   - Ted buys 3 books, each costing $16.\n   - Total cost for books = \\(3 \\times 16 = 48\\) dollars.\n\n2. **Calculate the cost of the pencils:**\n   - Ted buys 3 pencils, each costing $6.\n   - Total cost for pencils = \\(3 \\times 6 = 18\\) dollars.\n\n3. **Calculate the total amount spent:**\n   - Total spent on books and pencils = Total cost for books + Total cost for pencils.\n   - Total spent = \\(48 + 18 = 66\\) dollars.\n\nTherefore, the total amount Ted spent is 66 dollars.\n\nANSWER: 66",
+  "score": 5,
+  "cost": 1.612e-05,
+  "expected": "66",
+  "tokens": {
+    "input": 80,
+    "output": 168
+  }
+}

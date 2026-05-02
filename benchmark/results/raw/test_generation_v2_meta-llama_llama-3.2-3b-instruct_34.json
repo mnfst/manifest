@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 34,
+  "response": "Here are the unit tests for the `levenshtein` function using pytest style:\n\n```python\nimport pytest\n\ndef test_levenshtein_happy_path():\n    assert levenshtein(\"kitten\", \"sitting\") == 3\n\ndef test_levenshtein_empty_string():\n    assert levenshtein(\"\", \"hello\") == 5\n    assert levenshtein(\"hello\", \"\") == 5\n\ndef test_levenshtein_equal_strings():\n    assert levenshtein(\"hello\", \"hello\") == 0\n\ndef test_levenshtein_single_character():\n    assert levenshtein(\"a\", \"a\") == 0\n    assert levenshtein(\"a\", \"b\") == 1\n\ndef test_levenshtein_reversed_strings():\n    assert levenshtein(\"kitten\", \"tennik\") == 4\n\ndef test_levenshtein_non_string_input():\n    with pytest.raises(TypeError):\n        levenshtein(123, \"hello\")\n\ndef test_levenshtein_non_string_input_2():\n    with pytest.raises(TypeError):\n        levenshtein(\"hello\", 123)\n\ndef test_levenshtein_none_input():\n    with pytest.raises(TypeError):\n        levenshtein(None, \"hello\")\n    with pytest.raises(TypeError):\n        levenshtein(\"hello\", None)\n\ndef test_levenshtein_empty_strings():\n    assert levenshtein(\"\", \"\") == 0\n\ndef test_levenshtein_single_character_strings():\n    assert levenshtein(\"a\", \"\") == 1\n    assert levenshtein(\"\", \"a\") == 1\n```\n\nThese tests cover the following cases:\n\n* Happy path: `levenshtein(\"kitten\", \"sitting\")`\n* Edge cases:\n\t+ Empty string: `levenshtein(\"\", \"hello\")`\n\t+ Equal strings: `levenshtein(\"hello\", \"hello\")`\n\t+ Single character strings: `levenshtein(\"a\", \"a\")`, `levenshtein(\"a\", \"b\")`\n\t+ Reversed strings: `levenshtein(\"kitten\", \"tennik\")`\n* Error cases:\n\t+ Non-string input: `levenshtein(123, \"hello\")`, `levenshtein(\"hello\", 123)`\n\t+ None input: `levenshtein(None, \"hello\")`, `levenshtein(\"hello\", None)`\n* Edge case: Empty strings: `levenshtein(\"\", \"\")`\n\nNote that these tests do not cover all possible edge cases, but they should give you a good starting point for writing more comprehensive tests.",
+  "score": 5,
+  "cost": 3.7689e-05,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 564
+  }
+}

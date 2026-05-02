@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 6,
+  "response": "```json\n{\"name\": \"translate\", \"arguments\": {\"text\": \"The meeting has been rescheduled to Monday\", \"target_language\": \"Spanish\"}}\n```",
+  "score": 4,
+  "cost": 9.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 35
+  }
+}

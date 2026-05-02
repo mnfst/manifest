@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "To solve this problem, we need to determine the total number of candles required and then calculate the cost based on the price per pack.\n\n**Step 1: Determine the ages of the two sons.**\n- The first son is 12 years old.\n- The second son is 4 years younger than the first son.\n- Age of the second son = $12 - 4 = 8$ years old.\n\n**Step 2: Determine the total number of candles needed.**\nAssuming James buys one candle for each year of age for both sons:\n- Candles for the first son = 12\n- Candles for the second son = 8\n- Total candles needed = $12 + 8 = 20$ candles.\n\n**Step 3: Determine how many packs of candles James needs to buy.**\n- Each pack contains 5 candles.\n- Total packs needed = $\\text{Total candles} \\div \\text{Candles per pack}$\n- Total packs = $20 \\div 5 = 4$ packs.\n\n**Step 4: Calculate the total cost.**\n- Each pack costs $3.\n- Total cost = $\\text{Number of packs} \\times \\text{Price per pack}$\n- Total cost = $4 \\times \\$3 = \\$12$.\n\nANSWER: 12",
+  "score": 5,
+  "cost": 2.31e-05,
+  "expected": "12",
+  "tokens": {
+    "input": 98,
+    "output": 287
+  }
+}

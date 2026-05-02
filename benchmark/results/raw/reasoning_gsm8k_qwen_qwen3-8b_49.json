@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "To determine the total age of all the siblings, we break the problem into parts and calculate accordingly.\n\n---\n\n### Step 1: Analyze the Sisters\n\n- There are **3 sisters**, and **all sisters are the same age**, which is **16 years old**.\n- Total age of the sisters = $ 3 \\times 16 = 48 $ years.\n\n---\n\n### Step 2: Analyze the Brothers\n\n- There are **2 brothers**.\n- One of the brothers is **12 years old**.\n- It is given that **this brother is half the age of the older brother**.\n- So, the **older brother** is $ 12 \\times 2 = 24 $ years old.\n- Total age of the brothers = $ 12 + 24 = 36 $ years.\n\n---\n\n### Step 3: Calculate the Total Age of All Siblings\n\n- Total age of all siblings = Total age of sisters + Total age of brothers  \n- $ 48 + 36 = 84 $\n\n---\n\n### Final Answer:\n\nANSWER: 84",
+  "score": 5,
+  "cost": 6.25e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 102,
+    "output": 1148
+  }
+}

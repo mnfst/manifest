@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "First, find how many wheels are needed for the cars:\n\n- \\(57 \\times 4 = 228\\) wheels\n\nThen, find how many wheels are needed for the motorcycles:\n\n- \\(73 \\times 2 = 146\\) wheels\n\nNow add them together:\n\n- \\(228 + 146 = 374\\) wheels total needed\n\nSubtract from the 650 wheels Henry has:\n\n- \\(650 - 374 = 276\\)\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.0001557,
+  "expected": "276",
+  "tokens": {
+    "input": 99,
+    "output": 105
+  }
+}

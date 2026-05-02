@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)",
+  "score": 5,
+  "cost": 1.06e-05,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 21
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT T1.Abbreviation ,  T1.Country FROM airlines AS T1 JOIN flights AS T2 ON T1.uid  =  T2.Airline GROUP BY T1.uid ORDER BY count(*) ASC LIMIT 1\n```",
+  "score": 3,
+  "cost": 0.0009775,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 53
+  }
+}

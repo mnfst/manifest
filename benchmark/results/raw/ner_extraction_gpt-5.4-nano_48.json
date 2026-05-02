@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 48,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"TSMC\",\n    \"Department of Commerce\"\n  ],\n  \"locations\": [\n    \"Phoenix\",\n    \"Arizona\"\n  ]\n}",
+  "score": 5,
+  "cost": 2.46e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 43
+  }
+}

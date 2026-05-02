@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "```sql\nSELECT nationality, COUNT(*) AS count\nFROM poker_player\nGROUP BY nationality\nHAVING COUNT(*) >= 2;\n```",
+  "score": 5,
+  "cost": 6.565e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 29
+  }
+}

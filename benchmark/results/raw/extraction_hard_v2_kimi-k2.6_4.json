@@ -1,13 +1,13 @@
 {
-  "model": "Kimi-K2.6",
+  "model": "kimi-k2.6",
   "task": "extraction_hard_v2",
   "case": 4,
-  "response": "",
-  "score": 0,
-  "cost": 0.0049001999999999995,
+  "response": "{\"title\":\"Senior Backend Engineer\",\"company\":\"CloudMatrix\",\"location\":{\"city\":\"Austin TX\",\"remote\":true},\"salary\":{\"min\":165000,\"max\":195000},\"requirements\":{\"min_years\":5,\"skills\":[\"distributed systems\",\"Go\",\"Rust\",\"Kubernetes\",\"event-driven architectures\"]},\"benefits\":[\"unlimited PTO\",\"health/dental/vision\",\"401k match\",\"$3K learning budget\"]}",
+  "score": 4,
+  "cost": 0.0034211999999999997,
   "expected": "",
   "tokens": {
-    "input": 167,
-    "output": 2000
+    "input": 166,
+    "output": 1384
   }
 }

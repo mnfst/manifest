@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Step 1: Determine how much yarn Mariah used.  \nMariah used $ \\frac{1}{4} $ of a skein.  \nSince there are 364 yards in a skein, the amount of yarn she used is:  \n$$\n\\frac{1}{4} \\times 364 = 91 \\text{ yards}\n$$\n\nStep 2: Determine how much yarn her grandma used.  \nHer grandma used $ \\frac{1}{2} $ of a skein.  \nSo, the amount of yarn she used is:  \n$$\n\\frac{1}{2} \\times 364 = 182 \\text{ yards}\n$$\n\nStep 3: Add the amounts of yarn used by Mariah and her grandma.  \n$$\n91 + 182 = 273 \\text{ yards}\n$$\n\nANSWER: 273",
+  "score": 5,
+  "cost": 1.0032e-05,
+  "expected": "273",
+  "tokens": {
+    "input": 110,
+    "output": 194
+  }
+}

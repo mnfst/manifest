@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 46,
+  "response": "```json\n{\n  \"name\": \"restart_service\",\n  \"arguments\": {\n    \"name\": \"Redis\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 7.475e-06,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 29
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "extraction_hard_v2",
+  "case": 31,
+  "response": "{\n  \"tenant\": {\n    \"company\": \"TechStart Inc.\",\n    \"ceo\": \"Alex Rivera\"\n  },\n  \"landlord\": \"Downtown Properties LLC\",\n  \"property\": {\n    \"suite\": \"Suite 400\",\n    \"address\": \"200 Innovation Drive, Austin TX 78701\"\n  },\n  \"term\": {\n    \"months\": 36,\n    \"start\": \"July 1 2024\",\n    \"end\": \"June 30 2027\"\n  },\n  \"rent\": {\n    \"monthly\": 8500,\n    \"escalation_pct\": 3\n  },\n  \"",
+  "score": 4,
+  "cost": 0.0015138,
+  "expected": "",
+  "tokens": {
+    "input": 280,
+    "output": 800
+  }
+}

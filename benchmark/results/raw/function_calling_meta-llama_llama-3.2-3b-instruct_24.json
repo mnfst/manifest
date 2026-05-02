@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 24,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"rotate_api_key\", \"arguments\": {\"service\": \"production\", \"environment\": \"production\"}}\n{\"name\": \"notify_team\", \"arguments\": {\"message\": \"API keys rotated for production service\", \"channel\": \"general\"}}\n```\n\nNote that I've separated the two function calls into two separate objects, as each function call is a separate request.",
+  "score": 1,
+  "cost": 9.384e-06,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 88
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "international_visa",
+  "score": 5,
+  "cost": 0.001983,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 631,
+    "output": 6
+  }
+}

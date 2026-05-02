@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "SELECT DISTINCT s1.country\nFROM singer s1\nJOIN singer s2\n  ON s1.country = s2.country\nWHERE s1.age > 40\n  AND s2.age < 30;",
+  "score": 5,
+  "cost": 2.61e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 46
+  }
+}

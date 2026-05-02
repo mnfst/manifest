@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "**Je dirais que c'est de peu de valeur, au mieux.** \n\n*(Alternative, slightly more conversational: \"Je dirais que \u00e7a ne vaut pas grand-chose, au mieux.\")*",
+  "score": 4,
+  "cost": 0.0007325,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 43
+  }
+}

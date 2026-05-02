@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 35,
+  "response": "Here's a **pytest-style** test suite for the `lru_cache` function. This includes:\n\n- **Happy path**: Basic usage of `get` and `put`.\n- **Edge cases**: Capacity 0, multiple puts, and cache eviction.\n- **Error cases**: Invalid capacity (negative or non-integer), and invalid key types (though the function doesn't explicitly restrict key types, we can still test for expected behavior).\n\n### \u2705 Install `pytest` (if not already installed):\n```bash\npip install pytest\n```\n\n---\n\n### \u2705 File: `test_lru_cache.py`\n\n```python\nimport pytest\nfrom lru_cache import lru_cache  # Make sure this is in the same directory\n\ndef test_happy_path():\n    get, put = lru_cache(2)\n    put(1, 'a')\n    put(2, 'b')\n    assert get(1) == 'a'\n    assert get(2) == 'b'\n    assert get(3) == -1\n\ndef test_eviction():\n    get, put = lru_cache(2)\n    put(1, 'a')\n    put(2, 'b')\n    put(3, 'c')  # Evicts key 1\n    assert get(1) == -1\n    assert get(2) == 'b'\n    assert get(3) == 'c'\n\ndef test_update():\n    get, put = lru_cache(2)\n    put(1, 'a')\n    put(1, 'b')  # Updates the value\n    assert get(1) == 'b'\n\ndef test_capacity_zero():\n    get, put = lru_cache(0)\n    put(1, 'a')\n    assert get(1) == -1  # Cannot store anything\n\ndef test_capacity_negative():\n    with pytest.raises(ValueError):\n        lru_cache(-1)\n\ndef test_capacity_non_integer():\n    with pytest.raises(TypeError):\n        lru_cache('2')\n\ndef test_key_type():\n    get, put = lru_cache(2)\n    put('key', 'value')\n    assert get('key') == 'value'\n    assert get(1) == -1  # Different type\n\ndef test_multiple_puts():\n    get, put = lru_cache(3)\n    put(1, 'a')\n    put(2, 'b')\n    put(3, 'c')\n    put(4, 'd')  # Evicts 1\n    assert get(1) == -1\n    assert get(2) == 'b'\n    assert get(3) == 'c'\n    assert get(4) == 'd'\n```\n\n---\n\n### \u2705 Notes:\n\n- The `lru_cache` function returns two functions: `get` and `put`.\n- This implementation uses `OrderedDict`, which is compatible with Python 3.7+.\n- The `put` method updates the key if it exists and moves it to the end (most recently used).\n- The `get` method returns the value or `-1` if not found.\n\n---\n\n### \u2705 Run the tests:\n\n```bash\npytest test_lru_cache.py\n```\n\nThis will run all the tests and report any failures. You can add more test cases if needed, such as for time complexity or more complex eviction patterns.",
+  "score": 5,
+  "cost": 2.7323999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 693
+  }
+}

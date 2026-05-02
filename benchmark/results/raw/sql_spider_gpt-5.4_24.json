@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "SELECT YEAR, COUNT(*) AS concert_count\nFROM concert\nGROUP BY YEAR\nORDER BY concert_count DESC\nLIMIT 1;",
+  "score": 4,
+  "cost": 0.00037,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 29
+  }
+}

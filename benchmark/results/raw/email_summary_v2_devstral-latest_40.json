@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows most teams met or exceeded targets, except Product (0.6), which missed due to a delayed AI feature. The recommendation is to carry forward the AI OKR with increased resources, and next quarter\u2019s planning begins Monday.",
+  "score": 5,
+  "cost": 2.7899999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 53
+  }
+}

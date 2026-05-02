@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"SpaceX\"],\n  \"locations\": [\"Cape Canaveral\"]\n}\n```",
+  "score": 4,
+  "cost": 6.955e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 31
+  }
+}

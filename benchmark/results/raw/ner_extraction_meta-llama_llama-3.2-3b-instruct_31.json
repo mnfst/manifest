@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 31,
+  "response": "```\n{\n  \"persons\": [],\n  \"organizations\": [\"Samsung Electronics\"],\n  \"locations\": [\"South Korea\"]\n}\n```",
+  "score": 5,
+  "cost": 5.1509999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 27
+  }
+}

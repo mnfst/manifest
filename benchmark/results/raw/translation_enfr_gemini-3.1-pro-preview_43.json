@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "L'appareil se fixe simplement \u00e0 l'appui-t\u00eate du si\u00e8ge conducteur \u00e0 l'aide d'une sangle \u00e9lastique r\u00e9sistante. Dans ce",
+  "score": 4,
+  "cost": 0.00059,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 32
+  }
+}

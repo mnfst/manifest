@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The SOC 2 Type II audit was completed with no critical findings, but three observations require remediation within 30 days: insufficient access review frequency, an untested incident response plan, and incomplete vendor risk assessments for two vendors. The Compliance Team expects corrective actions to be taken by the deadline.",
+  "score": 5,
+  "cost": 2.9100000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 64
+  }
+}

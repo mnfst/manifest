@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 49,
+  "response": "```\n{\n  \"persons\": [\"Pope Francis\"],\n  \"organizations\": [\"Vatican\"],\n  \"locations\": [\"St. Peter Square\", \"Vatican\"]\n}\n```",
+  "score": 4,
+  "cost": 5.916e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 37
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 29,
+  "response": "```python\n# test_moving_average.py\nimport math\nimport pytest\n\nfrom your_module import moving_average  # adjust import to your module name\n\n\ndef test_happy_path_normal_list():\n    data = [1, 2, 3, 4, 5]\n    assert moving_average(data, 2) == [1.5, 2.5, 3.5, 4.5]\n\n\ndef test_happy_path_window_equals_length():\n    data = [10, 20, 30]\n    assert moving_average(data, 3) == [20.0]\n\n\ndef test_edge_case_window_one_returns_copy_as_float():\n    data = [3, -1, 0]\n    assert moving_average(data, 1) == [3.0, -1.0, 0.0]\n\n\ndef test_edge_case_empty_data_returns_empty_when_window_invalid():\n    assert moving_average([], 1) == []\n    assert moving_average([], 0) == []  # also invalid window\n\n\ndef test_edge_case_preserves_order_and_length_relation():\n    data = [1, 2, 2, 2, 1]\n    out = moving_average(data, 3)\n    assert len(out) == len(data) - 3 + 1\n    # expected: [(1+2+2)/3, (2+2+2)/3, (2+2+1)/3]\n    assert out == [5/3, 2.0, 5/3]\n\n\ndef test_error_case_window_zero_returns_empty():\n    data = [1, 2, 3]\n    assert moving_average(data, 0) == []\n\n\ndef test_error_case_window_negative_returns_empty():\n    data = [1, 2, 3]\n    assert moving_average(data, -2) == []\n\n\ndef test_error_case_window_greater_than_length_returns_empty():\n    data = [1, 2, 3]\n    assert moving_average(data, 10) == []\n\n\ndef test_error_case_non_list_raises_type_error():\n    # Function uses len() and slicing/sum; passing non-list should typically fail.\n    with pytest.raises(TypeError):\n        moving_average(None, 2)\n\n\ndef test_error_case_non_numeric_elements_raise_type_error():\n    with pytest.raises(TypeError):\n        moving_average([\"a\", \"b\", \"c\"], 2)\n\n\ndef test_nan_propagation():\n    # If inputs contain NaN, the average should become NaN for windows including it.\n    nan = float(\"nan\")\n    out = moving_average([1.0, nan, 3.0], 2)\n    assert len(out) == 2\n    assert math.isclose(out[0], (1.0 + nan) / 2, rel_tol=0, abs_tol=0) is False\n    assert math.isnan(out[0])\n    assert math.isnan(out[1])\n```\n\n**Note:** Replace `from your_module import moving_average` with the actual module/path where the function lives.",
+  "score": 5,
+  "cost": 0.00026210000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 631
+  }
+}

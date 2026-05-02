@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Here\u2019s a natural and tonally appropriate translation of your sentence into French:\n\n**\"J\u2019ai l\u2019impression que ma queue n\u2019est pas assez grosse pour toi.\"**\n\nThis maintains the intimate and direct tone of the original while using common French vocabulary. If you'd like a slightly more formal or poetic phrasing, alternatives could include:\n\n- *\"J\u2019ai peur que ma verge ne soit pas \u00e0 la hauteur pour toi.\"* (more formal/literary)\n- *\"Je trouve que je ne suis pas assez bien mont\u00e9 pour toi.\"* (colloquial, slightly humorous)\n\nWould you like any adjustments based on context or style?",
+  "score": 5,
+  "cost": 4.09e-05,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 125
+  }
+}

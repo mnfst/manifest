@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "```sql\nSELECT MIN(share) AS minimum_share, MAX(share) AS maximum_share\nFROM tvshow\n```",
+  "score": 5,
+  "cost": 6.630000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 26
+  }
+}

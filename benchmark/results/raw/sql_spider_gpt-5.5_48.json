@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "SELECT T2.model\nFROM cars_data AS T1\nJOIN car_names AS T2 ON T1.id = T2.makeid\nWHERE T1.weight < (SELECT AVG(weight) FROM cars_data);",
+  "score": 4,
+  "cost": 0.004314,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 341
+  }
+}

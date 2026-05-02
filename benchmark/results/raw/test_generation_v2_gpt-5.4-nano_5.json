@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "```python\n# test_count_vowels.py\nimport pytest\n\nfrom your_module import count_vowels  # adjust import to match your project\n\n\n@pytest.mark.parametrize(\n    \"s, expected\",\n    [\n        (\"hello\", 2),          # e, o\n        (\"WORLD\", 1),          # o\n        (\"aeiou\", 5),          # all vowels\n        (\"AEIOU\", 5),          # uppercase handled\n        (\"\", 0),               # empty string\n        (\"bcdfg\", 0),          # no vowels\n        (\"aEiOu\", 5),          # mixed case\n        (\"   a   e   \", 2),    # whitespace preserved; vowels still counted\n        (\"na\u00efve\", 3),          # note: \u00ef is NOT counted by this implementation\n        (\"caf\u00e9\", 2),          # \u00e9 is NOT counted by this implementation; only a counted\n    ],\n)\ndef test_count_vowels_happy_and_edge_cases(s, expected):\n    assert count_vowels(s) == expected\n\n\n@pytest.mark.parametrize(\"s\", [None, 123, 45.6, [\"a\", \"e\"], {\"a\": \"e\"}])\ndef test_count_vowels_error_cases_non_string_inputs(s):\n    with pytest.raises(TypeError):\n        count_vowels(s)\n\n\ndef test_count_vowels_raises_on_missing_lower_attribute():\n    class NoLower:\n        pass\n\n    with pytest.raises(AttributeError):\n        count_vowels(NoLower())\n```",
+  "score": 5,
+  "cost": 0.0001318,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 314
+  }
+}

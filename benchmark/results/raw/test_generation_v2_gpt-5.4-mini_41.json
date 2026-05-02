@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 41,
+  "response": "```python\nimport pytest\n\nfrom your_module import hex_to_rgb\n\n\n@pytest.mark.parametrize(\n    \"hex_value, expected\",\n    [\n        (\"#000000\", (0, 0, 0)),\n        (\"#ffffff\", (255, 255, 255)),\n        (\"#FFFFFF\", (255, 255, 255)),\n        (\"#1a2b3c\", (26, 43, 60)),\n        (\"1a2b3c\", (26, 43, 60)),  # no leading #\n        (\"#ABCDEF\", (171, 205, 239)),\n    ],\n)\ndef test_hex_to_rgb_happy_path(hex_value, expected):\n    assert hex_to_rgb(hex_value) == expected\n\n\n@pytest.mark.parametrize(\n    \"hex_value, expected\",\n    [\n        (\"#000\", (0, 0, 0)),          # short form is not supported; parses as 00, 00, ''\n        (\"\", ()),                     # no chars -> empty tuple\n        (\"#\", ()),                    # stripped to empty string\n        (\"#12345\", None),             # invalid length / incomplete last chunk\n    ],\n)\ndef test_hex_to_rgb_edge_cases(hex_value, expected):\n    if expected is None:\n        with pytest.raises(ValueError):\n            hex_to_rgb(hex_value)\n    else:\n        assert hex_to_rgb(hex_value) == expected\n\n\n@pytest.mark.parametrize(\n    \"hex_value, exc_type\",\n    [\n        (\"#12\", ValueError),          # too short for 3 pairs\n        (\"#gggggg\", ValueError),      # invalid hex digits\n        (\"#12zz34\", ValueError),      # invalid hex digits in middle\n        (None, AttributeError),       # not a string\n        (123456, AttributeError),     # not a string\n    ],\n)\ndef test_hex_to_rgb_error_cases(hex_value, exc_type):\n    with pytest.raises(exc_type):\n        hex_to_rgb(hex_value)\n```",
+  "score": 5,
+  "cost": 0.0005211,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 415
+  }
+}

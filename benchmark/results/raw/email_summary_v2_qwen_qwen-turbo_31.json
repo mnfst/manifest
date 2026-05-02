@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "Summary: The email proposes a new \"Starter\" pricing tier at $29/month to address price-related churn, offering limited features to attract budget-conscious users. The goal is to recover 15% of lost revenue, equivalent to $180K ARR, by targeting users who left due to pricing.",
+  "score": 5,
+  "cost": 6.171e-06,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 64
+  }
+}

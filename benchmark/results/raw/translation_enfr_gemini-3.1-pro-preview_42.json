@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 42,
+  "response": "**French:**\n\nCe premier recensement eut lieu pendant que Quirinius \u00e9tait gouverneur de Syrie. Chacun devait se faire inscrire dans sa propre ville. Tous se mirent donc en route pour leur propre ville ; Joseph aussi partit de Nazareth en Galil\u00e9e. Comme il appartenait \u00e0 la famille de David, dont il \u00e9tait un descendant, il se rendit en Jud\u00e9e, dans la ville de David, Bethl\u00e9em, pour se faire inscrire avec Marie, sa femme, qui \u00e9tait enceinte. \n\n*(Note: \"Quirinus\" is traditionally spelled \"Quirinius\" in French historical and biblical texts. \"With child\" translates most naturally to \"enceinte\" in this context, which maintains the traditional biblical tone in French).*",
+  "score": 5,
+  "cost": 0.0025675,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 154
+  }
+}

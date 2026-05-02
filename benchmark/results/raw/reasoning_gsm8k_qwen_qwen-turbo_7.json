@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "We are given:\n\n- Twenty dozen cups cost **$1200 less** than the total cost of **half a dozen plates** sold at **$6000 each**.\n- We are to **calculate the total cost of buying each cup**.\n\n---\n\n### Step 1: Understand the quantities\n\n- **Twenty dozen cups** = 20 \u00d7 12 = **240 cups**\n- **Half a dozen plates** = 6 plates\n\n---\n\n### Step 2: Calculate the total cost of the plates\n\nEach plate costs **$6000**, so:\n\n$$\n\\text{Total cost of plates} = 6 \\times 6000 = 36000\n$$\n\n---\n\n### Step 3: Calculate the total cost of the cups\n\nWe are told that **240 cups cost $1200 less** than the total cost of the plates:\n\n$$\n\\text{Total cost of cups} = 36000 - 1200 = 34800\n$$\n\n---\n\n### Step 4: Calculate the cost per cup\n\n$$\n\\text{Cost per cup} = \\frac{34800}{240}\n$$\n\nNow divide:\n\n$$\n\\frac{34800}{240} = 145\n$$\n\n---\n\n### Final Answer:\n\nANSWER: 145",
+  "score": 5,
+  "cost": 1.2705e-05,
+  "expected": "145",
+  "tokens": {
+    "input": 85,
+    "output": 300
+  }
+}

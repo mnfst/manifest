@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "To find out how much Janet paid in total, we need to add up the costs of the material, the construction, and the insurance.\n\n1. First, we find the total cost of the brooch before insurance by adding the cost of the material and the jeweler's fee:\n$500 (material) + $800 (construction) = $1300\n\n2. Next, we calculate the cost of the insurance, which is 10% of the total cost of the brooch:\n10% of $1300 = 0.10 * $1300 = $130\n\n3. Finally, we add the cost of the insurance to the initial cost of the brooch to find the total amount Janet paid:\n$1300 (brooch cost) + $130 (insurance) = $1430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.003135,
+  "expected": "1430",
+  "tokens": {
+    "input": 96,
+    "output": 193
+  }
+}

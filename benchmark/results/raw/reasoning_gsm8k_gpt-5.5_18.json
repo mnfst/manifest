@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Eve originally had 20 pomelos.\n\nShe was left with:\n\n\\[\n\\frac{1}{4} \\times 20 = 5\n\\]\n\nSo she had 5 pomelos left.\n\nThe number she gave away was:\n\n\\[\n20 - 5 = 15\n\\]\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.00159,
+  "expected": "15",
+  "tokens": {
+    "input": 82,
+    "output": 112
+  }
+}

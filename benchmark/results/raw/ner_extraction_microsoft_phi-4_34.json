@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "```json\n{\n  \"persons\": [\"Gordon Ramsay\"],\n  \"organizations\": [\"Bellagio\"],\n  \"locations\": [\"Las Vegas\"]\n}\n```",
+  "score": 4,
+  "cost": 7.0200000000000006e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 34
+  }
+}

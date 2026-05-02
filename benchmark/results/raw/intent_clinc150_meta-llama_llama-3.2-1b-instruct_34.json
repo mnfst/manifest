@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "intent_clinc150",
+  "case": 34,
+  "response": "get_credit_card_info",
+  "score": 0,
+  "cost": 1.4067000000000001e-05,
+  "expected": "replacement_card_duration",
+  "tokens": {
+    "input": 516,
+    "output": 5
+  }
+}

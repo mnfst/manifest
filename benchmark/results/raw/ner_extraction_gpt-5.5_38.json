@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "ner_extraction",
+  "case": 38,
+  "response": "{\"persons\":[\"Kamala Harris\"],\"organizations\":[\"General Motors\"],\"locations\":[\"Detroit\"]}",
+  "score": 5,
+  "cost": 0.000927,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 60
+  }
+}

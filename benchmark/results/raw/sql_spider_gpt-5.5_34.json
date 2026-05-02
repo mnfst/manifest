@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "SELECT *\nFROM hiring;",
+  "score": 3,
+  "cost": 0.001563,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 113
+  }
+}

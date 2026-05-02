@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "function_calling",
+  "case": 44,
+  "response": "{\"name\": \"set_log_level\", \"arguments\": {\"service\": \"payment service\", \"level\": \"debug\"}}",
+  "score": 5,
+  "cost": 1.825e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 266
+  }
+}

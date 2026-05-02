@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Let the number of boys be 30.\n\n- Girls: 3 times the number of boys  \n  \\(3 \\times 30 = 90\\)\n\n- Nongendered children: \\( \\frac{1}{10} \\) as many as boys  \n  \\(\\frac{1}{10} \\times 30 = 3\\)\n\nNow add them all together:\n\n\\[\n30 + 90 + 3 = 123\n\\]\n\nANSWER: 123",
+  "score": 1,
+  "cost": 0.000968,
+  "expected": "123",
+  "tokens": {
+    "input": 88,
+    "output": 99
+  }
+}

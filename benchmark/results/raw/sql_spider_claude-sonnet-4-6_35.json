@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "SELECT conductor_name\nFROM conductor\nJOIN orchestra ON conductor.conductor_id = orchestra.conductor_id\nGROUP BY conductor.conductor_id, conductor_name\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 4,
+  "cost": 0.00099,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 50
+  }
+}

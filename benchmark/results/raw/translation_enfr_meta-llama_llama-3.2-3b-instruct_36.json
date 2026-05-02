@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Le plus vous vous d\u00e9battrez, plus cela va \u00eatre g\u00eanant pour tout le monde.\n\nNote: The translation maintains the informal tone and meaning of the original text. The phrase \"gonna\" is not a common word in French, but \"va\" is a more common way to express the idea of \"going to\" or \"is going to\" in informal contexts. If you want a more formal translation, you could use \"ce sera\" instead:\n\nLe plus vous vous d\u00e9battrez, plus cela sera g\u00eanant pour tout le monde.",
+  "score": 4,
+  "cost": 8.16e-06,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 116
+  }
+}

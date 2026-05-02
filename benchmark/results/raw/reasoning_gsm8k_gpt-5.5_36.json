@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Elaine initially had 20 cards.\n\nFirst month:  \n3 \u00d7 20 = 60 cards\n\nSecond month:  \n60 \u2212 20 = 40 cards\n\nThird month:  \n2 \u00d7 (60 + 40) = 2 \u00d7 100 = 200 cards\n\nTotal cards now:  \n20 + 60 + 40 + 200 = 320\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.002847,
+  "expected": "320",
+  "tokens": {
+    "input": 113,
+    "output": 209
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "travel_alert",
+  "score": 0,
+  "cost": 1.6929e-05,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 511,
+    "output": 2
+  }
+}

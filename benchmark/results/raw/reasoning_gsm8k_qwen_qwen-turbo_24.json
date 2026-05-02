@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "To solve this problem, we need to calculate the **profit** the class made from selling lollipops. Profit is calculated as:\n\n$$\n\\text{Profit} = (\\text{Selling Price per Lollipop} - \\text{Cost Price per Lollipop}) \\times \\text{Total Number of Lollipops Sold}\n$$\n\n---\n\n### Step 1: Calculate the total number of lollipops sold\nEach of the 30 students sold 10 lollipops on average:\n\n$$\n\\text{Total lollipops sold} = 30 \\times 10 = 300\n$$\n\n---\n\n### Step 2: Calculate the profit per lollipop\nEach lollipop was sold for $0.8 and cost $0.5 to buy:\n\n$$\n\\text{Profit per lollipop} = 0.8 - 0.5 = 0.3\n$$\n\n---\n\n### Step 3: Calculate total profit\n$$\n\\text{Total profit} = 0.3 \\times 300 = 90\n$$\n\n---\n\n### Final Answer:\nANSWER: 90",
+  "score": 5,
+  "cost": 1.2309e-05,
+  "expected": "90",
+  "tokens": {
+    "input": 130,
+    "output": 243
+  }
+}

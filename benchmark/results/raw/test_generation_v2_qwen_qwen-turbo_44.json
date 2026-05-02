@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 44,
+  "response": "Here's a set of **pytest-style unit tests** for the `compose` function. These tests cover:\n\n- **Happy path** (normal usage with multiple functions)\n- **Edge cases** (single function, no functions)\n- **Error cases** (non-callable arguments, invalid inputs)\n\n---\n\n### \u2705 `test_compose.py`\n\n```python\nimport pytest\n\ndef compose(*fns):\n    def composed(x):\n        for fn in reversed(fns):\n            x = fn(x)\n        return x\n    return composed\n\n# Test cases\ndef test_compose_happy_path():\n    def add_one(x):\n        return x + 1\n\n    def multiply_by_two(x):\n        return x * 2\n\n    composed = compose(multiply_by_two, add_one)\n    assert composed(3) == 8  # (3 + 1) * 2 = 8\n\ndef test_compose_single_function():\n    def add_one(x):\n        return x + 1\n\n    composed = compose(add_one)\n    assert composed(5) == 6\n\ndef test_compose_no_functions():\n    composed = compose()\n    assert composed(10) == 10  # identity function\n\ndef test_compose_with_multiple_functions():\n    def square(x):\n        return x * x\n\n    def add_three(x):\n        return x + 3\n\n    composed = compose(add_three, square)\n    assert composed(2) == 7  # (2^2) + 3 = 7\n\ndef test_compose_error_case_non_callable():\n    with pytest.raises(TypeError):\n        compose(123)  # 123 is not a callable\n\ndef test_compose_error_case_mixed_callables_and_non_callables():\n    def add_one(x):\n        return x + 1\n\n    with pytest.raises(TypeError):\n        compose(add_one, 123)  # 123 is not a callable\n\ndef test_compose_error_case_invalid_input():\n    composed = compose(lambda x: x + 1)\n    with pytest.raises(TypeError):\n        composed(\"hello\")  # assuming the function expects a number\n```\n\n---\n\n### \ud83d\udd0d Notes:\n- The `compose` function applies the functions **in reverse order**, which is the standard for function composition.\n- The `test_compose_error_case_invalid_input` is an example of a test that expects an error when passing an invalid type (e.g., a string to a function that expects a number).\n- You can expand this further by adding more test cases for different types of functions (e.g., string processing, list manipulation, etc.).\n\n---\n\n### \ud83e\uddea To Run the Tests:\n\nInstall `pytest` if not already installed:\n\n```bash\npip install pytest\n```\n\nThen run:\n\n```bash\npytest test_compose.py\n```\n\nLet me know if you want this in a different format (e.g., `unittest` style).",
+  "score": 5,
+  "cost": 2.2242e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 602
+  }
+}

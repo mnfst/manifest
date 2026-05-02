@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "extraction_hard_v2",
+  "case": 16,
+  "response": "```json\n{\n  \"product\": \"TaskFlow Pro\",\n  \"price_per_user\": 29,\n  \"competitors\": [\n    {\n      \"name\": \"WorkStream\",\n      \"price_per_user\": 19,\n      \"strengths\": [\n        \"cheaper\",\n        \"good mobile app\",\n        \"500+ integrations\"\n      ],\n      \"weaknesses\": [\n        \"no custom workflows\",\n        \"limited reporting\",\n        \"slow support\"\n      ],\n      \"market_share_pct\": 15,\n      \"recent_moves\": [\n        \"raised Series C ($45M)\",\n        \"launched AI features\"\n      ]\n    },\n    {\n      \"name\": \"FlowMaster\",\n      \"price_per_user\": 45,\n      \"strengths\": [\n        \"enterprise features\",\n        \"SOC2\",\n        \"dedicated CSM\"\n      ],\n      \"weaknesses\": [\n        \"expensive\",\n        \"complex UI\",\n        \"6-month implementation\"\n      ],\n      \"market_share_pct\": 8,\n      \"recent_moves\": [\n        \"acquired DataPipe for $12M\",\n        \"lost 3 enterprise deals to us\"\n      ]\n    }\n  ],\n  \"market_position\": \"#2 by revenue, #1 in mid-market segment\"\n}\n```",
+  "score": 5,
+  "cost": 3.708e-05,
+  "expected": "",
+  "tokens": {
+    "input": 294,
+    "output": 324
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 34,
+  "response": "{\"name\": \"scale_deployment\", \"arguments\": {\"service\": \"web\", \"replicas\": 5}}",
+  "score": 5,
+  "cost": 3.861e-06,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 24
+  }
+}

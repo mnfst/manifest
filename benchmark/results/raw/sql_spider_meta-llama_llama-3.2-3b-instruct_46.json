@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT \n    government_form, \n    COUNT(*) as total_population\nFROM \n    country\nWHERE \n    life_expectancy > 72\nGROUP BY \n    government_form;\n```",
+  "score": 3,
+  "cost": 6.782999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 41
+  }
+}

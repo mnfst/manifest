@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "To determine how much Janet paid in total for the brooch, we need to calculate the cost of each component and then sum them up.\n\n1. **Cost of Material**: Janet pays $500 for the material.\n\n2. **Cost of Construction**: She pays $800 for the jeweler to construct the brooch.\n\n3. **Cost of Insurance**: The insurance cost is 10% of the combined cost of the material and construction. First, we calculate the combined cost of the material and construction:\n   \\[\n   \\text{Combined cost} = 500 + 800 = 1300\n   \\]\n   Then, we calculate 10% of this combined cost:\n   \\[\n   \\text{Insurance cost} = 0.10 \\times 1300 = 130\n   \\]\n\n4. **Total Cost**: Now, we sum up all the costs:\n   \\[\n   \\text{Total cost} = 500 + 800 + 130 = 1430\n   \\]\n\nTherefore, the total amount Janet paid is $1430.\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 2.132e-05,
+  "expected": "1430",
+  "tokens": {
+    "input": 102,
+    "output": 226
+  }
+}

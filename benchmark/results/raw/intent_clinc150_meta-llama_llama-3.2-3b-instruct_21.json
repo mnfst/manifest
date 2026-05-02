@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "intent_clinc150",
+  "case": 21,
+  "response": "meal_suggestion",
+  "score": 0,
+  "cost": 2.5959e-05,
+  "expected": "ingredient_substitution",
+  "tokens": {
+    "input": 505,
+    "output": 4
+  }
+}

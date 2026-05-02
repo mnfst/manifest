@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To find the number of students enrolled in the calligraphy class this year, we follow these steps:\n\n1.  **Identify the initial enrollment:**\n    Last year, there were 50 students enrolled.\n\n2.  **Calculate the amount of the increase:**\n    The enrollment increased by 20%. To find the number of additional students, we calculate 20% of 50.\n    $$\\text{Increase} = 50 \\times 20\\%$$\n    $$\\text{Increase} = 50 \\times 0.20$$\n    $$\\text{Increase} = 10$$\n\n3.  **Calculate the total enrollment for this year:**\n    To find this year's enrollment, add the increase to last year's enrollment.\n    $$\\text{This year's enrollment} = \\text{Last year's enrollment} + \\text{Increase}$$\n    $$\\text{This year's enrollment} = 50 + 10$$\n    $$\\text{This year's enrollment} = 60$$\n\nAlternatively, you can calculate it in one step by multiplying the original amount by 120% (100% + 20%):\n$$50 \\times 1.20 = 60$$\n\nANSWER: 60",
+  "score": 5,
+  "cost": 2.064e-05,
+  "expected": "60",
+  "tokens": {
+    "input": 83,
+    "output": 261
+  }
+}

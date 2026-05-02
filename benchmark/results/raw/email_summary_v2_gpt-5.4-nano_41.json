@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Ops proposes upgrading current 1Gbps links to 10Gbps for a one-time $45K plus $2K/month because peak usage is at 78% and forecasts suggest avoiding a revisit in 6 months. Action item: approve the 10Gbps upgrade, with the alternative option of $15K traffic shaping + CDN optimization if the upgrade isn\u2019t selected.",
+  "score": 5,
+  "cost": 4.28e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 80
+  }
+}

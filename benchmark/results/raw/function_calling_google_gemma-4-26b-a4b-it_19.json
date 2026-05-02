@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 19,
+  "response": "```json\n{\"name\": \"run_tests\", \"arguments\": {\"module\": \"backend\", \"verbose\": true}}\n```",
+  "score": 5,
+  "cost": 8.52e-06,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 28
+  }
+}

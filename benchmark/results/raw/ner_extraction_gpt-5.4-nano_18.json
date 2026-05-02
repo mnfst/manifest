@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "{\n  \"persons\": [\"Professor Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"Science\"],\n  \"locations\": []\n}",
+  "score": 4,
+  "cost": 1.8400000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 29
+  }
+}

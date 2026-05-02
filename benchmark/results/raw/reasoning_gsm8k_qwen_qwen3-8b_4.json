@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Mariah used $ \\frac{1}{4} $ of a skein, and her grandma used $ \\frac{1}{2} $ of a skein. Each skein contains 364 yards. \n\n1. **Calculate Mariah's yarn usage:**  \n   $ \\frac{1}{4} \\times 364 = \\frac{364}{4} = 91 $ yards.\n\n2. **Calculate Grandma's yarn usage:**  \n   $ \\frac{1}{2} \\times 364 = \\frac{364}{2} = 182 $ yards.\n\n3. **Total yarn used:**  \n   $ 91 + 182 = 273 $ yards.\n\nAlternatively, combining the fractions first:  \n$ \\frac{1}{4} + \\frac{1}{2} = \\frac{3}{4} $.  \n$ \\frac{3}{4} \\times 364 = \\frac{3 \\times 364}{4} = \\frac{1092}{4} = 273 $ yards.\n\n**Final Answer:**  \nANSWER: 273",
+  "score": 5,
+  "cost": 5.95e-05,
+  "expected": "273",
+  "tokens": {
+    "input": 106,
+    "output": 1084
+  }
+}

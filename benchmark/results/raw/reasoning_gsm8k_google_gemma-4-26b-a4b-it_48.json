@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "To find the weight Jamaal now uses, we follow these steps:\n\n1.  **Identify the initial weight:**\n    Jamaal starts with an 8-pound weight.\n\n2.  **Calculate the weight after the 50% increase:**\n    An increase of 50% means we take 50% of the current weight and add it to the current weight.\n    $50\\%$ of $8 \\text{ pounds} = 0.50 \\times 8 = 4 \\text{ pounds}$.\n    The new weight after the increase is:\n    $8 \\text{ pounds} + 4 \\text{ pounds} = 12 \\text{ pounds}$.\n\n3.  **Calculate the final weight after the reduction:**\n    The problem states that the 12-pound weight was too heavy, so he uses a weight that is two pounds lighter than that.\n    $12 \\text{ pounds} - 2 \\text{ pounds} = 10 \\text{ pounds}$.\n\nThe weight Jamaal now uses is 10 pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 2.1e-05,
+  "expected": "10",
+  "tokens": {
+    "input": 111,
+    "output": 239
+  }
+}

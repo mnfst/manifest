@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 45,
+  "response": "{\"name\": \"grant_access\", \"arguments\": {\"user\": \"bob\", \"resource\": \"analytics database\", \"permission\": \"read\"}}",
+  "score": 5,
+  "cost": 4.092000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 29
+  }
+}

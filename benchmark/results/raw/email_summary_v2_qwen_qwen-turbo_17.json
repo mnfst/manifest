@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "Summary: The team is rolling back version 4.2 due to a data corruption bug affecting 23 accounts, and a recovery plan is in place. Action items include restoring from a pre-release backup, re-running affected transactions, notifying customers, and using the hotfix branch.",
+  "score": 5,
+  "cost": 5.478e-06,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 57
+  }
+}

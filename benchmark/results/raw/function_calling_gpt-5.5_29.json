@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "function_calling",
+  "case": 29,
+  "response": "{\"name\":\"ocr_document\",\"arguments\":{\"path\":\"uploads contract.pdf\"}}",
+  "score": 5,
+  "cost": 0.001044,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 66
+  }
+}

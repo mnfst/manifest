@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company has 4 open engineering positions, with 23 candidates in the pipeline, but is struggling to find a strong candidate for the frontend position, which has been open for 60 days. The recruiter recommends either expanding the job posting to include remote work options or adjusting the compensation band to attract more qualified candidates.",
+  "score": 5,
+  "cost": 9.078e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 76
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "ner_extraction",
+  "case": 14,
+  "response": "```json\n{\n  \"persons\": [\"Jerome Powell\"],\n  \"organizations\": [\"The Federal Reserve\", \"Congress\"],\n  \"locations\": [\"Washington DC\"]\n}\n```",
+  "score": 5,
+  "cost": 6.825e-06,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 36
+  }
+}

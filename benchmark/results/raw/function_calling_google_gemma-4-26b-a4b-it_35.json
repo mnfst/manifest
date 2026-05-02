@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\"name\": \"get_order\", \"arguments\": {\"order_id\": \"12345\"}}",
+  "score": 3,
+  "cost": 8.22e-06,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 24
+  }
+}

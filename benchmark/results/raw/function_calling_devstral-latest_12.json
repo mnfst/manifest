@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "function_calling",
+  "case": 12,
+  "response": "```json\n{\"name\": \"get_stock_price\", \"arguments\": {\"symbol\": \"AAPL\"}}\n```",
+  "score": 5,
+  "cost": 1.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 25
+  }
+}

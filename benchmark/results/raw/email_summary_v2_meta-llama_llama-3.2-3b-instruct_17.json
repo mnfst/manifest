@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe email announces that a data corruption bug has been discovered in the new sync engine, affecting 23 accounts, and a rollback to version 4.2 is being implemented to address the issue. The recovery plan involves restoring from a pre-release backup, re-running affected transactions, and notifying impacted customers, with a hotfix branch already created.",
+  "score": 5,
+  "cost": 9.587999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 81
+  }
+}

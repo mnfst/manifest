@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT DISTINCT nation.name\nFROM nation\nJOIN countrylanguage ON nation.code = countrylanguage.countrycode\nWHERE countrylanguage.language IN ('English', 'French')\nGROUP BY nation.name\nHAVING COUNT(DISTINCT countrylanguage.language) = 2;\n```",
+  "score": 5,
+  "cost": 8.255e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 55
+  }
+}

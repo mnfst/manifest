@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Step 1: The total amount of money is $100, and it is divided between Gerald and Julia in the ratio 3:2.\n\nStep 2: Add the parts of the ratio: 3 + 2 = 5.\n\nStep 3: Divide the total amount by the sum of the ratio parts to find the value of one part:  \n$100 \u00f7 5 = $20.\n\nStep 4: Multiply the value of one part by Gerald's share of the ratio (3):  \n$20 \u00d7 3 = $60.  \nSo, Gerald had $60.\n\nStep 5: Gerald spent $10 on a book. Subtract that from his total:  \n$60 \u2212 $10 = $50.\n\nFinal Answer: 50\n\nANSWER: 50",
+  "score": 5,
+  "cost": 8.448000000000001e-06,
+  "expected": "50",
+  "tokens": {
+    "input": 82,
+    "output": 174
+  }
+}

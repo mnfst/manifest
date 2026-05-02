@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "To solve this problem, we need to find the total number of fish caught by both Anakin and Locsin.\n\nLet's start by finding the number of fish caught by Anakin:\n\n* Anakin caught 10 starfish\n* Anakin caught 6 sea horses\n* Anakin caught 3 clownfish\n\nTotal fish caught by Anakin = 10 + 6 + 3 = 19\n\nNow, let's find the number of fish caught by Locsin:\n\n* Locsin caught 5 fewer starfish than Anakin, so Locsin caught 10 - 5 = 5 starfish\n* Locsin caught 3 fewer sea horses than Anakin, so Locsin caught 6 - 3 = 3 sea horses\n* Locsin caught 2 more clownfish than Anakin, so Locsin caught 3 + 2 = 5 clownfish\n\nTotal fish caught by Locsin = 5 + 3 + 5 = 13\n\nNow, let's add the total number of fish caught by Anakin and Locsin:\n\nTotal fish caught = 19 (Anakin) + 13 (Locsin) = 32\n\nANSWER: 32",
+  "score": 5,
+  "cost": 9.801e-06,
+  "expected": "32",
+  "tokens": {
+    "input": 118,
+    "output": 245
+  }
+}

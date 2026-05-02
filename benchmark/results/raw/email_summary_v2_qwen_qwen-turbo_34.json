@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "Summary: The email outlines the plan to migrate from MySQL 5.7 to PostgreSQL 16, including a timeline from May to July with a dual-write period and cutover, and notes that three stored procedures need rewriting. The testing environment is ready, and the migration will be done without downtime using a blue-green deployment.",
+  "score": 5,
+  "cost": 5.643000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 67
+  }
+}

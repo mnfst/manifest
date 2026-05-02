@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 2,
+  "response": "```\n{\n  \"persons\": [\"Google DeepMind researchers\"],\n  \"organizations\": [\"Google\", \"Nature\"],\n  \"locations\": []\n}\n```",
+  "score": 3,
+  "cost": 5.253e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 31
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe new office location at 500 Market St is set to be ready on June 1, with a moving weekend scheduled for June 7-8. Each team is required to designate a move coordinator by Friday, and the IT department will need 3 days (June 4-6) to set up the network, with a budget approved for professional movers.",
+  "score": 5,
+  "cost": 9.231e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 86
+  }
+}

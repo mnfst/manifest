@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 36,
+  "response": "```python\nimport pytest\n\nfrom your_module import validate_password\n\n\nclass TestValidatePassword:\n    def test_valid_password_returns_true(self):\n        assert validate_password(\"Password1\") is True\n\n    def test_valid_password_exactly_min_length(self):\n        assert validate_password(\"Abcdef1g\") is True\n\n    @pytest.mark.parametrize(\n        \"pw\",\n        [\n            \"short1A\",      # 7 chars\n            \"\",\n            \"A1b\",\n        ],\n    )\n    def test_password_too_short_returns_false(self, pw):\n        assert validate_password(pw) is False\n\n    @pytest.mark.parametrize(\n        \"pw\",\n        [\n            \"password1\",    # no uppercase\n            \"abcdefgh1\",\n        ],\n    )\n    def test_missing_uppercase_returns_false(self, pw):\n        assert validate_password(pw) is False\n\n    @pytest.mark.parametrize(\n        \"pw\",\n        [\n            \"PASSWORD1\",    # no lowercase\n            \"ABCDEFGH2\",\n        ],\n    )\n    def test_missing_lowercase_returns_false(self, pw):\n        assert validate_password(pw) is False\n\n    @pytest.mark.parametrize(\n        \"pw\",\n        [\n            \"Password\",     # no digit\n            \"Abcdefgh\",\n        ],\n    )\n    def test_missing_digit_returns_false(self, pw):\n        assert validate_password(pw) is False\n\n    def test_password_with_special_characters_still_valid(self):\n        assert validate_password(\"Passw0rd!\") is True\n\n    def test_password_with_only_digits_and_letters_but_missing_requirements(self):\n        assert validate_password(\"12345678\") is False\n\n    def test_unicode_letters_are_handled(self):\n        assert validate_password(\"\u00c4bcdefg1\") is True\n\n    @pytest.mark.parametrize(\n        \"pw\",\n        [\n            None,\n            12345678,\n            [\"Password1\"],\n        ],\n    )\n    def test_non_string_inputs_raise_type_error(self, pw):\n        with pytest.raises(TypeError):\n            validate_password(pw)\n``` \n\nIf you want, I can also provide:\n1. a version using plain test functions instead of a test class, or\n2. a complete file including a few more boundary-focused cases.",
+  "score": 5,
+  "cost": 0.003894,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 459
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Step 1: Calculate the number of points Betty has.  \nBetty collected 30% more than Adam.  \nAdam has 50 points.  \n30% of 50 is:  \n$$\n0.30 \\times 50 = 15\n$$  \nSo, Betty has:\n$$\n50 + 15 = 65 \\text{ points}\n$$\n\nStep 2: Calculate the number of points Tom has.  \nTom has 30 points less than Betty.  \n$$\n65 - 30 = 35 \\text{ points}\n$$\n\nStep 3: Calculate the number of points Marta has.  \nMarta has 3 times more points than Tom.  \n$$\n3 \\times 35 = 105 \\text{ points}\n$$\n\nStep 4: Add up all the points collected by the students.  \nAdam: 50  \nBetty: 65  \nTom: 35  \nMarta: 105  \nTotal:\n$$\n50 + 65 + 35 + 105 = 255 \\text{ points}\n$$\n\nStep 5: Determine how many points the class is missing to reach the threshold of 400.  \n$$\n400 - 255 = 145\n$$\n\nANSWER: 145",
+  "score": 5,
+  "cost": 1.4949000000000002e-05,
+  "expected": "145",
+  "tokens": {
+    "input": 158,
+    "output": 295
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "**Et je t'aime bien... m\u00eame si je ne sais pas pourquoi.** \n\n*(Note: If the context is romantic attraction, like \"I have a crush on you / I fancy you\", a very natural alternative in French would be: **\"Et tu me plais... m\u00eame si je ne sais pas pourquoi.\"**)*",
+  "score": 4,
+  "cost": 0.00109,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 67
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 49,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"resize_instance\", \"arguments\": {\"instance_id\": \"app-server-1\", \"new_type\": \"t3.large\"}}\n```\n\nThis function call will resize the EC2 instance `app-server-1` to the `t3.large` instance type.",
+  "score": 5,
+  "cost": 8.466e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 69
+  }
+}

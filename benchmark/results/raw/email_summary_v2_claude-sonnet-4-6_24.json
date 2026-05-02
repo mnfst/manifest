@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Design System v3 is now available, featuring new dark mode color tokens, a revised 4px-base spacing scale, and updated Button and Modal components, along with a migration tool. Teams should begin a phased rollout starting with the Settings page.",
+  "score": 5,
+  "cost": 0.001125,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 56
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "SELECT section_name\nFROM Sections\nORDER BY section_name DESC;",
+  "score": 5,
+  "cost": 0.000531,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 19
+  }
+}

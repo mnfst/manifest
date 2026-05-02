@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "To find the total number of children, we need to multiply the number of children in each row by the number of rows.\n\nNumber of children in each row = 8\nNumber of rows = 7\n\nTotal number of children = Number of children in each row x Number of rows\n= 8 x 7\n= 56\n\nANSWER: 56",
+  "score": 3,
+  "cost": 8.924999999999998e-06,
+  "expected": "280",
+  "tokens": {
+    "input": 100,
+    "output": 75
+  }
+}

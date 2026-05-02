@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "To solve this problem, we need to determine the number of votes each candidate received and then find out how many votes candidate C got.\n\n1. **Calculate the votes for candidate A:**\n   - Candidate A received 20% of the votes.\n   - Total number of voters = 100.\n   - Votes for candidate A = 20% of 100 = \\( \\frac{20}{100} \\times 100 = 20 \\) votes.\n\n  \\[\n  \\text{Votes for A} = 20\n  \\]\n\n2. **Calculate the votes for candidate B:**\n   - Candidate B received 50% more votes than candidate A.\n   - 50% more than candidate A's votes means \\( 20 + 50\\% \\times 20 \\).\n   - 50% of 20 votes = \\( \\frac{50}{100} \\times 20 = 10 \\).\n   - Therefore, votes for candidate B = \\( 20 + 10 = 30 \\).\n\n  \\[\n  \\text{Votes for B} = 30\n  \\]\n\n3. **Calculate the votes for candidate C:**\n   - Total votes = 100.\n   - Votes for A and B combined = 20 (A) + 30 (B) = 50 votes.\n   - The rest of the votes went to candidate C.\n   - Votes for candidate C = Total votes - Votes for A - Votes for B = \\( 100 - 20 - 30 = 50 \\).\n\nTherefore, candidate C received 50 votes.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 2.8015000000000002e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 101,
+    "output": 330
+  }
+}

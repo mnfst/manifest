@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 31,
+  "response": "```sql\nSELECT * \nFROM flight \nWHERE departure_airport = 'AHD';\n```",
+  "score": 3,
+  "cost": 2.673e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 20
+  }
+}

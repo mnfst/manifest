@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Joey starts with 214 points and scores 26 more.  \nSo, Joey's new score is:  \n214 + 26 = 240  \n\nMarcy starts with 225 points and scores 10 more.  \nSo, Marcy's new score is:  \n225 + 10 = 235  \n\nNow, we find the difference between Joey's score and Marcy's score:  \n240 - 235 = 5  \n\nANSWER: 5",
+  "score": 5,
+  "cost": 6.897e-06,
+  "expected": "5",
+  "tokens": {
+    "input": 96,
+    "output": 113
+  }
+}

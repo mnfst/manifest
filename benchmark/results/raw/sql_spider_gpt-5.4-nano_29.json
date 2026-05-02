@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "SELECT COUNT(DISTINCT l.language) AS unique_languages\nFROM world_1.countrylanguage l;",
+  "score": 5,
+  "cost": 1.6100000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 23
+  }
+}

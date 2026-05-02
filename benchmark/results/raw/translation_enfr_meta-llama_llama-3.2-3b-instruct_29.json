@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime... bien que je ne sache pas pourquoi.\n\nNote: The translation is quite literal, but the tone and meaning are preserved. The original sentence is quite casual and informal, so the translation tries to maintain that tone.",
+  "score": 4,
+  "cost": 4.641e-06,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 50
+  }
+}

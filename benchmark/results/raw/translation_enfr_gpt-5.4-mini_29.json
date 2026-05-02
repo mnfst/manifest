@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Fran\u00e7ais : Et je t\u2019aime\u2026 m\u00eame si je ne sais pas pourquoi.",
+  "score": 4,
+  "cost": 3.3299999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 19
+  }
+}

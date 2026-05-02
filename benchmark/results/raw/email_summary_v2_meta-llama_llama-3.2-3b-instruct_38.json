@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe company's bug bounty program had a successful first month, with 12 valid reports, 3 of which were critical, resulting in a total payout of $15,000. The program's return on investment (ROI) is strong, and the security team recommends continuing the program, having successfully patched all identified vulnerabilities within 24 hours.",
+  "score": 5,
+  "cost": 9.945e-06,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 81
+  }
+}

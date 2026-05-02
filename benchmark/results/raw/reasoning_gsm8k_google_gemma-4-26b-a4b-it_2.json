@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "To solve this problem, we need to determine the distance traveled and then use the return speed to find the time taken.\n\n**Step 1: Determine the time spent sailing out.**\nTom sails from 1 PM to 4 PM.\nThe duration of this trip is:\n$4\\text{ PM} - 1\\text{ PM} = 3\\text{ hours}$.\n\n**Step 2: Calculate the distance traveled.**\nThe ship travels at a speed of 10 miles per hour (mph) for 3 hours.\nUsing the formula $\\text{Distance} = \\text{Speed} \\times \\text{Time}$:\n$\\text{Distance} = 10\\text{ mph} \\times 3\\text{ hours} = 30\\text{ miles}$.\n\n**Step 3: Calculate the time taken to travel back.**\nTom travels back the same distance (30 miles) at a rate of 6 mph.\nUsing the formula $\\text{Time} = \\frac{\\text{Distance}}{\\text{Speed}}$:\n$\\text{Time} = \\frac{30\\text{ miles}}{6\\text{ mph}} = 5\\text{ hours}$.\n\nThe time it takes him to get back is 5 hours.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 2.148e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 91,
+    "output": 267
+  }
+}

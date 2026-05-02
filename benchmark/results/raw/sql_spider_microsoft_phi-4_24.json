@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT year, COUNT(*) AS concert_count\nFROM concerts\nGROUP BY year\nORDER BY concert_count DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 7.085000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 31
+  }
+}

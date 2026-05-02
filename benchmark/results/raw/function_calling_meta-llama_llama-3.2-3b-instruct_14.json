@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 14,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"create_reminder\", \"arguments\": {\"message\": \"Remind me to call the dentist\", \"time\": \"3pm\", \"date\": \"Wednesday\"}}\n```\n\nNote that I've assumed the time is in 12-hour format, if it's in 24-hour format, you would use \"15:00\" instead of \"3pm\".",
+  "score": 4,
+  "cost": 9.384e-06,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 88
+  }
+}

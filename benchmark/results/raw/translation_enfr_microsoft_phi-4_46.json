@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 46,
+  "response": "J'ai re\u00e7u sept motions de r\u00e9solution conform\u00e9ment au r\u00e8glement 37 des R\u00e8gles de Proc\u00e9dure.",
+  "score": 5,
+  "cost": 4.8100000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 27
+  }
+}

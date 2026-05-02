@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 7,
+  "response": "{\n  \"persons\": [\"Lionel Messi\"],\n  \"organizations\": [\"Inter Miami\", \"New York Red Bulls\"],\n  \"locations\": [\"Fort Lauderdale\"]",
+  "score": 5,
+  "cost": 3.051e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 34
+  }
+}

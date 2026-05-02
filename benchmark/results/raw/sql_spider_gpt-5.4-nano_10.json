@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "SELECT SUM(c.SurfaceArea) AS total_surface_area\nFROM world_1.Country AS c\nWHERE c.Region = 'Caribbean';",
+  "score": 5,
+  "cost": 1.93e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 30
+  }
+}

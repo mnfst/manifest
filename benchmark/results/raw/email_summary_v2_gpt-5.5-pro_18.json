@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "VP Engineering proposes splitting Platform into Infrastructure and Developer Experience so DX work no longer gets deprioritized by infrastructure incidents. Review the attached draft org chart for the proposed restructuring.",
+  "score": 5,
+  "cost": 0.002765,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 115
+  }
+}

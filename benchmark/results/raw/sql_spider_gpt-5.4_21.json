@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "SELECT flight_number\nFROM flights\nWHERE airline = 'United Airlines';",
+  "score": 5,
+  "cost": 0.000272,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 17
+  }
+}

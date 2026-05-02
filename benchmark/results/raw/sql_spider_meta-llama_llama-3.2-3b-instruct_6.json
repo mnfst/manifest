@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "```sql\nSELECT DISTINCT a.airline\nFROM flight a\nJOIN destinations d ON a.destination_id = d.id\nWHERE d.code = 'AHD';\n```",
+  "score": 4,
+  "cost": 5.559e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 34
+  }
+}

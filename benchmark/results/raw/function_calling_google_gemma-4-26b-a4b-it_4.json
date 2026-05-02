@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "function_calling",
+  "case": 4,
+  "response": "```json\n[\n  {\"name\": \"resize_image\", \"arguments\": {\"path\": \"uploads photo.jpg\", \"width\": 800, \"height\": 600}},\n  {\"name\": \"convert_format\", \"arguments\": {\"path\": \"uploads photo.jpg\", \"target_format\": \"PNG\"}}\n]\n```",
+  "score": 2,
+  "cost": 1.2059999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 77
+  }
+}

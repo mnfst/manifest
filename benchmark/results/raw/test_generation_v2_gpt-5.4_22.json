@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 22,
+  "response": "```python\nimport pytest\n\nfrom your_module import group_by\n\n\ndef test_group_by_happy_path_numbers_by_parity():\n    items = [1, 2, 3, 4, 5, 6]\n\n    result = group_by(items, lambda x: \"even\" if x % 2 == 0 else \"odd\")\n\n    assert result == {\n        \"odd\": [1, 3, 5],\n        \"even\": [2, 4, 6],\n    }\n\n\ndef test_group_by_happy_path_strings_by_first_letter():\n    items = [\"apple\", \"apricot\", \"banana\", \"blueberry\", \"cherry\"]\n\n    result = group_by(items, lambda s: s[0])\n\n    assert result == {\n        \"a\": [\"apple\", \"apricot\"],\n        \"b\": [\"banana\", \"blueberry\"],\n        \"c\": [\"cherry\"],\n    }\n\n\ndef test_group_by_empty_list_returns_empty_dict():\n    assert group_by([], lambda x: x) == {}\n\n\ndef test_group_by_single_item():\n    assert group_by([42], lambda x: \"number\") == {\"number\": [42]}\n\n\ndef test_group_by_all_items_same_key():\n    items = [1, 2, 3]\n\n    result = group_by(items, lambda _: \"same\")\n\n    assert result == {\"same\": [1, 2, 3]}\n\n\ndef test_group_by_preserves_input_order_within_groups():\n    items = [\"ant\", \"ape\", \"bat\", \"anchor\", \"bear\"]\n\n    result = group_by(items, lambda s: s[0])\n\n    assert result[\"a\"] == [\"ant\", \"ape\", \"anchor\"]\n    assert result[\"b\"] == [\"bat\", \"bear\"]\n\n\ndef test_group_by_with_none_key():\n    items = [0, None, \"\", False]\n\n    result = group_by(items, lambda x: None)\n\n    assert result == {None: [0, None, \"\", False]}\n\n\ndef test_group_by_key_function_raises_propagates_exception():\n    items = [1, 2, 3]\n\n    def key_fn(x):\n        if x == 2:\n            raise ValueError(\"bad item\")\n        return x\n\n    with pytest.raises(ValueError, match=\"bad item\"):\n        group_by(items, key_fn)\n\n\ndef test_group_by_unhashable_key_raises_type_error():\n    items = [1, 2, 3]\n\n    with pytest.raises(TypeError):\n        group_by(items, lambda x: [x])  # list is unhashable\n\n\ndef test_group_by_does_not_modify_input_list():\n    items = [1, 2, 3]\n    original = items.copy()\n\n    group_by(items, lambda x: x % 2)\n\n    assert items == original\n```\n\nIf you want, I can also provide:\n- a `test_group_by.py` file with import path adjusted,\n- parametrized pytest cases,\n- or tests using `unittest` style instead.",
+  "score": 5,
+  "cost": 0.00516,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 626
+  }
+}

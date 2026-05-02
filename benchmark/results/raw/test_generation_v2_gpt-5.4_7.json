@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 7,
+  "response": "```python\nimport pytest\n\nfrom your_module import remove_duplicates\n\n\ndef test_remove_duplicates_happy_path():\n    assert remove_duplicates([1, 2, 2, 3, 1, 4]) == [1, 2, 3, 4]\n\n\ndef test_remove_duplicates_preserves_order():\n    assert remove_duplicates([\"b\", \"a\", \"b\", \"c\", \"a\"]) == [\"b\", \"a\", \"c\"]\n\n\ndef test_remove_duplicates_empty_list():\n    assert remove_duplicates([]) == []\n\n\ndef test_remove_duplicates_single_item():\n    assert remove_duplicates([42]) == [42]\n\n\ndef test_remove_duplicates_all_duplicates():\n    assert remove_duplicates([7, 7, 7, 7]) == [7]\n\n\ndef test_remove_duplicates_no_duplicates():\n    assert remove_duplicates([1, 2, 3, 4]) == [1, 2, 3, 4]\n\n\ndef test_remove_duplicates_mixed_hashable_types():\n    assert remove_duplicates([1, \"1\", 1, (2, 3), \"1\", (2, 3)]) == [1, \"1\", (2, 3)]\n\n\ndef test_remove_duplicates_boolean_and_integer_equality():\n    # In Python, True == 1 and False == 0\n    assert remove_duplicates([True, 1, False, 0, 2]) == [True, False, 2]\n\n\ndef test_remove_duplicates_raises_type_error_for_unhashable_items():\n    with pytest.raises(TypeError):\n        remove_duplicates([[1], [1], [2]])\n\n\ndef test_remove_duplicates_raises_type_error_for_none_input():\n    with pytest.raises(TypeError):\n        remove_duplicates(None)\n```\n\nIf you want, I can also provide:\n- a `@pytest.mark.parametrize` version\n- tests using a `tests/test_remove_duplicates.py` layout\n- a small `pyproject.toml`/`pytest.ini` setup",
+  "score": 5,
+  "cost": 0.003398,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 405
+  }
+}

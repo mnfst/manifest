@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "Summary: The customer workshop highlighted the need for improved bulk import features and resolved SSO issues, while also revealing interest in an internal tool as a standalone product. A follow-up report has been attached for further action.",
+  "score": 4,
+  "cost": 5.247e-06,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 43
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "```python\n# test_chunk_list.py\nimport pytest\n\n# Replace `your_module` with the actual module name where chunk_list is defined\nfrom your_module import chunk_list\n\n\n@pytest.mark.parametrize(\n    \"lst,size,expected\",\n    [\n        ([1, 2, 3, 4, 5, 6], 2, [[1, 2], [3, 4], [5, 6]]),\n        ([1, 2, 3, 4, 5], 2, [[1, 2], [3, 4], [5]]),\n        ([1, 2, 3], 1, [[1], [2], [3]]),\n        ([1, 2, 3], 10, [[1, 2, 3]]),\n        ([], 3, []),\n    ],\n)\ndef test_chunk_list_happy_and_edge_cases(lst, size, expected):\n    assert chunk_list(lst, size) == expected\n\n\ndef test_chunk_list_preserves_order():\n    result = chunk_list([\"a\", \"b\", \"c\", \"d\"], 3)\n\n    assert result == [[\"a\", \"b\", \"c\"], [\"d\"]]\n\n\ndef test_chunk_list_does_not_modify_original_list():\n    original = [1, 2, 3, 4]\n    original_copy = original.copy()\n\n    chunk_list(original, 2)\n\n    assert original == original_copy\n\n\n@pytest.mark.parametrize(\"size\", [0, -1, -10])\ndef test_chunk_list_invalid_size_raises_value_error(size):\n    with pytest.raises(ValueError, match=\"size must be positive\"):\n        chunk_list([1, 2, 3], size)\n\n\ndef test_chunk_list_with_mixed_types():\n    lst = [1, \"two\", None, {\"four\": 4}]\n\n    result = chunk_list(lst, 2)\n\n    assert result == [[1, \"two\"], [None, {\"four\": 4}]]\n```",
+  "score": 5,
+  "cost": 0.005883,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 469
+  }
+}

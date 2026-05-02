@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To solve the problem, we need to calculate the number of students enrolled in the calligraphy class this year after a 20% increase from last year's enrollment.\n\n1. **Determine the number of students last year:**\n   - Last year, there were 50 students enrolled.\n\n2. **Calculate the increase in enrollment:**\n   - The increase is 20% of last year's enrollment.\n   - To find 20% of 50, use the formula:\n     \\[\n     \\text{Increase} = \\frac{20}{100} \\times 50 = 0.2 \\times 50 = 10\n     \\]\n\n3. **Calculate the total number of students this year:**\n   - Add the increase to last year's enrollment:\n     \\[\n     \\text{Total students this year} = 50 + 10 = 60\n     \\]\n\nTherefore, the number of students enrolled this year in the calligraphy class is 60.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 1.885e-05,
+  "expected": "60",
+  "tokens": {
+    "input": 83,
+    "output": 207
+  }
+}

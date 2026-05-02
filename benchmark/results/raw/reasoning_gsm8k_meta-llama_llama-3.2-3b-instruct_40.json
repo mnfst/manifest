@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "To solve this problem, let's break it down step by step.\n\nLet's say Elvis saves x dollars per day in the first half of the month. Since there are 15 days in the first half of the month (April 1-15), the total amount he saves in the first half is 15x.\n\nIn the second half of the month (April 16-30), Elvis wants to save twice as much daily as he saves in the first half. So, he will save 2x dollars per day in the second half.\n\nSince Elvis has a monthly target of $1125, we can set up an equation to represent the total amount he saves:\n\n15x + 2(15x) = 1125\n\nCombine like terms:\n\n15x + 30x = 1125\n\n45x = 1125\n\nDivide both sides by 45:\n\nx = 25\n\nSo, Elvis saves $25 per day in the first half of the month.\n\nSince Elvis saves twice as much in the second half, he will save 2x = 2(25) = $50 per day in the second half.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 1.7595e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 105,
+    "output": 240
+  }
+}

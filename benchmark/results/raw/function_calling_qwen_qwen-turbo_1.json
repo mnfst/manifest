@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 1,
+  "response": "{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}",
+  "score": 4,
+  "cost": 3.7950000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 1,
+  "response": "find_phone",
+  "score": 5,
+  "cost": 5.6800000000000005e-05,
+  "expected": "find_phone",
+  "tokens": {
+    "input": 559,
+    "output": 3
+  }
+}

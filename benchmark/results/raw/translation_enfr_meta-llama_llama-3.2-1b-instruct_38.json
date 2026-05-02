@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Cela peut conduire \u00e0 la chaos et \u00e0 la terreur.",
+  "score": 2,
+  "cost": 1.458e-06,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 16
+  }
+}

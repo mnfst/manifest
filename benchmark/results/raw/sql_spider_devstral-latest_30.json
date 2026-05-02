@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "```sql\nSELECT AVG(w.rank) AS average_winner_rank\nFROM matches m\nJOIN players w ON m.winner_id = w.player_id;\n```",
+  "score": 5,
+  "cost": 1.76e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 36
+  }
+}

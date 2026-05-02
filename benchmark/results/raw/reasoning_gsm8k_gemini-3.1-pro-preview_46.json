@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "To find out how many fish (sea creatures) Anakin and Locsin caught in total, we first need to calculate how many of each creature they both caught.\n\n**Anakin's catch:**\n* Starfish: 10\n* Sea horses: 6\n* Clownfish: 3\nTotal caught by Anakin = 10 + 6 + 3 = 19\n\n**Locsin's catch:**\n* Starfish: 5 fewer than Anakin (10 - 5) = 5\n* Sea horses: 3 fewer than Anakin (6 - 3) = 3\n* Clownfish: 2 more than Anakin (3 + 2) = 5\nTotal caught by Locsin = 5 + 3 + 5 = 13\n\n**Total catch:**\nNow, we add Anakin's total and Locsin's total together to find out how many they caught altogether.\n19 (Anakin) + 13 (Locsin) = 32\n\nANSWER: 32",
+  "score": 5,
+  "cost": 0.00357,
+  "expected": "32",
+  "tokens": {
+    "input": 102,
+    "output": 221
+  }
+}

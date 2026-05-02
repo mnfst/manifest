@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "{\n  \"persons\": [\"Angela Merkel\"],\n  \"organizations\": [\"White House\"],\n  \"locations\": [\"United States\"]",
+  "score": 3,
+  "cost": 2.727e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 27
+  }
+}

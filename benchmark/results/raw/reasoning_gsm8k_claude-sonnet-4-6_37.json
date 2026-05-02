@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "## Step-by-step Solution\n\n**Find candidate A's votes:**\n- Candidate A got 20% of 100 votes\n- A's votes = 20% \u00d7 100 = **20 votes**\n\n**Find candidate B's votes:**\n- Candidate B got 50% more than candidate A's votes\n- B's votes = 20 + (50% \u00d7 20) = 20 + 10 = **30 votes**\n\n**Find candidate C's votes:**\n- Total votes = 100\n- C's votes = 100 - A's votes - B's votes\n- C's votes = 100 - 20 - 30 = **50 votes**\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.002793,
+  "expected": "50",
+  "tokens": {
+    "input": 101,
+    "output": 166
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT T1.name FROM Highschooler AS T1 JOIN Likes AS T2 ON T1.id = T2.student_id GROUP BY T2.student_id ORDER BY COUNT(*) DESC LIMIT 1\n```",
+  "score": 4,
+  "cost": 0.0009225,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 50
+  }
+}

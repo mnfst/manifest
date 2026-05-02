@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 22,
+  "response": "Here's a set of **pytest-style unit tests** for the `group_by` function. These tests cover:\n\n- **Happy path**: Normal usage with a simple key function.\n- **Edge cases**: Empty list, single item, and duplicate keys.\n- **Error cases**: Non-callable `key_fn`, and invalid input types.\n\n---\n\n### \u2705 `test_group_by.py`\n\n```python\nimport pytest\n\ndef group_by(items: list, key_fn):\n    result = {}\n    for item in items:\n        k = key_fn(item)\n        result.setdefault(k, []).append(item)\n    return result\n\n\ndef test_group_by_happy_path():\n    items = [1, 2, 3, 4, 5]\n    result = group_by(items, lambda x: x % 2)\n    assert result == {1: [1, 3, 5], 0: [2, 4]}\n\n\ndef test_group_by_empty_list():\n    assert group_by([], lambda x: x) == {}\n\n\ndef test_group_by_single_item():\n    assert group_by([42], lambda x: x) == {42: [42]}\n\n\ndef test_group_by_duplicate_keys():\n    items = [\"apple\", \"banana\", \"cherry\", \"date\"]\n    result = group_by(items, lambda x: len(x))\n    assert result == {5: [\"apple\", \"grape\"], 6: [\"banana\", \"cherry\"], 4: [\"date\"]}\n\n\ndef test_group_by_non_callable_key_fn():\n    with pytest.raises(TypeError):\n        group_by([1, 2, 3], 123)\n\n\ndef test_group_by_non_list_items():\n    with pytest.raises(TypeError):\n        group_by(\"not a list\", lambda x: x)\n\n\ndef test_group_by_with_lambda_that_returns_string_key():\n    items = [{\"name\": \"Alice\"}, {\"name\": \"Bob\"}, {\"name\": \"Alice\"}]\n    result = group_by(items, lambda x: x[\"name\"])\n    assert result == {\n        \"Alice\": [{\"name\": \"Alice\"}, {\"name\": \"Alice\"}],\n        \"Bob\": [{\"name\": \"Bob\"}]\n    }\n```\n\n---\n\n### \u2705 To Run the Tests\n\nInstall `pytest` if not already installed:\n\n```bash\npip install pytest\n```\n\nThen run:\n\n```bash\npytest test_group_by.py\n```\n\n---\n\n### Notes:\n\n- The function `group_by` is generic and expects a `key_fn` that is a **callable**.\n- The test for `non_callable_key_fn` ensures that passing a non-callable (like an integer) raises a `TypeError`.\n- The test for `non_list_items` is a safeguard to ensure the function is only called with a list, although in Python, the function would still work with other iterable types (like tuples), but we're being explicit here.\n\nLet me know if you want to test with custom objects or more complex key functions!",
+  "score": 5,
+  "cost": 2.2803000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 609
+  }
+}

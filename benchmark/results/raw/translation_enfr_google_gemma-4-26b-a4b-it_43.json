@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "L'unit\u00e9 est simplement fix\u00e9e \u00e0 l'appui-t\u00eate du si\u00e8ge conducteur \u00e0 l'aide d'une sangle \u00e9lastique r\u00e9sistante. Dans ce",
+  "score": 4,
+  "cost": 5.4e-06,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 34
+  }
+}

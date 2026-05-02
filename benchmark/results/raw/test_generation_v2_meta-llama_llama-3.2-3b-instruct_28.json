@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 28,
+  "response": "Here's an example of how you can write unit tests for the `memoize` function using pytest:\n\n```python\nimport pytest\nfrom your_module import memoize  # Replace 'your_module' with the actual name of the module where the memoize function is defined\n\ndef test_memoize_happy_path():\n    @memoize\n    def add(a, b):\n        return a + b\n\n    assert add(1, 2) == 3\n    assert add(1, 2) == 3  # This should return the cached result\n\ndef test_memoize_edge_case_empty_args():\n    @memoize\n    def add(a, b):\n        return a + b\n\n    assert add(0, 0) == 0\n    assert add(0, 0) == 0  # This should return the cached result\n\ndef test_memoize_edge_case_single_arg():\n    @memoize\n    def add(a):\n        return a\n\n    assert add(5) == 5\n    assert add(5) == 5  # This should return the cached result\n\ndef test_memoize_edge_case_none_arg():\n    @memoize\n    def add(a, b):\n        return a + b\n\n    with pytest.raises(TypeError):\n        add(None, 2)\n\ndef test_memoize_edge_case_non_callable_arg():\n    @memoize\n    def add(a, b):\n        return a + b\n\n    with pytest.raises(TypeError):\n        add(1, None)\n\ndef test_memoize_edge_case_non_hashable_args():\n    @memoize\n    def add(a, b):\n        return a + b\n\n    with pytest.raises(TypeError):\n        add([1, 2], 3)\n\ndef test_memoize_edge_case_non_hashable_args_with_hashable_second_arg():\n    @memoize\n    def add(a, b):\n        return a + b\n\n    assert add([1, 2], 3) == 4\n```\n\nIn these tests, we cover the following scenarios:\n\n*   Happy path: We test that the function returns the correct result when called with different arguments.\n*   Edge cases:\n    *   Empty arguments: We test that the function returns the correct result when called with no arguments.\n    *   Single argument: We test that the function returns the correct result when called with a single argument.\n    *   None argument: We test that the function raises a TypeError when called with a None argument.\n    *   Non-callable argument: We test that the function raises a TypeError when called with a non-callable argument.\n    *   Non-hashable arguments: We test that the function raises a TypeError when called with non-hashable arguments.\n\nNote that we use the `@memoize` decorator to wrap the `add` function in each test, so that we can test the memoization behavior. We also use the `assert` statement to verify that the function returns the expected result.",
+  "score": 4,
+  "cost": 3.519e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 612
+  }
+}

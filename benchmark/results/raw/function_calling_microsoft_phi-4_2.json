@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 2,
+  "response": "```json\n{\n  \"name\": \"search_files\",\n  \"arguments\": {\n    \"directory\": \"src\",\n    \"pattern\": \"*.py\",\n    \"modified_within_days\": 7\n  }\n}\n```",
+  "score": 5,
+  "cost": 1.0335e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 45
+  }
+}

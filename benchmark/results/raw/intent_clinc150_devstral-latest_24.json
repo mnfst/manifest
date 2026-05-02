@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 24,
+  "response": "report_fraud",
+  "score": 5,
+  "cost": 5.7900000000000005e-05,
+  "expected": "report_fraud",
+  "tokens": {
+    "input": 564,
+    "output": 5
+  }
+}

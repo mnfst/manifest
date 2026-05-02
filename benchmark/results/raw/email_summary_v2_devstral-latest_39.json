@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins January 15, and the team must complete key tasks including finalizing Q4 revenue recognition, reconciling bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A controller meeting on Tuesday will assign responsibilities for these pre-audit checklist items.",
+  "score": 5,
+  "cost": 2.78e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 61
+  }
+}

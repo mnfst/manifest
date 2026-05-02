@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "ner_extraction",
+  "case": 31,
+  "response": "{\"persons\":[],\"organizations\":[\"Samsung Electronics\"],\"locations\":[\"South Korea\"]}",
+  "score": 5,
+  "cost": 0.000819,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 51
+  }
+}

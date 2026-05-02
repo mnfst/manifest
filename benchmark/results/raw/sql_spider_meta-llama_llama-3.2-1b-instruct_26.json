@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "SELECT COUNT(*) FROM flights WHERE departure_city = 'Aberdeen' AND destination_city = 'Ashley'",
+  "score": 5,
+  "cost": 2.8889999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 23
+  }
+}

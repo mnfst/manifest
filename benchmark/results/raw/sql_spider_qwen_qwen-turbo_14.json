@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT maker.full_name, maker.id, COUNT(model.id) AS number_of_models\nFROM maker\nLEFT JOIN model ON maker.id = model.maker_id\nGROUP BY maker.id, maker.full_name;",
+  "score": 5,
+  "cost": 4.125e-06,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 41
+  }
+}

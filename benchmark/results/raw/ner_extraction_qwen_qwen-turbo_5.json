@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "ner_extraction",
+  "case": 5,
+  "response": "{\n  \"persons\": [\"Dr. James Wilson\"],\n  \"organizations\": [\"Stanford University\", \"IEEE\"],\n  \"locations\": [\"Tokyo\"]\n}",
+  "score": 5,
+  "cost": 3.564e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 32
+  }
+}

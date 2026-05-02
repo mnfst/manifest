@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "ner_extraction",
+  "case": 23,
+  "response": "```json\n{\n  \"persons\": [\"Taylor Swift\"],\n  \"organizations\": [\"Eras Tour\"],\n  \"locations\": [\"Wembley Stadium\", \"London\"]\n}\n```",
+  "score": 4,
+  "cost": 1.83e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 38
+  }
+}

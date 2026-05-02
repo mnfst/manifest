@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "```sql\nSELECT id, role, first_name\nFROM professionals\nGROUP BY id, role\nHAVING COUNT(*) >= 2;\n```",
+  "score": 3,
+  "cost": 5.916000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 30
+  }
+}

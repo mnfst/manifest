@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT maker_id, maker_full_name, COUNT(model_id) AS model_count\nFROM car_1.makers\nJOIN car_1.models ON car_1.makers.maker_id = car_1.models.maker_id\nGROUP BY maker_id, maker_full_name;\n```",
+  "score": 5,
+  "cost": 9.49e-06,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 60
+  }
+}

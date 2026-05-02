@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "{\"persons\":[\"Angela Merkel\"],\"organizations\":[],\"locations\":[\"White House\"]}",
+  "score": 4,
+  "cost": 0.001851,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 137
+  }
+}

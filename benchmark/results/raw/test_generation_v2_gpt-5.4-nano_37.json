@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 37,
+  "response": "```python\nimport pytest\n\n# Assuming parse_csv_line is imported from your module, e.g.:\n# from your_module import parse_csv_line\n\n\n@pytest.mark.parametrize(\n    \"line, expected\",\n    [\n        (\"a,b,c\", [\"a\", \"b\", \"c\"]),\n        (\"\", [\"\"]),  # single empty field\n        (\"a,\", [\"a\", \"\"]),  # trailing comma => final empty field\n        (\",a\", [\"\", \"a\"]),  # leading comma => first empty field\n        (\",\", [\"\", \"\"]),   # two empty fields\n        ('\"a,b\",c', [\"a,b\", \"c\"]),  # comma inside quotes\n        ('\"a,b\",\"c,d\"', [\"a,b\", \"c,d\"]),  # multiple quoted fields\n        ('\"a\",\"b\",\"c\"', [\"a\", \"b\", \"c\"]),  # quoted fields without commas\n        ('\"\"', [\"\"]),  # quoted empty string\n        ('\"a,\",\"b\"', [\"a,\", \"b\"]),  # comma right before end quote\n    ],\n)\ndef test_parse_csv_line_happy_path(line, expected):\n    assert parse_csv_line(line) == expected\n\n\ndef test_parse_csv_line_no_commas():\n    assert parse_csv_line(\"hello\") == [\"hello\"]\n\n\ndef test_parse_csv_line_whitespace_preserved():\n    # Function does not trim whitespace; ensure it\u2019s preserved as-is.\n    assert parse_csv_line(\" a , b \") == [\" a \", \" b \"]\n    assert parse_csv_line('\" a , b \" ,c') == [' a , b ', \"c\"]\n\n\ndef test_parse_csv_line_quotes_toggle_multiple_times():\n    # Quoted spans can contain commas; outside commas split fields.\n    assert parse_csv_line('\"a,b\",c,\"d,e\"') == [\"a,b\", \"c\", \"d,e\"]\n\n\ndef test_parse_csv_line_unmatched_quote_edge_case():\n    # With unmatched quotes, the parser toggles state on encountering a quote,\n    # but since there's no closing quote, subsequent commas are treated as inside quotes.\n    assert parse_csv_line('\"a,b,c') == [\"a,b,c\"]\n\n\ndef test_parse_csv_line_only_quote_char_edge_case():\n    # A single quote toggles in_quotes to True; no closing quote.\n    # No commas, so everything ends up in one field with quotes removed.\n    assert parse_csv_line('\"') == [\"\"]\n\n\ndef test_parse_csv_line_non_string_input_error():\n    with pytest.raises(TypeError):\n        parse_csv_line(None)  # not iterable as str\n\n\ndef test_parse_csv_line_not_iterable_error():\n    with pytest.raises(TypeError):\n        parse_csv_line(123)  # int not iterable\n\n```\n\nIf you share the module name you want to import from, I can adjust the import line accordingly.",
+  "score": 4,
+  "cost": 0.0002462,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 587
+  }
+}

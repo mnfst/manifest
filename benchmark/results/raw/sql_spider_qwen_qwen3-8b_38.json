@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "SELECT country.name, COUNT(*) AS num_languages\nFROM country\nJOIN countrylanguage ON country.code = countrylanguage.countrycode\nGROUP BY country.code\nHAVING COUNT(*) > 2;",
+  "score": 4,
+  "cost": 4.410000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 798
+  }
+}

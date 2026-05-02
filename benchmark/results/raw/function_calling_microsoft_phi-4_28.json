@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 28,
+  "response": "```json\n{\n  \"name\": \"block_ip\",\n  \"arguments\": {\n    \"ip\": \"192.168.1.100\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 8.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 35
+  }
+}

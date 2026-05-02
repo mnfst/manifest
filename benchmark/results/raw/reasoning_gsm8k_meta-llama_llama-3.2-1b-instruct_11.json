@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "To solve this problem, we need to follow the steps below:\n\n1. Calculate the total number of burritos given to the students: 50 students * 10 burritos/student = 500 burritos\n2. Calculate the total number of burritos eaten by Mr. George: 20 burritos\n3. Calculate the total number of burritos left: 600 burritos - 500 burritos - 20 burritos = 80 burritos\n\nTherefore, the total number of leftover burritos from the picnic is 80.",
+  "score": 5,
+  "cost": 5.859e-06,
+  "expected": "80",
+  "tokens": {
+    "input": 107,
+    "output": 110
+  }
+}

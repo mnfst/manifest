@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 24,
+  "response": "{\"name\": \"rotate_api_key\", \"arguments\": {\"service\": \"production service\", \"environment\": \"production\"}}",
+  "score": 4,
+  "cost": 0.00064,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 26
+  }
+}

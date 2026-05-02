@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "Here are some unit tests for the `clamp` function using pytest:\n```python\nimport pytest\n\ndef test Clamp_HappyPath():\n    # Test with values within the range\n    assert clamp(10.0, 0.0, 10.0) == 10.0\n    assert clamp(5.0, 0.0, 10.0) == 5.0\n    assert clamp(15.0, 0.0, 10.0) == 10.0\n\ndef test Clamp_InvalidMin():\n    # Test with min_val not provided\n    with pytest.raises(ValueError):\n        clamp(10.0, None, 10.0)\n\ndef test Clamp_InvalidMax():\n    # Test with max_val not provided\n    with pytest.raises(ValueError):\n        clamp(10.0, 0.0, None)\n\ndef test Clamp_InvalidType():\n    # Test with non-numeric values\n    with pytest.raises(TypeError):\n        clamp(\"hello\", 0.0, 10.0)\n\ndef test Clamp_InvalidTypeMin():\n    # Test with non-numeric min_val\n    with pytest.raises(TypeError):\n        clamp(10.0, \"hello\", 10.0)\n\ndef test Clamp_InvalidTypeMax():\n    # Test with non-numeric max_val\n    with pytest.raises(TypeError):\n        clamp(10.0, 0.0, \"hello\")\n\ndef test Clamp_NegativeValues():\n    # Test with negative values\n    assert clamp(-10.0, 0.0, 10.0) == 0.0\n    assert clamp(-5.0, 0.0, 10.0) == -5.0\n    assert clamp(-15.0, 0.0, 10.0) == -10.0\n\ndef test Clamp_NegativeMin():\n    # Test with negative min_val\n    with pytest.raises(ValueError):\n        clamp(-10.0, -10.0, 10.0)\n\ndef test Clamp_NegativeMax():\n    # Test with negative max_val\n    with pytest.raises(ValueError):\n        clamp(-10.0, -10.0, -10.0)\n```\nThese tests cover the following cases:\n\n* Happy path: Test that the function works correctly when values are within the specified range.\n* Invalid min_val: Test that the function raises a ValueError when min_val is not provided.\n* Invalid max_val: Test that the function raises a ValueError when max_val is not provided.\n* Non-numeric values: Test that the function raises a TypeError when non-numeric values are passed.\n* Negative values: Test that the function works correctly for negative values.\n* Negative min_val and max_val: Test that the function raises a ValueError when min_val and max_val are negative.",
+  "score": 4,
+  "cost": 1.7577e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 582
+  }
+}

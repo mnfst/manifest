@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 34,
+  "response": "```python\nimport pytest\n\nfrom your_module import levenshtein\n\n\n@pytest.mark.parametrize(\n    \"s1, s2, expected\",\n    [\n        (\"\", \"\", 0),\n        (\"a\", \"\", 1),\n        (\"\", \"abc\", 3),\n        (\"kitten\", \"sitting\", 3),\n        (\"flaw\", \"lawn\", 2),\n        (\"gumbo\", \"gambol\", 2),\n        (\"book\", \"back\", 2),\n        (\"distance\", \"instance\", 2),\n    ],\n)\ndef test_levenshtein_happy_path(s1, s2, expected):\n    assert levenshtein(s1, s2) == expected\n\n\ndef test_levenshtein_same_strings_returns_zero():\n    assert levenshtein(\"python\", \"python\") == 0\n\n\ndef test_levenshtein_is_symmetric():\n    s1 = \"abcdef\"\n    s2 = \"azced\"\n    assert levenshtein(s1, s2) == levenshtein(s2, s1) == 3\n\n\n@pytest.mark.parametrize(\n    \"s1, s2, expected\",\n    [\n        (\"a\", \"A\", 1),          # case-sensitive\n        (\"\ud83d\ude00\", \"\ud83d\ude03\", 1),         # unicode characters\n        (\"caf\u00e9\", \"cafe\", 1),     # accented character\n        (\"abc\", \"abcd\", 1),     # insertion\n        (\"abcd\", \"acd\", 1),     # deletion\n        (\"abc\", \"axc\", 1),     # substitution\n        (\"abcdef\", \"azced\", 3),\n    ],\n)\ndef test_levenshtein_edge_cases(s1, s2, expected):\n    assert levenshtein(s1, s2) == expected\n\n\n@pytest.mark.parametrize(\n    \"s1, s2\",\n    [\n        (None, \"abc\"),\n        (\"abc\", None),\n        (None, None),\n        (123, \"abc\"),\n        (\"abc\", 123),\n        ([\"a\", \"b\"], \"ab\"),\n        (\"ab\", [\"a\", \"b\"]),\n    ],\n)\ndef test_levenshtein_raises_type_error_for_non_strings(s1, s2):\n    with pytest.raises(TypeError):\n        levenshtein(s1, s2)\n```\n\n### Notes\n- Replace `from your_module import levenshtein` with the actual import path.\n- The function itself doesn\u2019t explicitly validate types, so passing non-strings will raise `TypeError` naturally via `len()` or string iteration.\n- These tests cover:\n  - **Happy path**: common edit-distance examples\n  - **Edge cases**: empty strings, identical strings, unicode, case sensitivity, single edits\n  - **Error cases**: non-string inputs causing `TypeError`",
+  "score": 5,
+  "cost": 0.0007608,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 592
+  }
+}

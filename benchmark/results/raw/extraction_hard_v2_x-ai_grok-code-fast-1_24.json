@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "extraction_hard_v2",
+  "case": 24,
+  "response": "{\"title\": \"Senior Backend Engineer\", \"company\": \"CloudMatrix\", \"location\": {\"city\": \"Austin\", \"remote\": true}, \"salary\": {\"min\": 165000, \"max\": 195000}, \"requirements\": {\"min_years\": 5, \"skills\": [\"Go\", \"Rust\", \"Kubernetes\", \"event-driven architectures\"]}, \"benefits\": [\"unlimited PTO\", \"health/dental/vision\", \"401k match\", \"$3K learning budget\"]}",
+  "score": 4,
+  "cost": 0.0004604,
+  "expected": "",
+  "tokens": {
+    "input": 358,
+    "output": 486
+  }
+}

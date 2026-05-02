@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "To find the total number of crabs the three have together, we need to determine the number of crabs each person has individually.\n\n1.  **Identify Bo's crabs:**\n    The problem states that Bo has 40 crabs.\n    Bo = 40\n\n2.  **Calculate Monic's crabs:**\n    The problem states that Monic has 4 fewer crabs than Bo.\n    Monic = Bo - 4\n    Monic = 40 - 4\n    Monic = 36\n\n3.  **Calculate Rani's crabs:**\n    The problem states that Rani has ten more crabs than Monic.\n    Rani = Monic + 10\n    Rani = 36 + 10\n    Rani = 46\n\n4.  **Calculate the total number of crabs:**\n    To find the total, add the number of crabs held by Bo, Monic, and Rani.\n    Total = Bo + Monic + Rani\n    Total = 40 + 36 + 46\n\n    Let's add them step by step:\n    40 + 36 = 76\n    76 + 46 = 122\n\nThe total number of crabs is 122.\n\nANSWER: 122",
+  "score": 5,
+  "cost": 2.22e-05,
+  "expected": "122",
+  "tokens": {
+    "input": 86,
+    "output": 284
+  }
+}

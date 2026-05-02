@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Mariah used \\( \\frac{1}{4} \\) of a skein, and her grandma used \\( \\frac{1}{2} \\) of a skein.\n\nFirst, add the fractions of the skein they used:\n\n\\[\n\\frac{1}{4} + \\frac{1}{2} = \\frac{1}{4} + \\frac{2}{4} = \\frac{3}{4}\n\\]\n\nSo together they used \\( \\frac{3}{4} \\) of a skein.\n\nThere are 364 yards in 1 skein, so find \\( \\frac{3}{4} \\) of 364:\n\n\\[\n364 \\div 4 = 91\n\\]\n\n\\[\n91 \\times 3 = 273\n\\]\n\nSo they used 273 yards of yarn altogether.\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.001648,
+  "expected": "273",
+  "tokens": {
+    "input": 100,
+    "output": 181
+  }
+}

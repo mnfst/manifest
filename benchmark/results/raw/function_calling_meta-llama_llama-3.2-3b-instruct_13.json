@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 13,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\", \"brightness\": null}}\n{\"name\": \"set_thermostat\", \"arguments\": {\"temperature\": 72, \"mode\": \"auto\"}}\n```\n\nNote that I've used the `null` keyword to represent the absence of a value for the `brightness` argument in the `control_light` function, as specified in the available functions.",
+  "score": 2,
+  "cost": 1.0607999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 105
+  }
+}

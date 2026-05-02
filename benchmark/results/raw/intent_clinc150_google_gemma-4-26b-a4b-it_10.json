@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "intent_clinc150",
+  "case": 10,
+  "response": "pto_request",
+  "score": 5,
+  "cost": 3.792e-05,
+  "expected": "pto_request",
+  "tokens": {
+    "input": 628,
+    "output": 4
+  }
+}

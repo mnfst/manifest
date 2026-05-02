@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Le plus vous vous soumettez, le plus g\u00eanant est de ce que cela deviendra pour tout le monde.",
+  "score": 2,
+  "cost": 1.944e-06,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 28
+  }
+}

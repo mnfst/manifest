@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "extraction_hard_v2",
+  "case": 23,
+  "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"Checkout Page\",\n  \"summary\": \"Checkout page is broken and shows a white screen after attempting payment.\",\n  \"steps_to_reproduce\": [\n    \"Add items to the cart.\",\n    \"Go to the checkout page.\",\n    \"Enter credit card information.\",\n    \"Click the 'Pay' button.\"\n  ],\n  \"expected_behavior\": \"The payment should be processed and a confirmation page should be displayed.\",\n  \"actual_behavior\": \"A spinner is displayed for 30 seconds, followed by a white screen. No error message is shown. The browser console shows a CORS error and a 'undefined is not a function' TypeError.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.00216375,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 195
+  }
+}

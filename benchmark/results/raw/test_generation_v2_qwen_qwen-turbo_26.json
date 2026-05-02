@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 26,
+  "response": "Here's a set of **pytest-style unit tests** for the `safe_divide` function. The tests cover:\n\n- **Happy path**: Normal division.\n- **Edge cases**: Division by a very small number, zero in the denominator.\n- **Error cases**: Non-numeric inputs (though the function is typed as `float`, so this is more of a type-checking scenario).\n\n---\n\n### \u2705 `test_safe_divide.py`\n\n```python\nimport pytest\n\ndef safe_divide(a: float, b: float, default: float = 0.0) -> float:\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return default\n\ndef test_safe_divide_happy_path():\n    assert safe_divide(10, 2) == 5.0\n    assert safe_divide(7, 3) == 2.3333333333333335\n\ndef test_safe_divide_zero_division():\n    assert safe_divide(10, 0) == 0.0\n    assert safe_divide(-5, 0) == 0.0\n\ndef test_safe_divide_with_custom_default():\n    assert safe_divide(10, 0, default=42.0) == 42.0\n    assert safe_divide(0, 0, default=100.0) == 100.0\n\ndef test_safe_divide_edge_cases():\n    assert safe_divide(1, 1e-30) == 1000000000000000000000000000000.0\n    assert safe_divide(1e-30, 1) == 1e-30\n\ndef test_safe_divide_non_numeric_inputs():\n    with pytest.raises(TypeError):\n        safe_divide(\"10\", 2)\n    with pytest.raises(TypeError):\n        safe_divide(10, \"2\")\n    with pytest.raises(TypeError):\n        safe_divide(\"10\", \"2\")\n```\n\n---\n\n### \ud83e\uddea How to Run the Tests\n\nInstall `pytest` if not already installed:\n\n```bash\npip install pytest\n```\n\nThen run the tests:\n\n```bash\npytest test_safe_divide.py\n```\n\n---\n\n### \ud83d\udcdd Notes\n\n- The function is typed with `float`, so passing strings will raise a `TypeError` at runtime, which is handled by the test.\n- The `default` parameter is optional and defaults to `0.0` if not provided.\n- The `ZeroDivisionError` is caught and the `default` value is returned.\n\nLet me know if you'd like to add more test cases or support for other types!",
+  "score": 5,
+  "cost": 2.2011e-05,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 585
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test took 6 hours and 23 minutes, exceeding the 4-hour RTO target due to a longer database restore time. The recommendations are to increase backup frequency and pre-provision a standby database, with the next test planned for October.",
+  "score": 5,
+  "cost": 5.544000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 54
+  }
+}

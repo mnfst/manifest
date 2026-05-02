@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Voici la traduction en fran\u00e7ais :\n\n**Le programme de nutrition urbaine de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et favorise l'octroi de cr\u00e9dits aux groupes de femmes qui commercialisent des produits alimentaires.**",
+  "score": 5,
+  "cost": 0.001179,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 67
+  }
+}

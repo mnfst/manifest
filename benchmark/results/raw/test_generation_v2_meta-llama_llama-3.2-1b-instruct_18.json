@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "Here are some unit tests for the `title_case` function using pytest style:\n\n```python\nimport pytest\n\ndef test_title_case_happy_path():\n    \"\"\"Test the title case function with a simple string.\"\"\"\n    input_string = \"hello world\"\n    expected_output = \"Hello World\"\n    assert title_case(input_string) == expected_output\n\ndef test_title_case_empty_string():\n    \"\"\"Test the title case function with an empty string.\"\"\"\n    input_string = \"\"\n    expected_output = \"\"\n    assert title_case(input_string) == expected_output\n\ndef test_title_case_single_word():\n    \"\"\"Test the title case function with a single word.\"\"\"\n    input_string = \"hello\"\n    expected_output = \"Hello\"\n    assert title_case(input_string) == expected_output\n\ndef test_title_case_multiple_words():\n    \"\"\"Test the title case function with multiple words.\"\"\"\n    input_string = \"hello world\"\n    expected_output = \"Hello World\"\n    assert title_case(input_string) == expected_output\n\ndef test_title_case_non_alphabetic_characters():\n    \"\"\"Test the title case function with non-alphabetic characters.\"\"\"\n    input_string = \"hello! world\"\n    expected_output = \"Hello! World\"\n    assert title_case(input_string) == expected_output\n\ndef test_title_case_non_string_input():\n    \"\"\"Test the title case function with a non-string input.\"\"\"\n    input = 123\n    with pytest.raises(TypeError):\n        title_case(input)\n\ndef test_title_case_non_string_input_type():\n    \"\"\"Test the title case function with a non-string type input.\"\"\"\n    input = \"hello\"\n    with pytest.raises(TypeError):\n        title_case(input)\n```\n\nThese tests cover the following scenarios:\n\n* Happy path: Test the function with a simple string, an empty string, a single word, and multiple words.\n* Edge cases: Test the function with non-alphabetic characters and non-string inputs.\n* Error cases: Test the function with a non-string input and a non-string type input.",
+  "score": 4,
+  "cost": 1.2474e-05,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 400
+  }
+}

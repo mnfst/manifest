@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "\u00c9tats membres, les institutions de l\u2019Union et le SEAE peuvent proposer le d\u00e9tachement de personnel aupr\u00e8s du RSUE.",
+  "score": 4,
+  "cost": 4.8e-05,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 28
+  }
+}

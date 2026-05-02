@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "**Dites juste \u00e0 Kumagaya que le d\u00e9tective est l\u00e0.** \n\n*(Note: Use \"**Dis** juste \u00e0 Kumagaya...\" if you are speaking to someone informally).*",
+  "score": 5,
+  "cost": 0.0006675,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 39
+  }
+}

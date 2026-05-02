@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\"name\": \"get_order\", \"arguments\": {\"order_id\": \"12345\"}}",
+  "score": 3,
+  "cost": 0.0005825,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 22
+  }
+}

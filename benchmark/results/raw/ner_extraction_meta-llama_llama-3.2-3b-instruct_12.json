@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "```json\n{\n  \"persons\": [\"Jensen Huang\"],\n  \"organizations\": [\"Nvidia\"],\n  \"locations\": [\"San Jose\", \"GTC conference\"]\n}\n```",
+  "score": 4,
+  "cost": 5.864999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 37
+  }
+}

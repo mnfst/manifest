@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "**Votre mari avait-il invit\u00e9 le lieutenant Gilbert chez vous ?** \n\n*(Alternative, slightly less formal but very common: \"Est-ce que votre mari avait invit\u00e9 le lieutenant Gilbert chez vous ?\")*",
+  "score": 5,
+  "cost": 0.0007525,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 45
+  }
+}

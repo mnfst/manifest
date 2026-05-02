@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "To solve this problem, we need to follow these steps:\n\n1. **Calculate the loan amount:**\n   - John gets a loan worth 40% of his home's value.\n   - Home value = $250,000\n   - Loan amount = 40% of $250,000\n   - Loan amount = 0.40 \u00d7 $250,000 = $100,000\n\n2. **Calculate the amount used to pay off debts:**\n   - John uses 60% of the loan to pay off his debts.\n   - Amount used for debts = 60% of $100,000\n   - Amount used for debts = 0.60 \u00d7 $100,000 = $60,000\n\n3. **Calculate the leftover amount:**\n   - Leftover amount = Total loan amount - Amount used for debts\n   - Leftover amount = $100,000 - $60,000 = $40,000\n\nTherefore, the amount of money John had leftover after paying off his debts is:\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 2.08e-05,
+  "expected": "40,000",
+  "tokens": {
+    "input": 104,
+    "output": 216
+  }
+}

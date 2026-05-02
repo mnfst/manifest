@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "test_generation_v2",
+  "case": 21,
+  "response": "Here's an example of how you can write unit tests for the `truncate` function using pytest:\n\n```python\nimport pytest\n\ndef test_truncate_happy_path():\n    \"\"\"Test truncating a string to a maximum length.\"\"\"\n    assert truncate(\"Hello, World!\", 10) == \"Hello, Worl...\"\n    assert truncate(\"Short string\", 10) == \"Short string\"\n\ndef test_truncate_edge_case_max_len():\n    \"\"\"Test truncating a string to its maximum length.\"\"\"\n    assert truncate(\"Hello, World!\", 5) == \"Hello, Worl...\"\n    assert truncate(\"Short string\", 5) == \"Short\"\n\ndef test_truncate_edge_case_empty_string():\n    \"\"\"Test truncating an empty string.\"\"\"\n    assert truncate(\"\", 10) == \"\"\n\ndef test_truncate_edge_case_max_len_zero():\n    \"\"\"Test truncating a string to a maximum length of 0.\"\"\"\n    assert truncate(\"Hello, World!\", 0) == \"\"\n\ndef test_truncate_edge_case_negative_max_len():\n    \"\"\"Test truncating a string to a negative maximum length.\"\"\"\n    with pytest.raises(ValueError):\n        truncate(\"Hello, World!\", -1)\n\ndef test_truncate_edge_case_non_string_input():\n    \"\"\"Test truncating a non-string input.\"\"\"\n    with pytest.raises(TypeError):\n        truncate(123, 10)\n\ndef test_truncate_edge_case_suffix():\n    \"\"\"Test truncating a string with a custom suffix.\"\"\"\n    assert truncate(\"Hello, World!\", 10, suffix=\"...\") == \"Hello, Worl...\"\n```\n\nTo make the `truncate` function more robust, you could add some error checking to handle these edge cases:\n\n```python\ndef truncate(s: str, max_len: int, suffix: str = '...') -> str:\n    if not isinstance(s, str):\n        raise TypeError(\"Input must be a string\")\n    if max_len <= 0:\n        raise ValueError(\"Maximum length must be a positive integer\")\n    if len(s) <= max_len:\n        return s\n    return s[:max_len - len(suffix)] + suffix\n```\n\nThis updated function will raise a `TypeError` if the input is not a string, and a `ValueError` if the maximum length is not a positive integer.",
+  "score": 5,
+  "cost": 2.7794999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 460
+  }
+}

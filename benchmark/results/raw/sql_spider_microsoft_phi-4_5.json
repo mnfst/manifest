@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT airport_code\nFROM airports\nWHERE airport_code NOT IN (\n    SELECT DISTINCT airport_code\n    FROM flights\n    WHERE airport_code IS NOT NULL\n)\n```",
+  "score": 3,
+  "cost": 7.41e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 37
+  }
+}

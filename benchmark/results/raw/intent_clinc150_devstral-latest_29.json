@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 29,
+  "response": "recipe",
+  "score": 5,
+  "cost": 5.6000000000000006e-05,
+  "expected": "recipe",
+  "tokens": {
+    "input": 554,
+    "output": 2
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Si l'income et/ou le statut de l'emploi d'une personne peuvent changer, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle, dans lequel il y aura une nouvelle \u00e9valuation.",
+  "score": 3,
+  "cost": 2.8079999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 45
+  }
+}

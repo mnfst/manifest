@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "```python\nimport pytest\n\nfrom your_module import flatten\n\n\ndef test_flatten_empty_list():\n    assert flatten([]) == []\n\n\ndef test_flatten_already_flat_list():\n    assert flatten([1, 2, 3]) == [1, 2, 3]\n\n\ndef test_flatten_nested_list_happy_path():\n    assert flatten([1, [2, 3], 4]) == [1, 2, 3, 4]\n\n\ndef test_flatten_deeply_nested_list():\n    assert flatten([1, [2, [3, [4]]], 5]) == [1, 2, 3, 4, 5]\n\n\ndef test_flatten_mixed_types():\n    data = [1, \"a\", [True, None, [3.14]], {\"x\": 1}]\n    assert flatten(data) == [1, \"a\", True, None, 3.14, {\"x\": 1}]\n\n\ndef test_flatten_empty_nested_lists():\n    assert flatten([[], [[], []], 1]) == [1]\n\n\ndef test_flatten_tuples_are_not_flattened():\n    assert flatten([1, (2, 3), [4, (5, 6)]]) == [1, (2, 3), 4, (5, 6)]\n\n\ndef test_flatten_string_is_not_treated_as_iterable():\n    assert flatten([\"abc\", [\"de\"]]) == [\"abc\", \"de\"]\n\n\ndef test_flatten_none_input_raises_type_error():\n    with pytest.raises(TypeError):\n        flatten(None)  # type: ignore[arg-type]\n\n\ndef test_flatten_non_iterable_input_raises_type_error():\n    with pytest.raises(TypeError):\n        flatten(123)  # type: ignore[arg-type]\n\n\ndef test_flatten_list_with_unexpected_object_preserved():\n    class Custom:\n        pass\n\n    obj = Custom()\n    assert flatten([obj, [1]]) == [obj, 1]\n```\n\nNotes:\n- Replace `from your_module import flatten` with the actual import path.\n- Since the function only recursively flattens `list` instances, tuples/strings/objects are preserved as-is.\n- The function does not explicitly validate input type, so non-iterables like `None` or `123` raise `TypeError` naturally when iteration is attempted.",
+  "score": 5,
+  "cost": 0.0006161999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 494
+  }
+}

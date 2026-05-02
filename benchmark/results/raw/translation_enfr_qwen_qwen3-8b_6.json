@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "Maintenant, conduire sur Wangan, c'est ce diable.",
+  "score": 4,
+  "cost": 3.35e-05,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 634
+  }
+}

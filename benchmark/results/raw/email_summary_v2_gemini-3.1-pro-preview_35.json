@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The Trust & Safety team is updating the content moderation policy to prohibit deepfakes and require clear disclosures for AI-generated images and text. Enforcement of these new rules begins on June 1, so please look out for and review the upcoming training materials to prepare.",
+  "score": 5,
+  "cost": 0.001035,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 53
+  }
+}

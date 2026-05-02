@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "SELECT \"Year\"\nFROM concert\nGROUP BY \"Year\"\nORDER BY COUNT(*) DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 0.005307,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 425
+  }
+}

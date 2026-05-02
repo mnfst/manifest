@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Elliott takes a total of 10,000 steps per day.\n\n- Half of his steps were completed on the walks to and from school:  \n  \\(\\frac{1}{2}\\times 10{,}000 = 5{,}000\\)\n- He then took an additional 1,000 steps with his friend:  \n  \\(5{,}000 + 1{,}000 = 6{,}000\\)\n- After finishing his jog, he had 2,000 steps left. That means the steps he took during the jog were the part not yet taken:  \n  \\(10{,}000 - 6{,}000 - 2{,}000 = 2{,}000\\)\n\nSo, Elliott took **2,000 steps** during his jog.\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 8.410000000000001e-05,
+  "expected": "2000",
+  "tokens": {
+    "input": 125,
+    "output": 179
+  }
+}

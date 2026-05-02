@@ -1,13 +1,13 @@
 {
-  "model": "Kimi-K2.6",
+  "model": "kimi-k2.6",
   "task": "extraction_hard_v2",
   "case": 45,
-  "response": "",
-  "score": 0,
-  "cost": 0.0049374,
+  "response": "{\"passenger\": {\"name\": \"Maria Gonzalez\", \"title\": \"Dr.\"}, \"booking_ref\": \"XKJP42\", \"flight\": {\"number\": \"872\", \"airline\": \"UA\", \"origin\": \"SFO\", \"destination\": \"NRT\", \"departure\": \"2024-06-15 11:40 AM PDT\", \"arrival\": \"2024-06-16 3:20 PM JST\"}, \"seat",
+  "score": 3,
+  "cost": 0.0049368,
   "expected": "",
   "tokens": {
-    "input": 229,
+    "input": 228,
     "output": 2000
   }
 }

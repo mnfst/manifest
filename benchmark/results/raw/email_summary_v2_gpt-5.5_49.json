@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch is delayed because the payment integration is not passing PCI compliance, requiring either a launch without payments or a full launch delay to May 15. Legal says launching without payments requires updated T&Cs, and there is a meeting tomorrow at 10am to decide next steps.",
+  "score": 5,
+  "cost": 0.001269,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 81
+  }
+}

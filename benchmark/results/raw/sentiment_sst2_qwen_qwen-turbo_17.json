@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "sentiment_sst2",
+  "case": 17,
+  "response": "positive",
+  "score": 5,
+  "cost": 2.1450000000000002e-06,
+  "expected": "positive",
+  "tokens": {
+    "input": 64,
+    "output": 1
+  }
+}

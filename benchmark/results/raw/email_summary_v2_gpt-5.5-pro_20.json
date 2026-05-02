@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "Prod-db-01 hit a disk space alert Saturday at 2 AM; automated cleanup freed 40GB but failed to resize, and manual intervention restored service at 8 AM with no customer impact. Action items: correct the log rotation misconfiguration from the last migration and review/fix the automated resize process.",
+  "score": 5,
+  "cost": 0.00368,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 160
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe customer workshop with 15 enterprise customers yielded key feedback, including a need for improved bulk import functionality and Single Sign-On (SSO) integration, as well as a positive response to the new analytics dashboard. The follow-up report is attached, but also notable is that 3 customers expressed interest in using the company's internal tool as a standalone product.",
+  "score": 5,
+  "cost": 1.0047e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 84
+  }
+}

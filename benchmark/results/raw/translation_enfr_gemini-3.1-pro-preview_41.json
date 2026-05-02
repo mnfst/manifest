@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "Here are a few ways to translate this, depending on how punchy you want it to be. \n\n**Option 1 (Most natural and captures the dismissive tone perfectly):**\n> \"T'es pas \u00e0 la DGA. Contente-toi de zoomer et ferme ta gueule.\"\n\n**Option 2 (A bit more literal/aggressive with the profanity):**\n> \"T'es pas \u00e0 la DGA. Fais juste ton zoom et ferme ta putain de gueule.\"\n\n**Notes on the translation:**\n* **\"T'es pas\"** is the colloquial contraction of *Tu n'es pas*, which perfectly matches the informal \"You ain't\".\n* **\"DGA\"** is kept as-is, as the Directors Guild of America is a known entity in the film industry globally. \n* **\"Contente-toi de zoomer\"** translates to \"Just content yourself with zooming,\" which captures the dismissive \"just do your job\" vibe of the English original. \n* **\"Ferme ta gueule\"** is the standard, highly aggressive French equivalent to \"shut the fuck up.\"",
+  "score": 5,
+  "cost": 0.0037575,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 244
+  }
+}

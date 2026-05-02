@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "test_generation_v2",
+  "case": 45,
+  "response": "Here's a **pytest-style** test suite for the `sliding_window` function. This includes:\n\n- **Happy path**: Basic functionality with a normal iterable and window size.\n- **Edge cases**: Window size equal to the iterable length, window size 0 (invalid), and empty iterable.\n- **Error cases**: Invalid input types (non-iterable), negative window size, etc.\n\n---\n\n### \u2705 `test_sliding_window.py`\n\n```python\nimport pytest\nfrom your_module import sliding_window  # Replace with the actual module name\n\ndef test_sliding_window_happy_path():\n    result = list(sliding_window([1, 2, 3, 4, 5], 2))\n    assert result == [(1, 2), (2, 3), (3, 4), (4, 5)]\n\ndef test_sliding_window_with_negative_size():\n    with pytest.raises(ValueError):\n        list(sliding_window([1, 2, 3], -1))\n\ndef test_sliding_window_with_zero_size():\n    with pytest.raises(ValueError):\n        list(sliding_window([1, 2, 3], 0))\n\ndef test_sliding_window_with_empty_iterable():\n    result = list(sliding_window([], 2))\n    assert result == []\n\ndef test_sliding_window_with_window_size_equal_to_length():\n    result = list(sliding_window([1, 2, 3], 3))\n    assert result == [(1, 2, 3)]\n\ndef test_sliding_window_with_window_size_larger_than_length():\n    result = list(sliding_window([1, 2], 3))\n    assert result == [(1, 2)]\n\ndef test_sliding_window_with_non_iterable_input():\n    with pytest.raises(TypeError):\n        list(sliding_window(123, 2))\n\ndef test_sliding_window_with_string_input():\n    result = list(sliding_window(\"abcde\", 2))\n    assert result == [('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'e')]\n\ndef test_sliding_window_with_generator():\n    gen = (x for x in [10, 20, 30])\n    result = list(sliding_window(gen, 2))\n    assert result == [(10, 20), (20, 30)]\n```\n\n---\n\n### Notes:\n\n- Replace `your_module` with the actual module name where `sliding_window` is defined.\n- The function uses `deque` with `maxlen`, which ensures the window size is properly maintained.\n- The `sliding_window` function is a **generator**, so you need to call `list()` to collect the output in tests.\n\n---\n\n### \u2705 Run the tests:\n\n```bash\npytest test_sliding_window.py\n```\n\nLet me know if you want the actual `sliding_window` function included or want to test it in a different way.",
+  "score": 5,
+  "cost": 2.3529000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 609
+  }
+}

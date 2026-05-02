@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT T2.name\nFROM car_makers AS T1\nJOIN countries AS T2 ON T1.country_id = T2.id\nGROUP BY T2.name\nORDER BY COUNT(*) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 8.279999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 55
+  }
+}

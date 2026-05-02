@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "```sql\nSELECT SUM(surface_area)\nFROM country\nWHERE region = 'Caribbean';\n```",
+  "score": 5,
+  "cost": 1.36e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 22
+  }
+}

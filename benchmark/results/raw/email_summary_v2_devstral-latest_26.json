@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "A GDPR data export request was received for user ID 45892, requiring all personal data, processing purposes documentation, and a third-party sharing log\u2014including analytics data\u2014by May 25. The Privacy Team must compile and provide these details within the 30-day deadline.",
+  "score": 5,
+  "cost": 2.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 62
+  }
+}

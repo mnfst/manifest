@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "ner_extraction",
+  "case": 1,
+  "response": "{\"persons\":[\"Biden\",\"Macron\"],\"organizations\":[\"White House\",\"NATO\"],\"locations\":[\"France\"]}",
+  "score": 3,
+  "cost": 6.06e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 33
+  }
+}

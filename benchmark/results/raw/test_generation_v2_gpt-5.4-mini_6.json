@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "```python\nimport pytest\n\nfrom your_module import reverse_words\n\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        (\"hello world\", \"world hello\"),\n        (\"  hello   world  \", \"world hello\"),\n        (\"a b c\", \"c b a\"),\n        (\"single\", \"single\"),\n        (\"  multiple   spaces here \", \"here spaces multiple\"),\n        (\"tabs\\tand\\nnewlines\", \"newlines and tabs\"),\n    ],\n)\ndef test_reverse_words_happy_path(input_str, expected):\n    assert reverse_words(input_str) == expected\n\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        (\"\", \"\"),\n        (\"   \", \"\"),\n        (\"\\t\\n  \", \"\"),\n    ],\n)\ndef test_reverse_words_edge_cases(input_str, expected):\n    assert reverse_words(input_str) == expected\n\n\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        None,\n        123,\n        12.34,\n        [\"hello\", \"world\"],\n        {\"text\": \"hello world\"},\n        b\"hello world\",\n    ],\n)\ndef test_reverse_words_error_cases(bad_input):\n    with pytest.raises(AttributeError):\n        reverse_words(bad_input)\n```\n\n### Notes\n- `split()` on non-string inputs like `None`, numbers, lists, dicts, and bytes will raise `AttributeError` because those types don\u2019t have the expected string methods.\n- If your implementation or Python version behaves differently for some inputs, adjust the expected exception type accordingly.",
+  "score": 5,
+  "cost": 0.000387,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 309
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "First, let's calculate how much money Mitchell made. Mitchell sold 21 lemonades at $4 each:\n\n$$\n21 \\times 4 = 84\n$$\n\nSo, Mitchell made $84.\n\nNext, we know Liam made $63. To find out how many more dollars Mitchell made than Liam, we subtract Liam's earnings from Mitchell's:\n\n$$\n84 - 63 = 21\n$$\n\nSo, Mitchell made $21 more than Liam.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 7.359e-06,
+  "expected": "21",
+  "tokens": {
+    "input": 114,
+    "output": 109
+  }
+}

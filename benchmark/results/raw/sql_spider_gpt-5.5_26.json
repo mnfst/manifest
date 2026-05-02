@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "SELECT COUNT(*)\nFROM flights AS f\nJOIN airports AS src ON f.SourceAirport = src.AirportCode\nJOIN airports AS dst ON f.DestAirport = dst.AirportCode\nWHERE src.City = 'Aberdeen'\n  AND dst.City = 'Ashley';",
+  "score": 5,
+  "cost": 0.006135,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 492
+  }
+}

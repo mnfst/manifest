@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 4,
+  "response": "```sql\nSELECT SUM(bonus) \nFROM employee_hire_evaluation;\n```",
+  "score": 2,
+  "cost": 4.641e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 17
+  }
+}

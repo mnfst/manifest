@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 28,
+  "response": "{\n  \"persons\": [\"Johns Hopkins University\", \"Baltimore\"],\n  \"organizations\": [\"Johns Hopkins University\"],\n  \"locations\": [\"Baltimore\"]",
+  "score": 2,
+  "cost": 2.943e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 34
+  }
+}

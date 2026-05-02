@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The Privacy Team has received a GDPR data export request from user ID 45892, requiring a comprehensive package of personal data, processing documentation, and third-party sharing logs (including analytics data) by May 25. Action is needed to compile and deliver all required data within the 30-day deadline.",
+  "score": 5,
+  "cost": 0.001344,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 67
+  }
+}

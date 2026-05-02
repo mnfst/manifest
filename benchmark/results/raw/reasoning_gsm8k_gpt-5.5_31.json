@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "There are 30 boys.\n\nGirls:  \n3 \u00d7 30 = 90\n\nNongendered children:  \n1/10 \u00d7 30 = 3\n\nTotal children:  \n30 + 90 + 3 = 123\n\nANSWER: 123",
+  "score": 2,
+  "cost": 0.001584,
+  "expected": "123",
+  "tokens": {
+    "input": 88,
+    "output": 110
+  }
+}

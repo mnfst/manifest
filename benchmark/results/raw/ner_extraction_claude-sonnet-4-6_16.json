@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "```json\n{\n  \"persons\": [\"Angela Merkel\"],\n  \"organizations\": [\"Presidential Medal of Freedom\"],\n  \"locations\": [\"German\", \"White House\"]\n}\n```",
+  "score": 2,
+  "cost": 0.000897,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 45
+  }
+}

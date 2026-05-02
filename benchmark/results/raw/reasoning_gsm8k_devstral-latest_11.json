@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Let's break down the problem step by step to find the number of leftover burritos.\n\n1. **Total Burritos Ordered:**\n   George ordered a total of 600 burritos.\n\n2. **Burritos Given to Students:**\n   - There are 50 students.\n   - Each student was given 10 burritos.\n   - Total burritos given to students = 50 students \u00d7 10 burritos/student = 500 burritos.\n\n3. **Burritos Eaten by Mr. George:**\n   Mr. George ate 20 burritos.\n\n4. **Total Burritos Consumed:**\n   - Burritos given to students + burritos eaten by Mr. George = 500 + 20 = 520 burritos.\n\n5. **Leftover Burritos:**\n   - Total burritos ordered - total burritos consumed = 600 - 520 = 80 burritos.\n\n**Final Answer:**\nANSWER: 80",
+  "score": 5,
+  "cost": 7.45e-05,
+  "expected": "80",
+  "tokens": {
+    "input": 106,
+    "output": 213
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "To find the total amount of money Julieta and Rafaela received as tips, we follow these steps:\n\n1.  **Calculate the total tips received by Rafaela:**\n    Rafaela received a $20 tip from each of the 40 customers.\n    Total tips for Rafaela = $40 \\times \\$20 = \\$800$.\n\n2.  **Calculate the total tips received by Julieta:**\n    Julieta received 10% less money than Rafaela.\n    First, find 10% of Rafaela's tips:\n    $10\\% \\text{ of } \\$800 = 0.10 \\times \\$800 = \\$80$.\n    Now, subtract this amount from Rafaela's total to find Julieta's tips:\n    Total tips for Julieta = $\\$800 - \\$80 = \\$720$.\n\n3.  **Calculate the total amount received by both together:**\n    Total amount = Rafaela's tips + Julieta's tips\n    Total amount = $\\$800 + \\$720 = \\$1520$.\n\nAlternatively, you can calculate the total as:\nTotal = Rafaela's tips + (Rafaela's tips $\\times$ 0.9)\nTotal = $\\$800 + (\\$800 \\times 0.9)$\nTotal = $\\$800 + \\$720 = \\$1520$.\n\nANSWER: 1520",
+  "score": 4,
+  "cost": 2.5980000000000002e-05,
+  "expected": "1520",
+  "tokens": {
+    "input": 103,
+    "output": 330
+  }
+}

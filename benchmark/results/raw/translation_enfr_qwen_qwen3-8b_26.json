@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "Cela sugg\u00e9rait, par contre, que l'arm\u00e9e devrait jouer un r\u00f4le secondaire dans les op\u00e9rations anti-terroristes.",
+  "score": 4,
+  "cost": 7.415e-05,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 1437
+  }
+}

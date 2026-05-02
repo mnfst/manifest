@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe Platform Team is proposing a feature flag cleanup to remove 15 fully implemented flags and archive 8 dead code flags, which will simplify configuration and speed up testing by 12%. This cleanup is recommended to address the current 47 active feature flags, with 23 of them being from releases older than 6 months.",
+  "score": 4,
+  "cost": 9.230999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 77
+  }
+}

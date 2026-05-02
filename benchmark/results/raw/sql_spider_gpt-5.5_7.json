@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "SELECT COUNT(*) FROM cars_data WHERE Year = 1980;",
+  "score": 5,
+  "cost": 0.003594,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 282
+  }
+}

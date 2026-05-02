@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The email proposes a new 'Starter' pricing tier at $29/month to address price-related churn, offering 5 users, 10K API calls, and email support. It projects recovering 15% of price-churned users ($180K ARR) and suggests implementing the tier to boost revenue.",
+  "score": 5,
+  "cost": 2.885e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 458
+  }
+}

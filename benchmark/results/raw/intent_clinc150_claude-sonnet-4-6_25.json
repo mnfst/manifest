@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "intent_clinc150",
+  "case": 25,
+  "response": "shopping_list_update",
+  "score": 5,
+  "cost": 0.002007,
+  "expected": "shopping_list_update",
+  "tokens": {
+    "input": 629,
+    "output": 8
+  }
+}

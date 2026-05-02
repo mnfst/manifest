@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Let's break down the problem step by step:\n\n1. The classroom has 3 times as many girls as boys. Since there are 30 boys, the number of girls is 3 x 30 = 90.\n2. The classroom has 1/10 as many nongendered children as boys. Since there are 30 boys, the number of nongendered children is 1/10 x 30 = 3.\n3. To find the total number of children, we need to add the number of boys, girls, and nongendered children. Total children = 30 (boys) + 90 (girls) + 3 (nongendered children) = 123.\n\nANSWER: 123",
+  "score": 2,
+  "cost": 6.723000000000001e-06,
+  "expected": "123",
+  "tokens": {
+    "input": 96,
+    "output": 153
+  }
+}

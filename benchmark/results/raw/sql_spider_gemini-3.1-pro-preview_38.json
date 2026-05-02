@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT T1.Name, count(T2.Language) FROM country AS T1 JOIN countrylanguage AS T2 ON T1.Code = T2.CountryCode GROUP BY T1.Name HAVING count(T2.Language) > 2\n```",
+  "score": 4,
+  "cost": 0.0010575,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 57
+  }
+}

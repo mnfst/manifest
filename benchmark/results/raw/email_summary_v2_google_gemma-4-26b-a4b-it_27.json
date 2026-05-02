@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint successfully delivered the auth redesign through strong cross-team collaboration despite challenges with context switching and long standups. To improve efficiency, developers must limit work-in-progress to two items and implement timeboxed standups with a parking lot.",
+  "score": 5,
+  "cost": 9.719999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 50
+  }
+}

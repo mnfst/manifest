@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT countrycode) \nFROM country \nWHERE yearofindependence < 1930 \nAND governmentform = 'independent';\n```",
+  "score": 2,
+  "cost": 6.12e-06,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 35
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "First, let's break down the information given:\n\n1. Alexandra raises $430.\n2. Kim raises $320 more than Alexandra.\n3. Sarah raises $300.\n4. Maryam raises $400 more than Sarah.\n\nNow, calculate each person's contribution:\n\n- Alexandra: $430\n- Kim: $430 + $320 = $750\n- Sarah: $300\n- Maryam: $300 + $400 = $700\n\nNow, add up all the amounts:\n\n$430 (Alexandra) + $750 (Kim) + $300 (Sarah) + $700 (Maryam) = $2180\n\nANSWER: 2180",
+  "score": 4,
+  "cost": 9.207e-06,
+  "expected": "2280",
+  "tokens": {
+    "input": 109,
+    "output": 170
+  }
+}

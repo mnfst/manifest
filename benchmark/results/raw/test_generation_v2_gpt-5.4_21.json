@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 21,
+  "response": "```python\nimport pytest\n\nfrom your_module import truncate\n\n\nclass TestTruncate:\n    def test_returns_original_when_string_is_shorter_than_max_len(self):\n        assert truncate(\"hello\", 10) == \"hello\"\n\n    def test_returns_original_when_string_length_equals_max_len(self):\n        assert truncate(\"hello\", 5) == \"hello\"\n\n    def test_truncates_and_appends_default_suffix(self):\n        assert truncate(\"hello world\", 8) == \"hello...\"\n\n    def test_truncates_and_appends_custom_suffix(self):\n        assert truncate(\"hello world\", 8, \"~~\") == \"hello~\"\n\n    def test_empty_string_returns_empty(self):\n        assert truncate(\"\", 5) == \"\"\n\n    def test_zero_max_len_with_empty_suffix_returns_empty(self):\n        assert truncate(\"hello\", 0, \"\") == \"\"\n\n    def test_zero_max_len_with_default_suffix_uses_slice_behavior(self):\n        assert truncate(\"hello\", 0) == \"he...\"\n\n    def test_max_len_smaller_than_suffix_length(self):\n        assert truncate(\"hello\", 2) == \"hell...\"\n\n    def test_negative_max_len_uses_python_slice_behavior(self):\n        assert truncate(\"hello world\", -1) == \"hello w...\"\n\n    def test_empty_suffix_truncates_without_suffix(self):\n        assert truncate(\"hello world\", 5, \"\") == \"hello\"\n\n    def test_non_string_input_raises_type_error_on_len(self):\n        with pytest.raises(TypeError):\n            truncate(None, 5)\n\n    def test_non_integer_max_len_raises_type_error_on_comparison(self):\n        with pytest.raises(TypeError):\n            truncate(\"hello\", \"5\")\n\n    def test_non_string_suffix_raises_type_error_on_len(self):\n        with pytest.raises(TypeError):\n            truncate(\"hello world\", 5, None)\n```\n\nIf you want, I can also provide:\n- a parameterized version to reduce repetition\n- a version using plain test functions instead of a test class",
+  "score": 5,
+  "cost": 0.00341,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 406
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "To find the total number of grapes at the beginning, we need to add up all the grapes used by Madeline, her brother, and their mother.\n\n1. **Grapes Madeline ate:** \nMadeline ate 6 grapes.\n\n2. **Grapes her brother used:** \nHer brother used 5 times as many grapes as Madeline. \n6 grapes \u00d7 5 = 30 grapes.\n\n3. **Grapes their mother used:** \nTheir mother used the remaining grapes to make 4 pies, and each pie requires 12 grapes. \n4 pies \u00d7 12 grapes/pie = 48 grapes.\n\nNow, we add all the grapes together to find the starting amount:\n6 (Madeline) + 30 (Brother) + 48 (Mother) = 84 grapes.\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.0029825,
+  "expected": "84",
+  "tokens": {
+    "input": 101,
+    "output": 182
+  }
+}

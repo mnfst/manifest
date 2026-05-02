@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 37,
+  "response": "Here are some unit tests for the `parse_csv_line` function using pytest style:\n\n```python\nimport pytest\n\ndef test_parse_csv_line_happy_path():\n    # Test with a simple CSV line\n    line = \"hello,world,foo,bar\"\n    expected_output = ['hello', 'world', 'foo', 'bar']\n    assert parse_csv_line(line) == expected_output\n\ndef test_parse_csv_line_empty_line():\n    # Test with an empty line\n    line = \"\"\n    expected_output = []\n    assert parse_csv_line(line) == expected_output\n\ndef test_parse_csv_line_single_quote():\n    # Test with a line containing a single quote\n    line = \"'hello,world,foo,bar\"\n    expected_output = ['hello', 'world', 'foo', 'bar']\n    assert parse_csv_line(line) == expected_output\n\ndef test_parse_csv_line_multiple_quotes():\n    # Test with a line containing multiple quotes\n    line = '\"hello,world,foo,bar\"'\n    expected_output = ['hello', 'world', 'foo', 'bar']\n    assert parse_csv_line(line) == expected_output\n\ndef test_parse_csv_line_whitespace():\n    # Test with a line containing whitespace\n    line = \"hello,world  foo,bar\"\n    expected_output = ['hello', 'world', ' foo', 'bar']\n    assert parse_csv_line(line) == expected_output\n\ndef test_parse_csv_line_non_ascii():\n    # Test with a line containing non-ASCII characters\n    line = \"h\u00ebllo,world,foo,bar\"\n    expected_output = ['h\u00ebllo', 'world', 'foo', 'bar']\n    assert parse_csv_line(line) == expected_output\n\ndef test_parse_csv_line_non_string():\n    # Test with a line containing non-string data\n    line = 123\n    with pytest.raises(TypeError):\n        parse_csv_line(line)\n\ndef test_parse_csv_line_empty_string():\n    # Test with an empty string\n    line = \"\"\n    with pytest.raises(TypeError):\n        parse_csv_line(line)\n```\n\nThese tests cover the following cases:\n\n* Happy path: Test with a simple CSV line, an empty line, and a line with multiple quotes.\n* Edge cases: Test with a line containing whitespace, non-ASCII characters, and non-string data.\n* Error cases: Test that the function raises a TypeError when given a non-string input.",
+  "score": 4,
+  "cost": 1.6416e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 489
+  }
+}

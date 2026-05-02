@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "intent_clinc150",
+  "case": 27,
+  "response": "apr",
+  "score": 5,
+  "cost": 0.001854,
+  "expected": "apr",
+  "tokens": {
+    "input": 518,
+    "output": 25
+  }
+}

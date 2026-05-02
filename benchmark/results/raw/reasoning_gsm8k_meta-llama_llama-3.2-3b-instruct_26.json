@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "To find out how much Mitchell made, we need to multiply the number of lemonades he sold by the price of each lemonade.\n\nNumber of lemonades sold by Mitchell: 21\nPrice of each lemonade: $4\n\nTotal amount Mitchell made: 21 x $4 = $84\n\nNow, we need to find out how much Liam made. We are given that Liam made $63.\n\nTo find the difference between the amount Mitchell made and the amount Liam made, we subtract the amount Liam made from the amount Mitchell made.\n\nDifference: $84 - $63 = $21\n\nTherefore, Mitchell made $21 more than Liam.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 1.2597e-05,
+  "expected": "21",
+  "tokens": {
+    "input": 111,
+    "output": 136
+  }
+}

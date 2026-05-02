@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "Low setting removes 1 liter/day.  \nMedium removes twice as much: \\(2 \\times 1 = 2\\) liters/day.  \nHigh removes twice as much as medium: \\(2 \\times 2 = 4\\) liters/day.\n\nNow compute water removed:\n- Low for 3 days: \\(3 \\times 1 = 3\\) liters  \n- Medium for 3 days: \\(3 \\times 2 = 6\\) liters  \n- High for 5 days: \\(5 \\times 4 = 20\\) liters  \n\nTotal: \\(3 + 6 + 20 = 29\\) liters.\n\nANSWER: 29",
+  "score": 5,
+  "cost": 7.630000000000001e-05,
+  "expected": "29",
+  "tokens": {
+    "input": 199,
+    "output": 141
+  }
+}

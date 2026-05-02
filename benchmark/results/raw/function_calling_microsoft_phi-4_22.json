@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 22,
+  "response": "```json\n{\n  \"name\": \"create_database\",\n  \"arguments\": {\n    \"name\": \"analytics_prod\",\n    \"engine\": \"postgresql\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 8.905e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 37
+  }
+}

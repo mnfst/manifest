@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 20,
+  "response": "Here are some unit tests for the `zip_dicts` function using pytest:\n```python\nimport pytest\nfrom typing import Dict\n\ndef test_zip_dicts_happy_path():\n    # Test with two dictionaries\n    dicts = [{'a': 1, 'b': 2}, {'c': 3, 'd': 4}]\n    expected = {'a': [1, 3], 'b': [2, 4], 'c': [None, None], 'd': [None, None]}\n    result = zip_dicts(*dicts)\n    assert result == expected\n\ndef test_zip_dicts_empty_dicts():\n    # Test with two empty dictionaries\n    dicts = []\n    expected = {}\n    result = zip_dicts(*dicts)\n    assert result == expected\n\ndef test_zip_dicts_single_dict():\n    # Test with a single dictionary\n    dicts = [{'a': 1, 'b': 2}]\n    expected = {'a': [1, 2], 'b': [None, None]}\n    result = zip_dicts(*dicts)\n    assert result == expected\n\ndef test_zip_dicts_no_keys():\n    # Test with a dictionary with no keys\n    dicts = [{'a': 1, 'b': 2}, {'c': 3, 'd': 4}]\n    with pytest.raises(KeyError):\n        zip_dicts(*dicts)\n\ndef test_zip_dicts_non_dict_input():\n    # Test with non-dictionary input\n    with pytest.raises(TypeError):\n        zip_dicts(1, 'a', 2)\n\ndef test_zip_dicts_non_iterable_input():\n    # Test with non-iterable input\n    with pytest.raises(TypeError):\n        zip_dicts(1, 'a', 2, 'b')\n```\nThese tests cover the following cases:\n\n* Happy path: Test with two dictionaries\n* Empty dictionaries\n* Single dictionary\n* No keys\n* Non-dictionary input\n* Non-iterable input\n\nNote that the `test_zip_dicts_no_keys` test uses a `KeyError` because the `zip_dicts` function does not handle dictionaries with no keys.",
+  "score": 3,
+  "cost": 1.377e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 432
+  }
+}

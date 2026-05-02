@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "function_calling",
+  "case": 41,
+  "response": "{\"name\":\"add_comment\",\"arguments\":{\"pr_id\":789,\"body\":\"LGTM approved\"}}",
+  "score": 5,
+  "cost": 0.000368,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 22
+  }
+}

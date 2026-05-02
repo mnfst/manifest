@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "test_generation_v2",
+  "case": 22,
+  "response": "Here are some unit tests for the `group_by` function using pytest:\n```python\nimport pytest\nfrom typing import List, Dict\n\ndef test_group_by_empty_list():\n    # Test with an empty list\n    items = []\n    key_fn = lambda x: x\n    result = group_by(items, key_fn)\n    assert result == {}\n\ndef test_group_by_single_item():\n    # Test with a single item\n    items = [1]\n    key_fn = lambda x: x\n    result = group_by(items, key_fn)\n    assert result == {1: [1]}\n\ndef test_group_by_multiple_items():\n    # Test with multiple items\n    items = [1, 2, 2, 3, 3, 3]\n    key_fn = lambda x: x\n    result = group_by(items, key_fn)\n    assert result == {1: [1, 2, 3], 2: [2], 3: [3]}\n\ndef test_group_by_empty_list_with_key_fn():\n    # Test with an empty key function\n    items = [1, 2, 3]\n    key_fn = lambda x: x\n    result = group_by(items, key_fn)\n    assert result == {}\n\ndef test_group_by_key_fn_with_non_string_key():\n    # Test with a non-string key function\n    items = [1, 2, 3]\n    key_fn = lambda x: x\n    with pytest.raises(TypeError):\n        group_by(items, key_fn)\n\ndef test_group_by_key_fn_with_non_list_key():\n    # Test with a non-list key function\n    items = [1, 2, 3]\n    key_fn = lambda x: x\n    with pytest.raises(TypeError):\n        group_by(items, key_fn)\n\ndef test_group_by_key_fn_with_non_iterable_key():\n    # Test with a non-iterable key function\n    items = [1, 2, 3]\n    key_fn = lambda x: x\n    with pytest.raises(TypeError):\n        group_by(items, key_fn)\n```\nThese tests cover the following cases:\n\n* Happy path: Test with an empty list, a single item, and multiple items.\n* Edge cases: Test with an empty key function, a non-string key function, and a non-list key function.\n* Error cases: Test that the function raises a TypeError when given a non-list key function.",
+  "score": 3,
+  "cost": 1.5741e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 502
+  }
+}

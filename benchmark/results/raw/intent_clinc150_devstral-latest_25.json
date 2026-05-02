@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "intent_clinc150",
+  "case": 25,
+  "response": "shopping_list_update",
+  "score": 5,
+  "cost": 5.71e-05,
+  "expected": "shopping_list_update",
+  "tokens": {
+    "input": 556,
+    "output": 5
+  }
+}

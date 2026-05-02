@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT\n  maker.full_name,\n  maker.id,\n  COUNT(model.id)\nFROM maker\nJOIN model\n  ON maker.id = model.maker_id\nGROUP BY\n  maker.full_name,\n  maker.id;\n```",
+  "score": 5,
+  "cost": 9.18e-06,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 64
+  }
+}

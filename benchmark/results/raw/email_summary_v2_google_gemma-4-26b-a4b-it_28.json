@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test failed to meet the four-hour RTO target due to an unexpectedly long database restoration time. To address this gap, the SRE team recommends increasing backup frequency and pre-provisioning standby databases before the next test in October.",
+  "score": 5,
+  "cost": 9.48e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 50
+  }
+}

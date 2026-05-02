@@ -1,0 +1,13 @@
+{
+  "model": "google/gemma-4-26b-a4b-it",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT makeid, make_name\nFROM cars\nWHERE horsepower > (SELECT MIN(horsepower) FROM cars)\nAND cylinders <= 3;\n```",
+  "score": 5,
+  "cost": 8.1e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 36
+  }
+}

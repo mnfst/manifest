@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Tu sais d\u2019o\u00f9 vient l\u2019argent ?",
+  "score": 5,
+  "cost": 7.7e-06,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 11
+  }
+}

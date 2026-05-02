@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sentiment_sst2",
+  "case": 31,
+  "response": "Negative",
+  "score": 5,
+  "cost": 1.458e-06,
+  "expected": "negative",
+  "tokens": {
+    "input": 52,
+    "output": 2
+  }
+}

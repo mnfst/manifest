@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "L'\u00e9vasion fiscale s'est aggrav\u00e9e en Tunisie, entra\u00eenant un manque \u00e0 gagner important en termes de ressources publiques, a d\u00e9clar\u00e9 l'ancien chef du gouvernement int\u00e9rimaire Ali Larayedh en juin 2013, cit\u00e9 par le journal Business Flood.",
+  "score": 5,
+  "cost": 4.587e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 67
+  }
+}

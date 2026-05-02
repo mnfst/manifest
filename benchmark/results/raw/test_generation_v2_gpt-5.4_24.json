@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 24,
+  "response": "```python\nimport pytest\n\nfrom your_module import retry\n\n\ndef test_retry_returns_on_first_success():\n    def fn():\n        return \"ok\"\n\n    assert retry(fn) == \"ok\"\n\n\ndef test_retry_retries_until_success():\n    calls = {\"count\": 0}\n\n    def fn():\n        calls[\"count\"] += 1\n        if calls[\"count\"] < 3:\n            raise ValueError(\"temporary failure\")\n        return \"done\"\n\n    result = retry(fn, max_attempts=3)\n\n    assert result == \"done\"\n    assert calls[\"count\"] == 3\n\n\ndef test_retry_raises_last_exception_after_max_attempts():\n    calls = {\"count\": 0}\n\n    def fn():\n        calls[\"count\"] += 1\n        raise RuntimeError(\"always fails\")\n\n    with pytest.raises(RuntimeError, match=\"always fails\"):\n        retry(fn, max_attempts=3)\n\n    assert calls[\"count\"] == 3\n\n\ndef test_retry_with_one_attempt_calls_once_and_raises():\n    calls = {\"count\": 0}\n\n    def fn():\n        calls[\"count\"] += 1\n        raise ValueError(\"fail\")\n\n    with pytest.raises(ValueError, match=\"fail\"):\n        retry(fn, max_attempts=1)\n\n    assert calls[\"count\"] == 1\n\n\ndef test_retry_with_zero_attempts_returns_none_without_calling():\n    calls = {\"count\": 0}\n\n    def fn():\n        calls[\"count\"] += 1\n        return \"should not be called\"\n\n    result = retry(fn, max_attempts=0)\n\n    assert result is None\n    assert calls[\"count\"] == 0\n\n\ndef test_retry_with_negative_attempts_returns_none_without_calling():\n    calls = {\"count\": 0}\n\n    def fn():\n        calls[\"count\"] += 1\n        return \"should not be called\"\n\n    result = retry(fn, max_attempts=-5)\n\n    assert result is None\n    assert calls[\"count\"] == 0\n\n\ndef test_retry_does_not_catch_baseexception_subclasses():\n    def fn():\n        raise KeyboardInterrupt()\n\n    with pytest.raises(KeyboardInterrupt):\n        retry(fn, max_attempts=3)\n```",
+  "score": 5,
+  "cost": 0.003776,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 452
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "function_calling",
+  "case": 12,
+  "response": "{\"name\": \"get_stock_price\", \"arguments\": {\"symbol\": \"AAPL\"}}",
+  "score": 5,
+  "cost": 3.5310000000000006e-06,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 18
+  }
+}

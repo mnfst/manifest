@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "The ratio \\(3:2\\) means Gerald\u2019s share is \\(\\frac{3}{3+2}=\\frac{3}{5}\\) of \\(100\\).\n\n1. Gerald\u2019s total money:  \n\\[\n\\frac{3}{5}\\cdot 100 = 60\n\\]\n2. Gerald spent \\(10\\), so money left:  \n\\[\n60 - 10 = 50\n\\]\n\nANSWER: 50",
+  "score": 5,
+  "cost": 4.51e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 71,
+    "output": 95
+  }
+}

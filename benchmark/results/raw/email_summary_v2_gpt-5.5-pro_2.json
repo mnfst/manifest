@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "David reports a critical SQL injection vulnerability in `/api/v2/auth/login` affecting versions v3.2.0\u2013v3.4.1. The patch to parameterize the query in `auth_controller.py:142` is ready for review, and a hotfix is recommended within 24 hours.",
+  "score": 5,
+  "cost": 0.00286,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 118
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "```python\n# test_factorial.py\nimport pytest\n\nfrom your_module_name import factorial\n\n\n@pytest.mark.parametrize(\n    \"n,expected\",\n    [\n        (0, 1),   # edge case\n        (1, 1),   # boundary\n        (2, 2),   # small\n        (3, 6),\n        (5, 120),\n        (10, 3628800),\n    ],\n)\ndef test_factorial_happy_path(n, expected):\n    assert factorial(n) == expected\n\n\ndef test_factorial_negative_raises_value_error():\n    with pytest.raises(ValueError) as excinfo:\n        factorial(-1)\n    assert str(excinfo.value) == \"n must be non-negative\"\n\n\ndef test_factorial_negative_other_value_raises_value_error():\n    with pytest.raises(ValueError) as excinfo:\n        factorial(-10)\n    assert str(excinfo.value) == \"n must be non-negative\"\n\n\ndef test_factorial_non_integer_type_error():\n    # The function uses numeric comparisons and arithmetic; non-ints should error.\n    with pytest.raises(TypeError):\n        factorial(\"5\")\n\n\ndef test_factorial_float_input():\n    # For floats, the behavior is not explicitly defined, but current implementation\n    # will eventually error due to non-integer recursion/decrement.\n    with pytest.raises(TypeError):\n        factorial(3.5)\n```",
+  "score": 5,
+  "cost": 0.0001226,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 286
+  }
+}

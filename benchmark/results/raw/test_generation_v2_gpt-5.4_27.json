@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "```python\nimport pytest\n\nfrom your_module import interleave\n\n\ndef test_interleave_same_length_lists():\n    assert interleave([1, 2, 3], [\"a\", \"b\", \"c\"]) == [1, \"a\", 2, \"b\", 3, \"c\"]\n\n\ndef test_interleave_first_list_longer():\n    assert interleave([1, 2, 3, 4], [\"a\", \"b\"]) == [1, \"a\", 2, \"b\", 3, 4]\n\n\ndef test_interleave_second_list_longer():\n    assert interleave([1], [\"a\", \"b\", \"c\"]) == [1, \"a\", \"b\", \"c\"]\n\n\ndef test_interleave_both_empty():\n    assert interleave([], []) == []\n\n\ndef test_interleave_first_empty():\n    assert interleave([], [1, 2, 3]) == [1, 2, 3]\n\n\ndef test_interleave_second_empty():\n    assert interleave([1, 2, 3], []) == [1, 2, 3]\n\n\ndef test_interleave_with_none_values():\n    assert interleave([None, 2], [\"x\", None]) == [None, \"x\", 2, None]\n\n\ndef test_interleave_preserves_nested_objects():\n    a = [[1], [2]]\n    b = [{\"k\": \"v\"}, {\"z\": 9}]\n    assert interleave(a, b) == [[1], {\"k\": \"v\"}, [2], {\"z\": 9}]\n\n\ndef test_interleave_does_not_mutate_inputs():\n    a = [1, 2, 3]\n    b = [\"a\", \"b\"]\n    original_a = a.copy()\n    original_b = b.copy()\n\n    result = interleave(a, b)\n\n    assert result == [1, \"a\", 2, \"b\", 3]\n    assert a == original_a\n    assert b == original_b\n\n\ndef test_interleave_with_non_list_iterables_still_works_if_sliceable():\n    assert interleave((1, 2), (\"a\", \"b\", \"c\")) == [1, \"a\", 2, \"b\", \"c\"]\n\n\n@pytest.mark.parametrize(\n    \"a,b\",\n    [\n        (None, [1, 2]),\n        ([1, 2], None),\n        (None, None),\n        (123, [1, 2]),\n        ([1, 2], 456),\n    ],\n)\ndef test_interleave_invalid_inputs_raise_type_error(a, b):\n    with pytest.raises(TypeError):\n        interleave(a, b)\n\n\ndef test_interleave_with_unsliceable_iterable_raises_type_error():\n    with pytest.raises(TypeError):\n        interleave([1, 2], iter([\"a\", \"b\"]))\n```\n\nIf you want, I can also provide:\n- a `tests/test_interleave.py` file version,\n- a parameterized version to reduce repetition,\n- or tests written to exactly match `list`-only expectations from the type hints.",
+  "score": 5,
+  "cost": 0.005336,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 645
+  }
+}

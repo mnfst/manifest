@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "Here are comprehensive unit tests for the `chunk_list` function using pytest style, covering happy path, edge cases, and error cases:\n\n```python\nimport pytest\n\ndef test_chunk_list_happy_path():\n    \"\"\"Test normal case with even division\"\"\"\n    assert chunk_list([1, 2, 3, 4, 5, 6], 2) == [[1, 2], [3, 4], [5, 6]]\n\ndef test_chunk_list_uneven_division():\n    \"\"\"Test case where list isn't evenly divisible by chunk size\"\"\"\n    assert chunk_list([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n\ndef test_chunk_list_single_chunk():\n    \"\"\"Test case where chunk size equals list length\"\"\"\n    assert chunk_list([1, 2, 3], 3) == [[1, 2, 3]]\n\ndef test_chunk_list_larger_chunk():\n    \"\"\"Test case where chunk size is larger than list length\"\"\"\n    assert chunk_list([1, 2], 5) == [[1, 2]]\n\ndef test_chunk_list_empty_list():\n    \"\"\"Test case with empty list\"\"\"\n    assert chunk_list([], 2) == []\n\ndef test_chunk_list_size_one():\n    \"\"\"Test case with chunk size of 1\"\"\"\n    assert chunk_list([1, 2, 3], 1) == [[1], [2], [3]]\n\ndef test_chunk_list_negative_size():\n    \"\"\"Test case with negative chunk size (should raise ValueError)\"\"\"\n    with pytest.raises(ValueError, match=\"size must be positive\"):\n        chunk_list([1, 2, 3], -1)\n\ndef test_chunk_list_zero_size():\n    \"\"\"Test case with zero chunk size (should raise ValueError)\"\"\"\n    with pytest.raises(ValueError, match=\"size must be positive\"):\n        chunk_list([1, 2, 3], 0)\n\ndef test_chunk_list_non_integer_size():\n    \"\"\"Test case with non-integer size (should raise TypeError)\"\"\"\n    with pytest.raises(TypeError):\n        chunk_list([1, 2, 3], 1.5)\n\ndef test_chunk_list_non_list_input():\n    \"\"\"Test case with non-list input (should raise TypeError)\"\"\"\n    with pytest.raises(TypeError):\n        chunk_list(\"not a list\", 2)\n```\n\nThese tests cover:\n1. Happy path (normal case with even division)\n2. Edge cases:\n   - Uneven division\n   - Single chunk\n   - Chunk size larger than list\n   - Empty list\n   - Chunk size of 1\n3. Error cases:\n   - Negative size\n   - Zero size\n   - Non-integer size\n   - Non-list input\n\nThe tests use pytest's `assert` for normal cases and `pytest.raises` for exception testing. The error message matching ensures the exact expected error message is raised.",
+  "score": 5,
+  "cost": 0.00019830000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 633
+  }
+}

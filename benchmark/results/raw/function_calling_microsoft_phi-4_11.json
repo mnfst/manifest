@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "function_calling",
+  "case": 11,
+  "response": "```json\n{\n  \"name\": \"add_to_list\",\n  \"arguments\": {\n    \"list_name\": \"my shopping list\",\n    \"items\": [\"milk\", \"eggs\", \"bread\"]\n  }\n}\n```",
+  "score": 5,
+  "cost": 1.027e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 48
+  }
+}

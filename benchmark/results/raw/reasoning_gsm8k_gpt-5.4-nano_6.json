@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Ann is 9 years old.  \nHer brother is twice her age: \\(2 \\times 9 = 18\\).  \nIn 3 years, her brother will be \\(18 + 3 = 21\\).  \n\nANSWER: 21",
+  "score": 5,
+  "cost": 2.8200000000000004e-05,
+  "expected": "21",
+  "tokens": {
+    "input": 66,
+    "output": 54
+  }
+}

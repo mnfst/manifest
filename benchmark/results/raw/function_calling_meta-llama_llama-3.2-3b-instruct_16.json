@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 16,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"search_nearby\", \"arguments\": {\"category\": \"gas station\", \"open_now\": true}}\n```\n\nExplanation:\n\n* The `search_nearby` function is used to find nearby businesses based on a category.\n* In this case, we want to find a gas station, so we pass `category = \"gas station\"`.\n* We also want to find open gas stations, so we pass `open_now = true`. If we didn't want to filter by open status, we would pass `open_now = false`.",
+  "score": 4,
+  "cost": 1.1322e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 123
+  }
+}

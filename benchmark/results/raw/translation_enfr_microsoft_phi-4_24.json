@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Le programme urbain de nutrition de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et promeut le cr\u00e9dit aux groupes de femmes qui commercialisent des aliments.",
+  "score": 5,
+  "cost": 6.175000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 40
+  }
+}

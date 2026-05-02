@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "WITH dep AS (\n  SELECT DISTINCT airport_code AS airport_code\n  FROM flights\n  WHERE flight_type IN ('departure','departing') OR departure_airport IS NOT NULL\n),\narr AS (\n  SELECT DISTINCT airport_code AS airport_code\n  FROM flights\n  WHERE flight_type IN ('arrival','arriving') OR arrival_airport IS NOT NULL\n)\nSELECT a.airport_code\nFROM airports a\nLEFT JOIN dep d ON d.airport_code = a.airport_code\nLEFT JOIN arr r ON r.airport_code = a.airport_code\nWHERE d.airport_code IS NULL OR r.airport_code IS NULL;",
+  "score": 2,
+  "cost": 5.9300000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 131
+  }
+}

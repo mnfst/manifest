@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "During the maintenance window, a disk space alert occurred on prod-db-01 at 2 AM Saturday; automated cleanup freed 40GB but could not resize, and manual intervention at 8 AM restored service with no customer impact. Action item: fix the log rotation misconfiguration introduced after the last migration to prevent recurrence.",
+  "score": 5,
+  "cost": 0.000724,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 67
+  }
+}

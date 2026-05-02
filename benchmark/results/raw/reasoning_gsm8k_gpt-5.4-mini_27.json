@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let the number of vacuum cleaners Melanie started with be \\(x\\).\n\n1. At the green house, she sold a third:\n   \\[\n   \\frac{x}{3}\n   \\]\n   So she had:\n   \\[\n   x - \\frac{x}{3} = \\frac{2x}{3}\n   \\]\n\n2. At the red house, she sold 2 more:\n   \\[\n   \\frac{2x}{3} - 2\n   \\]\n\n3. At the orange house, she sold half of what was left, so she kept the other half:\n   \\[\n   \\frac{1}{2}\\left(\\frac{2x}{3} - 2\\right)\n   \\]\n   This equals 5, since she has 5 left:\n   \\[\n   \\frac{1}{2}\\left(\\frac{2x}{3} - 2\\right)=5\n   \\]\n\n4. Solve the equation:\n   \\[\n   \\frac{2x}{3} - 2 = 10\n   \\]\n   \\[\n   \\frac{2x}{3} = 12\n   \\]\n   \\[\n   x = 18\n   \\]\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.0003423,
+  "expected": "18",
+  "tokens": {
+    "input": 97,
+    "output": 261
+  }
+}

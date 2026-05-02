@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "**French:** \nLe programme de nutrition urbaine de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et favorise l'acc\u00e8s au cr\u00e9dit pour les groupes de femmes qui commercialisent des produits alimentaires. \n\n*(Note: In the context of NGOs and development, \"promotes credit\" is best translated as \"favorise l'acc\u00e8s au cr\u00e9dit\" [promotes access to credit] to sound natural in French, and \"market food\" translates well to \"commercialisent des produits alimentaires\" [market food products/commodities].)*",
+  "score": 5,
+  "cost": 0.001795,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 112
+  }
+}

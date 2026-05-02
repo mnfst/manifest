@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "test_generation_v2",
+  "case": 32,
+  "response": "```python\nimport pytest\n\nfrom your_module import find_missing\n\n\nclass TestFindMissing:\n    def test_happy_path_middle_missing(self):\n        assert find_missing([0, 1, 3]) == 2\n\n    def test_happy_path_first_missing(self):\n        assert find_missing([1, 2, 3]) == 0\n\n    def test_happy_path_last_missing(self):\n        assert find_missing([0, 1, 2]) == 3\n\n    def test_single_element_missing_zero(self):\n        assert find_missing([1]) == 0\n\n    def test_single_element_missing_one(self):\n        assert find_missing([0]) == 1\n\n    def test_empty_list(self):\n        assert find_missing([]) == 0\n\n    def test_unsorted_input_still_works(self):\n        assert find_missing([3, 0, 1]) == 2\n\n    def test_duplicate_values_returns_computed_result(self):\n        # Function does not validate uniqueness; it simply applies the formula.\n        assert find_missing([0, 1, 1, 3]) == 4\n\n    def test_negative_values_returns_computed_result(self):\n        # Function does not validate input range; it simply applies the formula.\n        assert find_missing([0, -1, 1]) == 3\n\n    def test_non_list_iterable_raises_type_error(self):\n        with pytest.raises(TypeError):\n            find_missing((0, 1, 2))\n\n    def test_non_numeric_values_raises_type_error(self):\n        with pytest.raises(TypeError):\n            find_missing([0, 1, \"2\"])\n\n    def test_none_raises_type_error(self):\n        with pytest.raises(TypeError):\n            find_missing(None)\n```\n\nIf you want, I can also provide a version with parametrized tests to reduce repetition.",
+  "score": 5,
+  "cost": 0.0004809,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 381
+  }
+}

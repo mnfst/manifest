@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let's solve the problem step by step.\n\n**Let \\( x \\) be the number of vacuum cleaners Melanie started with.**\n\n1. **Sold at the green house:**\n   - She sold a third of her vacuum cleaners.\n   - Number sold: \\( \\frac{x}{3} \\)\n   - Remaining: \\( x - \\frac{x}{3} = \\frac{2x}{3} \\)\n\n2. **Sold at the red house:**\n   - She sold 2 more vacuum cleaners.\n   - Remaining: \\( \\frac{2x}{3} - 2 \\)\n\n3. **Sold at the orange house:**\n   - She sold half of what was left.\n   - Number sold: \\( \\frac{1}{2} \\left( \\frac{2x}{3} - 2 \\right) \\)\n   - Remaining: \\( \\frac{1}{2} \\left( \\frac{2x}{3} - 2 \\right) \\)\n\n4. **Final remaining vacuum cleaners:**\n   - According to the problem, she has 5 left.\n   - So, \\( \\frac{1}{2} \\left( \\frac{2x}{3} - 2 \\right) = 5 \\)\n\n5. **Solve for \\( x \\):**\n   \\[\n   \\frac{1}{2} \\left( \\frac{2x}{3} - 2 \\right) = 5\n   \\]\n   Multiply both sides by 2:\n   \\[\n   \\frac{2x}{3} - 2 = 10\n   \\]\n   Add 2 to both sides:\n   \\[\n   \\frac{2x}{3} = 12\n   \\]\n   Multiply both sides by 3:\n   \\[\n   2x = 36\n   \\]\n   Divide both sides by 2:\n   \\[\n   x = 18\n   \\]\n\n**ANSWER: 18**",
+  "score": 5,
+  "cost": 0.00013619999999999998,
+  "expected": "18",
+  "tokens": {
+    "input": 99,
+    "output": 421
+  }
+}

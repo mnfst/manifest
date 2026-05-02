@@ -1,0 +1,13 @@
+{
+  "model": "devstral-latest",
+  "task": "moderation_toxigen",
+  "case": 29,
+  "response": "toxic",
+  "score": 5,
+  "cost": 6.200000000000001e-06,
+  "expected": "toxic",
+  "tokens": {
+    "input": 53,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "To solve this problem, we need to break it down into steps.\n\nStep 1: Calculate the total number of cows in the original 10 stalls.\nThere are 10 stalls with 20 cows each, so the total number of cows is 10 x 20 = 200.\n\nStep 2: Calculate the number of cows Mr. Sylas buys and adds to the total.\nMr. Sylas buys 40 cows.\n\nStep 3: Calculate the new total number of cows in all 20 stalls.\nThe original 200 cows plus the 40 new cows make a total of 200 + 40 = 240 cows.\n\nStep 4: Calculate the number of cows in each stall after the new cows are added.\nThe 240 cows are divided equally among the 20 stalls, so each stall now has 240 / 20 = 12 cows.\n\nStep 5: Calculate the number of cows in 8 of the stalls.\nSince each stall has 12 cows, 8 stalls will have 8 x 12 = 96 cows.\n\nANSWER: 96",
+  "score": 5,
+  "cost": 1.6218e-05,
+  "expected": "192",
+  "tokens": {
+    "input": 95,
+    "output": 223
+  }
+}

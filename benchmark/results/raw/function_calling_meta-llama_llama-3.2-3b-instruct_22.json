@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 22,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"create_database\", \"arguments\": {\"name\": \"analytics_prod\", \"engine\": \"postgresql\"}}\n```\n\nThis function call creates a new PostgreSQL database named `analytics_prod` with the default engine.",
+  "score": 5,
+  "cost": 7.4459999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 56
+  }
+}

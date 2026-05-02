@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "{\n  \"persons\": [\n    \"Sarah Chen\"\n  ],\n  \"organizations\": [\n    \"MIT\",\n    \"Science magazine\"\n  ],\n  \"locations\": []\n}",
+  "score": 4,
+  "cost": 0.00082,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 44
+  }
+}

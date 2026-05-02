@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 5,
+  "response": "{\n  \"persons\": [\n    \"Dr. James Wilson\"\n  ],\n  \"organizations\": [\n    \"Stanford University\",\n    \"IEEE\"\n  ],\n  \"locations\": [\n    \"Tokyo\"\n  ]\n}",
+  "score": 5,
+  "cost": 2.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 47
+  }
+}

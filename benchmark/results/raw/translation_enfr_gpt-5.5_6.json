@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, celui qui roule sur la Wangan, c\u2019est ce d\u00e9mon.",
+  "score": 4,
+  "cost": 0.001518,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 118
+  }
+}

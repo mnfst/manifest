@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les Floc provenant de SRT plus \u00e9lev\u00e9es \u00e9taient moins hydrat\u00e9s et ont \u00e9t\u00e9 trouv\u00e9s poss\u00e9der une \u00e9paisse couche EPS qui couvre une grande partie de la surface.",
+  "score": 4,
+  "cost": 2.673e-06,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 44
+  }
+}

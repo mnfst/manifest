@@ -1,0 +1,13 @@
+{
+  "model": "microsoft/phi-4",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "```sql\nSELECT t.title\nFROM tvshow.episodes e\nJOIN tvshow.shows t ON e.show_id = t.id\nJOIN tvshow.directors d ON e.director_id = d.id\nWHERE d.name = 'Ben Jones' AND t.genre = 'Cartoon';\n```",
+  "score": 3,
+  "cost": 8.32e-06,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 60
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-turbo",
+  "task": "intent_clinc150",
+  "case": 1,
+  "response": "find_phone",
+  "score": 5,
+  "cost": 1.6929e-05,
+  "expected": "find_phone",
+  "tokens": {
+    "input": 511,
+    "output": 2
+  }
+}

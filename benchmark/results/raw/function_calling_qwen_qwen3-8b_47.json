@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "function_calling",
+  "case": 47,
+  "response": "{\"name\": \"create_cron\", \"arguments\": {\"schedule\": \"0 0 * * *\", \"command\": \"cleanup_script\"}}",
+  "score": 5,
+  "cost": 7.05e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 1319
+  }
+}

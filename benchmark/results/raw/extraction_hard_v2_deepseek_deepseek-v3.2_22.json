@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "extraction_hard_v2",
   "case": 22,
-  "response": "```json\n{\n    \"meeting_title\": \"Product sync\",\n    \"date\": \"2026-04-10\",\n    \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"],\n    \"decisions\": [\"push the recommendation engine to Q3 since data pipeline won't be ready until June\", \"allocate 20% of sprint capacity to tech debt\"],\n    \"action_items\": [\n        {\"owner\": \"Marcus\", \"task\": \"have onboarding mockups\", \"deadline\": \"2026-04-18\"},\n        {\"owner\": \"Jamie\", \"task\": \"send updated roadmap\", \"deadline\": \"2026-04-15\"},\n        {\"owner\": \"Lin\", \"task\": \"needs analytics dashboard before May board meeting\", \"deadline\": \"2026-05-31\"}\n    ]\n}\n```",
-  "score": 0,
-  "cost": 0.00024165000000000002,
+  "response": "{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\"Jamie (PM)\", \"Priya (eng lead)\", \"Marcus (design)\", \"Lin (data)\"],\n  \"decisions\": [\"push the recommendation engine to Q3 since data pipeline won't be ready until June\", \"allocate 20% of sprint capacity to tech debt\"],\n  \"action_items\": [\n    {\"owner\": \"Marcus\", \"task\": \"have onboarding mockups\", \"deadline\": \"2026-04-18\"},\n    {\"owner\": \"Jamie\", \"task\": \"send updated roadmap\", \"deadline\": \"2026-04-15\"},\n    {\"owner\": \"Lin\", \"task\": \"needs analytics dashboard before May board meeting\", \"deadline\": \"2026-05-01\"}\n  ]\n}",
+  "score": 3,
+  "cost": 0.00024825000000000004,
   "expected": "",
   "tokens": {
     "input": 179,
-    "output": 179
+    "output": 185
   }
 }

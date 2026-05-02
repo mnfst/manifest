@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "ner_extraction",
+  "case": 26,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"Supreme Court\",\n    \"State of Texas\",\n    \"ACLU\"\n  ],\n  \"locations\": [\n    \"Texas\"\n  ]\n}",
+  "score": 3,
+  "cost": 2.51e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 45
+  }
+}

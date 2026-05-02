@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-3b-instruct",
+  "task": "function_calling",
+  "case": 42,
+  "response": "Here is the correct function call in JSON format:\n\n```\n{\"name\": \"create_bucket\", \"arguments\": {\"name\": \"data-lake-prod\", \"region\": \"us-east-1\"}}\n```\n\nThis function call creates a new S3 bucket named \"data-lake-prod\" in the \"us-east-1\" region.",
+  "score": 5,
+  "cost": 8.568e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 71
+  }
+}

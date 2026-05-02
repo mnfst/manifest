@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "To solve this problem, we need to find the total cost of the candles for both sons.\n\nFirst, let's find the age of the younger son. Since the older son is 4 years younger, the younger son is 12 - 4 = 8 years old.\n\nSince there are 2 sons, we need to buy 2 packs of candles. Each pack costs $3, so the total cost of the candles for both sons is 2 x $3 = $6.\n\nANSWER: $6",
+  "score": 2,
+  "cost": 5.4e-06,
+  "expected": "12",
+  "tokens": {
+    "input": 95,
+    "output": 105
+  }
+}

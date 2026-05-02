@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "I'll solve this step by step.\n\n**Step 1: Find the cost of tickets**\n3 tickets cost $20.25\n\n**Step 2: Find the cost of food**\nFood cost $4.50 less than tickets\nFood = $20.25 - $4.50 = $15.75\n\n**Step 3: Find the cost of rides**\n2 rides \u00d7 $33 per ride = $66.00\n\n**Step 4: Find the total cost**\nTotal = Tickets + Food + Rides\nTotal = $20.25 + $15.75 + $66.00\nTotal = $102.00\n\n**Step 5: Split evenly among 3 friends**\nEach person pays = $102.00 \u00f7 3 = $34.00\n\nANSWER: 34",
+  "score": 4,
+  "cost": 0.00321,
+  "expected": "34",
+  "tokens": {
+    "input": 115,
+    "output": 191
+  }
+}

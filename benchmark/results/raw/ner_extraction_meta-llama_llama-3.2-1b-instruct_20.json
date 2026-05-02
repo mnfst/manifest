@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "ner_extraction",
+  "case": 20,
+  "response": "{\n  \"persons\": [\"Sundar Pichai\"],\n  \"organizations\": [\"Google\"],\n  \"locations\": [\"Malaysia\"]",
+  "score": 5,
+  "cost": 2.943e-06,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 29
+  }
+}

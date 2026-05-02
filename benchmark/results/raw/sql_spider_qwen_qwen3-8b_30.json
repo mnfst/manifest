@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-8b",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "SELECT AVG(p.rank) FROM matches m JOIN players p ON m.winner_id = p.player_id;",
+  "score": 5,
+  "cost": 1.9950000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 326
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "test_generation_v2",
+  "case": 32,
+  "response": "```python\n# test_find_missing.py\nimport pytest\n\nfrom your_module import find_missing  # replace \"your_module\" with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"nums, expected\",\n    [\n        ([0, 1, 3], 2),                    # missing in the middle\n        ([3, 0, 1], 2),                    # unsorted input\n        ([1, 2, 3], 0),                    # missing first number\n        ([0, 1, 2], 3),                    # missing last number\n        ([9, 6, 4, 2, 3, 5, 7, 0, 1], 8), # larger unsorted example\n    ],\n)\ndef test_find_missing_happy_paths(nums, expected):\n    assert find_missing(nums) == expected\n\n\n@pytest.mark.parametrize(\n    \"nums, expected\",\n    [\n        ([], 0),     # range [0..0], missing 0\n        ([0], 1),    # range [0..1], missing 1\n        ([1], 0),    # range [0..1], missing 0\n    ],\n)\ndef test_find_missing_edge_cases(nums, expected):\n    assert find_missing(nums) == expected\n\n\ndef test_find_missing_large_input():\n    n = 10_000\n    missing = 4321\n\n    nums = list(range(n + 1))\n    nums.remove(missing)\n\n    assert find_missing(nums) == missing\n\n\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        None,\n        123,\n    ],\n)\ndef test_find_missing_raises_type_error_for_non_sized_input(bad_input):\n    with pytest.raises(TypeError):\n        find_missing(bad_input)\n\n\n@pytest.mark.parametrize(\n    \"nums\",\n    [\n        [0, 1, \"2\"],\n        [0, object(), 2],\n    ],\n)\ndef test_find_missing_raises_type_error_for_non_numeric_values(nums):\n    with pytest.raises(TypeError):\n        find_missing(nums)\n\n\ndef test_find_missing_does_not_validate_duplicates():\n    # Current implementation assumes valid input and does not reject duplicates.\n    # For nums of length 3, the expected range is [0..3].\n    # This invalid input produces a mathematically computed result.\n    assert find_missing([0, 1, 1]) == 4\n\n\ndef test_find_missing_does_not_validate_out_of_range_values():\n    # Current implementation assumes all values are from [0..n].\n    # It does not raise an error for out-of-range values.\n    assert find_missing([0, 1, 5]) == 0\n```",
+  "score": 4,
+  "cost": 0.013161,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 1077
+  }
+}

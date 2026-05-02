@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-3.2-1b-instruct",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "SELECT DISTINCT T1.form, COUNT(T1.form) FROM world_1.government AS T1 INNER JOIN world_1.population AS T2 ON T1.form = T2.form WHERE T1.average_life_expectancy > 72 GROUP BY T1.form",
+  "score": 3,
+  "cost": 3.915e-06,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 53
+  }
+}

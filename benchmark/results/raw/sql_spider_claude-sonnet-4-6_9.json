@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT c.CountryName\nFROM countries c\nJOIN car_makers cm ON c.CountryId = cm.Country\nGROUP BY c.CountryId, c.CountryName\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 4,
+  "cost": 0.001077,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 56
+  }
+}

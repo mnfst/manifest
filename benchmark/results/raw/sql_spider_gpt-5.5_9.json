@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT c.CountryName\nFROM countries AS c\nJOIN car_makers AS cm\n  ON c.CountryId = cm.Country\nGROUP BY c.CountryId, c.CountryName\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 4,
+  "cost": 0.004572,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 363
+  }
+}

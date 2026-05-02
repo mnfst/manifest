@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "function_calling",
+  "case": 45,
+  "response": "{\"name\": \"grant_access\", \"arguments\": {\"user\": \"bob\", \"resource\": \"analytics database\", \"permission\": \"read\"}}",
+  "score": 5,
+  "cost": 0.0006875,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 30
+  }
+}

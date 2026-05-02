@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "SELECT pp.Money_Rank\nFROM poker_player AS pp\nJOIN people AS p ON pp.People_ID = p.People_ID\nORDER BY p.Height DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 3,
+  "cost": 0.004407,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 350
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The Database Team is planning a zero-downtime migration from MySQL 5.7 to PostgreSQL 16 using a blue-green deployment, with a three-month timeline spanning May through July covering schema conversion, dual-write, and cutover phases. The key action item is rewriting 3 stored procedures that are incompatible with PostgreSQL.",
+  "score": 5,
+  "cost": 0.001494,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 78
+  }
+}

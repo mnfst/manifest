@@ -1,0 +1,13 @@
+{
+  "model": "gemini-3.1-pro-preview",
+  "task": "moderation_toxigen",
+  "case": 23,
+  "response": "safe",
+  "score": 5,
+  "cost": 0.0001625,
+  "expected": "safe",
+  "tokens": {
+    "input": 59,
+    "output": 1
+  }
+}

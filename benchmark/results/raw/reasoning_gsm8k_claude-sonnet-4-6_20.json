@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-6",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "## Solution\n\n**Step 1: Identify the number of fish**\nJen has 3 fish.\n\n**Step 2: Calculate daily food cost**\nEach fish needs $1 worth of food per day.\nDaily cost = 3 fish \u00d7 $1 = $3 per day\n\n**Step 3: Determine the number of days in May**\nMay has 31 days.\n\n**Step 4: Calculate total cost for May**\nTotal cost = $3 per day \u00d7 31 days = $93\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.002145,
+  "expected": "93",
+  "tokens": {
+    "input": 80,
+    "output": 127
+  }
+}

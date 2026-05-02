@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "SELECT c.Name, COUNT(cl.Language) AS language_count\nFROM country AS c\nJOIN countrylanguage AS cl\n  ON c.Code = cl.CountryCode\nGROUP BY c.Code, c.Name\nHAVING COUNT(cl.Language) > 2;",
+  "score": 4,
+  "cost": 0.00237,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 177
+  }
+}
