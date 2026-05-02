@@ -1,10 +1,10 @@
-# TaskBench: Questions This Benchmark Answers
+# TaskBench: Scope Guard
 
 Last updated: 2026-05-02
 
-This is the North Star of the project. Every task, every model, every data point
-exists to answer one or more of these questions. If a question cannot be answered
-with the current data, it is marked as such.
+Before adding a model, a task, a graph, or any work to this benchmark, check
+this list. If the work does not help answer one of these questions, it is out
+of scope. This document prevents drift and keeps the project focused.
 
 ## Core Questions (cost vs quality)
 
