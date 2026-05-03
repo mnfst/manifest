@@ -52,7 +52,10 @@ const SavingsChart: Component<SavingsChartProps> = (props) => {
           padding: [16, 40, 0, 0],
           cursor: createCursorSnap(bgColor, savingsColor),
           scales: {
-            x: { time: !isMultiDayRange(props.range), range: createTimeScaleRange(props.range) },
+            x: {
+              time: !isMultiDayRange(props.range),
+              range: createTimeScaleRange(props.range, true),
+            },
             y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.15 : 1] },
           },
           axes,
