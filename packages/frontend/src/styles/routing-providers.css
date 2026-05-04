@@ -408,7 +408,7 @@
 
 .provider-detail__hint {
   font-size: var(--font-size-sm);
-  color: hsl(215, 16%, 39%);
+  color: hsl(var(--muted-foreground));
   margin-bottom: 12px;
   line-height: 1.5;
 }
