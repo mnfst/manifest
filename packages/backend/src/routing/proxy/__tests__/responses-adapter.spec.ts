@@ -192,6 +192,41 @@ describe('Responses adapter', () => {
     ).toBe(true);
   });
 
+  it('strips Codex-subscription unsupported params and forces store=false', () => {
+    const result = toNativeResponsesRequest(
+      {
+        input: 'hi',
+        temperature: 0.3,
+        top_p: 0.5,
+        max_output_tokens: 50,
+        metadata: { x: '1' },
+        safety_identifier: 'probe',
+        prompt_cache_retention: '24h',
+        truncation: 'auto',
+        store: true,
+      },
+      'gpt-5.4-mini',
+      { stripCodexUnsupported: true },
+    );
+    expect(result).not.toHaveProperty('temperature');
+    expect(result).not.toHaveProperty('top_p');
+    expect(result).not.toHaveProperty('max_output_tokens');
+    expect(result).not.toHaveProperty('metadata');
+    expect(result).not.toHaveProperty('safety_identifier');
+    expect(result).not.toHaveProperty('prompt_cache_retention');
+    expect(result).not.toHaveProperty('truncation');
+    expect(result.store).toBe(false);
+  });
+
+  it('preserves Codex-subscription unsupported params when the strip flag is off', () => {
+    const result = toNativeResponsesRequest(
+      { input: 'hi', temperature: 0.3, top_p: 0.5 },
+      'gpt-5.4-mini',
+    );
+    expect(result.temperature).toBe(0.3);
+    expect(result.top_p).toBe(0.5);
+  });
+
   describe('fromChatCompletionResponse', () => {
     it('converts text, tool calls, and usage to a Response object', () => {
       const result = fromChatCompletionResponse(

@@ -136,18 +136,50 @@ function toChatToolChoice(toolChoice: unknown): unknown {
   return { type: 'function', function: { name: toolChoice.name } };
 }
 
+/**
+ * Responses API parameters the ChatGPT subscription backend
+ * (chatgpt.com/backend-api/codex/responses) rejects with HTTP 400. Sampling
+ * controls (`temperature`, `top_p`) are locked upstream; `max_output_tokens`,
+ * `metadata`, `safety_identifier`, `prompt_cache_retention`, `truncation` are
+ * not part of its allowlist. Forwarding any of them returns
+ * `unsupported_parameter` and breaks OpenAI-SDK clients.
+ */
+const CODEX_SUBSCRIPTION_UNSUPPORTED_PARAMS = [
+  'temperature',
+  'top_p',
+  'max_output_tokens',
+  'metadata',
+  'safety_identifier',
+  'prompt_cache_retention',
+  'truncation',
+] as const;
+
 export function toNativeResponsesRequest(
   body: JsonRecord,
   model: string,
-  opts?: { defaultInstructions?: boolean; inputList?: boolean; forceStream?: boolean },
+  opts?: {
+    defaultInstructions?: boolean;
+    inputList?: boolean;
+    forceStream?: boolean;
+    stripCodexUnsupported?: boolean;
+  },
 ): JsonRecord {
   const request: JsonRecord = { ...body, model };
+  if (opts?.stripCodexUnsupported) {
+    for (const key of CODEX_SUBSCRIPTION_UNSUPPORTED_PARAMS) {
+      delete request[key];
+    }
+    // The backend also rejects `store: true`. Force it off rather than
+    // letting the request fail on something the caller cannot influence.
+    request.store = false;
+  } else if (body.store === undefined) {
+    request.store = false;
+  }
   if (opts?.forceStream) {
     request.stream = true;
   } else if (body.stream === undefined) {
     request.stream = false;
   }
-  if (body.store === undefined) request.store = false;
   if (opts?.inputList) {
     request.input = toNativeResponsesInput(body.input);
   }
