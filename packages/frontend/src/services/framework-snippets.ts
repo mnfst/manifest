@@ -346,13 +346,18 @@ export function getClaudeCodeShellSnippet(baseUrl: string, apiKey: string): stri
 }
 
 /**
- * Persistent variant — patches ~/.claude/settings.json so every future
- * `claude` invocation picks up the Manifest endpoint without needing the
- * env vars in the current shell.
+ * Persistent variant — the JSON block to paste into ~/.claude/settings.json.
+ * Claude Code reads `env` keys from settings.json on every startup, so this
+ * makes the configuration permanent without touching shell rc files.
  */
 export function getClaudeCodeSettingsSnippet(baseUrl: string, apiKey: string): string {
   const url = stripV1Suffix(baseUrl);
-  return `node -e "const fs=require('fs'),p=require('path'),f=require('os').homedir()+'/.claude/settings.json';fs.mkdirSync(p.dirname(f),{recursive:true});const c=fs.existsSync(f)?JSON.parse(fs.readFileSync(f,'utf8')):{};c.env={...(c.env||{}),ANTHROPIC_BASE_URL:'${url}',ANTHROPIC_AUTH_TOKEN:'${apiKey}'};fs.writeFileSync(f,JSON.stringify(c,null,2))"`;
+  return `{
+  "env": {
+    "ANTHROPIC_BASE_URL": "${url}",
+    "ANTHROPIC_AUTH_TOKEN": "${apiKey}"
+  }
+}`;
 }
 
 export function getOpenClawDisableSnippet(model: string): string {

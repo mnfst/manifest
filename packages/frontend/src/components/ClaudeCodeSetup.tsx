@@ -114,8 +114,9 @@ const ClaudeCodeSetup: Component<Props> = (props) => {
 
       <Show when={subTab() === 'settings'}>
         <p class="setup-method__hint">
-          Patches <code>~/.claude/settings.json</code> so every future <code>claude</code> run picks
-          up the Manifest endpoint. Idempotent — preserves existing settings.
+          Paste this <code>env</code> block into <code>~/.claude/settings.json</code> (merge with
+          any existing top-level keys). Every future <code>claude</code> invocation reads it on
+          startup — no shell rc edits, no Node required.
         </p>
         <div class="setup-cli-block">
           <div class="setup-cli-block__actions">
@@ -131,7 +132,7 @@ const ClaudeCodeSetup: Component<Props> = (props) => {
             </Show>
             <CopyButton text={settingsCopy()} />
           </div>
-          <CodeBlock code={settingsShown()} language="bash" />
+          <CodeBlock code={settingsShown()} language="json" />
         </div>
       </Show>
     </div>

@@ -294,17 +294,22 @@ describe("getClaudeCodeShellSnippet", () => {
 });
 
 describe("getClaudeCodeSettingsSnippet", () => {
-  it("produces a node one-liner that merges into ~/.claude/settings.json", async () => {
+  it("emits a paste-ready JSON block for ~/.claude/settings.json", async () => {
     const { getClaudeCodeSettingsSnippet } = await import(
       "../../src/services/framework-snippets"
     );
     const snippet = getClaudeCodeSettingsSnippet("http://localhost:38240/v1", "mnfst_key");
-    expect(snippet.startsWith("node -e")).toBe(true);
-    expect(snippet).toContain("ANTHROPIC_BASE_URL:'http://localhost:38240'");
-    expect(snippet).toContain("ANTHROPIC_AUTH_TOKEN:'mnfst_key'");
-    expect(snippet).toContain(".claude/settings.json");
-    // Must merge — preserve existing keys.
-    expect(snippet).toContain("...(c.env||{})");
+    // Strict-parse to make sure it's valid JSON and shaped correctly.
+    const parsed = JSON.parse(snippet);
+    expect(parsed).toEqual({
+      env: {
+        ANTHROPIC_BASE_URL: "http://localhost:38240",
+        ANTHROPIC_AUTH_TOKEN: "mnfst_key",
+      },
+    });
+    // No node command, no shell artifacts — pure JSON.
+    expect(snippet).not.toContain("node");
+    expect(snippet).not.toContain("require");
   });
 });
 
