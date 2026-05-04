@@ -399,6 +399,28 @@ describe("getSnippetForToolkit", () => {
     expect(result.title).toBe("OpenAI Python SDK");
   });
 
+  it("strips trailing /v1 from base_url for the Anthropic Python SDK", () => {
+    // The Anthropic SDK auto-appends /v1/messages — keeping /v1 in base_url
+    // would produce /v1/v1/messages and a 404.
+    const result = getSnippetForToolkit("anthropic-sdk", "http://x/v1", "key", "python");
+    expect(result.code).toContain('base_url="http://x"');
+    expect(result.code).not.toContain('base_url="http://x/v1"');
+    expect(result.code).toContain("from anthropic import Anthropic");
+    expect(result.code).toContain("client.messages.create");
+  });
+
+  it("strips trailing /v1 from baseURL for the Anthropic TypeScript SDK", () => {
+    const result = getSnippetForToolkit("anthropic-sdk", "http://x/v1", "key", "typescript");
+    expect(result.code).toContain('baseURL: "http://x"');
+    expect(result.code).not.toContain('baseURL: "http://x/v1"');
+    expect(result.code).toContain('import Anthropic from "@anthropic-ai/sdk"');
+  });
+
+  it("leaves the Anthropic base URL untouched when /v1 isn't present", () => {
+    const result = getSnippetForToolkit("anthropic-sdk", "https://gw.example.com", "key", "python");
+    expect(result.code).toContain('base_url="https://gw.example.com"');
+  });
+
   it("returns Vercel AI SDK Python snippet by default", () => {
     const result = getSnippetForToolkit("vercel-ai-sdk", "http://x/v1", "key");
     expect(result.title).toBe("Vercel AI SDK (Python)");

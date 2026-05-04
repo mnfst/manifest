@@ -159,18 +159,29 @@ const response = await client.chat.completions.create({
   };
 }
 
+/**
+ * The Anthropic SDK appends `/v1/messages` to the configured base URL, so
+ * the URL we render must NOT end in `/v1` — otherwise the SDK hits
+ * `/v1/v1/messages` and gets a 404. Other SDKs (OpenAI, Vercel) expect
+ * `/v1` in the base URL, so we only strip it for Anthropic.
+ */
+function stripV1Suffix(baseUrl: string): string {
+  return baseUrl.replace(/\/v1\/?$/, '');
+}
+
 function getAnthropicPythonSnippet(
   baseUrl: string,
   apiKey: string,
   customHeaders?: CustomHeaders,
 ): Snippet {
   const headersLine = headerLine(customHeaders, 'py-kwarg', 'default_headers');
+  const url = stripV1Suffix(baseUrl);
   return {
     title: 'Anthropic Python SDK',
     code: `from anthropic import Anthropic
 
 client = Anthropic(
-    base_url="${baseUrl}",
+    base_url="${url}",
     auth_token="${apiKey}",${headersLine}
 )
 
@@ -188,12 +199,13 @@ function getAnthropicTypeScriptSnippet(
   customHeaders?: CustomHeaders,
 ): Snippet {
   const headersLine = headerLine(customHeaders, 'ts-prop', 'defaultHeaders');
+  const url = stripV1Suffix(baseUrl);
   return {
     title: 'Anthropic TypeScript SDK',
     code: `import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic({
-  baseURL: "${baseUrl}",
+  baseURL: "${url}",
   authToken: "${apiKey}",${headersLine}
 });
 
