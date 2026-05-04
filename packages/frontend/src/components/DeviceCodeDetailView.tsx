@@ -129,9 +129,6 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
       );
     } catch {
       if (isDisposed || flowGeneration !== activeFlowGeneration) return;
-      if (flow()?.flowId !== current.flowId) {
-        return;
-      }
       clearPollTimer();
       setStatusMessage(null);
       setFlow(null);
@@ -150,11 +147,9 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
       toast.error('Popup was blocked by your browser. Allow popups for this site, then try again.');
       return;
     }
-    try {
-      popup.opener = null;
-    } catch {
-      // Some sandboxed contexts disallow this; the popup is about:blank, harmless.
-    }
+    // Defang the opener-attack vector that noopener would normally prevent;
+    // the popup is about:blank (same-origin) so this assignment can't throw.
+    popup.opener = null;
 
     props.setBusy(true);
     const flowGeneration = ++activeFlowGeneration;

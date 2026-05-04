@@ -1787,6 +1787,61 @@ describe('ProviderSelectModal', () => {
       expect(mockRevokeOpenaiOAuth).not.toHaveBeenCalled();
     });
 
+    it('closes the popup if the modal unmounts before startMinimaxOAuth resolves', async () => {
+      const popup = {
+        close: vi.fn(),
+        opener: {},
+        location: { replace: vi.fn() },
+        closed: false,
+      };
+      vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window);
+
+      let resolveStart:
+        | ((value: {
+            flowId: string;
+            userCode: string;
+            verificationUri: string;
+            expiresAt: number;
+            pollIntervalMs: number;
+          }) => void)
+        | undefined;
+      mockStartMinimaxOAuth.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStart = resolve;
+          }),
+      );
+
+      const view = render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+
+      fireEvent.click(screen.getByText('MiniMax'));
+      fireEvent.click(screen.getByText('Connect with MiniMax'));
+
+      view.unmount();
+
+      resolveStart?.({
+        flowId: 'late-flow',
+        userCode: 'L8-T8',
+        verificationUri: 'https://www.minimax.io/verify',
+        expiresAt: Date.now() + 60_000,
+        pollIntervalMs: 2000,
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(popup.close).toHaveBeenCalled();
+      expect(popup.location.replace).not.toHaveBeenCalled();
+
+      vi.restoreAllMocks();
+    });
+
     it('stops MiniMax polling after the modal unmounts', async () => {
       vi.useFakeTimers();
       vi.spyOn(window, 'open').mockReturnValue({
