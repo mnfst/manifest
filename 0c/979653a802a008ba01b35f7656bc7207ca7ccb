@@ -1,0 +1,25 @@
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  23b4a1fefec6f521 150-152
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  23b4a1fefec6f521 1790-1844
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "0c979653a802a008ba01b35f7656bc7207ca7ccb",
+  "prompts": {
+    "23b4a1fefec6f521": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a1b3d8cc-a8a6-4757-8817-476ebe6cabb6",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 58,
+      "total_deletions": 8,
+      "accepted_lines": 58,
+      "overriden_lines": 0
+    }
+  }
+}
