@@ -1384,9 +1384,7 @@ describe('ProviderSelectModal', () => {
       expect(screen.getByLabelText('Region')).toBeDefined();
     });
 
-    it('starts MiniMax device-code flow and opens the authorization tab', async () => {
-      vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
-
+    it('starts MiniMax device-code flow and renders an Open MiniMax anchor link', async () => {
       render(() => (
         <ProviderSelectModal
           providers={[]}
@@ -1401,14 +1399,11 @@ describe('ProviderSelectModal', () => {
       await waitFor(() => {
         expect(mockStartMinimaxOAuth).toHaveBeenCalledWith('test-agent', 'global');
       });
-      expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
-      expect(window.open).toHaveBeenCalledWith(
-        'https://www.minimax.io/verify',
-        '_blank',
-        'noopener,noreferrer',
-      );
-
-      vi.restoreAllMocks();
+      const openLink = await screen.findByText('Open MiniMax');
+      expect(openLink.tagName).toBe('A');
+      expect(openLink.getAttribute('href')).toBe('https://www.minimax.io/verify');
+      expect(openLink.getAttribute('target')).toBe('_blank');
+      expect(openLink.getAttribute('rel')).toBe('noopener noreferrer');
     });
 
     it('starts MiniMax device-code flow with the selected region', async () => {
@@ -1455,7 +1450,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
+        expect(screen.getByText('Open MiniMax')).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(2000);
@@ -1487,7 +1482,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
+        expect(screen.getByText('Open MiniMax')).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(2000);
@@ -1523,7 +1518,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
+        expect(screen.getByText('Open MiniMax')).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(2000);
@@ -1556,7 +1551,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
+        expect(screen.getByText('Open MiniMax')).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(2000);
@@ -1596,7 +1591,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
+        expect(screen.getByText('Open MiniMax')).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(1);
@@ -1610,32 +1605,6 @@ describe('ProviderSelectModal', () => {
       expect(mockPollMinimaxOAuth).not.toHaveBeenCalled();
 
       vi.useRealTimers();
-      vi.restoreAllMocks();
-    });
-
-    it('toasts when the popup is blocked and stays on the connect view', async () => {
-      vi.spyOn(window, 'open').mockReturnValue(null);
-
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-
-      fireEvent.click(screen.getByText('MiniMax'));
-      fireEvent.click(screen.getByText('Connect with MiniMax'));
-
-      await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith(
-          'Popup was blocked by your browser. Allow popups for this site, then try again.',
-        );
-      });
-      expect(screen.queryByText(/A new tab opened with the MiniMax/)).toBeNull();
-      expect(screen.getByText('Connect with MiniMax')).toBeDefined();
-
       vi.restoreAllMocks();
     });
 
@@ -1657,7 +1626,7 @@ describe('ProviderSelectModal', () => {
       await waitFor(() => {
         expect(mockStartMinimaxOAuth).toHaveBeenCalledWith('test-agent', 'global');
       });
-      expect(screen.queryByText(/A new tab opened with the MiniMax/)).toBeNull();
+      expect(screen.queryByText('Open MiniMax')).toBeNull();
       expect(screen.getByText('Connect with MiniMax')).toBeDefined();
     });
 
@@ -1774,7 +1743,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
+        expect(screen.getByText('Open MiniMax')).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(2000);

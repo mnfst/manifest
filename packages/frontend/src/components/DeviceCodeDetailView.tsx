@@ -147,14 +147,6 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     try {
       const nextFlow = await startMinimaxOAuth(props.agentName, selectedRegion());
       if (isDisposed || flowGeneration !== activeFlowGeneration) return;
-      const popup = window.open(nextFlow.verificationUri, '_blank', 'noopener,noreferrer');
-      if (!popup) {
-        setFlow(null);
-        toast.error(
-          'Popup was blocked by your browser. Allow popups for this site, then try again.',
-        );
-        return;
-      }
       setFlow(nextFlow);
       schedulePoll(nextFlow.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS, flowGeneration);
     } catch {
@@ -211,17 +203,28 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
             </>
           }
         >
-          <>
-            <p class="provider-detail__hint">
-              A new tab opened with the {props.provDef.name} authorization page. Approve the request
-              there to finish connecting.
-            </p>
-            <Show when={statusMessage()}>
-              <p class="provider-detail__hint" style="margin-top: 12px;">
-                {statusMessage()}
+          {(activeFlow) => (
+            <>
+              <p class="provider-detail__hint">
+                Open the {props.provDef.name} authorization page and approve the request to finish
+                connecting.
               </p>
-            </Show>
-          </>
+              <a
+                class="btn btn--primary provider-detail__action"
+                style="margin-top: 12px;"
+                href={activeFlow().verificationUri}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open {props.provDef.name}
+              </a>
+              <Show when={statusMessage()}>
+                <p class="provider-detail__hint" style="margin-top: 12px;">
+                  {statusMessage()}
+                </p>
+              </Show>
+            </>
+          )}
         </Show>
       </Show>
       <Show when={props.connected()}>
