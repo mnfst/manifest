@@ -701,4 +701,69 @@ describe("HeaderTierModal", () => {
       expect(suggestions?.[0]?.sublabel).toBe("2× seen");
     });
   });
+
+  describe("keyboard shortcuts", () => {
+    it("submits when Enter is pressed on the name input", async () => {
+      const onSaved = vi.fn();
+      const onClose = vi.fn();
+      mockCreateHeaderTier.mockResolvedValue({ ...existingTier, id: "ht-kb", name: "KB" });
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[]}
+          onClose={onClose}
+          onSaved={onSaved}
+        />
+      ));
+      fireEvent.input(container.querySelector("#header-tier-name") as HTMLInputElement, {
+        target: { value: "KB" },
+      });
+      fireEvent.input(container.querySelector("#header-tier-key") as HTMLInputElement, {
+        target: { value: "x-test" },
+      });
+      fireEvent.input(container.querySelector("#header-tier-value") as HTMLInputElement, {
+        target: { value: "val" },
+      });
+      fireEvent.keyDown(container.querySelector("#header-tier-name") as HTMLInputElement, {
+        key: "Enter",
+      });
+      await waitFor(() => {
+        expect(mockCreateHeaderTier).toHaveBeenCalled();
+      });
+    });
+
+    it("closes when Escape is pressed", () => {
+      const onClose = vi.fn();
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[]}
+          onClose={onClose}
+          onSaved={vi.fn()}
+        />
+      ));
+      fireEvent.keyDown(container.querySelector("#header-tier-name") as HTMLInputElement, {
+        key: "Escape",
+      });
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it("does not submit when Enter event was already handled (defaultPrevented)", () => {
+      const onSaved = vi.fn();
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[]}
+          onClose={vi.fn()}
+          onSaved={onSaved}
+        />
+      ));
+      const nameInput = container.querySelector("#header-tier-name") as HTMLInputElement;
+      const event = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true });
+      // Simulate a child handler having already called preventDefault (e.g. combobox)
+      event.preventDefault();
+      nameInput.dispatchEvent(event);
+      expect(mockCreateHeaderTier).not.toHaveBeenCalled();
+    });
+  });
 });
