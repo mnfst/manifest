@@ -1,0 +1,33 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  d71bed364de619b3 251
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  d71bed364de619b3 197-202
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  d71bed364de619b3 170-174
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  d71bed364de619b3 233-242
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  d71bed364de619b3 112-124
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  d71bed364de619b3 235-270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "8855afff3e78e503538e6862fd8da7dae2c17f47",
+  "prompts": {
+    "d71bed364de619b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e0f3390-4f98-46d3-a40d-1adf2ff0c86e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 77,
+      "total_deletions": 6012,
+      "accepted_lines": 71,
+      "overriden_lines": 0
+    }
+  }
+}
