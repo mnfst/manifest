@@ -497,7 +497,12 @@ describe('proxy-response-handler', () => {
 
       await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
 
-      expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res, expect.any(Function));
+      expect(pipeStreamSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        expect.any(Function),
+        undefined,
+      );
     });
 
     it('should use Anthropic adapter for Anthropic responses', async () => {
@@ -555,7 +560,12 @@ describe('proxy-response-handler', () => {
 
       await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
 
-      expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res, expect.any(Function));
+      expect(pipeStreamSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        expect.any(Function),
+        undefined,
+      );
     });
 
     it('ChatGPT stream transformer delegates each chunk to convertChatGptStreamChunk', async () => {
@@ -594,6 +604,97 @@ describe('proxy-response-handler', () => {
 
       // Called with only 2 args (no transformer)
       expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res);
+    });
+
+    it('passes a finalize callback to pipeStream when apiMode=messages (default OpenAI provider)', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta();
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+      );
+
+      expect(pipeStreamSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        expect.any(Function),
+        expect.any(Function),
+      );
+    });
+
+    it('wraps the ChatGPT stream chunk converter through the messages transformer', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isChatGpt: true });
+      const client = mockProviderClient();
+      client.convertChatGptStreamChunk.mockReturnValue(
+        'data: {"choices":[{"delta":{"content":"x"}}]}\n\n',
+      );
+      const meta = makeMeta();
+
+      let captured: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_b: unknown, _r: unknown, transform?: (c: string) => string | null) => {
+          captured = transform;
+          return null;
+        },
+      );
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+      );
+
+      expect(captured).toBeDefined();
+      const out = captured!('data: ignored\n\n');
+      expect(out).toContain('event: message_start');
+      expect(out).toContain('event: content_block_delta');
+    });
+
+    it('returns null when the ChatGPT-converted chunk is empty under apiMode=messages', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isChatGpt: true });
+      const client = mockProviderClient();
+      client.convertChatGptStreamChunk.mockReturnValue(null);
+      const meta = makeMeta();
+
+      let captured: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_b: unknown, _r: unknown, transform?: (c: string) => string | null) => {
+          captured = transform;
+          return null;
+        },
+      );
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+      );
+
+      expect(captured!('chunk')).toBeNull();
     });
 
     it('should pass through native Responses streams without a transformer', async () => {
@@ -1023,6 +1124,38 @@ describe('proxy-response-handler', () => {
       expect(forward.response.text).toHaveBeenCalled();
       expect(forward.response.json).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(response);
+    });
+
+    it('converts a chat_completions response into Anthropic Messages when apiMode=messages', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const body = {
+        id: 'cc_42',
+        choices: [{ message: { content: 'hello' }, finish_reason: 'stop' }],
+        usage: { prompt_tokens: 6, completion_tokens: 4 },
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta();
+
+      const usage = await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+      );
+
+      const sent = (res.json as jest.Mock).mock.calls[0][0];
+      expect(sent.type).toBe('message');
+      expect(sent.role).toBe('assistant');
+      expect(sent.content).toEqual([{ type: 'text', text: 'hello' }]);
+      expect(sent.stop_reason).toBe('end_turn');
+      expect(sent.usage).toMatchObject({ input_tokens: 6, output_tokens: 4 });
+      expect(usage).toMatchObject({ prompt_tokens: 6, completion_tokens: 4 });
     });
 
     it('should return null usage when no usage data in response', async () => {

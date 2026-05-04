@@ -190,6 +190,37 @@ describe('pipeStream', () => {
     expect(written).toContain('data: [DONE]\n\n');
   });
 
+  it('writes the finalize trailer before [DONE] and captures usage from it', async () => {
+    const { res, written } = mockResponse();
+    const stream = createReadableStream(['data: chunk1\n\n']);
+    const transform = (chunk: string) => `out:${chunk}\n\n`;
+    const finalize = () =>
+      'event: message_delta\ndata: {"usage":{"input_tokens":7,"output_tokens":3}}\n\n' +
+      'event: message_stop\ndata: {"type":"message_stop"}\n\n';
+
+    const usage = await pipeStream(stream, res as never, transform, finalize);
+
+    const concatenated = written.join('');
+    const doneIdx = concatenated.indexOf('data: [DONE]');
+    const stopIdx = concatenated.indexOf('event: message_stop');
+    expect(stopIdx).toBeGreaterThan(-1);
+    expect(doneIdx).toBeGreaterThan(stopIdx);
+    expect(usage).toMatchObject({ prompt_tokens: 7, completion_tokens: 3 });
+  });
+
+  it('skips a null finalize trailer without writing extra bytes', async () => {
+    const { res, written } = mockResponse();
+    const stream = createReadableStream(['data: only\n\n']);
+    const transform = (chunk: string) => `out:${chunk}\n\n`;
+    const finalize = jest.fn().mockReturnValue(null);
+
+    await pipeStream(stream, res as never, transform, finalize);
+
+    expect(finalize).toHaveBeenCalledTimes(1);
+    expect(written).toContain('data: [DONE]\n\n');
+    expect(written.some((w) => w.startsWith('event: '))).toBe(false);
+  });
+
   it('should not write [DONE] for non-transformed streams', async () => {
     const { res, written } = mockResponse();
     const stream = createReadableStream(['data: test\n\n']);

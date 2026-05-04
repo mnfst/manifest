@@ -131,6 +131,7 @@ export async function pipeStream(
   source: ReadableStream<Uint8Array>,
   dest: ExpressResponse,
   transform?: (chunk: string) => string | null,
+  finalize?: () => string | null,
 ): Promise<StreamUsage | null> {
   const reader = source.getReader();
   const decoder = new TextDecoder();
@@ -233,10 +234,19 @@ export async function pipeStream(
       }
     }
 
-    // Ensure the stream ends with [DONE] for OpenAI-compatible clients.
-    // Non-transformed streams (OpenAI) already include it from the provider.
-    // Transformed streams (Google) need it added explicitly.
+    // Stream tail. Anthropic Messages clients need a `message_stop` event
+    // (emitted via `finalize`); OpenAI-compatible clients need `data: [DONE]`.
+    // We write both — `data: [DONE]` is harmless for Anthropic SDKs which
+    // ignore non-event lines.
     if (transform) {
+      if (finalize) {
+        const trailing = finalize();
+        if (trailing) {
+          dest.write(trailing);
+          const usage = extractUsageFromSse(trailing);
+          if (usage) capturedUsage = usage;
+        }
+      }
       dest.write('data: [DONE]\n\n');
     }
   } finally {

@@ -13,6 +13,10 @@ import {
   collectResponsesSseResponse,
   fromChatCompletionResponse,
 } from './responses-adapter';
+import {
+  chatCompletionsResponseToMessages,
+  createMessagesStreamTransformer,
+} from './anthropic-messages-adapter';
 import type { ProxyApiMode } from './proxy-types';
 import type { ThoughtSignatureCache } from './thought-signature-cache';
 import type { ThinkingBlockCache, ThinkingBlock } from './thinking-block-cache';
@@ -263,23 +267,38 @@ export async function handleStreamResponse(
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders);
 
+  const messagesTransformer =
+    apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;
+  const finalize = messagesTransformer ? () => messagesTransformer.finalize() : undefined;
   const toClientChunk =
-    apiMode === 'responses' ? chatCompletionStreamChunkToResponses : (chunk: string) => chunk;
+    apiMode === 'responses'
+      ? chatCompletionStreamChunkToResponses
+      : messagesTransformer
+        ? messagesTransformer.transform
+        : (chunk: string) => chunk;
 
   if (apiMode === 'responses' && forward.isResponses) {
     return pipeStream(forward.response.body!, res);
   }
 
   if (forward.isGoogle) {
-    return pipeStream(forward.response.body!, res, (chunk) => {
-      const { chunk: out, signatures } = providerClient.convertGoogleStreamChunk(chunk, meta.model);
-      if (signatureCache && sessionKey) {
-        for (const s of signatures) {
-          signatureCache.store(sessionKey, s.toolCallId, s.signature);
+    return pipeStream(
+      forward.response.body!,
+      res,
+      (chunk) => {
+        const { chunk: out, signatures } = providerClient.convertGoogleStreamChunk(
+          chunk,
+          meta.model,
+        );
+        if (signatureCache && sessionKey) {
+          for (const s of signatures) {
+            signatureCache.store(sessionKey, s.toolCallId, s.signature);
+          }
         }
-      }
-      return out ? toClientChunk(out) : null;
-    });
+        return out ? toClientChunk(out) : null;
+      },
+      finalize,
+    );
   }
   if (forward.isAnthropic) {
     const onThinkingBlocks =
@@ -292,18 +311,30 @@ export async function handleStreamResponse(
       meta.model,
       onThinkingBlocks,
     );
-    return pipeStream(forward.response.body!, res, (chunk) => {
-      const out = anthropicTransformer(chunk);
-      return out ? toClientChunk(out) : null;
-    });
-  }
-  if (forward.isChatGpt) {
-    return pipeStream(forward.response.body!, res, (chunk) =>
-      providerClient.convertChatGptStreamChunk(chunk, meta.model),
+    return pipeStream(
+      forward.response.body!,
+      res,
+      (chunk) => {
+        const out = anthropicTransformer(chunk);
+        return out ? toClientChunk(out) : null;
+      },
+      finalize,
     );
   }
-  if (apiMode === 'responses') {
-    return pipeStream(forward.response.body!, res, toClientChunk);
+  if (forward.isChatGpt) {
+    return pipeStream(
+      forward.response.body!,
+      res,
+      (chunk) => {
+        const out = providerClient.convertChatGptStreamChunk(chunk, meta.model);
+        if (!messagesTransformer) return out;
+        return out ? toClientChunk(out) : null;
+      },
+      finalize,
+    );
+  }
+  if (apiMode === 'responses' || apiMode === 'messages') {
+    return pipeStream(forward.response.body!, res, toClientChunk, finalize);
   }
   return pipeStream(forward.response.body!, res);
 }
@@ -357,6 +388,11 @@ export async function handleNonStreamResponse(
 
   if (apiMode === 'responses' && !forward.isResponses) {
     responseBody = fromChatCompletionResponse(responseBody as Record<string, unknown>, meta.model);
+  } else if (apiMode === 'messages') {
+    responseBody = chatCompletionsResponseToMessages(
+      responseBody as Record<string, unknown>,
+      meta.model,
+    );
   }
 
   const body = responseBody as Record<string, unknown> | undefined;
