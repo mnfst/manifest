@@ -32,102 +32,102 @@ function systemToString(system: unknown): string {
     .join('\n\n');
 }
 
-function anthropicContentToChat(content: unknown): {
-  text: string;
-  parts: JsonRecord[];
-  toolUses: Array<{ id: string; name: string; input: unknown }>;
-  toolResults: Array<{ toolUseId: string; content: string }>;
-  reasoning: string;
-} {
-  const out = {
-    text: '',
-    parts: [] as JsonRecord[],
-    toolUses: [] as Array<{ id: string; name: string; input: unknown }>,
-    toolResults: [] as Array<{ toolUseId: string; content: string }>,
-    reasoning: '',
+function imageBlockToImagePart(block: JsonRecord): JsonRecord | null {
+  if (!isRecord(block.source)) return null;
+  const source = block.source;
+  if (source.type === 'base64' && typeof source.data === 'string') {
+    const mediaType = typeof source.media_type === 'string' ? source.media_type : 'image/png';
+    return { type: 'image_url', image_url: { url: `data:${mediaType};base64,${source.data}` } };
+  }
+  if (source.type === 'url' && typeof source.url === 'string') {
+    return { type: 'image_url', image_url: { url: source.url } };
+  }
+  return null;
+}
+
+function buildAssistantMessage(content: unknown): OpenAIMessage[] {
+  // Assistant turns flatten cleanly because chat_completions splits text and
+  // tool_calls into separate fields (no array-content interleaving anyway).
+  let text = '';
+  let reasoning = '';
+  const toolCalls: NonNullable<OpenAIMessage['tool_calls']> = [];
+
+  const collect = (block: JsonRecord) => {
+    if (block.type === 'text' && typeof block.text === 'string') {
+      text += block.text;
+    } else if (block.type === 'thinking' && typeof block.thinking === 'string') {
+      reasoning += block.thinking;
+    } else if (block.type === 'tool_use') {
+      toolCalls.push({
+        id: typeof block.id === 'string' ? block.id : randomUUID(),
+        type: 'function',
+        function: {
+          name: typeof block.name === 'string' ? block.name : 'unknown',
+          arguments: safeJsonStringify(block.input ?? {}),
+        },
+      });
+    }
   };
 
   if (typeof content === 'string') {
-    out.text = content;
-    if (content) out.parts.push({ type: 'text', text: content });
-    return out;
+    text = content;
+  } else if (Array.isArray(content)) {
+    for (const block of content) {
+      if (isRecord(block)) collect(block);
+    }
   }
-  if (!Array.isArray(content)) return out;
+
+  if (!text && toolCalls.length === 0 && !reasoning) return [];
+  const message: OpenAIMessage = { role: 'assistant', content: text || null };
+  if (toolCalls.length > 0) message.tool_calls = toolCalls;
+  if (reasoning) message.reasoning_content = reasoning;
+  return [message];
+}
+
+function buildUserMessages(content: unknown): OpenAIMessage[] {
+  // Walk Anthropic content blocks in input order and emit chat_completions
+  // messages without reshuffling. Each `tool_result` becomes a standalone
+  // `role: tool` message; intermediate text/image blocks accumulate into a
+  // user message that flushes either before the next `tool_result` or at
+  // the end of the turn. Preserves the relative order of tool_result blocks
+  // vs. surrounding text in mixed-content user turns.
+  if (typeof content === 'string') {
+    return content ? [{ role: 'user', content }] : [];
+  }
+  if (!Array.isArray(content)) return [];
+
+  const messages: OpenAIMessage[] = [];
+  let pendingParts: JsonRecord[] = [];
+
+  const flushPendingUser = () => {
+    if (pendingParts.length === 0) return;
+    const hasNonText = pendingParts.some((p) => p.type !== 'text');
+    if (hasNonText) {
+      messages.push({ role: 'user', content: pendingParts });
+    } else {
+      const text = pendingParts.map((p) => (typeof p.text === 'string' ? p.text : '')).join('');
+      if (text) messages.push({ role: 'user', content: text });
+    }
+    pendingParts = [];
+  };
 
   for (const block of content) {
     if (!isRecord(block)) continue;
-    if (block.type === 'text' && typeof block.text === 'string') {
-      out.text += block.text;
-      out.parts.push({ type: 'text', text: block.text });
-    } else if (block.type === 'image' && isRecord(block.source)) {
-      const source = block.source;
-      if (source.type === 'base64' && typeof source.data === 'string') {
-        const mediaType = typeof source.media_type === 'string' ? source.media_type : 'image/png';
-        out.parts.push({
-          type: 'image_url',
-          image_url: { url: `data:${mediaType};base64,${source.data}` },
-        });
-      } else if (source.type === 'url' && typeof source.url === 'string') {
-        out.parts.push({ type: 'image_url', image_url: { url: source.url } });
-      }
-    } else if (block.type === 'tool_use') {
-      out.toolUses.push({
-        id: typeof block.id === 'string' ? block.id : randomUUID(),
-        name: typeof block.name === 'string' ? block.name : 'unknown',
-        input: block.input ?? {},
-      });
-    } else if (block.type === 'tool_result') {
-      out.toolResults.push({
-        toolUseId: typeof block.tool_use_id === 'string' ? block.tool_use_id : 'unknown',
+    if (block.type === 'tool_result') {
+      flushPendingUser();
+      messages.push({
+        role: 'tool',
+        tool_call_id: typeof block.tool_use_id === 'string' ? block.tool_use_id : 'unknown',
         content: safeJsonStringify(block.content),
       });
-    } else if (block.type === 'thinking' && typeof block.thinking === 'string') {
-      // DeepSeek (and other reasoning models) require their `reasoning_content`
-      // to be echoed back on subsequent assistant turns. We surface it as an
-      // Anthropic `thinking` block on the response and accept it back here.
-      out.reasoning += block.thinking;
+    } else if (block.type === 'text' && typeof block.text === 'string') {
+      pendingParts.push({ type: 'text', text: block.text });
+    } else if (block.type === 'image') {
+      const part = imageBlockToImagePart(block);
+      if (part) pendingParts.push(part);
     }
   }
-
-  return out;
-}
-
-function buildUserOrAssistantMessage(
-  role: 'user' | 'assistant',
-  content: unknown,
-): OpenAIMessage[] {
-  const { text, parts, toolUses, toolResults, reasoning } = anthropicContentToChat(content);
-  const messages: OpenAIMessage[] = [];
-
-  // tool_result blocks become standalone tool-role messages in chat_completions.
-  for (const result of toolResults) {
-    messages.push({ role: 'tool', tool_call_id: result.toolUseId, content: result.content });
-  }
-
-  if (role === 'assistant') {
-    const tool_calls = toolUses.map((tu) => ({
-      id: tu.id,
-      type: 'function',
-      function: { name: tu.name, arguments: safeJsonStringify(tu.input) },
-    }));
-    if (text || tool_calls.length > 0 || reasoning) {
-      const message: OpenAIMessage = { role: 'assistant', content: text || null };
-      if (tool_calls.length > 0) message.tool_calls = tool_calls;
-      if (reasoning) message.reasoning_content = reasoning;
-      messages.push(message);
-    }
-    return messages;
-  }
-
-  // user role
-  const otherParts = parts.filter((p) => p.type !== 'text');
-  const hasNonText = otherParts.length > 0;
-  const hasText = parts.some((p) => p.type === 'text');
-  if (hasText && !hasNonText) {
-    if (text) messages.push({ role: 'user', content: text });
-  } else if (hasNonText) {
-    messages.push({ role: 'user', content: parts });
-  }
+  flushPendingUser();
   return messages;
 }
 
@@ -163,7 +163,11 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   for (const item of inputMessages) {
     if (!isRecord(item)) continue;
     const role = item.role === 'assistant' ? 'assistant' : 'user';
-    messages.push(...buildUserOrAssistantMessage(role, item.content));
+    messages.push(
+      ...(role === 'assistant'
+        ? buildAssistantMessage(item.content)
+        : buildUserMessages(item.content)),
+    );
   }
 
   const chatBody: JsonRecord = { messages };

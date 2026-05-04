@@ -240,6 +240,62 @@ describe('Anthropic Messages adapter', () => {
       expect(result.top_k).toBe(40);
     });
 
+    it('drops malformed image blocks (unsupported source type) without crashing', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'look' },
+              { type: 'image', source: { type: 'unknown' } },
+            ],
+          },
+        ],
+      });
+      expect(result.messages).toEqual([{ role: 'user', content: 'look' }]);
+    });
+
+    it('handles assistant turn with plain string content', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [
+          { role: 'user', content: 'hi' },
+          { role: 'assistant', content: 'hello back' },
+        ],
+      });
+      expect(result.messages).toEqual([
+        { role: 'user', content: 'hi' },
+        { role: 'assistant', content: 'hello back' },
+      ]);
+    });
+
+    it('preserves the original block order when text and tool_result interleave in a user turn', () => {
+      // Cubic flagged: emitting all tool_result blocks before user text in
+      // the same turn changes input order and could alter prompt semantics.
+      // Now we walk content in order and split user messages around
+      // tool_result boundaries.
+      const result = messagesToChatCompletionsRequest({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'before' },
+              { type: 'tool_result', tool_use_id: 'tu_a', content: 'A' },
+              { type: 'text', text: 'middle' },
+              { type: 'tool_result', tool_use_id: 'tu_b', content: 'B' },
+              { type: 'text', text: 'after' },
+            ],
+          },
+        ],
+      });
+      expect(result.messages).toEqual([
+        { role: 'user', content: 'before' },
+        { role: 'tool', tool_call_id: 'tu_a', content: 'A' },
+        { role: 'user', content: 'middle' },
+        { role: 'tool', tool_call_id: 'tu_b', content: 'B' },
+        { role: 'user', content: 'after' },
+      ]);
+    });
+
     it('echoes Anthropic thinking blocks back as reasoning_content on assistant turns', () => {
       // DeepSeek requires the reasoning trace echoed on follow-up assistant
       // turns. The Anthropic SDK exposes it as a `thinking` block on the
