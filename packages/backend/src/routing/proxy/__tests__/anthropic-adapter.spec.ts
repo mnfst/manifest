@@ -122,6 +122,30 @@ describe('Anthropic Adapter', () => {
       expect(result.stop_sequences).toEqual(['STOP', 'END']);
     });
 
+    it('wraps a bare string `stop` value into stop_sequences (chat_completions accepts both shapes)', () => {
+      // Cubic flagged: if a chat_completions client sends `stop: "END"`,
+      // the previous code dropped it because it only handled arrays.
+      const result = toAnthropicRequest(
+        { messages: [{ role: 'user', content: 'Hi' }], stop: 'END' },
+        'claude-sonnet-4-20250514',
+      );
+      expect(result.stop_sequences).toEqual(['END']);
+    });
+
+    it('ignores empty-string stop and non-string non-array shapes', () => {
+      const empty = toAnthropicRequest(
+        { messages: [{ role: 'user', content: 'Hi' }], stop: '' },
+        'claude-sonnet-4-20250514',
+      );
+      expect(empty.stop_sequences).toBeUndefined();
+
+      const nonsense = toAnthropicRequest(
+        { messages: [{ role: 'user', content: 'Hi' }], stop: 42 },
+        'claude-sonnet-4-20250514',
+      );
+      expect(nonsense.stop_sequences).toBeUndefined();
+    });
+
     it('converts tools with input_schema and injects cache_control on last tool', () => {
       const body = {
         messages: [{ role: 'user', content: 'Search' }],

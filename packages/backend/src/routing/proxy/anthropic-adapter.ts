@@ -199,7 +199,14 @@ export function toAnthropicRequest(
   // Anthropic Messages (POST /v1/messages). Chat-completions clients won't
   // set these, so this is a no-op for the OpenAI-compat path.
   if (body.thinking !== undefined) result.thinking = body.thinking;
-  if (Array.isArray(body.stop)) result.stop_sequences = body.stop;
+  // chat_completions `stop` accepts string OR string[]; Anthropic
+  // `stop_sequences` is always an array. Wrap a bare string so a single
+  // stop sequence isn't silently dropped.
+  if (Array.isArray(body.stop)) {
+    result.stop_sequences = body.stop;
+  } else if (typeof body.stop === 'string' && body.stop) {
+    result.stop_sequences = [body.stop];
+  }
   return result;
 }
 

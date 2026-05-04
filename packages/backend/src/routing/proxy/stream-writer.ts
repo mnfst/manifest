@@ -240,15 +240,17 @@ export async function pipeStream(
     // protocol-specific terminator was already written, so we skip the
     // OpenAI sentinel — keeping the wire format clean for SDKs that may
     // refuse to parse trailing unknown payloads.
-    if (transform) {
+    // Guard tail writes with `!dest.writableEnded` so a client disconnect
+    // mid-stream doesn't trigger ERR_STREAM_WRITE_AFTER_END.
+    if (transform && !dest.writableEnded) {
       if (finalize) {
         const trailing = finalize();
-        if (trailing) {
+        if (trailing && !dest.writableEnded) {
           dest.write(trailing);
           const usage = extractUsageFromSse(trailing);
           if (usage) capturedUsage = usage;
         }
-      } else {
+      } else if (!dest.writableEnded) {
         dest.write('data: [DONE]\n\n');
       }
     }
