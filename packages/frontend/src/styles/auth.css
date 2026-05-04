@@ -173,6 +173,18 @@
   line-height: 1.5;
 }
 
+.auth-form__hint {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.auth-form__hint .auth-form__link-btn {
+  font-size: inherit;
+}
+
 .auth-form__link-btn {
   background: none;
   border: none;

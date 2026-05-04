@@ -226,16 +226,20 @@ const Register: Component = () => {
               {error()}
             </div>
           )}
-          <div class="auth-form__success">
-            Click the link in your email to verify your account and get started.
-          </div>
-          <button
-            class="auth-form__link-btn"
-            onClick={handleResend}
-            disabled={resendCooldown() > 0}
-          >
-            {resendCooldown() > 0 ? `Resend in ${resendCooldown()}s` : 'Resend verification email'}
-          </button>
+          <p class="auth-form__hint">
+            Already signed up before? The link may have expired.{' '}
+            <button
+              type="button"
+              class="auth-form__link-btn"
+              onClick={handleResend}
+              disabled={resendCooldown() > 0}
+            >
+              {resendCooldown() > 0
+                ? `Resend in ${resendCooldown()}s`
+                : 'Resend verification email'}
+            </button>{' '}
+            to get a new one.
+          </p>
         </div>
 
         <div class="auth-footer">

@@ -163,7 +163,7 @@ describe("Register", () => {
     fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass12345" } });
     fireEvent.submit(container.querySelector("form")!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Click the link in your email");
+      expect(container.textContent).toContain("Already signed up before?");
     });
     // Resend button should be present (with cooldown since startCooldown was called)
     const resendBtn = Array.from(container.querySelectorAll("button")).find(
