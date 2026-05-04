@@ -42,27 +42,35 @@ describe("FRAMEWORK_TABS", () => {
 });
 
 describe("TOOLKIT_TABS", () => {
-  it("has four tabs", () => {
-    expect(TOOLKIT_TABS).toHaveLength(4);
+  it("has five tabs", () => {
+    expect(TOOLKIT_TABS).toHaveLength(5);
   });
 
-  it("contains openai-sdk, vercel-ai-sdk, langchain, curl", () => {
+  it("contains openai-sdk, anthropic-sdk, vercel-ai-sdk, langchain, curl", () => {
     const ids = TOOLKIT_TABS.map((t) => t.id);
-    expect(ids).toEqual(["openai-sdk", "vercel-ai-sdk", "langchain", "curl"]);
+    expect(ids).toEqual([
+      "openai-sdk",
+      "anthropic-sdk",
+      "vercel-ai-sdk",
+      "langchain",
+      "curl",
+    ]);
   });
 
   it("has display labels", () => {
     expect(TOOLKIT_TABS[0].label).toBe("OpenAI SDK");
-    expect(TOOLKIT_TABS[1].label).toBe("Vercel AI SDK");
-    expect(TOOLKIT_TABS[2].label).toBe("LangChain");
-    expect(TOOLKIT_TABS[3].label).toBe("cURL");
+    expect(TOOLKIT_TABS[1].label).toBe("Anthropic SDK");
+    expect(TOOLKIT_TABS[2].label).toBe("Vercel AI SDK");
+    expect(TOOLKIT_TABS[3].label).toBe("LangChain");
+    expect(TOOLKIT_TABS[4].label).toBe("cURL");
   });
 
-  it("has icons for openai, vercel, and langchain", () => {
+  it("has icons for openai, anthropic, vercel, and langchain", () => {
     expect(TOOLKIT_TABS[0].icon).toBe("/icons/providers/openai.svg");
-    expect(TOOLKIT_TABS[1].icon).toBe("/icons/vercel.svg");
-    expect(TOOLKIT_TABS[2].icon).toBe("/icons/langchain.png");
-    expect(TOOLKIT_TABS[3].icon).toBeUndefined();
+    expect(TOOLKIT_TABS[1].icon).toBe("/icons/providers/anthropic.svg");
+    expect(TOOLKIT_TABS[2].icon).toBe("/icons/vercel.svg");
+    expect(TOOLKIT_TABS[3].icon).toBe("/icons/langchain.png");
+    expect(TOOLKIT_TABS[4].icon).toBeUndefined();
   });
 });
 

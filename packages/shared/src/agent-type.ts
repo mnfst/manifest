@@ -5,6 +5,7 @@ export const AGENT_PLATFORMS = [
   'openclaw',
   'hermes',
   'openai-sdk',
+  'anthropic-sdk',
   'vercel-ai-sdk',
   'langchain',
   'curl',
@@ -21,6 +22,7 @@ export const PLATFORM_LABELS: Readonly<Record<AgentPlatform, string>> = {
   openclaw: 'OpenClaw',
   hermes: 'Hermes Agent',
   'openai-sdk': 'OpenAI SDK',
+  'anthropic-sdk': 'Anthropic SDK',
   'vercel-ai-sdk': 'Vercel AI SDK',
   langchain: 'LangChain',
   curl: 'cURL',
@@ -29,13 +31,14 @@ export const PLATFORM_LABELS: Readonly<Record<AgentPlatform, string>> = {
 
 export const PLATFORMS_BY_CATEGORY: Readonly<Record<AgentCategory, readonly AgentPlatform[]>> = {
   personal: ['openclaw', 'hermes', 'other'],
-  app: ['openai-sdk', 'vercel-ai-sdk', 'langchain', 'other'],
+  app: ['openai-sdk', 'anthropic-sdk', 'vercel-ai-sdk', 'langchain', 'other'],
 };
 
 export const PLATFORM_ICONS: Readonly<Partial<Record<AgentPlatform, string>>> = {
   openclaw: '/icons/openclaw.png',
   hermes: '/icons/hermes.png',
   'openai-sdk': '/icons/providers/openai.svg',
+  'anthropic-sdk': '/icons/providers/anthropic.svg',
   'vercel-ai-sdk': '/icons/vercel.svg',
   langchain: '/icons/langchain.png',
   other: '/icons/other.svg',

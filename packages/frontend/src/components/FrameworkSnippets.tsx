@@ -143,7 +143,13 @@ const FrameworkSnippets: Component<Props> = (props) => {
           </div>
         </Show>
 
-        <Show when={activeTab() === 'openai-sdk' || activeTab() === 'vercel-ai-sdk'}>
+        <Show
+          when={
+            activeTab() === 'openai-sdk' ||
+            activeTab() === 'anthropic-sdk' ||
+            activeTab() === 'vercel-ai-sdk'
+          }
+        >
           <div class="framework-snippets__toggle-row">
             <div class="toolkit-lang-toggle" role="tablist" aria-label="Language">
               <For each={SDK_LANG_TOGGLE}>

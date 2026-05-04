@@ -188,8 +188,9 @@ describe("SetupStepAddProvider", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     fireEvent.click(container.querySelectorAll(".setup-segment__btn")[1]);
     const tabs = container.querySelectorAll(".panel__tab");
-    expect(tabs).toHaveLength(4);
+    expect(tabs).toHaveLength(5);
     expect(tabs[0].textContent).toContain("OpenAI SDK");
+    expect(tabs[1].textContent).toContain("Anthropic SDK");
   });
 
   it("shows full API key on Toolkits tab when provided", () => {

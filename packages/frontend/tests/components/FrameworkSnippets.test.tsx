@@ -113,14 +113,15 @@ describe("FrameworkSnippets", () => {
     expect(container.querySelector('[aria-label="Hide API key"]')).toBeNull();
   });
 
-  it("renders four toolkit tabs", () => {
+  it("renders five toolkit tabs", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
-    expect(tabs).toHaveLength(4);
+    expect(tabs).toHaveLength(5);
     expect(tabs[0].textContent).toContain("OpenAI SDK");
-    expect(tabs[1].textContent).toContain("Vercel AI SDK");
-    expect(tabs[2].textContent).toContain("LangChain");
-    expect(tabs[3].textContent).toContain("cURL");
+    expect(tabs[1].textContent).toContain("Anthropic SDK");
+    expect(tabs[2].textContent).toContain("Vercel AI SDK");
+    expect(tabs[3].textContent).toContain("LangChain");
+    expect(tabs[4].textContent).toContain("cURL");
   });
 
   it("defaults to OpenAI SDK tab", () => {
@@ -182,24 +183,42 @@ describe("FrameworkSnippets", () => {
     expect(container.textContent).toContain('messages: [{ role: "user", content: "Hello" }]');
   });
 
-  it("switches to Vercel AI SDK tab on click", () => {
+  it("switches to Anthropic SDK tab on click", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
     fireEvent.click(tabs[1]);
+    expect(container.textContent).toContain("from anthropic import Anthropic");
+    expect(container.textContent).toContain("client.messages.create");
+  });
+
+  it("shows Anthropic TypeScript snippet when TypeScript selected", () => {
+    const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[1]); // Anthropic SDK
+    const langBtns = container.querySelectorAll(".toolkit-lang-toggle__btn");
+    fireEvent.click(langBtns[1]); // TypeScript
+    expect(container.textContent).toContain('import Anthropic from "@anthropic-ai/sdk"');
+    expect(container.textContent).toContain("client.messages.create");
+  });
+
+  it("switches to Vercel AI SDK tab on click", () => {
+    const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[2]);
     expect(container.textContent).toContain("Vercel AI SDK");
   });
 
   it("shows language toggle on Vercel AI SDK tab", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(tabs[1]); // Vercel AI SDK
+    fireEvent.click(tabs[2]); // Vercel AI SDK
     expect(container.querySelector(".toolkit-lang-toggle")).not.toBeNull();
   });
 
   it("shows Vercel TypeScript snippet when TypeScript selected", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(tabs[1]); // Vercel AI SDK
+    fireEvent.click(tabs[2]); // Vercel AI SDK
     const langBtns = container.querySelectorAll(".toolkit-lang-toggle__btn");
     fireEvent.click(langBtns[1]); // TypeScript
     expect(container.textContent).toContain("createOpenAI");
@@ -208,30 +227,30 @@ describe("FrameworkSnippets", () => {
   it("hides language toggle on LangChain and cURL tabs", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(tabs[2]); // LangChain
+    fireEvent.click(tabs[3]); // LangChain
     expect(container.querySelector(".toolkit-lang-toggle")).toBeNull();
-    fireEvent.click(tabs[3]); // cURL
+    fireEvent.click(tabs[4]); // cURL
     expect(container.querySelector(".toolkit-lang-toggle")).toBeNull();
   });
 
   it("hides OpenAI API toggle outside the OpenAI SDK tab", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(tabs[1]); // Vercel AI SDK
+    fireEvent.click(tabs[2]); // Vercel AI SDK
     expect(container.querySelector(".toolkit-api-toggle")).toBeNull();
   });
 
   it("switches to LangChain tab on click", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(tabs[2]);
+    fireEvent.click(tabs[3]);
     expect(container.textContent).toContain("ChatOpenAI");
   });
 
   it("switches to cURL tab on click", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(tabs[3]);
+    fireEvent.click(tabs[4]);
     expect(container.textContent).toContain("curl -X POST");
     expect(container.textContent).toContain("Bearer");
   });
@@ -239,7 +258,7 @@ describe("FrameworkSnippets", () => {
   it("persists selected toolkit tab in localStorage", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(tabs[1]);
+    fireEvent.click(tabs[2]);
     expect(localStorage.getItem("manifest_setup_toolkit")).toBe("vercel-ai-sdk");
   });
 
@@ -304,7 +323,7 @@ describe("FrameworkSnippets", () => {
   it("renders tab icons for tabs that have them", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const icons = container.querySelectorAll(".panel__tab-icon");
-    expect(icons.length).toBe(3); // openai, vercel, langchain (not curl)
+    expect(icons.length).toBe(4); // openai, anthropic, vercel, langchain (not curl)
   });
 
   it("renders language icons in OpenAI SDK toggle", () => {

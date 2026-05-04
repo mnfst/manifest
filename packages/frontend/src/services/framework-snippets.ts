@@ -12,7 +12,7 @@ export const FRAMEWORK_TABS: FrameworkTab[] = [
   { id: 'curl', label: 'cURL' },
 ];
 
-export type ToolkitId = 'openai-sdk' | 'vercel-ai-sdk' | 'langchain' | 'curl';
+export type ToolkitId = 'openai-sdk' | 'anthropic-sdk' | 'vercel-ai-sdk' | 'langchain' | 'curl';
 export type OpenAILangId = 'python' | 'typescript';
 export type OpenAIApiId = 'responses' | 'chat-completions';
 
@@ -24,6 +24,7 @@ export interface ToolkitTab {
 
 export const TOOLKIT_TABS: ToolkitTab[] = [
   { id: 'openai-sdk', label: 'OpenAI SDK', icon: '/icons/providers/openai.svg' },
+  { id: 'anthropic-sdk', label: 'Anthropic SDK', icon: '/icons/providers/anthropic.svg' },
   { id: 'vercel-ai-sdk', label: 'Vercel AI SDK', icon: '/icons/vercel.svg' },
   { id: 'langchain', label: 'LangChain', icon: '/icons/langchain.png' },
   { id: 'curl', label: 'cURL' },
@@ -153,6 +154,52 @@ const client = new OpenAI({
 
 const response = await client.chat.completions.create({
   model: "auto",
+  messages: [{ role: "user", content: "Hello" }],
+});`,
+  };
+}
+
+function getAnthropicPythonSnippet(
+  baseUrl: string,
+  apiKey: string,
+  customHeaders?: CustomHeaders,
+): Snippet {
+  const headersLine = headerLine(customHeaders, 'py-kwarg', 'default_headers');
+  return {
+    title: 'Anthropic Python SDK',
+    code: `from anthropic import Anthropic
+
+client = Anthropic(
+    base_url="${baseUrl}",
+    auth_token="${apiKey}",${headersLine}
+)
+
+message = client.messages.create(
+    model="auto",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello"}],
+)`,
+  };
+}
+
+function getAnthropicTypeScriptSnippet(
+  baseUrl: string,
+  apiKey: string,
+  customHeaders?: CustomHeaders,
+): Snippet {
+  const headersLine = headerLine(customHeaders, 'ts-prop', 'defaultHeaders');
+  return {
+    title: 'Anthropic TypeScript SDK',
+    code: `import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  baseURL: "${baseUrl}",
+  authToken: "${apiKey}",${headersLine}
+});
+
+const message = await client.messages.create({
+  model: "auto",
+  max_tokens: 1024,
   messages: [{ role: "user", content: "Hello" }],
 });`,
   };
@@ -383,6 +430,10 @@ export function getSnippetForToolkit(
       return openaiLang === 'python'
         ? getPythonSnippets(baseUrl, apiKey, customHeaders)[1]!
         : getTypeScriptSnippets(baseUrl, apiKey, customHeaders)[1]!;
+    case 'anthropic-sdk':
+      return openaiLang === 'python'
+        ? getAnthropicPythonSnippet(baseUrl, apiKey, customHeaders)
+        : getAnthropicTypeScriptSnippet(baseUrl, apiKey, customHeaders);
     case 'vercel-ai-sdk':
       return openaiLang === 'python'
         ? getVercelPythonSnippet(baseUrl, apiKey, customHeaders)
@@ -397,6 +448,8 @@ export function getSnippetForToolkit(
 export function getLangForToolkit(id: ToolkitId, openaiLang?: OpenAILangId): string {
   switch (id) {
     case 'openai-sdk':
+      return openaiLang === 'typescript' ? 'typescript' : 'python';
+    case 'anthropic-sdk':
       return openaiLang === 'typescript' ? 'typescript' : 'python';
     case 'vercel-ai-sdk':
       return openaiLang === 'typescript' ? 'typescript' : 'python';
