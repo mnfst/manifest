@@ -138,9 +138,11 @@
 
 /* Dark-mode icon inversion for light-only logos */
 .dark .agent-type-select__trigger-icon[src*='openai'],
+.dark .agent-type-select__trigger-icon[src*='anthropic'],
 .dark .agent-type-select__trigger-icon[src*='vercel'],
 .dark .agent-type-select__trigger-icon[src*='other'],
 .dark .agent-type-select__option-icon[src*='openai'],
+.dark .agent-type-select__option-icon[src*='anthropic'],
 .dark .agent-type-select__option-icon[src*='vercel'],
 .dark .agent-type-select__option-icon[src*='other'] {
   filter: invert(1);
