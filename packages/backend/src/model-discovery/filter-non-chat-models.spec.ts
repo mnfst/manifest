@@ -103,26 +103,6 @@ describe('filterNonChatModels', () => {
     });
   });
 
-  describe('OpenAI subscription patterns', () => {
-    it('filters moderation models for openai-subscription', () => {
-      const models = [makeModel('text-moderation-latest'), makeModel('gpt-4o')];
-      const result = filterNonChatModels(models, 'openai-subscription');
-      expect(result.map((m) => m.id)).toEqual(['gpt-4o']);
-    });
-
-    it('filters audio models for openai-subscription', () => {
-      const models = [makeModel('gpt-4o-audio-preview'), makeModel('gpt-4o')];
-      const result = filterNonChatModels(models, 'openai-subscription');
-      expect(result.map((m) => m.id)).toEqual(['gpt-4o']);
-    });
-
-    it('filters chatgpt-image models for openai-subscription', () => {
-      const models = [makeModel('chatgpt-image-latest'), makeModel('gpt-4o')];
-      const result = filterNonChatModels(models, 'openai-subscription');
-      expect(result.map((m) => m.id)).toEqual(['gpt-4o']);
-    });
-  });
-
   describe('Gemini-specific patterns', () => {
     it('filters aqs- prefixed models', () => {
       const models = [makeModel('aqs-gemini-model'), makeModel('gemini-2.5-flash')];
@@ -319,9 +299,8 @@ describe('filterNonChatModels', () => {
   });
 
   describe('PROVIDER_NON_CHAT registry', () => {
-    it('has entries for openai, openai-subscription, gemini, mistral, and xai', () => {
+    it('has entries for openai, gemini, mistral, and xai', () => {
       expect(PROVIDER_NON_CHAT).toHaveProperty('openai');
-      expect(PROVIDER_NON_CHAT).toHaveProperty('openai-subscription');
       expect(PROVIDER_NON_CHAT).toHaveProperty('gemini');
       expect(PROVIDER_NON_CHAT).toHaveProperty('mistral');
       expect(PROVIDER_NON_CHAT).toHaveProperty('xai');

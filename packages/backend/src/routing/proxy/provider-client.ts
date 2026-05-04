@@ -235,14 +235,7 @@ export class ProviderClient {
         headers: endpoint.buildHeaders(apiKey, authType),
         requestBody:
           ctx.apiMode === 'responses'
-            ? // ChatGPT subscription tokens hit the Codex Responses backend, which
-              // requires instruction text, list-shaped input, and upstream SSE even
-              // when Manifest returns a non-streaming JSON response to the caller.
-              toNativeResponsesRequest(body, bareModel, {
-                defaultInstructions: endpointKey === 'openai-subscription',
-                inputList: endpointKey === 'openai-subscription',
-                forceStream: endpointKey === 'openai-subscription',
-              })
+            ? toNativeResponsesRequest(body, bareModel)
             : toResponsesRequest(body, bareModel),
       };
     }

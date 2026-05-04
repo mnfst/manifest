@@ -7,6 +7,16 @@ import { ProviderService } from './routing-core/provider.service';
 const fetchMock = jest.fn() as jest.Mock<Promise<any>>;
 global.fetch = fetchMock;
 
+// Helper: queue the RFC 8693 token-exchange response that follows every
+// successful authorization_code / refresh_token call. Each successful OAuth
+// step now requires TWO fetch mocks — the OAuth /token call, then this one.
+function mockKeyExchangeOk(apiKey = 'sk-minted', expiresIn = 3600): void {
+  fetchMock.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ access_token: apiKey, expires_in: expiresIn }),
+  });
+}
+
 // Stub createServerMock so the callback server never actually binds a port
 jest.mock('http', () => {
   const actual = jest.requireActual('http');
@@ -98,11 +108,13 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id-token-1',
           access_token: 'access-123',
           refresh_token: 'refresh-456',
           expires_in: 3600,
         }),
       });
+      mockKeyExchangeOk('sk-minted-1', 1800);
 
       await service.exchangeCode(state, 'auth-code-xyz');
 
@@ -122,7 +134,8 @@ describe('OpenaiOauthService', () => {
       const storedBlob: OAuthTokenBlob = JSON.parse(
         providerService.upsertProvider.mock.calls[0][3] as string,
       );
-      expect(storedBlob.t).toBe('access-123');
+      // blob.t now holds the api.openai.com key minted via RFC 8693.
+      expect(storedBlob.t).toBe('sk-minted-1');
       expect(storedBlob.r).toBe('refresh-456');
       expect(storedBlob.e).toBeGreaterThan(Date.now());
     });
@@ -166,11 +179,13 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id',
           access_token: 'tok',
           refresh_token: 'ref',
           expires_in: 3600,
         }),
       });
+      mockKeyExchangeOk();
 
       // Should not throw despite discovery failure
       await service.exchangeCode(state, 'code');
@@ -186,11 +201,13 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id',
           access_token: 'tok',
           refresh_token: 'ref',
           expires_in: 3600,
         }),
       });
+      mockKeyExchangeOk();
 
       await service.exchangeCode(state, 'code');
       expect(service.getPendingCount()).toBe(0);
@@ -202,15 +219,17 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id',
           access_token: 'new-access',
           refresh_token: 'new-refresh',
           expires_in: 7200,
         }),
       });
+      mockKeyExchangeOk('sk-minted-refresh', 7200);
 
       const result = await service.refreshAccessToken('old-refresh');
 
-      expect(result.t).toBe('new-access');
+      expect(result.t).toBe('sk-minted-refresh');
       expect(result.r).toBe('new-refresh');
       expect(result.e).toBeGreaterThan(Date.now());
     });
@@ -219,10 +238,12 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id',
           access_token: 'new-access',
           expires_in: 3600,
         }),
       });
+      mockKeyExchangeOk();
 
       const result = await service.refreshAccessToken('original-refresh');
       expect(result.r).toBe('original-refresh');
@@ -271,15 +292,17 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id',
           access_token: 'new-access',
           refresh_token: 'new-refresh',
           expires_in: 3600,
         }),
       });
+      mockKeyExchangeOk('sk-fresh');
 
       const result = await service.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
 
-      expect(result).toBe('new-access');
+      expect(result).toBe('sk-fresh');
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
@@ -299,14 +322,16 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id',
           access_token: 'fresh-access',
           refresh_token: 'fresh-refresh',
           expires_in: 3600,
         }),
       });
+      mockKeyExchangeOk('sk-buffered');
 
       const result = await service.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
-      expect(result).toBe('fresh-access');
+      expect(result).toBe('sk-buffered');
     });
 
     it('returns null when refresh fails', async () => {
@@ -401,11 +426,13 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id',
           access_token: 'tok',
           refresh_token: 'ref',
           expires_in: 3600,
         }),
       });
+      mockKeyExchangeOk();
 
       await service.exchangeCode(state, 'code');
       expect(server.close).toHaveBeenCalled();
@@ -491,11 +518,13 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id',
           access_token: 'tok',
           refresh_token: 'ref',
           expires_in: 3600,
         }),
       });
+      mockKeyExchangeOk();
 
       const res = { writeHead: jest.fn(), end: jest.fn() };
       requestHandler!({ url: `/auth/callback?code=the-code&state=${state}` }, res);
@@ -664,11 +693,13 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id',
           access_token: 'tok',
           refresh_token: 'ref',
           expires_in: 3600,
         }),
       });
+      mockKeyExchangeOk();
 
       const res = { writeHead: jest.fn(), end: jest.fn() };
       requestHandler!({ url: `/auth/callback?code=the-code&state=${state}` }, res);
@@ -705,11 +736,13 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id',
           access_token: 'tok',
           refresh_token: 'ref',
           expires_in: 3600,
         }),
       });
+      mockKeyExchangeOk();
 
       const res = { writeHead: jest.fn(), end: jest.fn() };
       requestHandler!({ url: `/auth/callback?code=the-code&state=${state}` }, res);
@@ -742,11 +775,13 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
+          id_token: 'id',
           access_token: 'tok',
           refresh_token: 'ref',
           expires_in: 3600,
         }),
       });
+      mockKeyExchangeOk();
 
       const res = { writeHead: jest.fn(), end: jest.fn() };
       requestHandler!({ url: `/auth/callback?code=the-code&state=${state}` }, res);

@@ -80,7 +80,8 @@ export class OpenaiOauthController {
     if (apiKey) {
       try {
         const blob = JSON.parse(apiKey) as OAuthTokenBlob;
-        if (blob.t) await this.oauthService.revokeToken(blob.t);
+        // blob.t holds a minted api.openai.com key (no public revoke endpoint);
+        // revoking the OAuth refresh token invalidates the grant chain.
         if (blob.r) await this.oauthService.revokeToken(blob.r);
       } catch {
         this.logger.warn('Could not parse OAuth token blob for revocation');

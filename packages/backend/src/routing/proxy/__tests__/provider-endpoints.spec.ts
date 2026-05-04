@@ -214,26 +214,8 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(path).toBe('/api/v1/chat/completions');
   });
 
-  it('openai-subscription uses chatgpt.com backend base URL', () => {
-    const ep = PROVIDER_ENDPOINTS['openai-subscription'];
-    expect(ep.baseUrl).toBe('https://chatgpt.com/backend-api');
-  });
-
-  it('openai-subscription builds /codex/responses path', () => {
-    const path = PROVIDER_ENDPOINTS['openai-subscription'].buildPath('gpt-5');
-    expect(path).toBe('/codex/responses');
-  });
-
-  it('openai-subscription uses chatgpt format', () => {
-    expect(PROVIDER_ENDPOINTS['openai-subscription'].format).toBe('chatgpt');
-  });
-
-  it('openai-subscription headers include originator and user-agent', () => {
-    const headers = PROVIDER_ENDPOINTS['openai-subscription'].buildHeaders('oauth-token');
-    expect(headers['Authorization']).toBe('Bearer oauth-token');
-    expect(headers['Content-Type']).toBe('application/json');
-    expect(headers['originator']).toBe('codex_cli_rs');
-    expect(headers['user-agent']).toBe('codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown');
+  it('openai-subscription endpoint is gone — subscription users hit the standard openai endpoint with a minted api.openai.com key', () => {
+    expect(PROVIDER_ENDPOINTS['openai-subscription']).toBeUndefined();
   });
 
   it('minimax-subscription buildPath returns /v1/messages', () => {

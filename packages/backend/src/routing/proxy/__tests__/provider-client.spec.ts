@@ -208,12 +208,12 @@ describe('ProviderClient', () => {
       expect(result.isChatGpt).toBe(false);
     });
 
-    it('adds default instructions for subscription Responses requests', async () => {
+    it('routes openai+subscription to api.openai.com without injecting Codex-specific defaults', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       await client.forward({
         provider: 'openai',
-        apiKey: 'oauth-token',
+        apiKey: 'sk-minted-key',
         model: 'gpt-5.4',
         body: { input: 'Hello', stream: false },
         chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
@@ -222,14 +222,13 @@ describe('ProviderClient', () => {
         apiMode: 'responses',
       });
 
+      // Subscription users hold a real api.openai.com key (RFC 8693 minted),
+      // so they hit the standard Responses endpoint with no defaultInstructions
+      // / inputList / forceStream injection.
       const url = mockFetch.mock.calls[0][0] as string;
-      expect(url).toBe('https://chatgpt.com/backend-api/codex/responses');
+      expect(url).toBe('https://api.openai.com/v1/responses');
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.instructions).toBe('You are a helpful assistant.');
-      expect(sentBody.input).toEqual([
-        { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
-      ]);
-      expect(sentBody.stream).toBe(true);
+      expect(sentBody.instructions).toBeUndefined();
     });
 
     it('uses normalized chat body for non-native Responses providers', async () => {
@@ -480,13 +479,13 @@ describe('ProviderClient', () => {
     });
   });
 
-  describe('ChatGPT subscription provider', () => {
-    it('routes to chatgpt.com Codex backend with subscription authType', async () => {
+  describe('OpenAI subscription provider (RFC 8693 minted key)', () => {
+    it('routes openai+subscription to api.openai.com (the minted key works there)', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const result = await client.forward({
         provider: 'openai',
-        apiKey: 'oauth-token',
+        apiKey: 'sk-minted-key',
         model: 'gpt-5',
         body,
         stream: false,
@@ -494,58 +493,15 @@ describe('ProviderClient', () => {
       });
 
       const url = mockFetch.mock.calls[0][0] as string;
-      expect(url).toBe('https://chatgpt.com/backend-api/codex/responses');
-      expect(result.isChatGpt).toBe(true);
+      expect(url).toBe('https://api.openai.com/v1/chat/completions');
+      // No more chatgpt-format wrapping; this is a normal OpenAI call.
+      expect(result.isChatGpt).toBe(false);
       expect(result.isGoogle).toBe(false);
       expect(result.isAnthropic).toBe(false);
 
       const headers = mockFetch.mock.calls[0][1].headers;
-      expect(headers['originator']).toBe('codex_cli_rs');
-      expect(headers['Authorization']).toBe('Bearer oauth-token');
-    });
-
-    it('converts request body using toResponsesRequest', async () => {
-      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
-
-      const bodyWithSystem = {
-        messages: [
-          { role: 'system', content: 'Be helpful.' },
-          { role: 'user', content: 'Hello' },
-        ],
-      };
-      await client.forward({
-        provider: 'openai',
-        apiKey: 'token',
-        model: 'gpt-5.3-codex',
-        body: bodyWithSystem,
-        stream: false,
-        authType: 'subscription',
-      });
-
-      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.instructions).toBe('Be helpful.');
-      expect(sentBody.input).toEqual([
-        { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
-      ]);
-      expect(sentBody.model).toBe('gpt-5.3-codex');
-      expect(sentBody.stream).toBe(true);
-      expect(sentBody.store).toBe(false);
-    });
-
-    it('sends default instructions when no system or developer prompt is present', async () => {
-      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
-
-      await client.forward({
-        provider: 'openai',
-        apiKey: 'token',
-        model: 'gpt-5.1-codex-mini',
-        body: { messages: [{ role: 'user', content: 'Hello' }] },
-        stream: false,
-        authType: 'subscription',
-      });
-
-      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.instructions).toBe('You are a helpful assistant.');
+      expect(headers['originator']).toBeUndefined();
+      expect(headers['Authorization']).toBe('Bearer sk-minted-key');
     });
 
     it('sets isChatGpt=false for regular OpenAI api_key auth', async () => {
@@ -712,12 +668,12 @@ describe('ProviderClient', () => {
       expect(sentBody.store).toBeUndefined();
     });
 
-    it('keeps subscription + Codex on the Codex backend (subscription override wins)', async () => {
+    it('subscription + Codex model still hits api.openai.com (minted key works for any OpenAI model)', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const result = await client.forward({
         provider: 'openai',
-        apiKey: 'oauth-token',
+        apiKey: 'sk-minted-key',
         model: 'gpt-5.3-codex',
         body,
         stream: false,
@@ -725,15 +681,16 @@ describe('ProviderClient', () => {
       });
 
       const url = mockFetch.mock.calls[0][0] as string;
-      // Must stay on chatgpt.com/backend-api (subscription), NOT swap to api.openai.com.
-      expect(url).toBe('https://chatgpt.com/backend-api/codex/responses');
-      expect(url).not.toContain('api.openai.com');
-      expect(result.isChatGpt).toBe(true);
+      // Codex models still route through api.openai.com — the Codex backdoor
+      // is gone, so subscription users hit the same Responses endpoint as
+      // sk-key users.
+      expect(url).toContain('api.openai.com');
+      expect(url).not.toContain('chatgpt.com');
+      expect(result.isChatGpt).toBe(true); // codex models use chatgpt format on api.openai.com/v1/responses
 
-      // Subscription spoofs the Codex CLI user agent; the api_key responses
-      // path does not. This confirms we hit the subscription endpoint.
       const headers = mockFetch.mock.calls[0][1].headers;
-      expect(headers['originator']).toBe('codex_cli_rs');
+      expect(headers['originator']).toBeUndefined();
+      expect(headers['Authorization']).toBe('Bearer sk-minted-key');
     });
 
     it('does not override custom endpoints when a Codex model is used through a custom provider', async () => {

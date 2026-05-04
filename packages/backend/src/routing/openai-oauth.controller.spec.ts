@@ -150,9 +150,13 @@ describe('OpenaiOauthController', () => {
       await expect(controller.revoke('', { id: 'user-1' } as never)).rejects.toThrow(HttpException);
     });
 
-    it('revokes both access and refresh tokens from stored blob', async () => {
+    it('revokes the OAuth refresh token from the stored blob (api.openai.com key has no public revoke endpoint)', async () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
-      const blob = JSON.stringify({ t: 'access-tok', r: 'refresh-tok', e: Date.now() + 3600000 });
+      const blob = JSON.stringify({
+        t: 'sk-minted-key',
+        r: 'refresh-tok',
+        e: Date.now() + 3600000,
+      });
       providerKeyService.getProviderApiKey.mockResolvedValue(blob);
 
       const result = await controller.revoke('my-agent', { id: 'user-1' } as never);
@@ -162,8 +166,10 @@ describe('OpenaiOauthController', () => {
         'openai',
         'subscription',
       );
-      expect(oauthService.revokeToken).toHaveBeenCalledWith('access-tok');
+      // Only the refresh token goes to /oauth/revoke; the minted API key
+      // (blob.t) is not an OAuth token.
       expect(oauthService.revokeToken).toHaveBeenCalledWith('refresh-tok');
+      expect(oauthService.revokeToken).not.toHaveBeenCalledWith('sk-minted-key');
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
         'openai',

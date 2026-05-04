@@ -11,9 +11,13 @@
  * Maps `(provider-endpoint-key, auth-type)` → endpoint key for subscription
  * flows. Allows a provider to use a different backend endpoint when the
  * authenticated user is on a subscription plan rather than a per-request key.
+ *
+ * OpenAI is intentionally absent: the OAuth flow now mints a real API key via
+ * RFC 8693 token exchange (see openai-oauth.service.ts), so subscription users
+ * route through the standard `openai` endpoint — same wire format as a regular
+ * sk- key, full Responses API surface available.
  */
 const SUBSCRIPTION_ENDPOINT_OVERRIDES: Record<string, string> = {
-  openai: 'openai-subscription',
   minimax: 'minimax-subscription',
   zai: 'zai-subscription',
 };

@@ -55,22 +55,9 @@ const opencodeGoAnthropicHeaders = (apiKey: string): Record<string, string> => (
   'anthropic-version': '2023-06-01',
 });
 
-/**
- * ChatGPT subscription OAuth tokens use the Codex backend,
- * which requires specific headers to avoid 403 responses.
- * Note: These headers mimic the Codex CLI client. This is required for the
- * endpoint to accept requests, but may break if OpenAI changes validation.
- */
-const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
 const ZAI_SUBSCRIPTION_BASE = 'https://open.bigmodel.cn/api/coding/paas/v4';
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
-const chatgptSubscriptionHeaders = (apiKey: string) => ({
-  Authorization: `Bearer ${apiKey}`,
-  'Content-Type': 'application/json',
-  originator: 'codex_cli_rs',
-  'user-agent': 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown',
-});
 
 export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   openai: {
@@ -78,12 +65,6 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
-  },
-  'openai-subscription': {
-    baseUrl: CHATGPT_SUBSCRIPTION_BASE,
-    buildHeaders: chatgptSubscriptionHeaders,
-    buildPath: () => '/codex/responses',
-    format: 'chatgpt',
   },
   // Standard OpenAI API key against api.openai.com/v1/responses — used for
   // Codex, -pro, o1-pro, and deep-research models that reject /v1/chat/completions.

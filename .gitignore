@@ -28,3 +28,17 @@ coverage/
 .gstack/
 scripts/.env.verify
 scripts/verify-free-model-ids.sh
+
+# Craft Agent workspace artifacts (not part of the project)
+sessions/
+config.json
+events.jsonl
+views.json
+labels/
+statuses/
+skills/
+AGENTS.md
+.claude-plugin/
+.fieldflow/
+icon.svg
+packages/openclaw-plugin/

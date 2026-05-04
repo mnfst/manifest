@@ -101,8 +101,6 @@ export const UNIVERSAL_NON_CHAT_RE =
 export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   openai:
     /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image|^gpt-image-|search-api)/i,
-  'openai-subscription':
-    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio|^chatgpt-image|^gpt-image-)/i,
   gemini:
     /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview|robotics)/i,
   mistral:
@@ -280,27 +278,6 @@ const parseOllama = createModelParser<OllamaModelEntry>({
   qualityScore: 2,
 });
 
-/* ── OpenAI subscription (Codex CLI models API) ── */
-
-interface OpenAISubscriptionModelEntry {
-  slug: string;
-  display_name?: string;
-  context_window?: number;
-  visibility?: string;
-  supported_in_api?: boolean;
-}
-
-const parseOpenaiSubscription = createModelParser<OpenAISubscriptionModelEntry>({
-  arrayKey: 'models',
-  filter: (entry) => typeof entry.slug === 'string' && entry.visibility === 'list',
-  getId: (entry) => entry.slug,
-  getDisplayName: (entry, id) => entry.display_name || id,
-  contextWindow: (entry) => entry.context_window ?? 200000,
-  inputPricePerToken: 0,
-  outputPricePerToken: 0,
-  capabilityCode: true,
-});
-
 /* ── GitHub Copilot (subscription-only, OpenAI-compatible /models) ── */
 
 const parseCopilot = createModelParser<OpenAIModelEntry>({
@@ -319,16 +296,6 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.openai.com/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAIDeduped,
-  },
-  'openai-subscription': {
-    endpoint: 'https://chatgpt.com/backend-api/codex/models?client_version=0.99.0',
-    buildHeaders: (key: string) => ({
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      originator: 'codex_cli_rs',
-      'user-agent': 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown',
-    }),
-    parse: parseOpenaiSubscription,
   },
   deepseek: {
     endpoint: 'https://api.deepseek.com/models',
@@ -447,10 +414,9 @@ export class ProviderModelFetcherService {
     endpointOverride?: string,
   ): Promise<DiscoveredModel[]> {
     let configKey = providerId.toLowerCase();
-    // OpenAI subscription tokens use a different models endpoint
-    if (configKey === 'openai' && authType === 'subscription') {
-      configKey = 'openai-subscription';
-    } else if (configKey === 'minimax' && authType === 'subscription') {
+    // OpenAI subscription users hold a real api.openai.com key (minted via
+    // RFC 8693 token exchange) — they get the same model list as sk- keys.
+    if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
     } else if (configKey === 'zai' && authType === 'subscription') {
       configKey = 'zai-subscription';

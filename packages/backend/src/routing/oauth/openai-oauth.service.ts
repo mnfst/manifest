@@ -17,6 +17,14 @@ const SCOPE = 'openid profile email offline_access';
 const CALLBACK_PORT = 1455;
 const REDIRECT_URI = `http://localhost:${CALLBACK_PORT}/auth/callback`;
 const STATE_TTL_MS = 10 * 60 * 1000;
+// RFC 8693 token exchange constants. The grant takes an id_token that
+// carries the user's OpenAI organization_id and returns a real API key
+// that bills against their ChatGPT subscription. Without
+// id_token_add_organizations=true at /authorize, the id_token has no
+// organization_id and the exchange would fail.
+const TOKEN_EXCHANGE_GRANT = 'urn:ietf:params:oauth:grant-type:token-exchange';
+const ID_TOKEN_TYPE = 'urn:ietf:params:oauth:token-type:id_token';
+const REQUESTED_TOKEN = 'openai-api-key';
 
 @Injectable()
 export class OpenaiOauthService {
@@ -72,6 +80,11 @@ export class OpenaiOauthService {
       state,
       code_challenge: challenge,
       code_challenge_method: 'S256',
+      // Required for the RFC 8693 token exchange in exchangeIdTokenForApiKey:
+      // without id_token_add_organizations the id_token has no organization_id
+      // claim and the exchange returns invalid_subject_token.
+      id_token_add_organizations: 'true',
+      codex_cli_simplified_flow: 'true',
     });
     return `${AUTHORIZE_URL}?${params.toString()}`;
   }
@@ -101,15 +114,12 @@ export class OpenaiOauthService {
       throw new Error('Token exchange failed');
     }
     const data = (await response.json()) as {
+      id_token: string;
       access_token: string;
       refresh_token: string;
       expires_in: number;
     };
-    const blob: OAuthTokenBlob = {
-      t: data.access_token,
-      r: data.refresh_token,
-      e: Date.now() + data.expires_in * 1000,
-    };
+    const blob = await this.mintApiKeyBlob(data.id_token, data.refresh_token);
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
@@ -143,15 +153,62 @@ export class OpenaiOauthService {
       throw new Error('Token refresh failed');
     }
     const data = (await response.json()) as {
+      id_token: string;
       access_token: string;
       refresh_token?: string;
       expires_in: number;
     };
-    return {
-      t: data.access_token,
-      r: data.refresh_token || refreshToken,
-      e: Date.now() + data.expires_in * 1000,
+    return this.mintApiKeyBlob(data.id_token, data.refresh_token || refreshToken);
+  }
+
+  /**
+   * RFC 8693 token exchange — converts the OAuth id_token (which carries
+   * the user's organization_id) into a real OpenAI API key bound to that
+   * organization. The minted key bills against the user's ChatGPT plan and
+   * works against api.openai.com with the full Responses API surface.
+   */
+  private async exchangeIdTokenForApiKey(idToken: string): Promise<{
+    apiKey: string;
+    expiresAt: number;
+  }> {
+    const response = await fetch(TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: TOKEN_EXCHANGE_GRANT,
+        client_id: this.clientId,
+        subject_token: idToken,
+        subject_token_type: ID_TOKEN_TYPE,
+        requested_token: REQUESTED_TOKEN,
+      }),
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      this.logger.error(`OpenAI API key exchange failed: ${scrubSecrets(text)}`);
+      throw new Error('API key exchange failed');
+    }
+    const data = (await response.json()) as {
+      access_token?: string;
+      expires_in?: number;
     };
+    if (!data.access_token) {
+      throw new Error('API key exchange returned no access_token');
+    }
+    // expires_in is optional in the response; fall back to a 1h conservative
+    // lifetime so unwrapToken refreshes on a sane cadence.
+    const lifetimeMs = (data.expires_in ?? 3600) * 1000;
+    return { apiKey: data.access_token, expiresAt: Date.now() + lifetimeMs };
+  }
+
+  /**
+   * Run the token exchange and pack the result into the storage blob shape.
+   * The minted API key lands in `t` so existing consumers (proxy bearer,
+   * model discovery) read it transparently.
+   */
+  private async mintApiKeyBlob(idToken: string, refreshToken: string): Promise<OAuthTokenBlob> {
+    if (!idToken) throw new Error('OAuth response missing id_token');
+    const { apiKey, expiresAt } = await this.exchangeIdTokenForApiKey(idToken);
+    return { t: apiKey, r: refreshToken, e: expiresAt };
   }
 
   /** Parse an OAuth blob and return a valid access token, refreshing if expired. */

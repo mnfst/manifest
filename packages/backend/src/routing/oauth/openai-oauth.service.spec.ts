@@ -79,6 +79,10 @@ describe('OpenaiOauthService', () => {
       expect(parsed.searchParams.get('scope')).toBe('openid profile email offline_access');
       expect(parsed.searchParams.get('redirect_uri')).toBe('http://localhost:1455/auth/callback');
       expect(parsed.searchParams.get('state')?.length).toBeGreaterThan(0);
+      // Required so the resulting id_token carries organization_id and can be
+      // exchanged for an api.openai.com key (RFC 8693).
+      expect(parsed.searchParams.get('id_token_add_organizations')).toBe('true');
+      expect(parsed.searchParams.get('codex_cli_simplified_flow')).toBe('true');
       expect(svc.getPendingCount()).toBe(1);
     });
 
@@ -117,37 +121,49 @@ describe('OpenaiOauthService', () => {
       expect(svc.getPendingCount()).toBe(0);
     });
 
-    it('exchanges a valid code, stores the blob, and triggers model discovery', async () => {
-      fetchMock.mockResolvedValue(
-        mockResponse(200, {
-          access_token: 'access-1',
-          refresh_token: 'refresh-1',
-          expires_in: 3600,
-        }),
-      );
+    it('exchanges code, mints an api.openai.com key, stores it, and triggers discovery', async () => {
+      fetchMock
+        // 1. authorization_code → tokens (incl. id_token)
+        .mockResolvedValueOnce(
+          mockResponse(200, {
+            id_token: 'id-token-1',
+            access_token: 'access-1',
+            refresh_token: 'refresh-1',
+            expires_in: 3600,
+          }),
+        )
+        // 2. RFC 8693 token-exchange → minted API key
+        .mockResolvedValueOnce(
+          mockResponse(200, { access_token: 'sk-minted-1', expires_in: 1800 }),
+        );
       const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
 
       await svc.exchangeCode(state, 'auth-code');
 
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      const [tokenUrl, init] = fetchMock.mock.calls[0];
-      expect(tokenUrl).toBe('https://auth.openai.com/oauth/token');
-      const body = new URLSearchParams(init.body.toString());
-      expect(body.get('grant_type')).toBe('authorization_code');
-      expect(body.get('code')).toBe('auth-code');
-      expect(body.get('code_verifier')?.length).toBeGreaterThan(0);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const [authCodeCall, exchangeCall] = fetchMock.mock.calls;
+      expect(authCodeCall[0]).toBe('https://auth.openai.com/oauth/token');
+      expect(new URLSearchParams(authCodeCall[1].body.toString()).get('grant_type')).toBe(
+        'authorization_code',
+      );
+      expect(exchangeCall[0]).toBe('https://auth.openai.com/oauth/token');
+      const exchangeBody = new URLSearchParams(exchangeCall[1].body.toString());
+      expect(exchangeBody.get('grant_type')).toBe(
+        'urn:ietf:params:oauth:grant-type:token-exchange',
+      );
+      expect(exchangeBody.get('subject_token')).toBe('id-token-1');
+      expect(exchangeBody.get('requested_token')).toBe('openai-api-key');
 
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
         'openai',
-        expect.stringContaining('"t":"access-1"'),
+        expect.stringContaining('"t":"sk-minted-1"'),
         'subscription',
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
       expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1');
-      // State is one-time-use.
       expect(svc.getPendingCount()).toBe(0);
     });
 
@@ -158,10 +174,60 @@ describe('OpenaiOauthService', () => {
       await expect(svc.exchangeCode(state, 'bad')).rejects.toThrow('Token exchange failed');
     });
 
-    it('swallows discovery errors (OAuth success is not rolled back)', async () => {
-      fetchMock.mockResolvedValue(
+    it('throws when the token-exchange step returns no access_token', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          mockResponse(200, {
+            id_token: 'id-1',
+            access_token: 'a',
+            refresh_token: 'r',
+            expires_in: 60,
+          }),
+        )
+        .mockResolvedValueOnce(mockResponse(200, {}));
+      const url = await svc.generateAuthorizationUrl('a', 'u');
+      const state = new URL(url).searchParams.get('state')!;
+      await expect(svc.exchangeCode(state, 'c')).rejects.toThrow(
+        'API key exchange returned no access_token',
+      );
+    });
+
+    it('throws when the token-exchange step returns a non-2xx status', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          mockResponse(200, {
+            id_token: 'id-1',
+            access_token: 'a',
+            refresh_token: 'r',
+            expires_in: 60,
+          }),
+        )
+        .mockResolvedValueOnce(mockResponse(401, {}, 'invalid_subject_token'));
+      const url = await svc.generateAuthorizationUrl('a', 'u');
+      const state = new URL(url).searchParams.get('state')!;
+      await expect(svc.exchangeCode(state, 'c')).rejects.toThrow('API key exchange failed');
+    });
+
+    it('throws when the OAuth response omits id_token', async () => {
+      fetchMock.mockResolvedValueOnce(
         mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 60 }),
       );
+      const url = await svc.generateAuthorizationUrl('a', 'u');
+      const state = new URL(url).searchParams.get('state')!;
+      await expect(svc.exchangeCode(state, 'c')).rejects.toThrow('OAuth response missing id_token');
+    });
+
+    it('swallows discovery errors (OAuth success is not rolled back)', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          mockResponse(200, {
+            id_token: 'id-1',
+            access_token: 'a',
+            refresh_token: 'r',
+            expires_in: 60,
+          }),
+        )
+        .mockResolvedValueOnce(mockResponse(200, { access_token: 'sk-x', expires_in: 60 }));
       discovery.discoverModels.mockRejectedValue(new Error('boom'));
       const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
@@ -171,24 +237,48 @@ describe('OpenaiOauthService', () => {
   });
 
   describe('refreshAccessToken', () => {
-    it('returns a fresh blob with a new expiry', async () => {
-      fetchMock.mockResolvedValue(
-        mockResponse(200, {
-          access_token: 'a2',
-          refresh_token: 'r2',
-          expires_in: 1800,
-        }),
-      );
+    it('refreshes OAuth tokens, mints a new api.openai.com key, returns blob', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          mockResponse(200, {
+            id_token: 'id-2',
+            access_token: 'a2',
+            refresh_token: 'r2',
+            expires_in: 1800,
+          }),
+        )
+        .mockResolvedValueOnce(
+          mockResponse(200, { access_token: 'sk-minted-2', expires_in: 7200 }),
+        );
       const blob = await svc.refreshAccessToken('old-refresh');
-      expect(blob.t).toBe('a2');
+      expect(blob.t).toBe('sk-minted-2');
       expect(blob.r).toBe('r2');
-      expect(blob.e).toBe(Date.now() + 1800 * 1000);
+      expect(blob.e).toBe(Date.now() + 7200 * 1000);
     });
 
     it('retains the old refresh token when the server omits a new one', async () => {
-      fetchMock.mockResolvedValue(mockResponse(200, { access_token: 'a2', expires_in: 60 }));
+      fetchMock
+        .mockResolvedValueOnce(
+          mockResponse(200, { id_token: 'id-2', access_token: 'a2', expires_in: 60 }),
+        )
+        .mockResolvedValueOnce(mockResponse(200, { access_token: 'sk-x', expires_in: 60 }));
       const blob = await svc.refreshAccessToken('old-refresh');
       expect(blob.r).toBe('old-refresh');
+    });
+
+    it('falls back to a 1h key lifetime when expires_in is missing', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          mockResponse(200, {
+            id_token: 'id-3',
+            access_token: 'a3',
+            refresh_token: 'r3',
+            expires_in: 60,
+          }),
+        )
+        .mockResolvedValueOnce(mockResponse(200, { access_token: 'sk-3' }));
+      const blob = await svc.refreshAccessToken('old-refresh');
+      expect(blob.e).toBe(Date.now() + 3600 * 1000);
     });
 
     it('throws when the refresh endpoint returns a non-2xx status', async () => {
@@ -210,17 +300,24 @@ describe('OpenaiOauthService', () => {
     });
 
     it('refreshes and persists a fresh blob when the token is near expiry', async () => {
-      const blob = { t: 'old', r: 'rf', e: Date.now() + 30_000 }; // within the 60s skew window
-      fetchMock.mockResolvedValue(
-        mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expires_in: 3600 }),
-      );
+      const blob = { t: 'old-key', r: 'rf', e: Date.now() + 30_000 }; // within the 60s skew window
+      fetchMock
+        .mockResolvedValueOnce(
+          mockResponse(200, {
+            id_token: 'id-new',
+            access_token: 'a-new',
+            refresh_token: 'rf2',
+            expires_in: 3600,
+          }),
+        )
+        .mockResolvedValueOnce(mockResponse(200, { access_token: 'sk-fresh', expires_in: 3600 }));
       const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
-      expect(token).toBe('new');
+      expect(token).toBe('sk-fresh');
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
         'openai',
-        expect.stringContaining('"t":"new"'),
+        expect.stringContaining('"t":"sk-fresh"'),
         'subscription',
       );
     });
