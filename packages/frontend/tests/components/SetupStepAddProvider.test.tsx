@@ -46,12 +46,21 @@ describe("SetupStepAddProvider", () => {
     expect(activeBtn!.textContent).toBe("Agents");
   });
 
-  it("shows OpenClaw and Hermes Agent tabs inside Agents", () => {
+  it("shows OpenClaw, Hermes, and Claude Code tabs inside Agents", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const agentTabs = container.querySelectorAll(".panel__tab");
-    expect(agentTabs).toHaveLength(2);
+    expect(agentTabs).toHaveLength(3);
     expect(agentTabs[0].textContent).toContain("OpenClaw");
     expect(agentTabs[1].textContent).toContain("Hermes Agent");
+    expect(agentTabs[2].textContent).toContain("Claude Code");
+  });
+
+  it("shows Claude Code setup when Claude Code tab clicked", () => {
+    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
+    const agentTabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(agentTabs[2]); // Claude Code
+    expect(container.textContent).toContain("ANTHROPIC_BASE_URL");
+    expect(container.textContent).toContain("ANTHROPIC_AUTH_TOKEN");
   });
 
   it("defaults to OpenClaw agent tab", () => {

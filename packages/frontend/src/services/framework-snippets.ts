@@ -335,6 +335,26 @@ openclaw config set agents.defaults.model.primary manifest/auto
 openclaw gateway restart`;
 }
 
+/**
+ * One-line Claude Code setup. Anthropic SDK auto-appends /v1/messages to
+ * baseURL, so we strip a trailing /v1 the same way we do for the Anthropic
+ * Python/TypeScript snippets.
+ */
+export function getClaudeCodeShellSnippet(baseUrl: string, apiKey: string): string {
+  const url = stripV1Suffix(baseUrl);
+  return `ANTHROPIC_BASE_URL=${url} ANTHROPIC_AUTH_TOKEN=${apiKey} claude`;
+}
+
+/**
+ * Persistent variant — patches ~/.claude/settings.json so every future
+ * `claude` invocation picks up the Manifest endpoint without needing the
+ * env vars in the current shell.
+ */
+export function getClaudeCodeSettingsSnippet(baseUrl: string, apiKey: string): string {
+  const url = stripV1Suffix(baseUrl);
+  return `node -e "const fs=require('fs'),p=require('path'),f=require('os').homedir()+'/.claude/settings.json';fs.mkdirSync(p.dirname(f),{recursive:true});const c=fs.existsSync(f)?JSON.parse(fs.readFileSync(f,'utf8')):{};c.env={...(c.env||{}),ANTHROPIC_BASE_URL:'${url}',ANTHROPIC_AUTH_TOKEN:'${apiKey}'};fs.writeFileSync(f,JSON.stringify(c,null,2))"`;
+}
+
 export function getOpenClawDisableSnippet(model: string): string {
   return `openclaw config unset models.providers.manifest
 openclaw config unset agents.defaults.models.manifest/auto

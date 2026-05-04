@@ -274,6 +274,40 @@ describe("getTypeScriptSnippets", () => {
   });
 });
 
+describe("getClaudeCodeShellSnippet", () => {
+  it("emits a one-line ANTHROPIC_BASE_URL + AUTH_TOKEN env wrapper", async () => {
+    const { getClaudeCodeShellSnippet } = await import("../../src/services/framework-snippets");
+    const snippet = getClaudeCodeShellSnippet("http://localhost:38240/v1", "mnfst_key");
+    expect(snippet).toBe(
+      "ANTHROPIC_BASE_URL=http://localhost:38240 ANTHROPIC_AUTH_TOKEN=mnfst_key claude",
+    );
+    // /v1 stripped because the Anthropic SDK auto-appends it.
+    expect(snippet).not.toContain("/v1 ");
+  });
+
+  it("leaves the URL alone when /v1 isn't present", async () => {
+    const { getClaudeCodeShellSnippet } = await import("../../src/services/framework-snippets");
+    expect(getClaudeCodeShellSnippet("https://gw.example.com", "mnfst_x")).toContain(
+      "ANTHROPIC_BASE_URL=https://gw.example.com",
+    );
+  });
+});
+
+describe("getClaudeCodeSettingsSnippet", () => {
+  it("produces a node one-liner that merges into ~/.claude/settings.json", async () => {
+    const { getClaudeCodeSettingsSnippet } = await import(
+      "../../src/services/framework-snippets"
+    );
+    const snippet = getClaudeCodeSettingsSnippet("http://localhost:38240/v1", "mnfst_key");
+    expect(snippet.startsWith("node -e")).toBe(true);
+    expect(snippet).toContain("ANTHROPIC_BASE_URL:'http://localhost:38240'");
+    expect(snippet).toContain("ANTHROPIC_AUTH_TOKEN:'mnfst_key'");
+    expect(snippet).toContain(".claude/settings.json");
+    // Must merge — preserve existing keys.
+    expect(snippet).toContain("...(c.env||{})");
+  });
+});
+
 describe("getOpenClawSnippet", () => {
   it("includes openclaw config set commands", () => {
     const snippet = getOpenClawSnippet("http://localhost/v1", "mnfst_key");
