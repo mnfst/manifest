@@ -1,0 +1,27 @@
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  d71bed364de619b3 193-196,207-208,212,221-223
+packages/backend/src/routing/proxy/stream-writer.ts
+  d71bed364de619b3 237-242,251-252
+packages/frontend/tests/components/ClaudeCodeSetup.test.tsx
+  d71bed364de619b3 1-108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "9034ca20040bc3eb6b0984aee27cb57ede5fa824",
+  "prompts": {
+    "d71bed364de619b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e0f3390-4f98-46d3-a40d-1adf2ff0c86e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 126,
+      "total_deletions": 12,
+      "accepted_lines": 126,
+      "overriden_lines": 0
+    }
+  }
+}
