@@ -1,0 +1,31 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  10e68cf0887d634e 241-242,247
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  10e68cf0887d634e 235-286
+packages/backend/src/routing/proxy/__tests__/responses-adapter.spec.ts
+  10e68cf0887d634e 195-229
+.changeset/wacky-moles-yell.md
+  10e68cf0887d634e 1-5
+packages/backend/src/routing/proxy/responses-adapter.ts
+  10e68cf0887d634e 139-156,160-165,168-177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "be679c4b6dcd5608a56fc64baa09fc2e30a00717",
+  "prompts": {
+    "10e68cf0887d634e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5c1ab8bf-ba04-4d24-9b91-5a272accc0a4",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 3597,
+      "total_deletions": 2,
+      "accepted_lines": 129,
+      "overriden_lines": 0
+    }
+  }
+}
