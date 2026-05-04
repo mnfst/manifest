@@ -15,7 +15,6 @@ import {
   type MinimaxOAuthRegion,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
-import CopyButton from './CopyButton.js';
 
 interface Props {
   provDef: ProviderDef;
@@ -63,12 +62,6 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
       if (isDisposed || flowGeneration !== activeFlowGeneration) return;
       void runPoll(flowGeneration);
     }, delayMs);
-  };
-
-  const openVerificationPage = () => {
-    const current = flow();
-    if (!current) return;
-    window.open(current.verificationUri, '_blank', 'noopener,noreferrer');
   };
 
   const handleDisconnect = async () => {
@@ -211,63 +204,22 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
             </>
           }
         >
-          {(activeFlow) => (
-            <>
-              <p class="provider-detail__hint">
-                Your browser should open to the MiniMax authorization page. If MiniMax asks for a
-                one-time code, enter the code shown below.
+          <>
+            <p class="provider-detail__hint">
+              A new tab opened with the {props.provDef.name} authorization page. Approve the request
+              there to finish connecting.
+            </p>
+            <Show when={statusMessage()}>
+              <p class="provider-detail__hint" style="margin-top: 12px;">
+                {statusMessage()}
               </p>
-              <div class="provider-detail__field" style="margin-top: 12px;">
-                <label class="provider-detail__label">Verification Code</label>
-                <div class="provider-detail__key-row">
-                  <input
-                    class="provider-detail__input provider-detail__input--disabled"
-                    type="text"
-                    value={activeFlow().userCode}
-                    readonly
-                    aria-label={`${props.provDef.name} verification code`}
-                  />
-                  <CopyButton text={activeFlow().userCode} />
-                </div>
+            </Show>
+            <Show when={flowError()}>
+              <div class="provider-detail__error" style="margin-top: 12px;">
+                {flowError()}
               </div>
-              <div class="provider-detail__field" style="margin-top: 12px;">
-                <label class="provider-detail__label">Verification Link</label>
-                <div class="provider-detail__key-row">
-                  <input
-                    class="provider-detail__input provider-detail__input--disabled"
-                    type="text"
-                    value={activeFlow().verificationUri}
-                    readonly
-                    aria-label={`${props.provDef.name} verification link`}
-                  />
-                  <CopyButton text={activeFlow().verificationUri} />
-                </div>
-              </div>
-              <div class="provider-detail__field" style="margin-top: 12px;">
-                <button class="btn btn--outline btn--sm" onClick={openVerificationPage}>
-                  Open verification page
-                </button>
-                <button
-                  class="btn btn--ghost btn--sm"
-                  style="margin-left: 8px;"
-                  disabled={props.busy()}
-                  onClick={handleStart}
-                >
-                  Start over
-                </button>
-              </div>
-              <Show when={statusMessage()}>
-                <p class="provider-detail__hint" style="margin-top: 12px;">
-                  {statusMessage()}
-                </p>
-              </Show>
-              <Show when={flowError()}>
-                <div class="provider-detail__error" style="margin-top: 12px;">
-                  {flowError()}
-                </div>
-              </Show>
-            </>
-          )}
+            </Show>
+          </>
         </Show>
       </Show>
       <Show when={props.connected()}>

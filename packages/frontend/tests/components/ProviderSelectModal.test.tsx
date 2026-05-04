@@ -1384,7 +1384,7 @@ describe('ProviderSelectModal', () => {
       expect(screen.getByLabelText('Region')).toBeDefined();
     });
 
-    it('starts MiniMax device-code flow and shows code details', async () => {
+    it('starts MiniMax device-code flow and opens the authorization tab', async () => {
       vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
 
       render(() => (
@@ -1401,8 +1401,7 @@ describe('ProviderSelectModal', () => {
       await waitFor(() => {
         expect(mockStartMinimaxOAuth).toHaveBeenCalledWith('test-agent', 'global');
       });
-      expect(screen.getByDisplayValue('ABCD-1234')).toBeDefined();
-      expect(screen.getByDisplayValue('https://www.minimax.io/verify')).toBeDefined();
+      expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
       expect(window.open).toHaveBeenCalledWith(
         'https://www.minimax.io/verify',
         '_blank',
@@ -1434,7 +1433,7 @@ describe('ProviderSelectModal', () => {
       vi.restoreAllMocks();
     });
 
-    it('shows MiniMax pending status and can reopen the verification page', async () => {
+    it('shows MiniMax pending status while waiting for approval', async () => {
       vi.useFakeTimers();
       vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
       mockPollMinimaxOAuth.mockResolvedValueOnce({
@@ -1456,7 +1455,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByDisplayValue('ABCD-1234')).toBeDefined();
+        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(2000);
@@ -1465,14 +1464,6 @@ describe('ProviderSelectModal', () => {
         expect(mockPollMinimaxOAuth).toHaveBeenCalledWith('flow-1');
         expect(screen.getByText('Waiting for MiniMax approval…')).toBeDefined();
       });
-
-      fireEvent.click(screen.getByText('Open verification page'));
-
-      expect(window.open).toHaveBeenLastCalledWith(
-        'https://www.minimax.io/verify',
-        '_blank',
-        'noopener,noreferrer',
-      );
 
       vi.useRealTimers();
       vi.restoreAllMocks();
@@ -1496,7 +1487,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByDisplayValue('ABCD-1234')).toBeDefined();
+        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(2000);
@@ -1532,7 +1523,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByDisplayValue('ABCD-1234')).toBeDefined();
+        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(2000);
@@ -1564,7 +1555,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByDisplayValue('ABCD-1234')).toBeDefined();
+        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(2000);
@@ -1603,7 +1594,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByDisplayValue('EXPIRED-1234')).toBeDefined();
+        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(1);
@@ -1637,7 +1628,7 @@ describe('ProviderSelectModal', () => {
       await waitFor(() => {
         expect(mockStartMinimaxOAuth).toHaveBeenCalledWith('test-agent', 'global');
       });
-      expect(screen.queryByDisplayValue('ABCD-1234')).toBeNull();
+      expect(screen.queryByText(/A new tab opened with the MiniMax/)).toBeNull();
       expect(screen.getByText('Connect with MiniMax')).toBeDefined();
     });
 
@@ -1727,96 +1718,6 @@ describe('ProviderSelectModal', () => {
       expect(mockRevokeOpenaiOAuth).not.toHaveBeenCalled();
     });
 
-    it('ignores stale MiniMax poll results while a replacement flow is still starting', async () => {
-      vi.useFakeTimers();
-      const openSpy = vi
-        .spyOn(window, 'open')
-        .mockReturnValue({ closed: false } as unknown as Window);
-
-      let resolveFirstPoll:
-        | ((value: { status: string; message?: string; pollIntervalMs?: number }) => void)
-        | undefined;
-      let resolveSecondStart:
-        | ((value: {
-            flowId: string;
-            userCode: string;
-            verificationUri: string;
-            expiresAt: number;
-            pollIntervalMs: number;
-          }) => void)
-        | undefined;
-      mockStartMinimaxOAuth
-        .mockResolvedValueOnce({
-          flowId: 'flow-1',
-          userCode: 'ABCD-1234',
-          verificationUri: 'https://www.minimax.io/verify',
-          expiresAt: Date.now() + 60_000,
-          pollIntervalMs: 2000,
-        })
-        .mockImplementationOnce(
-          () =>
-            new Promise((resolve) => {
-              resolveSecondStart = resolve;
-            }),
-        );
-      mockPollMinimaxOAuth.mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            resolveFirstPoll = resolve;
-          }),
-      );
-
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-
-      fireEvent.click(screen.getByText('MiniMax'));
-      fireEvent.click(screen.getByText('Connect with MiniMax'));
-
-      await waitFor(() => {
-        expect(screen.getByDisplayValue('ABCD-1234')).toBeDefined();
-      });
-
-      await vi.advanceTimersByTimeAsync(2000);
-      await waitFor(() => {
-        expect(mockPollMinimaxOAuth).toHaveBeenCalledWith('flow-1');
-      });
-
-      fireEvent.click(screen.getByText('Start over'));
-
-      await waitFor(() => {
-        expect(mockStartMinimaxOAuth).toHaveBeenCalledTimes(2);
-      });
-
-      resolveFirstPoll?.({ status: 'success' });
-      await Promise.resolve();
-      await Promise.resolve();
-
-      expect(onClose).not.toHaveBeenCalled();
-      expect(onUpdate).not.toHaveBeenCalled();
-      expect(screen.getByDisplayValue('ABCD-1234')).toBeDefined();
-
-      resolveSecondStart?.({
-        flowId: 'flow-2',
-        userCode: 'WXYZ-9876',
-        verificationUri: 'https://www.minimax.io/verify-2',
-        expiresAt: Date.now() + 60_000,
-        pollIntervalMs: 2000,
-      });
-
-      await waitFor(() => {
-        expect(screen.getByDisplayValue('WXYZ-9876')).toBeDefined();
-      });
-
-      vi.useRealTimers();
-      openSpy.mockRestore();
-    });
-
     it('stops MiniMax polling after the modal unmounts', async () => {
       vi.useFakeTimers();
       vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
@@ -1844,7 +1745,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(screen.getByDisplayValue('ABCD-1234')).toBeDefined();
+        expect(screen.getByText(/A new tab opened with the MiniMax/)).toBeDefined();
       });
 
       await vi.advanceTimersByTimeAsync(2000);
