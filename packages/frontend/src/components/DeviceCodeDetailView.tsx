@@ -42,7 +42,6 @@ const DEFAULT_POLL_INTERVAL_MS = 2000;
 const DeviceCodeDetailView: Component<Props> = (props) => {
   const [flow, setFlow] = createSignal<DeviceCodeFlow | null>(null);
   const [statusMessage, setStatusMessage] = createSignal<string | null>(null);
-  const [flowError, setFlowError] = createSignal<string | null>(null);
   const [selectedRegion, setSelectedRegion] = createSignal<MinimaxOAuthRegion>('global');
   let pollTimer: number | undefined;
   let isDisposed = false;
@@ -92,9 +91,10 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     if (!current) return;
 
     if (Date.now() >= current.expiresAt) {
-      setFlowError('This verification code expired. Start again to generate a new one.');
-      setStatusMessage(null);
       clearPollTimer();
+      setStatusMessage(null);
+      setFlow(null);
+      toast.error('This verification code expired. Start again to generate a new one.');
       return;
     }
 
@@ -116,12 +116,12 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
       if (result.status === 'error') {
         clearPollTimer();
-        setFlowError(result.message ?? 'MiniMax login failed. Start again to retry.');
         setStatusMessage(null);
+        setFlow(null);
+        toast.error(result.message ?? `${props.provDef.name} login failed. Start again to retry.`);
         return;
       }
 
-      setFlowError(null);
       setStatusMessage(result.message ?? 'Waiting for approval…');
       schedulePoll(
         result.pollIntervalMs ?? latest.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
@@ -133,8 +133,9 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         return;
       }
       clearPollTimer();
-      setFlowError('Failed to check approval status. Start again to retry.');
       setStatusMessage(null);
+      setFlow(null);
+      toast.error('Failed to check approval status. Start again to retry.');
     }
   };
 
@@ -142,13 +143,19 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     props.setBusy(true);
     const flowGeneration = ++activeFlowGeneration;
     clearPollTimer();
-    setFlowError(null);
     setStatusMessage(null);
     try {
       const nextFlow = await startMinimaxOAuth(props.agentName, selectedRegion());
       if (isDisposed || flowGeneration !== activeFlowGeneration) return;
+      const popup = window.open(nextFlow.verificationUri, '_blank', 'noopener,noreferrer');
+      if (!popup) {
+        setFlow(null);
+        toast.error(
+          'Popup was blocked by your browser. Allow popups for this site, then try again.',
+        );
+        return;
+      }
       setFlow(nextFlow);
-      window.open(nextFlow.verificationUri, '_blank', 'noopener,noreferrer');
       schedulePoll(nextFlow.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS, flowGeneration);
     } catch {
       if (isDisposed || flowGeneration !== activeFlowGeneration) return;
@@ -213,11 +220,6 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
               <p class="provider-detail__hint" style="margin-top: 12px;">
                 {statusMessage()}
               </p>
-            </Show>
-            <Show when={flowError()}>
-              <div class="provider-detail__error" style="margin-top: 12px;">
-                {flowError()}
-              </div>
             </Show>
           </>
         </Show>
