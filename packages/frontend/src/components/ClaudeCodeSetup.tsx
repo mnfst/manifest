@@ -1,12 +1,7 @@
 import { createSignal, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
-import {
-  getClaudeCodeSettingsSnippet,
-  getClaudeCodeShellSnippet,
-} from '../services/framework-snippets.js';
-
-type SubTab = 'shell' | 'settings';
+import { getClaudeCodeSettingsSnippet } from '../services/framework-snippets.js';
 
 interface Props {
   apiKey: string | null;
@@ -44,7 +39,6 @@ const EyeIcon: Component<{ open: boolean }> = (props) => (
 );
 
 const ClaudeCodeSetup: Component<Props> = (props) => {
-  const [subTab, setSubTab] = createSignal<SubTab>('shell');
   const [keyRevealed, setKeyRevealed] = createSignal(false);
 
   const hasFullKey = () => !!props.apiKey;
@@ -52,89 +46,33 @@ const ClaudeCodeSetup: Component<Props> = (props) => {
   const copyKey = () => props.apiKey ?? masked();
   const visibleKey = () => (keyRevealed() && props.apiKey ? props.apiKey : masked());
 
-  const shellCopy = () => getClaudeCodeShellSnippet(props.baseUrl, copyKey());
-  const shellShown = () => getClaudeCodeShellSnippet(props.baseUrl, visibleKey());
   const settingsCopy = () => getClaudeCodeSettingsSnippet(props.baseUrl, copyKey());
   const settingsShown = () => getClaudeCodeSettingsSnippet(props.baseUrl, visibleKey());
 
   return (
     <div class="setup-agents-card">
       <p class="setup-step__desc">
-        Point Claude Code at Manifest by setting <code>ANTHROPIC_BASE_URL</code> and{' '}
-        <code>ANTHROPIC_AUTH_TOKEN</code>. Manifest tier-routes each request to the cheapest model
-        that can handle it.
+        Configure Claude Code to route every request through Manifest. Paste this block into{' '}
+        <code>~/.claude/settings.json</code> (merge with any existing top-level keys). Every future{' '}
+        <code>claude</code> invocation reads it on startup.
       </p>
 
-      <div
-        class="setup-segment setup-segment--full"
-        role="tablist"
-        aria-label="Configuration method"
-      >
-        <button
-          class="setup-segment__btn"
-          classList={{ 'setup-segment__btn--active': subTab() === 'shell' }}
-          onClick={() => setSubTab('shell')}
-          role="tab"
-          aria-selected={subTab() === 'shell'}
-        >
-          One-shot
-        </button>
-        <button
-          class="setup-segment__btn"
-          classList={{ 'setup-segment__btn--active': subTab() === 'settings' }}
-          onClick={() => setSubTab('settings')}
-          role="tab"
-          aria-selected={subTab() === 'settings'}
-        >
-          Persist in settings.json
-        </button>
+      <div class="setup-cli-block">
+        <div class="setup-cli-block__actions">
+          <Show when={hasFullKey()}>
+            <button
+              class="modal-terminal__copy"
+              onClick={() => setKeyRevealed(!keyRevealed())}
+              aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
+              title={keyRevealed() ? 'Hide key' : 'Reveal key'}
+            >
+              <EyeIcon open={keyRevealed()} />
+            </button>
+          </Show>
+          <CopyButton text={settingsCopy()} />
+        </div>
+        <CodeBlock code={settingsShown()} language="json" />
       </div>
-
-      <Show when={subTab() === 'shell'}>
-        <p class="setup-method__hint">
-          Run this in any terminal — sets the env vars for this Claude Code session only.
-        </p>
-        <div class="setup-cli-block">
-          <div class="setup-cli-block__actions">
-            <Show when={hasFullKey()}>
-              <button
-                class="modal-terminal__copy"
-                onClick={() => setKeyRevealed(!keyRevealed())}
-                aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
-                title={keyRevealed() ? 'Hide key' : 'Reveal key'}
-              >
-                <EyeIcon open={keyRevealed()} />
-              </button>
-            </Show>
-            <CopyButton text={shellCopy()} />
-          </div>
-          <CodeBlock code={shellShown()} language="bash" />
-        </div>
-      </Show>
-
-      <Show when={subTab() === 'settings'}>
-        <p class="setup-method__hint">
-          Paste this <code>env</code> block into <code>~/.claude/settings.json</code> (merge with
-          any existing top-level keys). Every future <code>claude</code> invocation reads it on
-          startup — no shell rc edits, no Node required.
-        </p>
-        <div class="setup-cli-block">
-          <div class="setup-cli-block__actions">
-            <Show when={hasFullKey()}>
-              <button
-                class="modal-terminal__copy"
-                onClick={() => setKeyRevealed(!keyRevealed())}
-                aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
-                title={keyRevealed() ? 'Hide key' : 'Reveal key'}
-              >
-                <EyeIcon open={keyRevealed()} />
-              </button>
-            </Show>
-            <CopyButton text={settingsCopy()} />
-          </div>
-          <CodeBlock code={settingsShown()} language="json" />
-        </div>
-      </Show>
     </div>
   );
 };

@@ -336,19 +336,11 @@ openclaw gateway restart`;
 }
 
 /**
- * One-line Claude Code setup. Anthropic SDK auto-appends /v1/messages to
- * baseURL, so we strip a trailing /v1 the same way we do for the Anthropic
- * Python/TypeScript snippets.
- */
-export function getClaudeCodeShellSnippet(baseUrl: string, apiKey: string): string {
-  const url = stripV1Suffix(baseUrl);
-  return `ANTHROPIC_BASE_URL=${url} ANTHROPIC_AUTH_TOKEN=${apiKey} claude`;
-}
-
-/**
- * Persistent variant — the JSON block to paste into ~/.claude/settings.json.
- * Claude Code reads `env` keys from settings.json on every startup, so this
- * makes the configuration permanent without touching shell rc files.
+ * The JSON block to paste into ~/.claude/settings.json. Claude Code reads
+ * `env` keys from settings.json on every startup, so this is the persistent
+ * configuration path — no shell rc edits, no Node required, no command-line
+ * gymnastics. Anthropic SDK auto-appends /v1/messages to baseURL, so we
+ * strip a trailing /v1 from the rendered URL.
  */
 export function getClaudeCodeSettingsSnippet(baseUrl: string, apiKey: string): string {
   const url = stripV1Suffix(baseUrl);
