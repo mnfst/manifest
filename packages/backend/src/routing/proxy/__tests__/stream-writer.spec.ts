@@ -190,7 +190,10 @@ describe('pipeStream', () => {
     expect(written).toContain('data: [DONE]\n\n');
   });
 
-  it('writes the finalize trailer before [DONE] and captures usage from it', async () => {
+  it('writes the finalize trailer in place of [DONE] and captures usage from it', async () => {
+    // Anthropic SSE self-terminates with message_stop, so we must NOT
+    // append the OpenAI [DONE] sentinel afterward — some Anthropic SDKs
+    // refuse to parse trailing unknown payloads.
     const { res, written } = mockResponse();
     const stream = createReadableStream(['data: chunk1\n\n']);
     const transform = (chunk: string) => `out:${chunk}\n\n`;
@@ -201,14 +204,12 @@ describe('pipeStream', () => {
     const usage = await pipeStream(stream, res as never, transform, finalize);
 
     const concatenated = written.join('');
-    const doneIdx = concatenated.indexOf('data: [DONE]');
-    const stopIdx = concatenated.indexOf('event: message_stop');
-    expect(stopIdx).toBeGreaterThan(-1);
-    expect(doneIdx).toBeGreaterThan(stopIdx);
+    expect(concatenated).toContain('event: message_stop');
+    expect(concatenated).not.toContain('data: [DONE]');
     expect(usage).toMatchObject({ prompt_tokens: 7, completion_tokens: 3 });
   });
 
-  it('skips a null finalize trailer without writing extra bytes', async () => {
+  it('omits both trailer and [DONE] when finalize returns null (still no OpenAI sentinel)', async () => {
     const { res, written } = mockResponse();
     const stream = createReadableStream(['data: only\n\n']);
     const transform = (chunk: string) => `out:${chunk}\n\n`;
@@ -217,7 +218,9 @@ describe('pipeStream', () => {
     await pipeStream(stream, res as never, transform, finalize);
 
     expect(finalize).toHaveBeenCalledTimes(1);
-    expect(written).toContain('data: [DONE]\n\n');
+    // The `finalize` parameter signals the caller is on a non-OpenAI
+    // protocol — even if it returns null we should not fall back to [DONE].
+    expect(written.some((w) => w.includes('[DONE]'))).toBe(false);
     expect(written.some((w) => w.startsWith('event: '))).toBe(false);
   });
 

@@ -234,10 +234,12 @@ export async function pipeStream(
       }
     }
 
-    // Stream tail. Anthropic Messages clients need a `message_stop` event
-    // (emitted via `finalize`); OpenAI-compatible clients need `data: [DONE]`.
-    // We write both — `data: [DONE]` is harmless for Anthropic SDKs which
-    // ignore non-event lines.
+    // Stream tail. Anthropic Messages clients self-terminate after
+    // `message_stop` (emitted via `finalize`); OpenAI-compatible clients
+    // expect `data: [DONE]`. The presence of `finalize` signals the
+    // protocol-specific terminator was already written, so we skip the
+    // OpenAI sentinel — keeping the wire format clean for SDKs that may
+    // refuse to parse trailing unknown payloads.
     if (transform) {
       if (finalize) {
         const trailing = finalize();
@@ -246,8 +248,9 @@ export async function pipeStream(
           const usage = extractUsageFromSse(trailing);
           if (usage) capturedUsage = usage;
         }
+      } else {
+        dest.write('data: [DONE]\n\n');
       }
-      dest.write('data: [DONE]\n\n');
     }
   } finally {
     reader.releaseLock();
