@@ -227,6 +227,7 @@ const CustomProviderForm: Component<Props> = (props) => {
             Provider name
           </label>
           <input
+            ref={(el) => requestAnimationFrame(() => el.focus())}
             id="cp-name"
             class="provider-detail__input"
             type="text"

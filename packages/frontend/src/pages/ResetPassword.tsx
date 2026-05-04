@@ -52,6 +52,7 @@ const RequestResetForm: Component = () => {
           <label class="auth-form__label" for={emailId}>
             Email
             <input
+              ref={(el) => requestAnimationFrame(() => el.focus())}
               id={emailId}
               class="auth-form__input"
               type="email"
@@ -149,6 +150,7 @@ const SetNewPasswordForm: Component<{ token: string }> = (props) => {
           <label class="auth-form__label" for={passwordId}>
             New password
             <input
+              ref={(el) => requestAnimationFrame(() => el.focus())}
               id={passwordId}
               class="auth-form__input"
               type="password"

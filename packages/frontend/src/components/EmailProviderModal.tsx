@@ -259,6 +259,13 @@ const EmailProviderModal: Component<Props> = (props) => {
             aria-modal="true"
             aria-labelledby="provider-modal-title"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSave();
+              }
+              if (e.key === 'Escape') props.onClose();
+            }}
           >
             <h2 class="modal-card__title" id="provider-modal-title">
               {props.editMode ? 'Edit email provider' : 'Configure email provider'}
@@ -329,6 +336,7 @@ const EmailProviderModal: Component<Props> = (props) => {
               }
             >
               <input
+                ref={(el) => requestAnimationFrame(() => el.focus())}
                 id="email-provider-api-key"
                 class="modal-card__input"
                 classList={{ 'modal-card__input--error': !!keyError() }}
@@ -341,8 +349,6 @@ const EmailProviderModal: Component<Props> = (props) => {
                   setApiKey(e.currentTarget.value);
                   setKeyError('');
                 }}
-                onKeyDown={handleKeyDown}
-                autofocus
               />
             </Show>
             <Show when={keyError()}>
@@ -378,7 +384,6 @@ const EmailProviderModal: Component<Props> = (props) => {
                   setDomain(e.currentTarget.value);
                   setDomainError('');
                 }}
-                onKeyDown={handleKeyDown}
               />
               <Show when={domainError()}>
                 <p class="modal-card__field-error" role="alert">

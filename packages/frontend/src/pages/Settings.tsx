@@ -95,6 +95,18 @@ const Settings: Component = () => {
     return `${window.location.origin}/v1`;
   };
 
+  const handleDeleteAgent = async () => {
+    if (deleteConfirmName() !== agentName() || deleting()) return;
+    setDeleting(true);
+    try {
+      await deleteAgent(agentName());
+      toast.success(`Agent "${agentName()}" deleted`);
+      navigate('/', { replace: true });
+    } catch {
+      setDeleting(false);
+    }
+  };
+
   const nameChanged = () => name().trim() !== agentName() && name().trim() !== '';
 
   const handleSaveName = async () => {
@@ -361,6 +373,12 @@ const Settings: Component = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-agent-modal-title"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleDeleteAgent();
+              }
+            }}
           >
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
               <h3 id="delete-agent-modal-title" style="margin: 0; font-size: var(--font-size-lg);">
@@ -399,6 +417,7 @@ const Settings: Component = () => {
               To confirm, type <strong>"{agentName()}"</strong> in the box below
             </label>
             <input
+              ref={(el) => setTimeout(() => el.focus(), 200)}
               id="delete-confirm-input"
               class="auth-form__input"
               type="text"
@@ -411,16 +430,7 @@ const Settings: Component = () => {
               class="btn btn--danger btn--sm"
               style="width: 100%;"
               disabled={deleteConfirmName() !== agentName() || deleting()}
-              onClick={async () => {
-                setDeleting(true);
-                try {
-                  await deleteAgent(agentName());
-                  toast.success(`Agent "${agentName()}" deleted`);
-                  navigate('/', { replace: true });
-                } catch {
-                  setDeleting(false);
-                }
-              }}
+              onClick={handleDeleteAgent}
             >
               {deleting() ? (
                 <>

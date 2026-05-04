@@ -110,6 +110,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           aria-modal="true"
           aria-labelledby="add-agent-title"
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={handleKeyDown}
         >
           <h2 class="modal-card__title" id="add-agent-title">
             Connect Agent
@@ -141,7 +142,6 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 placeholder="e.g. My Cool Agent"
                 value={name()}
                 onInput={(e) => setName(e.currentTarget.value)}
-                onKeyDown={handleKeyDown}
                 disabled={creating()}
               />
             </div>
