@@ -140,16 +140,37 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   };
 
   const handleStart = async () => {
+    // Open the popup synchronously inside the click handler to keep the
+    // user-gesture flag alive; without this, browsers block the post-await
+    // window.open as a "programmatic popup". noopener can't be used here
+    // because Chrome returns null with it set, and we need the popup ref
+    // to redirect it later — we null `popup.opener` ourselves instead.
+    const popup = window.open('about:blank', '_blank');
+    if (!popup) {
+      toast.error('Popup was blocked by your browser. Allow popups for this site, then try again.');
+      return;
+    }
+    try {
+      popup.opener = null;
+    } catch {
+      // Some sandboxed contexts disallow this; the popup is about:blank, harmless.
+    }
+
     props.setBusy(true);
     const flowGeneration = ++activeFlowGeneration;
     clearPollTimer();
     setStatusMessage(null);
     try {
       const nextFlow = await startMinimaxOAuth(props.agentName, selectedRegion());
-      if (isDisposed || flowGeneration !== activeFlowGeneration) return;
+      if (isDisposed || flowGeneration !== activeFlowGeneration) {
+        popup.close();
+        return;
+      }
+      popup.location.replace(nextFlow.verificationUri);
       setFlow(nextFlow);
       schedulePoll(nextFlow.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS, flowGeneration);
     } catch {
+      popup.close();
       if (isDisposed || flowGeneration !== activeFlowGeneration) return;
       setFlow(null);
     } finally {
@@ -203,28 +224,17 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
             </>
           }
         >
-          {(activeFlow) => (
-            <>
-              <p class="provider-detail__hint">
-                Open the {props.provDef.name} authorization page and approve the request to finish
-                connecting.
+          <>
+            <p class="provider-detail__hint">
+              A new tab opened with the {props.provDef.name} authorization page. Approve the request
+              there to finish connecting.
+            </p>
+            <Show when={statusMessage()}>
+              <p class="provider-detail__hint" style="margin-top: 12px;">
+                {statusMessage()}
               </p>
-              <a
-                class="btn btn--primary provider-detail__action"
-                style="margin-top: 12px;"
-                href={activeFlow().verificationUri}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Open {props.provDef.name}
-              </a>
-              <Show when={statusMessage()}>
-                <p class="provider-detail__hint" style="margin-top: 12px;">
-                  {statusMessage()}
-                </p>
-              </Show>
-            </>
-          )}
+            </Show>
+          </>
         </Show>
       </Show>
       <Show when={props.connected()}>
