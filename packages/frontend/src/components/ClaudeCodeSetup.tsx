@@ -51,10 +51,9 @@ const ClaudeCodeSetup: Component<Props> = (props) => {
 
   return (
     <div class="setup-agents-card">
-      <p class="setup-step__desc">
-        Configure Claude Code to route every request through Manifest. Paste this block into{' '}
-        <code>~/.claude/settings.json</code> (merge with any existing top-level keys). Every future{' '}
-        <code>claude</code> invocation reads it on startup.
+      <p class="setup-method__hint">
+        Add this block to <code class="setup-model-hint__code">~/.claude/settings.json</code> —
+        every <code class="setup-model-hint__code">claude</code> run will route through Manifest.
       </p>
 
       <div class="setup-cli-block">
