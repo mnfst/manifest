@@ -348,6 +348,38 @@ describe("ModelPickerModal", () => {
     );
   });
 
+  it("groups a slash-prefixed model under the connection's provider, not the model-id prefix", () => {
+    // A model whose name LOOKS like an Anthropic vendor-prefixed id but is
+    // actually being served BY OpenAI must show up in the OpenAI group, not
+    // be filtered out because allowedProviders only contains "openai".
+    // Mirrors the precedence rule in RoutingTierCard.providerIdForModel.
+    const crossProvider: AvailableModel[] = [
+      {
+        ...baseModels[0],
+        model_name: "claude-served-by-openai",
+        provider: "OpenAI",
+        display_name: "Cross-vendor model",
+      },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={crossProvider}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    const groupName = container.querySelector(
+      ".routing-modal__group-name",
+    ) as HTMLElement | null;
+    expect(groupName?.textContent).toBe("OpenAI");
+    expect(container.querySelector(".routing-modal__model")?.textContent).toContain(
+      "Cross-vendor model",
+    );
+  });
+
   it("shows the search input only when more than 5 models are available", () => {
     const onlyOne: AvailableModel[] = [baseModels[0]];
     const { container } = render(() => (
