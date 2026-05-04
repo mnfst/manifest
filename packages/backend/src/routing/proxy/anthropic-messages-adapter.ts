@@ -37,12 +37,14 @@ function anthropicContentToChat(content: unknown): {
   parts: JsonRecord[];
   toolUses: Array<{ id: string; name: string; input: unknown }>;
   toolResults: Array<{ toolUseId: string; content: string }>;
+  reasoning: string;
 } {
   const out = {
     text: '',
     parts: [] as JsonRecord[],
     toolUses: [] as Array<{ id: string; name: string; input: unknown }>,
     toolResults: [] as Array<{ toolUseId: string; content: string }>,
+    reasoning: '',
   };
 
   if (typeof content === 'string') {
@@ -79,6 +81,11 @@ function anthropicContentToChat(content: unknown): {
         toolUseId: typeof block.tool_use_id === 'string' ? block.tool_use_id : 'unknown',
         content: safeJsonStringify(block.content),
       });
+    } else if (block.type === 'thinking' && typeof block.thinking === 'string') {
+      // DeepSeek (and other reasoning models) require their `reasoning_content`
+      // to be echoed back on subsequent assistant turns. We surface it as an
+      // Anthropic `thinking` block on the response and accept it back here.
+      out.reasoning += block.thinking;
     }
   }
 
@@ -89,7 +96,7 @@ function buildUserOrAssistantMessage(
   role: 'user' | 'assistant',
   content: unknown,
 ): OpenAIMessage[] {
-  const { text, parts, toolUses, toolResults } = anthropicContentToChat(content);
+  const { text, parts, toolUses, toolResults, reasoning } = anthropicContentToChat(content);
   const messages: OpenAIMessage[] = [];
 
   // tool_result blocks become standalone tool-role messages in chat_completions.
@@ -103,9 +110,10 @@ function buildUserOrAssistantMessage(
       type: 'function',
       function: { name: tu.name, arguments: safeJsonStringify(tu.input) },
     }));
-    if (text || tool_calls.length > 0) {
+    if (text || tool_calls.length > 0 || reasoning) {
       const message: OpenAIMessage = { role: 'assistant', content: text || null };
       if (tool_calls.length > 0) message.tool_calls = tool_calls;
+      if (reasoning) message.reasoning_content = reasoning;
       messages.push(message);
     }
     return messages;
@@ -220,6 +228,14 @@ export function chatCompletionsResponseToMessages(body: JsonRecord, model: strin
   const message = isRecord(firstChoice.message) ? firstChoice.message : {};
 
   const content: JsonRecord[] = [];
+
+  // DeepSeek-style reasoning_content surfaced as Anthropic `thinking` blocks.
+  // Anthropic clients can echo these back on subsequent turns to satisfy
+  // providers (DeepSeek, etc.) that require the reasoning trace.
+  if (typeof message.reasoning_content === 'string' && message.reasoning_content) {
+    content.push({ type: 'thinking', thinking: message.reasoning_content });
+  }
+
   const text =
     typeof message.content === 'string'
       ? message.content

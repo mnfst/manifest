@@ -240,6 +240,34 @@ describe('Anthropic Messages adapter', () => {
       expect(result.top_k).toBe(40);
     });
 
+    it('echoes Anthropic thinking blocks back as reasoning_content on assistant turns', () => {
+      // DeepSeek requires the reasoning trace echoed on follow-up assistant
+      // turns. The Anthropic SDK exposes it as a `thinking` block on the
+      // assistant message — this verifies the round-trip.
+      const result = messagesToChatCompletionsRequest({
+        messages: [
+          { role: 'user', content: 'use the tool' },
+          {
+            role: 'assistant',
+            content: [
+              { type: 'thinking', thinking: 'I should call get_weather.' },
+              { type: 'text', text: 'Looking up.' },
+              { type: 'tool_use', id: 'tu_1', name: 'get_weather', input: { city: 'Tokyo' } },
+            ],
+          },
+          {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: 'tu_1', content: '18C' }],
+          },
+        ],
+      });
+      const messages = result.messages as Array<Record<string, unknown>>;
+      const assistant = messages.find((m) => m.role === 'assistant')!;
+      expect(assistant.reasoning_content).toBe('I should call get_weather.');
+      expect(assistant.content).toBe('Looking up.');
+      expect(assistant.tool_calls).toBeDefined();
+    });
+
     it('skips malformed message entries', () => {
       const result = messagesToChatCompletionsRequest({
         messages: ['nope', null, { role: 'user', content: 'ok' }],
@@ -332,6 +360,27 @@ describe('Anthropic Messages adapter', () => {
       expect(noChoices.stop_reason).toBe('end_turn');
       expect(noChoices.id).toMatch(/^msg_[0-9a-f]{32}$/);
       expect(noChoices.model).toBe('m');
+    });
+
+    it('surfaces reasoning_content as a leading thinking block', () => {
+      const result = chatCompletionsResponseToMessages(
+        {
+          choices: [
+            {
+              message: {
+                content: 'The answer is 42.',
+                reasoning_content: 'Let me think... yes, 42.',
+              },
+              finish_reason: 'stop',
+            },
+          ],
+        },
+        'deepseek',
+      );
+      expect(result.content).toEqual([
+        { type: 'thinking', thinking: 'Let me think... yes, 42.' },
+        { type: 'text', text: 'The answer is 42.' },
+      ]);
     });
 
     it('handles missing content and missing usage gracefully', () => {
