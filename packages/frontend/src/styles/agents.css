@@ -186,6 +186,7 @@
 }
 
 .dark .agent-card__platform-icon[src*='openai'],
+.dark .agent-card__platform-icon[src*='anthropic'],
 .dark .agent-card__platform-icon[src*='vercel'],
 .dark .agent-card__platform-icon[src*='other'] {
   filter: invert(1);
@@ -464,6 +465,7 @@
 
 /* Dark-mode icon inversion for Settings agent type display */
 .dark .settings-type__icon[src*='openai'],
+.dark .settings-type__icon[src*='anthropic'],
 .dark .settings-type__icon[src*='vercel'],
 .dark .settings-type__icon[src*='other'] {
   filter: invert(1);
@@ -471,6 +473,7 @@
 
 /* Dark-mode icon inversion for Overview heading */
 .dark .overview__platform-icon[src*='openai'],
+.dark .overview__platform-icon[src*='anthropic'],
 .dark .overview__platform-icon[src*='vercel'],
 .dark .overview__platform-icon[src*='other'] {
   filter: invert(1);
