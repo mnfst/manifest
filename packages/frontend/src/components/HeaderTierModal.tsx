@@ -173,11 +173,11 @@ const HeaderTierModal: Component<Props> = (props) => {
         style={{ position: 'relative' }}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
+          if (e.key === 'Enter' && !e.defaultPrevented && e.target instanceof HTMLInputElement) {
             e.preventDefault();
             submit();
           }
-          if (e.key === 'Escape') props.onClose();
+          if (e.key === 'Escape' && !e.defaultPrevented) props.onClose();
         }}
       >
         <Show

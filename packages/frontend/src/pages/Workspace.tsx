@@ -87,7 +87,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') handleCreate();
+    if (e.key === 'Enter' && e.target instanceof HTMLInputElement) handleCreate();
     if (e.key === 'Escape') {
       props.onClose();
       resetForm();

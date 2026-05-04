@@ -260,7 +260,7 @@ const EmailProviderModal: Component<Props> = (props) => {
             aria-labelledby="provider-modal-title"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
                 e.preventDefault();
                 handleSave();
               }

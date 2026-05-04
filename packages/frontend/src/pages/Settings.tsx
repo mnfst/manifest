@@ -374,7 +374,7 @@ const Settings: Component = () => {
             aria-modal="true"
             aria-labelledby="delete-agent-modal-title"
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
                 e.preventDefault();
                 handleDeleteAgent();
               }

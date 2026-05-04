@@ -81,7 +81,10 @@ const LimitRuleModal: Component<Props> = (props) => {
             aria-labelledby="limit-modal-title"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+              if (
+                e.key === 'Enter' &&
+                (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)
+              ) {
                 e.preventDefault();
                 handleSave();
               }

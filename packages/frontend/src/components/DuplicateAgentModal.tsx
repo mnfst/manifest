@@ -95,7 +95,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') handleDuplicate();
+    if (e.key === 'Enter' && e.target instanceof HTMLInputElement) handleDuplicate();
     if (e.key === 'Escape') requestClose();
   };
 
