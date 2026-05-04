@@ -232,6 +232,42 @@ describe('ProviderClient', () => {
       expect(sentBody.stream).toBe(true);
     });
 
+    it('uses translated chatBody, not the raw Anthropic Messages body, when forwarding /v1/messages to a chatgpt-format endpoint', async () => {
+      // Regression: previously the chatgpt branch passed `body` directly into
+      // toResponsesRequest, so a /v1/messages request hitting an
+      // openai-responses endpoint would forward Anthropic-shaped tools and
+      // drop the top-level system prompt.
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        // o1-pro is a Responses-only model, so the resolver routes it to the
+        // chatgpt-format /v1/responses endpoint — that's the branch under test.
+        model: 'o1-pro',
+        body: {
+          model: 'o1-pro',
+          system: 'be brief',
+          messages: [{ role: 'user', content: 'hi' }],
+        },
+        chatBody: {
+          messages: [
+            { role: 'system', content: 'be brief' },
+            { role: 'user', content: 'hi' },
+          ],
+          model: 'o1-pro',
+        },
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      // toResponsesRequest pulls instructions out of chat-completions system
+      // messages — proves we forwarded chatBody, not the raw Anthropic body.
+      expect(sentBody.instructions).toBe('be brief');
+      expect(sentBody.system).toBeUndefined();
+    });
+
     it('uses normalized chat body for non-native Responses providers', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

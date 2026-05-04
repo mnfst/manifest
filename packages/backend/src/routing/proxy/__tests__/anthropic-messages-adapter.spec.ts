@@ -230,6 +230,16 @@ describe('Anthropic Messages adapter', () => {
       expect(ignoredNamed.tool_choice).toBeUndefined();
     });
 
+    it('forwards Anthropic-native thinking and top_k onto chatBody', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [{ role: 'user', content: 'x' }],
+        thinking: { type: 'enabled', budget_tokens: 1024 },
+        top_k: 40,
+      });
+      expect(result.thinking).toEqual({ type: 'enabled', budget_tokens: 1024 });
+      expect(result.top_k).toBe(40);
+    });
+
     it('skips malformed message entries', () => {
       const result = messagesToChatCompletionsRequest({
         messages: ['nope', null, { role: 'user', content: 'ok' }],

@@ -109,6 +109,19 @@ describe('Anthropic Adapter', () => {
       expect(result.top_p).toBe(0.9);
     });
 
+    it('forwards Anthropic-native top_k, thinking, and stop_sequences when present', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        top_k: 40,
+        thinking: { type: 'enabled', budget_tokens: 2048 },
+        stop: ['STOP', 'END'],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+      expect(result.top_k).toBe(40);
+      expect(result.thinking).toEqual({ type: 'enabled', budget_tokens: 2048 });
+      expect(result.stop_sequences).toEqual(['STOP', 'END']);
+    });
+
     it('converts tools with input_schema and injects cache_control on last tool', () => {
       const body = {
         messages: [{ role: 'user', content: 'Search' }],

@@ -167,6 +167,11 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   if (body.stream !== undefined) chatBody.stream = body.stream;
   if (body.metadata !== undefined) chatBody.metadata = body.metadata;
   if (body.stop_sequences !== undefined) chatBody.stop = body.stop_sequences;
+  // Anthropic-native fields with no chat_completions analogue. Carried on
+  // chatBody so toAnthropicRequest can forward them when the resolved
+  // provider is Anthropic; harmlessly ignored by other adapters.
+  if (body.thinking !== undefined) chatBody.thinking = body.thinking;
+  if (body.top_k !== undefined) chatBody.top_k = body.top_k;
 
   if (Array.isArray(body.tools)) chatBody.tools = toChatTools(body.tools);
   const toolChoice = toChatToolChoice(body.tool_choice);

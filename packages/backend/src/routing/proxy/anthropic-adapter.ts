@@ -194,6 +194,12 @@ export function toAnthropicRequest(
 
   if (body.temperature !== undefined) result.temperature = body.temperature;
   if (body.top_p !== undefined) result.top_p = body.top_p;
+  if (body.top_k !== undefined) result.top_k = body.top_k;
+  // Anthropic-native fields forwarded when the inbound request originated as
+  // Anthropic Messages (POST /v1/messages). Chat-completions clients won't
+  // set these, so this is a no-op for the OpenAI-compat path.
+  if (body.thinking !== undefined) result.thinking = body.thinking;
+  if (Array.isArray(body.stop)) result.stop_sequences = body.stop;
   return result;
 }
 

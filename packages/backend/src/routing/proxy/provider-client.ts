@@ -248,7 +248,7 @@ export class ProviderClient {
                 inputList: endpointKey === 'openai-subscription',
                 forceStream: endpointKey === 'openai-subscription',
               })
-            : toResponsesRequest(body, bareModel),
+            : toResponsesRequest(requestSource, bareModel),
       };
     }
 
