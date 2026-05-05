@@ -286,7 +286,7 @@ describe('ProxyService — orchestration', () => {
       expect(momentum.recordCategory).not.toHaveBeenCalled();
     });
 
-    it('merges configured param_defaults into the outbound body when client omits them', async () => {
+    it('threads stored param_defaults through paramMergeContext (merge runs per-attempt downstream)', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
@@ -304,16 +304,18 @@ describe('ProxyService — orchestration', () => {
       });
 
       await svc.proxyRequest(baseOpts());
-      const forwardedBody = fallbackService.tryForwardToProvider.mock.calls[0][0].body;
-      expect(forwardedBody).toMatchObject({
-        thinking: { type: 'disabled' },
-        messages: [{ role: 'user', content: 'hi' }],
+      const call = fallbackService.tryForwardToProvider.mock.calls[0][0];
+      // Body stays raw — the merge happens per-attempt inside the fallback
+      // service so each fallback iteration uses its own provider.
+      expect(call.body).toEqual({ messages: [{ role: 'user', content: 'hi' }] });
+      expect(call.paramMergeContext).toEqual({
+        userDefaults: { thinking: { type: 'disabled' } },
+        tier: 'standard',
+        isSpecificity: false,
       });
     });
 
-    it("applies Manifest's tier-aware thinking default when neither client nor user override it", async () => {
-      // DeepSeek + standard tier → Manifest opinion is "disabled" even with
-      // no stored param_defaults.
+    it('hands the fallback service a paramMergeContext flagged for the resolved tier', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
@@ -330,33 +332,17 @@ describe('ProxyService — orchestration', () => {
       });
 
       await svc.proxyRequest(baseOpts());
-      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toMatchObject({
-        thinking: { type: 'disabled' },
+      // The actual merge happens inside the fallback service so it can be
+      // recomputed per-attempt against each iteration's provider; the
+      // proxy is responsible only for forwarding the right context bag.
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].paramMergeContext).toEqual({
+        userDefaults: undefined,
+        tier: 'standard',
+        isSpecificity: false,
       });
     });
 
-    it('keeps the provider default on the reasoning tier (Manifest stays opinionless there)', async () => {
-      resolveService.resolve.mockResolvedValue({
-        tier: 'reasoning',
-        route: route('deepseek', 'api_key', 'deepseek-reasoner'),
-        fallback_routes: null,
-        confidence: 0.9,
-        score: 5,
-        reason: 'scored',
-      });
-      fallbackService.tryForwardToProvider.mockResolvedValue({
-        response: okResponse(),
-        isGoogle: false,
-        isAnthropic: false,
-        isChatGpt: false,
-      });
-
-      await svc.proxyRequest(baseOpts());
-      // No `thinking` injected → provider's default (enabled) applies.
-      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toBeUndefined();
-    });
-
-    it('user-stored param_defaults beat the Manifest tier-aware default', async () => {
+    it('forwards user param_defaults verbatim through paramMergeContext', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
@@ -364,8 +350,6 @@ describe('ProxyService — orchestration', () => {
         confidence: 0.9,
         score: 5,
         reason: 'scored',
-        // User explicitly turned thinking on for this assignment despite
-        // Manifest's "off" opinion on the standard tier.
         param_defaults: { thinking: { type: 'enabled' } },
       });
       fallbackService.tryForwardToProvider.mockResolvedValue({
@@ -376,41 +360,12 @@ describe('ProxyService — orchestration', () => {
       });
 
       await svc.proxyRequest(baseOpts());
-      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toMatchObject({
-        thinking: { type: 'enabled' },
-      });
+      expect(
+        fallbackService.tryForwardToProvider.mock.calls[0][0].paramMergeContext?.userDefaults,
+      ).toEqual({ thinking: { type: 'enabled' } });
     });
 
-    it("drops stored param_defaults when the resolved provider doesn't consume them (slot reassigned)", async () => {
-      // Tier was DeepSeek, user saved thinking-disabled. Then the user
-      // reassigned the tier to OpenAI. The stored default still exists in
-      // the row, but injecting `thinking` into an OpenAI request would 400
-      // and the UI no longer shows the params button to clear it.
-      resolveService.resolve.mockResolvedValue({
-        tier: 'standard',
-        route: route('openai', 'api_key', 'gpt-4o'),
-        fallback_routes: null,
-        confidence: 0.9,
-        score: 5,
-        reason: 'scored',
-        param_defaults: { thinking: { type: 'disabled' } },
-      });
-      fallbackService.tryForwardToProvider.mockResolvedValue({
-        response: okResponse(),
-        isGoogle: false,
-        isAnthropic: false,
-        isChatGpt: false,
-      });
-
-      await svc.proxyRequest(baseOpts());
-      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toBeUndefined();
-    });
-
-    it('skips the tier-aware Manifest default on specificity routes (user-curated, no tier semantics)', async () => {
-      // Specificity routes resolve with `tier: 'standard'` for momentum
-      // bookkeeping, but Manifest's "standard → off" rule should not fire
-      // there — the user curated this slot for a specific task type and
-      // we respect their provider's default unless they explicitly override.
+    it('marks paramMergeContext.isSpecificity for specificity matches', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
@@ -428,10 +383,12 @@ describe('ProxyService — orchestration', () => {
       });
 
       await svc.proxyRequest(baseOpts());
-      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toBeUndefined();
+      expect(
+        fallbackService.tryForwardToProvider.mock.calls[0][0].paramMergeContext?.isSpecificity,
+      ).toBe(true);
     });
 
-    it('lets the client override configured param_defaults by presence', async () => {
+    it('passes the inbound body through unchanged so the per-attempt merge can re-merge each fallback', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
@@ -456,8 +413,11 @@ describe('ProxyService — orchestration', () => {
           } as never,
         }),
       );
-      const forwardedBody = fallbackService.tryForwardToProvider.mock.calls[0][0].body;
-      expect(forwardedBody.thinking).toEqual({ type: 'enabled' });
+      // The body still carries the client-supplied thinking field — the
+      // fallback service's merge respects that by presence.
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toEqual({
+        type: 'enabled',
+      });
     });
 
     it('does not record momentum for non-scoring tiers (e.g. "default")', async () => {

@@ -1,7 +1,41 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import type { AuthType, ModelRoute } from 'manifest-shared';
+import type { AuthType, ModelRoute, RequestParamDefaults } from 'manifest-shared';
+import {
+  applyRequestParamDefaults,
+  filterParamDefaultsForProvider,
+  manifestThinkingParamDefaults,
+} from 'manifest-shared';
+
+/**
+ * Inputs needed to recompute the param-defaults merge per attempt. Threaded
+ * through tryFallbacks/tryForwardToProvider so each iteration applies the
+ * filter and Manifest opinion against the iteration's *own* provider —
+ * otherwise a DeepSeek-shaped `thinking` field would leak onto an Anthropic
+ * fallback target.
+ */
+export interface ParamMergeContext {
+  userDefaults: RequestParamDefaults | null | undefined;
+  tier: string | undefined;
+  isSpecificity: boolean;
+}
+
+function applyParamMerge(
+  body: Record<string, unknown>,
+  ctx: ParamMergeContext | undefined,
+  provider: string,
+): Record<string, unknown> {
+  if (!ctx) return body;
+  const compatibleUser = filterParamDefaultsForProvider(ctx.userDefaults, provider);
+  const manifestDefaults = ctx.isSpecificity
+    ? null
+    : manifestThinkingParamDefaults(provider, ctx.tier);
+  return applyRequestParamDefaults(
+    applyRequestParamDefaults(body, compatibleUser),
+    manifestDefaults,
+  );
+}
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
@@ -74,6 +108,7 @@ export class ProxyFallbackService {
     apiMode?: ProxyApiMode,
     chatBody?: Record<string, unknown>,
     fallbackRoutes?: ModelRoute[] | null,
+    paramMergeContext?: ParamMergeContext,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -176,6 +211,7 @@ export class ProxyFallbackService {
         providerRegion,
         signatureLookup,
         thinkingLookup,
+        paramMergeContext,
       });
 
       if (forward.response.ok) {
@@ -220,6 +256,7 @@ export class ProxyFallbackService {
     apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
+    paramMergeContext?: ParamMergeContext;
   }): Promise<ForwardResult> {
     try {
       return await this.forwardToProvider(opts);
@@ -257,11 +294,10 @@ export class ProxyFallbackService {
     apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
+    paramMergeContext?: ParamMergeContext;
   }): Promise<ForwardResult> {
     const {
       provider,
-      body,
-      chatBody,
       stream,
       signal,
       authType,
@@ -270,6 +306,14 @@ export class ProxyFallbackService {
       signatureLookup,
       thinkingLookup,
     } = opts;
+    // Recompute the param-defaults merge against *this* iteration's provider,
+    // not whatever the primary route happened to be. Without this, DeepSeek's
+    // `thinking` payload would leak into an Anthropic fallback request and
+    // 400 the upstream.
+    const body = applyParamMerge(opts.body, opts.paramMergeContext, provider);
+    const chatBody = opts.chatBody
+      ? applyParamMerge(opts.chatBody, opts.paramMergeContext, provider)
+      : undefined;
 
     const extraHeaders = buildProviderExtraHeaders(provider, opts.sessionKey);
 

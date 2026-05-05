@@ -11,12 +11,8 @@ import { LimitCheckService } from '../../notifications/services/limit-check.serv
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
 import type { SpecificityCategory, TierSlot } from 'manifest-shared';
-import {
-  SPECIFICITY_CATEGORIES,
-  applyRequestParamDefaults,
-  filterParamDefaultsForProvider,
-  manifestThinkingParamDefaults,
-} from 'manifest-shared';
+import { SPECIFICITY_CATEGORIES } from 'manifest-shared';
+import type { ParamMergeContext } from './proxy-fallback.service';
 import {
   ProxyFallbackService,
   FailedFallback,
@@ -159,47 +155,24 @@ export class ProxyService {
     const thinkingLookup = (firstToolUseId: string) =>
       this.thinkingCache.retrieve(sessionKey, firstToolUseId);
 
-    // Layer the request body defaults from lowest to highest precedence:
-    // (1) Manifest's tier-aware default (e.g. thinking off on simple/standard/
-    //     complex for DeepSeek), (2) the user's stored per-assignment override,
-    //     (3) the inbound request body fields. Each successive call lets the
-    //     existing payload win over the next defaults layer, so client values
-    //     ultimately beat user defaults beat Manifest defaults beat provider
-    //     defaults. Done once here so primary forward, stream warmup retries,
-    //     and the fallback chain all use the same merged payload.
-    //
-    // Two compatibility guards live here, both keyed off the resolved provider:
-    // 1. `filterParamDefaultsForProvider` drops user-stored fields that the
-    //    current provider doesn't consume. Without this, reassigning a slot
-    //    from DeepSeek to OpenAI would keep injecting `thinking` into every
-    //    request and the UI no longer surfaces the param button to clear it.
-    // 2. We skip the tier-aware Manifest default on specificity matches.
-    //    Specificity routes carry `tier: 'standard'` for momentum bookkeeping,
-    //    not because Manifest has tier semantics on the user's curated
-    //    coding/web_browsing/etc. picks — applying "standard → off" there
-    //    would silently disable thinking on a specificity slot the user
-    //    chose specifically to handle that task type.
-    const compatibleUserDefaults = filterParamDefaultsForProvider(
-      resolved.param_defaults,
-      route.provider,
-    );
-    const manifestDefaults = resolved.specificity_category
-      ? null
-      : manifestThinkingParamDefaults(route.provider, resolved.tier);
-    const layer = (b: Record<string, unknown>) =>
-      applyRequestParamDefaults(
-        applyRequestParamDefaults(b, compatibleUserDefaults),
-        manifestDefaults,
-      );
-    const effectiveBody = layer(body);
-    const effectiveChatBody = chatBody ? layer(chatBody) : undefined;
+    // Per-attempt param-defaults merge happens inside the fallback service
+    // so each forward (primary + every fallback iteration) re-applies the
+    // filter and Manifest opinion against *its own* provider. Pass the
+    // merge inputs here as a single context bag; specificity matches skip
+    // the tier-aware Manifest default since they are user-curated and not
+    // tier-keyed.
+    const paramMergeContext: ParamMergeContext = {
+      userDefaults: resolved.param_defaults,
+      tier: resolved.tier,
+      isSpecificity: !!resolved.specificity_category,
+    };
 
     const forward = await this.fallbackService.tryForwardToProvider({
       provider: route.provider,
       apiKey: credentials.apiKey,
       model: primaryModel,
-      body: effectiveBody,
-      chatBody: effectiveChatBody,
+      body,
+      chatBody,
       stream,
       sessionKey,
       signal,
@@ -209,6 +182,7 @@ export class ProxyService {
       providerRegion: credentials.providerRegion,
       signatureLookup,
       thinkingLookup,
+      paramMergeContext,
     });
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
@@ -218,14 +192,15 @@ export class ProxyService {
         resolved,
         primaryModel,
         forward,
-        body: effectiveBody,
-        chatBody: effectiveChatBody,
+        body,
+        chatBody,
         stream,
         sessionKey,
         signal,
         signatureLookup,
         thinkingLookup,
         apiMode,
+        paramMergeContext,
       });
       if (fallbackResult) return fallbackResult;
     }
@@ -270,14 +245,15 @@ export class ProxyService {
         resolved,
         primaryModel,
         forward: syntheticForward,
-        body: effectiveBody,
-        chatBody: effectiveChatBody,
+        body,
+        chatBody,
         stream,
         sessionKey,
         signal,
         signatureLookup,
         thinkingLookup,
         apiMode,
+        paramMergeContext,
       });
       if (fallbackResult) return fallbackResult;
 
@@ -385,6 +361,7 @@ export class ProxyService {
     signatureLookup: SignatureLookup;
     thinkingLookup: ThinkingBlockLookup;
     apiMode: ProxyApiMode;
+    paramMergeContext: ParamMergeContext;
   }): Promise<ProxyResult | null> {
     const {
       agentId,
@@ -431,6 +408,7 @@ export class ProxyService {
       apiMode,
       chatBody,
       fallbackRoutes,
+      args.paramMergeContext,
     );
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
