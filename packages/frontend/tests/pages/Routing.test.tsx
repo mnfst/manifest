@@ -541,6 +541,7 @@ describe("Routing page", () => {
         "claude",
         "anthropic",
         "api_key",
+        undefined,
       );
     });
   });

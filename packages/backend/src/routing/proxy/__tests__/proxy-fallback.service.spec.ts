@@ -494,8 +494,7 @@ describe('ProxyFallbackService', () => {
       );
     });
 
-    it('parses ||<label> suffix off fallback entries and forwards it to getProviderApiKey', async () => {
-      providerKeyService.getAuthType.mockResolvedValue('api_key');
+    it('forwards keyLabel from a structured fallback route to getProviderApiKey', async () => {
       providerKeyService.getProviderApiKey.mockResolvedValue('sk-work-key');
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
@@ -503,16 +502,25 @@ describe('ProxyFallbackService', () => {
         isAnthropic: false,
         isChatGpt: false,
       });
-      pricingCache.getByModel.mockReturnValue({ provider: 'Google' } as never);
 
+      // Structured route (ModelRoute[]) is the canonical fallback shape now.
+      // keyLabel rides along with each route — no more `||<label>` parsing.
       const result = await service.tryFallbacks(
         'agent-1',
         'user-1',
-        ['gemini-2.5-flash||Work'],
+        ['gemini-2.5-flash'],
         body,
         false,
         'sess-1',
         'gpt-4o',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [{ provider: 'Google', authType: 'api_key', model: 'gemini-2.5-flash', keyLabel: 'Work' }],
       );
 
       expect(result.success).not.toBeNull();
@@ -522,7 +530,6 @@ describe('ProxyFallbackService', () => {
         'api_key',
         'Work',
       );
-      // The bare model name (without the suffix) is what gets forwarded upstream.
       expect(providerClient.forward).toHaveBeenCalledWith(
         expect.objectContaining({ model: 'gemini-2.5-flash' }),
       );

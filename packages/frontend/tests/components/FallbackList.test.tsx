@@ -929,9 +929,17 @@ describe("FallbackList", () => {
       expect(getByLabelText(/API key for/i)).toBeDefined();
     });
 
-    it("shows the pinned label parsed off the ||suffix", () => {
+    it("shows the pinned label from the structured fallbackRoutes entry", () => {
+      // Multi-key pin now lives in the structured `fallbackRoutes[i].keyLabel`
+      // rather than the legacy `||<label>` suffix on the model string.
       const { container } = render(() => (
-        <FallbackList {...multiKeyProps} fallbacks={["model-a||Work"]} />
+        <FallbackList
+          {...multiKeyProps}
+          fallbacks={["model-a"]}
+          fallbackRoutes={[
+            { provider: "openai", authType: "api_key", model: "model-a", keyLabel: "Work" },
+          ] as any}
+        />
       ));
       const chip = container.querySelector(".fallback-list__key-chip") as HTMLElement;
       expect(chip).not.toBeNull();
@@ -948,7 +956,13 @@ describe("FallbackList", () => {
 
     it("renders a Clear pin option when the row is currently pinned", () => {
       const { container, getByText } = render(() => (
-        <FallbackList {...multiKeyProps} fallbacks={["model-a||Work"]} />
+        <FallbackList
+          {...multiKeyProps}
+          fallbacks={["model-a"]}
+          fallbackRoutes={[
+            { provider: "openai", authType: "api_key", model: "model-a", keyLabel: "Work" },
+          ] as any}
+        />
       ));
       const chip = container.querySelector(".fallback-list__key-chip") as HTMLButtonElement;
       fireEvent.click(chip);
@@ -964,24 +978,53 @@ describe("FallbackList", () => {
       expect(queryByText("Clear pin")).toBeNull();
     });
 
-    it("Clear pin strips the ||suffix from the entry and persists", async () => {
+    it("Clear pin nulls the keyLabel on the structured route and persists", async () => {
+      // After the merge, "Clear pin" no longer rewrites the model string —
+      // it sets `route.keyLabel` to null on the matching `fallbackRoutes`
+      // entry and forwards that structure to setFallbacks.
       const onUpdate = vi.fn();
+      const initialRoutes = [
+        { provider: "openai", authType: "api_key", model: "model-a", keyLabel: "Work" },
+      ];
       const { container, getByText } = render(() => (
-        <FallbackList {...multiKeyProps} fallbacks={["model-a||Work"]} onUpdate={onUpdate} />
+        <FallbackList
+          {...multiKeyProps}
+          fallbacks={["model-a"]}
+          fallbackRoutes={initialRoutes as any}
+          onUpdate={onUpdate}
+        />
       ));
       const chip = container.querySelector(".fallback-list__key-chip") as HTMLButtonElement;
       fireEvent.click(chip);
       fireEvent.click(getByText("Clear pin"));
       await Promise.resolve();
       await Promise.resolve();
-      expect(onUpdate).toHaveBeenCalledWith(["model-a"]);
-      expect(mockSetFallbacks).toHaveBeenCalledWith("test-agent", "tier-1", ["model-a"]);
+      expect(onUpdate).toHaveBeenCalledWith(
+        ["model-a"],
+        [{ provider: "openai", authType: "api_key", model: "model-a", keyLabel: null }],
+      );
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "test-agent",
+        "tier-1",
+        ["model-a"],
+        [{ provider: "openai", authType: "api_key", model: "model-a", keyLabel: null }],
+      );
     });
 
     it("opens the listbox and persists a new label via setFallbacks", async () => {
+      // Picking a key now writes the label into `route.keyLabel` of the
+      // structured fallbackRoutes entry; the model name stays bare.
       const onUpdate = vi.fn();
+      const initialRoutes = [
+        { provider: "openai", authType: "api_key", model: "model-a", keyLabel: null },
+      ];
       const { container, getByText } = render(() => (
-        <FallbackList {...multiKeyProps} fallbacks={["model-a"]} onUpdate={onUpdate} />
+        <FallbackList
+          {...multiKeyProps}
+          fallbacks={["model-a"]}
+          fallbackRoutes={initialRoutes as any}
+          onUpdate={onUpdate}
+        />
       ));
       const chip = container.querySelector(".fallback-list__key-chip") as HTMLButtonElement;
       fireEvent.click(chip);
@@ -990,8 +1033,16 @@ describe("FallbackList", () => {
       fireEvent.click(getByText("Work"));
       await Promise.resolve();
       await Promise.resolve();
-      expect(onUpdate).toHaveBeenCalledWith(["model-a||Work"]);
-      expect(mockSetFallbacks).toHaveBeenCalledWith("test-agent", "tier-1", ["model-a||Work"]);
+      expect(onUpdate).toHaveBeenCalledWith(
+        ["model-a"],
+        [{ provider: "openai", authType: "api_key", model: "model-a", keyLabel: "Work" }],
+      );
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "test-agent",
+        "tier-1",
+        ["model-a"],
+        [{ provider: "openai", authType: "api_key", model: "model-a", keyLabel: "Work" }],
+      );
     });
   });
 });

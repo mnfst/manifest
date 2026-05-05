@@ -393,7 +393,13 @@ describe("RoutingTierCard", () => {
           { provider: "openai", authType: "api_key", model: "gpt-4o" },
         ],
       );
-      expect(onOverride).toHaveBeenCalledWith("simple", "gpt-4o-mini", "openai", "api_key");
+      expect(onOverride).toHaveBeenCalledWith(
+        "simple",
+        "gpt-4o-mini",
+        "openai",
+        "api_key",
+        undefined,
+      );
     });
   });
 
@@ -446,7 +452,13 @@ describe("RoutingTierCard", () => {
     );
     await waitFor(() => {
       // The promoted fallback is index 1 (gpt-4o-mini, openai/api_key).
-      expect(onOverride).toHaveBeenCalledWith("simple", "gpt-4o-mini", "openai", "api_key");
+      expect(onOverride).toHaveBeenCalledWith(
+        "simple",
+        "gpt-4o-mini",
+        "openai",
+        "api_key",
+        undefined,
+      );
     });
   });
 
@@ -1012,7 +1024,13 @@ describe("RoutingTierCard", () => {
         ["gpt-4o-mini", "gpt-4o"],
         null,
       );
-      expect(onOverride).toHaveBeenCalledWith("simple", "claude", expect.any(String), undefined);
+      expect(onOverride).toHaveBeenCalledWith(
+        "simple",
+        "claude",
+        expect.any(String),
+        undefined,
+        undefined,
+      );
     });
   });
 

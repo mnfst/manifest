@@ -94,7 +94,16 @@ describe("createRoutingActions", () => {
       });
       const { actions } = setupActions();
       await actions.handleOverride("simple", "new-model", "openai", "api_key");
-      expect(mockOverrideTier).toHaveBeenCalledWith("demo", "simple", "new-model", "openai", "api_key");
+      // 6th arg is the optional providerKeyLabel; undefined here because the
+      // caller didn't pin a specific multi-key label.
+      expect(mockOverrideTier).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        "new-model",
+        "openai",
+        "api_key",
+        undefined,
+      );
       expect(mockToastSuccess).toHaveBeenCalledWith("Routing updated");
       expect(actions.getTier("simple")?.override_route?.model).toBe("new-model");
     });
@@ -183,7 +192,20 @@ describe("createRoutingActions", () => {
       ]);
       const { actions } = setupActions();
       await actions.handleAddFallback("simple", "fb-new", "openai", "api_key");
-      expect(mockSetFallbacks).toHaveBeenCalledWith("demo", "simple", ["fb-1", "fb-2", "fb-new"]);
+      // setFallbacks now receives the parallel route array as its 4th arg so
+      // multi-key pins (route.keyLabel) ride along with the persist. Existing
+      // fallbacks here have no pin, so each route is the bare (provider,
+      // authType, model) triple.
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        ["fb-1", "fb-2", "fb-new"],
+        [
+          { provider: "openai", authType: "api_key", model: "fb-1" },
+          { provider: "anthropic", authType: "api_key", model: "fb-2" },
+          { provider: "openai", authType: "api_key", model: "fb-new" },
+        ],
+      );
       expect(actions.getTier("simple")?.fallback_routes?.map((r) => r.model)).toEqual([
         "fb-1",
         "fb-2",
