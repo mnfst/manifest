@@ -16,6 +16,15 @@ export type SignatureLookup = (toolCallId: string) => string | null;
  * assistant turn; returns the ordered block sequence or null.
  */
 export type ThinkingBlockLookup = (firstToolUseId: string) => ThinkingBlock[] | null;
+
+/**
+ * Optional lookup to re-inject cached reasoning_content values that were
+ * stripped by the client (DeepSeek and compatible providers). Called with
+ * the first tool_call id from the assistant turn; returns the cached
+ * reasoning_content string or null.
+ */
+export type ReasoningContentLookup = (firstToolCallId: string) => string | null;
+
 export type ProxyApiMode = 'chat_completions' | 'responses' | 'messages';
 
 export interface OpenAIMessage {
@@ -47,6 +56,8 @@ export interface ForwardOptions {
   signatureLookup?: SignatureLookup;
   /** Lookup for re-injecting cached thinking blocks (Anthropic only). */
   thinkingLookup?: ThinkingBlockLookup;
+  /** Lookup for re-injecting cached reasoning_content (DeepSeek and compatible providers). */
+  reasoningContentLookup?: ReasoningContentLookup;
 }
 
 /** Options for ProxyService.proxyRequest. */

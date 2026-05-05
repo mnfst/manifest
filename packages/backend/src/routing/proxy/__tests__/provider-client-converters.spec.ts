@@ -1,4 +1,8 @@
-import { sanitizeOpenAiBody } from '../provider-client-converters';
+import {
+  sanitizeOpenAiBody,
+  supportsReasoningContent,
+  createDeepSeekStreamTransformer,
+} from '../provider-client-converters';
 
 describe('provider-client-converters', () => {
   describe('sanitizeOpenAiBody', () => {
@@ -839,6 +843,304 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('max_completion_tokens', 4096);
       expect(result).not.toHaveProperty('store');
       expect(result).not.toHaveProperty('service_tier');
+    });
+
+    /* ── reasoning_content re-injection via lookup ── */
+
+    it('re-injects reasoning_content via lookup when missing from assistant message', () => {
+      const lookup = jest.fn().mockReturnValue('cached reasoning');
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: 'ok',
+            tool_calls: [
+              { id: 'call_xyz', type: 'function', function: { name: 'f', arguments: '{}' } },
+            ],
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat', lookup);
+      const messages = result.messages as any[];
+
+      expect(lookup).toHaveBeenCalledWith('call_xyz');
+      expect(messages[0]).toHaveProperty('reasoning_content', 'cached reasoning');
+    });
+
+    it('does not re-inject when reasoning_content is already present', () => {
+      const lookup = jest.fn().mockReturnValue('cached');
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: 'ok',
+            reasoning_content: 'existing',
+            tool_calls: [{ id: 'call_xyz', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat', lookup);
+      const messages = result.messages as any[];
+
+      expect(lookup).not.toHaveBeenCalled();
+      expect(messages[0]).toHaveProperty('reasoning_content', 'existing');
+    });
+
+    it('does not re-inject when there are no tool_calls', () => {
+      const lookup = jest.fn().mockReturnValue('cached');
+      const body = {
+        messages: [{ role: 'assistant', content: 'ok' }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat', lookup);
+      const messages = result.messages as any[];
+
+      expect(lookup).not.toHaveBeenCalled();
+      expect(messages[0]).not.toHaveProperty('reasoning_content');
+    });
+
+    it('does not re-inject when lookup returns null', () => {
+      const lookup = jest.fn().mockReturnValue(null);
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: 'ok',
+            tool_calls: [{ id: 'call_xyz', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat', lookup);
+      const messages = result.messages as any[];
+
+      expect(messages[0]).not.toHaveProperty('reasoning_content');
+    });
+
+    it('does not re-inject for non-deepseek providers even with a lookup', () => {
+      const lookup = jest.fn().mockReturnValue('cached');
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: 'ok',
+            tool_calls: [{ id: 'call_xyz', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'anthropic', 'claude-3', lookup);
+      const messages = result.messages as any[];
+
+      expect(lookup).not.toHaveBeenCalled();
+      expect(messages[0]).not.toHaveProperty('reasoning_content');
+    });
+
+    it('does not re-inject when first tool_call id is non-string', () => {
+      const lookup = jest.fn().mockReturnValue('cached');
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: 'ok',
+            tool_calls: [{ id: 12345, type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat', lookup);
+      const messages = result.messages as any[];
+
+      expect(lookup).not.toHaveBeenCalled();
+      expect(messages[0]).not.toHaveProperty('reasoning_content');
+    });
+  });
+
+  describe('supportsReasoningContent', () => {
+    it('returns true for deepseek endpoint', () => {
+      expect(supportsReasoningContent('deepseek', 'deepseek-chat')).toBe(true);
+    });
+
+    it('returns true for moonshot endpoint (Kimi K2)', () => {
+      expect(supportsReasoningContent('moonshot', 'kimi-k2')).toBe(true);
+    });
+
+    it('returns true for opencode-go with kimi model', () => {
+      expect(supportsReasoningContent('opencode-go', 'opencode-go/kimi-k2.5')).toBe(true);
+    });
+
+    it('returns true for opencode-go with deepseek model', () => {
+      expect(supportsReasoningContent('opencode-go', 'opencode-go/deepseek-r1')).toBe(true);
+    });
+
+    it('returns true for opencode-go with glm model', () => {
+      expect(supportsReasoningContent('opencode-go', 'opencode-go/glm-5.1')).toBe(true);
+    });
+
+    it('returns false for opencode-go with non-reasoning model', () => {
+      expect(supportsReasoningContent('opencode-go', 'opencode-go/llama-4')).toBe(false);
+    });
+
+    it('returns true for openrouter with deepseek model', () => {
+      expect(supportsReasoningContent('openrouter', 'deepseek/deepseek-r1')).toBe(true);
+    });
+
+    it('returns true for openrouter with moonshotai model', () => {
+      expect(supportsReasoningContent('openrouter', 'moonshotai/kimi-k2')).toBe(true);
+    });
+
+    it('returns false for openrouter with non-deepseek non-moonshot model', () => {
+      expect(supportsReasoningContent('openrouter', 'openai/gpt-4o')).toBe(false);
+    });
+
+    it('returns false for anthropic endpoint', () => {
+      expect(supportsReasoningContent('anthropic', 'claude-3')).toBe(false);
+    });
+
+    it('returns false for openai endpoint', () => {
+      expect(supportsReasoningContent('openai', 'o3')).toBe(false);
+    });
+  });
+
+  describe('createDeepSeekStreamTransformer', () => {
+    it('passes through a plain JSON chunk as SSE', () => {
+      const transformer = createDeepSeekStreamTransformer();
+      const chunk = JSON.stringify({
+        choices: [{ delta: { content: 'hi' }, finish_reason: null }],
+      });
+      expect(transformer(chunk)).toBe(`data: ${chunk}\n\n`);
+    });
+
+    it('accumulates reasoning_content and fires callback on finish_reason tool_calls', () => {
+      const callback = jest.fn();
+      const transformer = createDeepSeekStreamTransformer(callback);
+
+      const chunk1 = JSON.stringify({
+        choices: [{ delta: { reasoning_content: 'I think ' }, finish_reason: null }],
+      });
+      const chunk2 = JSON.stringify({
+        choices: [{ delta: { reasoning_content: 'carefully.' }, finish_reason: null }],
+      });
+      const chunk3 = JSON.stringify({
+        choices: [
+          {
+            delta: {
+              tool_calls: [
+                {
+                  index: 0,
+                  id: 'call_abc',
+                  type: 'function',
+                  function: { name: 'f', arguments: '' },
+                },
+              ],
+            },
+            finish_reason: null,
+          },
+        ],
+      });
+      const chunk4 = JSON.stringify({ choices: [{ delta: {}, finish_reason: 'tool_calls' }] });
+
+      transformer(chunk1);
+      transformer(chunk2);
+      transformer(chunk3);
+      transformer(chunk4);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith('call_abc', 'I think carefully.');
+    });
+
+    it('does not fire callback when there is no reasoning_content', () => {
+      const callback = jest.fn();
+      const transformer = createDeepSeekStreamTransformer(callback);
+
+      const chunk = JSON.stringify({
+        choices: [
+          {
+            delta: { tool_calls: [{ id: 'call_abc', function: {} }] },
+            finish_reason: 'tool_calls',
+          },
+        ],
+      });
+      transformer(chunk);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('does not fire callback when there is no tool call id', () => {
+      const callback = jest.fn();
+      const transformer = createDeepSeekStreamTransformer(callback);
+
+      const chunk1 = JSON.stringify({
+        choices: [{ delta: { reasoning_content: 'thinking' }, finish_reason: null }],
+      });
+      const chunk2 = JSON.stringify({ choices: [{ delta: {}, finish_reason: 'tool_calls' }] });
+      transformer(chunk1);
+      transformer(chunk2);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('only fires callback once even if finish_reason appears again', () => {
+      const callback = jest.fn();
+      const transformer = createDeepSeekStreamTransformer(callback);
+
+      const setup = JSON.stringify({
+        choices: [
+          {
+            delta: { reasoning_content: 'r', tool_calls: [{ id: 'call_1', function: {} }] },
+            finish_reason: 'tool_calls',
+          },
+        ],
+      });
+      transformer(setup);
+      transformer(setup); // second call should not fire again
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('captures only the first tool call id across multiple chunks', () => {
+      const callback = jest.fn();
+      const transformer = createDeepSeekStreamTransformer(callback);
+
+      const chunk1 = JSON.stringify({
+        choices: [{ delta: { reasoning_content: 'r' }, finish_reason: null }],
+      });
+      const chunk2 = JSON.stringify({
+        choices: [{ delta: { tool_calls: [{ id: 'call_first' }] }, finish_reason: null }],
+      });
+      const chunk3 = JSON.stringify({
+        choices: [{ delta: { tool_calls: [{ id: 'call_second' }] }, finish_reason: null }],
+      });
+      const chunk4 = JSON.stringify({ choices: [{ delta: {}, finish_reason: 'tool_calls' }] });
+
+      transformer(chunk1);
+      transformer(chunk2);
+      transformer(chunk3);
+      transformer(chunk4);
+
+      expect(callback).toHaveBeenCalledWith('call_first', 'r');
+    });
+
+    it('works without a callback (no-op accumulation, still returns chunk)', () => {
+      const transformer = createDeepSeekStreamTransformer();
+      const chunk = JSON.stringify({
+        choices: [
+          {
+            delta: { reasoning_content: 'r', tool_calls: [{ id: 'c' }] },
+            finish_reason: 'tool_calls',
+          },
+        ],
+      });
+      const out = transformer(chunk);
+      expect(out).toBe(`data: ${chunk}\n\n`);
+    });
+
+    it('passes through non-JSON chunks unchanged', () => {
+      const transformer = createDeepSeekStreamTransformer();
+      const result = transformer('not valid json');
+      expect(result).toBe('data: not valid json\n\n');
     });
   });
 });

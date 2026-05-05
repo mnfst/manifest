@@ -486,6 +486,9 @@ describe('proxy-response-handler', () => {
         convertGoogleStreamChunk: jest.fn(),
         createAnthropicStreamTransformer: jest.fn().mockReturnValue(jest.fn()),
         convertChatGptStreamChunk: jest.fn(),
+        createDeepSeekStreamTransformer: jest
+          .fn()
+          .mockReturnValue(jest.fn().mockReturnValue('data: {}\n\n')),
       };
     }
 
@@ -838,6 +841,100 @@ describe('proxy-response-handler', () => {
 
       // Should not throw — just drops the signatures silently.
       expect(() => capturedTransform!('{}')).not.toThrow();
+    });
+
+    it('should use DeepSeek transformer for deepseek provider streams', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta({ provider: 'deepseek', model: 'deepseek-reasoner' });
+
+      await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      expect(client.createDeepSeekStreamTransformer).toHaveBeenCalledWith(undefined);
+      expect(pipeStreamSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        expect.any(Function),
+        undefined,
+      );
+    });
+
+    it('wires reasoning cache callback for DeepSeek streams', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta({ provider: 'deepseek', model: 'deepseek-reasoner' });
+      const reasoningCache = { store: jest.fn() };
+      const sessionKey = 'sess-ds-stream';
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        sessionKey,
+        undefined,
+        'chat_completions',
+        reasoningCache as any,
+      );
+
+      const callback = client.createDeepSeekStreamTransformer.mock.calls[0][0];
+      expect(typeof callback).toBe('function');
+      callback('call_ds1', 'I was thinking...');
+      expect(reasoningCache.store).toHaveBeenCalledWith(
+        'sess-ds-stream',
+        'call_ds1',
+        'I was thinking...',
+      );
+    });
+
+    it('DeepSeek chunk transform passes non-null output through toClientChunk', async () => {
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        (_body: unknown, _res: unknown, transform: (chunk: string) => string | null) => {
+          capturedTransform = transform;
+          return Promise.resolve(null);
+        },
+      );
+
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta({ provider: 'deepseek', model: 'deepseek-reasoner' });
+
+      await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      expect(capturedTransform).toBeDefined();
+      // transformer returns a non-null SSE string — expect it wrapped by toClientChunk
+      const out = capturedTransform!('{}');
+      expect(out).toBeTruthy();
+    });
+
+    it('should use DeepSeek transformer for openrouter with deepseek model', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta({ provider: 'openrouter', model: 'deepseek/deepseek-r1' });
+
+      await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      expect(client.createDeepSeekStreamTransformer).toHaveBeenCalled();
+    });
+
+    it('should NOT use DeepSeek transformer for openrouter with non-deepseek model', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta({ provider: 'openrouter', model: 'openai/gpt-4o' });
+
+      await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      expect(client.createDeepSeekStreamTransformer).not.toHaveBeenCalled();
+      // Falls through to raw passthrough
+      expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res);
     });
   });
 
@@ -1293,6 +1390,172 @@ describe('proxy-response-handler', () => {
       // _extractedSignatures should be deleted from the response body
       const sentBody = res.json.mock.calls[0][0];
       expect(sentBody._extractedSignatures).toBeUndefined();
+    });
+
+    it('caches reasoning_content from raw OpenAI-compat response when tool_calls present', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const reasoningCache = { store: jest.fn() };
+      const sessionKey = 'sess-ds';
+
+      const body = {
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: null,
+              reasoning_content: 'I should call the tool.',
+              tool_calls: [
+                { id: 'call_ds1', type: 'function', function: { name: 'f', arguments: '{}' } },
+              ],
+            },
+            finish_reason: 'tool_calls',
+          },
+        ],
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta({ provider: 'deepseek', model: 'deepseek-reasoner' });
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        sessionKey,
+        undefined,
+        'chat_completions',
+        reasoningCache as any,
+      );
+
+      expect(reasoningCache.store).toHaveBeenCalledWith(
+        'sess-ds',
+        'call_ds1',
+        'I should call the tool.',
+      );
+      // reasoning_content stays in the response body — the client needs it
+      const sentBody = res.json.mock.calls[0][0];
+      expect(sentBody.choices[0].message.reasoning_content).toBe('I should call the tool.');
+    });
+
+    it('does not cache when reasoning_content is absent', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const reasoningCache = { store: jest.fn() };
+
+      const body = {
+        choices: [
+          {
+            message: { role: 'assistant', content: 'hi', tool_calls: [{ id: 'call_1' }] },
+          },
+        ],
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        'sess',
+        undefined,
+        'chat_completions',
+        reasoningCache as any,
+      );
+
+      expect(reasoningCache.store).not.toHaveBeenCalled();
+    });
+
+    it('does not cache when tool_calls are absent', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const reasoningCache = { store: jest.fn() };
+
+      const body = {
+        choices: [
+          {
+            message: { role: 'assistant', content: 'hi', reasoning_content: 'r' },
+          },
+        ],
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        'sess',
+        undefined,
+        'chat_completions',
+        reasoningCache as any,
+      );
+
+      expect(reasoningCache.store).not.toHaveBeenCalled();
+    });
+
+    it('does not cache when sessionKey is absent', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const reasoningCache = { store: jest.fn() };
+
+      const body = {
+        choices: [
+          {
+            message: {
+              reasoning_content: 'r',
+              tool_calls: [{ id: 'call_1' }],
+            },
+          },
+        ],
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined, // no sessionKey
+        undefined,
+        'chat_completions',
+        reasoningCache as any,
+      );
+
+      expect(reasoningCache.store).not.toHaveBeenCalled();
+    });
+
+    it('does not cache when reasoningCache is absent', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+
+      const body = {
+        choices: [
+          {
+            message: {
+              reasoning_content: 'r',
+              tool_calls: [{ id: 'call_1' }],
+            },
+          },
+        ],
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta();
+
+      // Should not throw
+      await expect(
+        handleNonStreamResponse(res as any, forward as any, meta, {}, client as any),
+      ).resolves.toBeDefined();
     });
   });
 

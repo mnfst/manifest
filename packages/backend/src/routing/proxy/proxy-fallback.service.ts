@@ -61,7 +61,7 @@ import {
   buildTransportErrorResponse,
   describeTransportError,
 } from './proxy-transport';
-import type { SignatureLookup, ThinkingBlockLookup } from './proxy-types';
+import type { SignatureLookup, ThinkingBlockLookup, ReasoningContentLookup } from './proxy-types';
 import type { ProxyApiMode } from './proxy-types';
 
 export interface FailedFallback {
@@ -109,6 +109,7 @@ export class ProxyFallbackService {
     chatBody?: Record<string, unknown>,
     fallbackRoutes?: ModelRoute[] | null,
     paramMergeContext?: ParamMergeContext,
+    reasoningContentLookup?: ReasoningContentLookup,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -224,6 +225,7 @@ export class ProxyFallbackService {
         signatureLookup,
         thinkingLookup,
         paramMergeContext,
+        reasoningContentLookup,
       });
 
       if (forward.response.ok) {
@@ -269,6 +271,7 @@ export class ProxyFallbackService {
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
     paramMergeContext?: ParamMergeContext;
+    reasoningContentLookup?: ReasoningContentLookup;
   }): Promise<ForwardResult> {
     try {
       return await this.forwardToProvider(opts);
@@ -307,6 +310,7 @@ export class ProxyFallbackService {
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
     paramMergeContext?: ParamMergeContext;
+    reasoningContentLookup?: ReasoningContentLookup;
   }): Promise<ForwardResult> {
     const {
       provider,
@@ -317,6 +321,7 @@ export class ProxyFallbackService {
       providerRegion,
       signatureLookup,
       thinkingLookup,
+      reasoningContentLookup,
     } = opts;
     // Recompute the param-defaults merge against *this* iteration's provider,
     // not whatever the primary route happened to be. Without this, DeepSeek's
@@ -375,6 +380,7 @@ export class ProxyFallbackService {
       apiMode: opts.apiMode,
       signatureLookup,
       thinkingLookup,
+      reasoningContentLookup,
     });
   }
 }

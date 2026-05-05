@@ -20,9 +20,11 @@ import {
 import type { ProxyApiMode } from './proxy-types';
 import type { ThoughtSignatureCache } from './thought-signature-cache';
 import type { ThinkingBlockCache, ThinkingBlock } from './thinking-block-cache';
+import type { ReasoningContentCache } from './reasoning-content-cache';
 import type { ExtractedSignature } from './google-adapter';
 import type { ExtractedThinkingBlocks } from './anthropic-adapter';
 import type { CallerAttribution } from './caller-classifier';
+import { supportsReasoningContent } from './provider-client-converters';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -274,6 +276,7 @@ export async function handleStreamResponse(
   sessionKey?: string,
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
+  reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders);
 
@@ -331,6 +334,19 @@ export async function handleStreamResponse(
       finalize,
     );
   }
+  if (supportsReasoningContent(meta.provider, meta.model)) {
+    const onReasoningContent =
+      reasoningCache && sessionKey
+        ? (firstToolCallId: string, content: string) => {
+            reasoningCache.store(sessionKey, firstToolCallId, content);
+          }
+        : undefined;
+    const transformer = providerClient.createDeepSeekStreamTransformer(onReasoningContent);
+    return pipeStream(forward.response.body!, res, (chunk) => {
+      const out = transformer(chunk);
+      return out ? toClientChunk(out) : null;
+    }, finalize);
+  }
   if (forward.isChatGpt) {
     return pipeStream(
       forward.response.body!,
@@ -349,6 +365,34 @@ export async function handleStreamResponse(
   return pipeStream(forward.response.body!, res);
 }
 
+/**
+ * Extracts and caches reasoning_content from an OpenAI-compatible response body.
+ * Called for any provider response that may contain reasoning_content alongside
+ * tool_calls — we cache it so it can be re-injected on the next turn when the
+ * client replays the conversation without it.
+ */
+function cacheReasoningContent(
+  responseBody: unknown,
+  cache: ReasoningContentCache | undefined,
+  sessionKey: string | undefined,
+): void {
+  if (!cache || !sessionKey) return;
+  const body = responseBody as Record<string, unknown> | undefined;
+  const choices = body?.choices;
+  if (!Array.isArray(choices) || choices.length === 0) return;
+  const message = (choices[0] as Record<string, unknown>)?.message as
+    | Record<string, unknown>
+    | undefined;
+  if (!message) return;
+  const reasoningContent = message.reasoning_content;
+  if (typeof reasoningContent !== 'string' || !reasoningContent) return;
+  const toolCalls = message.tool_calls;
+  if (!Array.isArray(toolCalls) || toolCalls.length === 0) return;
+  const firstToolCallId = (toolCalls[0] as Record<string, unknown>).id;
+  if (typeof firstToolCallId !== 'string' || !firstToolCallId) return;
+  cache.store(sessionKey, firstToolCallId, reasoningContent);
+}
+
 /** Reads and converts a non-streaming response, extracting usage data. */
 export async function handleNonStreamResponse(
   res: ExpressResponse,
@@ -360,6 +404,7 @@ export async function handleNonStreamResponse(
   sessionKey?: string,
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
+  reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
   let responseBody: unknown;
 
@@ -394,6 +439,7 @@ export async function handleNonStreamResponse(
     responseBody = providerClient.collectChatGptSseResponse(sseText, meta.model);
   } else {
     responseBody = await forward.response.json();
+    cacheReasoningContent(responseBody, reasoningCache, sessionKey);
   }
 
   if (apiMode === 'responses' && !forward.isResponses) {

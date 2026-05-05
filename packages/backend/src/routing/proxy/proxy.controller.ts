@@ -19,6 +19,7 @@ import { ProviderClient } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
+import { ReasoningContentCache } from './reasoning-content-cache';
 import { classifyCaller } from './caller-classifier';
 import { sanitizeRequestHeaders } from './request-headers';
 import {
@@ -53,6 +54,7 @@ export class ProxyController {
     private readonly recorder: ProxyMessageRecorder,
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
+    private readonly reasoningCache: ReasoningContentCache,
   ) {}
 
   @Post('chat/completions')
@@ -163,6 +165,7 @@ export class ProxyController {
           sessionKey,
           this.thinkingCache,
           apiMode,
+          this.reasoningCache,
         );
       } else {
         streamUsage = await handleNonStreamResponse(
@@ -175,6 +178,7 @@ export class ProxyController {
           sessionKey,
           this.thinkingCache,
           apiMode,
+          this.reasoningCache,
         );
       }
 

@@ -12,6 +12,7 @@ import type { LimitCheckService } from '../../../notifications/services/limit-ch
 import type { ProxyFallbackService } from '../proxy-fallback.service';
 import type { ThoughtSignatureCache } from '../thought-signature-cache';
 import type { ThinkingBlockCache } from '../thinking-block-cache';
+import type { ReasoningContentCache } from '../reasoning-content-cache';
 
 /**
  * Stream-warmup helper is mocked because the real implementation depends on
@@ -54,6 +55,7 @@ describe('ProxyService — orchestration', () => {
   let configService: ConfigService;
   let signatureCache: ThoughtSignatureCache;
   let thinkingCache: ThinkingBlockCache;
+  let reasoningCache: ReasoningContentCache;
   let svc: ProxyService;
 
   beforeEach(() => {
@@ -86,6 +88,9 @@ describe('ProxyService — orchestration', () => {
       retrieve: jest.fn().mockReturnValue(null),
     } as unknown as ThoughtSignatureCache;
     thinkingCache = { retrieve: jest.fn().mockReturnValue(null) } as unknown as ThinkingBlockCache;
+    reasoningCache = {
+      retrieve: jest.fn().mockReturnValue(null),
+    } as unknown as ReasoningContentCache;
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
@@ -99,6 +104,7 @@ describe('ProxyService — orchestration', () => {
       configService,
       signatureCache,
       thinkingCache,
+      reasoningCache,
     );
   });
 

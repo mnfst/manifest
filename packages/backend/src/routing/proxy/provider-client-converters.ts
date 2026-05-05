@@ -69,7 +69,7 @@ export function createAnthropicTransformer(
 export { toGoogleRequest, toAnthropicRequest, toResponsesRequest, collectChatGptSseResponse };
 export type { GoogleStreamChunkResult } from './google-adapter';
 export type { ThinkingBlocksCallback } from './anthropic-adapter';
-export type { SignatureLookup, ThinkingBlockLookup } from './proxy-types';
+export type { SignatureLookup, ThinkingBlockLookup, ReasoningContentLookup } from './proxy-types';
 
 // ─── OpenAI body sanitization (used by ProviderClient.forward) ───────────────
 
@@ -131,29 +131,84 @@ const OPENCODE_GO_REASONING_MODEL_FAMILY_RE =
 /**
  * Some reasoning APIs reject follow-up turns that don't echo back the previous
  * assistant's `reasoning_content`. Preserve it for:
- *  - the native `deepseek` endpoint (always)
- *  - OpenCode Go's known reasoning model families
- *  - aggregator/proxy endpoints whose `deepseek-*` slugs forward to a DeepSeek
- *    engine (OpenRouter `deepseek/*` and user-supplied custom providers).
+ *  - the native `deepseek` and `moonshot` endpoints (always)
+ *  - OpenCode Go's known reasoning model families (kimi, deepseek, glm, etc.)
+ *  - OpenRouter `deepseek/*` slugs and `moonshotai/*` slugs (Kimi K2 via OpenRouter)
+ *  - user-supplied custom providers
  * Strict OpenAI-compatible endpoints (Mistral, native OpenAI, etc.) keep
  * stripping the field even if a community fine-tune slug contains "deepseek".
  */
-function supportsReasoningContent(endpointKey: string, model: string): boolean {
+export function supportsReasoningContent(endpointKey: string, model: string): boolean {
   if (endpointKey === 'deepseek') return true;
+  if (endpointKey === 'moonshot') return true;
   if (!REASONING_CONTENT_AWARE_ENDPOINTS.has(endpointKey)) return false;
-  // Bare model id after stripping any vendor/aggregator prefix:
-  //   "deepseek/r1"             → "r1"            — OpenRouter, not deepseek-family
-  //   "openrouter" + "deepseek/deepseek-r1" → "deepseek-r1" ✓
-  //   "opencode-go/kimi-k2.6" → "kimi-k2.6" ✓
-  //   "custom:<uuid>/deepseek-reasoner" → "deepseek-reasoner" ✓
-  // (proxy-fallback.service strips "custom:<uuid>/" before forward, so in
-  // practice the custom path passes the already-bare model — both shapes
-  // are handled.)
   const bare = model.toLowerCase().split('/').pop() ?? '';
   if (endpointKey === 'opencode-go') {
     return OPENCODE_GO_REASONING_MODEL_FAMILY_RE.test(bare);
   }
-  return bare.includes('deepseek');
+  // openrouter, custom: deepseek family or moonshotai/* (Kimi K2 via OpenRouter)
+  return bare.includes('deepseek') || model.toLowerCase().startsWith('moonshotai/');
+}
+
+/**
+ * Callback fired once per assistant turn when the stream transformer has
+ * assembled the complete reasoning_content. The response handler caches it
+ * keyed by the first tool_call id for re-injection on the next turn.
+ */
+export type ReasoningContentCallback = (firstToolCallId: string, content: string) => void;
+
+/**
+ * Creates a stateful DeepSeek stream transformer that accumulates
+ * reasoning_content across SSE delta chunks and fires a callback when the
+ * turn completes (finish_reason: 'tool_calls'). The chunks are passed
+ * through unchanged so the client still sees the full reasoning chain.
+ *
+ * pipeStream strips the `data: ` prefix before calling the transformer and
+ * expects the returned string to already include it.
+ */
+export function createDeepSeekStreamTransformer(
+  onReasoningContent?: ReasoningContentCallback,
+): (chunk: string) => string | null {
+  let accumulatedReasoning = '';
+  let firstToolCallId: string | null = null;
+  let fired = false;
+
+  const tryFire = () => {
+    if (!fired && onReasoningContent && accumulatedReasoning && firstToolCallId) {
+      onReasoningContent(firstToolCallId, accumulatedReasoning);
+      fired = true;
+    }
+  };
+
+  return (chunk: string): string | null => {
+    try {
+      const parsed = JSON.parse(chunk) as Record<string, unknown>;
+      const choice = (parsed.choices as Array<Record<string, unknown>> | undefined)?.[0];
+      const delta = choice?.delta as Record<string, unknown> | undefined;
+
+      if (delta) {
+        if (typeof delta.reasoning_content === 'string') {
+          accumulatedReasoning += delta.reasoning_content;
+        }
+        const toolCalls = delta.tool_calls as Array<Record<string, unknown>> | undefined;
+        if (Array.isArray(toolCalls)) {
+          for (const tc of toolCalls) {
+            if (firstToolCallId === null && typeof tc.id === 'string' && tc.id) {
+              firstToolCallId = tc.id;
+            }
+          }
+        }
+      }
+
+      if (choice?.finish_reason === 'tool_calls') {
+        tryFire();
+      }
+    } catch {
+      // Pass non-JSON chunks through unchanged
+    }
+
+    return `data: ${chunk}\n\n`;
+  };
 }
 
 /**
@@ -168,7 +223,12 @@ function supportsReasoningDetails(endpointKey: string): boolean {
   return endpointKey === 'openrouter';
 }
 
-function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: string): unknown {
+function sanitizeOpenAiMessages(
+  messages: unknown,
+  endpointKey: string,
+  model: string,
+  reasoningContentLookup?: (firstToolCallId: string) => string | null,
+): unknown {
   if (!Array.isArray(messages)) return messages;
 
   const preserveReasoningContent = supportsReasoningContent(endpointKey, model);
@@ -243,6 +303,23 @@ function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: s
       delete cleaned.reasoning_details;
     }
 
+    // Re-inject cached reasoning_content for reasoning models that require it.
+    // OpenAI-compat clients drop the field when replaying conversation history,
+    // so we cache it on the response path and restore it here.
+    if (
+      preserveReasoningContent &&
+      !cleaned.reasoning_content &&
+      Array.isArray(cleaned.tool_calls) &&
+      cleaned.tool_calls.length > 0 &&
+      reasoningContentLookup
+    ) {
+      const firstToolCallId = (cleaned.tool_calls[0] as Record<string, unknown>).id;
+      if (typeof firstToolCallId === 'string') {
+        const cached = reasoningContentLookup(firstToolCallId);
+        if (cached) cleaned.reasoning_content = cached;
+      }
+    }
+
     if (isMistral && Array.isArray(cleaned.tool_calls)) {
       cleaned.tool_calls = cleaned.tool_calls.map((toolCall) => {
         if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) {
@@ -285,6 +362,7 @@ export function sanitizeOpenAiBody(
   body: Record<string, unknown>,
   endpointKey: string,
   model: string,
+  reasoningContentLookup?: (firstToolCallId: string) => string | null,
 ): Record<string, unknown> {
   const passthroughTopLevel = PASSTHROUGH_PROVIDERS.has(endpointKey);
 
@@ -302,7 +380,7 @@ export function sanitizeOpenAiBody(
     // would reject the unknown parameter.
     if (key.startsWith('_anthropic')) continue;
     if (key === 'messages') {
-      cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model);
+      cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model, reasoningContentLookup);
       continue;
     }
     // Rewrite max_tokens → max_completion_tokens for OpenAI-backed endpoints that

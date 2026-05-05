@@ -22,6 +22,7 @@ import { SessionMomentumService } from './session-momentum.service';
 import { CopilotTokenService } from './copilot-token.service';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
+import { ReasoningContentCache } from './reasoning-content-cache';
 import { ProxyExceptionFilter } from './proxy-exception.filter';
 
 @Module({
@@ -49,6 +50,7 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     CopilotTokenService,
     ThoughtSignatureCache,
     ThinkingBlockCache,
+    ReasoningContentCache,
     ProxyExceptionFilter,
   ],
 })
