@@ -427,15 +427,14 @@ describe('TierService', () => {
       expect(result.param_defaults).toEqual(defaults);
     });
 
-    it('falls through to the freshly built record when insert fails and retry finds nothing', async () => {
+    it('rethrows insert failures when no concurrent row exists (genuine DB error)', async () => {
       tierRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
       tierRepo.insert.mockRejectedValueOnce(new Error('unrelated'));
 
       const defaults = { thinking: { type: 'disabled' as const } };
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'standard', defaults);
-
-      expect(result.param_defaults).toEqual(defaults);
-      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      await expect(svc.setParamDefaults('agent-1', 'user-1', 'standard', defaults)).rejects.toThrow(
+        'unrelated',
+      );
     });
   });
 

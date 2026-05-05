@@ -151,9 +151,14 @@ export class SpecificityService {
     });
     try {
       await this.repo.insert(record);
-    } catch {
+    } catch (err) {
+      // Retry handles the unique-index race: a concurrent caller created the
+      // row between our findOne and insert. If no row appeared, the insert
+      // failed for a real reason (DB down, constraint mismatch, etc.) and
+      // we must surface it instead of pretending the write succeeded.
       const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
       if (retry) return this.setParamDefaults(agentId, userId, category, paramDefaults);
+      throw err;
     }
     this.routingCache.invalidateAgent(agentId);
     return record;

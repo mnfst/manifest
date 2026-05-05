@@ -294,14 +294,14 @@ describe('SpecificityService', () => {
       expect(result.param_defaults).toEqual(defaults);
     });
 
-    it('returns the freshly built record when insert fails and retry finds nothing', async () => {
+    it('rethrows insert failures when no concurrent row exists (genuine DB error)', async () => {
       repo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
       repo.insert.mockRejectedValueOnce(new Error('unrelated'));
 
       const defaults = { thinking: { type: 'disabled' as const } };
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults);
-
-      expect(result.param_defaults).toEqual(defaults);
+      await expect(svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults)).rejects.toThrow(
+        'unrelated',
+      );
     });
   });
 
