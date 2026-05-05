@@ -29,11 +29,13 @@ vi.mock("../../src/services/setup-status.js", () => ({
 }));
 
 import Register from "../../src/pages/Register";
+import { getLastAuthMethod, setLastAuthMethod } from "../../src/services/last-auth-method";
 
 describe("Register", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSignUpEmail.mockResolvedValue({});
+    localStorage.clear();
   });
 
   it("renders create account heading", () => {
@@ -221,6 +223,46 @@ describe("Register", () => {
       });
     }
     vi.useRealTimers();
+  });
+
+  it("stores email as last auth method on successful signup", async () => {
+    mockSignUpEmail.mockResolvedValue({ error: null });
+    const { container } = render(() => <Register />);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: "test@test.com" },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: "pass12345" },
+    });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(getLastAuthMethod()).toBe("email");
+    });
+  });
+
+  it("does not store last auth method when signup fails", async () => {
+    mockSignUpEmail.mockResolvedValue({ error: { message: "boom" } });
+    const { container } = render(() => <Register />);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: "t@t.com" },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: "pass12345" },
+    });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("boom");
+    });
+    expect(getLastAuthMethod()).toBeNull();
+  });
+
+  it("shows Last used badge on submit when previous method was email", () => {
+    setLastAuthMethod("email");
+    const { container } = render(() => <Register />);
+    const submit = container.querySelector('button[type="submit"]')!;
+    expect(submit.querySelector(".auth-last-used")).not.toBeNull();
   });
 
   it("shows back to sign in link on verification screen", async () => {

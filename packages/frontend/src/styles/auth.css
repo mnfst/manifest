@@ -127,6 +127,10 @@
 }
 
 .auth-form__submit {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 2.75rem;
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
@@ -229,6 +233,7 @@
 }
 
 .auth-social-btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -270,6 +275,27 @@
 }
 .auth-social-btn--discord:hover {
   border-color: #5865f2;
+}
+
+/* ── "Last used" badge ───────────────────────────── */
+.auth-last-used {
+  position: absolute;
+  right: var(--gap-md);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.125rem 0.5rem;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+
+.auth-form__submit .auth-last-used {
+  background: hsl(var(--primary-foreground) / 0.18);
+  color: hsl(var(--primary-foreground));
 }
 
 /* ── Auth Footer / Terms ─────────────────────────── */

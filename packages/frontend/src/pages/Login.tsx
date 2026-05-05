@@ -3,6 +3,7 @@ import { Title, Meta } from '@solidjs/meta';
 import { type Component, createSignal, createUniqueId, onCleanup, onMount, Show } from 'solid-js';
 import SocialButtons from '../components/SocialButtons.jsx';
 import { authClient } from '../services/auth-client.js';
+import { getLastAuthMethod, setLastAuthMethod } from '../services/last-auth-method.js';
 import { checkSocialProviders } from '../services/setup-status.js';
 
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -15,6 +16,7 @@ const Login: Component = () => {
   const [needsVerification, setNeedsVerification] = createSignal(false);
   const [resendCooldown, setResendCooldown] = createSignal(0);
   const [socialProviders, setSocialProviders] = createSignal<string[]>([]);
+  const [lastAuthMethod] = createSignal(getLastAuthMethod());
   const [searchParams] = useSearchParams();
   const emailId = createUniqueId();
   const passwordId = createUniqueId();
@@ -75,6 +77,7 @@ const Login: Component = () => {
       return;
     }
 
+    setLastAuthMethod('email');
     window.location.href = '/';
   };
 
@@ -104,7 +107,7 @@ const Login: Component = () => {
         <p class="auth-header__subtitle">Take control of your AI agent costs</p>
       </div>
 
-      <SocialButtons enabledProviders={socialProviders()} />
+      <SocialButtons enabledProviders={socialProviders()} lastUsed={lastAuthMethod()} />
 
       <Show when={socialProviders().length > 0}>
         <div class="auth-divider">
@@ -163,7 +166,14 @@ const Login: Component = () => {
           </A>
         </div>
         <button class="auth-form__submit" type="submit" disabled={loading()}>
-          {loading() ? <span class="spinner" /> : 'Sign in'}
+          <Show when={loading()} fallback={<span>Sign in</span>}>
+            <span class="spinner" />
+          </Show>
+          <Show when={!loading() && lastAuthMethod() === 'email'}>
+            <span class="auth-last-used" aria-label="Last used">
+              Last used
+            </span>
+          </Show>
         </button>
       </form>
       <div class="auth-footer">
