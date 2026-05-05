@@ -183,13 +183,59 @@ describe("createRoutingActions", () => {
       ]);
       const { actions } = setupActions();
       await actions.handleAddFallback("simple", "fb-new", "openai", "api_key");
-      expect(mockSetFallbacks).toHaveBeenCalledWith("demo", "simple", ["fb-1", "fb-2", "fb-new"]);
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        ["fb-1", "fb-2", "fb-new"],
+        [
+          { provider: "openai", authType: "api_key", model: "fb-1" },
+          { provider: "anthropic", authType: "api_key", model: "fb-2" },
+          { provider: "openai", authType: "api_key", model: "fb-new" },
+        ],
+      );
       expect(actions.getTier("simple")?.fallback_routes?.map((r) => r.model)).toEqual([
         "fb-1",
         "fb-2",
         "fb-new",
       ]);
       expect(mockToastSuccess).toHaveBeenCalledWith("Fallback added");
+    });
+
+    it("sends explicit (provider, authType) route so backend can disambiguate same-provider models", async () => {
+      // Repros the user-reported bug: primary is OpenAI subscription gpt-4o;
+      // user adds OpenAI API key gpt-4o as the first fallback. The backend's
+      // unambiguousRoute() can't pick by model name alone because gpt-4o
+      // appears twice in the discovered model list (once per authType), so
+      // without an explicit route payload it returns null and silently drops
+      // the save. The frontend must therefore always send the route tuple.
+      const tier: TierAssignment = {
+        ...baseTier,
+        override_route: { provider: "openai", authType: "subscription", model: "gpt-4o" },
+        fallback_routes: null,
+      };
+      mockSetFallbacks.mockResolvedValue([
+        { provider: "openai", authType: "api_key", model: "gpt-4o" },
+      ]);
+      const { actions } = setupActions([tier]);
+      await actions.handleAddFallback("simple", "gpt-4o", "openai", "api_key");
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        ["gpt-4o"],
+        [{ provider: "openai", authType: "api_key", model: "gpt-4o" }],
+      );
+    });
+
+    it("omits the routes payload when the caller has no authType", async () => {
+      mockSetFallbacks.mockResolvedValue([]);
+      const { actions } = setupActions();
+      await actions.handleAddFallback("simple", "fb-new", "openai");
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        ["fb-1", "fb-2", "fb-new"],
+        undefined,
+      );
     });
 
     it("rolls back the optimistic state on failure", async () => {

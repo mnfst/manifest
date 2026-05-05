@@ -136,12 +136,21 @@ const Routing: Component = () => {
     setFallbackPickerTier(null);
     if (isSpecificityTier(tierId)) {
       const sa = specificityAssignments()?.find((a) => a.category === tierId);
-      const current = sa?.fallback_routes?.map((r) => r.model) ?? [];
+      const currentRoutes = sa?.fallback_routes ?? [];
+      const current = currentRoutes.map((r) => r.model);
       if (current.includes(modelName)) return;
       const updated = [...current, modelName];
+      // Pass explicit (provider, authType, model) routes so the backend can
+      // disambiguate when the same model id is offered by multiple connected
+      // providers (e.g. OpenAI subscription + OpenAI API key both expose
+      // gpt-4o). Without this the backend silently stores nothing.
+      const updatedRoutes =
+        authType !== undefined
+          ? [...currentRoutes, { provider: providerId, authType, model: modelName }]
+          : undefined;
       try {
         const { setSpecificityFallbacks } = await import('../services/api.js');
-        await setSpecificityFallbacks(agentName(), tierId, updated);
+        await setSpecificityFallbacks(agentName(), tierId, updated, updatedRoutes);
         await refetchSpecificity();
         toast.success('Fallback added');
       } catch {

@@ -95,18 +95,27 @@ export function createRoutingActions(input: RoutingActionsInput) {
   const handleAddFallback = async (
     tierId: string,
     modelName: string,
-    _providerId: string,
-    _authType?: AuthType,
+    providerId: string,
+    authType?: AuthType,
   ) => {
     const tier = getTier(tierId);
     const currentRoutes = tier?.fallback_routes ?? [];
     const current = currentRoutes.map((r) => r.model);
     if (current.includes(modelName)) return;
     const updated = [...current, modelName];
+    // Pass the explicit (provider, authType, model) tuple alongside the model
+    // name. Without it, the backend can't disambiguate when the same model id
+    // is offered by two of the user's connected providers (e.g. OpenAI
+    // subscription + OpenAI API key both expose gpt-4o), which causes the
+    // backend's unambiguousRoute() to return null and silently drop the save.
+    const updatedRoutes: ModelRoute[] | undefined =
+      authType !== undefined
+        ? [...currentRoutes, { provider: providerId, authType, model: modelName }]
+        : undefined;
     setFallbackOverrides((prev) => ({ ...prev, [tierId]: updated }));
     setAddingFallback(tierId);
     try {
-      const persistedRoutes = await setFallbacks(input.agentName(), tierId, updated);
+      const persistedRoutes = await setFallbacks(input.agentName(), tierId, updated, updatedRoutes);
       input.mutateTiers((prev) =>
         prev?.map((t) => (t.tier === tierId ? { ...t, fallback_routes: persistedRoutes } : t)),
       );
