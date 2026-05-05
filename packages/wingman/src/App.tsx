@@ -24,9 +24,19 @@ const STORAGE = {
   profile: 'wingman:profile',
 };
 
+// API keys are stored in sessionStorage (cleared on tab close) instead of
+// localStorage so contributors don't leave a long-lived `mnfst_*` token in
+// disk-backed browser storage. Everything else (base URL, model, profile,
+// system prompts, history) stays in localStorage since it's not sensitive.
+const SENSITIVE_KEYS = new Set<string>(['wingman:apiKey']);
+
+function storageFor(key: string): Storage {
+  return SENSITIVE_KEYS.has(key) ? sessionStorage : localStorage;
+}
+
 function readStorage(key: string, fallback: string): string {
   try {
-    const value = localStorage.getItem(key);
+    const value = storageFor(key).getItem(key);
     return value ?? fallback;
   } catch {
     return fallback;
@@ -44,7 +54,7 @@ function readQueryParam(key: string): string | null {
 
 function writeStorage(key: string, value: string): void {
   try {
-    localStorage.setItem(key, value);
+    storageFor(key).setItem(key, value);
   } catch {
     /* ignore */
   }

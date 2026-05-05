@@ -138,7 +138,7 @@ model:
   api_key: ${p.apiKey || 'mnfst_YOUR_KEY'}
   default: ${p.model}
 EOF
-hermes chat -q "${p.userMessage.replace(/"/g, '\\"')}"`,
+hermes chat -q '${p.userMessage.replace(/'/g, "'\\''")}'`,
   },
   {
     id: 'openai-sdk',
