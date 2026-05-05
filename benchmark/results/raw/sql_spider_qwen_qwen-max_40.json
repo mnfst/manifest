@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT makeid, make_name\nFROM cars\nWHERE horsepower > (SELECT MIN(horsepower) FROM cars)\nAND cylinders <= 3;\n```",
+  "score": 0,
+  "cost": 0.00023087999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 33
+  }
+}

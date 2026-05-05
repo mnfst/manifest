@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT m.maker_id, m.maker_name, COUNT(*) AS number_of_models\nFROM makers m\nJOIN models mo ON m.maker_id = mo.maker_id\nGROUP BY m.maker_id, m.maker_name;\n```",
+  "score": 0,
+  "cost": 0.00041840000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 228,
+    "output": 466
+  }
+}

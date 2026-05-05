@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "function_calling",
+  "case": 32,
+  "response": "{\"name\": \"run_security_scan\", \"arguments\": {\"target\": \"10.0.0.1\", \"scan_type\": \"full\"}}",
+  "score": 5,
+  "cost": 3.4049999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 31
+  }
+}

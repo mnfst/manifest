@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "function_calling",
+  "case": 47,
+  "response": "{\"name\": \"create_cron\", \"arguments\": {\"schedule\": \"0 0 * * *\", \"command\": \"cleanup\", \"name\": \"daily_cleanup\"}}",
+  "score": 5,
+  "cost": 0.0003886,
+  "expected": "",
+  "tokens": {
+    "input": 239,
+    "output": 426
+  }
+}

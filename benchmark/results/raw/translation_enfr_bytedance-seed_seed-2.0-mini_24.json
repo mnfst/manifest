@@ -4,10 +4,10 @@
   "case": 24,
   "response": "Le programme de nutrition urbaine de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et promeut l'octroi de cr\u00e9dits aux groupes de femmes qui commercialisent des denr\u00e9es alimentaires.",
   "score": 5,
-  "cost": 0.000935,
+  "cost": 0.0004262,
   "expected": "",
   "tokens": {
     "input": 94,
-    "output": 2314
+    "output": 1042
   }
 }

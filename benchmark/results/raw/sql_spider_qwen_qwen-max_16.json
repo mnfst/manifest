@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 16,
+  "response": "```sql\nSELECT COUNT(DISTINCT country_code) AS distinct_country_codes\nFROM players;\n```",
+  "score": 0,
+  "cost": 0.00015912,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 20
+  }
+}

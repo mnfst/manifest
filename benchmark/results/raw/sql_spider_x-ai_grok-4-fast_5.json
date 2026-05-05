@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT * FROM Airports\nWHERE airport_id NOT IN (SELECT departure_airport_id FROM Flights)\nAND airport_id NOT IN (SELECT arrival_airport_id FROM Flights);\n```",
+  "score": 0,
+  "cost": 0.00034140000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 372
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "SELECT COUNT(*) FROM car_1 WHERE year = 1980;",
+  "score": 0,
+  "cost": 0.00028,
+  "expected": "",
+  "tokens": {
+    "input": 268,
+    "output": 283
+  }
+}

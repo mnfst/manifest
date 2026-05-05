@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "function_calling",
+  "case": 6,
+  "response": "{\"name\": \"translate\", \"arguments\": {\"text\": \"The meeting has been rescheduled to Monday\", \"target_language\": \"Spanish\"}}",
+  "score": 4,
+  "cost": 0.0002132,
+  "expected": "",
+  "tokens": {
+    "input": 250,
+    "output": 204
+  }
+}

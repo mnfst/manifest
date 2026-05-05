@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 11,
+  "response": "{\"name\":\"add_to_list\",\"arguments\":{\"list_name\":\"shopping\",\"items\":[\"milk\",\"eggs\",\"bread\"]}}",
+  "score": 4,
+  "cost": 0.002995,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 127
+  }
+}

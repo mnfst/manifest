@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 18,
-  "response": "La plage la plus proche est accessible facilement en voiture, situ\u00e9e \u00e0 environ 6...",
+  "response": "La plage la plus proche est facilement accessible en voiture, \u00e0 environ 6...",
   "score": 4,
-  "cost": 0.00028619999999999996,
+  "cost": 0.0004302,
   "expected": "",
   "tokens": {
     "input": 82,
-    "output": 695
+    "output": 1055
   }
 }

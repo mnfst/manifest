@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 29,
+  "response": "{\"name\": \"ocr_document\", \"arguments\": {\"path\": \"uploads contract.pdf\"}}",
+  "score": 5,
+  "cost": 0.00016432,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 18
+  }
+}

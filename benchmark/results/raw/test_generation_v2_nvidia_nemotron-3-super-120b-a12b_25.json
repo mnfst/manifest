@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 25,
+  "response": "Here is a **pytest** test suite that exercises the happy\u2011path, edge\u2011cases and error\u2011conditions of `deduplicate_sorted`.  \nSave it as `test_deduplicate_sorted.py` (or any name that starts with `test_`) in the same directory as the module containing the function, or adjust the import accordingly.\n\n```python\n# test_deduplicate_sorted.py\nimport pytest\n\n# Import the function from the module where it lives.\n# Replace `my_module` with the actual module name.\nfrom my_module import deduplicate_sorted\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path tests\n# ----------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"input_list, expected\",\n    [\n        ([], []),                                 # empty list\n        ([1], [1]),                               # single element\n        ([1, 2, 3, 4, 5], [1, 2, 3, 4, 5]),       # no duplicates\n        ([1, 1, 2, 2, 3, 3], [1, 2, 3]),          # pairs of duplicates\n        ([1, 1, 1, 1, 1], [1]),                   # all elements identical\n        ([0, 0, 1, 1, 1, 2, 3, 3, 4], [0, 1, 2, 3, 4]),\n        # mixed types that support equality\n        ([\"a\", \"a\", \"b\", \"b\", \"c\"], [\"a\", \"b\", \"c\"]),\n        ([1.0, 1.0, 2.5, 2.5, 2.5, 3.0], [1.0, 2.5, 3.0]),\n        # list of lists (unhashable but equality works)\n        ([[1, 2], [1, 2], [3], [3], [3, 4]], [[1, 2], [3], [3, 4]]),\n    ],\n)\ndef test_deduplicate_sorted_happy_path(input_list, expected):\n    \"\"\"Typical usage \u2013 the function should return a new list with consecutive duplicates removed.\"\"\"\n    # Keep a copy to verify the input is not mutated\n    original = list(input_list)\n    result = deduplicate_sorted(input_list)\n\n    assert result == expected\n    # Ensure the original list was not altered\n    assert input_list == original\n\n\n# ----------------------------------------------------------------------\n# Edge\u2011case tests\n# ----------------------------------------------------------------------\ndef test_deduplicate_sorted_returns_new_list():\n    \"\"\"The function should not return the same list object it received.\"\"\"\n    src = [1, 1, 2, 2, 3]\n    result = deduplicate_sorted(src)\n    assert result is not src          # different object\n    assert isinstance(result, list)   # still a list\n\n\ndef test_deduplicate_sorted_with_none_values():",
+  "score": 0,
+  "cost": 9.881999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 1000
+  }
+}

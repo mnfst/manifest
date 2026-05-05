@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "SELECT DISTINCT c.makeid, m.make_name\nFROM cars c\nJOIN makes m ON c.makeid = m.makeid\nWHERE c.horsepower > (SELECT MIN(horsepower) FROM cars)\nAND c.cylinders <= 3;",
+  "score": 5,
+  "cost": 6.556e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 52
+  }
+}

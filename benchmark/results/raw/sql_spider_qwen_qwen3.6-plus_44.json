@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT SourceAirport FROM flights GROUP BY SourceAirport ORDER BY count(SourceAirport) LIMIT 1",
+  "score": 3,
+  "cost": 0.00317525,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 2423
+  }
+}

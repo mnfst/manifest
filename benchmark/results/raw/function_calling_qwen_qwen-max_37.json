@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 37,
+  "response": "{\"name\": \"invalidate_cache\", \"arguments\": {\"pattern\": \"*.css;*.js\"}}",
+  "score": 3,
+  "cost": 0.000156,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 19
+  }
+}

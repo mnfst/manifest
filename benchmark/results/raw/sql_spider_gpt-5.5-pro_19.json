@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "sql_spider",
   "case": 19,
-  "response": "SELECT DISTINCT cm.FullName\nFROM car_makers AS cm\nJOIN model_list AS ml ON cm.Id = ml.Maker\nJOIN car_names AS cn ON ml.Model = cn.Model\nJOIN cars_data AS cd ON cn.MakeId = cd.Id\nWHERE cd.Year = 1970;",
+  "response": "SELECT DISTINCT cm.Maker\nFROM car_makers AS cm\nJOIN model_list AS ml ON cm.Id = ml.Maker\nJOIN car_names AS cn ON ml.Model = cn.Model\nJOIN cars_data AS cd ON cn.MakeId = cd.Id\nWHERE cd.Year = 1970;",
   "score": 4,
-  "cost": 0.019995,
+  "cost": 0.078555,
   "expected": "",
   "tokens": {
     "input": 79,
-    "output": 980
+    "output": 3908
   }
 }

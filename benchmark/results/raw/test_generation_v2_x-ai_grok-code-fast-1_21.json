@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 21,
+  "response": "```python\nimport pytest\n\ndef truncate(s: str, max_len: int, suffix: str = '...') -> str:\n    if len(s) <= max_len:\n        return s\n    return s[:max_len - len(suffix)] + suffix\n\n# Happy path tests\n@pytest.mark.parametrize(\"s, max_len, suffix, expected\", [\n    (\"hello world\", 5, \"...\", \"he...\"),  # Normal truncation\n    (\"hi\", 5, \"...\", \"hi\"),  # No truncation needed\n    (\"python\", 6, \"...\", \"python\"),  # Exact length, no truncation\n    (\"test\", 10, \"!!\", \"test\"),  # No truncation with custom suffix\n    (\"long string here\", 8, \"!!\", \"long st!!\"),  # Truncation with custom suffix\n])\ndef test_truncate_happy_path(s, max_len, suffix, expected):\n    assert truncate(s, max_len, suffix) == expected\n\n# Edge cases\n@pytest.mark.parametrize(\"s, max_len, suffix, expected\", [\n    (\"\", 5, \"...\", \"\"),  # Empty string\n    (\"a\", 0, \"...\", \"a\"),  # max_len=0, len(s)=1 <=0? No, so truncate: s[:0-3] + \"...\" = s[:-3] + \"...\" = \"\" + \"...\" = \"...\"\n    (\"hello\", 0, \"...\", \"he...\"),  # max_len=0, len(s)>0, s[:-3] + \"...\" = \"he\" + \"...\" = \"he...\"\n    (\"abc\", 3, \"\", \"abc\"),  # No truncation, empty suffix\n    (\"abcdef\", 3, \"\", \"abc\"),  # Truncation with empty suffix\n    (\"test\", 2, \"....\", \"te....\"),  # max_len - len(suffix) = 2-4=-2, s[:-2] + \"....\" = \"te\" + \"....\" = \"te....\"\n    (\"x\", 1, \"y\", \"x\"),  # len(s)=1 <=1, return \"x\"\n])\ndef test_truncate_edge_cases(s, max_len, suffix, expected):\n    assert truncate(s, max_len, suffix) == expected\n\n# Error cases\n@pytest.mark.parametrize(\"s, max_len, suffix\", [\n    (123, 5, \"...\"),  # s not string\n    (\"hello\", \"5\", \"...\"),  # max_len not int\n    (\"hello\", 5, 123),  # suffix not string\n])\ndef test_truncate_error_cases(s, max_len, suffix):\n    with pytest.raises(TypeError):\n        truncate(s, max_len, suffix)\n\ndef test_truncate_negative_max_len():\n    # Negative max_len: len(s) <= negative is False if len(s)>0, so truncates: s[:negative - len(suffix)] + suffix\n    # For example, \"hello\", -1, \"...\": s[:-1-3] + \"...\" = s[:-4] + \"...\" = \"h\" + \"...\" = \"h...\"\n    assert truncate(\"hello\", -1, \"...\") == \"h...\"\n    assert truncate(\"\", -1, \"...\") == \"\"  # len(s)=0 <= -1? No, but s[: -1 -3] + \"...\" = s[:-4] + \"...\" = \"\" + \"...\" = \"...\"\n```",
+  "score": 0,
+  "cost": 0.0011348,
+  "expected": "",
+  "tokens": {
+    "input": 278,
+    "output": 1349
+  }
+}

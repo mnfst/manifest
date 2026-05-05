@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "SELECT COUNT(*) FROM cars WHERE manufacture_year = 1980;",
+  "score": 0,
+  "cost": 0.0002542,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 606
+  }
+}

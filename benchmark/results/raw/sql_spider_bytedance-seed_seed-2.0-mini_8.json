@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT cl.Language)\nFROM country c\nINNER JOIN countrylanguage cl ON c.Code = cl.CountryCode\nWHERE c.IndepYear < 1930\nAND cl.IsOfficial = 'T';",
+  "score": 0,
+  "cost": 0.000716,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 1758
+  }
+}

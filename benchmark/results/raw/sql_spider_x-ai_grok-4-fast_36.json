@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT name\nFROM users\nWHERE id = (\n    SELECT to_id\n    FROM likes\n    GROUP BY to_id\n    ORDER BY COUNT(*) DESC\n    LIMIT 1\n);\n```",
+  "score": 0,
+  "cost": 0.0004928,
+  "expected": "",
+  "tokens": {
+    "input": 220,
+    "output": 561
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "function_calling",
+  "case": 26,
+  "response": "{\"name\": \"upload_file\", \"arguments\": {\"path\": \"report.pdf\", \"destination\": \"shared documents folder\"}}",
+  "score": 4,
+  "cost": 0.00022165,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 147
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "SELECT model FROM car WHERE weight < (SELECT AVG(weight) FROM car);",
+  "score": 5,
+  "cost": 1.9169999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 129
+  }
+}

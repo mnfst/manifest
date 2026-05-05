@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu te bats, plus ce sera g\u00eanant pour tout le monde.",
+  "score": 4,
+  "cost": 0.00021710000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 522
+  }
+}

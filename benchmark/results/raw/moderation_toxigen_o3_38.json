@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "moderation_toxigen",
+  "case": 38,
+  "response": "toxic",
+  "score": 5,
+  "cost": 0.000288,
+  "expected": "toxic",
+  "tokens": {
+    "input": 64,
+    "output": 20
+  }
+}

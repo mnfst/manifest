@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Rafaela:\n40 customers \u00d7 \\$20 each = \\$800\n\nJulieta:\n10 % less than \\$800 \u2192 0.9 \u00d7 \\$800 = \\$720\n\nTotal tips:\n\\$800 + \\$720 = \\$1,520\n\nANSWER: 1520",
+  "score": 4,
+  "cost": 0.00128,
+  "expected": "1520",
+  "tokens": {
+    "input": 92,
+    "output": 137
+  }
+}

@@ -3,11 +3,11 @@
   "task": "ner_extraction",
   "case": 41,
   "response": "{\n  \"persons\": [\"LeBron James\"],\n  \"organizations\": [\"Los Angeles Lakers\"],\n  \"locations\": []\n}",
-  "score": 4,
-  "cost": 0.00038453999999999995,
+  "score": 5,
+  "cost": 0.0003654,
   "expected": "",
   "tokens": {
     "input": 72,
-    "output": 203
+    "output": 192
   }
 }

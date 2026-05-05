@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "function_calling",
+  "case": 45,
+  "response": "{\"name\": \"grant_access\", \"arguments\": {\"user\": \"bob\", \"resource\": \"analytics database\", \"permission\": \"read\"}}",
+  "score": 5,
+  "cost": 0.00022140000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 287,
+    "output": 205
+  }
+}

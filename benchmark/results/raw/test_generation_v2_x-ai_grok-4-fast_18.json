@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "```python\nimport pytest\n\ndef title_case(s: str) -> str:\n    return ' '.join(word.capitalize() for word in s.split())\n\n\n# Happy path tests\ndef test_title_case_basic():\n    assert title_case(\"hello world\") == \"Hello World\"\n\n\ndef test_title_case_multiple_words():\n    assert title_case(\"python programming is fun\") == \"Python Programming Is Fun\"\n\n\ndef test_title_case_mixed_case():\n    assert title_case(\"hElLo WoRlD\") == \"Hello World\"\n\n\ndef test_title_case_all_uppercase():\n    assert title_case(\"HELLO WORLD\") == \"Hello World\"\n\n\ndef test_title_case_with_punctuation():\n    assert title_case(\"hello, world!\") == \"Hello, World!\"\n\n\n# Edge cases\ndef test_title_case_empty_string():\n    assert title_case(\"\") == \"\"\n\n\ndef test_title_case_single_word():\n    assert title_case(\"hello\") == \"Hello\"\n\n\ndef test_title_case_single_word_with_spaces():\n    assert title_case(\"  hello  \") == \"Hello\"\n\n\ndef test_title_case_multiple_spaces_between_words():\n    assert title_case(\"hello   world\") == \"Hello World\"\n\n\ndef test_title_case_leading_trailing_spaces():\n    assert title_case(\"  hello world  \") == \"Hello World\"\n\n\n# Error cases\ndef test_title_case_non_string_input_int():\n    with pytest.raises(AttributeError, match=\"'int' object has no attribute 'split'\"):\n        title_case(123)\n\n\ndef test_title_case_non_string_input_none():\n    with pytest.raises(AttributeError, match=\"'NoneType' object has no attribute 'split'\"):\n        title_case(None)\n\n\ndef test_title_case_non_string_input_list():\n    with pytest.raises(AttributeError, match=\"'list' object has no attribute 'split'\"):\n        title_case([1, 2, 3])\n```",
+  "score": 0,
+  "cost": 0.0008374,
+  "expected": "",
+  "tokens": {
+    "input": 207,
+    "output": 995
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "```sql\nSELECT name\nFROM world_1.country\nWHERE continent = 'Africa' AND population < (SELECT MIN(population) FROM world_1.country WHERE continent = 'Asia');\n```",
+  "score": 0,
+  "cost": 0.00024336,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 39
+  }
+}

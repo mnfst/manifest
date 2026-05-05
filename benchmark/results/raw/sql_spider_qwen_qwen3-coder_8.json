@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT language) \nFROM country_language cl\nJOIN country c ON cl.country_code = c.code\nWHERE cl.is_official = 'T' \nAND c.independence_year < 1930;",
+  "score": 4,
+  "cost": 5.895999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 46
+  }
+}

@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v4-pro",
   "task": "ner_extraction",
   "case": 42,
-  "response": "{\"persons\": [], \"organizations\": [\"African Union\"], \"locations\": [\"Addis Ababa\", \"Sudan\", \"Egypt\", \"Ethiopia\"]}",
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"African Union\"],\n  \"locations\": [\"Addis Ababa\", \"Sudan\", \"Egypt\", \"Ethiopia\"]\n}",
   "score": 4,
-  "cost": 0.000330165,
+  "cost": 0.00025882499999999996,
   "expected": "",
   "tokens": {
     "input": 75,
-    "output": 171
+    "output": 130
   }
 }

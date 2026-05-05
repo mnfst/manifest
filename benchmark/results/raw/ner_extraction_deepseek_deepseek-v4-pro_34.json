@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v4-pro",
   "task": "ner_extraction",
   "case": 34,
-  "response": "",
-  "score": 0,
-  "cost": 0.00072732,
+  "response": "{\"persons\": [\"Gordon Ramsay\"], \"organizations\": [\"Bellagio hotel\"], \"locations\": [\"Las Vegas\"]}",
+  "score": 5,
+  "cost": 0.00042978,
   "expected": "",
   "tokens": {
     "input": 72,
-    "output": 400
+    "output": 229
   }
 }

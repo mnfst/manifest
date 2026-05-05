@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "1. Identify each girl\u2019s amount.\n\n   \u2022 Alexandra raises $430.  \n   \u2022 Kim raises $320 more than Alexandra:  \n     430 + 320 = $750.  \n   \u2022 Sarah raises $300.  \n   \u2022 Maryam raises $400 more than Sarah:  \n     300 + 400 = $700.\n\n2. Add all the amounts.\n\n   750 (Kim) + 430 (Alexandra) + 700 (Maryam) + 300 (Sarah)  \n   = 750 + 430 = 1,180  \n   = 1,180 + 700 = 1,880  \n   = 1,880 + 300 = 2,180\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.003578,
+  "expected": "2280",
+  "tokens": {
+    "input": 93,
+    "output": 424
+  }
+}

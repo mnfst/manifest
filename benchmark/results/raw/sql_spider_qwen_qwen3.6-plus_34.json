@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "SELECT * FROM hire",
+  "score": 3,
+  "cost": 0.0020397,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 1550
+  }
+}

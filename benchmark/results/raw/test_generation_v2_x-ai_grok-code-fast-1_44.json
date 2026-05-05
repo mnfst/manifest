@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 44,
+  "response": "```python\nimport pytest\n\ndef test_compose_multiple_functions():\n    \"\"\"Test happy path: composing multiple functions applies them in reverse order.\"\"\"\n    def add_one(x):\n        return x + 1\n    \n    def multiply_by_two(x):\n        return x * 2\n    \n    def subtract_three(x):\n        return x - 3\n    \n    composed = compose(add_one, multiply_by_two, subtract_three)\n    # Order: subtract_three(multiply_by_two(add_one(x)))\n    # For x=5: subtract_three(multiply_by_two(add_one(5))) = subtract_three(multiply_by_two(6)) = subtract_three(12) = 9\n    assert composed(5) == 9\n\ndef test_compose_one_function():\n    \"\"\"Test edge case: composing a single function should apply it directly.\"\"\"\n    def square(x):\n        return x ** 2\n    \n    composed = compose(square)\n    assert composed(4) == 16\n\ndef test_compose_no_functions():\n    \"\"\"Test edge case: composing no functions should return the input unchanged.\"\"\"\n    composed = compose()\n    assert composed(42) == 42\n    assert composed(\"hello\") == \"hello\"\n    assert composed([1, 2, 3]) == [1, 2, 3]\n\ndef test_compose_non_callable_raises_error():\n    \"\"\"Test error case: passing non-callable objects should raise TypeError when composed function is called.\"\"\"\n    composed = compose(1, \"not a function\", [1, 2, 3])\n    with pytest.raises(TypeError):\n        composed(5)\n\ndef test_compose_functions_with_different_input_types():\n    \"\"\"Test happy path with different input types to ensure generality.\"\"\"\n    def to_string(x):\n        return str(x)\n    \n    def append_exclamation(x):\n        return x + \"!\"\n    \n    composed = compose(append_exclamation, to_string)\n    # Order: append_exclamation(to_string(x))\n    assert composed(123) == \"123!\"\n```",
+  "score": 0,
+  "cost": 0.0009383999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 264,
+    "output": 1107
+  }
+}

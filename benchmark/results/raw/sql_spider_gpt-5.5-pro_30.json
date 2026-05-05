@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "sql_spider",
   "case": 30,
-  "response": "SELECT AVG(winner_rank) FROM matches;",
-  "score": 4,
-  "cost": 0.011125,
+  "response": "",
+  "score": 0,
+  "cost": 0.0,
   "expected": "",
   "tokens": {
-    "input": 73,
-    "output": 538
+    "input": 0,
+    "output": 0
   }
 }

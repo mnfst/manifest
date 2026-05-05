@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "```python\nimport pytest\n\ndef test_reverse_words_happy_path():\n    \"\"\"Test the happy path with a normal string containing multiple words.\"\"\"\n    assert reverse_words(\"hello world\") == \"world hello\"\n    assert reverse_words(\"the quick brown fox\") == \"fox brown quick the\"\n\ndef test_reverse_words_single_word():\n    \"\"\"Test with a single word.\"\"\"\n    assert reverse_words(\"hello\") == \"hello\"\n\ndef test_reverse_words_empty_string():\n    \"\"\"Test with an empty string.\"\"\"\n    assert reverse_words(\"\") == \"\"\n\ndef test_reverse_words_only_whitespace():\n    \"\"\"Test with a string containing only whitespace (leading, trailing, multiple).\"\"\"\n    assert reverse_words(\"   \") == \"\"\n    assert reverse_words(\" \\t \\n \") == \"\"\n\ndef test_reverse_words_leading_trailing_spaces():\n    \"\"\"Test with leading and trailing spaces.\"\"\"\n    assert reverse_words(\" hello world \") == \"world hello\"\n    assert reverse_words(\"  the quick  fox  \") == \"fox quick the\"\n\ndef test_reverse_words_multiple_spaces_between_words():\n    \"\"\"Test with multiple spaces between words.\"\"\"\n    assert reverse_words(\"hello   world\") == \"world hello\"\n    assert reverse_words(\"a  b   c\") == \"c b a\"\n\ndef test_reverse_words_non_string_input():\n    \"\"\"Test error case: non-string input should raise AttributeError.\"\"\"\n    with pytest.raises(AttributeError):\n        reverse_words(None)\n    with pytest.raises(AttributeError):\n        reverse_words(123)\n    with pytest.raises(AttributeError):\n        reverse_words([1, 2, 3])\n```",
+  "score": 0,
+  "cost": 0.000656,
+  "expected": "",
+  "tokens": {
+    "input": 204,
+    "output": 769
+  }
+}

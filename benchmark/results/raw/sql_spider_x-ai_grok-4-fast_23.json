@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "```sql\nSELECT e.production_code, s.channel\nFROM episodes e\nJOIN shows s ON e.show_id = s.show_id\nWHERE s.genre = 'cartoon'\nORDER BY e.air_date DESC\nLIMIT 1;\n```",
+  "score": 0,
+  "cost": 0.000385,
+  "expected": "",
+  "tokens": {
+    "input": 221,
+    "output": 426
+  }
+}

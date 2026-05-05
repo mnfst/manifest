@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "function_calling",
+  "case": 37,
+  "response": "{\"name\": \"invalidate_cache\", \"arguments\": {\"pattern\": \"*.css,*.js\"}}",
+  "score": 4,
+  "cost": 3.0419999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 253
+  }
+}

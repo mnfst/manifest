@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "SELECT SUM(SurfaceArea) AS total_surface_area\nFROM Country\nWHERE Region = 'Caribbean';",
+  "score": 5,
+  "cost": 8.64e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 22
+  }
+}

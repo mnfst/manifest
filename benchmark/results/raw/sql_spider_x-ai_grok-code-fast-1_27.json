@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT c.Name\nFROM country c\nWHERE EXISTS (SELECT 1 FROM countrylanguage cl WHERE cl.CountryCode = c.Code AND cl.Language = 'English')\nAND EXISTS (SELECT 1 FROM countrylanguage cl WHERE cl.CountryCode = c.Code AND cl.Language = 'French')",
+  "score": 0,
+  "cost": 0.00026419999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 269,
+    "output": 263
+  }
+}

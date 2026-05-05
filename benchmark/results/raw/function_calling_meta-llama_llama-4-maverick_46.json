@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "function_calling",
+  "case": 46,
+  "response": "[\"{\\\"name\\\": \\\"restart_service\\\", \\\"arguments\\\": {\\\"name\\\": \\\"Redis\\\"}}\", \"{\\\"name\\\": \\\"get_service_logs\\\", \\\"arguments\\\": {\\\"name\\\": \\\"Redis\\\", \\\"since\\\": \\\"1m\\\"}}\"]",
+  "score": 1,
+  "cost": 4.215e-05,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 48
+  }
+}

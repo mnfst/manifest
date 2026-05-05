@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "SELECT T1.MakeId , T2.MakeName FROM cars AS T1 JOIN makes AS T2 ON T1.MakeId  =  T2.Id WHERE T1.Horsepower > (SELECT MIN(Horsepower) FROM cars) AND T1.Cylinders <= 3",
+  "score": 5,
+  "cost": 0.0039051999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 2980
+  }
+}

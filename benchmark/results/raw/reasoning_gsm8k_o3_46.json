@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "First, determine Anakin\u2019s catch  \n\u2022 Starfish: 10  \n\u2022 Sea horses: 6  \n\u2022 Clownfish: 3  \nTotal for Anakin = 10 + 6 + 3 = 19\n\nNext, compute Locsin\u2019s catch based on the given differences  \n\u2022 Starfish: 10 \u2212 5 = 5  \n\u2022 Sea horses: 6 \u2212 3 = 3  \n\u2022 Clownfish: 3 + 2 = 5  \nTotal for Locsin = 5 + 3 + 5 = 13\n\nFinally, combine their totals  \nTotal fish caught = 19 + 13 = 32\n\nANSWER: 32",
+  "score": 5,
+  "cost": 0.00251,
+  "expected": "32",
+  "tokens": {
+    "input": 111,
+    "output": 286
+  }
+}

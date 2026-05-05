@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 22,
+  "response": "{\"name\":\"create_database\",\"arguments\":{\"name\":\"analytics_prod\",\"engine\":\"postgresql\"}}",
+  "score": 5,
+  "cost": 0.001545,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 55
+  }
+}

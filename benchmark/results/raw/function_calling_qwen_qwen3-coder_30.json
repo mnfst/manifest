@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "function_calling",
+  "case": 30,
+  "response": "{\n  \"name\": \"batch_process\",\n  \"arguments\": {\n    \"directory\": \"gallery\",\n    \"operation\": \"generate_thumbnail\",\n    \"params\": {\n      \"width\": 150,\n      \"height\": 150\n    }\n  }\n}",
+  "score": 2,
+  "cost": 7.436e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 57
+  }
+}

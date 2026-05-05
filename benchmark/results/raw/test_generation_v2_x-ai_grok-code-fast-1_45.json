@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 45,
+  "response": "```python\nimport pytest\nfrom collections import deque\n\ndef sliding_window(iterable, size: int):\n    from collections import deque\n    it = iter(iterable)\n    window = deque(maxlen=size)\n    for _ in range(size):\n        window.append(next(it))\n    yield tuple(window)\n    for item in it:\n        window.append(item)\n        yield tuple(window)\n\n# Happy path tests\ndef test_sliding_window_happy_path():\n    result = list(sliding_window([1, 2, 3, 4, 5], 3))\n    expected = [(1, 2, 3), (2, 3, 4), (3, 4, 5)]\n    assert result == expected\n\ndef test_sliding_window_with_string():\n    result = list(sliding_window(\"abcde\", 3))\n    expected = [(\"a\", \"b\", \"c\"), (\"b\", \"c\", \"d\"), (\"c\", \"d\", \"e\")]\n    assert result == expected\n\ndef test_sliding_window_with_tuple():\n    result = list(sliding_window((1, 2, 3, 4), 2))\n    expected = [(1, 2), (2, 3), (3, 4)]\n    assert result == expected\n\n# Edge case tests\ndef test_sliding_window_size_one():\n    result = list(sliding_window([1, 2, 3], 1))\n    expected = [(1,), (2,), (3,)]\n    assert result == expected\n\ndef test_sliding_window_size_equal_to_length():\n    result = list(sliding_window([1, 2, 3], 3))\n    expected = [(1, 2, 3)]\n    assert result == expected\n\ndef test_sliding_window_empty_iterable():\n    with pytest.raises(StopIteration):\n        list(sliding_window([], 1))\n\ndef test_sliding_window_fewer_elements_than_size():\n    with pytest.raises(StopIteration):\n        list(sliding_window([1], 2))\n\n# Error case tests\ndef test_sliding_window_size_zero():\n    with pytest.raises(ValueError):\n        list(sliding_window([1, 2, 3], 0))\n\ndef test_sliding_window_negative_size():\n    with pytest.raises(ValueError):\n        list(sliding_window([1, 2, 3], -1))\n\ndef test_sliding_window_non_integer_size():\n    with pytest.raises(TypeError):\n        list(sliding_window([1, 2, 3], 2.5))\n```",
+  "score": 0,
+  "cost": 0.0011394,
+  "expected": "",
+  "tokens": {
+    "input": 297,
+    "output": 1350
+  }
+}

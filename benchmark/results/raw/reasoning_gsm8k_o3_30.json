@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Step 1 \u2013 Adam\u2019s points  \nAdam has 50 points.\n\nStep 2 \u2013 Betty\u2019s points  \nBetty collected 30 % more than Adam.  \n30 % of 50 = 0.30 \u00d7 50 = 15  \nBetty\u2019s total = 50 + 15 = 65 points.\n\nStep 3 \u2013 Tom\u2019s points  \nTom collected 30 points less than Betty.  \nTom\u2019s total = 65 \u2212 30 = 35 points.\n\nStep 4 \u2013 Marta\u2019s points  \nMarta collected 3 times more points than Tom (i.e. three times as many as Tom).  \nMarta\u2019s total = 3 \u00d7 35 = 105 points.\n\nStep 5 \u2013 Total points collected by the four pupils  \nTotal = Adam + Betty + Tom + Marta  \nTotal = 50 + 65 + 35 + 105 = 255 points.\n\nStep 6 \u2013 Points still needed to reach the 400-point threshold  \nRequired = 400 \u2212 255 = 145 points.\n\nANSWER: 145",
+  "score": 4,
+  "cost": 0.0094,
+  "expected": "145",
+  "tokens": {
+    "input": 144,
+    "output": 1139
+  }
+}

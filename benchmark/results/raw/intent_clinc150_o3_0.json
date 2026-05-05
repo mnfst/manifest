@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "intent_clinc150",
+  "case": 0,
+  "response": "rollover_401k",
+  "score": 5,
+  "cost": 0.001212,
+  "expected": "rollover_401k",
+  "tokens": {
+    "input": 514,
+    "output": 23
+  }
+}

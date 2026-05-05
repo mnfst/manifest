@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT country_name\nFROM (\n  SELECT country, COUNT(*) AS maker_count\n  FROM car_makers\n  GROUP BY country\n  ORDER BY maker_count DESC\n  LIMIT 1\n) AS top_country\nJOIN countries ON top_country.country = countries.country_code;\n```",
+  "score": 0,
+  "cost": 0.0003224,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 59
+  }
+}

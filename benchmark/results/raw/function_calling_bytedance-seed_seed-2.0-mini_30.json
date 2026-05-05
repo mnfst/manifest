@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "function_calling",
+  "case": 30,
+  "response": "{\"name\": \"batch_process\", \"arguments\": {\"directory\": \"gallery\", \"operation\": \"generate_thumbnail\", \"params\": {\"width\": 150, \"height\": 150}}}",
+  "score": 2,
+  "cost": 0.0003126,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 742
+  }
+}

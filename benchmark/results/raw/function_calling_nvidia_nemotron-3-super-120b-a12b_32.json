@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "function_calling",
+  "case": 32,
+  "response": "{\"name\": \"run_security_scan\", \"arguments\": {\"target\": \"10.0.0.1\"}}",
+  "score": 5,
+  "cost": 2.1059999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 121
+  }
+}

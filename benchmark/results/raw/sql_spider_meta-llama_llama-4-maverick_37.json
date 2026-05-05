@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT T1.name, T1.release_year \nFROM song AS T1 \nJOIN singer AS T2 \nON T1.singer_id = T2.id \nWHERE T2.age = (SELECT MIN(age) FROM singer);\n```",
+  "score": 0,
+  "cost": 4.23e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 51
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 41,
+  "response": "{\"name\":\"add_comment\",\"arguments\":{\"pr_id\":789,\"body\":\"LGTM approved\"}}",
+  "score": 5,
+  "cost": 0.00177,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 64
+  }
+}

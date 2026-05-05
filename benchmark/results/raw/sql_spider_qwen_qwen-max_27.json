@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT n.name\nFROM nation n\nJOIN country_language cl1 ON n.code = cl1.country_code\nJOIN country_language cl2 ON n.code = cl2.country_code\nWHERE cl1.language = 'English' AND cl2.language = 'French';\n```",
+  "score": 0,
+  "cost": 0.00030888,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 56
+  }
+}

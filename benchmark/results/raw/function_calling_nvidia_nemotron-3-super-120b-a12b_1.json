@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "function_calling",
+  "case": 1,
+  "response": "We need to output only the JSON as specified.",
+  "score": 0,
+  "cost": 1.062e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 11
+  }
+}

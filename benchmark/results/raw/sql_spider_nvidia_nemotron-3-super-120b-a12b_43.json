@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "SELECT COUNT(*) AS cars_over_6_cylinders\nFROM cars\nWHERE cylinders > 6;",
+  "score": 5,
+  "cost": 8.19e-06,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 22
+  }
+}

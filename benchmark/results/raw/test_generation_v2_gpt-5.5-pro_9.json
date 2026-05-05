@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "test_generation_v2",
+  "case": 9,
+  "response": "```python\n# test_max_subarray_sum.py\nimport pytest\n\nfrom your_module import max_subarray_sum  # Replace with the actual module name\n\n\n@pytest.mark.parametrize(\n    (\"arr\", \"expected\"),\n    [\n        pytest.param([], 0, id=\"empty_list\"),\n        pytest.param([5], 5, id=\"single_positive\"),\n        pytest.param([-5], -5, id=\"single_negative\"),\n        pytest.param([0], 0, id=\"single_zero\"),\n        pytest.param([1, 2, 3, 4], 10, id=\"all_positive\"),\n        pytest.param([-8, -3, -6, -2, -5], -2, id=\"all_negative\"),\n        pytest.param([0, 0, 0], 0, id=\"all_zeroes\"),\n        pytest.param([-1, 0, -2], 0, id=\"zero_among_negatives\"),\n        pytest.param([-2, 1, -3, 4, -1, 2, 1, -5, 4], 6, id=\"classic_mixed_case\"),\n        pytest.param([10, -1, -2, -3], 10, id=\"max_at_start\"),\n        pytest.param([-10, 1, 2, 3], 6, id=\"max_at_end\"),\n        pytest.param([-2, -1, 4, -1, -2, 1, 5, -3], 7, id=\"max_in_middle\"),\n        pytest.param([5, -100, 6], 6, id=\"reset_after_large_drop\"),\n        pytest.param([10**18, -1, 10**18], 2 * 10**18 - 1, id=\"large_integers\"),\n    ],\n)\ndef test_max_subarray_sum_returns_expected_result(arr, expected):\n    assert max_subarray_sum(arr) == expected\n\n\ndef test_max_subarray_sum_does_not_mutate_input():\n    arr = [3, -2, 5, -1]\n    original = arr.copy()\n\n    assert max_subarray_sum(arr) == 6\n    assert arr == original\n\n\n@pytest.mark.parametrize(\n    \"arr\",\n    [\n        [1, \"2\", 3],\n        [1, None, 3],\n        [1, object()],\n    ],\n)\ndef test_max_subarray_sum_raises_type_error_for_incompatible_elements(arr):\n    with pytest.raises(TypeError):\n        max_subarray_sum(arr)\n\n\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        123,\n        object(),\n    ],\n)\ndef test_max_subarray_sum_raises_type_error_for_non_sequence_input(bad_input):\n    with pytest.raises(TypeError):\n        max_subarray_sum(bad_input)\n\n\ndef test_max_subarray_sum_raises_type_error_for_generator_input():\n    with pytest.raises(TypeError):\n        max_subarray_sum(n for n in [1, -2, 3])\n```\n\nNote: with the current implementation, `None` returns `0` because `if not arr:` treats it like an empty input. If `None` should be considered invalid, add explicit validation in the function and then add a `pytest.raises(TypeError)` test for it.",
+  "score": 5,
+  "cost": 0.141025,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 7026
+  }
+}

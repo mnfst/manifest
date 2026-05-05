@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "```sql\nSELECT airport_code\nFROM (\n    SELECT origin AS airport_code FROM flights\n    UNION ALL\n    SELECT destination AS airport_code FROM flights\n) AS all_flights\nGROUP BY airport_code\nORDER BY COUNT(*) ASC\nLIMIT 1;\n```",
+  "score": 0,
+  "cost": 0.0006888,
+  "expected": "",
+  "tokens": {
+    "input": 220,
+    "output": 806
+  }
+}

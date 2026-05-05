@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "function_calling",
+  "case": 6,
+  "response": "We need to output JSON with name \"translate\" and arguments: text: \"The meeting has been rescheduled to Monday\", target_language: \"Spanish\". source_language optional default auto. So output: {\"name\": \"translate\"",
+  "score": 1,
+  "cost": 1.4579999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 47
+  }
+}

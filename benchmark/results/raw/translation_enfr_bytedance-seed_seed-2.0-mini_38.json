@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 38,
-  "response": "Cela ne peut que mener au chaos et \u00e0 la terreur.",
+  "response": "Cela ne peut que conduire au chaos et \u00e0 la terreur.",
   "score": 5,
-  "cost": 0.00014729999999999998,
+  "cost": 0.0001349,
   "expected": "",
   "tokens": {
     "input": 77,
-    "output": 349
+    "output": 318
   }
 }

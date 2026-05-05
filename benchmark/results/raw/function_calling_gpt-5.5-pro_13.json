@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 13,
+  "response": "[{\"name\":\"control_light\",\"arguments\":{\"room\":\"living room\",\"action\":\"off\"}},{\"name\":\"set_thermostat\",\"arguments\":{\"temperature\":72}}]",
+  "score": 1,
+  "cost": 0.034185,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 1684
+  }
+}

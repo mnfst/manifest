@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Step-by-step solution:\n\n1. Let x = number of people who originally got on the bus at the terminal.\n\n2. First bus stop:\n   People getting on: +5\n   Passengers now: x + 5\n\n3. Second bus stop:\n   People getting off: \u22127\n   People getting on: +8\n   Net change at second stop: \u22127 + 8 = +1\n   Passengers now: (x + 5) + 1 = x + 6\n\n4. According to the problem, after the second stop there are 20 people on the bus:\n   x + 6 = 20\n\n5. Solve for x:\n   x = 20 \u2212 6\n   x = 14\n\nTherefore, 14 people originally boarded the bus at the terminal.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0038,
+  "expected": "14",
+  "tokens": {
+    "input": 108,
+    "output": 448
+  }
+}

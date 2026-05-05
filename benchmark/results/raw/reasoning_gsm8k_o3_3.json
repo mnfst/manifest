@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "Step 1: Determine each son\u2019s age  \n\u2022 Older son: 12 years old  \n\u2022 Younger son: 4 years younger \u21d2 12 \u2212 4 = 8 years old  \n\nStep 2: Find the total number of candles needed  \n\u2022 Candles for older son: 12  \n\u2022 Candles for younger son: 8  \nTotal candles = 12 + 8 = 20 candles  \n\nStep 3: Calculate how many packs of candles to buy  \nEach pack contains 5 candles.  \nNumber of packs = 20 \u00f7 5 = 4 packs  \n\nStep 4: Compute the total cost  \nCost per pack = $3  \nTotal cost = 4 packs \u00d7 $3 = $12  \n\nANSWER: 12",
+  "score": 2,
+  "cost": 0.00264,
+  "expected": "12",
+  "tokens": {
+    "input": 88,
+    "output": 308
+  }
+}

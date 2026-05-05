@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT GovernmentForm, SUM(Population) AS TotalPopulation\nFROM Country\nGROUP BY GovernmentForm\nHAVING AVG(LifeExpectancy) > 72;\n```",
+  "score": 0,
+  "cost": 0.000253,
+  "expected": "",
+  "tokens": {
+    "input": 237,
+    "output": 257
+  }
+}

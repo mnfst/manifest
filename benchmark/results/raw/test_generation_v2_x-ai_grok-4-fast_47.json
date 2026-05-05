@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "test_generation_v2",
+  "case": 47,
+  "response": "```python\nimport pytest\n\nfrom your_module import run_length_encode  # Replace 'your_module' with the actual module name\n\n\nclass TestRunLengthEncode:\n    def test_empty_string(self):\n        \"\"\"Edge case: Empty string returns empty list.\"\"\"\n        assert run_length_encode(\"\") == []\n\n    def test_single_character(self):\n        \"\"\"Edge case: Single character returns list with one tuple.\"\"\"\n        assert run_length_encode(\"a\") == [(\"a\", 1)]\n\n    def test_all_identical_characters(self):\n        \"\"\"Happy path: All characters are the same.\"\"\"\n        assert run_length_encode(\"aaaa\") == [(\"a\", 4)]\n\n    def test_no_repeats(self):\n        \"\"\"Happy path: No consecutive repeats.\"\"\"\n        assert run_length_encode(\"abc\") == [(\"a\", 1), (\"b\", 1), (\"c\", 1)]\n\n    def test_mixed_repeats(self):\n        \"\"\"Happy path: Mix of repeats and non-repeats.\"\"\"\n        assert run_length_encode(\"aabbcc\") == [(\"a\", 2), (\"b\", 2), (\"c\", 2)]\n\n    def test_alternating_characters(self):\n        \"\"\"Edge case: Strictly alternating characters.\"\"\"\n        assert run_length_encode(\"abab\") == [(\"a\", 1), (\"b\", 1), (\"a\", 1), (\"b\", 1)]\n\n    def test_ends_with_repeat(self):\n        \"\"\"Edge case: Repeats at the end.\"\"\"\n        assert run_length_encode(\"abbb\") == [(\"a\", 1), (\"b\", 3)]\n\n    def test_starts_with_repeat(self):\n        \"\"\"Edge case: Repeats at the start.\"\"\"\n        assert run_length_encode(\"aaab\") == [(\"a\", 3), (\"b\", 1)]\n\n    def test_non_string_input_raises_type_error(self):\n        \"\"\"Error case: Non-string input should raise TypeError (e.g., int).\"\"\"\n        with pytest.raises(TypeError):\n            run_length_encode(123)\n\n    def test_none_input_raises_type_error(self):\n        \"\"\"Error case: None input should raise TypeError.\"\"\"\n        with pytest.raises(TypeError):\n            run_length_encode(None)\n\n    def test_list_input_raises_type_error(self):\n        \"\"\"Error case: List input should raise TypeError.\"\"\"\n        with pytest.raises(TypeError):\n            run_length_encode([\"a\", \"b\"])\n```",
+  "score": 0,
+  "cost": 0.0007324,
+  "expected": "",
+  "tokens": {
+    "input": 274,
+    "output": 847
+  }
+}

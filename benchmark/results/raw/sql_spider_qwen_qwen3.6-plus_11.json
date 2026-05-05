@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "SELECT Name FROM country WHERE Continent = 'Africa' AND Population < (SELECT MIN(Population) FROM country WHERE Continent = 'Asia')",
+  "score": 0,
+  "cost": 0.0030953,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 2360
+  }
+}

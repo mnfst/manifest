@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT maker.full_name, maker.id, COUNT(model.id) AS number_of_models\nFROM maker\nJOIN model ON maker.id = model.maker_id\nGROUP BY maker.full_name, maker.id;\n```",
+  "score": 0,
+  "cost": 0.00026624,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 44
+  }
+}

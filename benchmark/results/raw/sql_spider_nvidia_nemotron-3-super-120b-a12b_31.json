@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 31,
+  "response": "",
+  "score": 0,
+  "cost": 3.456e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 300
+  }
+}

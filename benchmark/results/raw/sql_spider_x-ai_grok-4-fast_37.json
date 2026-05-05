@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT s.title, s.release_year\nFROM songs s\nJOIN singers g ON s.singer_id = g.singer_id\nWHERE g.singer_id = (\n    SELECT singer_id \n    FROM singers \n    ORDER BY birth_year DESC \n    LIMIT 1\n);\n```",
+  "score": 0,
+  "cost": 0.000632,
+  "expected": "",
+  "tokens": {
+    "input": 224,
+    "output": 734
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "SELECT Year FROM concert GROUP BY Year ORDER BY count(Year) DESC LIMIT 1",
+  "score": 0,
+  "cost": 0.002075125,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 1577
+  }
+}

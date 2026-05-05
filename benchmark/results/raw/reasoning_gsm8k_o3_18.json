@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Step 1: Determine how many pomelos Eve has left.  \nShe is left with 1/4 of her original amount.  \n1/4 \u00d7 20 = 5 pomelos remain.\n\nStep 2: Find out how many pomelos she gave away.  \nOriginal amount \u2212 remaining amount = 20 \u2212 5 = 15.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.00142,
+  "expected": "15",
+  "tokens": {
+    "input": 82,
+    "output": 157
+  }
+}

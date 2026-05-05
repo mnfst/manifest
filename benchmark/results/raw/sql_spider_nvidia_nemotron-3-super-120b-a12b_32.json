@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT p.first_name, AVG(r.ranking) AS average_ranking\nFROM players p\nJOIN rankings r ON p.player_id = r.player_id\nGROUP BY p.player",
+  "score": 3,
+  "cost": 3.456e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 300
+  }
+}

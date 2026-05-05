@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "```python\n# test_palindrome.py\n# Replace `palindrome` with the actual module name where is_palindrome is defined.\nimport pytest\n\nfrom palindrome import is_palindrome\n\n\n@pytest.mark.parametrize(\n    \"text\",\n    [\n        \"racecar\",\n        \"Madam\",\n        \"A man a plan a canal Panama\",\n        \"No lemon no melon\",\n        \"Able was I ere I saw Elba\",\n    ],\n)\ndef test_is_palindrome_returns_true_for_valid_palindromes(text):\n    assert is_palindrome(text) is True\n\n\n@pytest.mark.parametrize(\n    \"text\",\n    [\n        \"hello\",\n        \"palindrome\",\n        \"race a car\",\n        \"A man a plan a canal Panamx\",\n    ],\n)\ndef test_is_palindrome_returns_false_for_non_palindromes(text):\n    assert is_palindrome(text) is False\n\n\n@pytest.mark.parametrize(\n    (\"text\", \"expected\"),\n    [\n        (\"\", True),\n        (\" \", True),\n        (\"     \", True),\n        (\"a\", True),\n        (\" a \", True),\n        (\"ab\", False),\n        (\"Aa\", True),\n        (\"a b a\", True),\n    ],\n)\ndef test_is_palindrome_edge_cases(text, expected):\n    assert is_palindrome(text) is expected\n\n\n@pytest.mark.parametrize(\n    (\"text\", \"expected\"),\n    [\n        (\"Madam, I'm Adam\", False),\n        (\"Was it a car or a cat I saw?\", False),\n        (\"a\\tba\", False),\n        (\"a\\nba\", False),\n    ],\n)\ndef test_is_palindrome_does_not_ignore_punctuation_or_non_space_whitespace(\n    text,\n    expected,\n):\n    # The implementation only lowercases and removes literal spaces: ' '\n    assert is_palindrome(text) is expected\n\n\n@pytest.mark.parametrize(\n    (\"bad_input\", \"expected_exception\"),\n    [\n        (None, AttributeError),\n        (12321, AttributeError),\n        ([\"r\", \"a\", \"c\", \"e\", \"c\", \"a\", \"r\"], AttributeError),\n        ({\"text\": \"racecar\"}, AttributeError),\n        (b\"racecar\", TypeError),\n    ],\n)\ndef test_is_palindrome_raises_for_non_string_inputs(\n    bad_input,\n    expected_exception,\n):\n    with pytest.raises(expected_exception):\n        is_palindrome(bad_input)\n```",
+  "score": 5,
+  "cost": 0.0687,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 3419
+  }
+}

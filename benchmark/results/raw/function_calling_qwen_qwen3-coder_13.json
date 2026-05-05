@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "function_calling",
+  "case": 13,
+  "response": "{\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}}",
+  "score": 4,
+  "cost": 4.246e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 23
+  }
+}

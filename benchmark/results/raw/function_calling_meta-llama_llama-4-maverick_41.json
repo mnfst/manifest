@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "function_calling",
+  "case": 41,
+  "response": "{\"name\": \"add_comment\", \"arguments\": {\"pr_id\": 789, \"body\": \"LGTM approved\"}}",
+  "score": 5,
+  "cost": 3.1349999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 27
+  }
+}

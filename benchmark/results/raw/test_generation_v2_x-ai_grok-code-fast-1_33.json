@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 33,
+  "response": "```python\nimport pytest\nfrom flatten_dict import flatten_dict  # Assuming the function is in a module named flatten_dict\n\nclass TestFlattenDict:\n    def test_happy_path_nested_dict(self):\n        \"\"\"Test flattening a nested dictionary.\"\"\"\n        input_dict = {'a': {'b': 1, 'c': {'d': 2}}}\n        expected = {'a.b': 1, 'a.c.d': 2}\n        assert flatten_dict(input_dict) == expected\n\n    def test_empty_dict(self):\n        \"\"\"Test flattening an empty dictionary.\"\"\"\n        input_dict = {}\n        expected = {}\n        assert flatten_dict(input_dict) == expected\n\n    def test_no_nesting(self):\n        \"\"\"Test flattening a dictionary with no nesting.\"\"\"\n        input_dict = {'a': 1, 'b': 2}\n        expected = {'a': 1, 'b': 2}\n        assert flatten_dict(input_dict) == expected\n\n    def test_custom_separator(self):\n        \"\"\"Test flattening with a custom separator.\"\"\"\n        input_dict = {'a': {'b': 1, 'c': {'d': 2}}}\n        expected = {'a_b': 1, 'a_c_d': 2}\n        assert flatten_dict(input_dict, sep='_') == expected\n\n    def test_with_parent_key(self):\n        \"\"\"Test flattening with a provided parent_key.\"\"\"\n        input_dict = {'b': 1, 'c': {'d': 2}}\n        expected = {'a.b': 1, 'a.c.d': 2}\n        assert flatten_dict(input_dict, parent_key='a') == expected\n\n    def test_mixed_types(self):\n        \"\"\"Test flattening a dictionary with mixed value types (lists, etc.).\"\"\"\n        input_dict = {'a': [1, 2], 'b': {'c': 3}}\n        expected = {'a': [1, 2], 'b.c': 3}\n        assert flatten_dict(input_dict) == expected\n\n    def test_deep_nesting(self):\n        \"\"\"Test flattening a deeply nested dictionary.\"\"\"\n        input_dict = {'a': {'b': {'c': {'d': {'e': 5}}}}}\n        expected = {'a.b.c.d.e': 5}\n        assert flatten_dict(input_dict) == expected\n\n    def test_non_dict_input_raises_error(self):\n        \"\"\"Test that passing a non-dictionary raises an AttributeError.\"\"\"\n        with pytest.raises(AttributeError):\n            flatten_dict(\"not a dict\")\n\n    @pytest.mark.parametrize(\"input_dict, expected\", [\n        ({}, {}),\n        ({'a': 1}, {'a': 1}),\n        ({'a': {'b': 2}}, {'a.b': 2}),\n        ({'a': {'b': {'c': 3}}}, {'a.b.c': 3}),\n    ])\n    def test_parametrized_cases(self, input_dict, expected):\n        \"\"\"Parametrized tests for various inputs.\"\"\"\n        assert flatten_dict(input_dict) == expected\n```",
+  "score": 0,
+  "cost": 0.0009550000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 323,
+    "output": 1113
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT s.name, so.release_year\nFROM singers s\nJOIN songs so ON s.singer_id = so.singer_id\nWHERE s.age = (SELECT MIN(age) FROM singers)\n```",
+  "score": 0,
+  "cost": 0.00025376,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 42
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "SELECT count(Id) FROM cars WHERE Cylinders > 6",
+  "score": 5,
+  "cost": 0.0031407999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 2397
+  }
+}

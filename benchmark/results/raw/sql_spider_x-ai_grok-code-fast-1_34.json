@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "SELECT * FROM hiring;",
+  "score": 0,
+  "cost": 0.000382,
+  "expected": "",
+  "tokens": {
+    "input": 266,
+    "output": 411
+  }
+}

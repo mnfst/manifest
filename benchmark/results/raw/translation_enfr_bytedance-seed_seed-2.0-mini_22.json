@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 22,
-  "response": "Si le revenu et/ou le statut d'emploi d'une personne changent, il pourrait y avoir un transfert de responsabilit\u00e9 institutionnelle, auquel cas une nouvelle \u00e9valuation sera effectu\u00e9e.",
+  "response": "Si le revenu et/ou le statut d'emploi d'une personne change, il pourrait y avoir un transfert des responsabilit\u00e9s institutionnelles, auquel cas une nouvelle \u00e9valuation sera r\u00e9alis\u00e9e.",
   "score": 4,
-  "cost": 0.0008946000000000001,
+  "cost": 0.0008118,
   "expected": "",
   "tokens": {
     "input": 98,
-    "output": 2212
+    "output": 2005
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 41,
+  "response": "{\"name\": \"add_comment\", \"arguments\": {\"pr_id\": 789, \"body\": \"LGTM approved\"}}",
+  "score": 5,
+  "cost": 0.00021528000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 27
+  }
+}

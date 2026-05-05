@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 15,
+  "response": "Here is a **pytest** test suite that exercises the happy\u2011path, edge\u2011cases and error\u2011conditions of `rotate_list`.  \nSave it as `test_rotate_list.py` (or any name that starts with `test_`) and run it with `pytest`.\n\n```python\n# test_rotate_list.py\nimport pytest\nfrom typing import List, Any\n\n# Import the function under test \u2013 adjust the import path as needed.\n# Example: from mymodule import rotate_list\ndef rotate_list(lst: list, k: int) -> list:\n    if not lst:\n        return lst\n    k = k % len(lst)\n    return lst[-k:] + lst[:-k]\n\n\n# -------------------------- Happy path --------------------------\n\n@pytest.mark.parametrize(\n    \"lst, k, expected\",\n    [\n        ([1, 2, 3, 4, 5], 2, [4, 5, 1, 2, 3]),   # normal right\u2011rotation\n        ([10, 20, 30], 1, [30, 10, 20]),         # single step\n        ([\"a\", \"b\", \"c\", \"d\"], 3, [\"b\", \"c\", \"d\", \"a\"]), # k < len\n        ([0, 0, 0, 1], 0, [0, 0, 0, 1]),         # k == 0 (no change)\n    ],\n)\ndef test_rotate_list_happy_path(lst: List[Any], k: int, expected: List[Any]):\n    assert rotate_list(lst, k) == expected\n    # Ensure the original list is not mutated\n    assert lst == lst  # trivial, but shows we didn't alter `lst` in\u2011place\n\n\n# -------------------------- Edge cases --------------------------\n\ndef test_rotate_list_empty_list():\n    \"\"\"Rotating an empty list should return the same empty list.\"\"\"\n    assert rotate_list([], 5) == []\n\n\ndef test_rotate_list_single_element():\n    \"\"\"A list with one element is unchanged regardless of k.\"\"\"\n    assert rotate_list([42], 0) == [42]\n    assert rotate_list([42], 7) == [42]\n    assert rotate_list([42], -3) == [42]\n\n\ndef test_rotate_list_k_equals_length():\n    \"\"\"When k is a multiple of len(lst) the result equals the original list.\"\"\"\n    base = [1, 2, 3, 4]\n    for k in [4, 8, 12, -4, -8]:\n        assert rotate_list(base, k) == base\n\n\ndef test_rotate_list_k_greater_than_length():\n    \"\"\"k larger than the list length should wrap around via modulo.\"\"\"\n    base = [1, 2, 3]\n    assert rotate_list(base, 5) == rotate_list(base, 2)  # 5 % 3 == 2\n    assert rotate_list(base, 10) == rotate_list(base, 1) # 10 % 3 == 1\n\n\ndef test_rotate_list_negative_k():\n    \"\"\"Negative k should be treated as a left\u2011rotation (",
+  "score": 0,
+  "cost": 9.783e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 1000
+  }
+}

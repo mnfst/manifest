@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v4-pro",
   "task": "ner_extraction",
   "case": 21,
-  "response": "{\"persons\": [\"Picasso\", \"Monet\"], \"organizations\": [\"The Metropolitan Museum of Art\"], \"locations\": [\"New York\"]}",
+  "response": "{\n  \"persons\": [\"Picasso\", \"Monet\"],\n  \"organizations\": [\"Metropolitan Museum of Art\"],\n  \"locations\": [\"New York\"]\n}",
   "score": 5,
-  "cost": 0.00048198,
+  "cost": 0.00020009999999999998,
   "expected": "",
   "tokens": {
     "input": 72,
-    "output": 259
+    "output": 97
   }
 }

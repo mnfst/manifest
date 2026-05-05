@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "```python\n# test_reverse_words.py\nimport pytest\n\n# Adjust this import to match where reverse_words is defined.\n# Example: from my_module import reverse_words\nfrom your_module import reverse_words\n\n\n@pytest.mark.parametrize(\n    (\"input_str\", \"expected\"),\n    [\n        (\"hello world\", \"world hello\"),\n        (\"the quick brown fox\", \"fox brown quick the\"),\n        (\"hello\", \"hello\"),\n        (\"Hello, world!\", \"world! Hello,\"),\n        (\"caf\u00e9 au lait\", \"lait au caf\u00e9\"),\n    ],\n)\ndef test_reverse_words_happy_path(input_str, expected):\n    assert reverse_words(input_str) == expected\n\n\n@pytest.mark.parametrize(\n    (\"input_str\", \"expected\"),\n    [\n        (\"\", \"\"),\n        (\"   \", \"\"),\n        (\"  hello world  \", \"world hello\"),\n        (\"hello   world\", \"world hello\"),\n        (\"hello\\tworld\", \"world hello\"),\n        (\"hello\\nworld\", \"world hello\"),\n        (\"  a\\tb\\nc  \", \"c b a\"),\n        (\"\\thello\\nworld\\r\\nagain \", \"again world hello\"),\n    ],\n)\ndef test_reverse_words_whitespace_edge_cases(input_str, expected):\n    assert reverse_words(input_str) == expected\n\n\n@pytest.mark.parametrize(\n    (\"bad_input\", \"expected_exception\"),\n    [\n        (None, AttributeError),\n        (123, AttributeError),\n        ([\"hello\", \"world\"], AttributeError),\n        (b\"hello world\", TypeError),\n    ],\n)\ndef test_reverse_words_invalid_input_types_raise(bad_input, expected_exception):\n    with pytest.raises(expected_exception):\n        reverse_words(bad_input)\n```",
+  "score": 5,
+  "cost": 0.02676,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 1324
+  }
+}

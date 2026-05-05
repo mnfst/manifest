@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 10,
+  "response": "```python\nimport pytest\nfrom your_module import is_valid_email  # Replace 'your_module' with the actual module name\n\n@pytest.mark.parametrize(\"email, expected\", [\n    # Happy path: Valid emails\n    (\"test@example.com\", True),\n    (\"user.name+tag@example.co.uk\", True),\n    (\"a@b.co\", True),  # Minimal valid email\n    (\"123@example.org\", True),\n    (\"test_123@example-domain.com\", True),\n    (\"user%tag@example.net\", True),\n    \n    # Edge cases: Boundary conditions\n    (\"a@b.c\", True),  # Shortest possible TLD (2 chars)\n    (\"test@sub.domain.com\", True),  # Subdomain\n    (\"very.long.email.address@very.long.domain.name.com\", True),  # Long email\n    (\"test@example.io\", True),  # TLD with 2 chars\n    (\"test@example.travel\", True),  # TLD with more than 2 chars\n    \n    # Error cases: Invalid emails\n    (\"\", False),  # Empty string\n    (\"invalid\", False),  # No @ symbol\n    (\"test@\", False),  # No domain\n    (\"@example.com\", False),  # No local part\n    (\"test@example\", False),  # No TLD\n    (\"test@example.c\", False),  # TLD too short (1 char)\n    (\"test@exam ple.com\", False),  # Space in domain\n    (\"test @example.com\", False),  # Space in local part\n    (\"test@@example.com\", False),  # Double @\n    (\"test@example..com\", False),  # Double dot in domain\n    (\"test@.com\", False),  # Domain starts with dot\n    (\"test@example.\", False),  # Domain ends with dot\n    (\"test@example.com.\", False),  # Trailing dot\n    (\".test@example.com\", False),  # Local part starts with dot\n    (\"test.@example.com\", False),  # Local part ends with dot\n    (\"test..test@example.com\", False),  # Double dot in local part\n    (\"test@example_com\", False),  # Underscore in domain (not allowed in this pattern)\n    (\"test@exam!ple.com\", False),  # Invalid char in domain\n    (\"tes!t@example.com\", False),  # Invalid char in local part (only allowed: a-zA-Z0-9._%+-)\n])\ndef test_is_valid_email(email, expected):\n    assert is_valid_email(email) == expected\n```",
+  "score": 0,
+  "cost": 0.0009312000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 1091
+  }
+}

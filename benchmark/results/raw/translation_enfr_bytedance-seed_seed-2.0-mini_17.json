@@ -3,11 +3,11 @@
   "task": "translation_enfr",
   "case": 17,
   "response": "Source : examplereferenceletter.com",
-  "score": 1,
-  "cost": 0.0002164,
+  "score": 5,
+  "cost": 0.00016680000000000002,
   "expected": "",
   "tokens": {
     "input": 76,
-    "output": 522
+    "output": 398
   }
 }

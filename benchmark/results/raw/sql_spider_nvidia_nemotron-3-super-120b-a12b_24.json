@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "We need to write a SQL query to find the year that had the most concerts? \nWe are to write a SQL query: Given the following database context: concert_singer\nGiven the following database context: concert_singer\nuser\nGiven the following database context, write a SQL query to find the year that had the most concerts? \nWe are to write a SQL query: Given the following database context, write a SQL query to find the year that had the most concerts?",
+  "score": 1,
+  "cost": 1.611e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 100
+  }
+}

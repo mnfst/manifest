@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 46,
+  "response": "Here is a **pytest** test suite that exercises the `unique_permutations` implementation from the happy path, through edge\u2011cases, to error conditions.  \nSave it as `test_unique_permutations.py` (or any name that starts with `test_`) in the same directory as the module containing the function, or adjust the import accordingly.\n\n```python\n# test_unique_permutations.py\nimport itertools\nfrom typing import List, Any\n\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# Example: from mymodule import unique_permutations\nfrom your_module import unique_permutations  # <-- replace with actual module name\n\n\n# ----------------------------------------------------------------------\n# Helper to compute the expected result using the standard library.\n# ----------------------------------------------------------------------\ndef expected_unique_permutations(seq: List[Any]) -> List[List[Any]]:\n    \"\"\"Return the list of unique permutations of *seq* (order does not matter).\"\"\"\n    # itertools.permutations yields tuples; we convert to list and deduplicate via a set.\n    perms_set = {tuple(p) for p in itertools.permutations(seq)}\n    # Convert back to list\u2011of\u2011lists and sort for deterministic comparison.\n    return sorted([list(p) for p in perms_set])\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path & edge\u2011case tests\n# ----------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"inp, description\",\n    [\n        ([], \"empty list\"),\n        ([1], \"single element\"),\n        ([1, 2], \"two distinct elements\"),\n        ([1, 2, 3], \"three distinct elements\"),\n        ([1, 1, 2], \"list with a duplicate\"),\n        ([1, 1, 1, 2, 2], \"multiple duplicates\"),\n        ([\"a\", \"b\", \"a\"], \"string elements with duplicate\"),\n        ([True, False, True], \"boolean elements\"),\n        ([None, None, 1], \"mix of None and int\"),\n    ],\n)\ndef test_unique_permutations_happy_and_edge(inp, description):\n    \"\"\"Verify that the function returns the correct set of unique permutations.\"\"\"\n    result = unique_permutations(inp)\n    expected = expected_unique_permutations(inp)\n\n    # The function may return permutations in any order; compare as sets of tuples.\n    assert set(map(tuple, result)) == set(map(tuple, expected)), f\"Failed for {description}\"\n    # Additionally, ensure we",
+  "score": 0,
+  "cost": 9.872999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 968
+  }
+}

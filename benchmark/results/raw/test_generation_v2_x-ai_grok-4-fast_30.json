@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "```python\nimport pytest\n\ndef test_snake_to_camel_happy_path_single_underscore():\n    \"\"\"Happy path: Basic snake_case with one underscore.\"\"\"\n    assert snake_to_camel(\"hello_world\") == \"helloWorld\"\n\ndef test_snake_to_camel_happy_path_multiple_underscores():\n    \"\"\"Happy path: Multiple parts in snake_case.\"\"\"\n    assert snake_to_camel(\"hello_world_case\") == \"helloWorldCase\"\n\ndef test_snake_to_camel_happy_path_mixed_case_input():\n    \"\"\"Happy path: Input with mixed case in snake parts.\"\"\"\n    assert snake_to_camel(\"hello_WORLD_123\") == \"helloWorld123\"\n\ndef test_snake_to_camel_edge_case_single_word():\n    \"\"\"Edge case: No underscores (already camel-like).\"\"\"\n    assert snake_to_camel(\"hello\") == \"hello\"\n\ndef test_snake_to_camel_edge_case_empty_string():\n    \"\"\"Edge case: Empty string.\"\"\"\n    assert snake_to_camel(\"\") == \"\"\n\ndef test_snake_to_camel_edge_case_all_underscores():\n    \"\"\"Edge case: String consisting only of underscores.\"\"\"\n    assert snake_to_camel(\"___\") == \"\"\n\ndef test_snake_to_camel_edge_case_leading_underscore():\n    \"\"\"Edge case: Leading underscore.\"\"\"\n    assert snake_to_camel(\"_hello\") == \"Hello\"\n\ndef test_snake_to_camel_edge_case_trailing_underscore():\n    \"\"\"Edge case: Trailing underscore.\"\"\"\n    assert snake_to_camel(\"hello_\") == \"hello\"\n\ndef test_snake_to_camel_edge_case_double_underscore():\n    \"\"\"Edge case: Consecutive underscores (empty part).\"\"\"\n    assert snake_to_camel(\"hello__world\") == \"helloWorld\"\n\ndef test_snake_to_camel_edge_case_numbers_and_special_chars():\n    \"\"\"Edge case: Includes numbers and assumes special chars are preserved.\"\"\"\n    assert snake_to_camel(\"hello_world_123_test!\") == \"helloWorld123Test!\"\n\ndef test_snake_to_camel_error_case_non_string_input():\n    \"\"\"Error case: Non-string input should raise TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        snake_to_camel(123)  # int\n\ndef test_snake_to_camel_error_case_none_input():\n    \"\"\"Error case: None input should raise TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        snake_to_camel(None)\n```",
+  "score": 0,
+  "cost": 0.0009282,
+  "expected": "",
+  "tokens": {
+    "input": 221,
+    "output": 1105
+  }
+}

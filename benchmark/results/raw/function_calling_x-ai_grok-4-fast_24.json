@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "function_calling",
+  "case": 24,
+  "response": "{\"name\": \"rotate_api_key\", \"arguments\": {\"service\": \"production\", \"environment\": \"production\"}}",
+  "score": 4,
+  "cost": 0.0011802,
+  "expected": "",
+  "tokens": {
+    "input": 241,
+    "output": 1415
+  }
+}

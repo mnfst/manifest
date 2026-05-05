@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "function_calling",
+  "case": 40,
+  "response": "{\"name\": \"pin_message\", \"arguments\": {\"channel\": \"announcements\", \"message_id\": \"release_message\"}}",
+  "score": 5,
+  "cost": 0.0035400000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 8814
+  }
+}

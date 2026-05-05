@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "SELECT SUM(surface_area) AS total_surface_area\nFROM countries\nWHERE region = 'Caribbean';",
+  "score": 4,
+  "cost": 3.41e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 20
+  }
+}

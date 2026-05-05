@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "SELECT MIN(share), MAX(share) FROM tvshow;",
+  "score": 0,
+  "cost": 0.0003996,
+  "expected": "",
+  "tokens": {
+    "input": 266,
+    "output": 433
+  }
+}

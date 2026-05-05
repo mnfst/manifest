@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "SELECT COUNT(*) FROM car_1 WHERE cylinders > 6;",
+  "score": 0,
+  "cost": 0.00038040000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 266,
+    "output": 409
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "```python\nimport pytest\n\nfrom your_module import chunk_list  # Replace 'your_module' with the actual module name\n\n\ndef test_chunk_list_happy_path_multiple_chunks():\n    \"\"\"Test happy path with list length not multiple of size.\"\"\"\n    result = chunk_list([1, 2, 3, 4, 5], 2)\n    assert result == [[1, 2], [3, 4], [5]]\n\n\ndef test_chunk_list_happy_path_exact_chunks():\n    \"\"\"Test happy path with list length multiple of size.\"\"\"\n    result = chunk_list([1, 2, 3, 4], 2)\n    assert result == [[1, 2], [3, 4]]\n\n\ndef test_chunk_list_empty_list():\n    \"\"\"Test edge case with empty input list.\"\"\"\n    result = chunk_list([], 2)\n    assert result == []\n\n\ndef test_chunk_list_size_one():\n    \"\"\"Test edge case with size=1.\"\"\"\n    result = chunk_list([1, 2, 3], 1)\n    assert result == [[1], [2], [3]]\n\n\ndef test_chunk_list_size_larger_than_list():\n    \"\"\"Test edge case with size > len(lst).\"\"\"\n    result = chunk_list([1, 2], 5)\n    assert result == [[1, 2]]\n\n\ndef test_chunk_list_size_equals_list_length():\n    \"\"\"Test edge case with size == len(lst).\"\"\"\n    result = chunk_list([1, 2, 3], 3)\n    assert result == [[1, 2, 3]]\n\n\ndef test_chunk_list_invalid_size_zero():\n    \"\"\"Test error case with size=0.\"\"\"\n    with pytest.raises(ValueError, match='size must be positive'):\n        chunk_list([1, 2, 3], 0)\n\n\ndef test_chunk_list_invalid_size_negative():\n    \"\"\"Test error case with negative size.\"\"\"\n    with pytest.raises(ValueError, match='size must be positive'):\n        chunk_list([1, 2, 3], -1)\n```",
+  "score": 0,
+  "cost": 0.0007014000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 235,
+    "output": 818
+  }
+}

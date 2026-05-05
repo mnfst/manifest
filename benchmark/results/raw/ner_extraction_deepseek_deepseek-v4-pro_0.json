@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v4-pro",
   "task": "ner_extraction",
   "case": 0,
-  "response": "{\"persons\": [\"Tim Cook\"], \"organizations\": [\"Apple\", \"Samsung\"], \"locations\": [\"Las Vegas\"]}",
-  "score": 5,
-  "cost": 0.00048328499999999996,
+  "response": "{\"persons\": [\"Tim Cook\"], \"organizations\": [\"Apple\", \"Samsung\", \"CES\"], \"locations\": [\"Las Vegas\"]}",
+  "score": 4,
+  "cost": 0.000422385,
   "expected": "",
   "tokens": {
     "input": 71,
-    "output": 260
+    "output": 225
   }
 }

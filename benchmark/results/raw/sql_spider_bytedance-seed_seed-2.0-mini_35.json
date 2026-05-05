@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "```sql\nSELECT c.name\nFROM conductor c\nINNER JOIN (\n    SELECT conductor_id, COUNT(DISTINCT orchestra_id) AS orchestra_count\n    FROM performance\n    GROUP BY conductor_id\n) AS conductor_stats ON c.conductor_id = conductor_stats.conductor_id\nWHERE conductor_stats.orchestra_count = (\n    SELECT MAX(total_orchestras)\n    FROM (\n        SELECT COUNT(DISTINCT orchestra_id) AS total_orchestras\n        FROM performance\n        GROUP BY conductor_id\n    ) AS sub_counts\n);\n```",
+  "score": 0,
+  "cost": 0.0007051000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 1733
+  }
+}

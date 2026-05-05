@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "First, determine how far Tom sails on the initial outbound trip.\n\n\u2022 Outbound speed = 10 miles per hour  \n\u2022 Outbound time = 1 PM to 4 PM = 3 hours  \n\u2022 Distance traveled outbound = speed \u00d7 time  \n  = 10 mph \u00d7 3 h  \n  = 30 miles\n\nNext, calculate the time required to return the same 30-mile distance at the slower speed.\n\n\u2022 Return speed = 6 miles per hour  \n\u2022 Distance to cover = 30 miles  \n\u2022 Time = distance \u00f7 speed  \n  = 30 miles \u00f7 6 mph  \n  = 5 hours\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.002472,
+  "expected": "5",
+  "tokens": {
+    "input": 88,
+    "output": 287
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "```sql\nSELECT airport_code\nFROM (\n    SELECT airport_code, COUNT(*) AS flight_count\n    FROM flights\n    GROUP BY airport_code\n    ORDER BY flight_count ASC\n    LIMIT 1\n) AS subquery;\n```",
+  "score": 0,
+  "cost": 0.00027456000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 48
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 5,
+  "response": "{\"name\":\"book_restaurant\",\"arguments\":{\"name\":\"Italian place on Main Street\",\"party_size\":4,\"date\":\"2026-05-09\",\"time\":\"19:00\"}}",
+  "score": 4,
+  "cost": 0.014475,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 696
+  }
+}

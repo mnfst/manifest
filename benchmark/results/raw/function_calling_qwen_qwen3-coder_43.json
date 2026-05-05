@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "function_calling",
+  "case": 43,
+  "response": "{\"name\": \"git_revert\", \"arguments\": {\"commit\": \"HEAD\"}}",
+  "score": 4,
+  "cost": 3.718e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 18
+  }
+}

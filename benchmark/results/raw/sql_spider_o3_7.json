@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "SELECT COUNT(*) AS number_of_cars_1980\nFROM cars\nWHERE year = 1980;",
+  "score": 0,
+  "cost": 0.001996,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 232
+  }
+}

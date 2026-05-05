@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "function_calling",
+  "case": 38,
+  "response": "{\"name\": \"get_page_views\", \"arguments\": {\"period\": \"7d\", \"limit\": 10}}",
+  "score": 5,
+  "cost": 4.4659999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 25
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "```python\n# test_factorial.py\n\nimport math\nimport pytest\n\nfrom your_module import factorial  # Replace with the actual module name\n\n\n@pytest.mark.parametrize(\n    (\"n\", \"expected\"),\n    [\n        (0, 1),          # edge case\n        (1, 1),          # edge case\n        (2, 2),\n        (3, 6),\n        (5, 120),\n        (10, 3628800),\n    ],\n)\ndef test_factorial_returns_expected_values(n, expected):\n    assert factorial(n) == expected\n\n\n@pytest.mark.parametrize(\"n\", [20, 50])\ndef test_factorial_matches_math_factorial_for_larger_inputs(n):\n    assert factorial(n) == math.factorial(n)\n\n\n@pytest.mark.parametrize(\"n\", [-1, -2, -10])\ndef test_factorial_raises_value_error_for_negative_numbers(n):\n    with pytest.raises(ValueError, match=\"n must be non-negative\"):\n        factorial(n)\n\n\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        None,\n        \"5\",\n        [5],\n        {\"n\": 5},\n        object(),\n    ],\n)\ndef test_factorial_raises_type_error_for_unsupported_input_types(bad_input):\n    with pytest.raises(TypeError):\n        factorial(bad_input)\n```",
+  "score": 5,
+  "cost": 0.05926,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 2942
+  }
+}

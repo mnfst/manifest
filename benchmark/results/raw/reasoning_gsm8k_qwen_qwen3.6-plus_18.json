@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-plus",
   "task": "reasoning_gsm8k",
   "case": 18,
-  "response": "Here is the step-by-step solution:\n\n**Step 1:** Calculate how many pomelos Eve has left.\nShe is left with 1/4 of her original 20 pomelos.\n$20 \\times \\frac{1}{4} = 5$ pomelos remaining.\n\n**Step 2:** Calculate how many pomelos she gave away.\nSubtract the remaining pomelos from the original amount to find out how many were given to her friend.\n$20 - 5 = 15$ pomelos.\n\nEve gave away 15 pomelos.\n\nANSWER: 15",
-  "score": 0,
-  "cost": 0.0013425750000000001,
+  "response": "Here is the step-by-step solution:\n\n1.  **Identify the original amount:** Eve started with 20 pieces of pomelos.\n2.  **Calculate the amount left:** The problem states she is left with $1/4$ of the original amount.\n    $$ \\frac{1}{4} \\times 20 = 5 \\text{ pomelos} $$\n    So, Eve has 5 pomelos remaining.\n3.  **Calculate the amount given away:** To find out how many she gave away, subtract the amount left from the original amount.\n    $$ 20 - 5 = 15 \\text{ pomelos} $$\n\nAlternatively, if she kept $1/4$ of the pomelos, she gave away $3/4$ of them.\n$$ \\frac{3}{4} \\times 20 = 15 $$\n\nEve gave away 15 pomelos.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.0016194750000000002,
   "expected": "15",
   "tokens": {
     "input": 91,
-    "output": 1010
+    "output": 1223
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "We need to write a SQL query to answer the question about hiring information about hiring\"",
+  "score": 1,
+  "cost": 8.73e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 18
+  }
+}

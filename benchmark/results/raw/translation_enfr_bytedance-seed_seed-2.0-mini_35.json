@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 35,
-  "response": "[Journaliste masculin n\u00b01 \u00e0 la t\u00e9l\u00e9vision] Un accident est survenu juste apr\u00e8s 10 heures du matin.",
+  "response": "[Premier journaliste masculin \u00e0 la t\u00e9l\u00e9vision] Un accident est survenu juste apr\u00e8s 10 heures du matin.",
   "score": 5,
-  "cost": 0.0005977,
+  "cost": 0.0003209,
   "expected": "",
   "tokens": {
     "input": 89,
-    "output": 1472
+    "output": 780
   }
 }

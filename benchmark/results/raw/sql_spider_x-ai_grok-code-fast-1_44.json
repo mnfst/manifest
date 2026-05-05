@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT departure_airport\nFROM flights\nGROUP BY departure_airport\nORDER BY COUNT(*) ASC\nLIMIT 1;",
+  "score": 0,
+  "cost": 0.00047440000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 268,
+    "output": 526
+  }
+}

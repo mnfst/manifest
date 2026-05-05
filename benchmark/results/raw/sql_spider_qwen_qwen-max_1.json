@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "```sql\nSELECT AVG(miles_per_gallon) \nFROM cars \nWHERE cylinders = 4;\n```",
+  "score": 0,
+  "cost": 0.00017160000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 22
+  }
+}

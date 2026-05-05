@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT first_name, AVG(ranking) AS average_rankings\nFROM players\nLEFT JOIN rankings USING (player_id)\nGROUP BY player_id, first_name;",
+  "score": 0,
+  "cost": 0.0011128,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 2752
+  }
+}

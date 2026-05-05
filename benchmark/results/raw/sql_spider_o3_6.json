@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "SELECT DISTINCT al.airline_name\nFROM flight AS f\nJOIN airline AS al ON f.airline_code = al.airline_code\nWHERE f.dest_airport_code = 'AHD';",
+  "score": 0,
+  "cost": 0.011852,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 1464
+  }
+}

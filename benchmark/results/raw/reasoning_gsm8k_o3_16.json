@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Step-by-Step Solution  \n1. Total money spent on books = $300.  \n2. Price per book = $15.  \n3. Number of books bought = 300 \u00f7 15 = 20 books.  \n4. Number of children = 4.  \n5. Books per child = 20 \u00f7 4 = 5 books.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.001456,
+  "expected": "5",
+  "tokens": {
+    "input": 84,
+    "output": 161
+  }
+}

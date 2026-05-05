@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 4,
+  "response": "```python\nimport pytest\n\ndef celsius_to_fahrenheit(c: float) -> float:\n    return c * 9/5 + 32\n\n# Happy path tests: Standard conversions with expected results\n@pytest.mark.parametrize(\"celsius, expected_fahrenheit\", [\n    (0, 32),      # Freezing point\n    (100, 212),   # Boiling point\n    (25, 77),     # Room temperature\n    (37, 98.6),   # Body temperature\n])\ndef test_celsius_to_fahrenheit_happy_path(celsius, expected_fahrenheit):\n    result = celsius_to_fahrenheit(celsius)\n    assert result == expected_fahrenheit\n\n# Edge cases: Boundary values, negatives, large/small numbers\n@pytest.mark.parametrize(\"celsius, expected_fahrenheit\", [\n    (-40, -40),   # Point where Celsius and Fahrenheit are equal\n    (-273.15, -459.67),  # Absolute zero (approximate)\n    (1000, 1832), # Large positive number\n    (-1000, -1768), # Large negative number\n    (0.0, 32.0),  # Zero as float\n    (1e-6, 32.0000018),  # Very small positive (test precision)\n    (-1e-6, 31.9999982), # Very small negative (test precision)\n])\ndef test_celsius_to_fahrenheit_edge_cases(celsius, expected_fahrenheit):\n    result = celsius_to_fahrenheit(celsius)\n    assert result == pytest.approx(expected_fahrenheit, rel=1e-5)  # Allow small floating-point tolerance\n\n# Error cases: Invalid inputs that should raise exceptions\n@pytest.mark.parametrize(\"invalid_input\", [\n    (\"string\",),   # String input\n    (None,),       # None input\n    ([],),         # List input\n    ({},),         # Dict input\n])\ndef test_celsius_to_fahrenheit_error_cases(invalid_input):\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(invalid_input)\n```",
+  "score": 0,
+  "cost": 0.0006720000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 256,
+    "output": 776
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "```sql\nSELECT p.first_name, t.description\nFROM professionals p\nJOIN professional_treatments pt ON p.id = pt.professional_id\nJOIN treatments t ON pt.treatment_id = t.id;\n```",
+  "score": 0,
+  "cost": 0.00046023,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 246
+  }
+}

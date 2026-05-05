@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "SELECT c.conductor_name, o.orchestra_name\nFROM conductors c\nINNER JOIN performances p ON c.conductor_id = p.conductor_id\nINNER JOIN orchestras o ON p.orchestra_id = o.orchestra_id;",
+  "score": 0,
+  "cost": 0.00038150000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 923
+  }
+}

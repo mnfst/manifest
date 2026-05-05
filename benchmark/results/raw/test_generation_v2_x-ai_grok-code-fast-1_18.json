@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "```python\nimport pytest\n\ndef title_case(s: str) -> str:\n    return ' '.join(word.capitalize() for word in s.split())\n\n# Happy path tests\n@pytest.mark.parametrize(\"input_str, expected\", [\n    (\"hello world\", \"Hello World\"),\n    (\"a b c\", \"A B C\"),\n    (\"python programming\", \"Python Programming\"),\n    (\"single\", \"Single\"),\n])\ndef test_title_case_happy_path(input_str, expected):\n    assert title_case(input_str) == expected\n\n# Edge case tests\n@pytest.mark.parametrize(\"input_str, expected\", [\n    (\"\", \"\"),  # Empty string\n    (\"hello\", \"Hello\"),  # Single word\n    (\"hello   world\", \"Hello World\"),  # Multiple spaces (split() normalizes to single space)\n    (\"  hello  \", \"Hello\"),  # Leading and trailing spaces\n    (\"hello, world!\", \"Hello, World!\"),  # Punctuation (capitalize doesn't change it)\n    (\"HELLO WORLD\", \"Hello World\"),  # All uppercase\n    (\"hElLo WoRlD\", \"Hello World\"),  # Mixed case\n    (\"123 abc\", \"123 Abc\"),  # Numbers and letters\n    (\"a\", \"A\"),  # Single character\n    (\"word-with-hyphen\", \"Word-With-Hyphen\"),  # Hyphenated words\n])\ndef test_title_case_edge_cases(input_str, expected):\n    assert title_case(input_str) == expected\n\n# Error case tests (non-string inputs)\n@pytest.mark.parametrize(\"invalid_input\", [\n    123,  # Integer\n    None,  # None\n    [\"hello\", \"world\"],  # List\n    {\"key\": \"value\"},  # Dict\n])\ndef test_title_case_error_cases(invalid_input):\n    with pytest.raises(AttributeError):\n        title_case(invalid_input)  # split() not available on non-strings\n```",
+  "score": 0,
+  "cost": 0.0006846,
+  "expected": "",
+  "tokens": {
+    "input": 255,
+    "output": 792
+  }
+}

@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 20,
-  "response": "Je dirais que c'est de faible valeur, au mieux.",
+  "response": "Je dirais que c'est de faible valeur, tout au plus.",
   "score": 4,
-  "cost": 0.0001583,
+  "cost": 8.790000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 79,
-    "output": 376
+    "output": 200
   }
 }

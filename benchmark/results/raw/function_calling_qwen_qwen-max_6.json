@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 6,
+  "response": "{\"name\": \"translate\", \"arguments\": {\"text\": \"The meeting has been rescheduled to Monday\", \"target_language\": \"es\"}}",
+  "score": 5,
+  "cost": 0.00022984,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 29
+  }
+}

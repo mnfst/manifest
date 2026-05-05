@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "function_calling",
+  "case": 0,
+  "response": "{\"name\": \"send_email\", \"arguments\": {\"to\": \"john@example.com\", \"subject\": \"Meeting Tomorrow\", \"body\": \"Hi John can we meet at 2pm\"}}",
+  "score": 5,
+  "cost": 0.00022847499999999998,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 147
+  }
+}

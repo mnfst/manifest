@@ -4,10 +4,10 @@
   "case": 32,
   "response": "shopping_list",
   "score": 5,
-  "cost": 0.00036920000000000003,
+  "cost": 0.0003874,
   "expected": "shopping_list",
   "tokens": {
     "input": 512,
-    "output": 156
+    "output": 170
   }
 }

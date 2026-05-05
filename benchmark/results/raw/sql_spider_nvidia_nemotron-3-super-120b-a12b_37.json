@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "SELECT\n    song.title AS song_name,\n    song.release_year\nFROM\n    song\nJOIN\n    singer ON song.singer_id = singer.id\nWHERE\n    singer.birth_date = (SELECT MIN(birth_date) FROM singer);",
+  "score": 4,
+  "cost": 3.447e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 299
+  }
+}

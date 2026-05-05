@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "function_calling",
+  "case": 7,
+  "response": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"6:30 AM tomorrow\", \"label\": \"Morning Workout\"}}",
+  "score": 4,
+  "cost": 0.002604,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 301
+  }
+}

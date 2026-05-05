@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 47,
+  "response": "{\"name\":\"create_cron\",\"arguments\":{\"schedule\":\"0 0 * * *\",\"command\":\"cleanup.sh\"}}",
+  "score": 4,
+  "cost": 0.022415,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 1098
+  }
+}

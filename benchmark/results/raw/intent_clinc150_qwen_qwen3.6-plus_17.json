@@ -4,10 +4,10 @@
   "case": 17,
   "response": "remind",
   "score": 0,
-  "cost": 0.0012392249999999998,
+  "cost": 0.0012522249999999998,
   "expected": "reminder",
   "tokens": {
     "input": 509,
-    "output": 826
+    "output": 836
   }
 }

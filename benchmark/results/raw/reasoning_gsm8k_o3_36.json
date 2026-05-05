@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Step-by-step solution\n\n1. Initial amount  \n   Elaine starts with 20 Pok\u00e9mon cards.\n\n2. First month  \n   She collects three times that number:  \n   3 \u00d7 20 = 60 cards.\n\n3. Second month  \n   She collects 20 fewer cards than in the first month:  \n   60 \u2212 20 = 40 cards.\n\n4. Third month  \n   First- and second-month collections together:  \n   60 + 40 = 100 cards.  \n   She now collects twice this combined number:  \n   2 \u00d7 100 = 200 cards.\n\n5. Total cards now  \n   20 (initial) + 60 (first month) + 40 (second month) + 200 (third month)  \n   = 320 cards.\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.00377,
+  "expected": "320",
+  "tokens": {
+    "input": 113,
+    "output": 443
+  }
+}

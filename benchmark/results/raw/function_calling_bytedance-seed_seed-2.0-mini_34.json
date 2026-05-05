@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "function_calling",
+  "case": 34,
+  "response": "{\"name\": \"scale_deployment\", \"arguments\": {\"service\": \"web\", \"replicas\": 5}}",
+  "score": 4,
+  "cost": 5.9900000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 116
+  }
+}

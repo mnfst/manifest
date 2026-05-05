@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT cl.Language)\nFROM countrylanguage cl\nJOIN country c ON cl.CountryCode = c.Code\nWHERE c.IndepYear < 1930 AND cl.IsOfficial = 'T';",
+  "score": 0,
+  "cost": 0.00026040000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 278,
+    "output": 256
+  }
+}

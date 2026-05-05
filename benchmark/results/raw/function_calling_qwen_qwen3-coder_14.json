@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "function_calling",
+  "case": 14,
+  "response": "{\"name\": \"create_reminder\", \"arguments\": {\"message\": \"call the dentist\", \"time\": \"3pm\", \"date\": \"Wednesday\"}}",
+  "score": 4,
+  "cost": 4.8620000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 32
+  }
+}

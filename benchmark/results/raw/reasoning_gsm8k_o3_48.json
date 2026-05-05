@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Step 1: Determine the 50 % increase.  \n50 % of 8 lb = 0.50 \u00d7 8 lb = 4 lb.\n\nStep 2: Add the increase to the original weight.  \n8 lb + 4 lb = 12 lb.\n\nStep 3: Subtract 2 lb to get the lighter weight.  \n12 lb \u2212 2 lb = 10 lb.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.001648,
+  "expected": "10",
+  "tokens": {
+    "input": 100,
+    "output": 181
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "SELECT p.first_name, t.description\nFROM professionals p\nINNER JOIN treatments t ON p.professional_id = t.professional_id;",
+  "score": 0,
+  "cost": 0.00020380000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 479
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "function_calling",
+  "case": 24,
+  "response": "```json\n{\"name\": \"rotate_api_key\", \"arguments\": {\"service\": \"production\", \"environment\": \"production\"}}\n```",
+  "score": 4,
+  "cost": 0.0006203099999999999,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 333
+  }
+}

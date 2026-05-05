@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "function_calling",
+  "case": 28,
+  "response": "{\"name\": \"block_ip\", \"arguments\": {\"ip\": \"192.168.1.100\"}}",
+  "score": 4,
+  "cost": 9.9e-06,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 23
+  }
+}

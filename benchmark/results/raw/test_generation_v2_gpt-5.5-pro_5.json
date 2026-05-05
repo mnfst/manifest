@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "Save as `test_count_vowels.py` and replace `your_module` with the actual module name.\n\n```python\nimport pytest\n\nfrom your_module import count_vowels\n\n\n@pytest.mark.parametrize(\n    \"text, expected\",\n    [\n        (\"hello\", 2),\n        (\"HELLO\", 2),\n        (\"AeIoU\", 5),\n        (\"The quick brown fox jumps over the lazy dog\", 11),\n        (\"a-e_i.o,u\", 5),\n    ],\n)\ndef test_count_vowels_happy_path(text, expected):\n    assert count_vowels(text) == expected\n\n\n@pytest.mark.parametrize(\n    \"text, expected\",\n    [\n        (\"\", 0),\n        (\"bcdfg\", 0),\n        (\"why TRY my gym\", 0),  # y is not counted\n        (\"12345 !@#$%\", 0),\n        (\" \\n\\t\", 0),\n        (\"\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\", 0),  # only ASCII a/e/i/o/u are counted\n        (\"a\" * 1000, 1000),\n    ],\n)\ndef test_count_vowels_edge_cases(text, expected):\n    assert count_vowels(text) == expected\n\n\n@pytest.mark.parametrize(\n    \"bad_input, expected_exception\",\n    [\n        (None, AttributeError),\n        (123, AttributeError),\n        ([\"a\", \"e\"], AttributeError),\n        ({\"text\": \"aeiou\"}, AttributeError),\n        (b\"aeiou\", TypeError),\n    ],\n)\ndef test_count_vowels_invalid_input_raises(bad_input, expected_exception):\n    with pytest.raises(expected_exception):\n        count_vowels(bad_input)\n```\n\nNote: the error tests reflect the current implementation, which does not explicitly validate input types.",
+  "score": 5,
+  "cost": 0.0996,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 4964
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "We need to write SQL query for database flight_2. Likely tables: flights, cities? Might have columns: departure_city, destination_city, maybe city_id referencing cities table. But we assume typical names: flights table with columns departure_city, destination_city (maybe city names). Or maybe there is a common choice for a simple greeting or task, but note: The user asked for a SQL query.",
+  "score": 1,
+  "cost": 1.539e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 83
+  }
+}

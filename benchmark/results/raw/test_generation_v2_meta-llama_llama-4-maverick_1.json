@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "### Unit Tests for `is_palindrome` Function\n\nThe following tests cover the happy path, edge cases, and error cases for the `is_palindrome` function.\n\n```python\nimport pytest\n\ndef test_is_palindrome_happy_path():\n    \"\"\"Test that a palindrome string returns True.\"\"\"\n    assert is_palindrome(\"Madam\") == True\n    assert is_palindrome(\"A man a plan a canal Panama\") == True\n\ndef test_is_palindrome_not_palindrome():\n    \"\"\"Test that a non-palindrome string returns False.\"\"\"\n    assert is_palindrome(\"Hello\") == False\n    assert is_palindrome(\"Not a palindrome\") == False\n\ndef test_is_palindrome_edge_cases():\n    \"\"\"Test edge cases such as empty string and single character.\"\"\"\n    assert is_palindrome(\"\") == True\n    assert is_palindrome(\"a\") == True\n\ndef test_is_palindrome_case_insensitivity():\n    \"\"\"Test that the function is case-insensitive.\"\"\"\n    assert is_palindrome(\"Madam\") == is_palindrome(\"mAdaM\")\n\ndef test_is_palindrome_ignore_spaces():\n    \"\"\"Test that the function ignores spaces.\"\"\"\n    assert is_palindrome(\"A man a plan a canal Panama\") == is_palindrome(\"AmanaplanacanalPanama\")\n\ndef test_is_palindrome_error_cases():\n    \"\"\"Test that the function raises an error when given a non-string input.\"\"\"\n    with pytest.raises(AttributeError):\n        is_palindrome(123)\n    with pytest.raises(AttributeError):\n        is_palindrome(None)\n    with pytest.raises(AttributeError):\n        is_palindrome([1, 2, 3])\n```\n\nHowever, upon closer inspection, we can see that the `is_palindrome` function does not actually raise an `AttributeError` when given a non-string input. Instead, it will raise an `AttributeError` if the input does not have a `lower()` or `replace()` method.\n\nTo make the function more robust, we can add a type check at the beginning of the function:\n\n```python\ndef is_palindrome(s: str) -> bool:\n    if not isinstance(s, str):\n        raise TypeError(\"Input must be a string\")\n    s = s.lower().replace(' ', '')\n    return s == s[::-1]\n```\n\nWith this updated function, we can update the error case tests:\n\n```python\ndef test_is_palindrome_error_cases():\n    \"\"\"Test that the function raises an error when given a non-string input.\"\"\"\n    with pytest.raises(TypeError):\n        is_palindrome(123)\n    with pytest.raises(TypeError):\n        is_palindrome(None)\n    with pytest.raises(TypeError):\n        is_palindrome([1, 2, 3])\n```",
+  "score": 0,
+  "cost": 0.00033929999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 549
+  }
+}

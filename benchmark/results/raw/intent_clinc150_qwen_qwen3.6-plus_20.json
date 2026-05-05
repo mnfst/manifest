@@ -4,10 +4,10 @@
   "case": 20,
   "response": "vaccines",
   "score": 5,
-  "cost": 0.0009779250000000001,
+  "cost": 0.000909025,
   "expected": "vaccines",
   "tokens": {
     "input": 513,
-    "output": 624
+    "output": 571
   }
 }

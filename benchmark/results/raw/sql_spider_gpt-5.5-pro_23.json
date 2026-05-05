@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "sql_spider",
   "case": 23,
-  "response": "SELECT production_code, channel\nFROM cartoon\nWHERE original_air_date = (\n  SELECT MAX(original_air_date)\n  FROM cartoon\n);",
-  "score": 4,
-  "cost": 0.021385,
+  "response": "",
+  "score": 0,
+  "cost": 0.0,
   "expected": "",
   "tokens": {
-    "input": 73,
-    "output": 1051
+    "input": 0,
+    "output": 0
   }
 }

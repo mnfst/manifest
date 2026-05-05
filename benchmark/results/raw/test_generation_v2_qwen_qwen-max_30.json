@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "To write unit tests for the `snake_to_camel` function, we'll use the `pytest` framework. We'll cover the happy path, edge cases, and error cases. Here's how you can do it:\n\n1. **Happy Path**: Normal input with underscores.\n2. **Edge Cases**: Empty strings, strings with no underscores, strings with multiple underscores.\n3. **Error Cases**: Non-string inputs.\n\nFirst, make sure you have `pytest` installed. You can install it using pip if you haven't already:\n\n```sh\npip install pytest\n```\n\nNow, let's write the tests:\n\n```python\nimport pytest\n\ndef snake_to_camel(s: str) -> str:\n    parts = s.split('_')\n    return parts[0] + ''.join(p.capitalize() for p in parts[1:])\n\ndef test_snake_to_camel_happy_path():\n    assert snake_to_camel('hello_world') == 'helloWorld'\n    assert snake_to_camel('snake_to_camel_case') == 'snakeToCamelCase'\n    assert snake_to_camel('this_is_a_test') == 'thisIsATest'\n\ndef test_snake_to_camel_edge_cases():\n    assert snake_to_camel('') == ''\n    assert snake_to_camel('singleword') == 'singleword'\n    assert snake_to_camel('with__multiple___underscores') == 'withMultipleUnderscores'\n\ndef test_snake_to_camel_error_cases():\n    with pytest.raises(TypeError):\n        snake_to_camel(123)  # Non-string input\n    with pytest.raises(TypeError):\n        snake_to_camel(None)  # None input\n    with pytest.raises(TypeError):\n        snake_to_camel([])  # List input\n\nif __name__ == \"__main__\":\n    pytest.main()\n```\n\n### Explanation:\n\n1. **Happy Path**:\n   - `test_snake_to_camel_happy_path`: Tests the function with typical snake_case strings.\n\n2. **Edge Cases**:\n   - `test_snake_to_camel_edge_cases`: Tests the function with an empty string, a string with no underscores, and a string with multiple underscores.\n\n3. **Error Cases**:\n   - `test_snake_to_camel_error_cases`: Tests the function with non-string inputs, which should raise a `TypeError`.\n\n### Running the Tests\n\nTo run the tests, save the code in a file, for example, `test_snake_to_camel.py`, and then run the following command in your terminal:\n\n```sh\npytest test_snake_to_camel.py\n```\n\nThis will execute the tests and provide you with the results, indicating whether the function behaves as expected in all the covered scenarios.",
+  "score": 0,
+  "cost": 0.00240136,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 559
+  }
+}

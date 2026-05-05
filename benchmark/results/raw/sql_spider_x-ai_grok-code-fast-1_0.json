@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "SELECT money_rank FROM poker_player WHERE height = (SELECT MAX(height) FROM poker_player);",
+  "score": 0,
+  "cost": 0.00032620000000000007,
+  "expected": "",
+  "tokens": {
+    "input": 267,
+    "output": 341
+  }
+}

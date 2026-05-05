@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "SELECT COUNT(*) FROM cars WHERE cylinders > 6;",
+  "score": 0,
+  "cost": 0.00022881,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 115
+  }
+}

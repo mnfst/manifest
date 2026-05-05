@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "function_calling",
+  "case": 25,
+  "response": "{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Daily Standup\", \"duration_minutes\": 30, \"time\": \"09:00\", \"recurrence\": \"weekdays\", \"attendees\": [\"dev team\"]}}",
+  "score": 5,
+  "cost": 0.001296,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 133
+  }
+}

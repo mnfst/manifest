@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-plus",
   "task": "reasoning_gsm8k",
   "case": 23,
-  "response": "Step 1: Find the original cost to fill one balloon.\nThe total cost for 20 balloons was $900. To find the cost per balloon, divide the total cost by the number of balloons:\n$900 \u00f7 20 = $45 per balloon.\n\nStep 2: Find the new cost per balloon after the price increase.\nThe problem states that the cost to fill each balloon increased by $20. Add this increase to the original cost:\n$45 + $20 = $65 per balloon.\n\nStep 3: Calculate the total cost for 170 balloons at the new price.\nMultiply the new cost per balloon by the number of balloons Bentley filled:\n170 \u00d7 $65 = $11,050.\n\nANSWER: 11050",
-  "score": 0,
-  "cost": 0.00228605,
+  "response": "To solve this problem, we will break it down into three clear steps:\n\n**Step 1: Find the original cost per balloon.**\nThe total cost for 20 balloons was $900. To find the cost of a single balloon, divide the total cost by the number of balloons:\n$900 \u00f7 20 = $45 per balloon.\n\n**Step 2: Determine the new cost per balloon after the price increase.**\nThe problem states that the cost per balloon increased by $20. Add this increase to the original price:\n$45 + $20 = $65 per balloon.\n\n**Step 3: Calculate the total cost for 170 balloons at the new price.**\nMultiply the new price per balloon by the number of balloons Bentley wants to fill:\n170 balloons \u00d7 $65/balloon = $11,050.\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.00176475,
   "expected": "11050",
   "tokens": {
     "input": 110,
-    "output": 1731
+    "output": 1330
   }
 }

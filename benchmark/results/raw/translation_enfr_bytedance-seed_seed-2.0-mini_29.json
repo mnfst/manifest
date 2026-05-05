@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 29,
-  "response": "Et je t'aime bien... bien que je ne sache pas pourquoi.",
+  "response": "Et je t'aime bien... m\u00eame si je ne sais pas pourquoi.",
   "score": 4,
-  "cost": 0.0006912,
+  "cost": 0.0002112,
   "expected": "",
   "tokens": {
     "input": 80,
-    "output": 1708
+    "output": 508
   }
 }

@@ -3,7 +3,7 @@
   "task": "reasoning_gsm8k",
   "case": 5,
   "response": "Step 1: Start with the initial number of fairies Katelyn saw, which is 50.\nStep 2: Determine how many fairies joined from the east. The problem states this is half as many as Katelyn originally saw, so 50 \u00f7 2 = 25 fairies.\nStep 3: Add the newly arrived fairies to the original group: 50 + 25 = 75 fairies.\nStep 4: Subtract the number of fairies that flew away later: 75 - 30 = 45 fairies.\n(The time intervals mentioned are narrative details and do not affect the calculation.)\n\nANSWER: 45",
-  "score": 0,
+  "score": 5,
   "cost": 0.0022233250000000004,
   "expected": "45",
   "tokens": {

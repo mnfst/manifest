@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "```sql\nSELECT t.title \nFROM tvshows t \nJOIN directors d ON t.director_id = d.id \nWHERE d.name = 'Ben Jones' AND t.genre = 'cartoon';\n```",
+  "score": 0,
+  "cost": 3.6e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 42
+  }
+}

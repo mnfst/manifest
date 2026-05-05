@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 10,
+  "response": "Here is a **pytest** test suite that exercises the `is_valid_email` function for:\n\n* **Happy\u2011path** \u2013 clearly valid addresses  \n* **Edge cases** \u2013 addresses that are technically valid according to the regex but are unusual (e.g., leading/trailing dots, consecutive special characters, minimum\u2011length TLD, etc.)  \n* **Error cases** \u2013 strings that should be judged invalid  \n\n```python\n# test_is_valid_email.py\nimport pytest\n\n# Adjust the import to match where the function lives.\n# If the function is in a file named `email_utils.py`, use:\n#   from email_utils import is_valid_email\n# For this example we assume it's in the same directory as the test.\nfrom email_utils import is_valid_email  # <-- change as needed\n\n\n# -------------------------\n# Happy\u2011path tests\n# -------------------------\n@pytest.mark.parametrize(\n    \"email\",\n    [\n        \"user@example.com\",\n        \"First.Last@example.co.uk\",\n        \"user+tag@example-domain.com\",\n        \"user_name@example.com\",\n        \"12345@example.com\",\n        \"a@b.co\",                     # minimum 2\u2011letter TLD\n        \"test@sub.domain.com\",\n        \"USER@EXAMPLE.COM\",           # case\u2011insensitive\n        \"alice.bob@example.io\",\n        \"test123@test-test.com\",\n    ],\n)\ndef test_valid_email_happy(email):\n    assert is_valid_email(email) is True\n\n\n# -------------------------\n# Edge\u2011case tests (still valid per the regex)\n# -------------------------\n@pytest.mark.parametrize(\n    \"email\",\n    [\n        \".start@example.com\",         # local part starts with dot",
+  "score": 0,
+  "cost": 9.953999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 1000
+  }
+}

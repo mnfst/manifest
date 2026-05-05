@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "SELECT DISTINCT maker FROM cars WHERE year = 1970;",
+  "score": 0,
+  "cost": 0.0003518,
+  "expected": "",
+  "tokens": {
+    "input": 275,
+    "output": 371
+  }
+}

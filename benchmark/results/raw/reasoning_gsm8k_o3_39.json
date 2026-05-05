@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "Step 1:  Determine how many grapes Madeline\u2019s brother used.  \nMadeline ate 6 grapes.  \nHer brother used 5 times as many grapes:  \n5 \u00d7 6 = 30 grapes.\n\nStep 2:  Determine how many grapes their mother used for pies.  \nThe recipe needs 12 grapes per pie and she made 4 pies:  \n12 \u00d7 4 = 48 grapes.\n\nStep 3:  Add all the grapes used/eaten to find the initial total.  \nMadeline: 6  \nBrother: 30  \nMother: 48  \nTotal = 6 + 30 + 48 = 84 grapes.\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.003002,
+  "expected": "84",
+  "tokens": {
+    "input": 105,
+    "output": 349
+  }
+}

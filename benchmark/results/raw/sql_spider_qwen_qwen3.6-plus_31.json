@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 31,
+  "response": "SELECT Airline FROM flights WHERE Origin = 'AHD'",
+  "score": 0,
+  "cost": 0.003567525,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 2724
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "ner_extraction",
+  "case": 1,
+  "response": "{\n  \"persons\": [\"Biden\", \"Macron\"],\n  \"organizations\": [\"NATO\"],\n  \"locations\": [\"White House\"]\n}",
+  "score": 5,
+  "cost": 0.00053505,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 290
+  }
+}

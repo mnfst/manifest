@@ -4,10 +4,10 @@
   "case": 4,
   "response": "SELECT SUM(bonus) AS total_bonus\nFROM evaluation;",
   "score": 5,
-  "cost": 0.0094,
+  "cost": 0.01696,
   "expected": "",
   "tokens": {
     "input": 72,
-    "output": 452
+    "output": 830
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 10,
+  "response": "{\"name\": \"play_song\", \"arguments\": {\"title\": \"Bohemian Rhapsody\", \"artist\": \"Queen\"}}",
+  "score": 5,
+  "cost": 0.00020384000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 27
+  }
+}

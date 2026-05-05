@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "```python\nimport pytest\n\ndef test_add_positive_numbers():\n    \"\"\"Happy path: Adding two positive integers.\"\"\"\n    assert add(1, 2) == 3\n    assert add(5, 10) == 15\n\ndef test_add_negative_numbers():\n    \"\"\"Happy path: Adding two negative integers.\"\"\"\n    assert add(-1, -2) == -3\n    assert add(-5, -10) == -15\n\ndef test_add_mixed_signs():\n    \"\"\"Happy path: Adding positive and negative integers.\"\"\"\n    assert add(5, -3) == 2\n    assert add(-5, 3) == -2\n\ndef test_add_zero():\n    \"\"\"Happy path: Adding zero to an integer.\"\"\"\n    assert add(0, 5) == 5\n    assert add(5, 0) == 5\n    assert add(0, 0) == 0\n\ndef test_add_large_integers():\n    \"\"\"Edge case: Adding large integers (Python ints are unbounded, but test reasonable limits).\"\"\"\n    assert add(10**9, 10**9) == 2 * 10**9\n    assert add(-(10**9), -(10**9)) == -2 * 10**9\n\ndef test_add_with_float():\n    \"\"\"Error case: Passing a float should return a float (not raise, but type mismatch with signature).\"\"\"\n    result = add(1, 2.0)\n    assert isinstance(result, float)\n    assert result == 3.0\n\ndef test_add_with_string():\n    \"\"\"Error case: Passing a string should raise TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        add(1, \"2\")\n\ndef test_add_with_none():\n    \"\"\"Error case: Passing None should raise TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        add(1, None)\n\ndef test_add_with_list():\n    \"\"\"Error case: Passing a list should raise TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        add(1, [2])\n```",
+  "score": 0,
+  "cost": 0.000642,
+  "expected": "",
+  "tokens": {
+    "input": 202,
+    "output": 752
+  }
+}

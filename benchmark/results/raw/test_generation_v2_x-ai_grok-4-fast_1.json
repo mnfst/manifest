@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "```python\nimport pytest\n\nfrom your_module import is_palindrome  # Replace 'your_module' with the actual module name\n\n\ndef test_palindrome_with_spaces_and_mixed_case():\n    \"\"\"Happy path: Palindrome ignoring case and spaces.\"\"\"\n    assert is_palindrome(\"A man a plan a canal Panama\") is True\n\n\ndef test_non_palindrome():\n    \"\"\"Happy path: Non-palindrome.\"\"\"\n    assert is_palindrome(\"hello\") is False\n\n\ndef test_empty_string():\n    \"\"\"Edge case: Empty string is a palindrome.\"\"\"\n    assert is_palindrome(\"\") is True\n\n\ndef test_single_character():\n    \"\"\"Edge case: Single character is a palindrome.\"\"\"\n    assert is_palindrome(\"a\") is True\n    assert is_palindrome(\"A\") is True\n\n\ndef test_all_spaces():\n    \"\"\"Edge case: String of only spaces becomes empty, which is a palindrome.\"\"\"\n    assert is_palindrome(\"   \") is True\n\n\ndef test_mixed_case_no_spaces():\n    \"\"\"Edge case: Mixed case without spaces.\"\"\"\n    assert is_palindrome(\"RaCeCaR\") is True\n    assert is_palindrome(\"racecar\") is True\n\n\ndef test_with_punctuation():\n    \"\"\"Edge case: Punctuation is not removed, so not a palindrome.\"\"\"\n    assert is_palindrome(\"A man, a plan, a canal: Panama\") is False\n\n\ndef test_with_numbers_palindrome():\n    \"\"\"Edge case: Numeric palindrome with spaces.\"\"\"\n    assert is_palindrome(\"123 21\") is True  # Becomes \"12321\" == reverse\n\n\ndef test_with_numbers_non_palindrome():\n    \"\"\"Edge case: Numeric non-palindrome.\"\"\"\n    assert is_palindrome(\"12345\") is False\n\n\ndef test_uppercase_only():\n    \"\"\"Edge case: All uppercase palindrome.\"\"\"\n    assert is_palindrome(\"ABCBA\") is True\n\n\ndef test_lowercase_only():\n    \"\"\"Edge case: All lowercase non-palindrome.\"\"\"\n    assert is_palindrome(\"abcd\") is False\n\n\ndef test_non_string_input_integer():\n    \"\"\"Error case: Non-string input raises TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        is_palindrome(123)\n\n\ndef test_non_string_input_none():\n    \"\"\"Error case: None input raises TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        is_palindrome(None)\n\n\ndef test_non_string_input_list():\n    \"\"\"Error case: List input raises TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        is_palindrome([\"a\", \"b\"])\n```",
+  "score": 0,
+  "cost": 0.0009528000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 212,
+    "output": 1138
+  }
+}

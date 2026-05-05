@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 4,
+  "response": "SELECT SUM(bonus) FROM evaluation",
+  "score": 0,
+  "cost": 0.000899925,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 673
+  }
+}

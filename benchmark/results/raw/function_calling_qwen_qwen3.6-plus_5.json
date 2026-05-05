@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "function_calling",
+  "case": 5,
+  "response": "{\"name\": \"book_restaurant\", \"arguments\": {\"name\": \"Italian place on Main Street\", \"party_size\": 4, \"date\": \"this Saturday\", \"time\": \"7pm\"}}",
+  "score": 4,
+  "cost": 0.0011859250000000002,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 883
+  }
+}

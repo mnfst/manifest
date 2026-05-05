@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "```sql\nSELECT *\nFROM cartoons\nWHERE director = 'Ben Jones';\n```",
+  "score": 0,
+  "cost": 0.00013832,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 16
+  }
+}

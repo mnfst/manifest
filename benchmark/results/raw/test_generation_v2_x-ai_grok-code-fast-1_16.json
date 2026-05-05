@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "```python\nimport pytest\nfrom math_utils import gcd  # Assuming the function is in a module named math_utils\n\nclass TestGCD:\n    def test_gcd_happy_path(self):\n        \"\"\"Test normal cases with positive integers.\"\"\"\n        assert gcd(12, 18) == 6\n        assert gcd(100, 75) == 25\n        assert gcd(7, 3) == 1\n        assert gcd(1, 1) == 1\n        assert gcd(48, 18) == 6\n        assert gcd(17, 13) == 1  # Coprime numbers\n\n    def test_gcd_edge_cases(self):\n        \"\"\"Test edge cases including zeros, negatives, and large numbers.\"\"\"\n        # Zero cases\n        assert gcd(0, 5) == 5\n        assert gcd(5, 0) == 5\n        assert gcd(0, 0) == 0\n        \n        # Negative numbers (should return positive GCD)\n        assert gcd(-12, 18) == 6\n        assert gcd(12, -18) == 6\n        assert gcd(-12, -18) == 6\n        assert gcd(-1, 1) == 1\n        \n        # Large numbers\n        assert gcd(2**31, 2**30) == 2**30\n        assert gcd(999999999, 999999998) == 1  # Large coprime-like numbers\n\n    def test_gcd_error_cases(self):\n        \"\"\"Test cases that should raise exceptions for invalid inputs.\"\"\"\n        # Non-integer types that cause TypeError in modulo operation\n        with pytest.raises(TypeError):\n            gcd(\"a\", 2)\n        with pytest.raises(TypeError):\n            gcd(2, \"b\")\n        with pytest.raises(TypeError):\n            gcd(None, 2)\n        with pytest.raises(TypeError):\n            gcd(2, None)\n        with pytest.raises(TypeError):\n            gcd([], 2)\n        with pytest.raises(TypeError):\n            gcd(2, {})\n        \n        # Floats might not raise errors but return floats; however, since the function is typed to return int,\n        # we can test that it handles them (though not strictly an error, it's an edge behavior)\n        # But to focus on errors, we'll stick to TypeError cases.\n```",
+  "score": 0,
+  "cost": 0.0010696000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 264,
+    "output": 1271
+  }
+}

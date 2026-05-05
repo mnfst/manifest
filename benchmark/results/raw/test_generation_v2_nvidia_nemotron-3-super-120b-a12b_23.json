@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 23,
+  "response": "```python\nimport pytest\n\n# Assuming the function is in a module named `matrix_utils`\n# from matrix_utils import matrix_transpose\n# For the sake of a self\u2011contained example we define it here.\ndef matrix_transpose(matrix: list) -> list:\n    if not matrix:\n        return []\n    return [[row[i] for row in matrix] for i in range(len(matrix[0]))]\n\n\n# -------------------------- Happy path --------------------------\n\n@pytest.mark.parametrize(\n    \"inp,expected\",\n    [\n        # 2x3 matrix\n        ([[1, 2, 3], [4, 5, 6]], [[1, 4], [2, 5], [3, 6]]),\n        # 3x2 matrix\n        ([[1, 2], [3, 4], [5, 6]], [[1, 3, 5], [2, 4, 6]]),\n        # Square matrix\n        ([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[1, 4, 7], [2, 5, 8], [3, 6, 9]]),\n        # Single row\n        ([[1, 2, 3, 4]], [[1], [2], [3], [4]]),\n        # Single column\n        ([[1], [2], [3]], [[1, 2, 3]]),\n        # 1x1 matrix\n        ([[42]], [[42]]),\n    ],\n)\ndef test_matrix_transpose_happy_path(inp, expected):\n    assert matrix_transpose(inp) == expected\n\n\n# -------------------------- Edge cases --------------------------\n\ndef test_transpose_empty_matrix():\n    \"\"\"An empty input should return an empty list.\"\"\"\n    assert matrix_transpose([]) == []\n\n\ndef test_transpose_matrix_with_empty_rows():\n    \"\"\"\n    When the matrix has rows but they are empty,\n    len(matrix[0]) == 0 \u2192 the outer comprehension yields no iteration,\n    so the result is an empty list.\n    \"\"\"\n    assert matrix_transpose([[], [], []]) == []\n\n\ndef test_transpose_preserves_input():\n    \"\"\"Ensure the function does not mutate the original matrix.\"\"\"\n    original = [[1, 2], [3, 4]]\n    copy = [row[:] for row in original]  # deep copy of the structure\n    _ = matrix_transpose(original)\n    assert original == copy  # original unchanged\n\n\n# -------------------------- Error cases --------------------------\n\ndef test_transpose_non_rectangular_raises():\n    \"\"\"\n    If rows have differing lengths, the inner indexing will eventually\n    raise an IndexError because a shorter row is accessed beyond its length.\n    \"\"\"\n    non_rect = [[1, 2, 3], [4, 5]]  # second row missing element at index 2\n    with pytest.raises(IndexError):\n        matrix_transpose(non_rect)\n\n\ndef test_transpose_raises_on_none_input():\n    \"\"\"Passing None is not a list; the function will raise a",
+  "score": 0,
+  "cost": 9.747e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 1000
+  }
+}

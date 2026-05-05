@@ -4,10 +4,10 @@
   "case": 10,
   "response": "{\"persons\": [\"Jennifer Lopez\", \"Ben Affleck\"], \"organizations\": [], \"locations\": [\"Beverly Hills\"]}",
   "score": 5,
-  "cost": 0.00020314499999999998,
+  "cost": 0.000312765,
   "expected": "",
   "tokens": {
     "input": 71,
-    "output": 99
+    "output": 162
   }
 }

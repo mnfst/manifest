@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "function_calling",
+  "case": 12,
+  "response": "{\"name\": \"get_stock_price\", \"arguments\": {\"symbol\": \"AAPL\"}}",
+  "score": 5,
+  "cost": 0.00016580000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 233,
+    "output": 149
+  }
+}

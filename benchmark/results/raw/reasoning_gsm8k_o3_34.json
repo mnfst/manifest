@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Step-by-step solution\n\n1. Cost of tickets  \n   Total for 3 tickets = \\$20.25\n\n2. Cost of food  \n   Food cost is \\$4.50 less than tickets:  \n   \\$20.25 \u2212 \\$4.50 = \\$15.75\n\n3. Cost of rides  \n   They went on 2 rides, each costing \\$33:  \n   2 \u00d7 \\$33 = \\$66\n\n4. Total cost of the outing  \n   Tickets + Food + Rides = \\$20.25 + \\$15.75 + \\$66  \n   = \\$102.00\n\n5. Amount each friend pays  \n   Total \u00f7 3 friends = \\$102 \u00f7 3 = \\$34\n\nANSWER: 34",
+  "score": 4,
+  "cost": 0.003128,
+  "expected": "34",
+  "tokens": {
+    "input": 104,
+    "output": 365
+  }
+}

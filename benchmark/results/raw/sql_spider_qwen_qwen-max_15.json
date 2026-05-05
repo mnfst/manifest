@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "```sql\nSELECT MIN(share) AS min_share, MAX(share) AS max_share\nFROM tvseries;\n```",
+  "score": 0,
+  "cost": 0.00017680000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 25
+  }
+}

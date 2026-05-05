@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "```python\nimport pytest\n\ndef add(a: int, b: int) -> int:\n    return a + b\n\n# Happy path tests\n@pytest.mark.parametrize(\"a, b, expected\", [\n    (1, 2, 3),\n    (0, 0, 0),\n    (-1, 1, 0),\n    (100, -50, 50),\n    (1000000, 2000000, 3000000),\n])\ndef test_add_happy_path(a, b, expected):\n    assert add(a, b) == expected\n\n# Edge case tests\ndef test_add_with_zero():\n    assert add(0, 5) == 5\n    assert add(5, 0) == 5\n\ndef test_add_negative_numbers():\n    assert add(-10, -5) == -15\n    assert add(-100, 200) == 100\n\ndef test_add_large_numbers():\n    # Python ints have arbitrary precision, so no overflow\n    large_a = 2**100\n    large_b = 2**100\n    assert add(large_a, large_b) == 2**101\n\n# Error case tests\ndef test_add_with_string_raises_type_error():\n    with pytest.raises(TypeError):\n        add(\"a\", 1)\n\ndef test_add_with_float_returns_float_not_int():\n    # Since the function doesn't enforce types, this succeeds but returns float\n    # This could be considered an error case if strict type checking is desired\n    result = add(1.5, 2)\n    assert result == 3.5\n    assert isinstance(result, float)  # Not int as hinted\n\ndef test_add_with_none_raises_type_error():\n    with pytest.raises(TypeError):\n        add(None, 1)\n\ndef test_add_with_list_raises_type_error():\n    with pytest.raises(TypeError):\n        add([1, 2], 3)\n```",
+  "score": 0,
+  "cost": 0.0007572000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 250,
+    "output": 884
+  }
+}

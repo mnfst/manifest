@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "WITH stadium_concert_counts AS (\n    SELECT \n        s.name, \n        s.capacity, \n        COUNT(c.concert_id) AS concert_count,\n        RANK() OVER(ORDER BY COUNT(c.concert_id) DESC) AS concert_rank\n    FROM stadiums s\n    INNER JOIN concerts c ON s.stadium_id = c.stadium_id\n    WHERE c.concert_date > '2013-12-31'\n    GROUP BY s.stadium_id, s.name, s.capacity\n)\nSELECT name, capacity\nFROM stadium_concert_counts\nWHERE concert_rank = 1;",
+  "score": 0,
+  "cost": 0.0017321,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 4299
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "test_generation_v2",
+  "case": 39,
+  "response": "```python",
+  "score": 0,
+  "cost": 0.0017861099999999998,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 1000
+  }
+}

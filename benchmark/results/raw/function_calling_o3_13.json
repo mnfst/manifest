@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "function_calling",
+  "case": 13,
+  "response": "",
+  "score": 0,
+  "cost": 0.016198,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 2000
+  }
+}

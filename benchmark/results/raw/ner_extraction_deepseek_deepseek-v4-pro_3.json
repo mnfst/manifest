@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v4-pro",
   "task": "ner_extraction",
   "case": 3,
-  "response": "{\n  \"persons\": [\"Maria Garcia\"],\n  \"organizations\": [\"Microsoft\", \"ACM\"],\n  \"locations\": [\"Seattle\"]\n}",
+  "response": "{\"persons\": [\"Maria Garcia\"], \"organizations\": [\"Microsoft\", \"ACM\"], \"locations\": [\"Seattle\"]}",
   "score": 5,
-  "cost": 0.000317985,
+  "cost": 0.00030928499999999996,
   "expected": "",
   "tokens": {
     "input": 71,
-    "output": 165
+    "output": 160
   }
 }

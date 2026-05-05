@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "function_calling",
+  "case": 29,
+  "response": "{\"name\": \"ocr_document\", \"arguments\": {\"path\": \"uploads contract.pdf\"}}",
+  "score": 5,
+  "cost": 0.00022920000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 282,
+    "output": 216
+  }
+}

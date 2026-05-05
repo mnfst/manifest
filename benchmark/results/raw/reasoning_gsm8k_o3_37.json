@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Step-by-step solution:\n\n1. Total number of voters = 100.\n\n2. Candidate A received 20% of the votes:\n   Votes for A = 20% of 100  \n               = 0.20 \u00d7 100  \n               = 20 votes.\n\n3. Candidate B received 50% more votes than candidate A:\n   Additional percentage = 50% of A\u2019s votes  \n                         = 0.50 \u00d7 20  \n                         = 10 votes.  \n   Votes for B = A\u2019s votes + additional votes  \n               = 20 + 10  \n               = 30 votes.\n\n4. Total votes accounted for so far = votes for A + votes for B  \n                                    = 20 + 30  \n                                    = 50 votes.\n\n5. The remaining votes went to candidate C:\n   Votes for C = total voters \u2212 accounted votes  \n               = 100 \u2212 50  \n               = 50 votes.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.002414,
+  "expected": "50",
+  "tokens": {
+    "input": 95,
+    "output": 278
+  }
+}

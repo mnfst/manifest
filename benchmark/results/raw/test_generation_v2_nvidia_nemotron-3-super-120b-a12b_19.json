@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "Here is a **pytest** test suite that exercises the `clamp` function from the happy path, through edge\u2011cases, to error\u2011like situations (e.g., when `min_val > max_val`).  \nFeel free to drop this into a file named `test_clamp.py` and run it with `pytest`.\n\n```python\n# test_clamp.py\nimport math\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# from mymodule import clamp\ndef clamp(value: float, min_val: float, max_val: float) -> float:\n    return max(min_val, min(value, max_val))\n\n\n# ----------------------------------------------------------------------\n# Happy path\n# ----------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"value, min_val, max_val, expected\",\n    [\n        (0.0, -1.0, 1.0, 0.0),          # value inside the interval\n        (0.5, 0.0, 1.0, 0.5),           # value inside, non\u2011zero bounds\n        (-2.0, -5.0, 5.0, -2.0),        # negative",
+  "score": 0,
+  "cost": 9.666e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 1000
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "```sql\nSELECT p.id, p.role, p.first_name\nFROM professionals p\nJOIN treatments t ON p.id = t.professional_id\nGROUP BY p.id, p.role, p.first_name\nHAVING COUNT(t.id) >= 2;\n```",
+  "score": 0,
+  "cost": 0.0003326,
+  "expected": "",
+  "tokens": {
+    "input": 231,
+    "output": 358
+  }
+}

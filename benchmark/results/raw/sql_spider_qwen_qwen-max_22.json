@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "```sql\nSELECT section_name\nFROM sections\nORDER BY section_name DESC;\n```",
+  "score": 0,
+  "cost": 0.00014768,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 17
+  }
+}

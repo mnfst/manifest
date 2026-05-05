@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 16,
+  "response": "SELECT COUNT(DISTINCT country_code) FROM players;",
+  "score": 0,
+  "cost": 0.0001589,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 368
+  }
+}

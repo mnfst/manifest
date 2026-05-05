@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "function_calling",
+  "case": 34,
+  "response": "{\"name\": \"scale_deployment\", \"arguments\": {\"service\": \"web service\", \"replicas\": 5}}",
+  "score": 4,
+  "cost": 0.0001808,
+  "expected": "",
+  "tokens": {
+    "input": 284,
+    "output": 155
+  }
+}

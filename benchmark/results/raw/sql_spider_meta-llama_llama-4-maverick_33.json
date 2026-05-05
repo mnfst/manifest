@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "```sql\nSELECT episode_name, rating \nFROM tv_series_episodes \nORDER BY rating DESC \nLIMIT 3;\n```",
+  "score": 0,
+  "cost": 2.775e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 26
+  }
+}

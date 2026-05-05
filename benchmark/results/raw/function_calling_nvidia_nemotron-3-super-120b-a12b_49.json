@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "function_calling",
+  "case": 49,
+  "response": "{\"name\": \"resize_instance\", \"arguments\": {\"instance_id\": \"app-server-1\", \"new_type\": \"t3.large\"}}",
+  "score": 5,
+  "cost": 1.8809999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 104
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "```sql\nSELECT c.conductor_name\nFROM conductor c\nJOIN performance p ON c.conductor_id = p.conductor_id\nGROUP BY c.conductor_name\nORDER BY COUNT(DISTINCT p.orchestra_id) DESC\nLIMIT 1;\n```",
+  "score": 0,
+  "cost": 0.00030263999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 54
+  }
+}

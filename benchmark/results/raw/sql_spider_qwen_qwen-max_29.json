@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "```sql\nSELECT COUNT(DISTINCT language) AS unique_languages\nFROM world_languages;\n```",
+  "score": 0,
+  "cost": 0.00015287999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 19
+  }
+}

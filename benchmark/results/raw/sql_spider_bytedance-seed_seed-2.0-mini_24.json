@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT EXTRACT(YEAR FROM concert_date) AS concert_year\nFROM concerts\nGROUP BY EXTRACT(YEAR FROM concert_date)\nHAVING COUNT(*) = (\n    SELECT MAX(total_concerts)\n    FROM (\n        SELECT COUNT(*) AS total_concerts\n        FROM concerts\n        GROUP BY EXTRACT(YEAR FROM concert_date)\n    ) AS yearly_concert_counts\n);\n```",
+  "score": 0,
+  "cost": 0.0005679,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 1391
+  }
+}

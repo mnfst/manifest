@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "SELECT id FROM templates WHERE description = 'Presentation';",
+  "score": 5,
+  "cost": 2.552e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 10
+  }
+}

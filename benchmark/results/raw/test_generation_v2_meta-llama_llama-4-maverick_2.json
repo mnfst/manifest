@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "### Unit Tests for `factorial` Function\n\n```python\nimport pytest\n\ndef test_factorial_happy_path():\n    \"\"\"Test factorial function with positive integers.\"\"\"\n    assert factorial(0) == 1\n    assert factorial(1) == 1\n    assert factorial(2) == 2\n    assert factorial(3) == 6\n    assert factorial(5) == 120\n\ndef test_factorial_edge_cases():\n    \"\"\"Test factorial function with edge cases.\"\"\"\n    assert factorial(0) == 1  # Base case\n    assert factorial(1) == 1  # Base case\n\ndef test_factorial_negative_input():\n    \"\"\"Test factorial function with negative input.\"\"\"\n    with pytest.raises(ValueError):\n        factorial(-1)\n    with pytest.raises(ValueError):\n        factorial(-5)\n\ndef test_factorial_non_integer_input():\n    \"\"\"Test factorial function with non-integer input.\"\"\"\n    with pytest.raises(TypeError):\n        factorial(2.5)  # Type hinting should prevent this, but test anyway\n\ndef test_factorial_large_input():\n    \"\"\"Test factorial function with large input.\"\"\"\n    # Python can handle large integers, so this should not cause an error\n    assert factorial(20) == 2432902008176640000\n\ndef test_factorial_type_checking():\n    \"\"\"Test factorial function type checking.\"\"\"\n    with pytest.raises(TypeError):\n        factorial(\"5\")  # Input should be an integer\n```\n\n### Notes\n\n* The `factorial` function is not explicitly type-checked for non-integer inputs. While the type hinting suggests it should be an integer, Python is dynamically typed and will not prevent non-integer inputs. The test `test_factorial_non_integer_input` checks that a `TypeError` is raised when a non-integer is passed.\n* The `factorial` function can handle large inputs because Python can handle arbitrary-precision integers.\n* To make the function more robust, you could add explicit type checking to ensure that the input is an integer. \n\n### Improved `factorial` Function with Explicit Type Checking\n\n```python\ndef factorial(n: int) -> int:\n    if not isinstance(n, int):\n        raise TypeError('n must be an integer')\n    if n < 0:\n        raise ValueError('n must be non-negative')\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n```\n\nWith this improved function, the test `test_factorial_non_integer_input` will pass because a `TypeError` is now explicitly raised for non-integer inputs.",
+  "score": 0,
+  "cost": 0.0003291,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 527
+  }
+}

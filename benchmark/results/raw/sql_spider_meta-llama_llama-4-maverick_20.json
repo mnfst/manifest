@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT T1.abbreviation, T1.country \nFROM airlines AS T1 \nJOIN (\n  SELECT airline, COUNT(*) AS num_flights \n  FROM flights \n  GROUP BY airline \n) AS T2 \nON T1.id = T2.airline \nORDER BY T2.num_flights \nLIMIT 1;\n```",
+  "score": 0,
+  "cost": 5.445e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 71
+  }
+}

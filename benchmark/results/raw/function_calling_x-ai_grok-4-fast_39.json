@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "function_calling",
+  "case": 39,
+  "response": "{\"name\": \"export_table\", \"arguments\": {\"table\": \"users\", \"format\": \"csv\", \"destination\": null}}",
+  "score": 5,
+  "cost": 0.00026660000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 245,
+    "output": 272
+  }
+}

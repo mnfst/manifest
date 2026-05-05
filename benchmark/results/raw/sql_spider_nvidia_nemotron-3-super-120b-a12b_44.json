@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "We need to write a SQL query\nGiven the following database context, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nDatabase: flight_2. Write standard SQL. Assume typical table and column names based on the database name and question context.\n\nQuestion: Give the code of the airport with the least flights.\n\nSQL:",
+  "score": 1,
+  "cost": 1.377e-05,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 73
+  }
+}

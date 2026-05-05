@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "```python\nimport pytest\nfrom flatten import flatten  # Assuming the function is in a module named flatten.py\n\nclass TestFlatten:\n    \"\"\"Unit tests for the flatten function using pytest.\"\"\"\n\n    @pytest.mark.parametrize(\"input_list, expected\", [\n        # Happy path: Basic flattening\n        ([1, [2, 3], 4], [1, 2, 3, 4]),\n        # Deeper nesting\n        ([1, [2, [3, 4]], 5], [1, 2, 3, 4, 5]),\n        # Mixed types (integers and strings)\n        ([1, 'a', [2, 'b']], [1, 'a', 2, 'b']),\n        # Nested tuples (treated as single items since not lists)\n        ([1, (2, 3), 4], [1, (2, 3), 4]),\n        # Edge case: Empty list\n        ([], []),\n        # Edge case: No nesting\n        ([1, 2, 3], [1, 2, 3]),\n        # Edge case: Nested empty lists\n        ([1, [], 2], [1, 2]),\n        # Edge case: Only empty lists\n        ([[], []], []),\n        # Edge case: Single element in nested list\n        ([[1]], [1]),\n        # Edge case: Deeply nested (but not too deep to avoid recursion limits)\n        ([[[[1]]]], [1]),\n    ])\n    def test_flatten_happy_and_edge_cases(self, input_list, expected):\n        \"\"\"Test happy path and edge cases for flattening.\"\"\"\n        assert flatten(input_list) == expected\n\n    @pytest.mark.parametrize(\"invalid_input\", [\n        # Error case: Input is a string\n        \"string\",\n        # Error case: Input is an integer\n        42,\n        # Error case: Input is None\n        None,\n        # Error case: Input is a tuple\n        (1, 2, 3),\n        # Error case: Input is a dictionary\n        {\"key\": \"value\"},\n    ])\n    def test_flatten_error_cases(self, invalid_input):\n        \"\"\"Test error cases where input is not a list.\"\"\"\n        with pytest.raises(TypeError):\n            flatten(invalid_input)\n```",
+  "score": 0,
+  "cost": 0.0008304000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 276,
+    "output": 969
+  }
+}

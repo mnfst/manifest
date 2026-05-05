@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "intent_clinc150",
+  "case": 9,
+  "response": "weather",
+  "score": 5,
+  "cost": 0.001174,
+  "expected": "weather",
+  "tokens": {
+    "input": 511,
+    "output": 19
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "SELECT COUNT(*) FROM cars WHERE cylinders > 6;",
+  "score": 0,
+  "cost": 0.00011420000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 257
+  }
+}

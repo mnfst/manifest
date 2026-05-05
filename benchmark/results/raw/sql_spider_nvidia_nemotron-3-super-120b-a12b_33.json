@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "We need to write a SQL query for database tvshow. The question: \"What are 3 most highly rated episodes in the TV series table and what were those ratings?\" So we need to select episodes (maybe from an episodes table) with rating column, order by rating descending, limit 3. Need to assume typical table and column names based on database name and question context. Database name tvshow. Likely tables: tv_series, episodes, maybe ratings. But question says \"TV series table\". Could be a table named tv_series that contains episodes? Or maybe episodes table. The phrase \"TV series table\" suggests a table that contains series info, maybe includes episodes? But they ask \"most highly rated episodes in the TV series table\". So maybe the table is named tv_series and contains episodes with rating column. Or there is a table episodes. Since they say \"TV series table\", maybe it's a table named tv_series that has columns like series_id, title, rating, etc. But episodes would be separate. However, they ask for episodes, so likely there is an episodes table. But they say \"in the TV series table\". Could be a mistake; we just need to infer typical naming: episodes table with columns episode_id, series_id, title, rating, air_date, etc. Or maybe a table named tv_series_episodes. But we need to write a query that returns 3 most highly rated episodes and their ratings.\n\nThus: SELECT episode_title",
+  "score": 1,
+  "cost": 3.483e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 300
+  }
+}

@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-plus",
   "task": "reasoning_gsm8k",
   "case": 43,
-  "response": "Let's solve the problem step by step:\n\n1. We are given that Mike is 24 years old.\n2. Martha is 4 years younger than Mike. To find Martha's age, we subtract 4 from Mike's age: \n   24 - 4 = 20 years old.\n3. Jeff is 10 years older than Martha. To find Jeff's age, we add 10 to Martha's age:\n   20 + 10 = 30 years old.\n\nTherefore, Jeff is 30 years old.\n\nANSWER: 30",
+  "response": "Here is the step-by-step solution:\n\n1. **Find Martha's age:** We are told that Mike is 24 years old and that Martha is 4 years younger than Mike. \n   Martha's age = 24 - 4 = 20 years old.\n\n2. **Find Jeff's age:** We are told that Jeff is 10 years older than Martha.\n   Jeff's age = 20 + 10 = 30 years old.\n\nTherefore, Jeff is 30 years old.\n\nANSWER: 30",
   "score": 5,
-  "cost": 0.0012330499999999999,
+  "cost": 0.0012135499999999999,
   "expected": "30",
   "tokens": {
     "input": 94,
-    "output": 925
+    "output": 910
   }
 }

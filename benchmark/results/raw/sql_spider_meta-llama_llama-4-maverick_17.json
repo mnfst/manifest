@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT name \nFROM stadium \nWHERE id NOT IN (SELECT stadium_id FROM concert WHERE concert_date BETWEEN '2014-01-01' AND '2014-12-31');\n```",
+  "score": 0,
+  "cost": 4.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 42
+  }
+}

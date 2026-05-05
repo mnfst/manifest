@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Step-by-step reasoning\n\n1. Mike\u2019s age is given: Mike = 24 years.\n2. Martha is 4 years younger than Mike:\n   Martha = Mike \u2212 4 = 24 \u2212 4 = 20 years.\n3. Jeff is 10 years older than Martha:\n   Jeff = Martha + 10 = 20 + 10 = 30 years.\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.000976,
+  "expected": "30",
+  "tokens": {
+    "input": 84,
+    "output": 101
+  }
+}

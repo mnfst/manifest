@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 48,
+  "response": "{\"name\":\"git_tag\",\"arguments\":{\"name\":\"v3.0.0\"}}",
+  "score": 4,
+  "cost": 0.08164,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 4056
+  }
+}

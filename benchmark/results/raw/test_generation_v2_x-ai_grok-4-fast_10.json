@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "test_generation_v2",
+  "case": 10,
+  "response": "```python\nimport pytest\n\ndef is_valid_email(email: str) -> bool:\n    import re\n    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'\n    return bool(re.match(pattern, email))\n\n\n@pytest.mark.parametrize(\n    \"email, expected\",\n    [\n        # Happy path: Basic valid emails\n        (\"test@example.com\", True),\n        (\"user.name@example.com\", True),\n        (\"user+tag@example.co.uk\", True),\n        (\"user%test@example.com\", True),\n        (\"user_123@example.org\", True),\n        # Edge cases: Minimal valid, uppercase, consecutive allowed chars\n        (\"a@b.co\", True),  # Minimal local, domain, TLD\n        (\"test@EXAMPLE.COM\", True),  # Uppercase in domain and TLD\n        (\"test@eXaMpLe.cOm\", True),  # Mixed case\n        (\"user..name@example.com\", True),  # Consecutive dots in local part (allowed by pattern)\n        (\".user@example.com\", True),  # Leading dot in local part (allowed by pattern)\n        (\"user.@example.com\", True),  # Trailing dot in local part (allowed by pattern)\n        # Error cases: Invalid structures and characters\n        (\"\", False),  # Empty string\n        (\" \", False),  # Whitespace only\n        (\"user\", False),  # No @ or domain\n        (\"@example.com\", False),  # No local part\n        (\"user@\", False),  # No domain\n        (\"user@example\", False),  # No TLD\n        (\"user@example.c\", False),  # TLD too short\n        (\"user@.com\", False),  # Domain starts with dot\n        (\"user@com.\", False),  # TLD starts with dot (invalid structure)\n        (\"user.example@com\", False),  # No dot before TLD\n        (\"user<@example.com\", False),  # Invalid char in local part\n        (\"user # @example.com\", False),  # Space and invalid char\n        (\"user@example.com \", False),  # Trailing space\n        (\" user@example.com\", False),  # Leading space\n        (\"test@example.c0\", False),  # TLD with number (pattern requires only letters)\n        # Edge case: Non-ASCII (should fail as pattern is ASCII-only)\n        (\"test@ex\u00e4mple.com\", False),  # Unicode char in domain\n        (\"caf\u00e9@example.com\", False),  # Unicode in local part\n    ],\n)\ndef test_is_valid_email(email, expected):\n    assert is_valid_email(email) == expected\n```",
+  "score": 0,
+  "cost": 0.001556,
+  "expected": "",
+  "tokens": {
+    "input": 244,
+    "output": 1884
+  }
+}

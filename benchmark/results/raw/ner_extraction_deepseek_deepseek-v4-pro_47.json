@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v4-pro",
   "task": "ner_extraction",
   "case": 47,
-  "response": "",
-  "score": 0,
-  "cost": 0.0007281900000000001,
+  "response": "{\"persons\": [\"Alain Aspect\"], \"organizations\": [\"Universite Paris-Saclay\"], \"locations\": [\"Stockholm\"]}",
+  "score": 5,
+  "cost": 0.00035931,
   "expected": "",
   "tokens": {
     "input": 74,
-    "output": 400
+    "output": 188
   }
 }

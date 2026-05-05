@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 13,
+  "response": "```sql\nSELECT MAX(transcript_release_date) AS last_transcript_release_date\nFROM transcripts;\n```",
+  "score": 0,
+  "cost": 0.00016015999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 21
+  }
+}

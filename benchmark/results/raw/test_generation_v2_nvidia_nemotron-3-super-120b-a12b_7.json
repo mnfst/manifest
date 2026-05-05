@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 7,
+  "response": "```python\nimport pytest\n\n# Assuming the function is defined in a module named `my_module`\n# from my_module import remove_duplicates\n# For the sake of a self\u2011contained example, we define it here.\ndef remove_duplicates(lst: list):\n    seen = set()\n    result = []\n    for item in lst:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result\n\n\ndef test_remove_duplicates_happy_path():\n    \"\"\"Typical case with a mix of duplicates and unique items.\"\"\"\n    src = [1, 2, 2, 3, 1, 4, 5, 3]\n    expected = [1, 2, 3, 4, 5]\n    assert remove_duplicates(src) == expected\n\n\ndef test_remove_duplicates_empty_list():\n    \"\"\"An empty input should return an empty list.\"\"\"\n    assert remove_duplicates([]) == []\n\n\ndef test_remove_duplicates_all_duplicates():\n    \"\"\"When every element is the same, only one should remain.\"\"\"\n    assert remove_duplicates([7, 7, 7, 7]) == [7]\n\n\ndef test_remove_duplicates_no_duplicates():\n    \"\"\"If there are no duplicates, the output should be identical to the input.\"\"\"\n    src = [10, 20, 30, 40]\n    assert remove_duplicates(src) == src\n\n\ndef test_remove_duplicates_preserves_order():\n    \"\"\"The function must keep the first occurrence order.\"\"\"\n    src = ['b', 'a', 'b', 'c', 'a']\n    expected = ['b', 'a', 'c']\n    assert remove_duplicates(src) == expected\n\n\ndef test_remove_duplicates_mixed_types():\n    \"\"\"Works with heterogeneous hashable types.\"\"\"\n    src = [1, '1', 1, '1', (2, 3), (2, 3)]\n    expected = [1, '1', (2, 3)]\n    assert remove_duplicates(src) == expected\n\n\ndef test_remove_duplicates_unhashable_error():\n    \"\"\"Unhashable items (e.g., lists, dicts) should raise a TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        remove_duplicates([[1, 2], [1, 2]])\n\n    with pytest.raises(TypeError):\n        remove_duplicates([{'a': 1}, {'a': 1}])\n\n\ndef test_remove_duplicates_does_not_mutate_input():\n    \"\"\"The original list should remain unchanged.\"\"\"\n    src = [5, 6, 5, 7]\n    src_copy = src.copy()\n    remove_duplicates(src)\n    assert src == src_copy  # ensure no side\u2011effects\n```",
+  "score": 0,
+  "cost": 7.848000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 780
+  }
+}

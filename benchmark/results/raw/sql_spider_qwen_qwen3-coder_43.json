@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "SELECT COUNT(*) \nFROM cars \nWHERE cylinders > 6;",
+  "score": 5,
+  "cost": 2.684e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 13
+  }
+}

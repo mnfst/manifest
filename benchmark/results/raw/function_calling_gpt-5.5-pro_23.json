@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 23,
+  "response": "{\"name\":\"send_message\",\"arguments\":{\"channel\":\"engineering\",\"text\":\"Deploy complete\"}}",
+  "score": 5,
+  "cost": 0.00157,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 55
+  }
+}

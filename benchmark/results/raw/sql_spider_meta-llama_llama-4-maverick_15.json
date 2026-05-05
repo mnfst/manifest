@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "```sql\nSELECT MIN(share) AS min_share, MAX(share) AS max_share \nFROM tvshow;\n```",
+  "score": 0,
+  "cost": 2.6399999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 26
+  }
+}

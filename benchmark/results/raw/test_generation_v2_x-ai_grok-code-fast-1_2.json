@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "```python\nimport pytest\nfrom factorial import factorial  # Assuming the function is in a module named factorial.py\n\nclass TestFactorial:\n    @pytest.mark.parametrize(\"n, expected\", [\n        (0, 1),\n        (1, 1),\n        (2, 2),\n        (3, 6),\n        (4, 24),\n        (5, 120),\n        (10, 3628800),\n    ])\n    def test_factorial_happy_path(self, n, expected):\n        \"\"\"Test factorial for valid non-negative integers.\"\"\"\n        assert factorial(n) == expected\n\n    def test_factorial_edge_cases(self):\n        \"\"\"Test edge cases like n=0 and n=1.\"\"\"\n        assert factorial(0) == 1\n        assert factorial(1) == 1\n\n    @pytest.mark.parametrize(\"n\", [-1, -5, -100])\n    def test_factorial_negative_input(self, n):\n        \"\"\"Test that factorial raises ValueError for negative inputs.\"\"\"\n        with pytest.raises(ValueError, match=\"n must be non-negative\"):\n            factorial(n)\n\n    def test_factorial_large_input(self):\n        \"\"\"Test factorial for a moderately large input (edge case for recursion depth).\"\"\"\n        # Note: Very large n may cause RecursionError in Python due to stack limits.\n        # This is an edge case; adjust based on system limits.\n        assert factorial(20) == 2432902008176640000\n\n    def test_factorial_non_integer_positive(self):\n        \"\"\"Test factorial with non-integer positive input (edge/error case).\"\"\"\n        # For positive floats, it will recurse until n becomes negative and raise ValueError.\n        with pytest.raises(ValueError, match=\"n must be non-negative\"):\n            factorial(1.5)\n\n    def test_factorial_negative_float(self):\n        \"\"\"Test factorial with negative float input.\"\"\"\n        with pytest.raises(ValueError, match=\"n must be non-negative\"):\n            factorial(-1.5)\n```",
+  "score": 0,
+  "cost": 0.0008888,
+  "expected": "",
+  "tokens": {
+    "input": 280,
+    "output": 1041
+  }
+}

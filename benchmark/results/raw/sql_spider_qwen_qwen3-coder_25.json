@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "SELECT * FROM tvshow WHERE genre = 'cartoon' AND director = 'Ben Jones';",
+  "score": 4,
+  "cost": 3.1899999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 19
+  }
+}

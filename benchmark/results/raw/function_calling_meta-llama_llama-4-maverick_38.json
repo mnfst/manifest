@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "function_calling",
+  "case": 38,
+  "response": "{\"name\": \"get_page_views\", \"arguments\": {\"period\": \"7d\", \"limit\": 10}}",
+  "score": 5,
+  "cost": 3.06e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 25
+  }
+}

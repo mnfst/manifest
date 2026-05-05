@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT c.name, COUNT(cl.language) AS number_of_languages\nFROM countries c\nJOIN country_languages cl ON c.code = cl.country_code\nGROUP BY c.name\nHAVING COUNT(cl.language) > 2;\n```",
+  "score": 0,
+  "cost": 0.00028704,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 48
+  }
+}

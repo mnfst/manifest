@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "SELECT c.name\nFROM conductor c\nJOIN (\n    SELECT conductor_id, COUNT(DISTINCT orchestra_id) as num_orchestras\n    FROM conducts\n    GROUP BY conductor_id\n) sub ON c.conductor_id = sub.conductor_id\nORDER BY sub.num_orchestras DESC\nLIMIT 1;",
+  "score": 0,
+  "cost": 0.0008222,
+  "expected": "",
+  "tokens": {
+    "input": 271,
+    "output": 960
+  }
+}

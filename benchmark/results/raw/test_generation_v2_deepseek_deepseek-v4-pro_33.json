@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "test_generation_v2",
+  "case": 33,
+  "response": "```python\nimport pytest\nfrom module_under_test import flatten_dict  # Adjust import to actual location\n\nclass TestFlattenDictHappyPath:\n    \"\"\"Happy path tests for flatten_dict.\"\"\"\n\n    def test_flat_dict(self):\n        \"\"\"Flattening an already flat dictionary returns the same dict.\"\"\"\n        d = {\"a\": 1, \"b\": 2}\n        result = flatten_dict(d)\n        assert result == {\"a\": 1, \"b\": 2",
+  "score": 0,
+  "cost": 0.001794375,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 1000
+  }
+}

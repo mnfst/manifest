@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT count(T2.Language) FROM country AS T1 JOIN countrylanguage AS T2 ON T1.Code  =  T2.CountryCode WHERE T1.IndepYear < 1930 AND T2.IsOfficial = 'T'",
+  "score": 0,
+  "cost": 0.00393315,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 3003
+  }
+}

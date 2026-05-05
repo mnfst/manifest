@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "Here is a **pytest** test suite that exercises the `gcd` function from the happy path, through edge\u2011cases, to error conditions.  \nSave it as `test_gcd.py` (or any name that starts with `test_`) in the same directory as the module containing `gcd`.\n\n```python\n# test_gcd.py\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# Example: if the function lives in a file named `math_utils.py`\n# from math_utils import gcd\nfrom your_module import gcd  # <-- replace `your_module` with the actual module name\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path tests\n# ----------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"a,b,expected\",\n    [\n        (48, 18, 6),          # classic example\n        (18, 48, 6),          # order does not matter\n        (1, 1, 1),            # both are 1\n        (1, 0, 1),            # one argument is zero\n        (0, 5, 5),            # the other argument is zero\n        (270, 192, 6),        # larger numbers\n        (123456, 7890, 6),    # another random pair\n        (2**31 - 1, 2**31 - 1, 2**31 - 1),  # large equal numbers (Mersenne prime)\n    ],\n)\ndef test_gcd_happy_path(a, b, expected):\n    assert gcd(a, b) == expected\n\n\n# ----------------------------------------------------------------------\n# Edge\u2011case tests\n# ----------------------------------------------------------------------\ndef test_gcd_both_zero():\n    # By the implementation, gcd(0, 0) returns 0 (abs(0)).\n    assert gcd(0, 0) == 0\n\n\n@pytest.mark.parametrize(\n    \"a,b,expected\",\n    [\n        (-48, 18, 6),   # negative first argument\n        (48, -18, 6),   # negative second argument\n        (-48, -18, 6),  # both negative\n        (0, -7, 7),     # zero and negative\n        (-12, 0, 12),   # negative and zero\n    ],\n)\ndef test_gcd_with_negatives(a, b, expected):\n    assert gcd(a, b) == expected\n\n\ndef test_gcd_large_coprime_numbers():\n    # Two large consecutive Fibonacci numbers are coprime \u2192 gcd = 1\n    a = 1836311903  # F(46)\n    b = 2971215073  # F(47) (actually > 2^31, but still fits in Python int)\n    assert gcd(a, b) == 1\n\n\n# ----------------------------------------------------------------------\n# Error / invalid\u2011input tests\n# ----------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"a",
+  "score": 0,
+  "cost": 9.693000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 1000
+  }
+}

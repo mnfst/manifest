@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "```python\n# tests/test_add.py\n\nimport pytest\n\nfrom your_module import add  # Replace \"your_module\" with the module containing add\n\n\n@pytest.mark.parametrize(\n    (\"a\", \"b\", \"expected\"),\n    [\n        (1, 2, 3),\n        (10, 5, 15),\n        (123, 456, 579),\n    ],\n)\ndef test_add_happy_path(a, b, expected):\n    assert add(a, b) == expected\n\n\n@pytest.mark.parametrize(\n    (\"a\", \"b\", \"expected\"),\n    [\n        (0, 0, 0),\n        (0, 5, 5),\n        (5, 0, 5),\n        (-1, -2, -3),\n        (-10, 5, -5),\n        (10**100, 10**100, 2 * 10**100),\n    ],\n)\ndef test_add_edge_cases(a, b, expected):\n    assert add(a, b) == expected\n\n\n@pytest.mark.parametrize(\n    (\"a\", \"b\"),\n    [\n        (1, \"2\"),\n        (\"1\", 2),\n        (None, 1),\n        (1, None),\n        (object(), 1),\n    ],\n)\ndef test_add_raises_type_error_for_unsupported_types(a, b):\n    with pytest.raises(TypeError):\n        add(a, b)\n```\n\nRun with:\n\n```bash\npytest\n```\n\nNote: Python type hints are not enforced at runtime, so some non-`int` inputs like `1.5` or `True` may still work unless the function adds explicit validation.",
+  "score": 5,
+  "cost": 0.02405,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 1189
+  }
+}

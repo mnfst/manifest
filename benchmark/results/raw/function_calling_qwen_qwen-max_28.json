@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 28,
+  "response": "{\"name\": \"block_ip\", \"arguments\": {\"ip\": \"192.168.1.100\"}}",
+  "score": 4,
+  "cost": 0.00021424,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 28
+  }
+}

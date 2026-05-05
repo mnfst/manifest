@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "Step 1: Determine the daily water removal rate for each setting.\n- Low setting: 1 liter per day (given)\n- Medium setting: Twice the low setting = 2 \u00d7 1 = 2 liters per day\n- High setting: Twice the medium setting = 2 \u00d7 2 = 4 liters per day\n\nStep 2: Calculate the total water removed during each time period.\n- Low setting for 3 days: 1 liter/day \u00d7 3 days = 3 liters\n- Medium setting for 3 days: 2 liters/day \u00d7 3 days = 6 liters\n- High setting for 5 days: 4 liters/day \u00d7 5 days = 20 liters\n\nStep 3: Add the amounts together to find the total water removed.\n- Total = 3 liters + 6 liters + 20 liters = 29 liters\n\nANSWER: 29",
+  "score": 5,
+  "cost": 0.00158925,
+  "expected": "29",
+  "tokens": {
+    "input": 210,
+    "output": 1170
+  }
+}

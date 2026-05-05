@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v4-pro",
   "task": "ner_extraction",
   "case": 46,
-  "response": "{\"persons\": [\"Liang Rubo\"], \"organizations\": [\"ByteDance\", \"Senate Commerce Committee\", \"TikTok\"], \"locations\": [\"Washington\"]}",
+  "response": "{\n  \"persons\": [\"Liang Rubo\"],\n  \"organizations\": [\"ByteDance\", \"Senate Commerce Committee\", \"TikTok\"],\n  \"locations\": [\"Washington\"]\n}",
   "score": 5,
-  "cost": 0.00031015499999999995,
+  "cost": 0.000362355,
   "expected": "",
   "tokens": {
     "input": 73,
-    "output": 160
+    "output": 190
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "Step-by-step solution\n\n1. Find the amount of the loan.  \n   The loan is 40 % of the house\u2019s value.  \n   Loan = 0.40 \u00d7 \\$250,000 = \\$100,000.\n\n2. Determine how much of the loan is used to pay debts.  \n   He spends 60 % of the loan on debts.  \n   Debt payment = 0.60 \u00d7 \\$100,000 = \\$60,000.\n\n3. Compute the money left over after paying the debts.  \n   Leftover = Loan \u2212 Debt payment = \\$100,000 \u2212 \\$60,000 = \\$40,000.\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.001978,
+  "expected": "40,000",
+  "tokens": {
+    "input": 101,
+    "output": 222
+  }
+}

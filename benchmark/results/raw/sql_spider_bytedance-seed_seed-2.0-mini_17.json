@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "SELECT name\nFROM stadiums\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM concerts\n    WHERE concerts.stadium_id = stadiums.stadium_id\n    AND EXTRACT(YEAR FROM concerts.concert_date) = 2014\n);",
+  "score": 0,
+  "cost": 0.0006450000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 1581
+  }
+}

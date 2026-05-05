@@ -4,10 +4,10 @@
   "case": 2,
   "response": "SELECT s.Name, s.Capacity\nFROM stadium AS s\nJOIN concert AS c ON s.Stadium_ID = c.Stadium_ID\nWHERE c.Year > 2013\nGROUP BY s.Stadium_ID, s.Name, s.Capacity\nORDER BY COUNT(*) DESC\nFETCH FIRST 1 ROW ONLY;",
   "score": 4,
-  "cost": 0.012775,
+  "cost": 0.017895,
   "expected": "",
   "tokens": {
     "input": 79,
-    "output": 619
+    "output": 875
   }
 }

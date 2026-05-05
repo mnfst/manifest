@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "function_calling",
+  "case": 7,
+  "response": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"6:30 AM\", \"label\": \"Morning Workout\"}}",
+  "score": 5,
+  "cost": 4.5980000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 27
+  }
+}

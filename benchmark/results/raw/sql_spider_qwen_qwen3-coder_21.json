@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "SELECT flight_number\nFROM flights\nWHERE airline = 'United Airlines';",
+  "score": 5,
+  "cost": 2.772e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 14
+  }
+}

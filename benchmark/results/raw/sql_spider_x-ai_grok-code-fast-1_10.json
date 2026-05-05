@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "SELECT SUM(SurfaceArea) FROM country WHERE Region = 'Caribbean';",
+  "score": 0,
+  "cost": 0.00019340000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 271,
+    "output": 174
+  }
+}

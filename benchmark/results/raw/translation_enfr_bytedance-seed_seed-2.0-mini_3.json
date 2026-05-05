@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 3,
-  "response": "Il n'existe aucune autre explication \u00e0 la subvention parcimonieuse de 10 ou 12 millions d'ECU, qui, comme nous le savons tous, ne suffit pas m\u00eame \u00e0 construire un seul navire de p\u00eache \u00e9quip\u00e9 de moyens modernes d'exercer une fonction de surveillance dans le secteur de la p\u00eache.",
+  "response": "Il n'existe pas d'autre explication \u00e0 la subvention parcimonieuse de 10 ou 12 millions d'ECU, qui, comme nous le savons tous, ne suffit m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 de moyens modernes d'assurer la surveillance dans le secteur de la p\u00eache.",
   "score": 4,
-  "cost": 0.0007621,
+  "cost": 0.0012145,
   "expected": "",
   "tokens": {
     "input": 121,
-    "output": 1875
+    "output": 3006
   }
 }

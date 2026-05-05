@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "```sql\nSELECT SUM(population) AS total_population\nFROM cities\nWHERE district = 'Gelderland';\n```",
+  "score": 0,
+  "cost": 0.00017263999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 24
+  }
+}

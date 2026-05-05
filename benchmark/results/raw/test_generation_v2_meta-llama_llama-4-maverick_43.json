@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "test_generation_v2",
+  "case": 43,
+  "response": "### Unit Tests for `partial` Function\n\n```python\nimport pytest\n\ndef test_partial_happy_path():\n    \"\"\"Test that partial function works as expected with positional and keyword arguments.\"\"\"\n    def add(a, b, c, d):\n        return a + b + c + d\n\n    partial_add = partial(add, 1, 2, c=3)\n    result = partial_add(4)\n    assert result == 10\n\ndef test_partial_only_positional_args():\n    \"\"\"Test that partial function works with only positional arguments.\"\"\"\n    def add(a, b, c):\n        return a + b + c\n\n    partial_add = partial(add, 1, 2)\n    result = partial_add(3)\n    assert result == 6\n\ndef test_partial_only_keyword_args():\n    \"\"\"Test that partial function works with only keyword arguments.\"\"\"\n    def add(a, b, c):\n        return a + b + c\n\n    partial_add = partial(add, a=1, b=2)\n    result = partial_add(c=3)\n    assert result == 6\n\ndef test_partial_no_args():\n    \"\"\"Test that partial function works with no pre-applied arguments.\"\"\"\n    def add(a, b):\n        return a + b\n\n    partial_add = partial(add)\n    result = partial_add(1, 2)\n    assert result == 3\n\ndef test_partial_override_keyword_args():\n    \"\"\"Test that partial function allows overriding of pre-applied keyword arguments.\"\"\"\n    def add(a, b, c):\n        return a + b + c\n\n    partial_add = partial(add, a=1, b=2)\n    result = partial_add(b=3, c=4)\n    assert result == 8\n\ndef test_partial_too_few_args():\n    \"\"\"Test that partial function raises TypeError when too few arguments are provided.\"\"\"\n    def add(a, b, c):\n        return a + b + c\n\n    partial_add = partial(add, 1)\n    with pytest.raises(TypeError):\n        partial_add(2)\n\ndef test_partial_too_many_args():\n    \"\"\"Test that partial function raises TypeError when too many arguments are provided.\"\"\"\n    def add(a, b):\n        return a + b\n\n    partial_add = partial(add, 1, 2)\n    with pytest.raises(TypeError):\n        partial_add(3)\n\ndef test_partial_non_callable():\n    \"\"\"Test that partial function raises TypeError when a non-callable is passed.\"\"\"\n    with pytest.raises(TypeError):\n        partial(\"not a function\")\n```",
+  "score": 0,
+  "cost": 0.0003363,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 522
+  }
+}

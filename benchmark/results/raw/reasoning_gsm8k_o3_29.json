@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Step 1: Determine the number of red cars.  \nRed = 12.\n\nStep 2: Determine the number of green cars.  \nGreen = Red \u2212 2 = 12 \u2212 2 = 10.\n\nStep 3: Determine the number of blue cars.  \nBlue = 3 \u00d7 Green = 3 \u00d7 10 = 30.\n\nStep 4: Sum the known cars (red + green + blue).  \nTotal known = 12 + 10 + 30 = 52.\n\nStep 5: Subtract the known cars from the total to find the yellow cars.  \nYellow = Total cars \u2212 Total known = 75 \u2212 52 = 23.\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.002016,
+  "expected": "23",
+  "tokens": {
+    "input": 104,
+    "output": 226
+  }
+}

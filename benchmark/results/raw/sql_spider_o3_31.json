@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 31,
+  "response": "SELECT DISTINCT a.name\nFROM flights f\nJOIN airlines a ON a.id = f.airline_id\nWHERE f.departure_airport_code = 'AHD';",
+  "score": 0,
+  "cost": 0.003628,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 435
+  }
+}

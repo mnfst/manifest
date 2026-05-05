@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "SELECT T1.Model FROM car_names AS T1 JOIN cars_data AS T2 ON T1.MakeId  =  T2.Id WHERE T2.Weight < (SELECT avg(Weight) FROM cars_data)",
+  "score": 4,
+  "cost": 0.0025473500000000003,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 1939
+  }
+}

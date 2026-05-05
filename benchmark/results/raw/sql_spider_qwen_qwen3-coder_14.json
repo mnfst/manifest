@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT m.maker_name, m.maker_id, COUNT(mod.model_id) AS number_of_models\nFROM makers m\nLEFT JOIN models mod ON m.maker_id = mod.maker_id\nGROUP BY m.maker_name, m.maker_id;",
+  "score": 5,
+  "cost": 6.336e-05,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 52
+  }
+}

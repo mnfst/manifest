@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(mpg) \nFROM cars \nWHERE cylinders = 4;",
+  "score": 5,
+  "cost": 3.1020000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 16
+  }
+}

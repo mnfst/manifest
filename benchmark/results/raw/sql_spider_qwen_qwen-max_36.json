@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT s.name\nFROM students s\nJOIN (\n    SELECT student_id, COUNT(*) AS like_count\n    FROM likes\n    GROUP BY student_id\n    ORDER BY like_count DESC\n    LIMIT 1\n) l ON s.id = l.student_id;\n```",
+  "score": 0,
+  "cost": 0.000312,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 57
+  }
+}

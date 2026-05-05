@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "sql_spider",
   "case": 22,
-  "response": "SELECT section_name\nFROM Sections\nORDER BY section_name DESC;",
-  "score": 5,
-  "cost": 0.00889,
+  "response": "",
+  "score": 0,
+  "cost": 0.0,
   "expected": "",
   "tokens": {
-    "input": 74,
-    "output": 426
+    "input": 0,
+    "output": 0
   }
 }

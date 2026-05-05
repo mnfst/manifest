@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "SELECT id FROM templates WHERE description = 'Presentation';",
+  "score": 0,
+  "cost": 0.0002952,
+  "expected": "",
+  "tokens": {
+    "input": 272,
+    "output": 301
+  }
+}

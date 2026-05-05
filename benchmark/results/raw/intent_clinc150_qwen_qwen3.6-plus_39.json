@@ -4,10 +4,10 @@
   "case": 39,
   "response": "how_old_are_you",
   "score": 5,
-  "cost": 0.000556725,
+  "cost": 0.00036432500000000003,
   "expected": "how_old_are_you",
   "tokens": {
     "input": 509,
-    "output": 301
+    "output": 153
   }
 }

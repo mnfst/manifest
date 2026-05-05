@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Step-by-step solution  \n1. Calculate Mitchell\u2019s earnings:  \n   21 lemonades \u00d7 \\$4 per lemonade = \\$84.  \n\n2. Calculate the difference between Mitchell\u2019s and Liam\u2019s earnings:  \n   \\$84 \u2013 \\$63 = \\$21.  \n\nMitchell earned \\$21 more than Liam.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.001404,
+  "expected": "21",
+  "tokens": {
+    "input": 102,
+    "output": 150
+  }
+}

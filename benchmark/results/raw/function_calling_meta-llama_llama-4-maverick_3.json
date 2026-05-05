@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "function_calling",
+  "case": 3,
+  "response": "{\"name\": \"create_task\", \"arguments\": {\"title\": \"Review PR 42\", \"priority\": \"high\", \"assignee\": \"alice\", \"due_date\": \"next Friday\"}}",
+  "score": 4,
+  "cost": 5.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 41
+  }
+}

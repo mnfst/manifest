@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT name\nFROM students\nWHERE id = (\n    SELECT liked_id\n    FROM likes\n    GROUP BY liked_id\n    ORDER BY COUNT(*) DESC\n    LIMIT 1\n);",
+  "score": 0,
+  "cost": 0.00030720000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 268,
+    "output": 317
+  }
+}

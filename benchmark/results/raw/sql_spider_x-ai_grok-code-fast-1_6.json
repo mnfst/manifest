@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "SELECT DISTINCT airline FROM flights WHERE destination_airport = 'AHD';",
+  "score": 0,
+  "cost": 0.000224,
+  "expected": "",
+  "tokens": {
+    "input": 268,
+    "output": 213
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 12,
+  "response": "{\"name\":\"get_stock_price\",\"arguments\":{\"symbol\":\"AAPL\"}}",
+  "score": 5,
+  "cost": 0.001485,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 53
+  }
+}

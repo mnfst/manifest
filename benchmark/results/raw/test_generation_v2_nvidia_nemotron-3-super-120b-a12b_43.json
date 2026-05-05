@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 43,
+  "response": "Here is a **pytest** test suite that exercises the `partial` implementation from the happy\u2011path, through typical edge\u2011cases, to error conditions.  \nFeel free to copy\u2011paste it into a file named `test_partial.py` (or any name that starts with `test_`) and run it with `pytest`.\n\n```python\n# test_partial.py\nimport pytest\n\n# ----------------------------------------------------------------------\n# The function under test \u2013 copy\u2011paste the implementation you want to test.\n# ----------------------------------------------------------------------\ndef partial(fn, *partial_args, **partial_kwargs):\n    def wrapper(*args, **kwargs):\n        merged = {**partial_kwargs, **kwargs}\n        return fn(*partial_args, *args, **merged)\n    return wrapper\n\n\n# ----------------------------------------------------------------------\n# Helper functions used in the tests\n# ----------------------------------------------------------------------\ndef add(a, b, c=0, *, multiplier=1):\n    \"\"\"Simple function with positional, default and keyword-driven content is explicitly prohibited.",
+  "score": 0,
+  "cost": 4.176e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 370
+  }
+}

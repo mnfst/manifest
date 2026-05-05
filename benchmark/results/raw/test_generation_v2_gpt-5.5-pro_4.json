@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "test_generation_v2",
+  "case": 4,
+  "response": "Assuming the function is in `temperature.py`, create `test_temperature.py`:\n\n```python\nimport math\n\nimport pytest\n\nfrom temperature import celsius_to_fahrenheit  # replace with your actual module name\n\n\n@pytest.mark.parametrize(\n    (\"celsius\", \"expected_fahrenheit\"),\n    [\n        (0.0, 32.0),\n        (100.0, 212.0),\n        (-40.0, -40.0),\n        (37.0, 98.6),\n        (20, 68.0),          # int input also works\n        (1.5, 34.7),\n        (-273.15, -459.67),  # absolute zero\n    ],\n)\ndef test_celsius_to_fahrenheit_known_values(celsius, expected_fahrenheit):\n    assert celsius_to_fahrenheit(celsius) == pytest.approx(expected_fahrenheit)\n\n\n@pytest.mark.parametrize(\n    (\"celsius\", \"expected_fahrenheit\"),\n    [\n        (1_000_000.0, 1_800_032.0),\n        (-1_000_000.0, -1_799_968.0),\n    ],\n)\ndef test_celsius_to_fahrenheit_large_values(celsius, expected_fahrenheit):\n    assert celsius_to_fahrenheit(celsius) == pytest.approx(expected_fahrenheit)\n\n\n@pytest.mark.parametrize(\n    (\"celsius\", \"expected_sign\"),\n    [\n        (float(\"inf\"), 1),\n        (float(\"-inf\"), -1),\n    ],\n)\ndef test_celsius_to_fahrenheit_infinities(celsius, expected_sign):\n    result = celsius_to_fahrenheit(celsius)\n\n    assert math.isinf(result)\n    assert math.copysign(1, result) == expected_sign\n\n\ndef test_celsius_to_fahrenheit_nan_returns_nan():\n    result = celsius_to_fahrenheit(float(\"nan\"))\n\n    assert math.isnan(result)\n\n\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        None,\n        \"100\",\n        [],\n        {},\n        object(),\n    ],\n)\ndef test_celsius_to_fahrenheit_non_numeric_inputs_raise_type_error(bad_input):\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(bad_input)\n```\n\nRun with:\n\n```bash\npytest\n```",
+  "score": 5,
+  "cost": 0.07294,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 3632
+  }
+}

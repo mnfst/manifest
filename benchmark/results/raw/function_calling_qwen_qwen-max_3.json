@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 3,
+  "response": "{\"name\": \"create_task\", \"arguments\": {\"title\": \"Review PR 42\", \"priority\": \"high\", \"assignee\": \"alice\", \"due_date\": \"next Friday\"}}",
+  "score": 4,
+  "cost": 0.00029016000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 41
+  }
+}

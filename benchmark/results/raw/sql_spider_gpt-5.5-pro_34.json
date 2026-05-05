@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "",
+  "score": 0,
+  "cost": 0.0,
+  "expected": "",
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}

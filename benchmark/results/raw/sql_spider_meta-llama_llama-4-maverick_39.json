@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "```sql\nSELECT c.name, o.name \nFROM conductors c \nJOIN orchestra_conductors oc ON c.id = oc.conductor_id \nJOIN orchestras o ON oc.orchestra_id = o.id;\n```",
+  "score": 0,
+  "cost": 3.9149999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 45
+  }
+}

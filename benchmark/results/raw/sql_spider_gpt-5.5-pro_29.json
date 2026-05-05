@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "sql_spider",
   "case": 29,
-  "response": "SELECT COUNT(DISTINCT Language) FROM countrylanguage;",
-  "score": 5,
-  "cost": 0.006655,
+  "response": "",
+  "score": 0,
+  "cost": 0.0,
   "expected": "",
   "tokens": {
-    "input": 71,
-    "output": 315
+    "input": 0,
+    "output": 0
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "```sql\nSELECT type_code \nFROM template_types \nWHERE description = 'Book';\n```",
+  "score": 0,
+  "cost": 2.355e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 19
+  }
+}

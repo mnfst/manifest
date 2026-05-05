@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "SELECT nationality\nFROM poker_player\nGROUP BY nationality\nHAVING COUNT(*) >= 2;",
+  "score": 0,
+  "cost": 0.00023520000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 268,
+    "output": 227
+  }
+}

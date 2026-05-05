@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "### Unit Tests for `clamp` Function\n\n```python\nimport pytest\n\ndef test_clamp_happy_path():\n    \"\"\"Test clamp function with a value within the range.\"\"\"\n    assert clamp(5.0, 0.0, 10.0) == 5.0\n\ndef test_clamp_min_edge():\n    \"\"\"Test clamp function with a value equal to the minimum.\"\"\"\n    assert clamp(0.0, 0.0, 10.0) == 0.0\n\ndef test_clamp_max_edge():\n    \"\"\"Test clamp function with a value equal to the maximum.\"\"\"\n    assert clamp(10.0, 0.0, 10.0) == 10.0\n\ndef test_clamp_below_min():\n    \"\"\"Test clamp function with a value below the minimum.\"\"\"\n    assert clamp(-1.0, 0.0, 10.0) == 0.0\n\ndef test_clamp_above_max():\n    \"\"\"Test clamp function with a value above the maximum.\"\"\"\n    assert clamp(11.0, 0.0, 10.0) == 10.0\n\ndef test_clamp_min_greater_than_max():\n    \"\"\"Test clamp function with min_val greater than max_val.\"\"\"\n    assert clamp(5.0, 10.0, 0.0) == 10.0\n\ndef test_clamp_min_equal_to_max():\n    \"\"\"Test clamp function with min_val equal to max_val.\"\"\"\n    assert clamp(5.0, 5.0, 5.0) == 5.0\n\ndef test_clamp_value_is_nan():\n    \"\"\"Test clamp function with a NaN value.\"\"\"\n    assert pytest.approx(clamp(float('nan'), 0.0, 10.0)) == float('nan')\n\ndef test_clamp_min_is_nan():\n    \"\"\"Test clamp function with a NaN min_val.\"\"\"\n    assert pytest.approx(clamp(5.0, float('nan'), 10.0)) == float('nan')\n\ndef test_clamp_max_is_nan():\n    \"\"\"Test clamp function with a NaN max_val.\"\"\"\n    assert pytest.approx(clamp(5.0, 0.0, float('nan'))) == float('nan')\n\ndef test_clamp_input_type():\n    \"\"\"Test clamp function with non-float inputs.\"\"\"\n    with pytest.raises(TypeError):\n        clamp('a', 0.0, 10.0)\n    with pytest.raises(TypeError):\n        clamp(5.0, 'a', 10.0)\n    with pytest.raises(TypeError):\n        clamp(5.0, 0.0, 'a')\n```\n\nThese tests cover various scenarios, including:\n\n* Happy path: `test_clamp_happy_path`\n* Edge cases: `test_clamp_min_edge`, `test_clamp_max_edge`\n* Values outside the range: `test_clamp_below_min`, `test_clamp_above_max`\n* Invalid range: `test_clamp_min_greater_than_max`, `test_clamp_min_equal_to_max`\n* NaN values: `test_clamp_value_is_nan`, `test_clamp_min_is_nan`, `test_clamp_max_is_nan`\n* Non-float inputs: `test_clamp_input_type`",
+  "score": 0,
+  "cost": 0.0004152,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 675
+  }
+}

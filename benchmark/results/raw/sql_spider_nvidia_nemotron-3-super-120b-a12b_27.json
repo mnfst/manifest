@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT c.Name\nFROM Country c\nJOIN CountryLanguage cl_en ON c.Code = cl_en.CountryCode AND cl_en.Language = 'English'\nJOIN CountryLanguage cl_fr ON c.Code = cl_fr.CountryCode AND cl_fr.Language",
+  "score": 3,
+  "cost": 3.429e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 300
+  }
+}

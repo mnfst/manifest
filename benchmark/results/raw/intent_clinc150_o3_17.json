@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "intent_clinc150",
+  "case": 17,
+  "response": "todo_list",
+  "score": 0,
+  "cost": 0.001692,
+  "expected": "reminder",
+  "tokens": {
+    "input": 510,
+    "output": 84
+  }
+}

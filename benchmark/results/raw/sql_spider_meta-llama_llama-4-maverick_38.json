@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT C.name, COUNT(CL.language) as num_languages\nFROM Country C\nJOIN CountryLanguage CL ON C.code = CL.countrycode\nGROUP BY C.name\nHAVING COUNT(CL.language) > 2;\n```",
+  "score": 0,
+  "cost": 4.23e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 49
+  }
+}

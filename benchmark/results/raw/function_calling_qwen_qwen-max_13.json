@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 13,
+  "response": "{\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}}  \n{\"name\": \"set_thermostat\", \"arguments\": {\"temperature\": 72}}",
+  "score": 3,
+  "cost": 0.00028392,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 43
+  }
+}

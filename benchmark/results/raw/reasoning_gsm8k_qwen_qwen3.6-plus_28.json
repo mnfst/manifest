@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-plus",
   "task": "reasoning_gsm8k",
   "case": 28,
-  "response": "Let's solve the problem step by step:\n\n1. **Define the unknown:** Let $x$ be the number of people who got on the bus at the terminal.\n2. **Track the changes at each stop:**\n   - Initially, there are $x$ people on the bus.\n   - At the first stop, 5 people get on: $x + 5$\n   - At the second stop, 7 people get off and 8 people get on: $(x + 5) - 7 + 8$\n3. **Set up the equation:** We are told that after the second stop, there are 20 people on the bus heading to the third stop. So:\n   $$x + 5 - 7 + 8 = 20$$\n4. **Simplify and solve:**\n   Combine the constants on the left side: $5 - 7 + 8 = 6$\n   $$x + 6 = 20$$\n   Subtract 6 from both sides:\n   $$x = 14$$\n5. **Verify:** Start with 14. Add 5 \u2192 19. Subtract 7 \u2192 12. Add 8 \u2192 20. This matches the given total.\n\nTherefore, 14 people got on the bus at the terminal.\n\nANSWER: 14",
+  "response": "Let's solve the problem step by step:\n\n1. **Define the unknown:** Let $x$ be the number of people who got on the bus at the terminal.\n2. **Track the changes at each stop:**\n   - After the first stop, 5 people get on: $x + 5$\n   - At the second stop, 7 people get off and 8 people get on: $(x + 5) - 7 + 8$\n3. **Set up the equation:** We are told that after the second stop, there are 20 people on the bus heading to the third stop. So:\n   $x + 5 - 7 + 8 = 20$\n4. **Simplify and solve:**\n   - Combine the constants on the left side: $5 - 7 + 8 = 6$\n   - The equation becomes: $x + 6 = 20$\n   - Subtract 6 from both sides: $x = 14$\n5. **Verify:** Start with 14. Add 5 \u2192 19. Subtract 7 \u2192 12. Add 8 \u2192 20. This matches the given total.\n\nTherefore, 14 people got on the bus at the terminal.\n\nANSWER: 14",
   "score": 5,
-  "cost": 0.002020525,
+  "cost": 0.002079025,
   "expected": "14",
   "tokens": {
     "input": 117,
-    "output": 1525
+    "output": 1570
   }
 }

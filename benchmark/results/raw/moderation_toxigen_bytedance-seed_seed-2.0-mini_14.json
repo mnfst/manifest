@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "moderation_toxigen",
+  "case": 14,
+  "response": "toxic",
+  "score": 5,
+  "cost": 7.829999999999999e-05,
+  "expected": "toxic",
+  "tokens": {
+    "input": 95,
+    "output": 172
+  }
+}

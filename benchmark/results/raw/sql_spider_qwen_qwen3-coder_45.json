@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "SELECT p.first_name, t.description\nFROM professionals p\nJOIN treatments t ON p.professional_id = t.professional_id;",
+  "score": 5,
+  "cost": 4.0039999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 26
+  }
+}

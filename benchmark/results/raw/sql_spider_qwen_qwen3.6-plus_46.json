@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "SELECT GovernmentForm , SUM(Population) FROM country GROUP BY GovernmentForm HAVING AVG(LifeExpectancy) > 72",
+  "score": 3,
+  "cost": 0.0013897,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 1045
+  }
+}

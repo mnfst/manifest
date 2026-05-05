@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sentiment_sst2",
+  "case": 21,
+  "response": "positive",
+  "score": 5,
+  "cost": 0.000298,
+  "expected": "positive",
+  "tokens": {
+    "input": 73,
+    "output": 19
+  }
+}

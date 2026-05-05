@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT COUNT(T1.flight_id) \nFROM flights AS T1 \nJOIN airports AS T2 ON T1.source_airport_id = T2.airport_id \nJOIN airports AS T3 ON T1.dest_airport_id = T3.airport_id \nJOIN cities AS T4 ON T2.city_id = T4.city_id \nJOIN cities AS T5 ON T3.city_id = T5.city_id \nWHERE T4.city_name = 'Aberdeen' AND T5.city_name = 'Ashley';\n```",
+  "score": 0,
+  "cost": 8.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 110
+  }
+}

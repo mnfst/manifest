@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "sql_spider",
   "case": 24,
-  "response": "SELECT \"Year\"\nFROM concert\nGROUP BY \"Year\"\nORDER BY COUNT(*) DESC\nFETCH FIRST 1 ROW ONLY;",
-  "score": 4,
-  "cost": 0.008815,
+  "response": "",
+  "score": 0,
+  "cost": 0.0,
   "expected": "",
   "tokens": {
-    "input": 71,
-    "output": 423
+    "input": 0,
+    "output": 0
   }
 }

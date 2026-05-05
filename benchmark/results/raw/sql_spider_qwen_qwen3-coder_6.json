@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "SELECT DISTINCT airline_name\nFROM flights\nWHERE destination_airport = 'AHD';",
+  "score": 5,
+  "cost": 3.08e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 17
+  }
+}

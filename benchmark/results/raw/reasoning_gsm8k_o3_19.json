@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "First, determine the number of kittens each source contributes.\n\n1. Adopted kittens  \n   The sisters are bringing home 7 adopted kittens.\n\n2. Patchy\u2019s kittens  \n   Patchy has had three times as many kittens as the adopted ones:  \n   3 \u00d7 7 = 21 kittens.\n\n3. Trixie\u2019s kittens  \n   Trixie has had 12 kittens.\n\nNow add all the kittens together:  \n7 (adopted) + 21 (Patchy) + 12 (Trixie) = 40 kittens.\n\nANSWER: 40",
+  "score": 5,
+  "cost": 0.001842,
+  "expected": "40",
+  "tokens": {
+    "input": 121,
+    "output": 200
+  }
+}

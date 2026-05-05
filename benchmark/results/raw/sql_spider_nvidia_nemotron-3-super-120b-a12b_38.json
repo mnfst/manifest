@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "SELECT c.Name AS CountryName, COUNT(DISTINCT cl.Language) AS LanguageCount\nFROM Country c\nJOIN CountryLanguage cl ON c.Code = cl.CountryCode\nGROUP BY c.Name\nHAVING COUNT(DISTINCT cl.Language)",
+  "score": 3,
+  "cost": 3.528e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 300
+  }
+}

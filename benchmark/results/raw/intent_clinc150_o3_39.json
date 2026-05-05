@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "intent_clinc150",
+  "case": 39,
+  "response": "how_old_are_you",
+  "score": 5,
+  "cost": 0.001196,
+  "expected": "how_old_are_you",
+  "tokens": {
+    "input": 510,
+    "output": 22
+  }
+}

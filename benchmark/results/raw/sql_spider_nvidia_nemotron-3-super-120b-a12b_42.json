@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "SELECT id FROM templates WHERE description = 'Presentation';",
+  "score": 5,
+  "cost": 2.223e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 162
+  }
+}

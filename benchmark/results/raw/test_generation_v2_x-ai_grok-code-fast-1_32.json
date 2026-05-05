@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 32,
+  "response": "```python\nimport pytest\n\ndef find_missing(nums: list) -> int:\n    \"\"\"Find missing number in [0..n] sequence.\"\"\"\n    n = len(nums)\n    return n * (n + 1) // 2 - sum(nums)\n\nclass TestFindMissing:\n    @pytest.mark.parametrize(\"nums, expected\", [\n        ([0, 1, 3], 2),  # Missing 2 in [0,1,2,3]\n        ([1, 2, 3, 4], 0),  # Missing 0 in [0,1,2,3,4]\n        ([0, 1, 2, 4, 5], 3),  # Missing 3 in [0,1,2,3,4,5]\n        ([0, 2, 3, 4, 5], 1),  # Missing 1 in [0,1,2,3,4,5]\n        ([0, 1, 2, 3, 4], 5),  # Missing 5 in [0,1,2,3,4,5]\n        ([1], 0),  # Missing 0 in [0,1]\n        ([0], 1),  # Missing 1 in [0,1]\n        ([], 0),  # Edge case: n=0, sequence [0], missing 0\n        ([0, 1, 2], 3),  # n=3, missing 3 in [0,1,2,3]\n    ])\n    def test_happy_path(self, nums, expected):\n        assert find_missing(nums) == expected\n\n    def test_edge_cases(self):\n        # n=0: empty list, missing 0\n        assert find_missing([]) == 0\n        \n        # n=1: single element cases\n        assert find_missing([0]) == 1\n        assert find_missing([1]) == 0\n        \n        # n=2: various\n        assert find_missing([0, 1]) == 2\n        assert find_missing([0, 2]) == 1\n        assert find_missing([1, 2]) == 0\n\n    def test_error_cases(self):\n        # Duplicates: function doesn't handle, but test behavior\n        assert find_missing([0, 1, 1]) == 1  # n=3, sum=2, expected missing 2, but returns 1 (incorrect, but tests what it does)\n        \n        # Out of range: numbers > n or negative\n        assert find_missing([0, 1, 3]) == -1  # n=3, sum=4, returns -1 (not the missing 2)\n        assert find_missing([-1, 0, 1]) == 5  # n=3, sum=0, returns 3 (not meaningful)\n        \n        # Multiple missing: not handled\n        assert find_missing([0, 2]) == -1  # n=2, sum=2, returns -1 (missing 1, but not detected)\n        \n        # Type errors: non-list input\n        with pytest.raises(TypeError):\n            find_missing(\"not a list\")\n        \n        # Non-integer elements\n        with pytest.raises(TypeError):\n            find_missing([0, 1, \"a\"])\n        \n        # Non-integer elements causing sum error\n        with pytest.raises(TypeError):\n            find_missing([0, 1, None])\n```",
+  "score": 0,
+  "cost": 0.0013058000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 277,
+    "output": 1563
+  }
+}

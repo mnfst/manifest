@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT country\nFROM singer\nGROUP BY country\nHAVING MAX(CASE WHEN age > 40 THEN 1 ELSE 0 END) = 1\n   AND MAX(CASE WHEN age < 30 THEN 1 ELSE 0 END) = 1;\n```",
+  "score": 0,
+  "cost": 0.000483285,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 259
+  }
+}

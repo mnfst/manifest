@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "```python\nimport pytest\n\ndef flatten(lst: list) -> list:\n    result = []\n    for item in lst:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\n\nclass TestFlattenHappyPath:\n    \"\"\"Tests for expected typical use cases.\"\"\"\n\n    def test_flatten_empty_list(self):\n        \"\"\"Empty list should return empty list.\"\"\"\n        assert flatten([]) == []\n\n    def test_flatten_flat_list(self):\n        \"\"\"A list with no sub-lists should remain unchanged.\"\"\"\n        assert flatten([1, 2, 3]) == [1, 2, 3]\n\n    def test_flatten_single_nested_list(self):",
+  "score": 0,
+  "cost": 0.001773495,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 1000
+  }
+}

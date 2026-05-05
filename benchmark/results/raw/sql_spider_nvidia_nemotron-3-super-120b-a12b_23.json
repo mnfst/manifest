@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT production_code, channel\nFROM shows\nWHERE genre = 'cartoon'\nORDER BY air_date",
+  "score": 3,
+  "cost": 3.429e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 300
+  }
+}

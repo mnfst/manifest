@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "SELECT model FROM car_1 WHERE weight < (SELECT AVG(weight) FROM car_1);",
+  "score": 0,
+  "cost": 0.0005976,
+  "expected": "",
+  "tokens": {
+    "input": 272,
+    "output": 679
+  }
+}

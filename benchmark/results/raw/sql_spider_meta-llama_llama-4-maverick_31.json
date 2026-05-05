@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 31,
+  "response": "```sql\nSELECT DISTINCT airline \nFROM flights \nWHERE departure_airport = 'AHD';\n```",
+  "score": 0,
+  "cost": 2.385e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 20
+  }
+}

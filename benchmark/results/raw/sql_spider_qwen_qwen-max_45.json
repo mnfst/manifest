@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "```sql\nSELECT p.first_name, t.description\nFROM professionals p\nJOIN treatments t ON p.professional_id = t.professional_id;\n```",
+  "score": 0,
+  "cost": 0.00020592,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 30
+  }
+}

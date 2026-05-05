@@ -4,10 +4,10 @@
   "case": 10,
   "response": "SELECT SUM(SurfaceArea) AS total_surface_area\nFROM country\nWHERE Region = 'Caribbean';",
   "score": 5,
-  "cost": 0.003815,
+  "cost": 0.005055,
   "expected": "",
   "tokens": {
     "input": 75,
-    "output": 172
+    "output": 234
   }
 }

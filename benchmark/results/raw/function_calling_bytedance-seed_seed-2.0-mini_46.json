@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "function_calling",
+  "case": 46,
+  "response": "{\"name\": \"restart_service\", \"arguments\": {\"name\": \"Redis cache server\"}}",
+  "score": 4,
+  "cost": 0.0009159000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 2256
+  }
+}

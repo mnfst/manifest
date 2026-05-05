@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT airport_name\nFROM airports\nWHERE airport_id NOT IN (\n    SELECT DISTINCT departure_airport_id FROM flights\n    UNION\n    SELECT DISTINCT arrival_airport_id FROM flights\n)",
+  "score": 4,
+  "cost": 4.818e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 37
+  }
+}

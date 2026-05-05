@@ -4,10 +4,10 @@
   "case": 39,
   "response": "{\n  \"persons\": [\"Dario Amodei\"],\n  \"organizations\": [\"Anthropic\", \"Aspen Ideas Festival\"],\n  \"locations\": [\"Colorado\"]\n}",
   "score": 5,
-  "cost": 0.0005176499999999999,
+  "cost": 0.00022011,
   "expected": "",
   "tokens": {
     "input": 78,
-    "output": 278
+    "output": 107
   }
 }

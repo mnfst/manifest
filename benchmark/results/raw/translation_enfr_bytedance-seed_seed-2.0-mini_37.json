@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 37,
-  "response": "### Traduction juridique conformes aux normes de r\u00e9daction l\u00e9gislative canadienne :\nLe paragraphe 104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu\u2019il s\u2019applique nonobstant le paragraphe 248(25) de la loi. Le paragraphe 248(25) de la loi pr\u00e9cise, pour les autres fins de la loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est r\u00e9put\u00e9e avoir un int\u00e9r\u00eat b\u00e9n\u00e9ficiaire dans une fiducie.\n\n---\nNotes sur la terminologie adapt\u00e9e au contexte l\u00e9gislatif :\n1.  *Subsection* a \u00e9t\u00e9 traduit par **paragraphe**, la d\u00e9nomination standard pour les sous-versions num\u00e9rot\u00e9es d\u2019une section l\u00e9gislative en fran\u00e7ais juridique\n2.  *Notwithstanding* a \u00e9t\u00e9 rendu par **nonobstant**, terme juridique officiel pour exprimer l\u2019opposabilit\u00e9 \u00e0 une disposition l\u00e9gale\n3.  *Beneficially interested* a \u00e9t\u00e9 traduit par **avoir un int\u00e9r\u00eat b\u00e9n\u00e9ficiaire**, la formulation reconnue en droit des fiducies et en droit fiscal canadien\n4.  *Partnership* a \u00e9t\u00e9 rendu par **soci\u00e9t\u00e9 de personnes**, la d\u00e9signation correcte pour un fond de commerce en droit canadien",
+  "response": "Le paragraphe 104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu\u2019il s\u2019applique nonobstant le paragraphe 248(25) de la Loi. Le paragraphe 248(25) de la Loi d\u00e9crit, pour les autres fins de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est r\u00e9put\u00e9e avoir un int\u00e9r\u00eat b\u00e9n\u00e9ficiaire dans une fiducie.",
   "score": 5,
-  "cost": 0.0009116,
+  "cost": 0.0006328000000000001,
   "expected": "",
   "tokens": {
     "input": 140,
-    "output": 2244
+    "output": 1547
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "WITH all_flight_airports AS (\n    SELECT origin_airport AS airport_code FROM flights\n    UNION ALL\n    SELECT destination_airport AS airport_code FROM flights\n)\nSELECT airport_code\nFROM all_flight_airports\nGROUP BY airport_code\nORDER BY COUNT(*) ASC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 0,
+  "cost": 0.0011768,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 2913
+  }
+}

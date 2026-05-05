@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-plus",
   "task": "reasoning_gsm8k",
   "case": 0,
-  "response": "To find the total amount of money raised, we first need to determine how much each individual girl raised:\n\n1. **Alexandra's amount:** Given directly as $430.\n2. **Kim's amount:** Kim raises $320 more than Alexandra. \n   $430 + $320 = $750\n3. **Sarah's amount:** Given directly as $300.\n4. **Maryam's amount:** Maryam raises $400 more than Sarah.\n   $300 + $400 = $700\n\nNow, we add all four amounts together to find the total:\n$430 (Alexandra) + $750 (Kim) + $300 (Sarah) + $700 (Maryam) = $2180\n\nANSWER: 2180",
-  "score": 0,
-  "cost": 0.0024118250000000003,
+  "response": "First, let's determine how much each girl raised individually:\n- Alexandra raises $430 (given directly).\n- Kim raises $320 more than Alexandra: $430 + $320 = $750.\n- Sarah raises $300 (given directly).\n- Maryam raises $400 more than Sarah: $300 + $400 = $700.\n\nNow, we add the amounts raised by all four girls to find the total:\nTotal = Alexandra + Kim + Sarah + Maryam\nTotal = $430 + $750 + $300 + $700\nTotal = $1,180 + $1,000\nTotal = $2,180\n\nANSWER: 2180",
+  "score": 4,
+  "cost": 0.0024989250000000004,
   "expected": "2280",
   "tokens": {
     "input": 109,
-    "output": 1828
+    "output": 1895
   }
 }

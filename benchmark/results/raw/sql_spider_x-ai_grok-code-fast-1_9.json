@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT country\nFROM makers\nGROUP BY country\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 0,
+  "cost": 0.0002948,
+  "expected": "",
+  "tokens": {
+    "input": 270,
+    "output": 301
+  }
+}

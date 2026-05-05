@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "function_calling",
+  "case": 25,
+  "response": "{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Standup Meeting\", \"duration_minutes\": 30, \"time\": \"9am\", \"recurrence\": \"every weekday\", \"attendees\": [\"dev team\"]}}",
+  "score": 5,
+  "cost": 0.00042760000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 266,
+    "output": 468
+  }
+}

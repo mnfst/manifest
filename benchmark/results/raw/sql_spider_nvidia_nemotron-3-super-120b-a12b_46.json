@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "SELECT GovernmentForm, SUM(Population) AS TotalPopulation\nFROM Country\nGROUP BY GovernmentForm\nHAVING AVG(LifeExpectancy) > 72;",
+  "score": 3,
+  "cost": 1.098e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 34
+  }
+}

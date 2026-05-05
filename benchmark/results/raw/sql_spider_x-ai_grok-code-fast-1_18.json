@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "(SELECT DISTINCT country FROM singer WHERE age > 40)\nINTERSECT\n(SELECT DISTINCT country FROM singer WHERE age < 30);",
+  "score": 0,
+  "cost": 0.0002966,
+  "expected": "",
+  "tokens": {
+    "input": 275,
+    "output": 302
+  }
+}

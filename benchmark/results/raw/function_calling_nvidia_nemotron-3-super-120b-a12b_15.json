@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "function_calling",
+  "case": 15,
+  "response": "{\"name\": \"compress_video\", \"arguments\": {\"path\": \"downloads presentation.mp4\", \"target_reduction\": 0.5}}",
+  "score": 5,
+  "cost": 1.854e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 92
+  }
+}

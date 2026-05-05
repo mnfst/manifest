@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 30,
+  "response": "{\"name\":\"batch_process\",\"arguments\":{\"directory\":\"gallery\",\"operation\":\"generate_thumbnail\",\"params\":{\"width\":150,\"height\":150}}}",
+  "score": 3,
+  "cost": 0.00355,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 151
+  }
+}

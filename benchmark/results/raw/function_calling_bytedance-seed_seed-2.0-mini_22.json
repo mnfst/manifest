@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "function_calling",
+  "case": 22,
+  "response": "{\"name\": \"create_database\", \"arguments\": {\"name\": \"analytics_prod\"}}",
+  "score": 5,
+  "cost": 6.64e-05,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 132
+  }
+}

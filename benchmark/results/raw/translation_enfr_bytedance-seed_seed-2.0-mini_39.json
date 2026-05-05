@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 39,
-  "response": "### Casual, colloquial translation (most natural for everyday speech):\n**Tu sais d'o\u00f9 vient l'argent ?**\n\nIf you need the formal/polite version (for addressing strangers, superiors etc.):\n**Savez-vous d'o\u00f9 vient l'argent ?**",
+  "response": "Sais-tu d'o\u00f9 vient l'argent?\n\n(Note: If a more formal register is needed, this can also be phrased as *Savez-vous d'o\u00f9 vient l'argent?*, matching the neutral, general tone of the original English question.)",
   "score": 5,
-  "cost": 0.0002389,
+  "cost": 0.00025130000000000004,
   "expected": "",
   "tokens": {
     "input": 77,
-    "output": 578
+    "output": 609
   }
 }

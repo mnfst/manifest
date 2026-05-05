@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "moderation_toxigen",
+  "case": 2,
+  "response": "toxic",
+  "score": 5,
+  "cost": 0.0001808,
+  "expected": "toxic",
+  "tokens": {
+    "input": 200,
+    "output": 176
+  }
+}

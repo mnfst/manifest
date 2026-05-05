@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT a.*\nFROM airports a\nLEFT JOIN flights f ON a.airport_code = f.departure_airport_code OR a.airport_code = f.arrival_airport_code\nWHERE f.departure_airport_code IS NULL AND f.arrival_airport_code IS NULL;\n```",
+  "score": 0,
+  "cost": 0.00031927999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 59
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT name\nFROM stadium\nWHERE stadium_id NOT IN (\n    SELECT stadium_id\n    FROM concert\n    WHERE YEAR(concert_date) = 2014\n);\n```",
+  "score": 0,
+  "cost": 0.00025064,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 40
+  }
+}

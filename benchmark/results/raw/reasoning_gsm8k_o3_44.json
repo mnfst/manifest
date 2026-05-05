@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "1. Initially, there are 10 stalls with 20 cows in each stall.\n   Total cows = 10 \u00d7 20 = 200 cows.\n\n2. Mr. Sylas buys 40 additional cows.\n   New total cows = 200 + 40 = 240 cows.\n\n3. These 240 cows are now to be shared equally among 20 stalls.\n   Cows per stall = 240 \u00f7 20 = 12 cows.\n\n4. The question asks for the number of cows in 8 of the stalls:\n   Number of cows in 8 stalls = 8 \u00d7 12 = 96 cows.\n\nANSWER: 96",
+  "score": 5,
+  "cost": 0.00803,
+  "expected": "192",
+  "tokens": {
+    "input": 87,
+    "output": 982
+  }
+}

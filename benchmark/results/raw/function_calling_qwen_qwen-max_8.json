@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 8,
+  "response": "{\"name\": \"calculate_mortgage\", \"arguments\": {\"principal\": 300000, \"annual_rate\": 6.5, \"years\": 30}}",
+  "score": 5,
+  "cost": 0.00029432000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 39
+  }
+}

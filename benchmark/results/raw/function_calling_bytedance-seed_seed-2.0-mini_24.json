@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "function_calling",
+  "case": 24,
+  "response": "[{\"name\": \"rotate_api_key\", \"arguments\": {\"service\": \"production-service\", \"environment\": \"production\"}}, {\"name\": \"notify_team\", \"arguments\": {\"message\": \"Rotated API keys for the production service\"}}]",
+  "score": 2,
+  "cost": 0.0032887000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 8187
+  }
+}

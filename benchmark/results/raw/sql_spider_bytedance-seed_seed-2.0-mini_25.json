@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "SELECT * FROM tv_shows WHERE genre = 'Cartoon' AND director = 'Ben Jones';",
+  "score": 0,
+  "cost": 0.0009745,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 2408
+  }
+}

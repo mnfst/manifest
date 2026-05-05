@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "test_generation_v2",
+  "case": 31,
+  "response": "To write unit tests for the `camel_to_snake` function using `pytest`, we need to cover the happy path, edge cases, and error cases. Here's how you can do it:\n\n1. **Happy Path**: Test with a typical camelCase string.\n2. **Edge Cases**: Test with an empty string, a string that is already in snake_case, and a string with multiple uppercase letters in a row.\n3. **Error Cases**: Test with non-string inputs.\n\nHere's the `pytest`-style test code:\n\n```python\nimport pytest\nfrom your_module import camel_to_snake  # Replace with the actual module name\n\ndef test_camel_to_snake_happy_path():\n    assert camel_to_snake(\"camelCaseString\") == \"camel_case_string\"\n    assert camel_to_snake(\"CamelCaseString\") == \"camel_case_string\"\n    assert camel_to_snake(\"camelCase\") == \"camel_case\"\n\ndef test_camel_to_snake_edge_cases():\n    assert camel_to_snake(\"\") == \"\"  # Empty string\n    assert camel_to_snake(\"snake_case\") == \"snake_case\"  # Already in snake_case\n    assert camel_to_snake(\"HTTPRequest\") == \"http_request\"  # Multiple uppercase letters in a row\n    assert camel_to_snake(\"CamelCaseWithNumbers123\") == \"camel_case_with_numbers123\"  # With numbers\n\ndef test_camel_to_snake_error_cases():\n    with pytest.raises(TypeError):\n        camel_to_snake(123)  # Non-string input\n    with pytest.raises(TypeError):\n        camel_to_snake(None)  # None input\n    with pytest.raises(TypeError):\n        camel_to_snake([])  # List input\n    with pytest.raises(TypeError):\n        camel_to_snake({})  # Dictionary input\n\nif __name__ == \"__main__\":\n    pytest.main()\n```\n\n### Explanation:\n\n1. **Happy Path**:\n   - `test_camel_to_snake_happy_path`: Tests the function with typical camelCase strings. It checks that the function correctly converts the string to snake_case.\n\n2. **Edge Cases**:\n   - `test_camel_to_snake_edge_cases`: Tests the function with an empty string, a string that is already in snake_case, and a string with multiple uppercase letters in a row. It also tests a string with numbers.\n\n3. **Error Cases**:\n   - `test_camel_to_snake_error_cases`: Tests the function with non-string inputs (integer, `None`, list, and dictionary). It uses `pytest.raises` to ensure that a `TypeError` is raised when the input is not a string.\n\n### Running the Tests:\nTo run the tests, save the code in a file (e.g., `test_camel_to_snake.py`) and execute it using `pytest`:\n\n```sh\npytest test_camel_to_snake.py\n```\n\nThis will run all the tests and provide you with the results.",
+  "score": 0,
+  "cost": 0.0026436800000000002,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 617
+  }
+}

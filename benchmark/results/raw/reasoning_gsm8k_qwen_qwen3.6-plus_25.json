@@ -4,10 +4,10 @@
   "case": 25,
   "response": "Step 1: Calculate the total loan amount.\nThe loan is 40% of the house's value ($250,000).\n$250,000 \u00d7 0.40 = $100,000\n\nStep 2: Calculate the amount used to pay off debts.\nHe uses 60% of the loan amount to pay his debts.\n$100,000 \u00d7 0.60 = $60,000\n\nStep 3: Calculate the leftover money.\nSubtract the amount used for debts from the total loan amount.\n$100,000 - $60,000 = $40,000\n\nANSWER: 40000",
   "score": 5,
-  "cost": 0.002337075,
+  "cost": 0.0021706750000000004,
   "expected": "40,000",
   "tokens": {
     "input": 115,
-    "output": 1769
+    "output": 1641
   }
 }

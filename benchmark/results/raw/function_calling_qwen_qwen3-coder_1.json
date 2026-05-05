@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "function_calling",
+  "case": 1,
+  "response": "{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}",
+  "score": 4,
+  "cost": 3.4979999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 16
+  }
+}

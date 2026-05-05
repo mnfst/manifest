@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "intent_clinc150",
+  "case": 32,
+  "response": "shopping_list",
+  "score": 5,
+  "cost": 0.001698,
+  "expected": "shopping_list",
+  "tokens": {
+    "input": 513,
+    "output": 84
+  }
+}

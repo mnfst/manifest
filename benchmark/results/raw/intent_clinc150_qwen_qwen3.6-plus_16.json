@@ -4,10 +4,10 @@
   "case": 16,
   "response": "order_checks",
   "score": 5,
-  "cost": 0.000930475,
+  "cost": 0.000895375,
   "expected": "order_checks",
   "tokens": {
     "input": 515,
-    "output": 587
+    "output": 560
   }
 }

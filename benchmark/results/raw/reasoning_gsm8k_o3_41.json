@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Step 1: Let H be the number of copies Harald sold.\n\nStep 2: According to the problem, Marilyn sold 10 times as many copies as Harald.  \nSo Marilyn\u2019s sales = 10 H.\n\nStep 3: The total number of copies sold together is 88,000.  \nTherefore:  \nH + 10 H = 88 000\n\nStep 4: Combine like terms.  \n11 H = 88 000\n\nStep 5: Solve for H.  \nH = 88 000 \u00f7 11  \nH = 8 000\n\nSo, Harald sold 8,000 copies.\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.001904,
+  "expected": "8000",
+  "tokens": {
+    "input": 72,
+    "output": 220
+  }
+}

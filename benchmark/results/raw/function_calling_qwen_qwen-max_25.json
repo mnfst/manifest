@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 25,
+  "response": "{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"standup meeting\", \"duration_minutes\": 30, \"time\": \"9am\", \"recurrence\": \"weekday\", \"attendees\": [\"dev team\"]}}",
+  "score": 5,
+  "cost": 0.00033176,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 50
+  }
+}

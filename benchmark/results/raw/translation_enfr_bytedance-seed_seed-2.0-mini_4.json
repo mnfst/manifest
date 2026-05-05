@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 4,
-  "response": "### Correct natural formal translation matching the tone and past perfect tense:\n**Avait votre mari invit\u00e9 le lieutenant Gilbert chez vous ?**\n\nThis strictly follows the English question structure, uses the correct plus-que-parfait (past perfect) tense for French, adds the required definite article before the military rank, and uses the natural colloquial phrasing *chez vous* for \"to your house.\" For a slightly more conversational tone, you could also use *Est-ce que votre mari avait invit\u00e9 le lieutenant Gilbert chez vous ?*, but the inverted structure above mirrors the direct interrogative form of the original English question more closely.",
+  "response": "### Natural, conversational French translation (casual tone, matching the original's informal questioning intent):\nEst-ce que ton mari avait invit\u00e9 le lieutenant Gilbert chez toi?\n\n### Formal alternative (for addressing someone respectfully):\nEst-ce que votre mari avait invit\u00e9 le lieutenant Gilbert chez vous?\n\nThe casual version is the most widely used natural rendering of the original English question.",
   "score": 5,
-  "cost": 0.0007997999999999999,
+  "cost": 0.0006117999999999999,
   "expected": "",
   "tokens": {
     "input": 78,
-    "output": 1980
+    "output": 1510
   }
 }

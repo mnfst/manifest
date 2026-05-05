@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "function_calling",
+  "case": 15,
+  "response": "{\"name\": \"compress_video\", \"arguments\": {\"path\": \"downloads presentation.mp4\", \"target_reduction\": 0.5}}",
+  "score": 5,
+  "cost": 0.0002382,
+  "expected": "",
+  "tokens": {
+    "input": 251,
+    "output": 235
+  }
+}

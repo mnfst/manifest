@@ -4,10 +4,10 @@
   "case": 23,
   "response": "account_blocked",
   "score": 5,
-  "cost": 0.001027975,
+  "cost": 0.0010370750000000001,
   "expected": "account_blocked",
   "tokens": {
     "input": 511,
-    "output": 663
+    "output": 670
   }
 }

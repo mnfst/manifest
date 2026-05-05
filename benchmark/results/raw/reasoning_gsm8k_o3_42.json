@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "Step-by-step reasoning  \n1. In each row there are 8 children.  \n2. Each school supplies 7 such rows.  \n   Children per school = 7 rows \u00d7 8 children/row = 56 children.  \n3. There are 5 different schools participating.  \n   Total children = 5 schools \u00d7 56 children/school = 280 children.\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.002528,
+  "expected": "280",
+  "tokens": {
+    "input": 92,
+    "output": 293
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "function_calling",
+  "case": 39,
+  "response": "{\"name\": \"export_table\", \"arguments\": {\"table\": \"users\", \"format\": \"csv\"}}",
+  "score": 5,
+  "cost": 0.00046022999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 241
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT avg(mpg) FROM cars WHERE cylinders = 4",
+  "score": 0,
+  "cost": 0.001716975,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 1300
+  }
+}

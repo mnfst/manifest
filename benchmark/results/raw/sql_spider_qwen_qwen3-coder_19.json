@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "SELECT DISTINCT m.name\nFROM makers m\nJOIN cars c ON m.id = c.maker_id\nWHERE c.year = 1970;",
+  "score": 5,
+  "cost": 4.51e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 31
+  }
+}

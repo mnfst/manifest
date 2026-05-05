@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 49,
+  "response": "Here is a **pytest** test suite that exercises the `intersection` function from all angles \u2013 normal usage, boundary/edge conditions, and error conditions.\n\n```python\n# test_intersection.py\nimport pytest\n\n# Assuming the function lives in a module named `my_module`\n# from my_module import intersection\n# For the sake of a self\u2011contained example we define it here:\ndef intersection(lst1: list, lst2: list) -> list:\n    set2 = set(lst2)\n    seen = set()\n    result = []\n    for item in lst1:\n        if item in set2 and item not in seen:\n            result.append(item)\n            seen.add(item)\n    return result\n\n\n# -------------------------\n# Happy\u2011path tests\n# -------------------------\ndef test_intersection_basic():\n    assert intersection([1, 2, 3, 4], [3, 4, 5, 6]) == [3, 4]\n\n\ndef test_intersection_preserves_order_of_first_list():\n    # Order of result follows the order in lst1, not lst2\n    assert intersection([5, 1, 9, 1, 7], [1, 7, 5, 5]) == [5, 1, 7]\n\n\ndef test_intersection_with_duplicates_in_both_lists():\n    # Duplicates are removed from the output\n    assert intersection([1, 1, 2, 2, 3], [2, 2, 3, 3, 4]) == [2, 3]\n\n\ndef test_intersection_strings():\n    assert intersection([\"apple\", \"banana\", \"cherry\"],\n                        [\"banana\", \"durian\", \"apple\"]) == [\"apple\", \"banana\"]\n\n\ndef test_intersection_mixed_types():\n    # Works as long as elements are hashable\n    assert intersection([1, \"a\", (2, 3)], [\"a\", (2, 3), 1, None]) == [1, \"a\", (2, 3)]\n\n\n# -------------------------\n# Edge\u2011case tests\n# -------------------------\ndef test_intersection_no_common_elements():\n    assert intersection([1, 2, 3], [4, 5, 6]) == []\n\n\ndef test_intersection_first_list_empty():\n    assert intersection([], [1, 2, 3]) == []\n\n\ndef test_intersection_second_list_empty():\n    assert intersection([1, 2, 3], []) == []\n\n\ndef test_intersection_both_lists_empty():\n    assert intersection([], []) == []\n\n\ndef test_intersection_large_lists():\n    big1 = list(range(0, 10000, 2))      # 0,2,4,...,9998\n    big2 = list(range(1, 10000, 2))      # 1,3,5,...,9999\n    assert intersection(big1, big2) == []  # no overlap\n\n    big2_overlap = list(range(0, 10000, 4))  # 0,4,8,...,9996\n    expected = list(range(0, 10000, 4))\n    assert intersection(big1, big2_over",
+  "score": 0,
+  "cost": 9.99e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 1000
+  }
+}

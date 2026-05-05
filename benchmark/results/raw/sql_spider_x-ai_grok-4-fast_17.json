@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT name\nFROM stadiums\nWHERE stadium_id NOT IN (\n    SELECT stadium_id\n    FROM concerts\n    WHERE YEAR(concert_date) = 2014\n);\n```",
+  "score": 0,
+  "cost": 0.0004672,
+  "expected": "",
+  "tokens": {
+    "input": 228,
+    "output": 527
+  }
+}

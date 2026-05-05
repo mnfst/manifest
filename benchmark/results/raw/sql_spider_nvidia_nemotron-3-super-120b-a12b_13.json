@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 13,
+  "response": "SELECT MAX(release_date) AS last_transcript_release_date\nFROM transcript_releases;",
+  "score": 5,
+  "cost": 2.7629999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 228
+  }
+}

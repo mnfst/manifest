@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "We need to write a SQL query: Given the following database context, write a SQL query to find the user\nGiven the instruction: \"Given the following database context, write a SQL query: Given the following database context, write a SQL query: Given the following database context, write a SQL query: Given the following database context, write a SQL query: Given the following database context, write a SQL query to find the average miles per gallon of all the cards with 4 cylinders?",
+  "score": 1,
+  "cost": 1.674e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 100
+  }
+}

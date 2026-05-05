@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "```sql\nSELECT T1.name, T1.capacity \nFROM stadium AS T1 \nJOIN concert AS T2 ON T1.stadium_id = T2.stadium_id \nWHERE T2.concert_date > '2013-12-31' \nGROUP BY T1.stadium_id \nORDER BY COUNT(T2.concert_id) DESC \nLIMIT 1;\n```",
+  "score": 0,
+  "cost": 5.8349999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 77
+  }
+}

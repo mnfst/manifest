@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Elliott\u2019s goal: 10,000 steps.\n\n1. Steps to/from school  \n   = \u00bd of 10,000  \n   = 5,000 steps.\n\n2. Short walk with friend  \n   = 1,000 steps.  \n   Total so far: 5,000 + 1,000 = 6,000 steps.\n\n3. After jogging, steps still needed  \n   = 2,000 steps.  \n   Therefore, steps completed after jogging  \n   = 10,000 \u2212 2,000 = 8,000 steps.\n\n4. Steps taken during jog  \n   = 8,000 \u2212 6,000 = 2,000 steps.\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.002602,
+  "expected": "2000",
+  "tokens": {
+    "input": 125,
+    "output": 294
+  }
+}

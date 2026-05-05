@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 24,
+  "response": "Here is a comprehensive pytest test\u2011suite for the `retry` helper.  \nIt checks the happy\u2011path, various edge\u2011cases (including non\u2011positive `max_attempts`), and error conditions.\n\n```python\n# test_retry.py\nimport pytest\n\n# Assuming the function lives in a module named `retry_utils.py`\n# Adjust the import if your module has a different name.\nfrom retry_utils import retry\n\n\ndef test_retry_success_on_first_attempt():\n    \"\"\"Function succeeds immediately \u2013 retry should return the value.\"\"\"\n    def fn():\n        return 42\n\n    assert retry(fn) == 42\n\n\ndef test_retry_success_on_second_attempt():\n    \"\"\"Function fails once then succeeds.\"\"\"\n    call_count = 0\n\n    def fn():\n        nonlocal call_count\n        call_count += 1\n        if call_count < 2:\n            raise ValueError(\"temporary failure\")\n        return \"ok\"\n\n    assert retry(fn, max_attempts=3) == \"ok\"\n    assert call_count == 2\n\n\ndef test_retry_success_on_last_allowed_attempt():\n    \"\"\"Function fails max_attempts\u20111 times and succeeds on the final try.\"\"\"\n    attempts = 0\n    max_attempts = 5\n\n    def fn():\n        nonlocal attempts\n        attempts += 1\n        if attempts < max_attempts:\n            raise RuntimeError(\"still failing\")\n        return \"success\"\n\n    assert retry(fn, max_attempts=max_attempts) == \"success\"\n    assert attempts == max_attempts\n\n\ndef test_retry_all_attempts_fail_raises_last_exception():\n    \"\"\"If the function never succeeds, the last exception is propagated.\"\"\"\n    def fn():\n        raise ValueError(\"persistent error\")\n\n    with pytest.raises(ValueError, match=\"persistent error\"):\n        retry(fn, max_attempts=4)\n\n\ndef test_retry_zero_attempts_returns_none():\n    \"\"\"With max_attempts=0 the loop never runs \u2192 implicit None return.\"\"\"\n    def fn():\n        # This should never be called\n        raise AssertionError(\"fn was called despite max_attempts=0\")\n\n    assert retry(fn, max_attempts=0) is None\n\n\ndef test_retry_negative_attempts_behaves_like_zero():\n    \"\"\"Negative range also yields an empty loop.\"\"\"\n    def fn():\n        raise AssertionError(\"fn was called despite negative max_attempts\")\n\n    assert retry(fn, max_attempts=-2) is None\n\n\ndef test_retry_preserves_exception_type_and_message():",
+  "score": 0,
+  "cost": 9.837000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 1000
+  }
+}

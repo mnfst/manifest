@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "function_calling",
+  "case": 37,
+  "response": "{\"name\": \"invalidate_cache\", \"arguments\": {\"pattern\": \"*.css,*.js\"}}",
+  "score": 4,
+  "cost": 2.3549999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 20
+  }
+}

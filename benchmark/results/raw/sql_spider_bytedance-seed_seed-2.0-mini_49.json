@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "SELECT hometown FROM teachers GROUP BY hometown HAVING COUNT(*) >= 2;",
+  "score": 0,
+  "cost": 0.0001101,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 246
+  }
+}

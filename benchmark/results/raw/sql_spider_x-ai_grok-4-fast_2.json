@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "```sql\nSELECT s.name, s.capacity\nFROM stadiums s\nJOIN concerts c ON s.stadium_id = c.stadium_id\nWHERE EXTRACT(YEAR FROM c.concert_date) > 2013\nGROUP BY s.stadium_id, s.name, s.capacity\nHAVING COUNT(*) = (\n    SELECT MAX(cnt)\n    FROM (\n        SELECT COUNT(*) AS cnt\n        FROM stadiums s2\n        JOIN concerts c2 ON s2.stadium_id = c2.stadium_id\n        WHERE EXTRACT(YEAR FROM c2.concert_date) > 2013\n        GROUP BY s2.stadium_id\n    ) sub\n);\n```",
+  "score": 0,
+  "cost": 0.000695,
+  "expected": "",
+  "tokens": {
+    "input": 227,
+    "output": 812
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Step 1:  Find how many yards are in 1/4 of a skein.  \n1/4 \u00d7 364 yards = 364 \u00f7 4 = 91 yards.\n\nStep 2:  Find how many yards are in 1/2 of a skein.  \n1/2 \u00d7 364 yards = 364 \u00f7 2 = 182 yards.\n\nStep 3:  Add the two amounts to get the total yarn used.  \n91 yards + 182 yards = 273 yards.\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.001752,
+  "expected": "273",
+  "tokens": {
+    "input": 100,
+    "output": 194
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "function_calling",
+  "case": 2,
+  "response": "{\"name\": \"search_files\", \"arguments\": {\"directory\": \"src\", \"pattern\": \"*.py\", \"modified_within_days\": 7}}",
+  "score": 5,
+  "cost": 0.0002086,
+  "expected": "",
+  "tokens": {
+    "input": 295,
+    "output": 187
+  }
+}

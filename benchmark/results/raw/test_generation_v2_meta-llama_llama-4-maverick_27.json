@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "### Unit Tests for `interleave` Function\n\nThe following tests cover the happy path, edge cases, and error cases for the `interleave` function.\n\n```python\nimport pytest\n\ndef test_interleave_happy_path():\n    \"\"\"Test interleaving two lists of the same length.\"\"\"\n    a = [1, 2, 3]\n    b = ['a', 'b', 'c']\n    expected = [1, 'a', 2, 'b', 3, 'c']\n    assert interleave(a, b) == expected\n\ndef test_interleave_unequal_length():\n    \"\"\"Test interleaving two lists of different lengths.\"\"\"\n    a = [1, 2, 3]\n    b = ['a', 'b']\n    expected = [1, 'a', 2, 'b', 3]\n    assert interleave(a, b) == expected\n\n    a = [1, 2]\n    b = ['a', 'b', 'c']\n    expected = [1, 'a', 2, 'b', 'c']\n    assert interleave(a, b) == expected\n\ndef test_interleave_empty_lists():\n    \"\"\"Test interleaving with one or both empty lists.\"\"\"\n    a = []\n    b = ['a', 'b', 'c']\n    expected = ['a', 'b', 'c']\n    assert interleave(a, b) == expected\n\n    a = [1, 2, 3]\n    b = []\n    expected = [1, 2, 3]\n    assert interleave(a, b) == expected\n\n    a = []\n    b = []\n    expected = []\n    assert interleave(a, b) == expected\n\ndef test_interleave_type_error():\n    \"\"\"Test that a TypeError is raised when inputs are not lists.\"\"\"\n    a = 'not a list'\n    b = [1, 2, 3]\n    with pytest.raises(TypeError):\n        interleave(a, b)\n\n    a = [1, 2, 3]\n    b = 'not a list'\n    with pytest.raises(TypeError):\n        interleave(a, b)\n\ndef test_interleave_input_validation():\n    \"\"\"Test that the function does not modify the input lists.\"\"\"\n    a = [1, 2, 3]\n    b = ['a', 'b', 'c']\n    original_a = a.copy()\n    original_b = b.copy()\n    interleave(a, b)\n    assert a == original_a\n    assert b == original_b\n```\n\nTo run these tests, save them in a file (e.g., `test_interleave.py`) and execute `pytest test_interleave.py` in your terminal.\n\n### Notes\n\n* The `interleave` function does not explicitly check the type of its inputs. The `test_interleave_type_error` test checks that a `TypeError` is raised when the inputs are not lists. However, this is not a guarantee, as the error is raised by the `zip` function or the `extend` method, not by the `interleave` function itself. To make the function more robust, you could add explicit type checking at the beginning of the function.\n* The `test_interleave_input_validation` test checks that the function does not modify the input lists. This is a good practice to ensure that the function has no side effects.",
+  "score": 0,
+  "cost": 0.0004308,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 695
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "SELECT DISTINCT c.name AS conductor_name, o.name AS orchestra_name\nFROM conductor c\nJOIN concert co ON c.conductor_id = co.conductor_id\nJOIN orchestra o ON co.orchestra_id = o.orchestra_id;",
+  "score": 0,
+  "cost": 0.0011375250000000001,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 635
+  }
+}

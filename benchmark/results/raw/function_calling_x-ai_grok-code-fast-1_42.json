@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "function_calling",
+  "case": 42,
+  "response": "{\"name\": \"create_bucket\", \"arguments\": {\"name\": \"data-lake-prod\", \"region\": \"us-east-1\"}}",
+  "score": 5,
+  "cost": 0.0002076,
+  "expected": "",
+  "tokens": {
+    "input": 290,
+    "output": 187
+  }
+}

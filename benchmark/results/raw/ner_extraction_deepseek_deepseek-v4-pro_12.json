@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v4-pro",
   "task": "ner_extraction",
   "case": 12,
-  "response": "{\"persons\": [\"Jensen Huang\"], \"organizations\": [\"Nvidia\"], \"locations\": [\"San Jose\"]}",
+  "response": "{\"persons\": [\"Jensen Huang\"], \"organizations\": [\"Nvidia\", \"GTC\"], \"locations\": [\"San Jose\"]}",
   "score": 5,
-  "cost": 0.000550275,
+  "cost": 0.000409335,
   "expected": "",
   "tokens": {
     "input": 73,
-    "output": 298
+    "output": 217
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 4,
+  "response": "SELECT SUM(bonus) FROM evaluations;",
+  "score": 0,
+  "cost": 0.00022300000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 267,
+    "output": 212
+  }
+}

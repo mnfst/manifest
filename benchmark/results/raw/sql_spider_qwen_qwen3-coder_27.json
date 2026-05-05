@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT DISTINCT c1.Name\nFROM Country c1\nJOIN CountryLanguage l1 ON c1.Code = l1.CountryCode\nJOIN CountryLanguage l2 ON c1.Code = l2.CountryCode\nWHERE l1.Language = 'English' \n  AND l2.Language = 'French'\n  AND l1.IsOfficial = 'T'\n  AND l2.IsOfficial = 'T';",
+  "score": 5,
+  "cost": 8.646000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 80
+  }
+}

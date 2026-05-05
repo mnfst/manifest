@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT a.abbreviation, a.country\nFROM airlines a\nJOIN (\n  SELECT airline_id, COUNT(*) as num_flights\n  FROM flights\n  GROUP BY airline_id\n) f ON a.airline_id = f.airline_id\nORDER BY f.num_flights ASC\nLIMIT 1;\n```",
+  "score": 0,
+  "cost": 0.0006866,
+  "expected": "",
+  "tokens": {
+    "input": 225,
+    "output": 802
+  }
+}

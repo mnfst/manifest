@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "SELECT AVG(winner_rank) FROM matches;",
+  "score": 0,
+  "cost": 0.000261,
+  "expected": "",
+  "tokens": {
+    "input": 221,
+    "output": 271
+  }
+}

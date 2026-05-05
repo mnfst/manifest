@@ -4,10 +4,10 @@
   "case": 34,
   "response": "replacement_card_duration",
   "score": 5,
-  "cost": 0.001003275,
+  "cost": 0.000407875,
   "expected": "replacement_card_duration",
   "tokens": {
     "input": 519,
-    "output": 642
+    "output": 184
   }
 }

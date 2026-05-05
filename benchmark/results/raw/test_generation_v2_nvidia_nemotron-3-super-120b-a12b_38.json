@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 38,
+  "response": "```python\n# test_rate_limiter.py\nimport time\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# from mymodule import rate_limiter\n# For the sake of a self\u2011contained example we define it here.\ndef rate_limiter(max_calls: int, period_seconds: float):\n    import time\n    calls = []\n    def allow():\n        now = time.time()\n        calls[:] = [t for t in calls if now - t < period_seconds]\n        if len(calls) < max_calls:\n            calls.append(now)\n            return True\n        return False\n    return allow\n\n\ndef test_happy_path_allows_up_to_limit_then_blocks():\n    \"\"\"First `max_calls` calls should be allowed, the next one blocked.\"\"\"\n    limiter = rate_limiter(max_calls=3, period_seconds=10)\n    # First three calls \u2192 True\n    assert limiter() is True\n    assert limiter() is True\n    assert limiter() is True\n    # Fourth call \u2192 False (limit exceeded)\n    assert limiter() is False\n\n\ndef test_reset_after_period(monkeypatch):\n    \"\"\"After the period elapses, the limiter should allow calls again.\"\"\"\n    limiter = rate_limiter(max_calls=2, period_seconds=5)\n\n    # Freeze time at 0.0\n    monkeypatch.setattr(time, \"time\", lambda: 0.0)\n    assert limiter() is True   # call #1\n    assert limiter() is True   # call #2\n    assert limiter() is False  # call #3 (over limit)\n\n    # Move time forward just inside the window \u2192 still blocked\n    monkeypatch.setattr(time, \"time\", lambda: 4.9)\n    assert limiter() is False\n\n    # Move time forward to just outside the window \u2192 allowed again\n    monkeypatch.setattr(time, \"time\", lambda: 5.1)\n    assert limiter() is True   # call #4 (new window)\n    assert limiter() is True   # call #5\n    assert limiter() is False  # call #6 (over limit again)\n\n\ndef test_zero_max_calls_always_false():\n    \"\"\"When max_calls is 0, no call should ever be allowed.\"\"\"\n    limiter = rate_limiter(max_calls=0, period_seconds=1)\n    assert limiter() is False\n    assert",
+  "score": 0,
+  "cost": 0.00010106999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1000
+  }
+}

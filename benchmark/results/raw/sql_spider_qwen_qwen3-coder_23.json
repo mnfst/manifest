@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT production_code, channel\nFROM tvshow\nWHERE genre = 'cartoon'\nORDER BY air_date DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 3.982e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 27
+  }
+}

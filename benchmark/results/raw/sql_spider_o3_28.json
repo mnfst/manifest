@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "SELECT nationality\nFROM poker_player\nGROUP BY nationality\nHAVING COUNT(*) >= 2;",
+  "score": 0,
+  "cost": 0.00351,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 421
+  }
+}

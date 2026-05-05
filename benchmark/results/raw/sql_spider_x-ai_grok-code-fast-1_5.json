@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT airport_code FROM airports\nWHERE airport_code NOT IN (\n    SELECT departure_airport FROM flights\n    UNION\n    SELECT arrival_airport FROM flights\n);",
+  "score": 0,
+  "cost": 0.0003454,
+  "expected": "",
+  "tokens": {
+    "input": 267,
+    "output": 365
+  }
+}

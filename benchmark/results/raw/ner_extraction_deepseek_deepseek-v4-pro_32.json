@@ -4,10 +4,10 @@
   "case": 32,
   "response": "{\"persons\": [\"Serena Williams\"], \"organizations\": [\"ESPY\"], \"locations\": [\"Los Angeles\"]}",
   "score": 5,
-  "cost": 0.00027753,
+  "cost": 0.00038366999999999996,
   "expected": "",
   "tokens": {
     "input": 70,
-    "output": 142
+    "output": 203
   }
 }

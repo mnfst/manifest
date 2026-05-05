@@ -4,10 +4,10 @@
   "case": 1,
   "response": "find_phone",
   "score": 5,
-  "cost": 0.000509275,
+  "cost": 0.000645775,
   "expected": "find_phone",
   "tokens": {
     "input": 511,
-    "output": 264
+    "output": 369
   }
 }

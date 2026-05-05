@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "function_calling",
+  "case": 31,
+  "response": "{\"name\": \"archive_emails\", \"arguments\": {\"folder\": \"inbox\", \"older_than_days\": 183}}",
+  "score": 5,
+  "cost": 4.14e-05,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 27
+  }
+}

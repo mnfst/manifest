@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "```python\nimport pytest\n\nfrom your_module import interleave  # Replace 'your_module' with the actual module name\n\n\ndef test_interleave_both_empty():\n    assert interleave([], []) == []\n\n\ndef test_interleave_a_empty_b_not():\n    assert interleave([], [1, 2, 3]) == [1, 2, 3]\n\n\ndef test_interleave_b_empty_a_not():\n    assert interleave([1, 2, 3], []) == [1, 2, 3]\n\n\ndef test_interleave_equal_length():\n    assert interleave([1, 2], ['a', 'b']) == [1, 'a', 2, 'b']\n\n\ndef test_interleave_a_longer():\n    assert interleave([1, 2, 3], ['a', 'b']) == [1, 'a', 2, 'b', 3]\n\n\ndef test_interleave_b_longer():\n    assert interleave([1, 2], ['a', 'b', 'c']) == [1, 'a', 2, 'b', 'c']\n\n\ndef test_interleave_single_elements_equal():\n    assert interleave([1], ['a']) == [1, 'a']\n\n\ndef test_interleave_single_a_longer():\n    assert interleave([1, 2], ['a']) == [1, 'a', 2]\n\n\ndef test_interleave_single_b_longer():\n    assert interleave([1], ['a', 'b']) == [1, 'a', 'b']\n\n\n@pytest.mark.parametrize(\n    \"a, b, expected\",\n    [\n        ([], [], []),\n        ([], [1], [1]),\n        ([1], [], [1]),\n        ([1], [2], [1, 2]),\n        ([1, 2, 3], [4, 5], [1, 4, 2, 5, 3]),\n        ([4, 5], [1, 2, 3], [4, 1, 5, 2, 3]),\n        ([], [1, 2, 3, 4], [1, 2, 3, 4]),\n        (['a', 'b', 'c'], [], ['a', 'b', 'c']),\n    ],\n)\ndef test_interleave_parametrized(a, b, expected):\n    assert interleave(a, b) == expected\n\n\n# Note: The function does not explicitly validate input types, so it may not raise\n# errors for non-list iterables (e.g., strings). If type checking is desired, it\n# should be added to the function. Below are tests for unexpected behaviors with\n# non-lists, but these are not \"errors\" per the current implementation.\ndef test_interleave_non_list_inputs_do_not_crash():\n    # zip works with iterables like strings, but results may be unexpected\n    result = interleave(\"ab\", [1, 2])\n    assert result == ['a', 1, 'b', 2]  # Demonstrates it works but slices string to chars\n\n\ndef test_interleave_mixed_types():\n    # Happy path with mixed types (valid lists)\n    assert interleave([1, \"two\", 3.0], [True, None]) == [1, True, \"two\", None, 3.0]\n```",
+  "score": 0,
+  "cost": 0.00129,
+  "expected": "",
+  "tokens": {
+    "input": 238,
+    "output": 1553
+  }
+}

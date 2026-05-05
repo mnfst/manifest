@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "We need to write a SQL query to answer the question: \"What is the name and capacity of the stadium with the most concerts after 2013",
+  "score": 0,
+  "cost": 1.098e-05,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 33
+  }
+}

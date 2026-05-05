@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "function_calling",
+  "case": 14,
+  "response": "{\"name\": \"create_reminder\", \"arguments\": {\"message\": \"Call the dentist\", \"time\": \"3pm\", \"date\": \"Wednesday\"}}",
+  "score": 4,
+  "cost": 0.001094,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 114
+  }
+}

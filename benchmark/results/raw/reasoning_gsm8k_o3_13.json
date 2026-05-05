@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Step 1: Add the material cost and the construction cost  \nMaterial: $500  \nConstruction: $800  \n500 + 800 = 1300\n\nStep 2: Find 10 % of this subtotal for insurance  \n10 % of 1300 = 0.10 \u00d7 1300 = 130\n\nStep 3: Add the insurance cost to the subtotal  \n1300 + 130 = 1430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.002112,
+  "expected": "1430",
+  "tokens": {
+    "input": 96,
+    "output": 240
+  }
+}

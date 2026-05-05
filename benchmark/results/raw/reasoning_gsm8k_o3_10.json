@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "First, determine the removal rate for each speed:\n\nLow speed: 1 liter per day  \nMedium speed: 2 \u00d7 1 = 2 liters per day  \nHigh speed: 2 \u00d7 2 = 4 liters per day\n\nNext, compute the water removed at each speed for the time used:\n\nLow speed for 3 days: 3 days \u00d7 1 liter/day = 3 liters  \nMedium speed for 3 days: 3 days \u00d7 2 liters/day = 6 liters  \nHigh speed for 5 days: 5 days \u00d7 4 liters/day = 20 liters\n\nFinally, add the amounts removed:\n\n3 liters + 6 liters + 20 liters = 29 liters\n\nANSWER: 29",
+  "score": 5,
+  "cost": 0.002566,
+  "expected": "29",
+  "tokens": {
+    "input": 199,
+    "output": 271
+  }
+}

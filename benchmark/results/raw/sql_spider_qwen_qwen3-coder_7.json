@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "SELECT COUNT(*) \nFROM cars \nWHERE year = 1980;",
+  "score": 5,
+  "cost": 3.124e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 17
+  }
+}

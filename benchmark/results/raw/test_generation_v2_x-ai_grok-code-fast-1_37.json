@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 37,
+  "response": "```python\nimport pytest\n\ndef parse_csv_line(line: str) -> list:\n    result = []\n    current = ''\n    in_quotes = False\n    for c in line:\n        if c == '\"':\n            in_quotes = not in_quotes\n        elif c == ',' and not in_quotes:\n            result.append(current)\n            current = ''\n        else:\n            current += c\n    result.append(current)\n    return result\n\n@pytest.mark.parametrize(\"input_line,expected\", [\n    # Happy path: basic CSV parsing\n    (\"a,b,c\", [\"a\", \"b\", \"c\"]),\n    ('\"hello\",\"world\"', [\"hello\", \"world\"]),\n    (\"1,2,3\", [\"1\", \"2\", \"3\"]),\n    \n    # Edge cases: empty fields and lines\n    (\"\", [\"\"]),\n    (\",\", [\"\", \"\"]),\n    (\",,\", [\"\", \"\", \"\"]),\n    (\"a,,c\", [\"a\", \"\", \"c\"]),\n    (\"a,b,\", [\"a\", \"b\", \"\"]),\n    (\",a,b\", [\"\", \"a\", \"b\"]),\n    \n    # Edge cases: quoted fields\n    ('\"a,b\",c', [\"a,b\", \"c\"]),\n    ('a,\"b,c\"', [\"a\", \"b,c\"]),\n    ('\"a,b\",\"c,d\"', [\"a,b\", \"c,d\"]),\n    ('\"field\"', [\"field\"]),\n    ('\"\"', [\"\"]),\n    ('\"\",\"\"', [\"\", \"\"]),\n    \n    # Edge cases: single field\n    (\"field\", [\"field\"]),\n    \n    # Edge cases: unmatched quotes (function handles by toggling)\n    ('a,\"b,c', [\"a\", \"b,c\"]),\n    ('\"a\"\"b\",c', [\"a\", \"b\", \"c\"]),  # Simulates \"\" as toggle\n    \n    # Edge cases: only commas\n    (\",,,\", [\"\", \"\", \"\", \"\"]),\n])\ndef test_parse_csv_line(input_line, expected):\n    assert parse_csv_line(input_line) == expected\n```",
+  "score": 0,
+  "cost": 0.001076,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 1267
+  }
+}

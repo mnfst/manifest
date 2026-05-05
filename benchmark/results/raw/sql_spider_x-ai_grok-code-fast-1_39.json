@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "SELECT DISTINCT c.name AS conductor_name, o.name AS orchestra_name\nFROM conductor c\nJOIN performance p ON c.id = p.conductor_id\nJOIN orchestra o ON p.orchestra_id = o.id;",
+  "score": 0,
+  "cost": 0.0006268,
+  "expected": "",
+  "tokens": {
+    "input": 274,
+    "output": 715
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT DISTINCT m.makeid, m.make_name\nFROM makes m\nINNER JOIN cars c ON m.makeid = c.makeid\nWHERE c.horsepower > (SELECT MIN(horsepower) FROM cars)\nAND c.cylinders <= 3;\n```",
+  "score": 0,
+  "cost": 0.0007692,
+  "expected": "",
+  "tokens": {
+    "input": 238,
+    "output": 902
+  }
+}

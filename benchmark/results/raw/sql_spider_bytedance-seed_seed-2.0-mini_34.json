@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "SELECT * FROM employee_hire;",
+  "score": 0,
+  "cost": 0.0007203000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 1772
+  }
+}

@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "sql_spider",
   "case": 21,
-  "response": "SELECT f.FlightNo\nFROM flights AS f\nJOIN airlines AS a ON f.Airline = a.uid\nWHERE a.Airline = 'United Airlines';",
-  "score": 4,
-  "cost": 0.01437,
+  "response": "",
+  "score": 0,
+  "cost": 0.0,
   "expected": "",
   "tokens": {
-    "input": 70,
-    "output": 701
+    "input": 0,
+    "output": 0
   }
 }

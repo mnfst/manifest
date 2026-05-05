@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "Here is a **pytest** test suite that exercises the happy\u2011path, edge\u2011cases and error\u2011conditions of `snake_to_camel`.\n\n```python\n# test_snake_to_camel.py\nimport pytest\n\n# Assuming the function lives in a module named `string_utils.py`\n# Adjust the import if your module has a different name.\nfrom string_utils import snake_to_camel\n\n\n# -------------------------\n# Happy\u2011path / normal cases\n# -------------------------\ndef test_simple_snake_case():\n    assert snake_to_camel(\"hello_world\") == \"helloWorld\"\n\n\ndef test_single_word_no_underscore():\n    assert snake_to_camel(\"hello\") == \"hello\"\n\n\ndef test_already_camel_case_parts():\n    # The function only capitalises the *first* letter of each part after the first.\n    assert snake_to_camel(\"hello_World\") == \"helloWorld\"\n    assert snake_to_camel(\"hello_wORLD\") == \"helloWorld\"\n\n\ndef test_multiple_underscores():\n    assert snake_to_camel(\"a_b_c_d\") == \"aBCD\"\n\n\ndef test_leading_underscore():\n    # Leading empty part becomes an empty string before the first capitalised word.\n    assert snake_to_camel(\"_hello_world\") == \"HelloWorld\"\n\n\ndef test_trailing_underscore():\n    # Trailing empty part contributes nothing after the join.\n    assert snake_to_camel(\"hello_world_\") == \"helloWorld\"\n\n\ndef test_mixed_leading_and_trailing_underscores():\n    assert snake_to_camel(\"_hello_world_\") == \"HelloWorld\"\n\n\ndef test_all_underscores():\n    # Every part is empty \u2192 result is an empty string.\n    assert snake_to_camel(\"___\") == \"\"\n\n\ndef test_empty_string():\n    assert snake_to_camel(\"\") == \"\"\n\n\n# -------------------------\n# Edge\u2011case / Unicode\n# -------------------------\ndef test_unicode_characters():\n    assert snake_to_camel(\"caf\u00e9_m\u00fcnchen\") == \"caf\u00e9M\u00fcnchen\"\n\n\n# -------------------------\n# Error cases\n# -------------------------\n@pytest.mark.parametrize(\"bad_input\", [None, 123, 3.14, [], {}])\ndef test_non_string_input_raises(bad_input):",
+  "score": 0,
+  "cost": 9.765e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 1000
+  }
+}

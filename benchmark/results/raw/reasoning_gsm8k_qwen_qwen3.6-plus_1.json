@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-plus",
   "task": "reasoning_gsm8k",
   "case": 1,
-  "response": "Step 1: Find Kalinda's rate.\nKalinda adds 4 pieces per minute.\n\nStep 2: Find her mom's rate.\nHer mom places half as many pieces per minute as Kalinda: 4 \u00f7 2 = 2 pieces per minute.\n\nStep 3: Calculate their combined rate.\nWorking together, they place 4 + 2 = 6 pieces per minute.\n\nStep 4: Calculate the total time in minutes to finish the puzzle.\nTime (in minutes) = Total pieces \u00f7 Combined rate = 360 \u00f7 6 = 60 minutes.\n\nStep 5: Convert minutes to hours.\n60 minutes = 1 hour.\n\nANSWER: 1",
-  "score": 0,
-  "cost": 0.001529775,
+  "response": "Step 1: Find Kalinda's puzzle-solving rate.\nKalinda adds 4 pieces per minute.\n\nStep 2: Find her mom's puzzle-solving rate.\nHer mom places half as many pieces per minute as Kalinda: 4 \u00f7 2 = 2 pieces per minute.\n\nStep 3: Calculate their combined rate when working together.\nCombined rate = Kalinda's rate + Mom's rate = 4 + 2 = 6 pieces per minute.\n\nStep 4: Calculate the total time needed in minutes to finish the 360-piece puzzle.\nTime (in minutes) = Total pieces \u00f7 Combined rate = 360 \u00f7 6 = 60 minutes.\n\nStep 5: Convert the time from minutes to hours.\nSince there are 60 minutes in 1 hour, 60 minutes = 1 hour.\n\nANSWER: 1",
+  "score": 5,
+  "cost": 0.001415375,
   "expected": "1",
   "tokens": {
     "input": 103,
-    "output": 1151
+    "output": 1063
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 26,
+  "response": "{\"name\": \"upload_file\", \"arguments\": {\"path\": \"report.pdf\", \"destination\": \"shared documents\"}}",
+  "score": 4,
+  "cost": 0.00019031999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 24
+  }
+}

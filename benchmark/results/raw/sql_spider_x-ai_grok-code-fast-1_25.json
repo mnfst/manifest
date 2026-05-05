@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "SELECT title FROM shows WHERE genre = 'cartoon' AND director = 'Ben Jones';",
+  "score": 0,
+  "cost": 0.00027539999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 265,
+    "output": 278
+  }
+}

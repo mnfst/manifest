@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "SELECT DISTINCT m.name FROM makers m INNER JOIN cars c ON m.id = c.maker_id WHERE c.year = 1970;",
+  "score": 0,
+  "cost": 0.0009997,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 2468
+  }
+}

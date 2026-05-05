@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "test_generation_v2",
+  "case": 7,
+  "response": "Assuming the function is in `your_module.py`, create `test_remove_duplicates.py`:\n\n```python\nimport pytest\n\nfrom your_module import remove_duplicates\n\n\n@pytest.mark.parametrize(\n    \"lst, expected\",\n    [\n        ([1, 2, 1, 3, 2], [1, 2, 3]),\n        ([\"a\", \"b\", \"a\", \"c\", \"b\"], [\"a\", \"b\", \"c\"]),\n        ([1, \"1\", 1, \"1\", (2, 3), (2, 3)], [1, \"1\", (2, 3)]),\n        ([None, \"x\", None, \"y\", \"x\"], [None, \"x\", \"y\"]),\n    ],\n)\ndef test_remove_duplicates_preserves_order_and_removes_duplicates(lst, expected):\n    assert remove_duplicates(lst) == expected\n\n\n@pytest.mark.parametrize(\n    \"lst, expected\",\n    [\n        ([], []),\n        ([42], [42]),\n        ([7, 7, 7], [7]),\n        ([1, 2, 3], [1, 2, 3]),\n    ],\n)\ndef test_remove_duplicates_edge_cases(lst, expected):\n    assert remove_duplicates(lst) == expected\n\n\ndef test_remove_duplicates_does_not_mutate_input():\n    lst = [1, 2, 1, 3]\n    original = lst.copy()\n\n    result = remove_duplicates(lst)\n\n    assert result == [1, 2, 3]\n    assert lst == original\n    assert result is not lst\n\n\ndef test_remove_duplicates_handles_bool_int_equality():\n    # In Python, True == 1 and False == 0, so they are considered duplicates.\n    assert remove_duplicates([1, True, 0, False]) == [1, 0]\n\n\n@pytest.mark.parametrize(\n    \"lst\",\n    [\n        [[1, 2], [1, 2]],\n        [{\"a\": 1}, {\"a\": 1}],\n        [{1, 2}, {1, 2}],\n    ],\n)\ndef test_remove_duplicates_unhashable_items_raise_type_error(lst):\n    # The implementation uses a set, so list/dict/set items are not supported.\n    with pytest.raises(TypeError):\n        remove_duplicates(lst)\n\n\n@pytest.mark.parametrize(\"bad_input\", [None, 123])\ndef test_remove_duplicates_non_iterable_input_raises_type_error(bad_input):\n    with pytest.raises(TypeError):\n        remove_duplicates(bad_input)\n```\n\nRun with:\n\n```bash\npytest\n```",
+  "score": 5,
+  "cost": 0.062225,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 3091
+  }
+}

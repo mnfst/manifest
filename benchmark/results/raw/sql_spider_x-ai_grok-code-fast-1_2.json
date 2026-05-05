@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "SELECT s.Name, s.Capacity\nFROM stadium s\nWHERE s.Stadium_ID IN (\n    SELECT c.Stadium_ID\n    FROM concert c\n    WHERE YEAR(c.Concert_Date) > 2013\n    GROUP BY c.Stadium_ID\n    HAVING COUNT(*) = (\n        SELECT MAX(sub.cnt)\n        FROM (\n            SELECT COUNT(*) AS cnt\n            FROM concert\n            WHERE YEAR(Concert_Date) > 2013\n            GROUP BY Stadium_ID\n        ) AS sub\n    )\n)",
+  "score": 0,
+  "cost": 0.0008222,
+  "expected": "",
+  "tokens": {
+    "input": 275,
+    "output": 959
+  }
+}

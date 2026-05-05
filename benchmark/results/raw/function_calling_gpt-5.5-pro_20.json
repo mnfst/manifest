@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 20,
+  "response": "{\"name\":\"git_merge\",\"arguments\":{\"source\":\"feature-auth\",\"target\":\"main\"}}",
+  "score": 5,
+  "cost": 0.002,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 81
+  }
+}

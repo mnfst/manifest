@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 26,
+  "response": "```python\nimport pytest\n\ndef safe_divide(a: float, b: float, default: float = 0.0) -> float:\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return default\n\n# Happy path tests: Normal division scenarios\n@pytest.mark.parametrize(\"a, b, expected\", [\n    (10.0, 2.0, 5.0),      # Positive numbers\n    (-10.0, 2.0, -5.0),     # Negative a\n    (10.0, -2.0, -5.0),     # Negative b\n    (0.0, 5.0, 0.0),        # Zero a\n    (1.5, 3.0, 0.5),        # Fractional result\n    (100.0, 1.0, 100.0),    # Identity division\n])\ndef test_safe_divide_happy_path(a, b, expected):\n    assert safe_divide(a, b) == expected\n\n# Edge cases: Boundary or unusual but valid inputs\n@pytest.mark.parametrize(\"a, b, expected\", [\n    (1e10, 1e-10, 1e20),    # Very large and small numbers (result is large)\n    (1e-10, 1e10, 1e-20),   # Very small and large numbers (result is small)\n    (float('inf'), 2.0, float('inf')),  # Infinity a\n    (2.0, float('inf'), 0.0),           # Infinity b (division by inf)\n    (-float('inf'), -2.0, float('inf')), # Negative infinity\n    (float('nan'), 2.0, float('nan')),  # NaN a (NaN propagates)\n])\ndef test_safe_divide_edge_cases(a, b, expected):\n    result = safe_divide(a, b)\n    if expected != expected:  # Check for NaN\n        assert result != result  # NaN != NaN\n    else:\n        assert result == expected\n\n# Error cases: Division by zero and invalid inputs\n@pytest.mark.parametrize(\"a, b, default, expected\", [\n    (10.0, 0.0, 0.0, 0.0),      # Default zero default\n    (10.0, 0.0, 42.0, 42.0),    # Custom default\n    (-10.0, 0.0, -5.0, -5.0),   # Negative default\n])\ndef test_safe_divide_division_by_zero(a, b, default, expected):\n    assert safe_divide(a, b, default) == expected\n\ndef test_safe_divide_invalid_inputs():\n    # Test with non-numeric a (should raise TypeError, not handled by function)\n    with pytest.raises(TypeError):\n        safe_divide(\"string\", 2.0)\n    \n    # Test with non-numeric b (should raise TypeError)\n    with pytest.raises(TypeError):\n        safe_divide(10.0, \"string\")\n    \n    # Test with both non-numeric (should raise TypeError)\n    with pytest.raises(TypeError):\n        safe_divide(\"a\", \"b\")\n```",
+  "score": 0,
+  "cost": 0.0010932000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 274,
+    "output": 1298
+  }
+}

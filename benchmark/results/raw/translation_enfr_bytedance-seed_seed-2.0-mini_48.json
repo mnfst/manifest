@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 48,
-  "response": "- Choisissez l'une de ces voitures Renault \u00e0 louer \u00e0 Galati ou dans d'autres villes telles que : Arad, Timi\u0219oara, Sibiu, Oradea, Bra\u0219ov, Bucarest, Ia\u0219i ou Suceava, et vous atteindrez votre destination en un rien de temps. De plus, vous \u00e9conomiserez beaucoup d'argent que vous pourriez d\u00e9penser pour autre chose.",
+  "response": "- Choisissez l'une de ces Renault \u00e0 louer \u00e0 Gala\u021bi ou dans d'autres villes telles que : Arad, Timi\u0219oara, Sibiu, Oradea, Bra\u0219ov, Bucarest, Ia\u0219i ou Suceava, et vous arriverez \u00e0 destination en un rien de temps. En plus, vous ferez des \u00e9conomies importantes que vous pourrez d\u00e9penser pour d'autres choses.",
   "score": 5,
-  "cost": 0.0010732,
+  "cost": 0.000888,
   "expected": "",
   "tokens": {
     "input": 140,
-    "output": 2648
+    "output": 2185
   }
 }

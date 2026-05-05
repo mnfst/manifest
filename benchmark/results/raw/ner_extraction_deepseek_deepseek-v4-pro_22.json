@@ -4,10 +4,10 @@
   "case": 22,
   "response": "{\n  \"persons\": [\"Jamie Dimon\"],\n  \"organizations\": [\"JPMorgan Chase\", \"World Economic Forum\"],\n  \"locations\": [\"Davos\", \"Switzerland\"]\n}",
   "score": 5,
-  "cost": 0.00043282499999999996,
+  "cost": 0.000556365,
   "expected": "",
   "tokens": {
     "input": 75,
-    "output": 230
+    "output": 301
   }
 }

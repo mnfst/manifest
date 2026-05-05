@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "function_calling",
+  "case": 12,
+  "response": "{\"name\": \"get_stock_price\", \"arguments\": {\"symbol\": \"AAPL\"}}",
+  "score": 5,
+  "cost": 0.00016328,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 18
+  }
+}

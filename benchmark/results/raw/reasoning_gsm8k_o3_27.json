@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "ANSWER: 18",
+  "score": 4,
+  "cost": 0.002418,
+  "expected": "18",
+  "tokens": {
+    "input": 97,
+    "output": 278
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "```python\nimport pytest\n\ndef count_vowels(s: str) -> int:\n    return sum(1 for c in s.lower() if c in 'aeiou')\n\n# Happy path tests\ndef test_count_vowels_basic():\n    assert count_vowels(\"hello\") == 2  # e, o\n    assert count_vowels(\"aeiou\") == 5\n    assert count_vowels(\"HELLO\") == 2  # case insensitive\n    assert count_vowels(\"aBcDeFgHi\") == 3  # a, e, i\n\ndef test_count_vowels_with_spaces_and_punctuation():\n    assert count_vowels(\"hello world\") == 3  # e, o, o\n    assert count_vowels(\"hello!\") == 2  # e, o\n    assert count_vowels(\"h3llo\") == 2  # e, o (numbers ignored)\n\n# Edge case tests\ndef test_count_vowels_empty_string():\n    assert count_vowels(\"\") == 0\n\ndef test_count_vowels_no_vowels():\n    assert count_vowels(\"bcdfg\") == 0\n    assert count_vowels(\"rhythm\") == 0  # y is not considered a vowel\n\ndef test_count_vowels_only_vowels():\n    assert count_vowels(\"AEIOUaeiou\") == 10\n\ndef test_count_vowels_mixed_case():\n    assert count_vowels(\"AeIoU\") == 5\n\n# Error case tests\ndef test_count_vowels_non_string_int():\n    with pytest.raises(AttributeError):\n        count_vowels(123)\n\ndef test_count_vowels_non_string_none():\n    with pytest.raises(AttributeError):\n        count_vowels(None)\n\ndef test_count_vowels_non_string_list():\n    with pytest.raises(AttributeError):\n        count_vowels([1, 2, 3])\n\ndef test_count_vowels_non_string_float():\n    with pytest.raises(AttributeError):\n        count_vowels(1.5)\n```",
+  "score": 0,
+  "cost": 0.0007624000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 260,
+    "output": 888
+  }
+}

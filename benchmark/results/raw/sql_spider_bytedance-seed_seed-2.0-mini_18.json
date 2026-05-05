@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT country\nFROM singers\nGROUP BY country\nHAVING COUNT(CASE WHEN age > 40 THEN 1 END) >= 1\n   AND COUNT(CASE WHEN age < 30 THEN 1 END) >= 1;\n```",
+  "score": 0,
+  "cost": 0.00039490000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 956
+  }
+}

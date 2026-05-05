@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "function_calling",
+  "case": 42,
+  "response": "{\"name\": \"create_bucket\", \"arguments\": {\"name\": \"data-lake-prod\", \"region\": \"us-east-1\"}}",
+  "score": 5,
+  "cost": 8.31e-05,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 172
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "```sql\nSELECT COUNT(*) \nFROM cars \nWHERE YEAR(production_date) = 1980;\n```",
+  "score": 0,
+  "cost": 0.00017680000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 24
+  }
+}

@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "sql_spider",
   "case": 14,
-  "response": "SELECT cm.FullName, cm.Id, COUNT(ml.ModelId) AS number_of_models\nFROM car_makers AS cm\nLEFT JOIN model_list AS ml ON cm.Id = ml.Maker\nGROUP BY cm.FullName, cm.Id;",
+  "response": "SELECT cm.FullName, cm.Id, COUNT(ml.ModelId) AS number\nFROM car_makers AS cm\nLEFT JOIN model_list AS ml ON cm.Id = ml.Maker\nGROUP BY cm.Id, cm.FullName;",
   "score": 5,
-  "cost": 0.01792,
+  "cost": 0.01868,
   "expected": "",
   "tokens": {
     "input": 80,
-    "output": 876
+    "output": 914
   }
 }

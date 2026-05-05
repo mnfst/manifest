@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "function_calling",
+  "case": 4,
+  "response": "{\"name\": \"resize_image\", \"arguments\": {\"path\": \"uploads photo.jpg\", \"width\": 800, \"height\": 600}}",
+  "score": 4,
+  "cost": 0.0019210000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 297,
+    "output": 2327
+  }
+}

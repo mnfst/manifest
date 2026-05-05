@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "SELECT stadium_name\nFROM stadiums\nWHERE stadium_id NOT IN (\n    SELECT DISTINCT c.stadium_id\n    FROM concerts c\n    WHERE YEAR(c.concert_date) = 2014\n);",
+  "score": 5,
+  "cost": 5.5660000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 43
+  }
+}

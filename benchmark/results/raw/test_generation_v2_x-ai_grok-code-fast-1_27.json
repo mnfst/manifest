@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "```python\nimport pytest\n\ndef interleave(a: list, b: list) -> list:\n    result = []\n    for x, y in zip(a, b):\n        result.extend([x, y])\n    result.extend(a[len(b):] or b[len(a):])\n    return result\n\n# Happy path tests\n@pytest.mark.parametrize(\"a, b, expected\", [\n    ([], [], []),  # Both empty\n    ([1, 2], [3, 4], [1, 3, 2, 4]),  # Same length\n    ([1, 2, 3], [4, 5], [1, 4, 2, 5, 3]),  # a longer\n    ([1, 2], [3, 4, 5], [1, 3, 2, 4, 5]),  # b longer\n    ([1], [2], [1, 2]),  # Single elements\n    ([1, 2], ['a', 'b'], [1, 'a', 2, 'b']),  # Mixed types\n])\ndef test_interleave_happy_path(a, b, expected):\n    assert interleave(a, b) == expected\n\n# Edge cases\n@pytest.mark.parametrize(\"a, b, expected\", [\n    ([], [1, 2], [1, 2]),  # a empty\n    ([1, 2], [], [1, 2]),  # b empty\n    ([], [1], [1]),  # a empty, b single\n    ([1], [], [1]),  # b empty, a single\n])\ndef test_interleave_edge_cases(a, b, expected):\n    assert interleave(a, b) == expected\n\n# Error cases\n@pytest.mark.parametrize(\"a, b\", [\n    (1, [2]),  # a not iterable\n    ([1], 2),  # b not iterable\n    (\"string\", [1]),  # a is string (iterable but not list)\n    ([1], \"string\"),  # b is string\n])\ndef test_interleave_error_cases(a, b):\n    with pytest.raises(TypeError):\n        interleave(a, b)\n```",
+  "score": 0,
+  "cost": 0.0008556000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 286,
+    "output": 998
+  }
+}

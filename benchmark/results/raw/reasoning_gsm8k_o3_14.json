@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "Each duck requires  \n3.5 lb of insects per week.\n\nFor 10 ducks:  \n3.5 lb/duck/week \u00d7 10 ducks = 35 lb per week.\n\nThere are 7 days in a week, so per day:  \n35 lb \u00f7 7 days = 5 lb per day.\n\nANSWER: 5",
+  "score": 4,
+  "cost": 0.000888,
+  "expected": "5",
+  "tokens": {
+    "input": 76,
+    "output": 92
+  }
+}

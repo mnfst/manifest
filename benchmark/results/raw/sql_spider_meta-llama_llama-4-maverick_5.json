@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT airport_code \nFROM airports \nWHERE airport_code NOT IN (SELECT source_airport FROM flights) \n  AND airport_code NOT IN (SELECT dest_airport FROM flights);\n```",
+  "score": 0,
+  "cost": 3.495e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 40
+  }
+}

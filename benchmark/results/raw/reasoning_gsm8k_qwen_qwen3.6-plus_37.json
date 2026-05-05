@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-plus",
   "task": "reasoning_gsm8k",
   "case": 37,
-  "response": "Step 1: Calculate the number of votes for candidate A.\nCandidate A received 20% of the total 100 votes.\nVotes for A = 0.20 \u00d7 100 = 20 votes.\n\nStep 2: Calculate the number of votes for candidate B.\nCandidate B received 50% more votes than candidate A. This means B's votes equal A's votes plus 50% of A's votes.\n50% of A's votes = 0.50 \u00d7 20 = 10 votes.\nVotes for B = 20 + 10 = 30 votes.\n\nStep 3: Calculate the number of votes for candidate C.\nThe remaining votes went to candidate C. We subtract the votes for A and B from the total number of voters.\nVotes for C = Total votes - (Votes for A + Votes for B)\nVotes for C = 100 - (20 + 30) = 100 - 50 = 50 votes.\n\nANSWER: 50",
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate the number of votes for candidate A.**\nCandidate A received 20% of the total 100 votes.\n$0.20 \\times 100 = 20$ votes.\n\n**Step 2: Calculate the number of votes for candidate B.**\nCandidate B received 50% more votes than candidate A. First, find 50% of A's votes:\n$0.50 \\times 20 = 10$ votes.\nAdd this to A's total to get B's votes:\n$20 + 10 = 30$ votes.\n\n**Step 3: Calculate the number of votes for candidate C.**\nThe total number of votes is 100. Subtract the votes for A and B to find the remaining votes for C:\n$100 - (20 + 30) = 100 - 50 = 50$ votes.\n\nANSWER: 50",
   "score": 5,
-  "cost": 0.0021420750000000002,
+  "cost": 0.0018521750000000002,
   "expected": "50",
   "tokens": {
     "input": 107,
-    "output": 1621
+    "output": 1398
   }
 }

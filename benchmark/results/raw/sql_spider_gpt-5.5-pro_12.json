@@ -4,10 +4,10 @@
   "case": 12,
   "response": "SELECT p.professional_id, p.role_code, p.first_name\nFROM professionals AS p\nJOIN treatments AS t\n  ON p.professional_id = t.professional_id\nGROUP BY p.professional_id, p.role_code, p.first_name\nHAVING COUNT(*) >= 2;",
   "score": 5,
-  "cost": 0.014815,
+  "cost": 0.013375,
   "expected": "",
   "tokens": {
     "input": 83,
-    "output": 720
+    "output": 648
   }
 }

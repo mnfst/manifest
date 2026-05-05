@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "SELECT conductor_name\nFROM conductors c\nJOIN performances p ON c.conductor_id = p.conductor_id\nGROUP BY c.conductor_id, c.conductor_name\nORDER BY COUNT(DISTINCT p.orchestra_id) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 6.402000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 54
+  }
+}

@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v4-pro",
   "task": "ner_extraction",
   "case": 24,
-  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Indian Space Research Organisation\"],\n  \"locations\": [\"Sriharikota\"]\n}",
+  "response": "{\"persons\": [], \"organizations\": [\"Indian Space Research Organisation\"], \"locations\": [\"Sriharikota\"]}",
   "score": 4,
-  "cost": 0.000362355,
+  "cost": 0.000390195,
   "expected": "",
   "tokens": {
     "input": 73,
-    "output": 190
+    "output": 206
   }
 }

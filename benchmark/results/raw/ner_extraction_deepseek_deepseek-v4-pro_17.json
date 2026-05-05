@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v4-pro",
   "task": "ner_extraction",
   "case": 17,
-  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Toyota\"],\n  \"locations\": [\"Greensboro, North Carolina\"]\n}",
+  "response": "{\"persons\":[], \"organizations\":[\"Toyota\"], \"locations\":[\"Greensboro\", \"North Carolina\"]}",
   "score": 5,
-  "cost": 0.00030928499999999996,
+  "cost": 0.00021358499999999997,
   "expected": "",
   "tokens": {
     "input": 71,
-    "output": 160
+    "output": 105
   }
 }

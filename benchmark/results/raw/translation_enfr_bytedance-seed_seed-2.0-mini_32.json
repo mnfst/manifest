@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 32,
-  "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement de personnel aupr\u00e8s du RSUE.\n\n### Notes for context:\n1.  EEAS is standardly abbreviated **SEAE** (*Service europ\u00e9en d'action ext\u00e9rieure*) in French EU official texts\n2.  EUSR translates to **RSUE** (*Repr\u00e9sentant sp\u00e9cial de l'Union europ\u00e9enne*) in formal French EU terminology\n3.  *Secondment of staff* uses the standard civil service legal term *d\u00e9tachement de personnel* for this EU policy context",
-  "score": 5,
-  "cost": 0.0009005,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement du personnel au RSUE.",
+  "score": 4,
+  "cost": 0.0008441,
   "expected": "",
   "tokens": {
     "input": 93,
-    "output": 2228
+    "output": 2087
   }
 }

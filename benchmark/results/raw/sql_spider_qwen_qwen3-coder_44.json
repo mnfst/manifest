@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT airport_code\nFROM flights\nGROUP BY airport_code\nORDER BY COUNT(*) ASC\nLIMIT 1;",
+  "score": 5,
+  "cost": 3.608e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 23
+  }
+}

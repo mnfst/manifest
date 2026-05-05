@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-plus",
   "task": "reasoning_gsm8k",
   "case": 24,
-  "response": "Step 1: Calculate the total number of lollipops sold by the class.\n30 students \u00d7 10 lollipops per student = 300 lollipops\n\nStep 2: Calculate the profit made on a single lollipop.\nProfit per lollipop = Selling price - Cost price\nProfit per lollipop = $0.80 - $0.50 = $0.30\n\nStep 3: Calculate the total profit raised by the class.\nTotal profit = Total lollipops sold \u00d7 Profit per lollipop\nTotal profit = 300 \u00d7 $0.30 = $90\n\nANSWER: 90",
+  "response": "Step 1: Calculate the total number of lollipops sold by the class.\n30 students \u00d7 10 lollipops per student = 300 lollipops\n\nStep 2: Calculate the profit made on each individual lollipop.\nProfit per lollipop = Selling price - Cost price\nProfit per lollipop = $0.80 - $0.50 = $0.30\n\nStep 3: Calculate the total profit raised by the class.\nTotal profit = Total lollipops sold \u00d7 Profit per lollipop\nTotal profit = 300 \u00d7 $0.30 = $90\n\nANSWER: 90",
   "score": 5,
-  "cost": 0.00259155,
+  "cost": 0.00221065,
   "expected": "90",
   "tokens": {
     "input": 130,
-    "output": 1961
+    "output": 1668
   }
 }

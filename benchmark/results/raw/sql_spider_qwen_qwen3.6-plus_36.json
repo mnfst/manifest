@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT T1.name FROM Highschooler AS T1 JOIN Likes AS T2 ON T1.ID  =  T2.ID2 GROUP BY T1.ID ORDER BY count(T2.ID2) DESC LIMIT 1",
+  "score": 4,
+  "cost": 0.00372125,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 2843
+  }
+}

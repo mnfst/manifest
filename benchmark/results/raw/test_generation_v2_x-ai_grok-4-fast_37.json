@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "test_generation_v2",
+  "case": 37,
+  "response": "```python\nimport pytest\n\nfrom your_module import parse_csv_line  # Replace 'your_module' with the actual module name\n\n\ndef test_empty_line():\n    assert parse_csv_line('') == ['']\n\n\ndef test_single_field():\n    assert parse_csv_line('hello') == ['hello']\n\n\ndef test_two_fields_no_quotes():\n    assert parse_csv_line('hello,world') == ['hello', 'world']\n\n\ndef test_quoted_single_field():\n    assert parse_csv_line('\"hello\"') == ['hello']\n\n\ndef test_comma_inside_quoted_field():\n    assert parse_csv_line('a,\"b,c\",d') == ['a', 'b,c', 'd']\n\n\ndef test_multiple_quoted_fields():\n    assert parse_csv_line('\"a\",\"b,c\"') == ['a', 'b,c']\n\n\ndef test_empty_fields_consecutive_commas():\n    assert parse_csv_line(',,') == ['', '', '']\n\n\ndef test_leading_comma():\n    assert parse_csv_line(',hello') == ['', 'hello']\n\n\ndef test_trailing_comma():\n    assert parse_csv_line('hello,') == ['hello', '']\n\n\ndef test_single_comma():\n    assert parse_csv_line(',') == ['', '']\n\n\ndef test_unclosed_quote():\n    assert parse_csv_line('a,\"b') == ['a', 'b']\n\n\ndef test_quote_in_non_quoted_field():\n    assert parse_csv_line('hel\"lo') == ['hello']\n\n\ndef test_empty_quoted_field():\n    assert parse_csv_line('a,\"\"') == ['a', '']\n\n\ndef test_consecutive_quotes_in_quoted_field():\n    # Tests behavior on \"\" (intended as escaped quote, but parser skips quotes)\n    assert parse_csv_line('\"a\"\"b\"') == ['ab']  # Note: Does not include the escaped \", as quotes are skipped\n\n\ndef test_malformed_escaped_quotes():\n    # Tests a standard escaped quote case; parser incorrectly skips and toggles\n    assert parse_csv_line('\"hello \"\"world\"\"') == ['hello world']  # Note: Misses the inner \" and treats as unclosed\n```",
+  "score": 0,
+  "cost": 0.0035120000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 264,
+    "output": 4324
+  }
+}

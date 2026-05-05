@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "function_calling",
+  "case": 2,
+  "response": "{\"name\": \"search_files\", \"arguments\": {\"directory\": \"src\", \"pattern\": \"*.py\", \"modified_within_days\": 7}}",
+  "score": 5,
+  "cost": 1.1609999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 31
+  }
+}

@@ -2,7 +2,7 @@
   "model": "deepseek/deepseek-v4-pro",
   "task": "ner_extraction",
   "case": 45,
-  "response": "{\n  \"persons\": [\"Leonardo da Vinci\"],\n  \"organizations\": [\"Louvre Museum\", \"Royal Collection\"],\n  \"locations\": [\"Paris\"]\n}",
+  "response": "{\"persons\": [\"Leonardo da Vinci\"], \"organizations\": [\"The Louvre Museum\", \"Royal Collection\"], \"locations\": [\"Paris\"]}",
   "score": 5,
   "cost": 0.00043848000000000004,
   "expected": "",

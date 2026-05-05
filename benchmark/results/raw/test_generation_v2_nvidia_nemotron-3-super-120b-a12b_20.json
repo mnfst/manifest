@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 20,
+  "response": "Here is a comprehensive pytest test suite for `zip_dicts`.  \nIt covers the happy path, various edge\u2011cases, and error conditions.\n\n```python\n# test_zip_dicts.py\nimport pytest\n\n# Assuming the function is defined in a module named `my_module`.\n# If you keep the function in the same file for quick testing, replace the import\n# with a direct definition or adjust the import path accordingly.\nfrom my_module import zip_dicts\n\n\ndef test_zip_dicts_no_args():\n    \"\"\"Calling zip_dicts with no arguments should return an empty dict.\"\"\"\n    assert zip_dicts() == {}\n\n\ndef test_zip_dicts_single_dict():\n    \"\"\"A single dictionary should be zipped into a list of one element per key.\"\"\"\n    d = {\"a\": 1, \"b\": 2, \"c\": None}\n    expected = {\"a\": [1], \"b\": [2], \"c\": [None]}\n    assert zip_dicts(d) == expected\n    # Ensure the input dict is not mutated\n    assert d == {\"a\": 1, \"b\": 2, \"c\": None}\n\n\ndef test_zip_dicts_multiple_dicts_overlapping_keys():",
+  "score": 0,
+  "cost": 9.765e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 1000
+  }
+}

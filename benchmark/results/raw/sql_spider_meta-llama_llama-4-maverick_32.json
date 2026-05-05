@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "```sql\nSELECT \n  first_name, \n  AVG(ranking) AS average_ranking\nFROM \n  players\nGROUP BY \n  first_name;\n```",
+  "score": 0,
+  "cost": 3.2099999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 34
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "function_calling",
+  "case": 22,
+  "response": "{\"name\": \"create_database\", \"arguments\": {\"name\": \"analytics_prod\"}}",
+  "score": 5,
+  "cost": 2.4299999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 18
+  }
+}

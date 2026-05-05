@@ -4,10 +4,10 @@
   "case": 29,
   "response": "recipe",
   "score": 5,
-  "cost": 0.00040397500000000005,
+  "cost": 0.00042607500000000004,
   "expected": "recipe",
   "tokens": {
     "input": 507,
-    "output": 184
+    "output": 201
   }
 }

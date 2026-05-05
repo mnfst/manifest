@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "```sql\nSELECT type_code\nFROM template_types\nWHERE description = 'Book';\n```",
+  "score": 0,
+  "cost": 0.000156,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 18
+  }
+}

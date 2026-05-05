@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 16,
+  "response": "{\"name\":\"search_nearby\",\"arguments\":{\"category\":\"gas station\",\"open_now\":true}}",
+  "score": 4,
+  "cost": 0.00383,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 167
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "SELECT SUM(population) FROM city WHERE District = 'Gelderland';",
+  "score": 0,
+  "cost": 9.510000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 209
+  }
+}

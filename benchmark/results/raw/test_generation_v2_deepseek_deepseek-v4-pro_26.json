@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "test_generation_v2",
+  "case": 26,
+  "response": "```python\nimport pytest\nfrom your_module import safe_divide  # Replace with actual import\n\n\nclass TestSafeDivide:\n    \"\"\"Unit tests for safe_divide function.\"\"\"\n\n    # ------------------------------------------------------------------",
+  "score": 0,
+  "cost": 0.00177219,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 1000
+  }
+}

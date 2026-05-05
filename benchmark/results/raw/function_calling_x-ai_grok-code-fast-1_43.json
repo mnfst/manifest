@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "function_calling",
+  "case": 43,
+  "response": "{\"name\": \"git_revert\", \"arguments\": {\"commit\": \"HEAD\"}}",
+  "score": 4,
+  "cost": 0.0006898000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 293,
+    "output": 789
+  }
+}

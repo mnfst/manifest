@@ -4,10 +4,10 @@
   "case": 30,
   "response": "{\n  \"persons\": [\"Justin Trudeau\"],\n  \"organizations\": [\"General Assembly\", \"United Nations\"],\n  \"locations\": [\"New York\"]\n}",
   "score": 5,
-  "cost": 0.000375405,
+  "cost": 0.000411945,
   "expected": "",
   "tokens": {
     "input": 71,
-    "output": 198
+    "output": 219
   }
 }

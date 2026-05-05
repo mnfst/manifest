@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "SELECT Nationality FROM poker_player GROUP BY Nationality HAVING count(Nationality) >= 2",
+  "score": 0,
+  "cost": 0.000561275,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 412
+  }
+}

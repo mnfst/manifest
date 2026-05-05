@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT a.abbreviation, a.country\nFROM airlines a\nINNER JOIN (\n    SELECT airline_abbreviation, COUNT(*) AS total_flights\n    FROM flights\n    GROUP BY airline_abbreviation\n) AS flight_counts ON a.abbreviation = flight_counts.airline_abbreviation\nWHERE flight_counts.total_flights = (\n    SELECT MIN(total_flights)\n    FROM (SELECT COUNT(*) AS total_flights FROM flights GROUP BY airline_abbreviation) AS subquery\n);\n```",
+  "score": 0,
+  "cost": 0.00036570000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 884
+  }
+}

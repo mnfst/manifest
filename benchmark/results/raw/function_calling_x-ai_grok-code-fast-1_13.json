@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "function_calling",
+  "case": 13,
+  "response": "[{\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}}, {\"name\": \"set_thermostat\", \"arguments\": {\"temperature\": 72}}]",
+  "score": 1,
+  "cost": 0.0009826,
+  "expected": "",
+  "tokens": {
+    "input": 297,
+    "output": 1154
+  }
+}

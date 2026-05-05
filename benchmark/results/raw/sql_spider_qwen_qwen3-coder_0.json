@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "SELECT money_rank\nFROM poker_player\nWHERE height = (SELECT MAX(height) FROM poker_player)",
+  "score": 5,
+  "cost": 3.322e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 20
+  }
+}

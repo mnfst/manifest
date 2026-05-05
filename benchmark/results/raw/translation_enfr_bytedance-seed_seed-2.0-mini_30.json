@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 30,
-  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie destin\u00e9e aux apprentissages professionnels des jeunes au sein des PME, des ETI et des autorit\u00e9s locales\n\n### Notes de traduction :\n1.  **PME** correspond \u00e0 l'acronyme fran\u00e7ais standard de *Small and Medium-sized Enterprises*\n2.  **ETI** est l'abr\u00e9viation largement utilis\u00e9e en France pour d\u00e9signer les *midcaps* (entreprises de taille interm\u00e9diaire)\n3.  *\"Apprentissages professionnels des jeunes\"* retranscrit fid\u00e8lement le contexte de stages d'apprentissage structur\u00e9s pour la jeunesse\n4.  La formulation reste formelle et conforme au registre des annonces financi\u00e8res officielle.",
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie pour les stages d'apprentissage des jeunes au sein des PME, des ETI et des collectivit\u00e9s territoriales",
   "score": 5,
-  "cost": 0.000543,
+  "cost": 0.0003686,
   "expected": "",
   "tokens": {
     "input": 86,
-    "output": 1336
+    "output": 900
   }
 }

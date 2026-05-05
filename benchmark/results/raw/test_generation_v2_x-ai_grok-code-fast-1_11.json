@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 11,
+  "response": "```python\nimport pytest\n\ndef merge_sorted(a: list, b: list) -> list:\n    result = []\n    i = j = 0\n    while i < len(a) and j < len(b):\n        if a[i] <= b[j]:\n            result.append(a[i])\n            i += 1\n        else:\n            result.append(b[j])\n            j += 1\n    result.extend(a[i:])\n    result.extend(b[j:])\n    return result\n\n# Happy path tests\n@pytest.mark.parametrize(\"a, b, expected\", [\n    ([1, 3, 5], [2, 4, 6], [1, 2, 3, 4, 5, 6]),\n    ([1, 2], [3, 4], [1, 2, 3, 4]),\n    ([1, 1, 2], [1, 3], [1, 1, 1, 2, 3]),\n    ([0, 2, 4], [1, 3, 5], [0, 1, 2, 3, 4, 5]),\n])\ndef test_merge_sorted_happy_path(a, b, expected):\n    assert merge_sorted(a, b) == expected\n\n# Edge case tests\n@pytest.mark.parametrize(\"a, b, expected\", [\n    ([], [1, 2], [1, 2]),\n    ([1, 2], [], [1, 2]),\n    ([], [], []),\n    ([1], [2], [1, 2]),\n    ([2], [1], [1, 2]),\n    ([1], [], [1]),\n    ([], [1], [1]),\n    ([1, 2, 3], [4], [1, 2, 3, 4]),\n    ([4], [1, 2, 3], [1, 2, 3, 4]),\n])\ndef test_merge_sorted_edge_cases(a, b, expected):\n    assert merge_sorted(a, b) == expected\n\n# Error case tests\ndef test_merge_sorted_non_comparable_elements():\n    with pytest.raises(TypeError):\n        merge_sorted([1, 'a'], [2])\n    with pytest.raises(TypeError):\n        merge_sorted([1], ['a'])\n\ndef test_merge_sorted_invalid_input_types():\n    with pytest.raises(TypeError):\n        merge_sorted(\"not a list\", [1])\n    with pytest.raises(TypeError):\n        merge_sorted([1], \"not a list\")\n    with pytest.raises(TypeError):\n        merge_sorted(None, [1])\n    with pytest.raises(TypeError):\n        merge_sorted([1], None)\n\n# Test with unsorted inputs (function assumes sorted, but test behavior)\n@pytest.mark.parametrize(\"a, b, expected\", [\n    ([3, 1], [2, 4], [3, 2, 1, 4]),  # Not sorted output, as per algorithm\n    ([5, 2, 1], [3, 6], [5, 3, 2, 1, 6]),\n])\ndef test_merge_sorted_unsorted_inputs(a, b, expected):\n    assert merge_sorted(a, b) == expected\n```",
+  "score": 0,
+  "cost": 0.0012260000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 322,
+    "output": 1452
+  }
+}

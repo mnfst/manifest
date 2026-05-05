@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 26,
+  "response": "{\"name\":\"upload_file\",\"arguments\":{\"path\":\"report.pdf\",\"destination\":\"shared documents folder\"}}",
+  "score": 5,
+  "cost": 0.003155,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 136
+  }
+}

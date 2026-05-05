@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "test_generation_v2",
+  "case": 7,
+  "response": "```python\nimport pytest\n\nfrom your_module import remove_duplicates  # Replace 'your_module' with the actual module name\n\n\ndef test_empty_list():\n    \"\"\"Happy path: Empty list returns empty list.\"\"\"\n    assert remove_duplicates([]) == []\n\n\ndef test_no_duplicates():\n    \"\"\"Happy path: List with no duplicates returns the same list.\"\"\"\n    input_list = [1, 2, 3, 4]\n    assert remove_duplicates(input_list) == [1, 2, 3, 4]\n\n\ndef test_with_duplicates():\n    \"\"\"Happy path: List with duplicates removes them, preserving order.\"\"\"\n    input_list = [1, 2, 2, 3, 1, 4, 3]\n    assert remove_duplicates(input_list) == [1, 2, 3, 4]\n\n\ndef test_single_element():\n    \"\"\"Edge case: List with one element returns the same.\"\"\"\n    assert remove_duplicates([42]) == [42]\n\n\ndef test_all_duplicates():\n    \"\"\"Edge case: List with all identical elements returns single element.\"\"\"\n    input_list = [5, 5, 5, 5]\n    assert remove_duplicates(input_list) == [5]\n\n\ndef test_order_preservation():\n    \"\"\"Edge case: Ensures order of first occurrences is preserved.\"\"\"\n    input_list = ['a', 'b', 'a', 'c', 'b', 'd']\n    assert remove_duplicates(input_list) == ['a', 'b', 'c', 'd']\n\n\ndef test_non_list_input():\n    \"\"\"Error case: Non-iterable input raises TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        remove_duplicates(\"not a list\")  # str is iterable, but let's test non-iterable\n    with pytest.raises(TypeError):\n        remove_duplicates(123)  # int is not iterable\n\n\ndef test_none_input():\n    \"\"\"Error case: None input raises TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        remove_duplicates(None)\n```",
+  "score": 0,
+  "cost": 0.0006106,
+  "expected": "",
+  "tokens": {
+    "input": 229,
+    "output": 706
+  }
+}

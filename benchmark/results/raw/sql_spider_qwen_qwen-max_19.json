@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "```sql\nSELECT DISTINCT maker_name\nFROM cars\nWHERE production_year = 1970;\n```",
+  "score": 0,
+  "cost": 0.00017576,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 22
+  }
+}

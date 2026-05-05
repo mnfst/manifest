@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 25,
+  "response": "```python\nimport pytest\n\n# Assuming the function is defined in the same module or imported as needed\n# from your_module import deduplicate_sorted\n\ndef test_happy_path_no_duplicates():\n    \"\"\"Test with a sorted list containing no duplicates.\"\"\"\n    assert deduplicate_sorted([1, 2, 3, 4]) == [1, 2, 3, 4]\n\ndef test_happy_path_with_duplicates():\n    \"\"\"Test with a sorted list containing some duplicates.\"\"\"\n    assert deduplicate_sorted([1, 1, 2, 2, 3, 4, 4, 4]) == [1, 2, 3, 4]\n\ndef test_happy_path_all_duplicates():\n    \"\"\"Test with a sorted list where all elements are duplicates.\"\"\"\n    assert deduplicate_sorted([5, 5, 5, 5]) == [5]\n\ndef test_edge_case_empty_list():\n    \"\"\"Test with an empty list.\"\"\"\n    assert deduplicate_sorted([]) == []\n\ndef test_edge_case_single_element():\n    \"\"\"Test with a list containing a single element.\"\"\"\n    assert deduplicate_sorted([42]) == [42]\n\ndef test_edge_case_two_identical_elements():\n    \"\"\"Test with a list containing two identical elements.\"\"\"\n    assert deduplicate_sorted([7, 7]) == [7]\n\ndef test_edge_case_two_different_elements():\n    \"\"\"Test with a list containing two different elements.\"\"\"\n    assert deduplicate_sorted([1, 2]) == [1, 2]\n\ndef test_edge_case_unsorted_list():\n    \"\"\"Test with an unsorted list (function assumes sorted input, so may not fully deduplicate).\"\"\"\n    # Note: This is an edge case where input violates assumptions; function may not behave as expected.\n    assert deduplicate_sorted([1, 2, 1]) == [1, 2, 1]  # Does not remove the second 1 since it's not consecutive.\n\ndef test_error_case_non_list_input():\n    \"\"\"Test with non-list input, expecting TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        deduplicate_sorted(\"not a list\")\n\ndef test_error_case_none_input():\n    \"\"\"Test with None input, expecting TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        deduplicate_sorted(None)\n\ndef test_error_case_uncomparable_elements():\n    \"\"\"Test with list containing uncomparable elements, expecting TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        deduplicate_sorted([1, \"a\", 2])  # int and str are not comparable with != in some contexts, but in Python 3, it raises TypeError.\n```",
+  "score": 0,
+  "cost": 0.0009714000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 285,
+    "output": 1143
+  }
+}

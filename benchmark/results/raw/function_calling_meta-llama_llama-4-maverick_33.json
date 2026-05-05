@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "function_calling",
+  "case": 33,
+  "response": "{\"name\": \"git_create_branch\", \"arguments\": {\"name\": \"feature-payments\", \"from_branch\": \"main\"}}",
+  "score": 5,
+  "cost": 2.985e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 27
+  }
+}

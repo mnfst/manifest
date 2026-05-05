@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "```sql\nSELECT p.first_name, t.description \nFROM professionals p \nJOIN treatments t ON p.professional_id = t.professional_id;\n```",
+  "score": 0,
+  "cost": 3.06e-05,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 31
+  }
+}

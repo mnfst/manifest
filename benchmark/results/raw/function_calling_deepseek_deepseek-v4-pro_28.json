@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "function_calling",
+  "case": 28,
+  "response": "{\"name\": \"block_ip\", \"arguments\": {\"ip\": \"192.168.1.100\"}}",
+  "score": 4,
+  "cost": 0.00028710000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 143
+  }
+}

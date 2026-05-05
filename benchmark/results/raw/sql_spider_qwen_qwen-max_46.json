@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT \n    government_form, \n    SUM(population) AS total_population\nFROM \n    countries\nWHERE \n    government_form IN (\n        SELECT \n            government_form\n        FROM \n            countries\n        GROUP BY \n            government_form\n        HAVING \n            AVG(life_expectancy) > 72\n    )\nGROUP BY \n    government_form;\n```",
+  "score": 0,
+  "cost": 0.00041808000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 78
+  }
+}

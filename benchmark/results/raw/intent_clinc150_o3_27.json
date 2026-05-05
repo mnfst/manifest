@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "intent_clinc150",
+  "case": 27,
+  "response": "apr",
+  "score": 5,
+  "cost": 0.001188,
+  "expected": "apr",
+  "tokens": {
+    "input": 518,
+    "output": 19
+  }
+}

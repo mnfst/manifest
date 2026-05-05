@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "```python\nimport pytest\n\ndef is_palindrome(s: str) -> bool:\n    s = s.lower().replace(' ', '')\n    return s == s[::-1]\n\n# Happy path tests\n@pytest.mark.parametrize(\"input_str, expected\", [\n    (\"racecar\", True),\n    (\"A man a plan a canal Panama\", True),\n    (\"hello\", False),\n    (\"Madam\", True),\n    (\"12321\", True),\n    (\"12345\", False),\n])\ndef test_is_palindrome_happy_path(input_str, expected):\n    assert is_palindrome(input_str) == expected\n\n# Edge cases\n@pytest.mark.parametrize(\"input_str, expected\", [\n    (\"\", True),  # Empty string\n    (\"a\", True),  # Single character\n    (\" \", True),  # Only spaces\n    (\"a a\", True),  # Spaces between characters\n    (\"ab\", False),  # Two different characters\n    (\"aa\", True),  # Two same characters\n    (\"aA\", True),  # Case insensitive\n    (\"  \", True),  # Multiple spaces\n])\ndef test_is_palindrome_edge_cases(input_str, expected):\n    assert is_palindrome(input_str) == expected\n\n# Error cases\n@pytest.mark.parametrize(\"invalid_input\", [\n    123,  # Integer\n    [1, 2, 3],  # List\n    None,  # None\n    {\"key\": \"value\"},  # Dictionary\n])\ndef test_is_palindrome_error_cases(invalid_input):\n    with pytest.raises(AttributeError):\n        is_palindrome(invalid_input)\n```",
+  "score": 0,
+  "cost": 0.0006024,
+  "expected": "",
+  "tokens": {
+    "input": 260,
+    "output": 688
+  }
+}

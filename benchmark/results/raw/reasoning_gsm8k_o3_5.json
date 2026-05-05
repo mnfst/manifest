@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Step-by-step solution\n1. Initial number of fairies Katelyn saw: 50  \n2. Additional fairies that arrived: half of 50 = 25  \n   Total after arrival: 50 + 25 = 75  \n3. Fairies that flew away: 30  \n   Remaining fairies: 75 \u2212 30 = 45  \n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.002046,
+  "expected": "45",
+  "tokens": {
+    "input": 115,
+    "output": 227
+  }
+}

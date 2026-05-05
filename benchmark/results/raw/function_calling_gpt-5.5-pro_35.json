@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\"name\":\"get_order\",\"arguments\":{\"order_id\":\"12345\"}}",
+  "score": 2,
+  "cost": 0.001815,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 68
+  }
+}

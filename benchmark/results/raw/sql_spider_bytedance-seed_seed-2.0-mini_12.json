@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "SELECT p.id, p.role, p.first_name\nFROM professionals p\nINNER JOIN (\n    SELECT professional_id, COUNT(*) AS treatment_count\n    FROM treatments\n    GROUP BY professional_id\n    HAVING COUNT(*) >= 2\n) AS treatment_stats ON p.id = treatment_stats.professional_id;",
+  "score": 0,
+  "cost": 0.0001647,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 380
+  }
+}

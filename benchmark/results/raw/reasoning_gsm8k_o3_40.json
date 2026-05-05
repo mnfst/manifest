@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "Step-by-step solution\n\n1. Let x be the amount Elvis saves each day in the first half of April (days 1\u201315).\n2. In the second half (days 16\u201330) he plans to save twice as much, so he will save 2x dollars per day.\n3. April has 30 days, so there are 15 days in each half.\n\n   \u2022 Total saved in the first half = 15 days \u00d7 x = 15x  \n   \u2022 Total saved in the second half = 15 days \u00d7 2x = 30x  \n\n4. The combined total for the month must equal his target of $1125:\n\n   15x + 30x = 1125  \n   45x = 1125  \n   x = 1125 \u00f7 45 = 25\n\n5. The daily amount for the second half is 2x:\n\n   2x = 2 \u00d7 25 = 50\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.004052,
+  "expected": "50",
+  "tokens": {
+    "input": 98,
+    "output": 482
+  }
+}

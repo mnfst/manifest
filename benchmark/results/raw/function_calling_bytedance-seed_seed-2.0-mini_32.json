@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "function_calling",
+  "case": 32,
+  "response": "{\"name\": \"run_security_scan\", \"arguments\": {\"target\": \"10.0.0.1\"}}",
+  "score": 5,
+  "cost": 0.00012880000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 284
+  }
+}

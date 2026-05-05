@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "WITH ranked_players AS (\n    SELECT \n        *,\n        RANK() OVER (ORDER BY total_money DESC) AS money_rank\n    FROM poker_players\n)\nSELECT money_rank\nFROM ranked_players\nWHERE height = (SELECT MAX(height) FROM poker_players);",
+  "score": 0,
+  "cost": 0.0006079,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 1491
+  }
+}

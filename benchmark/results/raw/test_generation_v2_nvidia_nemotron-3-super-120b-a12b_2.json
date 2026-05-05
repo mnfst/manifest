@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "Here is a **pytest** test suite that exercises the happy\u2011path, edge\u2011cases, and error\u2011cases of the `factorial` function.\n\n```python\n# test_factorial.py\nimport pytest\n\n# Assuming the function lives in a module named `my_math`\n# Adjust the import if your file/module name differs.\nfrom my_math import factorial\n\n\n# ---------- Happy path ----------\ndef test_factorial_zero():\n    \"\"\"0! is defined as 1.\"\"\"\n    assert factorial(0) == 1\n\n\ndef test_factorial_one():\n    \"\"\"1! is 1.\"\"\"\n    assert factorial(1) == 1\n\n\ndef test_factorial_positive_small():\n    \"\"\"Check a few small positive integers.\"\"\"\n    assert factorial(5) == 120   # 5! = 120\n    assert factorial(6) == 720   # 6! = 720\n    assert factorial(7) == 5040  # 7! = 5040\n\n\ndef test_factorial_positive_medium():\n    \"\"\"Check a medium\u2011sized value to ensure the recursion works.\"\"\"\n    assert factorial(10) == 3_628_800  # 10!\n\n\n# ---------- Edge cases ----------\ndef test_factorial_large_within_recursion_limit():\n    \"\"\"\n    Verify the function works for a value that is still safely\n    below Python's default recursion limit (\u22481000).\n    \"\"\"\n    # 20! fits comfortably in a Python int and does not hit the recursion limit.\n    assert factorial(20) == 2_432_902_008_176_640_000\n\n\n# ---------- Error cases ----------\ndef test_factorial_negative():\n    \"\"\"Negative input must raise ValueError.\"\"\"\n    with pytest.raises(ValueError) as excinfo:\n        factorial(-1)\n    assert \"n must be non-negative\" in str(excinfo.value)\n\n\ndef test_factorial_negative_large():\n    \"\"\"Another negative value to ensure the check is robust.\"\"\"\n    with pytest.raises(ValueError):\n        factorial(-10)\n\n\ndef test_factorial_non_int_string():\n    \"\"\"Passing a string should raise TypeError during the < comparison.\"\"\"\n    with pytest.raises(TypeError):\n        factorial(\"",
+  "score": 0,
+  "cost": 9.828e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 1000
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "SELECT SUM(surface_area) FROM countries WHERE region = 'Caribbean';",
+  "score": 0,
+  "cost": 9.59e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 210
+  }
+}

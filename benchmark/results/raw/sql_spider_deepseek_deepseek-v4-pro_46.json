@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "",
+  "score": 0,
+  "cost": 0.0005589750000000001,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 300
+  }
+}

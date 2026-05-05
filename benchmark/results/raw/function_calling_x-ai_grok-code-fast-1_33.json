@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "function_calling",
+  "case": 33,
+  "response": "{\"name\": \"git_create_branch\", \"arguments\": {\"name\": \"feature-payments\", \"from_branch\": \"main\"}}",
+  "score": 5,
+  "cost": 0.00020580000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 285,
+    "output": 186
+  }
+}

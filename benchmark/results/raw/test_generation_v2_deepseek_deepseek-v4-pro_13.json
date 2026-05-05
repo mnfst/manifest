@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "```python\nimport pytest\nfrom fizzbuzz import fizzbuzz  # assuming the function is in fizzbuzz.py\n\n# Happy path: typical cases\n@pytest.mark.parametrize(\"n, expected\", [\n    (3, \"Fizz\"),\n    (5, \"Buzz\"),\n    (15, \"FizzBuzz\"),\n    (6, \"Fizz\"),\n    (10, \"Buzz\"),\n    (30, \"FizzBuzz\"),\n    (1, \"1\"),\n    (2, \"2\"),\n    (4, \"4\"),\n])\ndef test_fizzbuzz_happy_path(n, expected):\n    assert fizzbuzz(n) == expected\n\n# Edge cases\n@pytest.mark.parametrize(\"n, expected\", [\n    (0, \"FizzBuzz\"),         # 0 is divisible by 3 and 5\n    (-3, \"Fizz\"),            # negative divisible by 3\n    (-5, \"Buzz\"),            # negative divisible by 5\n    (-15, \"FizzBuzz\"),       # negative divisible by both\n    (-1, \"-1\"),              # negative not divisible\n    (1, \"1\"),                # smallest positive\n    (101, \"101\"),            # random prime-like number\n])\ndef test_fizzbuzz_edge_cases(n, expected):\n    assert fizzbuzz(n) == expected\n\n# Error cases: invalid input types\n@pytest.mark.parametrize(\"invalid_input\", [\n    \"3\",\n    3.0,\n    [15],\n    None,\n    (15,),\n])\ndef test_fizzbuzz_type_error(invalid_input):\n    with pytest.raises(TypeError):\n        fizzbuzz(invalid_input)\n```",
+  "score": 0,
+  "cost": 0.00123888,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 688
+  }
+}

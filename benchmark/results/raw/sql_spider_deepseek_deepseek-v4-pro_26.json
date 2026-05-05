@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "SELECT COUNT(*) FROM flights WHERE departure_city = 'Aberdeen' AND destination_city = 'Ashley';",
+  "score": 0,
+  "cost": 0.00046458,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 248
+  }
+}

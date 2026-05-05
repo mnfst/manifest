@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT production_code, channel\nFROM episodes\nWHERE genre = 'Cartoon'\nAND air_date = (SELECT MAX(air_date) FROM episodes WHERE genre = 'Cartoon');",
+  "score": 0,
+  "cost": 0.0017169000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 4263
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Step-by-step solution\n\n1. Interpret the information about the plates  \n   \u2022 \u201cHalf a dozen\u201d = 6 plates.  \n   \u2022 Each plate costs \\$6000.  \n   \u2022 Total cost of the 6 plates = 6 \u00d7 6000 = \\$36 000.\n\n2. Find the total cost of twenty dozen cups  \n   \u2022 Twenty dozen = 20 \u00d7 12 = 240 cups.  \n   \u2022 The statement says these 240 cups cost \\$1200 less than \\$36 000.  \n   \u2022 Total cost for the cups = 36 000 \u2212 1 200 = \\$34 800.\n\n3. Compute the cost of one cup  \n   \u2022 Cost per cup = Total cost \u00f7 Number of cups  \n   \u2022 Cost per cup = 34 800 \u00f7 240 = \\$145.\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.004266,
+  "expected": "145",
+  "tokens": {
+    "input": 73,
+    "output": 515
+  }
+}

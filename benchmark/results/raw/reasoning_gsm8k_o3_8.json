@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Step 1: Identify last year\u2019s enrollment  \nLast year the class had 50 students.\n\nStep 2: Determine the percent increase  \nEnrollment increased by 20 %.\n\nStep 3: Convert the percent increase to a decimal  \n20 % = 20 \u00f7 100 = 0.20.\n\nStep 4: Find the number of additional students  \nAdditional students = 50 \u00d7 0.20 = 10.\n\nStep 5: Add the increase to last year\u2019s enrollment  \nTotal students this year = 50 + 10 = 60.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.001256,
+  "expected": "60",
+  "tokens": {
+    "input": 80,
+    "output": 137
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT country_name\nFROM car_makers\nGROUP BY country_name\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 4,
+  "cost": 3.740000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 24
+  }
+}

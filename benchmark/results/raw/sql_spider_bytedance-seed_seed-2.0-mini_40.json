@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "SELECT DISTINCT m.makeid, m.make_name\nFROM makes m\nINNER JOIN cars c ON m.makeid = c.makeid\nWHERE c.horsepower > (SELECT MIN(horsepower) FROM cars)\nAND c.cylinders <= 3;",
+  "score": 0,
+  "cost": 0.0009602,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 2367
+  }
+}

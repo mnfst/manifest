@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT s.name\nFROM students s\nJOIN likes l ON s.id = l.student_id\nGROUP BY s.id, s.name\nORDER BY COUNT(l.id) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 5.1040000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 40
+  }
+}

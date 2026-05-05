@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT \n  m.maker_name, \n  m.maker_id, \n  COUNT(model_id) as num_models\nFROM \n  makers m\nJOIN \n  models mod ON m.maker_id = mod.maker_id\nGROUP BY \n  m.maker_name, \n  m.maker_id;\n```",
+  "score": 0,
+  "cost": 5.3099999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 68
+  }
+}

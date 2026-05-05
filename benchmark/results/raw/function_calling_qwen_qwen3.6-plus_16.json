@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "function_calling",
+  "case": 16,
+  "response": "{\"name\": \"search_nearby\", \"arguments\": {\"category\": \"gas station\", \"open_now\": true}}",
+  "score": 4,
+  "cost": 0.000176475,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 110
+  }
+}

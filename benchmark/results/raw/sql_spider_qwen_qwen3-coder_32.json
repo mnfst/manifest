@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT first_name, AVG(ranking) AS average_ranking\nFROM players\nGROUP BY first_name;",
+  "score": 4,
+  "cost": 3.52e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 21
+  }
+}

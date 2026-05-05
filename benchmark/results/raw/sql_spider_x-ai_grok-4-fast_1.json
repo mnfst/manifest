@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "```sql\nSELECT AVG(mpg) FROM cars WHERE cyl = 4;\n```",
+  "score": 0,
+  "cost": 0.00025620000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 225,
+    "output": 264
+  }
+}

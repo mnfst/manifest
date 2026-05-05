@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "moderation_toxigen",
+  "case": 45,
+  "response": "toxic",
+  "score": 5,
+  "cost": 9.6e-06,
+  "expected": "toxic",
+  "tokens": {
+    "input": 52,
+    "output": 3
+  }
+}

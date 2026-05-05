@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.5-pro",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "Save as `test_flatten.py` and replace `your_module` with the module where `flatten` is defined.\n\n```python\nimport copy\n\nimport pytest\n\nfrom your_module import flatten\n\n\nSENTINEL = object()\n\n\n@pytest.mark.parametrize(\n    \"lst, expected\",\n    [\n        ([], []),\n        ([1, 2, 3], [1, 2, 3]),\n        ([[1, 2], [3, 4]], [1, 2, 3, 4]),\n        ([1, [2, [3, [4]], 5], 6], [1, 2, 3, 4, 5, 6]),\n        ([[], [[]], [[[]]]], []),\n        ([[[]], [], [1, [], [2, []]], 3], [1, 2, 3]),\n        ([\"abc\", [\"de\", [\"f\"]]], [\"abc\", \"de\", \"f\"]),\n        ([None, [True, SENTINEL], [[False]]], [None, True, SENTINEL, False]),\n    ],\n)\ndef test_flatten_common_cases(lst, expected):\n    assert flatten(lst) == expected\n\n\ndef test_flatten_handles_deep_nesting_under_recursion_limit():\n    lst = \"leaf\"\n\n    for _ in range(50):\n        lst = [lst]\n\n    assert flatten(lst) == [\"leaf\"]\n\n\ndef test_flatten_returns_new_list_and_does_not_mutate_input():\n    lst = [1, [2, [3]], []]\n    original = copy.deepcopy(lst)\n\n    result = flatten(lst)\n\n    assert result == [1, 2, 3]\n    assert lst == original\n    assert result is not lst\n\n\ndef test_flatten_only_flattens_lists_not_other_nested_iterables():\n    nested_tuple = (2, [3])\n\n    result = flatten([1, nested_tuple, [4, (5, 6)], \"abc\"])\n\n    assert result == [1, nested_tuple, 4, (5, 6), \"abc\"]\n    assert result[1] is nested_tuple\n\n\ndef test_flatten_accepts_top_level_iterable_current_behavior():\n    # The implementation does not validate that the top-level argument is a list.\n    nested_tuple = (4, [5])\n\n    assert flatten((1, [2, [3]], nested_tuple)) == [1, 2, 3, nested_tuple]\n\n\n@pytest.mark.parametrize(\"bad_input\", [None, 123, object()])\ndef test_flatten_non_iterable_input_raises_type_error(bad_input):\n    with pytest.raises(TypeError):\n        flatten(bad_input)\n\n\ndef test_flatten_self_referential_list_raises_recursion_error():\n    cyclic = []\n    cyclic.append(cyclic)\n\n    with pytest.raises(RecursionError):\n        flatten(cyclic)\n```",
+  "score": 5,
+  "cost": 0.11454,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 5707
+  }
+}

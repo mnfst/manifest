@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "function_calling",
+  "case": 16,
+  "response": "{\"name\": \"search_nearby\", \"arguments\": {\"category\": \"gas station\", \"open_now\": True}}",
+  "score": 4,
+  "cost": 0.00023760000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 244,
+    "output": 236
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "SELECT MIN(share) AS min_share, MAX(share) AS max_share FROM tv_series;",
+  "score": 0,
+  "cost": 0.0007494,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 1845
+  }
+}

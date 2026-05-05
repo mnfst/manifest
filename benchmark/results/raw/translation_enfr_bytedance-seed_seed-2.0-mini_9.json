@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-mini",
   "task": "translation_enfr",
   "case": 9,
-  "response": "Pour sa part, le deuxi\u00e8me atelier a port\u00e9 sur la mise en \u0153uvre des recommandations adress\u00e9es \u00e0 l'\u00c9tat du Cameroun par les organes de surveillance des organes conventionnels, lesquelles portent sur ses obligations envers les populations autochtones et sont conformes aux trait\u00e9s internationaux et r\u00e9gionaux.",
+  "response": "Pour sa part, le second atelier s'est concentr\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de surveillance des corps conventionnels \u00e0 l\u2019\u00c9tat du Cameroun, lesquelles portent sur ses obligations envers les populations autochtones et sont conformes aux trait\u00e9s internationaux et r\u00e9gionaux.",
   "score": 4,
-  "cost": 0.0011235,
+  "cost": 0.0009667,
   "expected": "",
   "tokens": {
     "input": 111,
-    "output": 2781
+    "output": 2389
   }
 }
