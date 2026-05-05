@@ -345,6 +345,16 @@ export function collectResponsesSseResponse(sseText: string): JsonRecord {
         const prev = typeof fc.arguments === 'string' ? fc.arguments : '';
         fc.arguments = prev + data.delta;
       }
+    } else if (parsed.event === 'response.function_call_arguments.done') {
+      // Some streams (e.g. no-argument calls) skip deltas and only ship the
+      // final argument string here. Treat it as authoritative.
+      const data = safeParse(parsed.data);
+      if (!data) continue;
+      const idx = typeof data.output_index === 'number' ? data.output_index : 0;
+      const fc = functionCalls.get(idx);
+      if (fc && typeof data.arguments === 'string') {
+        fc.arguments = data.arguments;
+      }
     } else if (parsed.event === 'response.output_item.done') {
       const data = safeParse(parsed.data);
       const item = isRecord(data?.item) ? (data.item as JsonRecord) : null;
@@ -382,17 +392,23 @@ function withCollectedFunctionCalls(
 ): JsonRecord {
   if (collected.size === 0) return response;
   const existing = Array.isArray(response.output) ? (response.output as JsonRecord[]) : [];
-  const existingIds = new Set(
-    existing
-      .filter(
-        (item) => isRecord(item) && item.type === 'function_call' && typeof item.id === 'string',
-      )
-      .map((item) => item.id as string),
-  );
+  const existingIds = new Set<string>();
+  const existingCallIds = new Set<string>();
+  for (const item of existing) {
+    if (!isRecord(item) || item.type !== 'function_call') continue;
+    if (typeof item.id === 'string' && item.id) existingIds.add(item.id);
+    if (typeof item.call_id === 'string' && item.call_id) existingCallIds.add(item.call_id);
+  }
   const ordered = [...collected.entries()].sort(([a], [b]) => a - b).map(([, v]) => v);
-  const toAdd = ordered.filter(
-    (fc) => !(typeof fc.id === 'string' && fc.id && existingIds.has(fc.id)),
-  );
+  const toAdd = ordered.filter((fc) => {
+    const id = typeof fc.id === 'string' ? fc.id : '';
+    const callId = typeof fc.call_id === 'string' ? fc.call_id : '';
+    if (id && existingIds.has(id)) return false;
+    // Fall back to call_id when item id is missing on either side — upstream
+    // can omit `id` on `output_item.added`, but `call_id` is always present.
+    if (callId && existingCallIds.has(callId)) return false;
+    return true;
+  });
   if (toAdd.length === 0) return response;
   return { ...response, output: [...existing, ...toAdd] };
 }

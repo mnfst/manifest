@@ -451,6 +451,35 @@ describe('Responses adapter', () => {
       );
     });
 
+    it('uses response.function_call_arguments.done as the authoritative final arguments', () => {
+      // Some streams skip per-character deltas (e.g. no-argument calls) and
+      // only ship the final argument string via `.arguments.done`.
+      const completed = {
+        id: 'resp_done',
+        object: 'response',
+        output: [],
+        usage: { input_tokens: 4, output_tokens: 2, total_tokens: 6 },
+      };
+      const sse = [
+        'event: response.output_item.added\ndata: {"output_index":0,"item":{"type":"function_call","id":"fc_d","call_id":"call_d","name":"get_weather"}}',
+        'event: response.function_call_arguments.done\ndata: {"output_index":0,"item_id":"fc_d","arguments":"{\\"city\\":\\"Paris\\"}"}',
+        `event: response.completed\ndata: ${JSON.stringify({ response: completed })}`,
+        '',
+      ].join('\n\n');
+
+      const result = collectResponsesSseResponse(sse);
+      const output = result.output as Array<Record<string, unknown>>;
+
+      expect(output).toHaveLength(1);
+      expect(output[0]).toEqual(
+        expect.objectContaining({
+          type: 'function_call',
+          id: 'fc_d',
+          arguments: '{"city":"Paris"}',
+        }),
+      );
+    });
+
     it('does not duplicate function_call items already present in completed.output', () => {
       const completed = {
         id: 'resp_4',
@@ -481,6 +510,41 @@ describe('Responses adapter', () => {
       expect(output[0]).toEqual(
         expect.objectContaining({ id: 'fc_4', arguments: '{"city":"Paris"}' }),
       );
+    });
+
+    it('dedupes by call_id when streamed item omits the output id', () => {
+      // Upstream may emit `output_item.added` without `item.id` while still
+      // including the call already in `completed.output`. Without call_id
+      // dedupe we would append a duplicate and the SDK caller would execute
+      // the same tool twice.
+      const completed = {
+        id: 'resp_5',
+        object: 'response',
+        output: [
+          {
+            type: 'function_call',
+            id: 'fc_5',
+            call_id: 'call_5',
+            name: 'get_weather',
+            arguments: '{"city":"Paris"}',
+            status: 'completed',
+          },
+        ],
+        usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+      };
+      const sse = [
+        // No `id` on the streamed item — only call_id is reliably present.
+        'event: response.output_item.added\ndata: {"output_index":0,"item":{"type":"function_call","call_id":"call_5","name":"get_weather"}}',
+        'event: response.function_call_arguments.delta\ndata: {"output_index":0,"delta":"{\\"city\\":\\"Paris\\"}"}',
+        `event: response.completed\ndata: ${JSON.stringify({ response: completed })}`,
+        '',
+      ].join('\n\n');
+
+      const result = collectResponsesSseResponse(sse);
+      const output = result.output as Array<Record<string, unknown>>;
+
+      expect(output).toHaveLength(1);
+      expect(output[0]).toEqual(expect.objectContaining({ id: 'fc_5', call_id: 'call_5' }));
     });
   });
 
