@@ -131,7 +131,11 @@ beforeAll(async () => {
   ]);
 
   // Stub fetch so the primary upstream returns 503 and the fallback upstream
-  // returns 200 with deterministic token usage.
+  // returns 200 with deterministic token usage. Match by exact hostname (not
+  // substring) so the rule keeps holding even if the proxy adds query strings
+  // or path segments that happen to share characters with these brand names.
+  const PRIMARY_HOSTS = new Set(['api.anthropic.com']);
+  const FALLBACK_HOSTS = new Set(['chatgpt.com', 'api.openai.com']);
   originalFetch = global.fetch;
   global.fetch = (async (input, init) => {
     const url =
@@ -140,7 +144,13 @@ beforeAll(async () => {
         : input instanceof URL
           ? input.toString()
           : input.url;
-    if (url.includes('api.anthropic.com')) {
+    let hostname = '';
+    try {
+      hostname = new URL(url).hostname;
+    } catch {
+      // Non-absolute URL — fall through to the real fetch.
+    }
+    if (PRIMARY_HOSTS.has(hostname)) {
       calls.push({ url, status: 503 });
       return new Response(JSON.stringify({ error: { message: 'overloaded' } }), {
         status: 503,
@@ -150,7 +160,7 @@ beforeAll(async () => {
     // OpenAI subscription routes through chatgpt.com; the Codex backend speaks
     // SSE Responses-API. Return a minimal SSE payload with usage so the
     // recorder can compute cost (or zero it, with the fix).
-    if (url.includes('chatgpt.com') || url.includes('api.openai.com')) {
+    if (FALLBACK_HOSTS.has(hostname)) {
       calls.push({ url, status: 200 });
       const sse = [
         `event: response.created`,
