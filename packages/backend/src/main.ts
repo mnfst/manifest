@@ -19,6 +19,18 @@ export async function bootstrap() {
 
   const betterAuthUrl = process.env['BETTER_AUTH_URL'] || '';
   const hstsEnabled = /^https:\/\//i.test(betterAuthUrl);
+  const isDevEnv = process.env['NODE_ENV'] !== 'production';
+
+  // In dev, the Wingman gateway tester runs at "backend port + 1" (or an
+  // explicit `WINGMAN_PORT` override) and is embedded as an iframe inside
+  // the dashboard via the bottom drawer. Allow that exact port through CSP
+  // only when NODE_ENV !== 'production'; Docker / cloud builds keep the
+  // strict 'self'-only frame policy.
+  const backendPort = Number(process.env['PORT']) || 3001;
+  const wingmanPort = Number(process.env['WINGMAN_PORT']) || backendPort + 1;
+  const frameSrc = isDevEnv
+    ? ["'self'", `http://localhost:${wingmanPort}`, `http://127.0.0.1:${wingmanPort}`]
+    : ["'self'"];
 
   app.use(
     helmet({
@@ -32,6 +44,7 @@ export async function bootstrap() {
           connectSrc: ["'self'"],
           fontSrc: ["'self'"],
           objectSrc: ["'none'"],
+          frameSrc,
           frameAncestors: process.env['FRAME_ANCESTORS']
             ? process.env['FRAME_ANCESTORS']
                 .split(',')
@@ -58,8 +71,30 @@ export async function bootstrap() {
     // fallback regex allowed http+https on both 3000 and 3001 with
     // credentials, letting any locally-bound process on those ports read
     // session cookies cross-origin.
+    //
+    // Wingman (the dev gateway tester at "backend port + 1") gets its own
+    // allowlist entry — it never receives cookies (`credentials: false` on
+    // its requests), so it stays out of the credentialed-origin path. The
+    // canonical Vite port (3002) is also included for the `npm run dev`
+    // workflow where the backend defaults to :3001.
+    const configuredOrigin = process.env['CORS_ORIGIN'] || 'http://localhost:3000';
+    const allowedOrigins = [
+      configuredOrigin,
+      `http://localhost:${wingmanPort}`,
+      `http://127.0.0.1:${wingmanPort}`,
+      'http://localhost:3002',
+    ];
     app.enableCors({
-      origin: process.env['CORS_ORIGIN'] || 'http://localhost:3000',
+      origin: (
+        origin: string | undefined,
+        callback: (err: Error | null, allow?: boolean) => void,
+      ) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+        callback(null, false);
+      },
       credentials: true,
     });
   }
