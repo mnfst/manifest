@@ -65,6 +65,12 @@ const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
 const ZAI_SUBSCRIPTION_BASE = 'https://open.bigmodel.cn/api/coding/paas/v4';
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
+// Google AI Pro / Ultra subscriptions are reached through the Code Assist
+// gateway (the same backend Gemini CLI talks to). Authenticated requests
+// inherit the caller's AI Pro/Ultra quotas; unauthenticated callers fall
+// back to the free tier limits, so we only ever forward here for the
+// `subscription` auth type.
+const GOOGLE_CODE_ASSIST_BASE = 'https://cloudcode-pa.googleapis.com';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
@@ -163,6 +169,21 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
       'x-goog-api-key': apiKey,
     }),
     buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
+    format: 'google',
+  },
+  // Google AI Pro / Ultra subscriptions route through the Code Assist
+  // gateway. The path returned here is the non-streaming method; the
+  // provider client swaps it for `:streamGenerateContent` on streaming
+  // requests. The request and response envelopes are handled in
+  // `google-adapter.ts` (see `wrapCodeAssistRequest` and the Code Assist
+  // unwrap branches in `fromGoogleResponse` / `transformGoogleStreamChunk`).
+  'google-subscription': {
+    baseUrl: GOOGLE_CODE_ASSIST_BASE,
+    buildHeaders: (apiKey: string) => ({
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    }),
+    buildPath: () => '/v1internal:generateContent',
     format: 'google',
   },
   copilot: {

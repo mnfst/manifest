@@ -1292,7 +1292,10 @@ describe('ProviderSelectModal', () => {
         />
       ));
       fireEvent.click(screen.getByText('OpenAI'));
-      expect(screen.getByText(/Log in with your OpenAI account/)).toBeDefined();
+      // The OpenAI dispatch ships its own provider-specific login hint;
+      // the previous "Log in with your {name} account" template was removed
+      // when the OAuthDispatch.loginHint field replaced it.
+      expect(screen.getByText(/Log in with your ChatGPT account/)).toBeDefined();
     });
 
     it('calls getOpenaiOAuthUrl and opens popup on login click', async () => {
@@ -2029,7 +2032,7 @@ describe('ProviderSelectModal', () => {
       vi.restoreAllMocks();
     });
 
-    it('shows paste URL input immediately after clicking login', async () => {
+    it('shows the waiting-for-sign-in indicator immediately after clicking login', async () => {
       const mockPopup = {
         closed: false,
         close: vi.fn(),
@@ -2050,11 +2053,10 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('OpenAI'));
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
-      // Paste URL field appears immediately (not after popup closes)
+      // The loopback callback handles the redirect automatically — the panel
+      // just shows a "waiting" state until BroadcastChannel/postMessage fires.
       await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
-        ).toBeDefined();
+        expect(screen.getByText(/Waiting for sign-in to complete/i)).toBeDefined();
       });
       expect(onUpdate).not.toHaveBeenCalled();
 
@@ -2206,7 +2208,7 @@ describe('ProviderSelectModal', () => {
       vi.restoreAllMocks();
     });
 
-    it('keeps paste URL visible after failed OAuth via postMessage', async () => {
+    it('returns to the login button after failed OAuth via postMessage', async () => {
       const mockPopup = {
         closed: false,
         close: vi.fn(),
@@ -2227,19 +2229,16 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('OpenAI'));
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
-      // Paste URL field is already visible before any message
+      // Waiting indicator appears while the popup is in flight.
       await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
-        ).toBeDefined();
+        expect(screen.getByText(/Waiting for sign-in to complete/i)).toBeDefined();
       });
 
-      // Error message arrives — paste field still visible, no crash
+      // Error message arrives — panel resets to the login CTA so the user can retry.
       window.dispatchEvent(new MessageEvent('message', { data: { type: 'manifest-oauth-error' } }));
-      await new Promise((r) => setTimeout(r, 50));
-      expect(
-        screen.getByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
-      ).toBeDefined();
+      await waitFor(() => {
+        expect(screen.getByText('Log in with OpenAI')).toBeDefined();
+      });
       expect(onUpdate).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();

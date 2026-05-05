@@ -43,6 +43,14 @@ export interface ForwardOptions {
   extraHeaders?: Record<string, string>;
   customEndpoint?: ProviderEndpoint;
   authType?: string;
+  /**
+   * Per-credential context attached to an unwrapped OAuth blob. The shape
+   * is provider-specific (a base URL for MiniMax, a GCP project id for
+   * Google AI Pro / Ultra) and `provider-client` interprets it according
+   * to the resolved endpoint. Undefined for providers that don't need any
+   * extra context beyond the access token.
+   */
+  subscriptionResource?: string;
   /** Lookup for re-injecting cached thought_signature values (Google only). */
   signatureLookup?: SignatureLookup;
   /** Lookup for re-injecting cached thinking blocks (Anthropic only). */

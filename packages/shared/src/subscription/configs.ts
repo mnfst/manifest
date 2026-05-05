@@ -100,6 +100,30 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  gemini: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Google AI Pro/Ultra subscription',
+    subscriptionAuthMode: 'popup_oauth' as const,
+    // Order matters — the auto-assign service falls back to the first entry
+    // when nothing else differentiates the candidates. Lead with the models
+    // every Code Assist account (free, AI Plus, AI Pro, AI Ultra) can hit
+    // reliably, then list the AI Pro/Ultra-only flagship last. Preview
+    // models are intentionally excluded: they 429 on free/AI Pro quota
+    // and aren't a safe default.
+    knownModels: Object.freeze([
+      'gemini-2.5-pro',
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+      'gemini-3.1-pro',
+    ]),
+    subscriptionCapabilities: Object.freeze({
+      // Gemini 2.5/3.x Pro all expose the 1M-token context window through
+      // Code Assist when authenticated with a Google AI Pro / Ultra account.
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   copilot: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'GitHub Copilot subscription',

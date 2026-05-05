@@ -13,7 +13,14 @@ export interface OAuthTokenBlob {
   r: string;
   /** expires at (epoch ms) */
   e: number;
-  /** provider-specific resource URL / base URL */
+  /**
+   * Opaque per-provider resource identifier preserved across token refreshes.
+   * MiniMax stores the partner-specific base URL of the subscription proxy;
+   * Google AI Pro / Ultra stores the GCP project id consumed by the Code
+   * Assist envelope. Interpretation lives in `proxy-fallback.resolveApiKey`
+   * and the per-provider OAuth services — never compare or print this field
+   * generically since its semantics depend on `provider`.
+   */
   u?: string;
 }
 

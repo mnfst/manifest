@@ -80,6 +80,48 @@ describe("monitorOAuthPopup", () => {
     removeListenerSpy.mockRestore();
   });
 
+  it("URL polling matches any /oauth/<provider>/done page (openai + gemini)", () => {
+    for (const path of [
+      "http://localhost:3001/api/v1/oauth/openai/done?ok=1",
+      "http://localhost:3001/api/v1/oauth/gemini/done?ok=1",
+    ]) {
+      const popup = {
+        closed: false,
+        close: vi.fn(),
+        location: { href: path } as unknown as Location,
+      } as unknown as Window;
+
+      const onSuccess = vi.fn();
+      const onFailure = vi.fn();
+
+      monitorOAuthPopup(popup, { onSuccess, onFailure });
+
+      vi.advanceTimersByTime(300);
+
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+      expect(onFailure).not.toHaveBeenCalled();
+    }
+  });
+
+  it("URL polling reports failure when /done page reports ok=0", () => {
+    const popup = {
+      closed: false,
+      close: vi.fn(),
+      location: {
+        href: "http://localhost:3001/api/v1/oauth/gemini/done?ok=0",
+      } as unknown as Location,
+    } as unknown as Window;
+
+    const onSuccess = vi.fn();
+    const onFailure = vi.fn();
+
+    monitorOAuthPopup(popup, { onSuccess, onFailure });
+    vi.advanceTimersByTime(300);
+
+    expect(onFailure).toHaveBeenCalledTimes(1);
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+
   it("ignores non-oauth messages", () => {
     const popup = {
       closed: false,

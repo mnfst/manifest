@@ -7,6 +7,7 @@ import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
+import { GeminiOauthService } from '../oauth/gemini-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import {
@@ -53,6 +54,7 @@ export class ProxyFallbackService {
     private readonly customProviderRepo: Repository<CustomProvider>,
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
+    private readonly geminiOauth: GeminiOauthService,
     private readonly providerClient: ProviderClient,
     private readonly copilotToken: CopilotTokenService,
     private readonly pricingCache: ModelPricingCacheService,
@@ -150,6 +152,7 @@ export class ProxyFallbackService {
         userId,
         this.openaiOauth,
         this.minimaxOauth,
+        this.geminiOauth,
       );
       const providerRegion = await this.providerKeyService.getProviderRegion(
         agentId,
@@ -172,7 +175,7 @@ export class ProxyFallbackService {
         signal,
         authType,
         apiMode,
-        resourceUrl: resolvedCredentials.resourceUrl,
+        subscriptionResource: resolvedCredentials.subscriptionResource,
         providerRegion,
         signatureLookup,
         thinkingLookup,
@@ -215,7 +218,7 @@ export class ProxyFallbackService {
     sessionKey: string;
     signal?: AbortSignal;
     authType?: string;
-    resourceUrl?: string;
+    subscriptionResource?: string;
     providerRegion?: string | null;
     apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
@@ -252,7 +255,7 @@ export class ProxyFallbackService {
     sessionKey: string;
     signal?: AbortSignal;
     authType?: string;
-    resourceUrl?: string;
+    subscriptionResource?: string;
     providerRegion?: string | null;
     apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
@@ -265,7 +268,7 @@ export class ProxyFallbackService {
       stream,
       signal,
       authType,
-      resourceUrl,
+      subscriptionResource,
       providerRegion,
       signatureLookup,
       thinkingLookup,
@@ -296,8 +299,12 @@ export class ProxyFallbackService {
       }
     } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
       customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
-    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax' && resourceUrl) {
-      const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
+    } else if (
+      authType === 'subscription' &&
+      provider.toLowerCase() === 'minimax' &&
+      subscriptionResource
+    ) {
+      const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(subscriptionResource);
       if (minimaxBaseUrl) {
         customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
       } else {
@@ -316,6 +323,7 @@ export class ProxyFallbackService {
       extraHeaders,
       customEndpoint,
       authType,
+      subscriptionResource,
       apiMode: opts.apiMode,
       signatureLookup,
       thinkingLookup,
@@ -331,6 +339,20 @@ export function normalizeProviderModel(provider: string, model: string): string 
   return provider.toLowerCase() === 'anthropic' ? normalizeAnthropicShortModelId(model) : model;
 }
 
+/**
+ * Per-credential context surfaced when an OAuth blob is unwrapped. The
+ * concrete meaning of `subscriptionResource` is provider-specific:
+ *   - MiniMax stores the partner-specific base URL of the subscription
+ *     proxy (later normalized into a custom endpoint override).
+ *   - Google AI Pro / Ultra stores the GCP project id consumed by the
+ *     Code Assist request envelope.
+ * Other providers leave it undefined.
+ */
+export interface ResolvedApiKey {
+  apiKey: string;
+  subscriptionResource?: string;
+}
+
 export async function resolveApiKey(
   provider: string,
   apiKey: string,
@@ -339,7 +361,8 @@ export async function resolveApiKey(
   userId: string,
   openaiOauth: OpenaiOauthService,
   minimaxOauth: MinimaxOauthService,
-): Promise<{ apiKey: string; resourceUrl?: string }> {
+  geminiOauth: GeminiOauthService,
+): Promise<ResolvedApiKey> {
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
     if (lower === 'openai') {
@@ -348,7 +371,11 @@ export async function resolveApiKey(
     }
     if (lower === 'minimax') {
       const unwrapped = await minimaxOauth.unwrapToken(apiKey, agentId, userId);
-      if (unwrapped) return { apiKey: unwrapped.t, resourceUrl: unwrapped.u };
+      if (unwrapped) return { apiKey: unwrapped.t, subscriptionResource: unwrapped.u };
+    }
+    if (lower === 'gemini') {
+      const unwrapped = await geminiOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return { apiKey: unwrapped.t, subscriptionResource: unwrapped.u };
     }
   }
   return { apiKey };

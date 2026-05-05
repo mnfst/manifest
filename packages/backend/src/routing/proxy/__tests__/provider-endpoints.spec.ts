@@ -209,6 +209,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(path).toBe('/v1beta/models/gemini-2.0-flash:generateContent');
   });
 
+  it('google-subscription targets the Code Assist gateway with Bearer auth', () => {
+    const ep = PROVIDER_ENDPOINTS['google-subscription'];
+    expect(ep.baseUrl).toBe('https://cloudcode-pa.googleapis.com');
+    expect(ep.format).toBe('google');
+    expect(ep.buildPath('gemini-2.5-pro')).toBe('/v1internal:generateContent');
+    expect(ep.buildHeaders('access-token')).toEqual({
+      Authorization: 'Bearer access-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('openrouter buildPath returns /api/v1/chat/completions', () => {
     const path = PROVIDER_ENDPOINTS['openrouter'].buildPath('openai/gpt-4o');
     expect(path).toBe('/api/v1/chat/completions');

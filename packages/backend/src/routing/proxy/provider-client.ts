@@ -19,6 +19,7 @@ import {
   convertAnthropicStreamChunk as anthropicStreamChunkConverter,
   createAnthropicTransformer,
 } from './provider-client-converters';
+import { wrapCodeAssistRequest } from './google-adapter';
 import { ForwardOptions } from './proxy-types';
 import { toNativeResponsesRequest } from './responses-adapter';
 
@@ -93,6 +94,7 @@ export class ProviderClient {
       extraHeaders,
       customEndpoint,
       authType,
+      subscriptionResource,
     } = opts;
 
     const { endpoint, endpointKey } = this.resolveEndpoint(
@@ -121,6 +123,7 @@ export class ProviderClient {
       stream,
       signatureLookup: opts.signatureLookup,
       thinkingLookup: opts.thinkingLookup,
+      subscriptionResource,
     });
 
     const finalHeaders = extraHeaders ? { ...headers, ...extraHeaders } : headers;
@@ -196,20 +199,36 @@ export class ProviderClient {
     stream: boolean;
     signatureLookup?: ForwardOptions['signatureLookup'];
     thinkingLookup?: ForwardOptions['thinkingLookup'];
+    subscriptionResource?: string;
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     const requestSource = ctx.apiMode === 'responses' ? (chatBody ?? body) : body;
 
     if (endpoint.format === 'google') {
+      const isCodeAssist = endpointKey === 'google-subscription';
       // Google accepts the API key via header (set by buildHeaders below) so
       // we no longer need to embed it in the URL. Keeping the key out of the
       // URL avoids leaking it into upstream proxy / LB access logs.
-      let url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
-      if (stream) url += '?alt=sse';
+      let url: string;
+      if (isCodeAssist) {
+        // Code Assist uses verb-style methods (`:streamGenerateContent` vs
+        // `:generateContent`) instead of a path parameter, and still wants
+        // `?alt=sse` to switch streaming responses to Server-Sent Events.
+        const method = stream ? ':streamGenerateContent' : ':generateContent';
+        url = `${endpoint.baseUrl}/v1internal${method}`;
+        if (stream) url += '?alt=sse';
+      } else {
+        url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+        if (stream) url += '?alt=sse';
+      }
+      const geminiBody = toGoogleRequest(requestSource, bareModel, ctx.signatureLookup);
+      const requestBody = isCodeAssist
+        ? wrapCodeAssistRequest(geminiBody, bareModel, ctx.subscriptionResource)
+        : geminiBody;
       return {
         url,
         headers: endpoint.buildHeaders(apiKey, authType),
-        requestBody: toGoogleRequest(requestSource, bareModel, ctx.signatureLookup),
+        requestBody,
       };
     }
 

@@ -1,7 +1,16 @@
+// SSRF revalidation calls into validatePublicUrl, which is a no-op in test mode
+// unless we mock it. We default to a pass-through resolve so the existing tests
+// keep working, then opt specific tests into rejection by overriding the mock.
+jest.mock('../../../common/utils/url-validation', () => ({
+  validatePublicUrl: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { ProviderClient } from '../provider-client';
+import { validatePublicUrl } from '../../../common/utils/url-validation';
 
 const mockFetch = jest.fn();
 (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch;
+const mockValidatePublicUrl = validatePublicUrl as jest.Mock;
 
 describe('ProviderClient', () => {
   let client: ProviderClient;
@@ -9,6 +18,8 @@ describe('ProviderClient', () => {
   beforeEach(() => {
     client = new ProviderClient();
     mockFetch.mockReset();
+    mockValidatePublicUrl.mockReset();
+    mockValidatePublicUrl.mockResolvedValue(undefined);
   });
 
   const body = {
@@ -230,6 +241,26 @@ describe('ProviderClient', () => {
         { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
       ]);
       expect(sentBody.stream).toBe(true);
+    });
+
+    it('falls back to the original body when apiMode is "responses" but chatBody is omitted', async () => {
+      // Branch coverage for `chatBody ?? body` in buildRequest. When a
+      // caller forwards a Responses-shaped body without pre-converting to
+      // chat, the converter must operate on the raw `body` itself.
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-chat',
+        body: { messages: [{ role: 'user', content: 'inline' }], stream: false },
+        // No chatBody supplied → buildRequest uses body directly.
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toEqual([{ role: 'user', content: 'inline' }]);
     });
 
     it('uses normalized chat body for non-native Responses providers', async () => {
@@ -1030,6 +1061,90 @@ describe('ProviderClient', () => {
       const url = mockFetch.mock.calls[0][0] as string;
       expect(url).toContain('generativelanguage.googleapis.com');
       expect(result.isGoogle).toBe(true);
+    });
+  });
+
+  describe('Google AI Pro / Ultra subscription (Code Assist)', () => {
+    it('routes gemini subscription requests to the Code Assist gateway', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'gemini',
+        apiKey: 'access-token-1',
+        authType: 'subscription',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: false,
+        subscriptionResource: 'project-42',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://cloudcode-pa.googleapis.com/v1internal:generateContent');
+      const headers = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+      expect(headers.Authorization).toBe('Bearer access-token-1');
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sent.model).toBe('gemini-2.5-pro');
+      expect(sent.project).toBe('project-42');
+      // Inner request still carries the standard Gemini contents shape.
+      expect(sent.request.contents[0].parts[0].text).toBe('Hello');
+      expect(sent.request.model).toBe('gemini-2.5-pro');
+    });
+
+    it('switches to :streamGenerateContent when streaming is requested', async () => {
+      mockFetch.mockResolvedValue(new Response('', { status: 200 }));
+
+      await client.forward({
+        provider: 'gemini',
+        apiKey: 'tok',
+        authType: 'subscription',
+        model: 'gemini-2.5-flash',
+        body,
+        stream: true,
+        subscriptionResource: 'project-99',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe(
+        'https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse',
+      );
+    });
+
+    it('omits the project field from the envelope when no project id is known', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'gemini',
+        apiKey: 'tok',
+        authType: 'subscription',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: false,
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sent).not.toHaveProperty('project');
+      expect(sent.model).toBe('gemini-2.5-pro');
+    });
+
+    it('falls back to the public Generative Language endpoint without subscription auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'gemini',
+        apiKey: 'AIza-key',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent',
+      );
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      // No envelope wrapping when not on Code Assist.
+      expect(sent).not.toHaveProperty('request');
+      expect(sent.contents).toBeDefined();
     });
   });
 
@@ -2244,6 +2359,83 @@ describe('ProviderClient', () => {
 
     it('falls back to 180000 ms when env var is zero', async () => {
       expect(await captureTimeoutMs('0')).toBe(180_000);
+    });
+  });
+
+  describe('SSRF re-validation for user-supplied endpoints', () => {
+    // SSRF defense in depth: when an endpoint is flagged with
+    // requiresSsrfRevalidation (custom providers, subscription resource URLs)
+    // the proxy must re-resolve the hostname immediately before forwarding.
+    // A hostile DNS rebind that happened between provider registration and
+    // forward time should surface as "Refusing to forward to disallowed URL".
+    const customEndpoint = {
+      baseUrl: 'https://userprovided.example.com/v1',
+      buildHeaders: (key: string) => ({
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+      }),
+      buildPath: () => '/chat/completions',
+      format: 'openai' as const,
+      requiresSsrfRevalidation: true,
+    };
+
+    it('throws "Refusing to forward to disallowed URL" when validatePublicUrl rejects', async () => {
+      mockValidatePublicUrl.mockRejectedValueOnce(
+        new Error('URLs pointing to private or internal networks are not allowed'),
+      );
+
+      await expect(
+        client.forward({
+          provider: 'custom:rebound',
+          apiKey: 'sk-x',
+          model: 'foo',
+          body,
+          stream: false,
+          customEndpoint,
+        }),
+      ).rejects.toThrow(
+        'Refusing to forward to disallowed URL: URLs pointing to private or internal networks are not allowed',
+      );
+
+      expect(mockValidatePublicUrl).toHaveBeenCalledWith(
+        'https://userprovided.example.com/v1/chat/completions',
+        expect.objectContaining({ allowPrivate: expect.any(Boolean) }),
+      );
+      // Critically: fetch must never have been called once SSRF re-validation
+      // refuses the URL — that's the entire point of the defense.
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('stringifies non-Error rejections from validatePublicUrl', async () => {
+      mockValidatePublicUrl.mockRejectedValueOnce('string-error-from-validator');
+
+      await expect(
+        client.forward({
+          provider: 'custom:rebound',
+          apiKey: 'sk-x',
+          model: 'foo',
+          body,
+          stream: false,
+          customEndpoint,
+        }),
+      ).rejects.toThrow('Refusing to forward to disallowed URL: string-error-from-validator');
+    });
+
+    it('skips revalidation for built-in endpoints without requiresSsrfRevalidation', async () => {
+      mockFetch.mockResolvedValueOnce(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+      });
+
+      // Built-in endpoints (api.openai.com, etc.) are not flagged for
+      // re-validation because their hostnames are static and trusted.
+      expect(mockValidatePublicUrl).not.toHaveBeenCalled();
+      expect(mockFetch).toHaveBeenCalled();
     });
   });
 });

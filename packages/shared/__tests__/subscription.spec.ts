@@ -18,6 +18,7 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'ollama-cloud',
         'zai',
         'opencode-go',
+        'gemini',
       ]),
     );
   });
@@ -97,6 +98,20 @@ describe('getSubscriptionProviderConfig', () => {
     });
   });
 
+  it('returns config for gemini', () => {
+    const config = getSubscriptionProviderConfig('gemini');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Google AI Pro/Ultra subscription',
+      subscriptionAuthMode: 'popup_oauth',
+    });
+    expect(config?.subscriptionCapabilities).toMatchObject({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
   it('returns config for opencode-go', () => {
     const config = getSubscriptionProviderConfig('opencode-go');
     expect(config).toMatchObject({
@@ -140,6 +155,7 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('ollama-cloud')).toBe(true);
     expect(supportsSubscriptionProvider('zai')).toBe(true);
     expect(supportsSubscriptionProvider('opencode-go')).toBe(true);
+    expect(supportsSubscriptionProvider('gemini')).toBe(true);
   });
 
   it('returns false for unsupported providers', () => {
@@ -182,6 +198,13 @@ describe('getSubscriptionKnownModels', () => {
 
   it('returns null for opencode-go (dynamic catalog, no hardcoded list)', () => {
     expect(getSubscriptionKnownModels('opencode-go')).toBeNull();
+  });
+
+  it('returns known models for gemini covering Google AI Pro/Ultra tiers', () => {
+    const models = getSubscriptionKnownModels('gemini');
+    expect(models).toContain('gemini-3.1-pro');
+    expect(models).toContain('gemini-2.5-pro');
+    expect(models).toContain('gemini-2.5-flash');
   });
 
   it('returns null for unsupported providers', () => {

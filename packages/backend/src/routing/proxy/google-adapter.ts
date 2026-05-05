@@ -212,6 +212,45 @@ export interface ExtractedSignature {
   signature: string;
 }
 
+/**
+ * Wrap a Gemini request body in the Code Assist envelope expected by
+ * `cloudcode-pa.googleapis.com/v1internal:generateContent`. Code Assist
+ * needs the GCP project ID at the envelope level (so that AI Pro / Ultra
+ * quotas are billed against the caller's managed project) and re-nests
+ * the standard Gemini body under `request.contents`.
+ *
+ * `projectId` is empty when the OAuth onboarding step couldn't resolve a
+ * project — Code Assist accepts that for free-tier callers, so we still
+ * emit the envelope but skip the field rather than send `project: ""`.
+ */
+export function wrapCodeAssistRequest(
+  geminiBody: Record<string, unknown>,
+  model: string,
+  projectId: string | undefined,
+): Record<string, unknown> {
+  const envelope: Record<string, unknown> = {
+    model,
+    request: { ...geminiBody, model },
+  };
+  if (projectId) envelope.project = projectId;
+  return envelope;
+}
+
+/**
+ * Code Assist responses (non-streaming and streaming alike) wrap the
+ * standard Gemini payload one level deeper, e.g. `{ response: { candidates: [...] } }`.
+ * Peel that wrapper off so the existing Gemini → OpenAI conversion can
+ * operate on the same shape it does for the normal Generative Language
+ * endpoint.
+ */
+function unwrapCodeAssistEnvelope(payload: Record<string, unknown>): Record<string, unknown> {
+  const inner = payload.response;
+  if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
+    return inner as Record<string, unknown>;
+  }
+  return payload;
+}
+
 export function toGoogleRequest(
   body: Record<string, unknown>,
   _model: string,
@@ -261,7 +300,8 @@ export function fromGoogleResponse(
   googleResp: Record<string, unknown>,
   model: string,
 ): Record<string, unknown> & { _extractedSignatures?: ExtractedSignature[] } {
-  const candidates = (googleResp.candidates as Array<Record<string, unknown>>) || [];
+  const inner = unwrapCodeAssistEnvelope(googleResp);
+  const candidates = (inner.candidates as Array<Record<string, unknown>>) || [];
   const candidate = candidates[0];
 
   if (!candidate) {
@@ -276,6 +316,7 @@ export function fromGoogleResponse(
 
   const content = candidate.content as { parts?: Array<Record<string, unknown>> } | undefined;
   const parts = content?.parts || [];
+  const usage = inner.usageMetadata as Record<string, number> | undefined;
 
   let textContent = '';
   const toolCalls: Record<string, unknown>[] = [];
@@ -308,8 +349,6 @@ export function fromGoogleResponse(
 
   const message: Record<string, unknown> = { role: 'assistant', content: textContent || null };
   if (toolCalls.length > 0) message.tool_calls = toolCalls;
-
-  const usage = googleResp.usageMetadata as Record<string, number> | undefined;
 
   return {
     id: `chatcmpl-${randomUUID()}`,
@@ -371,7 +410,8 @@ export function transformGoogleStreamChunk(chunk: string, model: string): Google
     return empty;
   }
 
-  const candidates = (data.candidates as Array<Record<string, unknown>>) || [];
+  const inner = unwrapCodeAssistEnvelope(data);
+  const candidates = (inner.candidates as Array<Record<string, unknown>>) || [];
   const candidate = candidates[0];
   const content = candidate?.content as { parts?: Array<Record<string, unknown>> } | undefined;
   const parts = content?.parts || [];
@@ -416,7 +456,7 @@ export function transformGoogleStreamChunk(chunk: string, model: string): Google
     })}\n\n`;
   }
 
-  const usage = data.usageMetadata as Record<string, number> | undefined;
+  const usage = inner.usageMetadata as Record<string, number> | undefined;
   if (usage) {
     const finishReason = mapFinishReason(candidate ?? {}, toolCalls.length > 0);
     result += `data: ${JSON.stringify({

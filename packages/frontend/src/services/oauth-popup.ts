@@ -62,12 +62,14 @@ export function monitorOAuthPopup(
   pollRef = setInterval(() => {
     try {
       const doneUrl = popup.location?.href;
-      if (doneUrl?.includes('/oauth/openai/done')) {
+      // Match any provider's /done page so the same monitor handles OpenAI,
+      // Gemini, and any future popup_oauth provider.
+      if (doneUrl && /\/oauth\/[^/]+\/done(?:[?#]|$)/.test(doneUrl)) {
         const ok = new URL(doneUrl).searchParams.get('ok') === '1';
         handleResult(ok);
       }
     } catch {
-      // Cross-origin -- popup is still on auth.openai.com, keep polling
+      // Cross-origin -- popup is still on the provider's auth domain, keep polling
     }
     // COOP makes popup.closed true immediately -- only stop polling,
     // keep BroadcastChannel alive so the done page message is received.

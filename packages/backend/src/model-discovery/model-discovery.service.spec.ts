@@ -1385,6 +1385,33 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).not.toHaveBeenCalled();
     });
 
+    it('should bypass live discovery for gemini subscription and surface known models', async () => {
+      mockDecrypt.mockReturnValue(
+        JSON.stringify({
+          t: 'access',
+          r: 'refresh',
+          e: Date.now() + 60_000,
+          u: 'project-1',
+        }),
+      );
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'gemini',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-blob',
+        }),
+      );
+
+      const ids = result.map((m) => m.id);
+      // The Code Assist gateway has no public /models endpoint, so we must
+      // never call the fetcher for gemini subscriptions; the curated
+      // SUBSCRIPTION_PROVIDER_CONFIGS list is the source of truth.
+      expect(fetcher.fetch).not.toHaveBeenCalled();
+      expect(ids).toEqual(expect.arrayContaining(['gemini-3.1-pro', 'gemini-2.5-pro']));
+      for (const m of result) expect(m.authType).toBe('subscription');
+    });
+
     it('should exchange Copilot GitHub token before fetching models', async () => {
       mockDecrypt.mockReturnValue('ghu_github_oauth_token');
       mockCopilotTokenService.getCopilotToken.mockResolvedValue('tid=copilot-api-token');
@@ -1593,7 +1620,9 @@ describe('ModelDiscoveryService', () => {
 
   describe('buildSubscriptionFallbackModels', () => {
     it('should return empty for unsupported providers', () => {
-      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'gemini');
+      // Use a provider that is genuinely not in SUBSCRIPTION_PROVIDER_CONFIGS;
+      // mistral has no subscription support, unlike gemini/openai/anthropic.
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'mistral');
       expect(result).toEqual([]);
     });
 
@@ -1847,7 +1876,10 @@ describe('ModelDiscoveryService', () => {
     it('should return raw unchanged for non-subscription providers', () => {
       const raw: DiscoveredModel[] = [makeModel({ id: 'model-1' })];
 
-      const result = supplementWithKnownModels(raw, 'gemini');
+      // mistral isn't in SUBSCRIPTION_PROVIDER_CONFIGS, so the helper should
+      // not supplement anything. (gemini was the historical placeholder, but
+      // it's now a real subscription provider.)
+      const result = supplementWithKnownModels(raw, 'mistral');
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('model-1');
@@ -2184,6 +2216,52 @@ describe('ModelDiscoveryService', () => {
       expect(mockPricingSync.getAll).toHaveBeenCalled();
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('gpt-4o');
+    });
+
+    it('should filter out models confirmed by models.dev to lack tool support', async () => {
+      // Personal AI agents almost always include tools in every request, so
+      // models with `toolCall === false` in models.dev are unusable. Branch
+      // coverage for line 182: the if-true arm of `mdEntry && mdEntry.toolCall === false`.
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'tool-less-model',
+        name: 'Tool-less Model',
+        inputPricePerToken: 0.001,
+        outputPricePerToken: 0.002,
+        toolCall: false,
+      });
+
+      const models = [makeModel({ id: 'tool-less-model' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+      expect(result).toHaveLength(0);
+    });
+
+    it('should fall back to model contextWindow / displayName when models.dev entry omits them', async () => {
+      // Branch coverage for lines 307-308: `?? model.contextWindow` and
+      // `|| model.displayName` right-hand sides. The mdEntry has a price but
+      // no contextWindow and an empty name string, so the model's own
+      // values must show through.
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'partial-md-entry',
+        name: '', // falsy, so `|| model.displayName` should fire
+        inputPricePerToken: 0.001,
+        outputPricePerToken: 0.002,
+        // contextWindow undefined → `?? model.contextWindow` should fire
+      });
+
+      const models = [
+        makeModel({
+          id: 'partial-md-entry',
+          displayName: 'Original Display',
+          contextWindow: 64321,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+      expect(result[0].displayName).toBe('Original Display');
+      expect(result[0].contextWindow).toBe(64321);
     });
 
     it('should skip models.dev fallback when modelsDevSync is null', async () => {

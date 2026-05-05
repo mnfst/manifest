@@ -79,4 +79,33 @@ describe('oauth API client', () => {
     expect(url).toContain('/api/v1/oauth/minimax/poll');
     expect(url).toContain('flowId=flow-1');
   });
+
+  it('getGeminiOAuthUrl forwards agentName as a query param', async () => {
+    const fetchMock = setupFetch({ url: 'https://accounts.google.com/o/oauth2/v2/auth?...' });
+    const out = await oauth.getGeminiOAuthUrl('demo');
+    expect(out.url).toContain('accounts.google.com');
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/oauth/gemini/authorize');
+    expect(url).toContain('agentName=demo');
+  });
+
+  it('submitGeminiOAuthCallback POSTs code+state as JSON', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.submitGeminiOAuthCallback('auth-code', 'state-1');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/gemini/callback');
+    expect((init as RequestInit).method).toBe('POST');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      code: 'auth-code',
+      state: 'state-1',
+    });
+  });
+
+  it('revokeGeminiOAuth POSTs with the encoded agent name in the URL', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeGeminiOAuth('agent name');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/gemini/revoke?agentName=agent%20name');
+    expect((init as RequestInit).method).toBe('POST');
+  });
 });

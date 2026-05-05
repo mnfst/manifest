@@ -7,6 +7,7 @@ import type { ProviderKeyService } from '../../routing-core/provider-key.service
 import type { TierService } from '../../routing-core/tier.service';
 import type { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import type { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import type { GeminiOauthService } from '../../oauth/gemini-oauth.service';
 import type { SessionMomentumService } from '../session-momentum.service';
 import type { LimitCheckService } from '../../../notifications/services/limit-check.service';
 import type { ProxyFallbackService } from '../proxy-fallback.service';
@@ -41,6 +42,7 @@ describe('ProxyService — orchestration', () => {
   let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let openaiOauth: jest.Mocked<Pick<OpenaiOauthService, 'unwrapToken'>>;
   let minimaxOauth: jest.Mocked<Pick<MinimaxOauthService, 'unwrapToken'>>;
+  let geminiOauth: jest.Mocked<Pick<GeminiOauthService, 'unwrapToken'>>;
   let momentum: jest.Mocked<
     Pick<
       SessionMomentumService,
@@ -70,6 +72,7 @@ describe('ProxyService — orchestration', () => {
     tierService = { getTiers: jest.fn().mockResolvedValue([]) };
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     minimaxOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
+    geminiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     momentum = {
       recordTier: jest.fn(),
       recordCategory: jest.fn(),
@@ -93,6 +96,7 @@ describe('ProxyService — orchestration', () => {
       tierService as unknown as TierService,
       openaiOauth as unknown as OpenaiOauthService,
       minimaxOauth as unknown as MinimaxOauthService,
+      geminiOauth as unknown as GeminiOauthService,
       momentum as unknown as SessionMomentumService,
       limitCheck as unknown as LimitCheckService,
       fallbackService as unknown as ProxyFallbackService,
@@ -705,6 +709,85 @@ describe('ProxyService — orchestration', () => {
       await svc.proxyRequest(baseOpts());
       expect(signatureCache.retrieve).toHaveBeenCalledWith('sess-1', 'tool-call-1');
       expect(thinkingCache.retrieve).toHaveBeenCalledWith('sess-1', 'first-use-1');
+    });
+
+    it('forwards body.tools to the resolver when present', async () => {
+      // Branch coverage: `Array.isArray(body.tools) ? body.tools : undefined`
+      // — pass an array of tools and verify the resolver receives it as the
+      // third positional arg.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const tools = [
+        {
+          type: 'function',
+          function: { name: 'web_search', description: 'Search the web' },
+        },
+      ];
+      await svc.proxyRequest(
+        baseOpts({
+          body: {
+            messages: [{ role: 'user', content: 'find cats' }],
+            tools,
+          },
+        }),
+      );
+      // Third positional argument of resolveService.resolve is scoringTools.
+      const callArgs = resolveService.resolve.mock.calls[0];
+      expect(callArgs[2]).toEqual(tools);
+    });
+
+    it('converts a Responses-API body to chat-completions for routing when apiMode is "responses"', async () => {
+      // Branch coverage for line 113: when apiMode === 'responses', the
+      // service must derive a chat-completions body via toChatCompletionsRequest
+      // before scoring/routing — even though the original body keeps the
+      // Responses-API `input` field for downstream forwarding.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'responses',
+          body: {
+            input: 'do the thing',
+            instructions: 'be helpful',
+          } as never,
+        }),
+      );
+
+      // The resolver received synthesized chat-completions messages, not the
+      // raw `input` string — proves toChatCompletionsRequest was applied.
+      const [, scoringMessages] = resolveService.resolve.mock.calls[0];
+      expect(scoringMessages.some((m) => m.role === 'user' && m.content === 'do the thing')).toBe(
+        true,
+      );
+      // chatBody is forwarded alongside the original body for downstream use.
+      const forwardArgs = fallbackService.tryForwardToProvider.mock.calls[0][0];
+      expect(forwardArgs.apiMode).toBe('responses');
+      expect(forwardArgs.chatBody).toBeDefined();
     });
 
     it('strips system / developer roles when scoring', async () => {

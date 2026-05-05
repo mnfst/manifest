@@ -413,6 +413,39 @@
   line-height: 1.5;
 }
 
+.provider-detail__plans-hint {
+  clear: both;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  margin: 0;
+  padding-top: 16px;
+}
+
+.provider-detail__plans-hint a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.provider-detail__plans-hint a:hover {
+  color: hsl(var(--foreground));
+}
+
+.provider-detail__paste {
+  clear: both;
+  margin-top: 4px;
+}
+
+.provider-detail__waiting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  padding: 12px 0 4px;
+}
+
 .provider-detail__signin-btn {
   display: inline-flex;
   align-items: center;

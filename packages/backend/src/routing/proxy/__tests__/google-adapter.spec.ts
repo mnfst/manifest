@@ -2,6 +2,7 @@ import {
   toGoogleRequest,
   fromGoogleResponse,
   transformGoogleStreamChunk as transformGoogleStreamChunkRaw,
+  wrapCodeAssistRequest,
 } from '../google-adapter';
 
 /**
@@ -409,6 +410,15 @@ describe('Google Adapter', () => {
       const result = toGoogleRequest(body, 'gemini-2.0-flash');
 
       expect(result.generationConfig).toBeUndefined();
+    });
+
+    it('falls back to an empty contents array when body.messages is missing entirely', () => {
+      // Defensive `body.messages || []` branch — the proxy validates payloads
+      // upstream, but the adapter must not crash if a future caller forgets
+      // the messages field (e.g. raw tool-only invocations).
+      const result = toGoogleRequest({}, 'gemini-2.0-flash');
+      expect(result.contents).toEqual([]);
+      expect(result.systemInstruction).toBeUndefined();
     });
 
     it('handles tool_calls with empty arguments string in assistant messages', () => {
@@ -1532,6 +1542,74 @@ describe('Google Adapter', () => {
         name: 'write_file',
         response: { result: 'ok' },
       });
+    });
+  });
+
+  describe('Code Assist envelope (wrapCodeAssistRequest + unwrap on response)', () => {
+    it('wraps the Gemini body with model + project + nested request', () => {
+      const geminiBody = { contents: [{ role: 'user', parts: [{ text: 'hi' }] }] };
+      const env = wrapCodeAssistRequest(geminiBody, 'gemini-2.5-pro', 'project-42');
+      expect(env).toEqual({
+        model: 'gemini-2.5-pro',
+        project: 'project-42',
+        request: {
+          contents: [{ role: 'user', parts: [{ text: 'hi' }] }],
+          model: 'gemini-2.5-pro',
+        },
+      });
+    });
+
+    it('omits the project field when no project id is available', () => {
+      const env = wrapCodeAssistRequest({ contents: [] }, 'gemini-2.5-flash', undefined);
+      expect(env).not.toHaveProperty('project');
+      expect(env.model).toBe('gemini-2.5-flash');
+    });
+
+    it('omits the project field when the project id is empty string', () => {
+      const env = wrapCodeAssistRequest({ contents: [] }, 'gemini-2.5-flash', '');
+      expect(env).not.toHaveProperty('project');
+    });
+
+    it('unwraps Code Assist envelopes in non-streaming responses', () => {
+      const wrapped = {
+        response: {
+          candidates: [
+            {
+              content: { parts: [{ text: 'Hello from Code Assist' }] },
+              finishReason: 'STOP',
+            },
+          ],
+          usageMetadata: { promptTokenCount: 1, candidatesTokenCount: 2, totalTokenCount: 3 },
+        },
+      };
+      const result = fromGoogleResponse(wrapped, 'gemini-2.5-pro');
+      const choices = result.choices as Array<Record<string, unknown>>;
+      expect((choices[0].message as Record<string, unknown>).content).toBe(
+        'Hello from Code Assist',
+      );
+      const usage = result.usage as Record<string, unknown>;
+      expect(usage.prompt_tokens).toBe(1);
+      expect(usage.completion_tokens).toBe(2);
+    });
+
+    it('unwraps Code Assist envelopes in streaming chunks', () => {
+      const chunk = JSON.stringify({
+        response: {
+          candidates: [{ content: { parts: [{ text: 'streamed' }] } }],
+        },
+      });
+      const out = transformGoogleStreamChunkRaw(chunk, 'gemini-2.5-flash').chunk;
+      expect(out).not.toBeNull();
+      expect(out!).toContain('"content":"streamed"');
+    });
+
+    it('still handles non-enveloped responses (Generative Language endpoint)', () => {
+      const direct = {
+        candidates: [{ content: { parts: [{ text: 'direct' }] }, finishReason: 'STOP' }],
+      };
+      const result = fromGoogleResponse(direct, 'gemini-2.5-pro');
+      const choices = result.choices as Array<Record<string, unknown>>;
+      expect((choices[0].message as Record<string, unknown>).content).toBe('direct');
     });
   });
 });

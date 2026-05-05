@@ -143,6 +143,17 @@ describe('provider-client-converters', () => {
       expect(result).not.toHaveProperty('max_tokens');
     });
 
+    it('should delete non-number, non-string max_tokens for deepseek', () => {
+      // The third arm of the typeof ternary (`Number.NaN`) only fires when the
+      // value is something like a boolean, null, or object — none of which can
+      // be parsed as a positive integer token count.
+      const body = { messages: [], max_tokens: true as unknown };
+
+      const result = sanitizeOpenAiBody(body as never, 'deepseek', 'deepseek-chat');
+
+      expect(result).not.toHaveProperty('max_tokens');
+    });
+
     /* ── Message sanitization: reasoning_content ── */
 
     it('should strip reasoning_content for non-deepseek providers', () => {

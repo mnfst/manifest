@@ -49,3 +49,24 @@ export function pollMinimaxOAuth(flowId: string) {
     flowId,
   });
 }
+
+export function getGeminiOAuthUrl(agentName: string) {
+  return fetchJson<{ url: string }>(`/oauth/gemini/authorize`, {
+    agentName,
+  });
+}
+
+export function submitGeminiOAuthCallback(code: string, state: string) {
+  return fetchMutate<{ ok: boolean }>('/oauth/gemini/callback', {
+    method: 'POST',
+    body: JSON.stringify({ code, state }),
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+export function revokeGeminiOAuth(agentName: string) {
+  return fetchMutate<{ ok: boolean }>(
+    `/oauth/gemini/revoke?agentName=${encodeURIComponent(agentName)}`,
+    { method: 'POST' },
+  );
+}

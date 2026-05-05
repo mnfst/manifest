@@ -81,6 +81,12 @@ export class ModelDiscoveryService {
             endpointOverride = blob.u;
           }
         }
+      } else if (lowerProvider === 'gemini') {
+        // The Code Assist gateway has no public /models endpoint, so live
+        // discovery isn't possible. Drop the token to fall through to the
+        // subscription-fallback path; `supplementWithKnownModels` then
+        // surfaces the curated Google AI Pro / Ultra whitelist.
+        apiKey = '';
       } else if (lowerProvider === 'copilot' && this.copilotTokenService) {
         try {
           apiKey = await this.copilotTokenService.getCopilotToken(apiKey);

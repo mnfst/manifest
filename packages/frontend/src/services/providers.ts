@@ -119,7 +119,10 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   },
   gemini: {
     initial: 'G',
-    subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
+    subtitle: 'Gemini 3.1 Pro, 2.5 Pro, 2.5 Flash',
+    supportsSubscription: true,
+    subscriptionLabel: 'Google AI Pro/Ultra subscription',
+    subscriptionAuthMode: 'popup_oauth',
     models: [],
   },
   llamacpp: {

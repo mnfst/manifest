@@ -8,6 +8,7 @@ import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { CustomProvider } from '../../../entities/custom-provider.entity';
 import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import { GeminiOauthService } from '../../oauth/gemini-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
@@ -18,6 +19,7 @@ describe('ProxyFallbackService', () => {
   let customProviderRepo: jest.Mocked<Repository<CustomProvider>>;
   let openaiOauth: jest.Mocked<OpenaiOauthService>;
   let minimaxOauth: jest.Mocked<MinimaxOauthService>;
+  let geminiOauth: jest.Mocked<GeminiOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
@@ -43,6 +45,10 @@ describe('ProxyFallbackService', () => {
       unwrapToken: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<MinimaxOauthService>;
 
+    geminiOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<GeminiOauthService>;
+
     providerClient = {
       forward: jest.fn(),
     } as unknown as jest.Mocked<ProviderClient>;
@@ -60,6 +66,7 @@ describe('ProxyFallbackService', () => {
       customProviderRepo,
       openaiOauth,
       minimaxOauth,
+      geminiOauth,
       providerClient,
       copilotToken,
       pricingCache,
@@ -287,21 +294,76 @@ describe('ProxyFallbackService', () => {
         stream: false,
         sessionKey: 'sess-1',
         authType: 'subscription',
-        resourceUrl: 'https://api.minimax.io/anthropic',
+        subscriptionResource: 'https://api.minimax.io/anthropic',
       });
 
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'minimax',
-        apiKey: 'token',
-        model: 'MiniMax-M2.5',
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'minimax',
+          apiKey: 'token',
+          model: 'MiniMax-M2.5',
+          body,
+          stream: false,
+          customEndpoint: expect.objectContaining({
+            baseUrl: 'https://api.minimax.io/anthropic',
+            format: 'anthropic',
+          }),
+          authType: 'subscription',
+          subscriptionResource: 'https://api.minimax.io/anthropic',
+        }),
+      );
+    });
+
+    it('overrides Qwen base URL when a non-default region is configured', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      // 'singapore' is one of the resolved regions recognized by isQwenResolvedRegion.
+      providerKeyService.getProviderRegion.mockResolvedValueOnce('singapore');
+
+      await service.tryForwardToProvider({
+        provider: 'qwen',
+        apiKey: 'qwen-key',
+        model: 'qwen-max',
         body,
         stream: false,
-        customEndpoint: expect.objectContaining({
-          baseUrl: 'https://api.minimax.io/anthropic',
-          format: 'anthropic',
-        }),
-        authType: 'subscription',
+        sessionKey: 'sess-1',
+        providerRegion: 'singapore',
       });
+
+      // The custom endpoint must be applied with the region-specific
+      // OpenAI-compatible base URL coming from getQwenCompatibleBaseUrl.
+      const forwardArgs = providerClient.forward.mock.calls[0][0];
+      expect(forwardArgs.customEndpoint).toBeDefined();
+      expect(forwardArgs.customEndpoint?.format).toBe('openai');
+      expect(forwardArgs.customEndpoint?.baseUrl).toMatch(/^https:\/\//);
+      expect(forwardArgs.customEndpoint?.requiresSsrfRevalidation).toBe(true);
+    });
+
+    it('does not override Qwen base URL when region is not in the resolved set', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'qwen',
+        apiKey: 'qwen-key',
+        model: 'qwen-max',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        providerRegion: null,
+      });
+
+      // No region → no endpoint override → no customEndpoint at all.
+      const forwardArgs = providerClient.forward.mock.calls[0][0];
+      expect(forwardArgs.customEndpoint).toBeUndefined();
     });
 
     it('ignores invalid minimax resource URL', async () => {
@@ -320,18 +382,25 @@ describe('ProxyFallbackService', () => {
         stream: false,
         sessionKey: 'sess-1',
         authType: 'subscription',
-        resourceUrl: 'not-a-valid-url',
+        subscriptionResource: 'not-a-valid-url',
       });
 
-      // Should forward without custom endpoint
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'minimax',
-        apiKey: 'token',
-        model: 'MiniMax-M2.5',
-        body,
-        stream: false,
-        authType: 'subscription',
-      });
+      // Should forward without custom endpoint, but the resource URL still
+      // propagates to subscriptionResource so downstream consumers can opt
+      // to use it (e.g. Code Assist envelope) — the MiniMax adapter falls
+      // back to the default endpoint when the URL fails normalization.
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'minimax',
+          apiKey: 'token',
+          model: 'MiniMax-M2.5',
+          body,
+          stream: false,
+          authType: 'subscription',
+          customEndpoint: undefined,
+          subscriptionResource: 'not-a-valid-url',
+        }),
+      );
     });
   });
 
@@ -603,6 +672,62 @@ describe('ProxyFallbackService', () => {
       expect(providerClient.forward).toHaveBeenCalledTimes(2);
     });
 
+    it('uses inferred prefix when the prefix provider is active', async () => {
+      // Branch coverage for the truthy arm of `prefix && hasActiveProvider`.
+      // Model has the `anthropic/` prefix, Anthropic is active for the agent
+      // → provider should be inferred from the prefix without going through
+      // pricingCache or findProviderForModel.
+      providerKeyService.hasActiveProvider.mockResolvedValue(true);
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-ant');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['anthropic/claude-sonnet-4'],
+        body,
+        false,
+        'sess-1',
+        'gpt-4o',
+      );
+
+      expect(result.success).not.toBeNull();
+      expect(result.success!.provider).toBe('anthropic');
+      // findProviderForModel must not be called when the prefix already wins.
+      expect(providerKeyService.findProviderForModel).not.toHaveBeenCalled();
+    });
+
+    it('treats a custom provider id without slash as the entire provider string', async () => {
+      // Branch coverage for `slashIdx > 0 ? substring : requestedModel`. When
+      // a fallback model is just `custom:cp-1` (no slash → no model name),
+      // the whole string is treated as the provider id.
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-key');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['custom:cp-1'],
+        body,
+        false,
+        'sess-1',
+        'gpt-4o',
+      );
+
+      expect(result.success).not.toBeNull();
+      expect(result.success!.provider).toBe('custom:cp-1');
+    });
+
     it('falls through to findProviderForModel when inferred prefix provider is inactive (#1383)', async () => {
       // Model has 'anthropic/' prefix but Anthropic is disabled
       providerKeyService.hasActiveProvider.mockResolvedValue(false);
@@ -656,6 +781,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('access-token');
@@ -678,10 +804,11 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('mm-token');
-      expect(result.resourceUrl).toBe('https://api.minimax.io');
+      expect(result.subscriptionResource).toBe('https://api.minimax.io');
     });
 
     it('returns original key for non-subscription auth', async () => {
@@ -693,6 +820,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('sk-key');
@@ -710,6 +838,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('blob');
@@ -724,6 +853,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('sk-ant');
@@ -742,9 +872,52 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('blob');
+    });
+
+    it('unwraps Gemini subscription token and surfaces the project id as subscriptionResource', async () => {
+      geminiOauth.unwrapToken.mockResolvedValue({
+        t: 'gem-token',
+        r: 'gem-refresh',
+        e: Date.now() + 60000,
+        u: 'project-42',
+      });
+
+      const result = await resolveApiKey(
+        'gemini',
+        'blob',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        geminiOauth,
+      );
+
+      expect(result.apiKey).toBe('gem-token');
+      expect(result.subscriptionResource).toBe('project-42');
+      expect(geminiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
+    });
+
+    it('falls back to the raw blob when Gemini unwrap returns null', async () => {
+      geminiOauth.unwrapToken.mockResolvedValue(null);
+
+      const result = await resolveApiKey(
+        'gemini',
+        'blob',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        geminiOauth,
+      );
+
+      expect(result.apiKey).toBe('blob');
+      expect(result.subscriptionResource).toBeUndefined();
     });
 
     it('returns Z.ai subscription API key unchanged (no OAuth unwrap)', async () => {
@@ -756,10 +929,11 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('zai-sub-key');
-      expect(result.resourceUrl).toBeUndefined();
+      expect(result.subscriptionResource).toBeUndefined();
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
     });

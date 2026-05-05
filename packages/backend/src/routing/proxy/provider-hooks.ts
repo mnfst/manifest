@@ -16,6 +16,7 @@ const SUBSCRIPTION_ENDPOINT_OVERRIDES: Record<string, string> = {
   openai: 'openai-subscription',
   minimax: 'minimax-subscription',
   zai: 'zai-subscription',
+  google: 'google-subscription',
 };
 
 export function resolveSubscriptionEndpointKey(endpointKey: string): string | undefined {
