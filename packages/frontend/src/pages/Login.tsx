@@ -166,14 +166,7 @@ const Login: Component = () => {
           </A>
         </div>
         <button class="auth-form__submit" type="submit" disabled={loading()}>
-          <Show when={loading()} fallback={<span>Sign in</span>}>
-            <span class="spinner" />
-          </Show>
-          <Show when={!loading() && lastAuthMethod() === 'email'}>
-            <span class="auth-last-used" aria-label="Last used">
-              Last used
-            </span>
-          </Show>
+          {loading() ? <span class="spinner" /> : 'Sign in'}
         </button>
       </form>
       <div class="auth-footer">

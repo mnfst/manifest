@@ -248,13 +248,6 @@ describe("Login", () => {
     expect(getLastAuthMethod()).toBeNull();
   });
 
-  it("shows Last used badge on submit when previous method was email", () => {
-    setLastAuthMethod("email");
-    const { container } = render(() => <Login />);
-    const submit = container.querySelector('button[type="submit"]')!;
-    expect(submit.querySelector(".auth-last-used")).not.toBeNull();
-  });
-
   it("forwards lastUsed to SocialButtons when previous method was a provider", async () => {
     mockCheckSocialProviders.mockResolvedValue(["github"]);
     setLastAuthMethod("github");

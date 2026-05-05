@@ -29,7 +29,7 @@ vi.mock("../../src/services/setup-status.js", () => ({
 }));
 
 import Register from "../../src/pages/Register";
-import { getLastAuthMethod, setLastAuthMethod } from "../../src/services/last-auth-method";
+import { getLastAuthMethod } from "../../src/services/last-auth-method";
 
 describe("Register", () => {
   beforeEach(() => {
@@ -256,13 +256,6 @@ describe("Register", () => {
       expect(container.textContent).toContain("boom");
     });
     expect(getLastAuthMethod()).toBeNull();
-  });
-
-  it("shows Last used badge on submit when previous method was email", () => {
-    setLastAuthMethod("email");
-    const { container } = render(() => <Register />);
-    const submit = container.querySelector('button[type="submit"]')!;
-    expect(submit.querySelector(".auth-last-used")).not.toBeNull();
   });
 
   it("shows back to sign in link on verification screen", async () => {
