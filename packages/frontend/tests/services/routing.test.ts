@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { agentPath } from "../../src/services/routing";
-import { getComplexityStatus, toggleComplexity } from "../../src/services/api/routing";
+import {
+  getComplexityStatus,
+  setTierParamDefaults,
+  toggleComplexity,
+} from "../../src/services/api/routing";
 
 describe("agentPath", () => {
   it("builds path with agent name", () => {
@@ -63,5 +67,48 @@ describe("toggleComplexity", () => {
       expect.objectContaining({ method: "POST" }),
     );
     expect(result).toEqual(payload);
+  });
+});
+
+describe("setTierParamDefaults", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("PATCHes /params with the supplied defaults", async () => {
+    const payload = { tier: "standard", param_defaults: { thinking: { type: "disabled" } } };
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve(JSON.stringify(payload)),
+    } as Response);
+
+    const result = await setTierParamDefaults("my-agent", "standard", {
+      thinking: { type: "disabled" },
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/routing/my-agent/tiers/standard/params"),
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({ paramDefaults: { thinking: { type: "disabled" } } }),
+      }),
+    );
+    expect(result).toEqual(payload);
+  });
+
+  it("sends paramDefaults: null to clear", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve(JSON.stringify({})),
+    } as Response);
+
+    await setTierParamDefaults("my-agent", "standard", null);
+    const call = vi.mocked(fetch).mock.calls[0];
+    expect(JSON.parse((call[1]!.body as string))).toEqual({ paramDefaults: null });
   });
 });

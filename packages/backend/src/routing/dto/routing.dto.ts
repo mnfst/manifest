@@ -2,6 +2,7 @@ import {
   IsString,
   IsIn,
   IsNotEmpty,
+  IsObject,
   IsOptional,
   IsArray,
   ArrayMaxSize,
@@ -105,6 +106,19 @@ export class SetOverrideDto {
   @ValidateNested()
   @Type(() => ModelRouteDto)
   route?: ModelRouteDto;
+}
+
+/**
+ * Body for PATCH `…/tiers/:tier/params` and `…/specificity/:category/params`.
+ * `paramDefaults: null` clears the configured defaults; an object replaces
+ * them wholesale. Validation only checks shape; we don't lock the field set
+ * because new provider knobs (reasoning_effort, safety, etc.) shouldn't
+ * require a backend release.
+ */
+export class SetParamDefaultsDto {
+  @IsOptional()
+  @IsObject()
+  paramDefaults?: Record<string, unknown> | null;
 }
 
 export class CopilotPollDto {

@@ -24,6 +24,8 @@ export {
   routeToLegacy,
 } from './model-route';
 export type { ModelRoute, LegacyOverrideTriple } from './model-route';
+export { applyRequestParamDefaults } from './request-params';
+export type { RequestParamDefaults } from './request-params';
 export { API_KEY_PREFIX } from './api-key';
 export { MODEL_PREFIX_MAP, inferProviderFromModel } from './provider-inference';
 export {

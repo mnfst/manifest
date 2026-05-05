@@ -25,6 +25,11 @@ import {
   refreshPricing,
   getComplexityStatus,
   toggleComplexity,
+  setTierParamDefaults,
+  setSpecificityParamDefaults,
+  type RequestParamDefaults,
+  type TierAssignment,
+  type SpecificityAssignment,
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
 
@@ -53,10 +58,8 @@ const Routing: Component = () => {
     () => agentName(),
     getCustomProviders,
   );
-  const [specificityAssignments, { refetch: refetchSpecificity }] = createResource(
-    () => agentName(),
-    getSpecificityAssignments,
-  );
+  const [specificityAssignments, { refetch: refetchSpecificity, mutate: mutateSpecificity }] =
+    createResource(() => agentName(), getSpecificityAssignments);
   const [headerTiers, { refetch: refetchHeaderTiers }] = createResource(
     () => agentName(),
     (name) => listHeaderTiers(name).catch(() => [] as HeaderTier[]),
@@ -355,6 +358,16 @@ const Routing: Component = () => {
                   togglingComplexity={togglingComplexity}
                   onToggleComplexity={handleToggleComplexity}
                   embedded
+                  persistParamDefaults={(name, tier, paramDefaults) =>
+                    setTierParamDefaults(name, tier, paramDefaults)
+                  }
+                  onParamDefaultsSaved={(tier, paramDefaults) => {
+                    mutateTiers((rows: TierAssignment[] | undefined) =>
+                      rows?.map((row) =>
+                        row.tier === tier ? { ...row, param_defaults: paramDefaults } : row,
+                      ),
+                    );
+                  }}
                 />
               ),
               specificity: (
@@ -400,6 +413,16 @@ const Routing: Component = () => {
                   refetchAll={refetchAll}
                   refetchSpecificity={() => refetchSpecificity() as unknown as Promise<void>}
                   embedded
+                  persistParamDefaults={(name, category, paramDefaults) =>
+                    setSpecificityParamDefaults(name, category, paramDefaults)
+                  }
+                  onParamDefaultsSaved={(category, paramDefaults) => {
+                    mutateSpecificity((rows: SpecificityAssignment[] | undefined) =>
+                      rows?.map((row) =>
+                        row.category === category ? { ...row, param_defaults: paramDefaults } : row,
+                      ),
+                    );
+                  }}
                 />
               ),
               custom: (

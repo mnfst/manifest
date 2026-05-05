@@ -286,6 +286,60 @@ describe('ProxyService — orchestration', () => {
       expect(momentum.recordCategory).not.toHaveBeenCalled();
     });
 
+    it('merges configured param_defaults into the outbound body when client omits them', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+        param_defaults: { thinking: { type: 'disabled' } },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      const forwardedBody = fallbackService.tryForwardToProvider.mock.calls[0][0].body;
+      expect(forwardedBody).toMatchObject({
+        thinking: { type: 'disabled' },
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+    });
+
+    it('lets the client override configured param_defaults by presence', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+        param_defaults: { thinking: { type: 'disabled' } },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: {
+            messages: [{ role: 'user', content: 'hi' }],
+            thinking: { type: 'enabled' },
+          } as never,
+        }),
+      );
+      const forwardedBody = fallbackService.tryForwardToProvider.mock.calls[0][0].body;
+      expect(forwardedBody.thinking).toEqual({ type: 'enabled' });
+    });
+
     it('does not record momentum for non-scoring tiers (e.g. "default")', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'default',

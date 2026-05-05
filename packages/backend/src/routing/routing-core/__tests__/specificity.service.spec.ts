@@ -229,6 +229,82 @@ describe('SpecificityService', () => {
     });
   });
 
+  describe('setParamDefaults', () => {
+    it('updates the existing row when one is present', async () => {
+      const existing = {
+        agent_id: 'agent-1',
+        category: 'coding',
+        param_defaults: null,
+      } as unknown as SpecificityAssignment;
+      repo.findOne.mockResolvedValue(existing);
+      const defaults = { thinking: { type: 'disabled' as const } };
+
+      const result = await svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults);
+
+      expect(result.param_defaults).toEqual(defaults);
+      expect(repo.save).toHaveBeenCalledWith(existing);
+      expect(repo.insert).not.toHaveBeenCalled();
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('clears defaults when null is passed', async () => {
+      const existing = {
+        agent_id: 'agent-1',
+        category: 'coding',
+        param_defaults: { thinking: { type: 'disabled' } },
+      } as unknown as SpecificityAssignment;
+      repo.findOne.mockResolvedValue(existing);
+
+      await svc.setParamDefaults('agent-1', 'user-1', 'coding', null);
+
+      expect(existing.param_defaults).toBeNull();
+      expect(repo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('inserts a new (inactive) row when none exists', async () => {
+      repo.findOne.mockResolvedValue(null);
+      const defaults = { thinking: { type: 'enabled' as const } };
+
+      const result = await svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults);
+
+      expect(repo.insert).toHaveBeenCalledTimes(1);
+      expect(result.param_defaults).toEqual(defaults);
+      expect(result.is_active).toBe(false);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('retries on insert conflict when another row appears mid-flight', async () => {
+      repo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({
+          agent_id: 'agent-1',
+          category: 'coding',
+          param_defaults: null,
+        } as SpecificityAssignment)
+        .mockResolvedValueOnce({
+          agent_id: 'agent-1',
+          category: 'coding',
+          param_defaults: null,
+        } as SpecificityAssignment);
+      repo.insert.mockRejectedValueOnce(new Error('duplicate'));
+
+      const defaults = { thinking: { type: 'disabled' as const } };
+      const result = await svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults);
+
+      expect(result.param_defaults).toEqual(defaults);
+    });
+
+    it('returns the freshly built record when insert fails and retry finds nothing', async () => {
+      repo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+      repo.insert.mockRejectedValueOnce(new Error('unrelated'));
+
+      const defaults = { thinking: { type: 'disabled' as const } };
+      const result = await svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults);
+
+      expect(result.param_defaults).toEqual(defaults);
+    });
+  });
+
   describe('clearOverride', () => {
     it('no-ops when no row exists', async () => {
       repo.findOne.mockResolvedValue(null);

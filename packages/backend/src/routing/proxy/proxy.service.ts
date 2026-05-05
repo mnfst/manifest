@@ -11,7 +11,7 @@ import { LimitCheckService } from '../../notifications/services/limit-check.serv
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
 import type { SpecificityCategory, TierSlot } from 'manifest-shared';
-import { SPECIFICITY_CATEGORIES } from 'manifest-shared';
+import { SPECIFICITY_CATEGORIES, applyRequestParamDefaults } from 'manifest-shared';
 import {
   ProxyFallbackService,
   FailedFallback,
@@ -154,12 +154,21 @@ export class ProxyService {
     const thinkingLookup = (firstToolUseId: string) =>
       this.thinkingCache.retrieve(sessionKey, firstToolUseId);
 
+    // Merge per-assignment defaults (e.g. DeepSeek's thinking-mode toggle)
+    // into the outbound bodies. Client-supplied fields win by presence.
+    // Done once here so primary forward, stream warmup retries, and the
+    // fallback chain all use the same merged payload.
+    const effectiveBody = applyRequestParamDefaults(body, resolved.param_defaults);
+    const effectiveChatBody = chatBody
+      ? applyRequestParamDefaults(chatBody, resolved.param_defaults)
+      : undefined;
+
     const forward = await this.fallbackService.tryForwardToProvider({
       provider: route.provider,
       apiKey: credentials.apiKey,
       model: primaryModel,
-      body,
-      chatBody,
+      body: effectiveBody,
+      chatBody: effectiveChatBody,
       stream,
       sessionKey,
       signal,
@@ -178,8 +187,8 @@ export class ProxyService {
         resolved,
         primaryModel,
         forward,
-        body,
-        chatBody,
+        body: effectiveBody,
+        chatBody: effectiveChatBody,
         stream,
         sessionKey,
         signal,
@@ -230,8 +239,8 @@ export class ProxyService {
         resolved,
         primaryModel,
         forward: syntheticForward,
-        body,
-        chatBody,
+        body: effectiveBody,
+        chatBody: effectiveChatBody,
         stream,
         sessionKey,
         signal,

@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
 } from '@nestjs/common';
@@ -15,7 +16,12 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { TierService } from './routing-core/tier.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
-import { AgentNameParamDto, SetOverrideDto, SetFallbacksDto } from './dto/routing.dto';
+import {
+  AgentNameParamDto,
+  SetOverrideDto,
+  SetFallbacksDto,
+  SetParamDefaultsDto,
+} from './dto/routing.dto';
 import { Agent } from '../entities/agent.entity';
 
 @Controller('api/v1/routing')
@@ -103,6 +109,18 @@ export class TierController {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.tierService.clearFallbacks(agent.id, tier);
     return { ok: true };
+  }
+
+  @Patch(':agentName/tiers/:tier/params')
+  async setParamDefaults(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('tier') tier: string,
+    @Body() body: SetParamDefaultsDto,
+  ) {
+    this.validateTier(tier);
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.tierService.setParamDefaults(agent.id, user.id, tier, body.paramDefaults ?? null);
   }
 
   @Get(':agentName/complexity/status')

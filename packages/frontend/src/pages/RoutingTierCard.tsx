@@ -7,13 +7,16 @@ import { authBadgeFor } from '../components/AuthBadge.js';
 import { pricePerM, resolveProviderId, inferProviderFromModel } from '../services/routing-utils.js';
 import { customProviderColor } from '../services/formatters.js';
 import FallbackList from '../components/FallbackList.js';
+import ModelParamsDialog from '../components/ModelParamsDialog.js';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
+import { thinkingDefaultFor } from '../services/provider-thinking-defaults.js';
 import { toast } from '../services/toast-store.js';
 import type {
   TierAssignment,
   AvailableModel,
   AuthType,
   ModelRoute,
+  RequestParamDefaults,
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
@@ -78,6 +81,17 @@ export interface RoutingTierCardProps {
     routes?: ModelRoute[],
   ) => Promise<unknown>;
   persistClearFallbacks?: (agentName: string, tier: string) => Promise<unknown>;
+  /**
+   * Persist per-assignment request body defaults. When omitted the params
+   * affordance is hidden, so callers that don't yet have a backend route
+   * for the surface (e.g. header tiers) can drop in without changes.
+   */
+  persistParamDefaults?: (
+    agentName: string,
+    slot: string,
+    paramDefaults: RequestParamDefaults | null,
+  ) => Promise<unknown>;
+  onParamDefaultsSaved?: (slot: string, paramDefaults: RequestParamDefaults | null) => void;
 }
 
 const effectiveRoute = (
@@ -103,6 +117,31 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const [primaryDragging, setPrimaryDragging] = createSignal(false);
   const [fallbackDragging, setFallbackDragging] = createSignal<number | null>(null);
   const [primaryDropTarget, setPrimaryDropTarget] = createSignal(false);
+  const [paramsOpen, setParamsOpen] = createSignal(false);
+  const paramDefaults = () => props.tier()?.param_defaults ?? null;
+  const hasParamDefaults = () => paramDefaults() !== null;
+  // Resolve the effective provider for whichever model is currently routed
+  // (override or auto-assigned). The params popup only makes sense for
+  // providers whose API actually consumes the configurable knobs, so we
+  // gate the affordance on a known thinking default.
+  const effectiveProviderId = () => {
+    const model = eff();
+    if (!model) return undefined;
+    return manualProviderId() ?? providerIdForModel(model, props.models());
+  };
+  const thinkingDefault = () => thinkingDefaultFor(effectiveProviderId());
+
+  const saveParamDefaults = async (next: RequestParamDefaults | null) => {
+    const persist = props.persistParamDefaults;
+    if (!persist) return;
+    try {
+      await persist(props.agentName(), props.stage.id, next);
+      props.onParamDefaultsSaved?.(props.stage.id, next);
+      toast.success(next ? 'Model parameters updated' : 'Model parameters cleared');
+    } catch {
+      // fetchMutate already toasted the error
+    }
+  };
 
   const handlePrimaryDragStart = (e: DragEvent) => {
     setPrimaryDragging(true);
@@ -407,6 +446,30 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                             <span class="routing-card__auto-tag">auto</span>
                           </Show>
                         </div>
+                        <Show when={props.persistParamDefaults && thinkingDefault()}>
+                          <button
+                            class="routing-card__chip-action"
+                            onClick={() => setParamsOpen(true)}
+                            aria-label={`Configure parameters for ${props.stage.label}`}
+                            classList={{
+                              'routing-card__chip-action--active': hasParamDefaults(),
+                            }}
+                          >
+                            <span class="routing-tooltip">
+                              {hasParamDefaults() ? 'Parameters configured' : 'Parameters'}
+                            </span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="12"
+                              height="12"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path d="M3 6h7a3 3 0 0 1 6 0h2a1 1 0 1 1 0 2h-2a3 3 0 0 1-6 0H3a1 1 0 0 1 0-2zm0 10h11a3 3 0 0 1 6 0h1a1 1 0 1 1 0 2h-1a3 3 0 0 1-6 0H3a1 1 0 1 1 0-2zm10-9a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm5 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+                            </svg>
+                          </button>
+                        </Show>
                         <button
                           class="routing-card__chip-action"
                           onClick={() => props.onDropdownOpen(props.stage.id)}
@@ -470,6 +533,21 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             />
           </div>
         </Show>
+      </Show>
+
+      <Show when={thinkingDefault()}>
+        {(providerDefault) => (
+          <ModelParamsDialog
+            open={paramsOpen()}
+            slotLabel={props.stage.label.toLowerCase()}
+            current={paramDefaults()}
+            providerDefault={providerDefault()}
+            onSave={async (next) => {
+              await saveParamDefaults(next);
+            }}
+            onClose={() => setParamsOpen(false)}
+          />
+        )}
       </Show>
 
       <Show when={confirmReset()}>

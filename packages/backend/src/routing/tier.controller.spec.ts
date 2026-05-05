@@ -28,6 +28,7 @@ describe('TierController', () => {
       getFallbacks: jest.fn().mockResolvedValue([]),
       setFallbacks: jest.fn().mockResolvedValue([]),
       clearFallbacks: jest.fn().mockResolvedValue(undefined),
+      setParamDefaults: jest.fn(),
     };
     resolveAgentService = {
       resolve: jest.fn().mockResolvedValue(agent),
@@ -112,6 +113,35 @@ describe('TierController', () => {
     await expect(controller.clearFallbacks(user, 'demo', 'bogus')).rejects.toBeInstanceOf(
       BadRequestException,
     );
+  });
+
+  it('PATCH /tiers/:tier/params persists defaults and rejects unknown slots', async () => {
+    (tierService.setParamDefaults as jest.Mock).mockResolvedValue({
+      tier: 'standard',
+      param_defaults: { thinking: { type: 'disabled' } },
+    });
+
+    const out = await controller.setParamDefaults(user, 'demo', 'standard', {
+      paramDefaults: { thinking: { type: 'disabled' } },
+    });
+
+    expect(out).toEqual({ tier: 'standard', param_defaults: { thinking: { type: 'disabled' } } });
+    expect(tierService.setParamDefaults).toHaveBeenCalledWith('agent-1', 'user-1', 'standard', {
+      thinking: { type: 'disabled' },
+    });
+
+    // Omitted body → null clears the defaults.
+    await controller.setParamDefaults(user, 'demo', 'standard', {});
+    expect(tierService.setParamDefaults).toHaveBeenLastCalledWith(
+      'agent-1',
+      'user-1',
+      'standard',
+      null,
+    );
+
+    await expect(
+      controller.setParamDefaults(user, 'demo', 'bogus', { paramDefaults: null }),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('GET complexity/status returns the current flag', async () => {

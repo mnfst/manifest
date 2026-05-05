@@ -8,7 +8,7 @@ import { RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { randomUUID } from 'crypto';
-import type { AuthType, ModelRoute } from 'manifest-shared';
+import type { AuthType, ModelRoute, RequestParamDefaults } from 'manifest-shared';
 import { TIER_SLOTS, TierSlot } from 'manifest-shared';
 import { isManifestUsableProvider } from '../../common/utils/subscription-support';
 import { explicitRoute, unambiguousRoute } from './route-helpers';
@@ -202,6 +202,48 @@ export class TierService {
       },
     );
     this.routingCache.invalidateAgent(agentId);
+  }
+
+  /* ── Param defaults ── */
+
+  /**
+   * Set or clear the configured request body defaults for a tier. Lazily
+   * creates the assignment row if missing so the popup can be opened
+   * before the user picks a primary model. Pass `null` to clear.
+   */
+  async setParamDefaults(
+    agentId: string,
+    userId: string,
+    tier: string,
+    paramDefaults: RequestParamDefaults | null,
+  ): Promise<TierAssignment> {
+    const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
+    if (existing) {
+      existing.param_defaults = paramDefaults;
+      existing.updated_at = new Date().toISOString();
+      await this.tierRepo.save(existing);
+      this.routingCache.invalidateAgent(agentId);
+      return existing;
+    }
+
+    const record: TierAssignment = Object.assign(new TierAssignment(), {
+      id: randomUUID(),
+      user_id: userId,
+      agent_id: agentId,
+      tier,
+      override_route: null,
+      auto_assigned_route: null,
+      fallback_routes: null,
+      param_defaults: paramDefaults,
+    });
+    try {
+      await this.tierRepo.insert(record);
+    } catch {
+      const retry = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
+      if (retry) return this.setParamDefaults(agentId, userId, tier, paramDefaults);
+    }
+    this.routingCache.invalidateAgent(agentId);
+    return record;
   }
 
   /* ── Fallbacks ── */

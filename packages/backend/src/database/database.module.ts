@@ -88,6 +88,7 @@ import { RetuneSpecificityMiscategorizedIndex1782000000000 } from './migrations/
 import { AddAgentSoftDelete1782200000000 } from './migrations/1782200000000-AddAgentSoftDelete';
 import { AddModelRouteColumns1783000000000 } from './migrations/1783000000000-AddModelRouteColumns';
 import { DropLegacyRoutingColumns1784000000000 } from './migrations/1784000000000-DropLegacyRoutingColumns';
+import { AddParamDefaultsColumns1785000000000 } from './migrations/1785000000000-AddParamDefaultsColumns';
 
 const entities = [
   AgentMessage,
@@ -177,6 +178,7 @@ const migrations = [
   AddAgentSoftDelete1782200000000,
   AddModelRouteColumns1783000000000,
   DropLegacyRoutingColumns1784000000000,
+  AddParamDefaultsColumns1785000000000,
 ];
 
 @Module({

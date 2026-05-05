@@ -3,6 +3,7 @@ import type {
   AuthType,
   AvailableModel,
   CustomProviderData,
+  RequestParamDefaults,
   RoutingProvider,
   TierAssignment,
 } from '../services/api.js';
@@ -32,6 +33,12 @@ export interface RoutingDefaultTierSectionProps {
   togglingComplexity: () => boolean;
   onToggleComplexity: () => void;
   embedded?: boolean;
+  persistParamDefaults?: (
+    agentName: string,
+    tier: string,
+    paramDefaults: RequestParamDefaults | null,
+  ) => Promise<unknown>;
+  onParamDefaultsSaved?: (tier: string, paramDefaults: RequestParamDefaults | null) => void;
 }
 
 const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (props) => {
@@ -62,6 +69,8 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
         onAddFallback={props.onAddFallback}
         getFallbacksFor={props.getFallbacksFor}
         connectedProviders={props.connectedProviders}
+        persistParamDefaults={props.persistParamDefaults}
+        onParamDefaultsSaved={props.onParamDefaultsSaved}
       />
     </div>
   );
@@ -89,6 +98,8 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
             onAddFallback={props.onAddFallback}
             getFallbacksFor={props.getFallbacksFor}
             connectedProviders={props.connectedProviders}
+            persistParamDefaults={props.persistParamDefaults}
+            onParamDefaultsSaved={props.onParamDefaultsSaved}
           />
         )}
       </For>

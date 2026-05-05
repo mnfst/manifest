@@ -1,5 +1,10 @@
 import { ScoringReason } from '../../scoring';
-import type { ModelRoute, SpecificityCategory, TierSlot } from 'manifest-shared';
+import type {
+  ModelRoute,
+  RequestParamDefaults,
+  SpecificityCategory,
+  TierSlot,
+} from 'manifest-shared';
 
 export type { AuthType } from 'manifest-shared';
 
@@ -24,4 +29,9 @@ export interface ResolveResponse {
   header_tier_id?: string;
   header_tier_name?: string;
   header_tier_color?: string;
+  /**
+   * Per-assignment outbound request body defaults, merged into the provider
+   * request before forwarding. Client-supplied fields win by presence.
+   */
+  param_defaults?: RequestParamDefaults | null;
 }

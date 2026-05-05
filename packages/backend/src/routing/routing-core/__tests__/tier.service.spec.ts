@@ -362,6 +362,83 @@ describe('TierService', () => {
     });
   });
 
+  describe('setParamDefaults', () => {
+    it('updates the existing row when one is present', async () => {
+      const existing = {
+        agent_id: 'agent-1',
+        tier: 'standard',
+        param_defaults: null,
+      } as unknown as TierAssignment;
+      tierRepo.findOne.mockResolvedValue(existing);
+      const defaults = { thinking: { type: 'disabled' as const } };
+
+      const result = await svc.setParamDefaults('agent-1', 'user-1', 'standard', defaults);
+
+      expect(result.param_defaults).toEqual(defaults);
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
+      expect(tierRepo.insert).not.toHaveBeenCalled();
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('clears defaults when null is passed', async () => {
+      const existing = {
+        agent_id: 'agent-1',
+        tier: 'standard',
+        param_defaults: { thinking: { type: 'disabled' } },
+      } as unknown as TierAssignment;
+      tierRepo.findOne.mockResolvedValue(existing);
+
+      await svc.setParamDefaults('agent-1', 'user-1', 'standard', null);
+
+      expect(existing.param_defaults).toBeNull();
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('inserts a new row when no assignment exists', async () => {
+      tierRepo.findOne.mockResolvedValue(null);
+      const defaults = { thinking: { type: 'enabled' as const } };
+
+      const result = await svc.setParamDefaults('agent-1', 'user-1', 'simple', defaults);
+
+      expect(tierRepo.insert).toHaveBeenCalledTimes(1);
+      expect(result.param_defaults).toEqual(defaults);
+      expect(result.override_route).toBeNull();
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('retries on insert conflict when another row appears mid-flight', async () => {
+      tierRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({
+          agent_id: 'agent-1',
+          tier: 'standard',
+          param_defaults: null,
+        } as TierAssignment)
+        .mockResolvedValueOnce({
+          agent_id: 'agent-1',
+          tier: 'standard',
+          param_defaults: null,
+        } as TierAssignment);
+      tierRepo.insert.mockRejectedValueOnce(new Error('duplicate'));
+
+      const defaults = { thinking: { type: 'disabled' as const } };
+      const result = await svc.setParamDefaults('agent-1', 'user-1', 'standard', defaults);
+
+      expect(result.param_defaults).toEqual(defaults);
+    });
+
+    it('falls through to the freshly built record when insert fails and retry finds nothing', async () => {
+      tierRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+      tierRepo.insert.mockRejectedValueOnce(new Error('unrelated'));
+
+      const defaults = { thinking: { type: 'disabled' as const } };
+      const result = await svc.setParamDefaults('agent-1', 'user-1', 'standard', defaults);
+
+      expect(result.param_defaults).toEqual(defaults);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+  });
+
   describe('clearOverride', () => {
     it('no-ops when no row exists', async () => {
       tierRepo.findOne.mockResolvedValue(null);

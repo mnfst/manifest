@@ -107,6 +107,10 @@ export function toggleComplexity(agentName: string) {
 
 /* -- Routing: Tier Assignments -- */
 
+export interface RequestParamDefaults {
+  thinking?: { type: 'enabled' | 'disabled' };
+}
+
 export interface TierAssignment {
   id: string;
   agent_id: string;
@@ -114,6 +118,7 @@ export interface TierAssignment {
   override_route: ModelRoute | null;
   auto_assigned_route: ModelRoute | null;
   fallback_routes: ModelRoute[] | null;
+  param_defaults: RequestParamDefaults | null;
   updated_at: string;
 }
 
@@ -143,6 +148,21 @@ export function overrideTier(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
+}
+
+export function setTierParamDefaults(
+  agentName: string,
+  tier: string,
+  paramDefaults: RequestParamDefaults | null,
+) {
+  return fetchMutate<TierAssignment>(
+    routingPath(agentName, `tiers/${encodeURIComponent(tier)}/params`),
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paramDefaults }),
+    },
+  );
 }
 
 export function resetTier(agentName: string, tier: string) {

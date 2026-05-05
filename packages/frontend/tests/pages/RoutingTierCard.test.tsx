@@ -143,6 +143,7 @@ const baseTier: TierAssignment = {
     { provider: "openai", authType: "api_key", model: "gpt-4o-mini" },
     { provider: "anthropic", authType: "api_key", model: "claude" },
   ],
+  param_defaults: null,
   updated_at: "2025-01-01",
 };
 
@@ -1069,5 +1070,179 @@ describe("RoutingTierCard", () => {
       <RoutingTierCard {...makeProps({ tier: () => tier, customProviders: () => [] })} />
     ));
     expect(container.querySelector(".provider-card__logo-letter")?.textContent).toBe("C");
+  });
+
+  describe("param defaults", () => {
+    // The params button only renders for providers we know how to configure.
+    // DeepSeek is the only one in v1, so build a tier that resolves to it.
+    const deepseekModel = {
+      model_name: "deepseek-v4-flash",
+      provider: "deepseek",
+      auth_type: "api_key" as const,
+      input_price_per_token: 0,
+      output_price_per_token: 0,
+      context_window: 64000,
+      capability_reasoning: false,
+      capability_code: false,
+      quality_score: 7,
+      display_name: "DeepSeek V4 Flash",
+    };
+    const deepseekTier: TierAssignment = {
+      ...baseTier,
+      override_route: { provider: "deepseek", authType: "api_key", model: "deepseek-v4-flash" },
+      fallback_routes: null,
+    };
+    const propsForDeepseek = (
+      overrides: Partial<Parameters<typeof RoutingTierCard>[0]> = {},
+    ) =>
+      makeProps({
+        tier: () => deepseekTier,
+        models: () => [deepseekModel],
+        ...overrides,
+      });
+
+    it("hides the params button when persistParamDefaults is not provided", () => {
+      const { container } = render(() => <RoutingTierCard {...propsForDeepseek()} />);
+      const labels = Array.from(container.querySelectorAll("[aria-label]"))
+        .map((el) => el.getAttribute("aria-label") ?? "")
+        .filter((l) => l.startsWith("Configure parameters"));
+      expect(labels.length).toBe(0);
+    });
+
+    it("hides the params button for providers without a known thinking default", () => {
+      const persist = vi.fn();
+      const { container } = render(() => (
+        <RoutingTierCard {...makeProps({ persistParamDefaults: persist })} />
+      ));
+      const labels = Array.from(container.querySelectorAll("[aria-label]"))
+        .map((el) => el.getAttribute("aria-label") ?? "")
+        .filter((l) => l.startsWith("Configure parameters"));
+      expect(labels.length).toBe(0);
+    });
+
+    it("shows the params button (without active class) when no defaults are configured", () => {
+      const persist = vi.fn().mockResolvedValue(undefined);
+      const { container } = render(() => (
+        <RoutingTierCard {...propsForDeepseek({ persistParamDefaults: persist })} />
+      ));
+      const btn = container.querySelector(
+        '[aria-label="Configure parameters for Simple"]',
+      ) as HTMLButtonElement;
+      expect(btn).not.toBeNull();
+      expect(btn.classList.contains("routing-card__chip-action--active")).toBe(false);
+    });
+
+    it("marks the params button as active when defaults are configured", () => {
+      const persist = vi.fn().mockResolvedValue(undefined);
+      const tier = {
+        ...deepseekTier,
+        param_defaults: { thinking: { type: "disabled" as const } },
+      };
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...propsForDeepseek({ tier: () => tier, persistParamDefaults: persist })}
+        />
+      ));
+      const btn = container.querySelector(
+        '[aria-label="Configure parameters for Simple"]',
+      ) as HTMLButtonElement;
+      expect(btn.classList.contains("routing-card__chip-action--active")).toBe(true);
+    });
+
+    it("opens the dialog and persists an explicit override when the user picks the non-default state", async () => {
+      const persist = vi.fn().mockResolvedValue(undefined);
+      const onSaved = vi.fn();
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...propsForDeepseek({
+            persistParamDefaults: persist,
+            onParamDefaultsSaved: onSaved,
+          })}
+        />
+      ));
+
+      fireEvent.click(
+        container.querySelector(
+          '[aria-label="Configure parameters for Simple"]',
+        ) as HTMLButtonElement,
+      );
+      // DeepSeek's default is enabled — flip to disabled, save → explicit override.
+      const toggle = document.querySelector(".model-params__toggle") as HTMLButtonElement;
+      fireEvent.click(toggle);
+      fireEvent.click(
+        Array.from(document.querySelectorAll("button")).find((b) => b.textContent === "Save")!,
+      );
+
+      await waitFor(() =>
+        expect(persist).toHaveBeenCalledWith("demo", "simple", {
+          thinking: { type: "disabled" },
+        }),
+      );
+      await waitFor(() =>
+        expect(onSaved).toHaveBeenCalledWith("simple", { thinking: { type: "disabled" } }),
+      );
+    });
+
+    it("clears the override (saves null) when the user lands back on the provider default", async () => {
+      const persist = vi.fn().mockResolvedValue(undefined);
+      const onSaved = vi.fn();
+      const tier = {
+        ...deepseekTier,
+        param_defaults: { thinking: { type: "disabled" as const } },
+      };
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...propsForDeepseek({
+            tier: () => tier,
+            persistParamDefaults: persist,
+            onParamDefaultsSaved: onSaved,
+          })}
+        />
+      ));
+
+      fireEvent.click(
+        container.querySelector(
+          '[aria-label="Configure parameters for Simple"]',
+        ) as HTMLButtonElement,
+      );
+      // Currently disabled, flip back to enabled (= provider default) → save null.
+      const toggle = document.querySelector(".model-params__toggle") as HTMLButtonElement;
+      fireEvent.click(toggle);
+      fireEvent.click(
+        Array.from(document.querySelectorAll("button")).find((b) => b.textContent === "Save")!,
+      );
+
+      await waitFor(() => expect(persist).toHaveBeenCalledWith("demo", "simple", null));
+      await waitFor(() => expect(onSaved).toHaveBeenCalledWith("simple", null));
+    });
+
+    it("swallows the persistence error so the toast handler can show it once", async () => {
+      const persist = vi.fn().mockRejectedValue(new Error('boom'));
+      const onSaved = vi.fn();
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...propsForDeepseek({
+            persistParamDefaults: persist,
+            onParamDefaultsSaved: onSaved,
+          })}
+        />
+      ));
+
+      fireEvent.click(
+        container.querySelector(
+          '[aria-label="Configure parameters for Simple"]',
+        ) as HTMLButtonElement,
+      );
+      // Flip to disabled so save actually has a value to send.
+      fireEvent.click(document.querySelector(".model-params__toggle") as HTMLButtonElement);
+      fireEvent.click(
+        Array.from(document.querySelectorAll("button")).find((b) => b.textContent === "Save")!,
+      );
+
+      await waitFor(() => expect(persist).toHaveBeenCalled());
+      // onSaved must not run when persist rejected — the local cache stays
+      // consistent with whatever the server actually has.
+      expect(onSaved).not.toHaveBeenCalled();
+    });
   });
 });
