@@ -1,5 +1,11 @@
 import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../../common/constants/ollama';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
+import {
+  CODEX_CLI_ORIGINATOR,
+  CODEX_CLI_USER_AGENT,
+  COPILOT_EDITOR_VERSION,
+  COPILOT_PLUGIN_VERSION,
+} from '../../common/constants/subscription-clients';
 import { normalizeProviderBaseUrl } from '../provider-base-url';
 import { getQwenCompatibleBaseUrl } from '../qwen-region';
 
@@ -68,8 +74,8 @@ const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
-  originator: 'codex_cli_rs',
-  'user-agent': 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown',
+  originator: CODEX_CLI_ORIGINATOR,
+  'user-agent': CODEX_CLI_USER_AGENT,
 });
 
 export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
@@ -170,8 +176,8 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: (apiKey: string) => ({
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'Editor-Version': 'vscode/1.100.0',
-      'Editor-Plugin-Version': 'copilot/1.300.0',
+      'Editor-Version': COPILOT_EDITOR_VERSION,
+      'Editor-Plugin-Version': COPILOT_PLUGIN_VERSION,
       'Copilot-Integration-Id': 'vscode-chat',
     }),
     buildPath: () => '/chat/completions',
