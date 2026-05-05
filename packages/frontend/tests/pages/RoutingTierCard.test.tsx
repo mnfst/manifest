@@ -1109,6 +1109,35 @@ describe("RoutingTierCard", () => {
       expect(labels.length).toBe(0);
     });
 
+    it("uses the provider default (not Manifest's tier-aware override) on specificity slots", async () => {
+      const persist = vi.fn().mockResolvedValue(undefined);
+      const codingStage = { id: "coding", step: 1, label: "Coding", desc: "" };
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...propsForDeepseek({
+            stage: codingStage,
+            persistParamDefaults: persist,
+          })}
+        />
+      ));
+
+      // Open the dialog and verify the toggle reflects the provider default
+      // (DeepSeek = enabled), not Manifest's "standard → disabled" rule.
+      fireEvent.click(
+        container.querySelector(
+          '[aria-label="Configure parameters for Coding"]',
+        ) as HTMLButtonElement,
+      );
+      const switchEl = document.querySelector(".provider-toggle__switch") as HTMLElement;
+      expect(switchEl.classList.contains("provider-toggle__switch--on")).toBe(true);
+
+      // Saving in the same state (provider default) collapses to null.
+      fireEvent.click(
+        Array.from(document.querySelectorAll("button")).find((b) => b.textContent === "Save")!,
+      );
+      await waitFor(() => expect(persist).toHaveBeenCalledWith("demo", "coding", null));
+    });
+
     it("hides the params button for providers without a known thinking default", () => {
       const persist = vi.fn();
       const { container } = render(() => (

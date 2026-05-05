@@ -1,3 +1,5 @@
+import type { RequestParamDefaults } from './request-params';
+
 /**
  * Provider-by-provider default for the OpenAI-compat `thinking.type` field.
  *
@@ -67,4 +69,23 @@ export function manifestThinkingParamDefaults(
   if (!opinion) return null;
   if (opinion === providerThinkingDefault(providerId)) return null;
   return { thinking: { type: opinion } };
+}
+
+/**
+ * Drop fields from a stored `param_defaults` payload that the resolved
+ * provider does not consume, so a stale knob from a previous provider
+ * assignment can't poison outbound requests after the slot is reassigned.
+ * Returns `null` when nothing remains, so the layered merge can short-
+ * circuit cleanly.
+ */
+export function filterParamDefaultsForProvider(
+  defaults: RequestParamDefaults | null | undefined,
+  providerId: string | undefined,
+): RequestParamDefaults | null {
+  if (!defaults) return null;
+  const out: RequestParamDefaults = {};
+  if (defaults.thinking && providerThinkingDefault(providerId) !== undefined) {
+    out.thinking = defaults.thinking;
+  }
+  return Object.keys(out).length > 0 ? out : null;
 }

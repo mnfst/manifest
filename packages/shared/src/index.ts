@@ -31,6 +31,7 @@ export {
   providerThinkingDefault,
   manifestThinkingDefault,
   manifestThinkingParamDefaults,
+  filterParamDefaultsForProvider,
 } from './thinking-defaults';
 export type { ThinkingState } from './thinking-defaults';
 export { API_KEY_PREFIX } from './api-key';

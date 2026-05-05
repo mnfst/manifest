@@ -381,6 +381,56 @@ describe('ProxyService — orchestration', () => {
       });
     });
 
+    it("drops stored param_defaults when the resolved provider doesn't consume them (slot reassigned)", async () => {
+      // Tier was DeepSeek, user saved thinking-disabled. Then the user
+      // reassigned the tier to OpenAI. The stored default still exists in
+      // the row, but injecting `thinking` into an OpenAI request would 400
+      // and the UI no longer shows the params button to clear it.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+        param_defaults: { thinking: { type: 'disabled' } },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toBeUndefined();
+    });
+
+    it('skips the tier-aware Manifest default on specificity routes (user-curated, no tier semantics)', async () => {
+      // Specificity routes resolve with `tier: 'standard'` for momentum
+      // bookkeeping, but Manifest's "standard → off" rule should not fire
+      // there — the user curated this slot for a specific task type and
+      // we respect their provider's default unless they explicitly override.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 0,
+        reason: 'specificity',
+        specificity_category: 'coding',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toBeUndefined();
+    });
+
     it('lets the client override configured param_defaults by presence', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',

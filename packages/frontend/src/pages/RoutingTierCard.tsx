@@ -6,7 +6,11 @@ import { providerIcon, customProviderLogo } from '../components/ProviderIcon.js'
 import { authBadgeFor } from '../components/AuthBadge.js';
 import { pricePerM, resolveProviderId, inferProviderFromModel } from '../services/routing-utils.js';
 import { customProviderColor } from '../services/formatters.js';
-import { manifestThinkingDefault } from 'manifest-shared';
+import {
+  SPECIFICITY_CATEGORIES,
+  manifestThinkingDefault,
+  providerThinkingDefault,
+} from 'manifest-shared';
 import FallbackList from '../components/FallbackList.js';
 import ModelParamsDialog from '../components/ModelParamsDialog.js';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
@@ -129,10 +133,17 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     if (!model) return undefined;
     return manualProviderId() ?? providerIdForModel(model, props.models());
   };
-  // Manifest's effective default for this slot — provider's default unless
-  // tier semantics give us a reason to override (e.g. simple/standard/complex
-  // get thinking off when the provider would otherwise default it on).
-  const thinkingDefault = () => manifestThinkingDefault(effectiveProviderId(), props.stage.id);
+  // Manifest's effective default for this slot. Tier slots (simple/standard/
+  // complex/reasoning/default) get the tier-aware opinion. Specificity slots
+  // (coding/web_browsing/etc.) skip that — they're user-curated for a task
+  // type, no tier semantics apply, so we just mirror the provider's actual
+  // default. Mirrors the proxy's compatibility branch.
+  const isSpecificitySlot = () =>
+    (SPECIFICITY_CATEGORIES as readonly string[]).includes(props.stage.id);
+  const thinkingDefault = () =>
+    isSpecificitySlot()
+      ? providerThinkingDefault(effectiveProviderId())
+      : manifestThinkingDefault(effectiveProviderId(), props.stage.id);
 
   const saveParamDefaults = async (next: RequestParamDefaults | null) => {
     const persist = props.persistParamDefaults;

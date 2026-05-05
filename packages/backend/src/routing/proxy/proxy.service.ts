@@ -14,6 +14,7 @@ import type { SpecificityCategory, TierSlot } from 'manifest-shared';
 import {
   SPECIFICITY_CATEGORIES,
   applyRequestParamDefaults,
+  filterParamDefaultsForProvider,
   manifestThinkingParamDefaults,
 } from 'manifest-shared';
 import {
@@ -166,10 +167,28 @@ export class ProxyService {
     //     ultimately beat user defaults beat Manifest defaults beat provider
     //     defaults. Done once here so primary forward, stream warmup retries,
     //     and the fallback chain all use the same merged payload.
-    const manifestDefaults = manifestThinkingParamDefaults(route.provider, resolved.tier);
+    //
+    // Two compatibility guards live here, both keyed off the resolved provider:
+    // 1. `filterParamDefaultsForProvider` drops user-stored fields that the
+    //    current provider doesn't consume. Without this, reassigning a slot
+    //    from DeepSeek to OpenAI would keep injecting `thinking` into every
+    //    request and the UI no longer surfaces the param button to clear it.
+    // 2. We skip the tier-aware Manifest default on specificity matches.
+    //    Specificity routes carry `tier: 'standard'` for momentum bookkeeping,
+    //    not because Manifest has tier semantics on the user's curated
+    //    coding/web_browsing/etc. picks — applying "standard → off" there
+    //    would silently disable thinking on a specificity slot the user
+    //    chose specifically to handle that task type.
+    const compatibleUserDefaults = filterParamDefaultsForProvider(
+      resolved.param_defaults,
+      route.provider,
+    );
+    const manifestDefaults = resolved.specificity_category
+      ? null
+      : manifestThinkingParamDefaults(route.provider, resolved.tier);
     const layer = (b: Record<string, unknown>) =>
       applyRequestParamDefaults(
-        applyRequestParamDefaults(b, resolved.param_defaults),
+        applyRequestParamDefaults(b, compatibleUserDefaults),
         manifestDefaults,
       );
     const effectiveBody = layer(body);

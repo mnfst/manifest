@@ -1,5 +1,6 @@
 import {
   PROVIDER_THINKING_DEFAULTS,
+  filterParamDefaultsForProvider,
   manifestThinkingDefault,
   manifestThinkingParamDefaults,
   providerThinkingDefault,
@@ -66,5 +67,28 @@ describe('manifestThinkingParamDefaults', () => {
   it('returns null for providers without a known thinking default', () => {
     expect(manifestThinkingParamDefaults('openai', 'simple')).toBeNull();
     expect(manifestThinkingParamDefaults(undefined, 'simple')).toBeNull();
+  });
+});
+
+describe('filterParamDefaultsForProvider', () => {
+  it('passes through fields the provider supports', () => {
+    expect(
+      filterParamDefaultsForProvider({ thinking: { type: 'disabled' } }, 'deepseek'),
+    ).toEqual({ thinking: { type: 'disabled' } });
+  });
+
+  it('drops fields whose provider has no registered default (slot reassigned to incompatible provider)', () => {
+    expect(
+      filterParamDefaultsForProvider({ thinking: { type: 'disabled' } }, 'openai'),
+    ).toBeNull();
+  });
+
+  it('returns null for null/undefined inputs', () => {
+    expect(filterParamDefaultsForProvider(null, 'deepseek')).toBeNull();
+    expect(filterParamDefaultsForProvider(undefined, 'deepseek')).toBeNull();
+  });
+
+  it('returns null when no compatible fields remain', () => {
+    expect(filterParamDefaultsForProvider({}, 'deepseek')).toBeNull();
   });
 });
