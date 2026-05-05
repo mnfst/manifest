@@ -348,6 +348,140 @@ describe('Responses adapter', () => {
         }),
       ]);
     });
+
+    it('collects function_call items emitted via output_item.added + arguments.delta', () => {
+      // Codex Responses streams the tool call via item.added + delta events
+      // and ships `response.completed` with `output: []`. Without the SSE
+      // collector picking up these events, the SDK sees an empty output
+      // array even though tokens were billed.
+      const completed = {
+        id: 'resp_1',
+        object: 'response',
+        output: [],
+        usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+      };
+      const sse = [
+        'event: response.output_item.added\ndata: {"output_index":0,"item":{"type":"function_call","id":"fc_1","call_id":"call_1","name":"get_weather","arguments":""}}',
+        'event: response.function_call_arguments.delta\ndata: {"output_index":0,"delta":"{\\"city\\":"}',
+        'event: response.function_call_arguments.delta\ndata: {"output_index":0,"delta":"\\"Paris\\"}"}',
+        `event: response.completed\ndata: ${JSON.stringify({ response: completed })}`,
+        '',
+      ].join('\n\n');
+
+      const result = collectResponsesSseResponse(sse);
+      const output = result.output as Array<Record<string, unknown>>;
+
+      expect(output).toHaveLength(1);
+      expect(output[0]).toEqual(
+        expect.objectContaining({
+          type: 'function_call',
+          id: 'fc_1',
+          call_id: 'call_1',
+          name: 'get_weather',
+          arguments: '{"city":"Paris"}',
+        }),
+      );
+    });
+
+    it('preserves text output alongside a function call at a non-zero output_index', () => {
+      const completed = {
+        id: 'resp_2',
+        object: 'response',
+        output: [],
+        usage: { input_tokens: 8, output_tokens: 4, total_tokens: 12 },
+      };
+      const sse = [
+        'event: response.output_text.delta\ndata: {"delta":"Let me check."}',
+        'event: response.output_item.added\ndata: {"output_index":1,"item":{"type":"function_call","id":"fc_2","call_id":"call_2","name":"search"}}',
+        'event: response.function_call_arguments.delta\ndata: {"output_index":1,"delta":"{\\"q\\":\\"test\\"}"}',
+        `event: response.completed\ndata: ${JSON.stringify({ response: completed })}`,
+        '',
+      ].join('\n\n');
+
+      const result = collectResponsesSseResponse(sse);
+      const output = result.output as Array<Record<string, unknown>>;
+
+      // Text-then-function order is preserved: text first (added by
+      // withCollectedTextOutput), function_call second.
+      expect(output).toHaveLength(2);
+      expect(output[0]).toEqual(
+        expect.objectContaining({
+          type: 'message',
+          content: [{ type: 'output_text', text: 'Let me check.', annotations: [] }],
+        }),
+      );
+      expect(output[1]).toEqual(
+        expect.objectContaining({
+          type: 'function_call',
+          id: 'fc_2',
+          call_id: 'call_2',
+          name: 'search',
+          arguments: '{"q":"test"}',
+        }),
+      );
+    });
+
+    it('prefers the authoritative item from response.output_item.done', () => {
+      const completed = {
+        id: 'resp_3',
+        object: 'response',
+        output: [],
+        usage: { input_tokens: 4, output_tokens: 2, total_tokens: 6 },
+      };
+      const sse = [
+        'event: response.output_item.added\ndata: {"output_index":0,"item":{"type":"function_call","id":"fc_3","call_id":"call_3","name":"get_weather"}}',
+        'event: response.function_call_arguments.delta\ndata: {"output_index":0,"delta":"{\\"city\\":"}',
+        // Truncate the partial deltas — `done` carries the authoritative state.
+        'event: response.output_item.done\ndata: {"output_index":0,"item":{"type":"function_call","id":"fc_3","call_id":"call_3","name":"get_weather","arguments":"{\\"city\\":\\"Paris\\"}","status":"completed"}}',
+        `event: response.completed\ndata: ${JSON.stringify({ response: completed })}`,
+        '',
+      ].join('\n\n');
+
+      const result = collectResponsesSseResponse(sse);
+      const output = result.output as Array<Record<string, unknown>>;
+
+      expect(output).toHaveLength(1);
+      expect(output[0]).toEqual(
+        expect.objectContaining({
+          type: 'function_call',
+          id: 'fc_3',
+          arguments: '{"city":"Paris"}',
+          status: 'completed',
+        }),
+      );
+    });
+
+    it('does not duplicate function_call items already present in completed.output', () => {
+      const completed = {
+        id: 'resp_4',
+        object: 'response',
+        output: [
+          {
+            type: 'function_call',
+            id: 'fc_4',
+            call_id: 'call_4',
+            name: 'get_weather',
+            arguments: '{"city":"Paris"}',
+            status: 'completed',
+          },
+        ],
+        usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+      };
+      const sse = [
+        'event: response.output_item.added\ndata: {"output_index":0,"item":{"type":"function_call","id":"fc_4","call_id":"call_4","name":"get_weather"}}',
+        'event: response.function_call_arguments.delta\ndata: {"output_index":0,"delta":"{\\"city\\":\\"Paris\\"}"}',
+        `event: response.completed\ndata: ${JSON.stringify({ response: completed })}`,
+        '',
+      ].join('\n\n');
+
+      const result = collectResponsesSseResponse(sse);
+      const output = result.output as Array<Record<string, unknown>>;
+
+      expect(output).toHaveLength(1);
+      expect(output[0]).toEqual(
+        expect.objectContaining({ id: 'fc_4', arguments: '{"city":"Paris"}' }),
+      );
+    });
   });
 
   describe('chatCompletionStreamChunkToResponses', () => {
