@@ -6,10 +6,10 @@ import { providerIcon, customProviderLogo } from '../components/ProviderIcon.js'
 import { authBadgeFor } from '../components/AuthBadge.js';
 import { pricePerM, resolveProviderId, inferProviderFromModel } from '../services/routing-utils.js';
 import { customProviderColor } from '../services/formatters.js';
+import { manifestThinkingDefault } from 'manifest-shared';
 import FallbackList from '../components/FallbackList.js';
 import ModelParamsDialog from '../components/ModelParamsDialog.js';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
-import { thinkingDefaultFor } from '../services/provider-thinking-defaults.js';
 import { toast } from '../services/toast-store.js';
 import type {
   TierAssignment,
@@ -129,7 +129,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     if (!model) return undefined;
     return manualProviderId() ?? providerIdForModel(model, props.models());
   };
-  const thinkingDefault = () => thinkingDefaultFor(effectiveProviderId());
+  // Manifest's effective default for this slot — provider's default unless
+  // tier semantics give us a reason to override (e.g. simple/standard/complex
+  // get thinking off when the provider would otherwise default it on).
+  const thinkingDefault = () => manifestThinkingDefault(effectiveProviderId(), props.stage.id);
 
   const saveParamDefaults = async (next: RequestParamDefaults | null) => {
     const persist = props.persistParamDefaults;

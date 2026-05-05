@@ -311,6 +311,76 @@ describe('ProxyService — orchestration', () => {
       });
     });
 
+    it("applies Manifest's tier-aware thinking default when neither client nor user override it", async () => {
+      // DeepSeek + standard tier → Manifest opinion is "disabled" even with
+      // no stored param_defaults.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toMatchObject({
+        thinking: { type: 'disabled' },
+      });
+    });
+
+    it('keeps the provider default on the reasoning tier (Manifest stays opinionless there)', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'reasoning',
+        route: route('deepseek', 'api_key', 'deepseek-reasoner'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      // No `thinking` injected → provider's default (enabled) applies.
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toBeUndefined();
+    });
+
+    it('user-stored param_defaults beat the Manifest tier-aware default', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+        // User explicitly turned thinking on for this assignment despite
+        // Manifest's "off" opinion on the standard tier.
+        param_defaults: { thinking: { type: 'enabled' } },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toMatchObject({
+        thinking: { type: 'enabled' },
+      });
+    });
+
     it('lets the client override configured param_defaults by presence', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',

@@ -11,7 +11,11 @@ import { LimitCheckService } from '../../notifications/services/limit-check.serv
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
 import type { SpecificityCategory, TierSlot } from 'manifest-shared';
-import { SPECIFICITY_CATEGORIES, applyRequestParamDefaults } from 'manifest-shared';
+import {
+  SPECIFICITY_CATEGORIES,
+  applyRequestParamDefaults,
+  manifestThinkingParamDefaults,
+} from 'manifest-shared';
 import {
   ProxyFallbackService,
   FailedFallback,
@@ -154,14 +158,22 @@ export class ProxyService {
     const thinkingLookup = (firstToolUseId: string) =>
       this.thinkingCache.retrieve(sessionKey, firstToolUseId);
 
-    // Merge per-assignment defaults (e.g. DeepSeek's thinking-mode toggle)
-    // into the outbound bodies. Client-supplied fields win by presence.
-    // Done once here so primary forward, stream warmup retries, and the
-    // fallback chain all use the same merged payload.
-    const effectiveBody = applyRequestParamDefaults(body, resolved.param_defaults);
-    const effectiveChatBody = chatBody
-      ? applyRequestParamDefaults(chatBody, resolved.param_defaults)
-      : undefined;
+    // Layer the request body defaults from lowest to highest precedence:
+    // (1) Manifest's tier-aware default (e.g. thinking off on simple/standard/
+    //     complex for DeepSeek), (2) the user's stored per-assignment override,
+    //     (3) the inbound request body fields. Each successive call lets the
+    //     existing payload win over the next defaults layer, so client values
+    //     ultimately beat user defaults beat Manifest defaults beat provider
+    //     defaults. Done once here so primary forward, stream warmup retries,
+    //     and the fallback chain all use the same merged payload.
+    const manifestDefaults = manifestThinkingParamDefaults(route.provider, resolved.tier);
+    const layer = (b: Record<string, unknown>) =>
+      applyRequestParamDefaults(
+        applyRequestParamDefaults(b, resolved.param_defaults),
+        manifestDefaults,
+      );
+    const effectiveBody = layer(body);
+    const effectiveChatBody = chatBody ? layer(chatBody) : undefined;
 
     const forward = await this.fallbackService.tryForwardToProvider({
       provider: route.provider,

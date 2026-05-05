@@ -26,6 +26,13 @@ export {
 export type { ModelRoute, LegacyOverrideTriple } from './model-route';
 export { applyRequestParamDefaults } from './request-params';
 export type { RequestParamDefaults } from './request-params';
+export {
+  PROVIDER_THINKING_DEFAULTS,
+  providerThinkingDefault,
+  manifestThinkingDefault,
+  manifestThinkingParamDefaults,
+} from './thinking-defaults';
+export type { ThinkingState } from './thinking-defaults';
 export { API_KEY_PREFIX } from './api-key';
 export { MODEL_PREFIX_MAP, inferProviderFromModel } from './provider-inference';
 export {

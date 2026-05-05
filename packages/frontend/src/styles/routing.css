@@ -558,10 +558,6 @@
   cursor: not-allowed;
 }
 
-.model-params__toggle-label {
-  font-weight: 500;
-}
-
 .routing-card__chip-action {
   position: relative;
 }

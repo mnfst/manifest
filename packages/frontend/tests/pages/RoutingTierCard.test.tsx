@@ -1166,7 +1166,9 @@ describe("RoutingTierCard", () => {
           '[aria-label="Configure parameters for Simple"]',
         ) as HTMLButtonElement,
       );
-      // DeepSeek's default is enabled — flip to disabled, save → explicit override.
+      // Simple tier on DeepSeek: Manifest's effective default is "disabled".
+      // Flip the toggle to "enabled" → that's the non-default → save explicit
+      // override.
       const toggle = document.querySelector(".model-params__toggle") as HTMLButtonElement;
       fireEvent.click(toggle);
       fireEvent.click(
@@ -1175,20 +1177,21 @@ describe("RoutingTierCard", () => {
 
       await waitFor(() =>
         expect(persist).toHaveBeenCalledWith("demo", "simple", {
-          thinking: { type: "disabled" },
+          thinking: { type: "enabled" },
         }),
       );
       await waitFor(() =>
-        expect(onSaved).toHaveBeenCalledWith("simple", { thinking: { type: "disabled" } }),
+        expect(onSaved).toHaveBeenCalledWith("simple", { thinking: { type: "enabled" } }),
       );
     });
 
-    it("clears the override (saves null) when the user lands back on the provider default", async () => {
+    it("clears the override (saves null) when the user lands back on Manifest's effective default", async () => {
       const persist = vi.fn().mockResolvedValue(undefined);
       const onSaved = vi.fn();
       const tier = {
         ...deepseekTier,
-        param_defaults: { thinking: { type: "disabled" as const } },
+        // Stored override of Manifest's "disabled" default for the simple tier.
+        param_defaults: { thinking: { type: "enabled" as const } },
       };
       const { container } = render(() => (
         <RoutingTierCard
@@ -1205,7 +1208,8 @@ describe("RoutingTierCard", () => {
           '[aria-label="Configure parameters for Simple"]',
         ) as HTMLButtonElement,
       );
-      // Currently disabled, flip back to enabled (= provider default) → save null.
+      // Currently enabled (override). Flip back to disabled (= Manifest's
+      // effective default for simple+DeepSeek) → save null, no override.
       const toggle = document.querySelector(".model-params__toggle") as HTMLButtonElement;
       fireEvent.click(toggle);
       fireEvent.click(

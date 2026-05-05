@@ -75,10 +75,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
           <h2 class="modal-card__title" id="model-params-dialog-title">
             Model parameters
           </h2>
-          <p class="modal-card__desc">
-            Defaults Manifest applies to outgoing requests for {props.slotLabel}. Clients can
-            override by passing the field in their request body.
-          </p>
+          <p class="modal-card__desc">Defaults for {props.slotLabel}. Client requests override.</p>
 
           <div class="model-params__row">
             <div class="model-params__label">
@@ -93,9 +90,6 @@ const ModelParamsDialog: Component<Props> = (props) => {
               disabled={saving()}
               onClick={() => setThinking(thinking() === 'enabled' ? 'disabled' : 'enabled')}
             >
-              <span class="model-params__toggle-label">
-                {thinking() === 'enabled' ? 'Enabled' : 'Disabled'}
-              </span>
               <span
                 class="provider-toggle__switch"
                 classList={{ 'provider-toggle__switch--on': thinking() === 'enabled' }}
@@ -104,10 +98,6 @@ const ModelParamsDialog: Component<Props> = (props) => {
               </span>
             </button>
           </div>
-          <p class="modal-card__desc" style="margin-top: 8px;">
-            Disabling thinking is useful for DeepSeek models, where reasoning tokens otherwise
-            consume the response budget.
-          </p>
 
           <div class="modal-card__footer">
             <button
