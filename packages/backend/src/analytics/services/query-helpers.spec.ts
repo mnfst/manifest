@@ -147,13 +147,15 @@ describe('addTenantFilter', () => {
     });
   });
 
-  it('adds agent_name filter when agentName is provided', () => {
+  it('resolves agentName to the live agent_id via subquery so soft-deleted agents do not leak', () => {
     const { qb, mockAndWhere } = makeMockQb();
     addTenantFilter(qb, 'user-123', 'my-agent');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(2);
     const secondCall = mockAndWhere.mock.calls[1];
-    expect(secondCall[0]).toBe('at.agent_name = :agentName');
+    expect(secondCall[0]).toContain('at.agent_id = (');
+    expect(secondCall[0]).toContain('FROM agents');
+    expect(secondCall[0]).toContain('deleted_at IS NULL');
     expect(secondCall[1]).toEqual({ agentName: 'my-agent' });
   });
 

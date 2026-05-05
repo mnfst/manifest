@@ -61,6 +61,12 @@ describe('SetupService', () => {
       expect(service.getLocalLlmHost()).toBe('host.docker.internal');
     });
 
+    it("returns 'host.containers.internal' under Podman (/run/.containerenv only)", () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('fs').existsSync = (p: string) => p === '/run/.containerenv';
+      expect(service.getLocalLlmHost()).toBe('host.containers.internal');
+    });
+
     it("returns 'localhost' when /.dockerenv is absent", () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('fs').existsSync = () => false;

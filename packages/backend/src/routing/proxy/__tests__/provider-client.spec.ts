@@ -177,6 +177,135 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.stream).toBe(true);
     });
+
+    it('routes public Responses API requests for OpenAI to /v1/responses', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: { input: 'Hello', stream: false },
+        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.openai.com/v1/responses',
+        expect.any(Object),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).toMatchObject({
+        input: 'Hello',
+        model: 'gpt-4o',
+        stream: false,
+        store: false,
+      });
+      expect(sentBody.messages).toBeUndefined();
+      expect(sentBody.instructions).toBeUndefined();
+      expect(result.isResponses).toBe(true);
+      expect(result.isChatGpt).toBe(false);
+    });
+
+    it('adds default instructions for subscription Responses requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5.4',
+        body: { input: 'Hello', stream: false },
+        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        stream: false,
+        authType: 'subscription',
+        apiMode: 'responses',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://chatgpt.com/backend-api/codex/responses');
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.instructions).toBe('You are a helpful assistant.');
+      expect(sentBody.input).toEqual([
+        { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
+      ]);
+      expect(sentBody.stream).toBe(true);
+    });
+
+    it('strips Codex-unsupported params on the subscription Responses path', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5.4-mini',
+        body: {
+          input: 'Hello',
+          stream: false,
+          temperature: 0.3,
+          top_p: 0.5,
+          max_output_tokens: 50,
+          metadata: { x: '1' },
+          safety_identifier: 'probe',
+          prompt_cache_retention: '24h',
+          truncation: 'auto',
+          store: true,
+        },
+        stream: false,
+        authType: 'subscription',
+        apiMode: 'responses',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sent).not.toHaveProperty('temperature');
+      expect(sent).not.toHaveProperty('top_p');
+      expect(sent).not.toHaveProperty('max_output_tokens');
+      expect(sent).not.toHaveProperty('metadata');
+      expect(sent).not.toHaveProperty('safety_identifier');
+      expect(sent).not.toHaveProperty('prompt_cache_retention');
+      expect(sent).not.toHaveProperty('truncation');
+      expect(sent.store).toBe(false);
+    });
+
+    it('keeps Codex-unsupported params for the openai-responses (api-key) path', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'codex-mini-latest',
+        body: { input: 'Hello', temperature: 0.3, max_output_tokens: 50 },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sent.temperature).toBe(0.3);
+      expect(sent.max_output_tokens).toBe(50);
+    });
+
+    it('uses normalized chat body for non-native Responses providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-chat',
+        body: { input: 'Hello', stream: false },
+        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.deepseek.com/v1/chat/completions',
+        expect.any(Object),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toEqual([{ role: 'user', content: 'Hello' }]);
+      expect(sentBody.input).toBeUndefined();
+      expect(result.isResponses).toBe(false);
+    });
   });
 
   describe('Anthropic provider', () => {
@@ -347,7 +476,7 @@ describe('ProviderClient', () => {
   });
 
   describe('Google provider', () => {
-    it('uses query param auth and Gemini path', async () => {
+    it('uses x-goog-api-key header and keeps key out of URL', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const result = await client.forward({
@@ -359,10 +488,12 @@ describe('ProviderClient', () => {
       });
 
       const url = mockFetch.mock.calls[0][0] as string;
+      const init = mockFetch.mock.calls[0][1] as { headers: Record<string, string> };
       expect(url).toContain('generativelanguage.googleapis.com');
       expect(url).toContain('gemini-2.0-flash:generateContent');
-      expect(url).toContain('key=AIza-test');
+      expect(url).not.toContain('key=AIza-test');
       expect(url).not.toContain('alt=sse');
+      expect(init.headers['x-goog-api-key']).toBe('AIza-test');
       expect(result.isGoogle).toBe(true);
       expect(result.isAnthropic).toBe(false);
     });
@@ -1163,10 +1294,10 @@ describe('ProviderClient', () => {
   });
 
   describe('URL masking', () => {
-    it('masks API key in Google URL for debug logging', async () => {
+    it('keeps the Google API key out of the debug log entirely', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      // Spy on the logger to verify the masked URL
+      // Spy on the logger to verify the URL has no key in it
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const debugSpy = jest.spyOn((client as any).logger, 'debug');
 
@@ -1178,8 +1309,9 @@ describe('ProviderClient', () => {
         stream: false,
       });
 
-      expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('key=***'));
+      // Key is now sent in the x-goog-api-key header, never in the URL.
       expect(debugSpy).toHaveBeenCalledWith(expect.not.stringContaining('AIzaSyABCDEF12345'));
+      expect(debugSpy).toHaveBeenCalledWith(expect.not.stringContaining('key='));
 
       debugSpy.mockRestore();
     });
@@ -1271,6 +1403,17 @@ describe('ProviderClient', () => {
           role: 'assistant',
           content: 'Hi',
           reasoning_content: 'Detailed internal reasoning',
+        },
+      ],
+      temperature: 0.7,
+    });
+    const makeBodyWithReasoningDetails = () => ({
+      messages: [
+        { role: 'user', content: 'What is 2+2?' },
+        {
+          role: 'assistant',
+          content: '4',
+          reasoning_details: [{ type: 'thinking', thinking: 'add them', signature: 'sig-abc' }],
         },
       ],
       temperature: 0.7,
@@ -1467,6 +1610,75 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.messages[1].reasoning_content).toBe('Detailed internal reasoning');
+    });
+
+    it('strips reasoning_details for Mistral assistant messages without mutating the input', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithReasoningDetails = makeBodyWithReasoningDetails();
+
+      await client.forward({
+        provider: 'mistral',
+        apiKey: 'sk-mi',
+        model: 'ministral-3b-2512',
+        body: bodyWithReasoningDetails,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[1].reasoning_details).toBeUndefined();
+      expect(bodyWithReasoningDetails.messages[1].reasoning_details).toEqual([
+        { type: 'thinking', thinking: 'add them', signature: 'sig-abc' },
+      ]);
+    });
+
+    it('strips reasoning_details for native OpenAI targets', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithReasoningDetails = makeBodyWithReasoningDetails();
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: bodyWithReasoningDetails,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[1].reasoning_details).toBeUndefined();
+    });
+
+    it('strips reasoning_details for DeepSeek (does not support reasoning_details)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithReasoningDetails = makeBodyWithReasoningDetails();
+
+      await client.forward({
+        provider: 'deepseek',
+        apiKey: 'sk-ds',
+        model: 'deepseek-reasoner',
+        body: bodyWithReasoningDetails,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[1].reasoning_details).toBeUndefined();
+    });
+
+    it('preserves reasoning_details for OpenRouter targets', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithReasoningDetails = makeBodyWithReasoningDetails();
+
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: 'minimax/minimax-m2.7',
+        body: bodyWithReasoningDetails,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[1].reasoning_details).toEqual([
+        { type: 'thinking', thinking: 'add them', signature: 'sig-abc' },
+      ]);
     });
 
     it('leaves non-array messages unchanged during sanitization', async () => {
@@ -1753,18 +1965,46 @@ describe('ProviderClient', () => {
       expect(sentBody.stream_options).toBeUndefined();
     });
 
-    it('does not inject stream_options for non-passthrough providers', async () => {
+    it.each([
+      ['mistral', 'mistral-small'],
+      ['deepseek', 'deepseek-chat'],
+      ['moonshot', 'kimi-k2-0905-preview'],
+      ['minimax', 'MiniMax-M2'],
+      ['qwen', 'qwen-max'],
+      ['xai', 'grok-3'],
+      ['zai', 'glm-4.6'],
+      ['copilot', 'gpt-4o-copilot'],
+      ['opencode-go', 'claude-sonnet-4'],
+    ])(
+      'injects stream_options.include_usage for %s streaming requests',
+      async (provider, model) => {
+        mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+        await client.forward({
+          provider,
+          apiKey: 'sk-test',
+          model,
+          body: { messages: [{ role: 'user', content: 'Hello' }] },
+          stream: true,
+        });
+
+        const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(sentBody.stream_options).toEqual({ include_usage: true });
+      },
+    );
+
+    it('injects stream_options.include_usage for Z.AI subscription streaming requests', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward({
-        provider: 'mistral',
-        apiKey: 'sk-mi',
-        model: 'mistral-small',
+        provider: 'zai',
+        apiKey: 'sk-zai-sub',
+        model: 'glm-4.6',
         body: { messages: [{ role: 'user', content: 'Hello' }] },
         stream: true,
+        authType: 'subscription',
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.stream_options).toBeUndefined();
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
     });
 
     it('preserves existing stream_options fields when injecting include_usage', async () => {
@@ -1845,6 +2085,7 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.stream).toBe(true);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
     });
 
     it('merges extraHeaders with custom endpoint headers', async () => {
@@ -2000,6 +2241,61 @@ describe('ProviderClient', () => {
           stream: false,
         }),
       ).rejects.toThrow('key=***');
+    });
+  });
+
+  describe('PROVIDER_TIMEOUT_MS env override', () => {
+    const originalEnv = process.env.PROVIDER_TIMEOUT_MS;
+
+    afterEach(() => {
+      if (originalEnv === undefined) delete process.env.PROVIDER_TIMEOUT_MS;
+      else process.env.PROVIDER_TIMEOUT_MS = originalEnv;
+    });
+
+    async function captureTimeoutMs(envValue: string | undefined): Promise<number> {
+      if (envValue === undefined) delete process.env.PROVIDER_TIMEOUT_MS;
+      else process.env.PROVIDER_TIMEOUT_MS = envValue;
+
+      const timeoutSpy = jest.spyOn(AbortSignal, 'timeout');
+      timeoutSpy.mockClear();
+
+      let observed = -1;
+      await jest.isolateModulesAsync(async () => {
+        const { ProviderClient: FreshClient } = await import('../provider-client');
+        const fresh = new FreshClient();
+        mockFetch.mockResolvedValueOnce(new Response('{}', { status: 200 }));
+        await fresh.forward({
+          provider: 'openai',
+          apiKey: 'sk-test',
+          model: 'gpt-4',
+          body,
+          stream: false,
+        });
+        observed = timeoutSpy.mock.calls[0]?.[0] ?? -1;
+      });
+
+      timeoutSpy.mockRestore();
+      return observed;
+    }
+
+    it('defaults to 180000 ms when env var is unset', async () => {
+      expect(await captureTimeoutMs(undefined)).toBe(180_000);
+    });
+
+    it('uses the configured value when env var is a positive integer', async () => {
+      expect(await captureTimeoutMs('45000')).toBe(45_000);
+    });
+
+    it('falls back to 180000 ms when env var is non-numeric', async () => {
+      expect(await captureTimeoutMs('abc')).toBe(180_000);
+    });
+
+    it('falls back to 180000 ms when env var is negative', async () => {
+      expect(await captureTimeoutMs('-1')).toBe(180_000);
+    });
+
+    it('falls back to 180000 ms when env var is zero', async () => {
+      expect(await captureTimeoutMs('0')).toBe(180_000);
     });
   });
 });

@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
-import type { AuthType } from 'manifest-shared';
+import type { ModelRoute } from 'manifest-shared';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 @Entity('tier_assignments')
@@ -17,23 +17,14 @@ export class TierAssignment {
   @Column('varchar')
   tier!: string;
 
-  @Column('varchar', { nullable: true })
-  override_model!: string | null;
+  @Column('jsonb', { nullable: true })
+  override_route!: ModelRoute | null;
 
-  @Column('varchar', { nullable: true })
-  override_provider!: string | null;
+  @Column('jsonb', { nullable: true })
+  auto_assigned_route!: ModelRoute | null;
 
-  @Column('varchar', { nullable: true })
-  override_auth_type!: AuthType | null;
-
-  @Column('varchar', { nullable: true })
-  override_provider_key_label!: string | null;
-
-  @Column('varchar', { nullable: true })
-  auto_assigned_model!: string | null;
-
-  @Column('simple-json', { nullable: true })
-  fallback_models!: string[] | null;
+  @Column('jsonb', { nullable: true })
+  fallback_routes!: ModelRoute[] | null;
 
   @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;

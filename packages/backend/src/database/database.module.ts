@@ -82,8 +82,14 @@ import { BackfillLocalAuthType1777200000000 } from './migrations/1777200000000-B
 import { BackfillLocalCustomProviders1777300000000 } from './migrations/1777300000000-BackfillLocalCustomProviders';
 import { DropComplexityRoutingFlag1780000000000 } from './migrations/1780000000000-DropComplexityRoutingFlag';
 import { ReAddComplexityRoutingFlag1781000000000 } from './migrations/1781000000000-ReAddComplexityRoutingFlag';
-import { AddProviderKeyLabelAndPriority1782000000000 } from './migrations/1782000000000-AddProviderKeyLabelAndPriority';
-import { AddProviderKeyLabelToAgentMessages1782100000000 } from './migrations/1782100000000-AddProviderKeyLabelToAgentMessages';
+import { AddSavingsBaselineModel1782000000000 } from './migrations/1782000000000-AddSavingsBaselineModel';
+import { AddBaselineCostColumns1782100000000 } from './migrations/1782100000000-AddBaselineCostColumns';
+import { RetuneSpecificityMiscategorizedIndex1782000000000 } from './migrations/1782000000000-RetuneSpecificityMiscategorizedIndex';
+import { AddAgentSoftDelete1782200000000 } from './migrations/1782200000000-AddAgentSoftDelete';
+import { AddModelRouteColumns1783000000000 } from './migrations/1783000000000-AddModelRouteColumns';
+import { DropLegacyRoutingColumns1784000000000 } from './migrations/1784000000000-DropLegacyRoutingColumns';
+import { AddProviderKeyLabelAndPriority1785000000000 } from './migrations/1785000000000-AddProviderKeyLabelAndPriority';
+import { AddProviderKeyLabelToAgentMessages1785100000000 } from './migrations/1785100000000-AddProviderKeyLabelToAgentMessages';
 
 const entities = [
   AgentMessage,
@@ -167,8 +173,14 @@ const migrations = [
   BackfillLocalCustomProviders1777300000000,
   DropComplexityRoutingFlag1780000000000,
   ReAddComplexityRoutingFlag1781000000000,
-  AddProviderKeyLabelAndPriority1782000000000,
-  AddProviderKeyLabelToAgentMessages1782100000000,
+  AddSavingsBaselineModel1782000000000,
+  AddBaselineCostColumns1782100000000,
+  RetuneSpecificityMiscategorizedIndex1782000000000,
+  AddAgentSoftDelete1782200000000,
+  AddModelRouteColumns1783000000000,
+  DropLegacyRoutingColumns1784000000000,
+  AddProviderKeyLabelAndPriority1785000000000,
+  AddProviderKeyLabelToAgentMessages1785100000000,
 ];
 
 @Module({
@@ -192,8 +204,14 @@ const migrations = [
         migrations,
         logging: false,
         extra: {
-          max: config.get<number>('app.dbPoolMax') ?? 20,
+          max: config.get<number>('app.dbPoolMax') ?? 50,
           idleTimeoutMillis: 30000,
+          // statement_timeout / idle_in_transaction_session_timeout were tried
+          // here (#1745) and via the `options` connection string (#1749), but
+          // Railway's PgBouncer rejects both forms — its
+          // `ignore_startup_parameters` allowlist only includes
+          // `extra_float_digits`. If we need per-query timeouts later, set
+          // them with `SET LOCAL` inside the relevant transaction instead.
         },
       }),
     }),

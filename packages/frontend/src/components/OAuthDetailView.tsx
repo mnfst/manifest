@@ -138,8 +138,10 @@ const OAuthDetailView: Component<Props> = (props) => {
           </p>
           <p class="provider-detail__hint" style="margin-top: 8px;">
             Copy the full URL from the{' '}
-            <span style="color: #000000; font-weight: 500;">popup's address bar</span> and paste it
-            below:
+            <span style="color: hsl(var(--foreground)); font-weight: 500;">
+              popup's address bar
+            </span>{' '}
+            and paste it below:
           </p>
           <video
             src="/images/oauth-callback-example.mp4"

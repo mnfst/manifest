@@ -114,7 +114,8 @@ export function classifyProbeError(input: ClassifyInput): ProbeError {
       kind: 'dns_failure',
       message:
         `Could not resolve the hostname in ${url}. Inside Docker use ` +
-        `host.docker.internal; natively use localhost.`,
+        `host.docker.internal; inside Podman use host.containers.internal; ` +
+        `natively use localhost.`,
     };
   }
   if (/EPROTO|SSL|TLS|wrong version number/i.test(msg)) {

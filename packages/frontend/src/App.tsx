@@ -3,6 +3,7 @@ import { onCleanup, onMount, Show, type ParentComponent } from 'solid-js';
 import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
+import VersionIndicator from './components/VersionIndicator.jsx';
 import { connectSse } from './services/sse.js';
 
 const SseConnector: ParentComponent = (props) => {
@@ -39,6 +40,7 @@ const App: ParentComponent = (props) => {
               {props.children}
             </main>
           </div>
+          <VersionIndicator />
         </div>
       </SseConnector>
     </AuthGuard>

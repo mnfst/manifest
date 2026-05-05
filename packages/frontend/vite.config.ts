@@ -1,8 +1,27 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
 import { codecovVitePlugin } from "@codecov/vite-plugin";
 
+const manifestVersion = (() => {
+  try {
+    const pkg = JSON.parse(
+      readFileSync(
+        resolve(import.meta.dirname, "../manifest/package.json"),
+        "utf-8",
+      ),
+    ) as { version?: string };
+    return pkg.version ?? "";
+  } catch {
+    return "";
+  }
+})();
+
 export default defineConfig({
+  define: {
+    __MANIFEST_VERSION__: JSON.stringify(manifestVersion),
+  },
   plugins: [
     solidPlugin(),
     codecovVitePlugin({
@@ -51,6 +70,7 @@ export default defineConfig({
         "src/components/CostChart.tsx",
         "src/components/TokenChart.tsx",
         "src/components/SingleTokenChart.tsx",
+        "src/components/SavingsChart.tsx",
         "src/components/Sparkline.tsx",
         "src/services/auth-client.ts",
       ],

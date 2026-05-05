@@ -47,7 +47,7 @@ describe('classifyProbeError', () => {
     expect(out.message).toMatch(/loading a model/);
   });
 
-  it('classifies ENOTFOUND as dns_failure with the host.docker.internal hint', () => {
+  it('classifies ENOTFOUND as dns_failure with Docker, Podman, and native hints', () => {
     const out = classifyProbeError({
       url,
       error: Object.assign(new Error('getaddrinfo ENOTFOUND bad.host'), {
@@ -56,6 +56,8 @@ describe('classifyProbeError', () => {
     });
     expect(out.kind).toBe('dns_failure');
     expect(out.message).toMatch(/host\.docker\.internal/);
+    expect(out.message).toMatch(/host\.containers\.internal/);
+    expect(out.message).toMatch(/localhost/);
   });
 
   it('classifies TLS errors as tls_mismatch with a try-http-instead hint', () => {

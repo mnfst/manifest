@@ -51,7 +51,20 @@ export function addTenantFilter<T extends ObjectLiteral>(
     qb.andWhere('at.user_id = :userId', { userId });
   }
   if (agentName) {
-    qb.andWhere('at.agent_name = :agentName', { agentName });
+    // Resolve to the live agent's id so soft-deleted agents that share the
+    // same slug as the current agent don't leak old rows. agent_messages
+    // stores agent_id alongside agent_name; we filter on the id of whatever
+    // live agent currently owns the slug.
+    qb.andWhere(
+      `at.agent_id = (
+        SELECT id FROM agents
+        WHERE tenant_id = at.tenant_id
+          AND name = :agentName
+          AND deleted_at IS NULL
+        LIMIT 1
+      )`,
+      { agentName },
+    );
   }
   return qb;
 }

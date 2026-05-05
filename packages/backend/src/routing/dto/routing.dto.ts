@@ -8,8 +8,9 @@ import {
   Matches,
   MaxLength,
   ArrayMinSize,
+  ValidateNested,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 import { TIER_SLOTS, AUTH_TYPES } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
@@ -17,6 +18,26 @@ import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 const KNOWN_PROVIDER_IDS: readonly string[] = Array.from(PROVIDER_BY_ID_OR_ALIAS.keys());
 
 export const MAX_PROVIDER_KEY_LABEL_LENGTH = 50;
+
+export class ModelRouteDto {
+  @IsString()
+  @IsNotEmpty()
+  provider!: string;
+
+  @IsIn(AUTH_TYPES)
+  authType!: 'api_key' | 'subscription' | 'local';
+
+  @IsString()
+  @IsNotEmpty()
+  model!: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  keyLabel?: string;
+}
 
 export class AgentNameParamDto {
   @IsString()
@@ -141,7 +162,7 @@ export class SetOverrideDto {
 
   @IsOptional()
   @IsIn(AUTH_TYPES)
-  authType?: 'api_key' | 'subscription';
+  authType?: 'api_key' | 'subscription' | 'local';
 
   @IsOptional()
   @IsString()
@@ -149,6 +170,15 @@ export class SetOverrideDto {
   @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   providerKeyLabel?: string;
+
+  // Optional route field. When clients send this, it takes precedence over
+  // the flat (model, provider, authType) above and is the unambiguous shape.
+  // `route.keyLabel` carries the same data as `providerKeyLabel` above when
+  // present.
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ModelRouteDto)
+  route?: ModelRouteDto;
 }
 
 export class CopilotPollDto {
@@ -163,4 +193,15 @@ export class SetFallbacksDto {
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
   models!: string[];
+
+  // Optional structured routes. When present, takes precedence over `models`
+  // above and is what we persist to fallback_routes. Length must match
+  // `models` so the dual-write stays consistent. Each entry's `keyLabel`
+  // pins which provider key is used for that fallback.
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(5)
+  @ValidateNested({ each: true })
+  @Type(() => ModelRouteDto)
+  routes?: ModelRouteDto[];
 }

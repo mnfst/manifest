@@ -6,7 +6,7 @@
   </picture>
 </p>
 <p align="center">
-    Affordable Personal AI
+Reduce your AI costs 
 </p>
 
 ![manifest-gh](https://github.com/user-attachments/assets/7dd74fc2-f7d6-4558-a95a-014ed754a125)
@@ -35,11 +35,12 @@
 
 ## What is Manifest?
 
-Manifest is a smart model router for Personal AI Agents like OpenClaw or Hermes. It sits between your agent and your LLM providers, scores each request, and routes it to the cheapest model that can handle it. Simple questions go to fast, cheap models. Hard problems go to expensive ones. You save money without thinking about it.
+Manifest is a smart model router for agents and AI applications that redirects each query to the right model, saving up to 70% in AI costs.
 
-- Route requests to the right model: Cut costs up to 70%
-- Automatic fallbacks: If a model fails, the next one picks up
-- Set limits: Don't exceed your budget
+- 🔀 Routing based on complexity, specificity and custom HTTP headers
+- 🎛️ Mix your providers: API keys, Subscriptions, Local models, Custom providers
+- 📊 Track every single dollar, setup notifications and limits
+- 🚑 Fallback on different models when queries fails
 
 ## Quick start
 
@@ -47,7 +48,7 @@ Manifest is a smart model router for Personal AI Agents like OpenClaw or Hermes.
 
 Go to [app.manifest.build](https://app.manifest.build) and follow the guide.
 
-### Self-hosted (Docker)
+### Self-hosted 
 
 Manifest ships as a [Docker image](https://hub.docker.com/r/manifestdotbuild/manifest). One command:
 
@@ -55,75 +56,42 @@ Manifest ships as a [Docker image](https://hub.docker.com/r/manifestdotbuild/man
 bash <(curl -sSL https://raw.githubusercontent.com/mnfst/manifest/main/docker/install.sh)
 ```
 
-The installer downloads the compose file into `~/manifest`, generates a secret, and brings up the stack. First boot pulls the app image and Postgres, so give it up to a couple of minutes.
+Open [http://localhost:2099](http://localhost:2099) and sign up — the first account you create becomes the admin. Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
 
-Open [http://localhost:2099](http://localhost:2099) and sign up — the first account you create becomes the admin. Confirm the stack is live with `curl -sSf http://localhost:2099/api/v1/health`.
+> The legacy `manifest` npm package is deprecated and no longer published.
 
-Prefer to look before running a remote script? Download and inspect it first, or do a dry run:
+## Providers
 
-```bash
-curl -sSLO https://raw.githubusercontent.com/mnfst/manifest/main/docker/install.sh
-less install.sh
-bash install.sh --dry-run      # prints what it would do
-bash install.sh --dir /opt/mnfst --yes   # custom location, non-interactive
-```
+Manifest connects to **300+ models across 16 providers** plus any custom provider (OpenAI/Anthropic compatible). Bring your own API key, reuse a paid subscription you already have, or run models locally — all routed through
+  the same `/auto` endpoint.
 
-Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
-
-> Docker is the only supported distribution. The legacy `manifest` npm package is deprecated and no longer published.
-
-## How it works
-
-Every request to `manifest/auto` goes through a 23-dimension scoring algorithm (runs in under 2ms). The scorer picks a tier (simple, standard, complex, or reasoning) and routes to the best model in that tier from your connected providers.
-
-All routing data (tokens, costs, model, latency) is recorded automatically. You see it in the dashboard. No extra setup.
-
-## Manifest vs OpenRouter
-
-|              | Manifest                                     | OpenRouter                                          |
-| ------------ | -------------------------------------------- | --------------------------------------------------- |
-| Built for | Personal AI agents and consumer apps | Enterprise API traffic |
-| Architecture | Local. Your requests, your providers         | Cloud proxy. All traffic goes through their servers |
-| Cost         | Free                                         | 5% fee on every API call                            |
-| Source code  | MIT, fully open                              | Proprietary                                         |
-| Data privacy | Metadata only (cloud) or fully local         | Prompts and responses pass through a third party    |
-| Transparency | Open scoring. You see why a model was chosen | No visibility into routing decisions                |
-| Control | Define your model per tier with up to 5 fallbacks each, from complexity tiers (Simple → Reasoning) to specialized ones (Coding, Vision). | Flat fallback list per request, or opaque auto-routing. No user-defined tiers. |
-| Custom providers | Add custom providers and models | Supported providers only, no arbitrary endpoints |
-| Subscription support | Route through flat-rate subscriptions you already pay for (MiniMax $20/mo, etc.) | Pay-per-use billing |
-
-## Supported providers
-
-Works with 300+ models across these providers. Connect with an API key, or reuse an existing paid subscription where supported:
-
-| Provider                                                                       | API key | Subscription               |
-| ------------------------------------------------------------------------------ | :-----: | :------------------------- |
-| [OpenAI](https://platform.openai.com/)                                         |   ✅    | ✅ ChatGPT Plus / Pro / Team |
-| [Anthropic](https://www.anthropic.com/)                                        |   ✅    | ✅ Claude Max / Pro          |
-| [Google Gemini](https://ai.google.dev/)                                        |   ✅    |                            |
-| [DeepSeek](https://www.deepseek.com/)                                          |   ✅    |                            |
-| [xAI](https://x.ai/)                                                           |   ✅    |                            |
-| [Mistral AI](https://mistral.ai/)                                              |   ✅    |                            |
-| [Qwen (Alibaba)](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) |   ✅    |                            |
-| [MiniMax](https://www.minimax.io/)                                             |   ✅    | ✅ MiniMax Coding Plan       |
-| [Kimi (Moonshot)](https://kimi.ai/)                                            |   ✅    |                            |
-| [Z.ai (Zhipu)](https://z.ai/)                                                  |   ✅    | ✅ GLM Coding Plan           |
-| [GitHub Copilot](https://github.com/features/copilot)                          |         | ✅ Copilot subscription      |
-| [OpenRouter](https://openrouter.ai/)                                           |   ✅    |                            |
-| [LM Studio](https://lmstudio.ai/)                                              |   ✅ Local   |                            |
-| [Ollama](https://ollama.com/)                                                  |   ✅ Local   | ✅ Ollama Cloud              |
-| Custom providers (OpenAI-compatible)                                           |   ✅    |                            |
-
-## Contributing
-
-Manifest is open source under the [MIT license](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, architecture, and workflow. Join the conversation on [Discord](https://discord.gg/FepAked3W7).
+  | Provider | API key | Subscription | Featured models |
+  | --- | :---: | :--- | :--- |
+  | [**OpenAI**](https://platform.openai.com/) | ✅ | ✅ ChatGPT Plus / Pro / Team | gpt-5, gpt-5-mini, o4, o4-mini |
+  | [**Anthropic**](https://www.anthropic.com/) | ✅ | ✅ Claude Max / Pro | claude-opus-4-7, claude-sonnet-4-6, claude-haiku-4-5 |
+  | [**Google**](https://ai.google.dev/) | ✅ | — | gemini-2.5-pro, gemini-2.5-flash, gemini-2.0-flash |
+  | [**xAI**](https://x.ai/) | ✅ | — | grok-4, grok-3, grok-code-fast |
+  | [**DeepSeek**](https://www.deepseek.com/) | ✅ | — | deepseek-v3.2, deepseek-r1 |
+  | [**Mistral**](https://mistral.ai/) | ✅ | — | mistral-large, codestral, magistral |
+  | [**Qwen** (Alibaba)](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) | ✅ | — | qwen3-max, qwen3-coder, qwq-32b |
+  | [**Moonshot** (Kimi)](https://kimi.ai/) | ✅ | — | kimi-k2, moonshot-v1-128k |
+  | [**MiniMax**](https://www.minimax.io/) | ✅ | ✅ MiniMax Coding Plan | minimax-m2, abab7-chat-preview |
+  | [**Z.ai** (Zhipu)](https://z.ai/) | ✅ | ✅ GLM Coding Plan | glm-4.6, glm-4.5-air |
+  | [**OpenCode**](https://opencode.ai/) | — | ✅ Go subscription | Routes via OpenCode Go catalog |
+  | [**Ollama**](https://ollama.com/) | 🖥️ Local | ✅ Ollama Cloud | Any GGUF model, port `11434` |
+  | [**LM Studio**](https://lmstudio.ai/) | 🖥️ Local | — | Any GGUF model, port `1234` |
+  | [**llama.cpp**](https://github.com/ggml-org/llama.cpp) | 🖥️ Local | — | Any GGUF model, port `8080` |
+  | [**OpenRouter**](https://openrouter.ai/) | ✅ | — | Routes to 300+ models across labs |
+  | [**GitHub Copilot**](https://github.com/features/copilot) | — | ✅ Copilot subscription | OAuth, no API key needed |
+  | **Custom** (OpenAI/Anthropic-compatible) | ✅ | — | Any `/v1/chat/completions` or `/v1/messages` endpoint |
 
 ## Quick links
 
-- [GitHub](https://github.com/mnfst/manifest)
 - [Docs](https://manifest.build/docs)
 - [Discord](https://discord.com/invite/FepAked3W7)
 - [Discussions](https://github.com/mnfst/manifest/discussions)
+- [Contributing](CONTRIBUTING.md)
+- [GitHub](https://github.com/mnfst/manifest)
 
 ## License
 

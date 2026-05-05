@@ -7,6 +7,58 @@ export interface StreamUsage {
   cache_creation_tokens?: number;
 }
 
+/**
+ * Read a usage block in either OpenAI-compat (`prompt_tokens`/`completion_tokens`)
+ * or Anthropic-native (`input_tokens`/`output_tokens`) shape and normalise it
+ * to a `StreamUsage`. Returns null when neither shape is present.
+ *
+ * OpenAI-compatible providers expose cached prompt tokens under the nested
+ * `prompt_tokens_details.cached_tokens` field, not the top-level
+ * `cache_read_tokens` key — DeepSeek, Z.AI, MiniMax, Mistral, etc. all use the
+ * nested form. Falling back to the nested key keeps the cache column populated
+ * for those providers.
+ */
+export function parseUsageObject(usage: unknown): StreamUsage | null {
+  if (!usage || typeof usage !== 'object') return null;
+  const u = usage as Record<string, unknown>;
+
+  if (typeof u.prompt_tokens === 'number') {
+    const promptDetails =
+      typeof u.prompt_tokens_details === 'object' && u.prompt_tokens_details !== null
+        ? (u.prompt_tokens_details as Record<string, unknown>)
+        : undefined;
+    const cacheRead =
+      typeof u.cache_read_tokens === 'number'
+        ? u.cache_read_tokens
+        : typeof promptDetails?.cached_tokens === 'number'
+          ? promptDetails.cached_tokens
+          : undefined;
+    return {
+      prompt_tokens: u.prompt_tokens,
+      completion_tokens: typeof u.completion_tokens === 'number' ? u.completion_tokens : 0,
+      cache_read_tokens: cacheRead,
+      cache_creation_tokens:
+        typeof u.cache_creation_tokens === 'number' ? u.cache_creation_tokens : undefined,
+    };
+  }
+
+  if (typeof u.input_tokens === 'number') {
+    const inputDetails =
+      typeof u.input_tokens_details === 'object' && u.input_tokens_details !== null
+        ? (u.input_tokens_details as Record<string, unknown>)
+        : undefined;
+    return {
+      prompt_tokens: u.input_tokens,
+      completion_tokens: typeof u.output_tokens === 'number' ? u.output_tokens : 0,
+      cache_read_tokens:
+        typeof inputDetails?.cached_tokens === 'number' ? inputDetails.cached_tokens : undefined,
+      cache_creation_tokens: 0,
+    };
+  }
+
+  return null;
+}
+
 /** Extract usage data from an SSE-formatted text chunk (e.g. `data: {...}\n\n`). */
 export function extractUsageFromSse(sseText: string): StreamUsage | null {
   for (const line of sseText.split('\n')) {
@@ -16,14 +68,10 @@ export function extractUsageFromSse(sseText: string): StreamUsage | null {
     if (json === '[DONE]') continue;
     try {
       const obj = JSON.parse(json);
-      if (obj.usage && typeof obj.usage.prompt_tokens === 'number') {
-        return {
-          prompt_tokens: obj.usage.prompt_tokens,
-          completion_tokens: obj.usage.completion_tokens ?? 0,
-          cache_read_tokens: obj.usage.cache_read_tokens,
-          cache_creation_tokens: obj.usage.cache_creation_tokens,
-        };
-      }
+      const fromUsage = parseUsageObject(obj.usage);
+      if (fromUsage) return fromUsage;
+      const fromResponse = parseUsageObject(obj.response?.usage);
+      if (fromResponse) return fromResponse;
     } catch {
       /* ignore parse errors */
     }
@@ -128,13 +176,12 @@ export async function pipeStream(
           for (const ev of ptEvents) {
             try {
               const obj = JSON.parse(ev);
-              if (obj.usage && typeof obj.usage.prompt_tokens === 'number') {
-                capturedUsage = {
-                  prompt_tokens: obj.usage.prompt_tokens,
-                  completion_tokens: obj.usage.completion_tokens ?? 0,
-                  cache_read_tokens: obj.usage.cache_read_tokens,
-                  cache_creation_tokens: obj.usage.cache_creation_tokens,
-                };
+              const fromUsage = parseUsageObject(obj.usage);
+              if (fromUsage) {
+                capturedUsage = fromUsage;
+              } else {
+                const fromResponse = parseUsageObject(obj.response?.usage);
+                if (fromResponse) capturedUsage = fromResponse;
               }
             } catch {
               /* ignore non-JSON events */
@@ -156,13 +203,12 @@ export async function pipeStream(
       if (payload && payload !== '[DONE]') {
         try {
           const obj = JSON.parse(payload);
-          if (obj.usage && typeof obj.usage.prompt_tokens === 'number') {
-            capturedUsage = {
-              prompt_tokens: obj.usage.prompt_tokens,
-              completion_tokens: obj.usage.completion_tokens ?? 0,
-              cache_read_tokens: obj.usage.cache_read_tokens,
-              cache_creation_tokens: obj.usage.cache_creation_tokens,
-            };
+          const fromUsage = parseUsageObject(obj.usage);
+          if (fromUsage) {
+            capturedUsage = fromUsage;
+          } else {
+            const fromResponse = parseUsageObject(obj.response?.usage);
+            if (fromResponse) capturedUsage = fromResponse;
           }
         } catch {
           /* ignore non-JSON remaining content */

@@ -45,11 +45,13 @@ export class AddPerformanceIndexes1772843035514 implements MigrationInterface {
   }
 
   private async backfillKeyPrefix(queryRunner: QueryRunner): Promise<void> {
+    const log = queryRunner.connection.logger;
     let secret: string;
     try {
       secret = getEncryptionSecret();
     } catch {
-      console.warn(
+      log.log(
+        'warn',
         'AddPerformanceIndexes: No encryption secret found. Skipping key_prefix backfill.',
       );
       return;
@@ -76,7 +78,10 @@ export class AddPerformanceIndexes1772843035514 implements MigrationInterface {
     }
 
     if (backfilled > 0) {
-      console.log(`AddPerformanceIndexes: Backfilled key_prefix for ${backfilled} provider(s).`);
+      log.log(
+        'info',
+        `AddPerformanceIndexes: Backfilled key_prefix for ${backfilled} provider(s).`,
+      );
     }
   }
 }

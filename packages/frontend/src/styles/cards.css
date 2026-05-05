@@ -152,6 +152,19 @@
   gap: var(--gap-sm);
 }
 
+.chart-card__savings-pct {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1.1;
+  color: hsl(var(--success));
+  background: hsl(var(--success) / 0.1);
+  align-self: center;
+}
+
 .chart-card__controls {
   margin-left: auto;
   display: flex;

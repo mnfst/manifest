@@ -1,4 +1,5 @@
 import { HttpException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { OpenaiOauthController } from './oauth/openai-oauth.controller';
 import { OpenaiOauthService } from './oauth/openai-oauth.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
@@ -12,6 +13,7 @@ describe('OpenaiOauthController', () => {
   let resolveAgent: jest.Mocked<ResolveAgentService>;
   let providerKeyService: jest.Mocked<ProviderKeyService>;
   let providerService: jest.Mocked<ProviderService>;
+  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
     oauthService = {
@@ -31,11 +33,16 @@ describe('OpenaiOauthController', () => {
       removeProvider: jest.fn().mockResolvedValue({ notifications: [] }),
     } as unknown as jest.Mocked<ProviderService>;
 
+    configService = {
+      get: jest.fn().mockReturnValue(undefined),
+    } as unknown as jest.Mocked<ConfigService>;
+
     controller = new OpenaiOauthController(
       oauthService,
       resolveAgent,
       providerKeyService,
       providerService,
+      configService,
     );
   });
 
@@ -110,6 +117,25 @@ describe('OpenaiOauthController', () => {
       await expect(
         controller.authorize('my-agent', { id: 'user-1' } as never, req),
       ).rejects.toThrow('Failed to start OAuth callback server');
+    });
+
+    it('uses BETTER_AUTH_URL from config when set, ignoring Host header', async () => {
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      oauthService.generateAuthorizationUrl.mockResolvedValue('https://auth.openai.com/oauth/...');
+      configService.get.mockReturnValue('https://manifest.example.com');
+
+      const req = {
+        protocol: 'http',
+        get: jest.fn().mockReturnValue('evil.example'),
+      } as unknown as Request;
+
+      await controller.authorize('my-agent', { id: 'user-1' } as never, req);
+
+      expect(oauthService.generateAuthorizationUrl).toHaveBeenCalledWith(
+        'agent-id-1',
+        'user-1',
+        'https://manifest.example.com',
+      );
     });
   });
 

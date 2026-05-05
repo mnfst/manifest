@@ -1,7 +1,7 @@
-import type { AuthType } from 'manifest-shared';
+import type { AuthType, ModelRoute } from 'manifest-shared';
 import { BASE_URL, fetchJson, fetchMutate, parseErrorMessage, routingPath } from './core.js';
 
-export type { AuthType };
+export type { AuthType, ModelRoute };
 
 export interface RoutingProvider {
   id: string;
@@ -165,17 +165,9 @@ export interface TierAssignment {
   id: string;
   agent_id: string;
   tier: string;
-  override_model: string | null;
-  override_provider: string | null;
-  override_auth_type: AuthType | null;
-  /**
-   * Optional pin to a specific provider key by user-supplied label. Mirrors
-   * `override_provider` (loose string ref) — when the labeled key is gone,
-   * the proxy falls back to the priority-0 (primary) key for the provider.
-   */
-  override_provider_key_label: string | null;
-  auto_assigned_model: string | null;
-  fallback_models: string[] | null;
+  override_route: ModelRoute | null;
+  auto_assigned_route: ModelRoute | null;
+  fallback_routes: ModelRoute[] | null;
   updated_at: string;
 }
 
@@ -191,15 +183,24 @@ export function overrideTier(
   authType?: AuthType,
   providerKeyLabel?: string,
 ) {
+  // The backend requires the structured (provider, authType, model) tuple now
+  // that legacy column persistence is gone. authType is optional only for
+  // backwards-compatible callsites that haven't yet been updated; the request
+  // will be rejected by the backend when authType is missing for an ambiguous
+  // model name.
+  const body: Record<string, unknown> = { model, provider };
+  if (authType) {
+    body.authType = authType;
+    const route: ModelRoute = providerKeyLabel
+      ? { provider, authType, model, keyLabel: providerKeyLabel }
+      : { provider, authType, model };
+    body.route = route;
+  }
+  if (providerKeyLabel) body.providerKeyLabel = providerKeyLabel;
   return fetchMutate<TierAssignment>(routingPath(agentName, `tiers/${encodeURIComponent(tier)}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model,
-      provider,
-      ...(authType && { authType }),
-      ...(providerKeyLabel && { providerKeyLabel }),
-    }),
+    body: JSON.stringify(body),
   });
 }
 
@@ -216,16 +217,25 @@ export function resetAllTiers(agentName: string) {
 /* -- Routing: Fallbacks -- */
 
 export function getFallbacks(agentName: string, tier: string) {
-  return fetchJson<string[]>(routingPath(agentName, `tiers/${encodeURIComponent(tier)}/fallbacks`));
+  return fetchJson<ModelRoute[]>(
+    routingPath(agentName, `tiers/${encodeURIComponent(tier)}/fallbacks`),
+  );
 }
 
-export function setFallbacks(agentName: string, tier: string, models: string[]) {
-  return fetchMutate<string[]>(
+export function setFallbacks(
+  agentName: string,
+  tier: string,
+  models: string[],
+  routes?: ModelRoute[],
+) {
+  const body: Record<string, unknown> = { models };
+  if (routes && routes.length === models.length) body.routes = routes;
+  return fetchMutate<ModelRoute[]>(
     routingPath(agentName, `tiers/${encodeURIComponent(tier)}/fallbacks`),
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ models }),
+      body: JSON.stringify(body),
     },
   );
 }
@@ -301,8 +311,31 @@ export interface CustomProviderData {
   created_at: string;
 }
 
-export function getCustomProviders(agentName: string) {
-  return fetchJson<CustomProviderData[]>(routingPath(agentName, 'custom-providers'));
+// Module-scoped cache so Overview / MessageLog / Routing don't each refetch
+// the same custom-providers list when mounting in sequence. Mutations below
+// (create/update/delete) invalidate the agent's entry; the routing 'routing'
+// SSE event invalidates them all.
+const customProvidersCache = new Map<string, Promise<CustomProviderData[]>>();
+
+export function invalidateCustomProvidersCache(agentName?: string): void {
+  if (agentName === undefined) {
+    customProvidersCache.clear();
+    return;
+  }
+  customProvidersCache.delete(agentName);
+}
+
+export function getCustomProviders(agentName: string): Promise<CustomProviderData[]> {
+  const cached = customProvidersCache.get(agentName);
+  if (cached) return cached;
+  const promise = fetchJson<CustomProviderData[]>(routingPath(agentName, 'custom-providers')).catch(
+    (err) => {
+      customProvidersCache.delete(agentName);
+      throw err;
+    },
+  );
+  customProvidersCache.set(agentName, promise);
+  return promise;
 }
 
 export function createCustomProvider(
@@ -315,6 +348,7 @@ export function createCustomProvider(
     models: CustomProviderModel[];
   },
 ) {
+  invalidateCustomProvidersCache(agentName);
   return fetchMutate<CustomProviderData>(routingPath(agentName, 'custom-providers'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -333,6 +367,7 @@ export function updateCustomProvider(
     models?: CustomProviderModel[];
   },
 ) {
+  invalidateCustomProvidersCache(agentName);
   return fetchMutate<CustomProviderData>(
     routingPath(agentName, `custom-providers/${encodeURIComponent(id)}`),
     {
@@ -365,6 +400,7 @@ export async function probeCustomProvider(
 }
 
 export function deleteCustomProvider(agentName: string, id: string) {
+  invalidateCustomProvidersCache(agentName);
   return fetchMutate<{ ok: boolean }>(
     routingPath(agentName, `custom-providers/${encodeURIComponent(id)}`),
     { method: 'DELETE' },

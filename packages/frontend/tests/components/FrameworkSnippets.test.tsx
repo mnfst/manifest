@@ -133,6 +133,26 @@ describe("FrameworkSnippets", () => {
   it("shows OpenAI Python SDK snippet by default", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     expect(container.textContent).toContain("from openai import OpenAI");
+    expect(container.textContent).toContain("Responses API");
+    expect(container.textContent).toContain("Chat Completions");
+    expect(container.textContent).toContain("client.responses.create");
+    expect(container.textContent).not.toContain("chat.completions.create");
+  });
+
+  it("switches to Chat Completions with the OpenAI API toggle", () => {
+    const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
+    const apiBtns = container.querySelectorAll(".toolkit-api-toggle__btn");
+    expect(apiBtns).toHaveLength(2);
+    expect(apiBtns[0].textContent).toContain("Responses API");
+    expect(apiBtns[1].textContent).toContain("Chat Completions");
+    expect(apiBtns[0].classList.contains("toolkit-api-toggle__btn--active")).toBe(true);
+
+    fireEvent.click(apiBtns[1]);
+
+    expect(apiBtns[1].classList.contains("toolkit-api-toggle__btn--active")).toBe(true);
+    expect(container.textContent).not.toContain("client.responses.create");
+    expect(container.textContent).toContain("client.chat.completions.create");
+    expect(container.textContent).toContain('messages=[{"role": "user", "content": "Hello"}]');
   });
 
   it("shows language toggle on OpenAI SDK tab", () => {
@@ -149,6 +169,17 @@ describe("FrameworkSnippets", () => {
     const langBtns = container.querySelectorAll(".toolkit-lang-toggle__btn");
     fireEvent.click(langBtns[1]); // TypeScript
     expect(container.textContent).toContain('import OpenAI from "openai"');
+    expect(container.textContent).toContain("client.responses.create");
+  });
+
+  it("shows TypeScript Chat Completions when both toggles are selected", () => {
+    const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
+    const langBtns = container.querySelectorAll(".toolkit-lang-toggle__btn");
+    fireEvent.click(langBtns[1]); // TypeScript
+    const apiBtns = container.querySelectorAll(".toolkit-api-toggle__btn");
+    fireEvent.click(apiBtns[1]); // Chat Completions
+    expect(container.textContent).toContain("client.chat.completions.create");
+    expect(container.textContent).toContain('messages: [{ role: "user", content: "Hello" }]');
   });
 
   it("switches to Vercel AI SDK tab on click", () => {
@@ -181,6 +212,13 @@ describe("FrameworkSnippets", () => {
     expect(container.querySelector(".toolkit-lang-toggle")).toBeNull();
     fireEvent.click(tabs[3]); // cURL
     expect(container.querySelector(".toolkit-lang-toggle")).toBeNull();
+  });
+
+  it("hides OpenAI API toggle outside the OpenAI SDK tab", () => {
+    const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[1]); // Vercel AI SDK
+    expect(container.querySelector(".toolkit-api-toggle")).toBeNull();
   });
 
   it("switches to LangChain tab on click", () => {

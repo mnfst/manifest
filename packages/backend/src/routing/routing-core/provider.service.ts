@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, IsNull, Repository, In } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
@@ -14,7 +14,7 @@ import {
   isSupportedSubscriptionProvider,
 } from '../../common/utils/subscription-support';
 import type { AuthType } from 'manifest-shared';
-import { TIER_LABELS, parseFallbackEntry, encodeFallbackEntry } from 'manifest-shared';
+import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
 
 const MAX_KEYS_PER_PROVIDER = 5;
@@ -477,7 +477,7 @@ export class ProviderService {
       const tierMap = new Map(updatedTiers.map((t) => [t.tier, t]));
       for (const { tier, modelName } of invalidated) {
         const updated = tierMap.get(tier);
-        const newModel = updated?.auto_assigned_model ?? null;
+        const newModel = updated?.auto_assigned_route?.model ?? null;
         const tierLabel = TIER_LABELS[tier as keyof typeof TIER_LABELS] ?? tier;
         const suffix = newModel
           ? `${tierLabel} is back to automatic mode (${newModel}).`
@@ -534,11 +534,9 @@ export class ProviderService {
     await this.tierRepo.update(
       { agent_id: agentId },
       {
-        override_model: null,
-        override_provider: null,
-        override_auth_type: null,
-        override_provider_key_label: null,
-        fallback_models: null,
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: null,
         updated_at: new Date().toISOString(),
       },
     );
@@ -617,37 +615,32 @@ export class ProviderService {
     };
 
     const invalidated: { tier: string; modelName: string }[] = [];
-
-    const tierOverrides = await this.tierRepo.find({
-      where: { agent_id: agentId, override_model: Not(IsNull()) },
-    });
-    const tiersToSave: TierAssignment[] = [];
-    for (const tier of tierOverrides) {
-      const overrideProvider = tier.override_provider?.toLowerCase();
-      if (
-        (overrideProvider && providerNames.has(overrideProvider)) ||
-        modelBelongs(tier.override_model!)
-      ) {
-        invalidated.push({ tier: tier.tier, modelName: tier.override_model! });
-        tier.override_model = null;
-        tier.override_provider = null;
-        tier.override_auth_type = null;
-        tier.override_provider_key_label = null;
-        tier.updated_at = new Date().toISOString();
-        tiersToSave.push(tier);
-      }
-    }
+    const routeBelongs = (route: { provider: string; model: string } | null): boolean => {
+      if (!route) return false;
+      if (providerNames.has(route.provider.toLowerCase())) return true;
+      return modelBelongs(route.model);
+    };
 
     const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
     const hadTierAssignments = allTiers.length > 0;
-    const savedTierIds = new Set(tiersToSave.map((tier) => tier.id));
+    const tiersToSave: TierAssignment[] = [];
     for (const tier of allTiers) {
-      if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
-      const filtered = tier.fallback_models.filter((model) => !modelBelongs(model));
-      if (filtered.length !== tier.fallback_models.length) {
-        tier.fallback_models = filtered.length > 0 ? filtered : null;
+      let mutated = false;
+      if (tier.override_route && routeBelongs(tier.override_route)) {
+        invalidated.push({ tier: tier.tier, modelName: tier.override_route.model });
+        tier.override_route = null;
+        mutated = true;
+      }
+      if (tier.fallback_routes && tier.fallback_routes.length > 0) {
+        const filteredRoutes = tier.fallback_routes.filter((route) => !routeBelongs(route));
+        if (filteredRoutes.length !== tier.fallback_routes.length) {
+          tier.fallback_routes = filteredRoutes.length > 0 ? filteredRoutes : null;
+          mutated = true;
+        }
+      }
+      if (mutated) {
         tier.updated_at = new Date().toISOString();
-        if (!savedTierIds.has(tier.id)) tiersToSave.push(tier);
+        tiersToSave.push(tier);
       }
     }
 
@@ -657,22 +650,14 @@ export class ProviderService {
     const specToSave: SpecificityAssignment[] = [];
     for (const row of specificityRows) {
       let changed = false;
-      const overrideProvider = row.override_provider?.toLowerCase();
-      if (
-        row.override_model !== null &&
-        ((overrideProvider && providerNames.has(overrideProvider)) ||
-          modelBelongs(row.override_model))
-      ) {
-        row.override_model = null;
-        row.override_provider = null;
-        row.override_auth_type = null;
-        row.override_provider_key_label = null;
+      if (row.override_route && routeBelongs(row.override_route)) {
+        row.override_route = null;
         changed = true;
       }
-      if (row.fallback_models && row.fallback_models.length > 0) {
-        const filtered = row.fallback_models.filter((model) => !modelBelongs(model));
-        if (filtered.length !== row.fallback_models.length) {
-          row.fallback_models = filtered.length > 0 ? filtered : null;
+      if (row.fallback_routes && row.fallback_routes.length > 0) {
+        const filteredRoutes = row.fallback_routes.filter((route) => !routeBelongs(route));
+        if (filteredRoutes.length !== row.fallback_routes.length) {
+          row.fallback_routes = filteredRoutes.length > 0 ? filteredRoutes : null;
           changed = true;
         }
       }
@@ -701,62 +686,71 @@ export class ProviderService {
   ): Promise<void> {
     const providerLower = provider.toLowerCase();
     const previousLower = previousLabel.toLowerCase();
-    const matchesAssignment = (row: {
-      override_provider: string | null;
-      override_auth_type: string | null;
-      override_provider_key_label: string | null;
-    }): boolean => {
-      if (!row.override_provider_key_label) return false;
-      if (row.override_provider_key_label.toLowerCase() !== previousLower) return false;
-      if (row.override_provider?.toLowerCase() !== providerLower) return false;
-      if (row.override_auth_type && row.override_auth_type !== authType) return false;
+    // Scope a route match to the (provider, authType) tuple so renaming one
+    // provider's "Default" key doesn't accidentally rewrite another provider's
+    // pinned label that happens to share the same string. Cubic flagged this
+    // as P1 — keep it tight.
+    const routeMatchesKey = (
+      route: { provider: string; authType: string; keyLabel?: string | null } | null,
+    ): boolean => {
+      if (!route) return false;
+      if (!route.keyLabel) return false;
+      if (route.keyLabel.toLowerCase() !== previousLower) return false;
+      if (route.provider.toLowerCase() !== providerLower) return false;
+      if (route.authType !== authType) return false;
       return true;
     };
+    const replaceKeyLabel = <T extends { keyLabel?: string | null }>(route: T): T => ({
+      ...route,
+      keyLabel: nextLabel ?? null,
+    });
 
     const tiers = await this.tierRepo.find({ where: { agent_id: agentId } });
-    const tiersToSave = tiers.filter(matchesAssignment);
-    if (tiersToSave.length > 0) {
-      const now = new Date().toISOString();
-      for (const t of tiersToSave) {
-        t.override_provider_key_label = nextLabel;
-        t.updated_at = now;
+    const tiersToSave: TierAssignment[] = [];
+    const now = new Date().toISOString();
+    for (const t of tiers) {
+      let mutated = false;
+      if (routeMatchesKey(t.override_route)) {
+        t.override_route = replaceKeyLabel(t.override_route!);
+        mutated = true;
       }
-      await this.tierRepo.save(tiersToSave);
+      if (t.fallback_routes && t.fallback_routes.some(routeMatchesKey)) {
+        t.fallback_routes = t.fallback_routes.map((r) =>
+          routeMatchesKey(r) ? replaceKeyLabel(r) : r,
+        );
+        mutated = true;
+      }
+      if (mutated) {
+        t.updated_at = now;
+        tiersToSave.push(t);
+      }
     }
+    if (tiersToSave.length > 0) await this.tierRepo.save(tiersToSave);
 
+    // Specificity rows carry the same shape — relabel both override_route and
+    // fallback_routes. Cubic flagged P2: skipping specificity fallbacks left
+    // stale key-label pins behind, which then misrouted next time the
+    // specificity rule fired.
     const specs = await this.specificityRepo.find({ where: { agent_id: agentId } });
-    const specsToSave = specs.filter(matchesAssignment);
-    if (specsToSave.length > 0) {
-      const now = new Date().toISOString();
-      for (const s of specsToSave) {
-        s.override_provider_key_label = nextLabel;
+    const specsToSave: SpecificityAssignment[] = [];
+    for (const s of specs) {
+      let mutated = false;
+      if (routeMatchesKey(s.override_route)) {
+        s.override_route = replaceKeyLabel(s.override_route!);
+        mutated = true;
+      }
+      if (s.fallback_routes && s.fallback_routes.some(routeMatchesKey)) {
+        s.fallback_routes = s.fallback_routes.map((r) =>
+          routeMatchesKey(r) ? replaceKeyLabel(r) : r,
+        );
+        mutated = true;
+      }
+      if (mutated) {
         s.updated_at = now;
+        specsToSave.push(s);
       }
-      await this.specificityRepo.save(specsToSave);
     }
-
-    // Also relabel fallback_models entries that encode the old key label
-    // as `model||OldLabel`.
-    const tiersWithFallbacks = tiers.filter((t) =>
-      t.fallback_models?.some((entry) => {
-        const parsed = parseFallbackEntry(entry);
-        return parsed.providerKeyLabel?.toLowerCase() === previousLower;
-      }),
-    );
-    if (tiersWithFallbacks.length > 0) {
-      const now = new Date().toISOString();
-      for (const t of tiersWithFallbacks) {
-        t.fallback_models = t.fallback_models!.map((entry) => {
-          const parsed = parseFallbackEntry(entry);
-          if (parsed.providerKeyLabel?.toLowerCase() !== previousLower) return entry;
-          return nextLabel
-            ? encodeFallbackEntry({ model: parsed.model, providerKeyLabel: nextLabel })
-            : parsed.model;
-        });
-        t.updated_at = now;
-      }
-      await this.tierRepo.save(tiersWithFallbacks);
-    }
+    if (specsToSave.length > 0) await this.specificityRepo.save(specsToSave);
   }
 
   private async renumberPriorities(

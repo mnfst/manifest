@@ -4,6 +4,7 @@ import {
   setFallbacks,
   type AvailableModel,
   type CustomProviderData,
+  type ModelRoute,
   type RoutingProvider,
   type TierAssignment,
 } from '../services/api.js';
@@ -18,24 +19,38 @@ import {
 import { toast } from '../services/toast-store.js';
 import { authBadgeFor } from './AuthBadge.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
-import { encodeFallbackEntry, parseFallbackEntry } from 'manifest-shared';
 
 interface FallbackListProps {
   agentName: string;
   tier: string;
   tierData?: () => TierAssignment | undefined;
   fallbacks: string[];
+  // Optional structured route per fallback. When present (length matches
+  // fallbacks), each row renders provider/auth from the route instead of
+  // re-deriving them from `models`/`connectedProviders` — this fixes the
+  // same-name-different-auth ambiguity reported in issue #1708 without
+  // changing the visible UI for users whose data has been backfilled.
+  fallbackRoutes?: ModelRoute[] | null;
   models: AvailableModel[];
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
-  onUpdate: (updatedFallbacks: string[]) => void;
+  // FallbackList always passes both arguments. The second is optional in the
+  // signature so parents whose optimistic-state model doesn't track
+  // fallback_routes separately can omit it and still type-check; the next
+  // list refresh from the server fills routes back in.
+  onUpdate: (updatedFallbacks: string[], updatedRoutes?: ModelRoute[] | null) => void;
   onAddFallback: () => void;
   adding?: boolean;
   primaryDragging?: boolean;
   onPrimaryDropAtSlot?: (slot: number) => void;
   onFallbackDragStart?: (index: number) => void;
   onFallbackDragEnd?: () => void;
-  persistFallbacks?: (agentName: string, tier: string, models: string[]) => Promise<unknown>;
+  persistFallbacks?: (
+    agentName: string,
+    tier: string,
+    models: string[],
+    routes?: ModelRoute[],
+  ) => Promise<unknown>;
   persistClearFallbacks?: (agentName: string, tier: string) => Promise<unknown>;
 }
 
@@ -78,32 +93,45 @@ const FallbackList: Component<FallbackListProps> = (props) => {
       .sort((a, b) => a.priority - b.priority);
   };
 
+  /**
+   * Update the keyLabel pin on a single fallback row. Reads/writes through the
+   * structured `fallbackRoutes` so the persisted shape stays canonical
+   * (ModelRoute[] with `keyLabel`); the encoded string list is rebuilt to
+   * keep optimistic-update parents that still consume `string[]` working.
+   */
   const setLabelAt = async (index: number, newLabel: string | null) => {
     const original = [...props.fallbacks];
-    const updated = props.fallbacks.map((entry, i) => {
-      if (i !== index) return entry;
-      const parsed = parseFallbackEntry(entry);
-      return encodeFallbackEntry({
-        model: parsed.model,
-        providerKeyLabel: newLabel ?? undefined,
-      });
-    });
-    props.onUpdate(updated);
+    const originalRoutes = props.fallbackRoutes ? [...props.fallbackRoutes] : null;
+    const updatedRoutes: ModelRoute[] | null = originalRoutes
+      ? originalRoutes.map((r, i) =>
+          i === index ? ({ ...r, keyLabel: newLabel ?? null } as ModelRoute) : r,
+        )
+      : null;
+    // Bare model names — no `||<label>` encoding now that the structured
+    // `fallbackRoutes` carries keyLabel directly. The model list is just for
+    // the optimistic-update parents that still consume `string[]`; the
+    // canonical persisted shape is the route array.
+    const updated = [...props.fallbacks];
+    props.onUpdate(updated, updatedRoutes);
     try {
-      await persistSet(props.agentName, props.tier, updated);
+      await persistSet(props.agentName, props.tier, updated, updatedRoutes ?? undefined);
       toast.success(newLabel ? `Fallback pinned to "${newLabel}"` : 'Fallback key pin cleared');
     } catch {
-      props.onUpdate(original);
+      props.onUpdate(original, originalRoutes);
     }
   };
 
-  const providerIdFor = (model: string): string | undefined => {
+  const providerIdFor = (model: string, index: number): string | undefined => {
+    const route = props.fallbackRoutes?.[index];
+    if (route) return resolveProviderId(route.provider);
     const info = props.models.find((m) => m.model_name === model);
     if (info) return resolveProviderId(info.provider);
     return undefined;
   };
 
-  const authTypeFor = (providerId: string | undefined): string | null => {
+  const authTypeFor = (providerId: string | undefined, index: number): string | null => {
+    const route = props.fallbackRoutes?.[index];
+    if (route) return route.authType;
     if (!providerId) return null;
     const provs = props.connectedProviders.filter(
       (p) => p.provider.toLowerCase() === providerId.toLowerCase(),
@@ -124,20 +152,33 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   const persistSet = props.persistFallbacks ?? setFallbacks;
   const persistClear = props.persistClearFallbacks ?? clearFallbacks;
 
+  const reorderRoutes = (
+    routes: ModelRoute[] | null | undefined,
+    transform: (r: ModelRoute[]) => ModelRoute[],
+  ): ModelRoute[] | null => {
+    if (!routes || routes.length === 0) return null;
+    const next = transform([...routes]);
+    return next.length > 0 ? next : null;
+  };
+
   const handleRemove = async (index: number) => {
     setRemovingIndex(index);
     const original = [...props.fallbacks];
+    const originalRoutes = props.fallbackRoutes ? [...props.fallbackRoutes] : null;
     const updated = props.fallbacks.filter((_, i) => i !== index);
-    props.onUpdate(updated);
+    const updatedRoutes = reorderRoutes(props.fallbackRoutes, (rs) =>
+      rs.filter((_, i) => i !== index),
+    );
+    props.onUpdate(updated, updatedRoutes);
     try {
       if (updated.length === 0) {
         await persistClear(props.agentName, props.tier);
       } else {
-        await persistSet(props.agentName, props.tier, updated);
+        await persistSet(props.agentName, props.tier, updated, updatedRoutes ?? undefined);
       }
       toast.success('Fallback removed');
     } catch {
-      props.onUpdate(original);
+      props.onUpdate(original, originalRoutes);
     } finally {
       setRemovingIndex(null);
     }
@@ -217,16 +258,22 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     if (insertAt === fromIndex) return;
 
     const original = [...props.fallbacks];
+    const originalRoutes = props.fallbackRoutes ? [...props.fallbackRoutes] : null;
     const reordered = [...props.fallbacks];
     const moved = reordered.splice(fromIndex, 1)[0]!;
     reordered.splice(insertAt, 0, moved);
+    const reorderedRoutes = reorderRoutes(props.fallbackRoutes, (rs) => {
+      const movedRoute = rs.splice(fromIndex, 1)[0]!;
+      rs.splice(insertAt, 0, movedRoute);
+      return rs;
+    });
 
-    props.onUpdate(reordered);
+    props.onUpdate(reordered, reorderedRoutes);
     try {
-      await persistSet(props.agentName, props.tier, reordered);
+      await persistSet(props.agentName, props.tier, reordered, reorderedRoutes ?? undefined);
       toast.success('Fallback order updated');
     } catch {
-      props.onUpdate(original);
+      props.onUpdate(original, originalRoutes);
     }
   };
 
@@ -249,12 +296,16 @@ const FallbackList: Component<FallbackListProps> = (props) => {
         >
           <For each={props.fallbacks}>
             {(entry, i) => {
-              const parsed = () => parseFallbackEntry(entry);
-              const model = () => parsed().model;
-              const pinnedLabel = () => parsed().providerKeyLabel;
-              const provId = () => providerIdFor(model());
+              // Each fallback row reads its model + (optional) keyLabel pin
+              // from the structured `fallbackRoutes`, which is the canonical
+              // location for the pin now that `||<label>` encoding has been
+              // dropped. The bare `entry` string carries only the model name.
+              const model = () => entry;
+              const route = () => props.fallbackRoutes?.[i()];
+              const pinnedLabel = () => route()?.keyLabel ?? null;
+              const provId = () => providerIdFor(model(), i());
               const isCustom = () => provId()?.startsWith('custom:');
-              const auth = () => authTypeFor(provId());
+              const auth = () => authTypeFor(provId(), i());
               const title = () => providerTitle(provId(), auth());
               const keys = () => keysForFallback(provId(), auth());
               return (
@@ -272,6 +323,17 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     }}
                     draggable={true}
                     onDragStart={(e) => handleDragStart(i(), e)}
+                    // Bind dragend on the draggable row itself rather than
+                    // only on the container. When a fallback row is dropped
+                    // onto the primary slot (outside this container), the
+                    // container's onDragEnd doesn't always fire — the row
+                    // gets re-rendered with a new model name as part of the
+                    // optimistic swap, the drag source unmounts, and the
+                    // container loses the bubbled event. Result: dragIndex
+                    // stays set and the row keeps the --dragging class with
+                    // opacity 0.3 until the next refetch. Resetting on the
+                    // row itself catches every drop target.
+                    onDragEnd={handleDragEnd}
                   >
                     <Show when={provId() && !isCustom()}>
                       <span class="fallback-list__icon" title={title()}>
@@ -312,7 +374,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     <Show when={keys().length > 1}>
                       <FallbackKeyChip
                         keys={keys()}
-                        currentLabel={pinnedLabel()}
+                        currentLabel={pinnedLabel() ?? undefined}
                         modelLabel={modelLabel(model())}
                         modelName={model()}
                         tier={props.tierData ?? (() => undefined)}

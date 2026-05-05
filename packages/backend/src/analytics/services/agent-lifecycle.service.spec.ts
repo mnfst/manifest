@@ -4,13 +4,18 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AgentLifecycleService } from './agent-lifecycle.service';
 import { Agent } from '../../entities/agent.entity';
+import { ResolveAgentService } from '../../routing/routing-core/resolve-agent.service';
+import { RoutingCacheService } from '../../routing/routing-core/routing-cache.service';
+import { AgentKeyAuthGuard } from '../../otlp/guards/agent-key-auth.guard';
 
 describe('AgentLifecycleService', () => {
   let service: AgentLifecycleService;
   let mockAgentGetOne: jest.Mock;
-  let mockAgentDelete: jest.Mock;
   let mockTransaction: jest.Mock;
   let mockAgentCreateQueryBuilder: jest.Mock;
+  let mockResolveInvalidate: jest.Mock;
+  let mockRoutingInvalidate: jest.Mock;
+  let mockOtlpClearCache: jest.Mock;
 
   beforeEach(async () => {
     mockTransaction = jest
@@ -18,7 +23,9 @@ describe('AgentLifecycleService', () => {
       .mockImplementation(async (cb: (...args: unknown[]) => unknown) => cb());
 
     mockAgentGetOne = jest.fn().mockResolvedValue(null);
-    mockAgentDelete = jest.fn().mockResolvedValue({});
+    mockResolveInvalidate = jest.fn();
+    mockRoutingInvalidate = jest.fn();
+    mockOtlpClearCache = jest.fn();
 
     const mockAgentQb = {
       select: jest.fn().mockReturnThis(),
@@ -39,12 +46,23 @@ describe('AgentLifecycleService', () => {
           provide: getRepositoryToken(Agent),
           useValue: {
             createQueryBuilder: mockAgentCreateQueryBuilder,
-            delete: mockAgentDelete,
           },
         },
         {
           provide: DataSource,
           useValue: { transaction: mockTransaction },
+        },
+        {
+          provide: ResolveAgentService,
+          useValue: { invalidate: mockResolveInvalidate },
+        },
+        {
+          provide: RoutingCacheService,
+          useValue: { invalidateAgent: mockRoutingInvalidate },
+        },
+        {
+          provide: AgentKeyAuthGuard,
+          useValue: { clearCache: mockOtlpClearCache },
         },
       ],
     }).compile();
@@ -52,20 +70,96 @@ describe('AgentLifecycleService', () => {
     service = module.get<AgentLifecycleService>(AgentLifecycleService);
   });
 
-  describe('deleteAgent', () => {
-    it('should delete agent when found', async () => {
-      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
+  describe('findAgentInfo', () => {
+    it('returns agent metadata when found', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({
+        id: 'agent-id-1',
+        name: 'bot-1',
+        display_name: 'Bot One',
+        agent_category: 'app',
+        agent_platform: 'openai-sdk',
+      });
 
-      await service.deleteAgent('test-user', 'my-agent');
-      expect(mockAgentDelete).toHaveBeenCalledWith('agent-id-1');
+      const result = await service.findAgentInfo('user-1', 'bot-1');
+      expect(result).toEqual({
+        agent_name: 'bot-1',
+        display_name: 'Bot One',
+        agent_category: 'app',
+        agent_platform: 'openai-sdk',
+      });
     });
 
-    it('should throw NotFoundException when agent not found', async () => {
+    it('falls back display_name to agent name when null', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({
+        id: 'agent-id-1',
+        name: 'bot-1',
+        display_name: null,
+        agent_category: null,
+        agent_platform: null,
+      });
+
+      const result = await service.findAgentInfo('user-1', 'bot-1');
+      expect(result?.display_name).toBe('bot-1');
+      expect(result?.agent_category).toBeNull();
+      expect(result?.agent_platform).toBeNull();
+    });
+
+    it('returns null when agent not found', async () => {
+      mockAgentGetOne.mockResolvedValueOnce(null);
+      const result = await service.findAgentInfo('user-1', 'nonexistent');
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('deleteAgent', () => {
+    it('soft-deletes the agent, disables its API keys, and invalidates caches', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({
+        id: 'agent-id-1',
+        name: 'my-agent',
+        tenant_id: 'tenant-1',
+      });
+
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockManagerQb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+      mockTransaction.mockImplementation(async (cb: (...args: unknown[]) => unknown) => {
+        const manager = { createQueryBuilder: jest.fn().mockReturnValue(mockManagerQb) };
+        return cb(manager);
+      });
+
+      await service.deleteAgent('test-user', 'my-agent');
+
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
+      const updateCalls = mockManagerQb.update.mock.calls.map((c: unknown[]) => c[0]);
+      expect(updateCalls).toEqual(['agents', 'agent_api_keys']);
+
+      const agentSet = mockManagerQb.set.mock.calls[0][0] as Record<string, unknown>;
+      expect(agentSet['is_active']).toBe(false);
+      expect(typeof agentSet['deleted_at']).toBe('function');
+      expect((agentSet['deleted_at'] as () => string)()).toBe('NOW()');
+
+      const keySet = mockManagerQb.set.mock.calls[1][0];
+      expect(keySet).toEqual({ is_active: false });
+
+      expect(mockResolveInvalidate).toHaveBeenCalledWith('tenant-1', 'my-agent');
+      expect(mockRoutingInvalidate).toHaveBeenCalledWith('agent-id-1');
+      expect(mockOtlpClearCache).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws NotFoundException and skips cache invalidation when agent missing', async () => {
       mockAgentGetOne.mockResolvedValueOnce(null);
 
       await expect(service.deleteAgent('test-user', 'nonexistent')).rejects.toThrow(
         NotFoundException,
       );
+      expect(mockTransaction).not.toHaveBeenCalled();
+      expect(mockResolveInvalidate).not.toHaveBeenCalled();
+      expect(mockRoutingInvalidate).not.toHaveBeenCalled();
+      expect(mockOtlpClearCache).not.toHaveBeenCalled();
     });
   });
 

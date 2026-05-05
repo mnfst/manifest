@@ -210,15 +210,26 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               const authType = m.auth_type ?? 'api_key';
               const keys = activeKeysFor(props.connectedProviders(), providerId, authType);
               if (keys.length <= 1) {
-                // Single-key model: hide if already used as primary or fallback (bare name)
+                // Single-key model: hide if already used as primary or fallback
+                // (matched on the full route tuple — same model on a different
+                // (provider, auth) is intentionally NOT filtered).
                 const tier = props.getTier(tierId());
-                const primaryModel = tier?.override_model ?? tier?.auto_assigned_model;
-                if (primaryModel === m.model_name) return false;
-                const fallbacks = tier?.fallback_models ?? [];
-                return !fallbacks.some((entry) => {
-                  const sep = entry.indexOf('||');
-                  return (sep === -1 ? entry : entry.substring(0, sep)) === m.model_name;
-                });
+                const primaryRoute = tier?.override_route ?? tier?.auto_assigned_route ?? null;
+                if (
+                  primaryRoute &&
+                  primaryRoute.model === m.model_name &&
+                  primaryRoute.provider.toLowerCase() === providerId.toLowerCase() &&
+                  primaryRoute.authType === authType
+                ) {
+                  return false;
+                }
+                const routes = tier?.fallback_routes ?? [];
+                return !routes.some(
+                  (r) =>
+                    r.model === m.model_name &&
+                    r.provider.toLowerCase() === providerId.toLowerCase() &&
+                    r.authType === authType,
+                );
               }
               // Multi-key model: hide only if ALL keys are already used
               const used = usedKeysForModel(m.model_name, providerId, authType);
@@ -250,7 +261,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
             if (availableKeys.length === 1) {
               // Only one key left — auto-select it, close picker for fresh data
               props.onFallbackPickerClose();
-              props.onAddFallback(tid, modelName, providerId, authType, availableKeys[0].label);
+              props.onAddFallback(tid, modelName, providerId, authType, availableKeys[0]!.label);
               return;
             }
             // 2+ keys available → ask which one

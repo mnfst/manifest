@@ -10,6 +10,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
 import { Request, Response } from 'express';
 import { Public } from '../../common/decorators/public.decorator';
@@ -29,6 +30,7 @@ export class OpenaiOauthController {
     private readonly resolveAgent: ResolveAgentService,
     private readonly providerKeyService: ProviderKeyService,
     private readonly providerService: ProviderService,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -46,7 +48,11 @@ export class OpenaiOauthController {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
     const agent = await this.resolveAgent.resolve(user.id, agentName);
-    const backendUrl = `${req.protocol}://${req.get('host')}`;
+    // Prefer the operator-configured BETTER_AUTH_URL so a forged Host header
+    // can't redirect the OAuth flow. Fall back to the request's host:port for
+    // the dev case where BETTER_AUTH_URL isn't set.
+    const trustedBackendUrl = this.configService.get<string>('BETTER_AUTH_URL');
+    const backendUrl = trustedBackendUrl || `${req.protocol}://${req.get('host')}`;
     try {
       const url = await this.oauthService.generateAuthorizationUrl(agent.id, user.id, backendUrl);
       return { url };

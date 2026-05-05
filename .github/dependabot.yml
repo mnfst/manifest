@@ -4,3 +4,13 @@ updates:
     directory: /docker
     schedule:
       interval: weekly
+    # Ignore Node major bumps. Dependabot opens majors indiscriminately
+    # (e.g. PR #1736 proposed Node 25, a non-LTS release). Manifest
+    # tracks Node LTS only and picks the next LTS major manually
+    # (currently Node 24, next Node 26 in October 2026). Digest and
+    # minor/patch bumps still flow through automatically.
+    ignore:
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "gcr.io/distroless/nodejs*"
+        update-types: ["version-update:semver-major"]

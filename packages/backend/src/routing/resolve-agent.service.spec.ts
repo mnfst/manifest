@@ -62,7 +62,7 @@ describe('ResolveAgentService', () => {
 
     expect(result).toEqual(agent);
     expect(mockFindOne).toHaveBeenCalledWith({
-      where: { tenant_id: 'tenant-123', name: 'my-agent' },
+      where: { tenant_id: 'tenant-123', name: 'my-agent', deleted_at: expect.anything() },
     });
   });
 

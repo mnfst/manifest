@@ -57,6 +57,7 @@ export class AgentDuplicationService {
       .leftJoin('a.tenant', 't')
       .where('t.name = :userId', { userId })
       .andWhere('a.name = :agentName', { agentName })
+      .andWhere('a.deleted_at IS NULL')
       .getOne();
   }
 
@@ -86,6 +87,7 @@ export class AgentDuplicationService {
       .createQueryBuilder('a')
       .leftJoin('a.tenant', 't')
       .where('t.name = :userId', { userId })
+      .andWhere('a.deleted_at IS NULL')
       .select('a.name', 'name')
       .getRawMany<{ name: string }>();
     const taken = new Set(existingNames.map((r) => r.name));
@@ -194,11 +196,9 @@ export class AgentDuplicationService {
             user_id: t.user_id,
             agent_id: newAgentId,
             tier: t.tier,
-            override_model: t.override_model,
-            override_provider: t.override_provider,
-            override_auth_type: t.override_auth_type,
-            auto_assigned_model: t.auto_assigned_model,
-            fallback_models: t.fallback_models,
+            override_route: t.override_route,
+            auto_assigned_route: t.auto_assigned_route,
+            fallback_routes: t.fallback_routes,
             updated_at: now,
           })),
         );
@@ -215,11 +215,9 @@ export class AgentDuplicationService {
             agent_id: newAgentId,
             category: s.category,
             is_active: s.is_active,
-            override_model: s.override_model,
-            override_provider: s.override_provider,
-            override_auth_type: s.override_auth_type,
-            auto_assigned_model: s.auto_assigned_model,
-            fallback_models: s.fallback_models,
+            override_route: s.override_route,
+            auto_assigned_route: s.auto_assigned_route,
+            fallback_routes: s.fallback_routes,
             updated_at: now,
           })),
         );

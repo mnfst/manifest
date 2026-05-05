@@ -1,17 +1,14 @@
 import { fetchJson, fetchMutate, routingPath } from './core.js';
-import type { AuthType } from './routing.js';
+import type { AuthType, ModelRoute } from './routing.js';
 
 export interface SpecificityAssignment {
   id: string;
   agent_id: string;
   category: string;
   is_active: boolean;
-  override_model: string | null;
-  override_provider: string | null;
-  override_auth_type: AuthType | null;
-  override_provider_key_label: string | null;
-  auto_assigned_model: string | null;
-  fallback_models: string[] | null;
+  override_route: ModelRoute | null;
+  auto_assigned_route: ModelRoute | null;
+  fallback_routes: ModelRoute[] | null;
   updated_at: string;
 }
 
@@ -38,17 +35,21 @@ export function overrideSpecificity(
   authType?: AuthType,
   providerKeyLabel?: string,
 ) {
+  const body: Record<string, unknown> = { model, provider };
+  if (authType) {
+    body.authType = authType;
+    const route: ModelRoute = providerKeyLabel
+      ? { provider, authType, model, keyLabel: providerKeyLabel }
+      : { provider, authType, model };
+    body.route = route;
+  }
+  if (providerKeyLabel) body.providerKeyLabel = providerKeyLabel;
   return fetchMutate<SpecificityAssignment>(
     routingPath(agentName, `specificity/${encodeURIComponent(category)}`),
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        provider,
-        ...(authType && { authType }),
-        ...(providerKeyLabel && { providerKeyLabel }),
-      }),
+      body: JSON.stringify(body),
     },
   );
 }
@@ -59,13 +60,20 @@ export function resetSpecificity(agentName: string, category: string) {
   });
 }
 
-export function setSpecificityFallbacks(agentName: string, category: string, models: string[]) {
+export function setSpecificityFallbacks(
+  agentName: string,
+  category: string,
+  models: string[],
+  routes?: ModelRoute[],
+) {
+  const body: Record<string, unknown> = { models };
+  if (routes && routes.length === models.length) body.routes = routes;
   return fetchMutate<string[]>(
     routingPath(agentName, `specificity/${encodeURIComponent(category)}/fallbacks`),
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ models }),
+      body: JSON.stringify(body),
     },
   );
 }

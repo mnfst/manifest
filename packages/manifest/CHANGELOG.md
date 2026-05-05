@@ -1,5 +1,111 @@
 # manifest
 
+## 6.0.1
+
+### Patch Changes
+
+- e8162c3: Security hardening across the build pipeline and runtime: every GitHub Action is now pinned by commit SHA, the awesome-free-llm-apis data feed is pinned to an immutable commit and validated for HTTPS shape before render, the encryption-key cache no longer keeps the raw secret as a Map key, the Google Gemini API key moves from `?key=` query param to the `x-goog-api-key` header (so it stays out of upstream proxy/LB access logs), OpenAI OAuth error logs run through `scrubSecrets`, the OAuth `backendUrl` now prefers `BETTER_AUTH_URL` over the request `Host` header, the dev-loopback agent fallback prefers the seeded tenant over picking the first active key, rejected agent keys log only the fixed `mnfst_` prefix, and migrations log via the TypeORM logger instead of `console.log`. `npm audit fix` resolved vite + postcss CVEs. A boot-time check counts active legacy static-salt API-key hashes and warns if any remain (no forced rotation). `MANIFEST_ENCRYPTION_KEY` is now documented and threaded through `docker-compose.yml`; if unset the runtime still falls back to `BETTER_AUTH_SECRET`.
+- f0082d5: Fix: detect Podman and Kubernetes as self-hosted runtimes. Manifest now reads `/run/.containerenv` (Podman) and `KUBERNETES_SERVICE_HOST` in addition to `/.dockerenv`, so rootless Podman and Kubernetes installs no longer fall back to cloud-mode SSRF rules and reject `http://` URLs to local LLM servers.
+
+  Also narrows the cloud-metadata SSRF block to the actual IMDS addresses (`169.254.169.254`, `169.254.169.253`, `100.100.100.200`, `fd00:ec2::254`) instead of the entire `169.254.0.0/16` link-local range, so self-hosted users can reach `host.containers.internal` (which Podman maps to `169.254.x.y` under pasta/slirp4netns). Cloud mode is unchanged: link-local space is still rejected via the private-IP guard.
+
+## 6.0.0
+
+### Major Changes
+
+- d4675ba: Drop the legacy routing identity columns from `tier_assignments`, `specificity_assignments`, and `header_tiers`. The structured `route` shape introduced in #1772 is now the only persistence form.
+
+  Schema: 13 columns dropped (`override_model`, `override_provider`, `override_auth_type`, `fallback_models` from all three tables; `auto_assigned_model` from tier and specificity tables). Migration `1784000000000-DropLegacyRoutingColumns` runs on boot. `down()` re-adds the columns nullable but data is one-way lost — backup before upgrading if you maintain a hot-standby.
+
+  API breaking change: `POST /api/v1/routing/resolve` no longer returns the flat `model`, `provider`, `auth_type`, `fallback_models` fields. External callers must read `route.model`, `route.provider`, `route.authType`, and `fallback_routes` instead.
+
+  Internals: removes the legacy inference cascade in `proxy-fallback.service.ts`, the dual-write paths in routing services, and the `?? legacy` reads throughout. Same model name on different auth types stays correctly distinct (the #1708 fix).
+
+### Minor Changes
+
+- 1ce8ed9: Stable error codes for the proxy. Every user-facing `[🦚 Manifest]` message now embeds an `M###` code (M001–M500) and a docs link at `manifest.build/errors/M###`. Companion encyclopedia pages live in mnfst/docs.
+- 1d37134: Routing identity is now backed by a structured `ModelRoute = (provider, authType, model)` shape stored alongside the existing legacy columns on `tier_assignments`, `specificity_assignments`, and `header_tiers`. Reads prefer the new shape and fall back to legacy, so existing rows keep working without intervention. Selecting the same model name under different auth types (e.g. `gpt-4o` on subscription and on api_key) is now correctly treated as two distinct routes — fixes #1708. The `/api/v1/routing/resolve` response gains additive `route` and `fallback_routes` fields without breaking the existing flat shape. Per-fallback-attempt `auth_type` is now recorded on `agent_messages` instead of inheriting the primary's. No UI, API contract, or data is removed in this release; legacy columns and fields stay populated for one cycle before being dropped in a follow-up.
+
+### Patch Changes
+
+- 4e7843a: Recreating an agent with a previously used name now produces a clean slate without losing the deleted agent's history. Agent deletion is soft (the row stays with `deleted_at` set, telemetry rows are preserved) and per-agent analytics scope to the live agent's id, so the new agent starts at zero while the old data remains queryable in storage.
+- 2d4a06e: Show the Manifest version in the bottom-right corner of self-hosted Docker installs. Baked into the image at build time, no API call.
+
+## 5.58.0
+
+### Minor Changes
+
+- 992ae47: Add saved cost metric to the Overview dashboard showing how much money routing saves compared to using a single model
+
+### Patch Changes
+
+- 7394235: Mark Manifest's canned setup-prompt and limit responses as Failed in the Messages list. Requests that hit `no_provider`, `no_provider_key`, `limit_exceeded`, or `friendly_error` (the `[🦚 Manifest] …` stubs) now show a red Failed badge with a tooltip explaining why, instead of an ambiguous green Success.
+- 4bd4039: Fix two routing regressions caused by agent-wrapped user messages. Strip leading metadata envelopes (e.g. `Sender (untrusted metadata):` blocks emitted by OpenClaw, NanoBot, Hermes) before scoring so simple greetings like "say hello" no longer route to standard/complex (#1766). Tighten coding specificity signals so generic agent tools (`read`, `write`, `edit`, `bash`, etc.) and tiny envelope code fences no longer hijack every prompt to the coding tier (#1767).
+
+## 5.57.0
+
+### Minor Changes
+
+- eacdc3a: Revert combined cloud + self-hosted message count on `/api/v1/public/usage`. The endpoint goes back to reporting cloud-only counts. The self-hosted aggregate fetcher and its `TELEMETRY_AGGREGATE_KEY` env var are removed.
+
+## 5.56.0
+
+### Minor Changes
+
+- 97bfe4e: Public usage API combines cloud and self-hosted message counts. The `/api/v1/public/usage` endpoint now adds the fleet-wide self-hosted total fetched from the peacock control plane (when `TELEMETRY_AGGREGATE_KEY` is configured) to the cloud count, falling back to cloud-only if peacock is unreachable.
+
+### Patch Changes
+
+- 114e684: Fix proxy recording 0 tokens and "—" cost for streaming requests against Mistral, Kimi (Moonshot), MiniMax, DeepSeek, Qwen, xAI, Z.AI, Copilot, OpenCode-Go, and custom OpenAI-compatible providers. The proxy now injects `stream_options.include_usage: true` for all OpenAI-format endpoints so usage data flows back from the upstream.
+
+  Also fix the cache-tokens column staying empty for the same providers: usage extraction now reads `prompt_tokens_details.cached_tokens` (DeepSeek, Z.AI, Mistral, MiniMax, OpenAI shape) in addition to the top-level `cache_read_tokens` and Anthropic-native `input_tokens_details.cached_tokens` keys.
+
+- bdb43df: Strip `reasoning_details` from message history before forwarding to non-OpenRouter providers. Mistral, Groq, and other strict OpenAI-compatible providers were rejecting requests with `extra_forbidden` (422) when conversations contained extended-thinking blocks from a prior turn.
+
+## 5.55.5
+
+### Patch Changes
+
+- 40faabb: fix(dashboard): the OpenClaw setup snippet was generating a config with `api: 'openai-responses'`, but Manifest's cloud proxy speaks Chat Completions. OpenClaw rendered empty assistant bubbles even though tokens were billed correctly. Snippet now writes `api: 'openai-completions'` and the dashboard label reads "OpenAI Chat Completions-compatible". Existing OpenClaw users who pasted the broken snippet need to re-run the updated config block (or flip `models.providers.manifest.api` manually).
+
+## 5.55.4
+
+### Patch Changes
+
+- b2f01c4: Drop bundled `@esbuild/linux-x64` from the Docker image so CVE scanners no longer flag the embedded Go 1.23.12 stdlib (CVE-2025-68121 plus 10 high-severity CVEs). The binary was hoisted into the production `node_modules` despite `npm ci --omit=dev`; adding `--omit=optional` removes it along with other unused platform-specific binaries.
+
+## 5.55.3
+
+### Patch Changes
+
+- 77a1db3: Backend hot-path and dashboard query optimization pass: 60s LRU session cache in SessionGuard, slimmed AgentKeyAuthGuard query with 30min cache, retuned specificity miscategorization index, batched proxy fallback inserts, merged agent-list stats+sparkline into a single query, bounded distinct-models scan to 90 days, plus typed SSE events so dashboard pages only refetch on relevant changes instead of every ingest ping.
+- a5f0ef9: Security audit fixes (OWASP review).
+  - Auth: SessionGuard and AgentKeyAuthGuard now read `request.socket.remoteAddress` for the loopback bypass decision instead of `request.ip`, which is forgeable via `X-Forwarded-For` when `trust proxy` is enabled. The production `trust proxy` setting is narrowed to `loopback, linklocal, uniquelocal` (override with `TRUST_PROXY` env).
+  - Proxy: custom-provider and subscription endpoint URLs are revalidated against the SSRF allowlist immediately before each forward (DNS-rebinding defense). All proxy `fetch()` calls now use `redirect: 'error'` to block redirect-based escalation.
+  - Auth rate limiting: added per-endpoint limits for `sign-up`, `forget-password` / `forgot-password` / `reset-password`, and `verify-email` / `send-verification-email` (Better Auth runs outside NestJS so `ThrottlerGuard` doesn't apply).
+  - ApiKeyGuard: DB-API-key path now populates `request.user`, so user-scoped controllers no longer crash with a 500. `@CurrentUser()` fails closed with a 401 when no user is attached.
+  - Crypto: AES-GCM IV length set to the standard 12 bytes (was 16), scrypt-derived keys cached per (secret, salt) to remove the per-call ~50ms cost on the proxy hot path. Boots warns once when `MANIFEST_ENCRYPTION_KEY` falls back to `BETTER_AUTH_SECRET` in production.
+  - OAuth: `backendUrl` is validated against the allowlist at storage time instead of being trusted on the way out.
+  - Telemetry: `routing_tier` and `auth_type` buckets are whitelisted against the shared enums; unknown values collapse to `"other"` instead of leaking verbatim.
+  - Frontend: 401 responses no longer force a redirect to `/login` for per-endpoint auth failures. Only session-shaped 401s log the user out.
+  - HSTS: warns at boot when production runs without HSTS on a non-loopback bind. Silence with `MANIFEST_DISABLE_HSTS=1`.
+  - Dev CORS: defaults to a single origin (`http://localhost:3000`); set `CORS_ORIGIN` for anything else.
+
+## 5.55.2
+
+### Patch Changes
+
+- 3173336: Bump Docker runtime to Node 24 LTS (`gcr.io/distroless/nodejs24-debian13`). Active LTS through April 2028, replacing Node 22 (Maintenance LTS, EOL April 2027). Build and prod-deps stages move to `node:24-alpine` and `node:24-slim` to keep install and runtime majors aligned. CI and release workflows updated to Node 24. Dependabot is now pinned to ignore Node major bumps so non-LTS Current releases (Node 23, 25, 27…) won't open noisy PRs — LTS upgrades happen on a deliberate cadence.
+
+## 5.55.1
+
+### Patch Changes
+
+- f5c9af8: Polish auth flow accessibility and a few content fixes from a UX audit. Login, Register, and Reset Password inputs now have proper label/`for` association, `autocomplete` attributes for password-manager autofill, and `aria-describedby` linking errors to inputs. The cooldown intervals on resend buttons clean up on unmount. The Register page now links to real Terms and Privacy URLs (was `href="#"`). Section titles on Settings and Account use `<h2>` instead of `<h3>` to fix a heading hierarchy skip. Dark-variant logos use empty alt text so screen readers don't read "Manifest" twice. The Limits "Create rule" button uses the same plus icon as Workspace's "Connect Agent" button.
+- 4664b2d: Fix agent duplication not copying local/custom providers correctly
+- cc09e4f: Expose the OpenAI-compatible Responses API proxy at `/v1/responses` and show Responses API setup snippets by default for OpenAI SDK users.
+- 0e8035c: Fix agent duplication not copying routing mode, local provider models missing from model picker, and local provider toggle errors
+
 ## 5.55.0
 
 ### Minor Changes

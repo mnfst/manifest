@@ -1,7 +1,7 @@
 import { FreeModelsSyncService } from './free-models-sync.service';
 
 const GITHUB_RAW_URL =
-  'https://raw.githubusercontent.com/mnfst/awesome-free-llm-apis/main/data.json';
+  'https://raw.githubusercontent.com/mnfst/awesome-free-llm-apis/8b0feb0e3adda96455bcc380b815454944ff3832/data.json';
 
 const sampleData = {
   lastUpdated: '2026-04-17',
@@ -135,6 +135,89 @@ describe('FreeModelsSyncService', () => {
       expect(count).toBe(0);
       // Stale cache preserved
       expect(service.getAll()).toHaveLength(2);
+    });
+
+    it('drops entries whose url is not https', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          lastUpdated: '2026-04-17',
+          providers: [
+            { ...sampleData.providers[0], url: 'http://insecure.example/keys' },
+            sampleData.providers[1],
+          ],
+        }),
+      });
+      const count = await service.refreshCache();
+      expect(count).toBe(1);
+      expect(service.getAll()[0].name).toBe('Google Gemini');
+    });
+
+    it('drops entries whose baseUrl is not https or null', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          lastUpdated: '2026-04-17',
+          providers: [
+            { ...sampleData.providers[0], baseUrl: 'http://insecure.example/v1' },
+            sampleData.providers[1],
+          ],
+        }),
+      });
+      const count = await service.refreshCache();
+      expect(count).toBe(1);
+    });
+
+    it('keeps entries whose baseUrl is null', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          lastUpdated: '2026-04-17',
+          providers: [{ ...sampleData.providers[0], baseUrl: null }],
+        }),
+      });
+      const count = await service.refreshCache();
+      expect(count).toBe(1);
+    });
+
+    it('drops entries with non-string name', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          lastUpdated: '2026-04-17',
+          providers: [{ ...sampleData.providers[0], name: 123 }, sampleData.providers[1]],
+        }),
+      });
+      const count = await service.refreshCache();
+      expect(count).toBe(1);
+      expect(service.getAll()[0].name).toBe('Google Gemini');
+    });
+
+    it('drops entries whose models array contains non-objects', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          lastUpdated: '2026-04-17',
+          providers: [
+            { ...sampleData.providers[0], models: ['not-an-object'] },
+            sampleData.providers[1],
+          ],
+        }),
+      });
+      const count = await service.refreshCache();
+      expect(count).toBe(1);
+    });
+
+    it('drops null providers without throwing', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          lastUpdated: '2026-04-17',
+          providers: [null, sampleData.providers[1]],
+        }),
+      });
+      const count = await service.refreshCache();
+      expect(count).toBe(1);
     });
 
     it('replaces entire cache on successful refresh', async () => {

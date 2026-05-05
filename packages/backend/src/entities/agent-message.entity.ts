@@ -50,6 +50,12 @@ export class AgentMessage {
   @Column('decimal', { precision: 10, scale: 6, nullable: true })
   cost_usd!: number | null;
 
+  @Column('varchar', { nullable: true })
+  baseline_model_id!: string | null;
+
+  @Column('decimal', { precision: 10, scale: 6, nullable: true })
+  baseline_cost_usd!: number | null;
+
   @Column('varchar', { default: 'ok' })
   status!: string;
 

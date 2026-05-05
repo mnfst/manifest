@@ -121,7 +121,16 @@ export class NotificationRulesService {
       .createQueryBuilder('at')
       .select(expr, 'total')
       .where('at.tenant_id = :tenantId', { tenantId })
-      .andWhere('at.agent_name = :agentName', { agentName })
+      .andWhere(
+        `at.agent_id = (
+          SELECT id FROM agents
+          WHERE tenant_id = at.tenant_id
+            AND name = :agentName
+            AND deleted_at IS NULL
+          LIMIT 1
+        )`,
+        { agentName },
+      )
       .andWhere('at.timestamp >= :periodStart', { periodStart })
       .andWhere('at.timestamp < :periodEnd', { periodEnd })
       .getRawOne<{ total: string | number | null }>();
@@ -170,6 +179,7 @@ export class NotificationRulesService {
       .innerJoin(Tenant, 't', 't.id = a.tenant_id')
       .where('t.name = :userId', { userId })
       .andWhere('a.name = :agentName', { agentName })
+      .andWhere('a.deleted_at IS NULL')
       .getOne();
     if (!agent) throw new BadRequestException(`Agent "${agentName}" not found`);
     return { id: agent.id, tenant_id: agent.tenant_id };

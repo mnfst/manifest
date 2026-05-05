@@ -16,6 +16,14 @@ export { SPECIFICITY_CATEGORIES } from './specificity';
 export type { SpecificityCategory } from './specificity';
 export { AUTH_TYPES } from './auth-types';
 export type { AuthType } from './auth-types';
+export {
+  routeEquals,
+  isModelRoute,
+  isModelRouteArray,
+  legacyToRoute,
+  routeToLegacy,
+} from './model-route';
+export type { ModelRoute, LegacyOverrideTriple } from './model-route';
 export { API_KEY_PREFIX } from './api-key';
 export {
   FALLBACK_KEY_DELIMITER,

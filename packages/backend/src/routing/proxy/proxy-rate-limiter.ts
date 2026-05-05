@@ -1,4 +1,5 @@
 import { Injectable, OnModuleDestroy, HttpException, HttpStatus } from '@nestjs/common';
+import { formatManifestError } from '../../common/errors/error-codes';
 
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX_REQUESTS = 200;
@@ -43,13 +44,14 @@ export class ProxyRateLimiter implements OnModuleDestroy {
     }
 
     if (entry.count >= RATE_MAX_REQUESTS) {
-      throw new HttpException(
-        'Too many requests — wait a few seconds and retry.',
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
+      throw new HttpException(formatManifestError('M201'), HttpStatus.TOO_MANY_REQUESTS);
     }
 
     entry.count++;
+    // LRU touch: delete-then-set re-inserts at tail of insertion order so
+    // evictLruIfNeeded() drops genuinely-stale entries instead of arbitrary
+    // long-lived ones during overflow.
+    this.rates.delete(userId);
     this.rates.set(userId, entry);
     this.evictLruIfNeeded();
   }
@@ -67,13 +69,12 @@ export class ProxyRateLimiter implements OnModuleDestroy {
     }
 
     if (entry.count >= IP_RATE_MAX_REQUESTS) {
-      throw new HttpException(
-        'Too many requests from this IP — wait a few seconds and retry.',
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
+      throw new HttpException(formatManifestError('M202'), HttpStatus.TOO_MANY_REQUESTS);
     }
 
     entry.count++;
+    // LRU touch — see checkLimit().
+    this.ipRates.delete(ip);
     this.ipRates.set(ip, entry);
     this.evictIpLruIfNeeded();
   }
@@ -81,10 +82,7 @@ export class ProxyRateLimiter implements OnModuleDestroy {
   acquireSlot(userId: string): void {
     const current = this.concurrency.get(userId) ?? 0;
     if (current >= CONCURRENCY_MAX) {
-      throw new HttpException(
-        'Too many concurrent requests. Give it a moment.',
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
+      throw new HttpException(formatManifestError('M203'), HttpStatus.TOO_MANY_REQUESTS);
     }
     this.concurrency.set(userId, current + 1);
   }

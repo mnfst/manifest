@@ -31,7 +31,7 @@ const HeaderTierSnippetModal: Component<Props> = (props) => {
   });
 
   const modelText = (): string =>
-    props.tier.override_model ?? 'no model assigned (falls back to default routing)';
+    props.tier.override_route?.model ?? 'no model assigned (falls back to default routing)';
 
   return (
     <div

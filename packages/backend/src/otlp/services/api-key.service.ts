@@ -93,6 +93,7 @@ export class ApiKeyGeneratorService {
       .leftJoin('a.tenant', 't')
       .where('t.name = :userId', { userId })
       .andWhere('a.name = :agentName', { agentName })
+      .andWhere('a.deleted_at IS NULL')
       .andWhere('k.is_active = true')
       .getOne();
 
@@ -118,6 +119,7 @@ export class ApiKeyGeneratorService {
       .leftJoin('a.tenant', 't')
       .where('a.name = :agentName', { agentName })
       .andWhere('t.name = :userId', { userId })
+      .andWhere('a.deleted_at IS NULL')
       .getOne();
     if (!agent) throw new NotFoundException('Agent not found or access denied');
 

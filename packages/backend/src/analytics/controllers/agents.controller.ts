@@ -18,6 +18,7 @@ import { TimeseriesQueriesService } from '../services/timeseries-queries.service
 import { AgentLifecycleService } from '../services/agent-lifecycle.service';
 import { AgentDuplicationService } from '../services/agent-duplication.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
+import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 import { CreateAgentDto } from '../../common/dto/create-agent.dto';
@@ -36,6 +37,7 @@ export class AgentsController {
     private readonly duplication: AgentDuplicationService,
     private readonly apiKeyGenerator: ApiKeyGeneratorService,
     private readonly tenantCache: TenantCacheService,
+    private readonly eventBus: IngestEventBusService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -76,6 +78,7 @@ export class AgentsController {
       throw error;
     }
     await this.cacheManager.del(this.agentListCacheKey(user.id));
+    this.eventBus.emit(user.id, 'agent');
     return {
       agent: {
         id: result.agentId,
@@ -119,6 +122,7 @@ export class AgentsController {
       throw error;
     }
     await this.cacheManager.del(this.agentListCacheKey(user.id));
+    this.eventBus.emit(user.id, 'agent');
     return {
       agent: {
         id: result.agentId,
@@ -128,6 +132,13 @@ export class AgentsController {
       apiKey: result.apiKey,
       copied: result.copied,
     };
+  }
+
+  @Get('agents/:agentName')
+  async getAgentInfo(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+    const info = await this.lifecycle.findAgentInfo(user.id, agentName);
+    if (!info) return { agent: null };
+    return { agent: info };
   }
 
   @Get('agents/:agentName/key')
@@ -174,6 +185,7 @@ export class AgentsController {
     }
 
     await this.cacheManager.del(this.agentListCacheKey(user.id));
+    this.eventBus.emit(user.id, 'agent');
     return result;
   }
 
@@ -181,6 +193,7 @@ export class AgentsController {
   async deleteAgent(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
     await this.lifecycle.deleteAgent(user.id, agentName);
     await this.cacheManager.del(this.agentListCacheKey(user.id));
+    this.eventBus.emit(user.id, 'agent');
     return { deleted: true };
   }
 }

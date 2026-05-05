@@ -39,7 +39,9 @@ describe('ResolveAgentService', () => {
     tenantResolve.mockResolvedValue('tenant-1');
     findOne.mockResolvedValue(null);
     await expect(svc.resolve('user-1', 'missing')).rejects.toBeInstanceOf(NotFoundException);
-    expect(findOne).toHaveBeenCalledWith({ where: { tenant_id: 'tenant-1', name: 'missing' } });
+    expect(findOne).toHaveBeenCalledWith({
+      where: { tenant_id: 'tenant-1', name: 'missing', deleted_at: expect.anything() },
+    });
   });
 
   it('returns and caches the agent on a successful lookup', async () => {

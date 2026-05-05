@@ -1,11 +1,13 @@
-import { Show, type Component } from 'solid-js';
+import { Show, type Component, type JSX } from 'solid-js';
 import CostChart from './CostChart.jsx';
 import InfoTooltip from './InfoTooltip.jsx';
+import SavingsChart from './SavingsChart.jsx';
 import SingleTokenChart from './SingleTokenChart.jsx';
 import TokenChart from './TokenChart.jsx';
 import { formatCost, formatNumber } from '../services/formatters.js';
+import type { SavingsTimeseriesRow } from '../services/api/analytics.js';
 
-type ActiveView = 'cost' | 'tokens' | 'messages';
+type ActiveView = 'cost' | 'tokens' | 'messages' | 'savings';
 
 const trendBadge = (pct: number, value: number, mode: 'inverted' | 'neutral') => {
   if (pct === 0) return null;
@@ -45,6 +47,10 @@ interface ChartCardProps {
   }>;
   messageChartData: Array<{ time: string; value: number }>;
   range: string;
+  savedCost?: number | null;
+  savedPct?: number | null;
+  savingsInfoTooltip?: JSX.Element;
+  savingsTimeseries?: SavingsTimeseriesRow[];
 }
 
 const ChartCard: Component<ChartCardProps> = (props) => (
@@ -86,6 +92,24 @@ const ChartCard: Component<ChartCardProps> = (props) => (
           {trendBadge(props.tokensTrendPct, props.tokensValue, 'inverted')}
         </div>
       </div>
+      <Show when={props.savedCost != null || props.savingsInfoTooltip}>
+        <div
+          class="chart-card__stat chart-card__stat--clickable"
+          classList={{ 'chart-card__stat--active': props.activeView === 'savings' }}
+          onClick={() => props.onViewChange('savings')}
+        >
+          <span class="chart-card__label">
+            Savings
+            {props.savingsInfoTooltip}
+          </span>
+          <div class="chart-card__value-row">
+            <span class="chart-card__value">{formatCost(props.savedCost ?? 0) ?? '$0.00'}</span>
+            <Show when={(props.savedPct ?? 0) > 0}>
+              <span class="chart-card__savings-pct">{props.savedPct}%</span>
+            </Show>
+          </div>
+        </div>
+      </Show>
     </div>
     <div class="chart-card__body">
       <Show when={props.activeView === 'cost'}>
@@ -127,6 +151,18 @@ const ChartCard: Component<ChartCardProps> = (props) => (
             colorVar="--chart-1"
             range={props.range}
           />
+        </Show>
+      </Show>
+      <Show when={props.activeView === 'savings'}>
+        <Show
+          when={props.savingsTimeseries?.length}
+          fallback={
+            <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
+              No savings data for this time range
+            </div>
+          }
+        >
+          <SavingsChart data={props.savingsTimeseries!} range={props.range} />
         </Show>
       </Show>
     </div>

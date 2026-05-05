@@ -8,8 +8,10 @@ import { RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { randomUUID } from 'crypto';
+import type { AuthType, ModelRoute } from 'manifest-shared';
 import { TIER_SLOTS, TierSlot } from 'manifest-shared';
 import { isManifestUsableProvider } from '../../common/utils/subscription-support';
+import { explicitRoute, unambiguousRoute, routeMatches } from './route-helpers';
 
 @Injectable()
 export class TierService {
@@ -26,7 +28,7 @@ export class TierService {
 
   async hasRoutableTier(agentId: string): Promise<boolean> {
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
-    return rows.some((r) => !!r.override_model || !!r.auto_assigned_model);
+    return rows.some((r) => !!r.override_route || !!r.auto_assigned_route);
   }
 
   async getTiers(agentId: string, userId?: string): Promise<TierAssignment[]> {
@@ -55,10 +57,9 @@ export class TierService {
         user_id: userId ?? '',
         agent_id: agentId,
         tier: slot,
-        override_model: null,
-        override_provider: null,
-        override_auth_type: null,
-        auto_assigned_model: null,
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: null,
       }),
     );
     try {
@@ -99,7 +100,7 @@ export class TierService {
     tier: string,
     model: string,
     provider?: string,
-    authType?: 'api_key' | 'subscription',
+    authType?: AuthType,
     providerKeyLabel?: string,
   ): Promise<TierAssignment> {
     const available = await this.discoveryService.getModelsForAgent(agentId);
@@ -114,7 +115,6 @@ export class TierService {
           }`,
       );
     }
-    // If provider is supplied, ensure it matches one of the available entries.
     if (provider) {
       const providerLower = provider.toLowerCase();
       const providerMatches = matches.some((m) => m.provider.toLowerCase() === providerLower);
@@ -125,18 +125,31 @@ export class TierService {
       }
     }
 
+    // Build the route. Prefer the explicit triple if the caller passed it,
+    // otherwise resolve from discovery. Throw on ambiguous because we have
+    // no legacy column to fall back to anymore — the caller must disambiguate.
+    const route =
+      explicitRoute(model, provider, authType, providerKeyLabel) ??
+      unambiguousRoute(model, available, providerKeyLabel);
+    if (!route) {
+      throw new BadRequestException(
+        `Model "${model}" is offered by multiple providers — pass an explicit ` +
+          `provider + authType so the route is unambiguous.`,
+      );
+    }
+
     const existing = await this.tierRepo.findOne({
       where: { agent_id: agentId, tier },
     });
 
     if (existing) {
-      existing.override_model = model;
-      existing.override_provider = provider ?? null;
-      existing.override_auth_type = authType ?? null;
-      existing.override_provider_key_label = providerKeyLabel ?? null;
-      if (existing.fallback_models?.includes(model)) {
-        const filtered = existing.fallback_models.filter((m) => m !== model);
-        existing.fallback_models = filtered.length > 0 ? filtered : null;
+      existing.override_route = route;
+      // If the same model+key tuple was in fallbacks, drop the matching entry
+      // — a (model, keyLabel) can't be both the primary and a fallback for
+      // the same tier. Other (model, otherKey) fallbacks are kept.
+      if (existing.fallback_routes) {
+        const filtered = existing.fallback_routes.filter((r) => !routeMatches(r, route));
+        existing.fallback_routes = filtered.length > 0 ? filtered : null;
       }
       existing.updated_at = new Date().toISOString();
       await this.tierRepo.save(existing);
@@ -149,17 +162,14 @@ export class TierService {
       user_id: userId,
       agent_id: agentId,
       tier,
-      override_model: model,
-      override_provider: provider ?? null,
-      override_auth_type: authType ?? null,
-      override_provider_key_label: providerKeyLabel ?? null,
-      auto_assigned_model: null,
+      override_route: route,
+      auto_assigned_route: null,
+      fallback_routes: null,
     });
 
     try {
       await this.tierRepo.insert(record);
     } catch {
-      // Concurrent insert — retry as update
       const retry = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
       if (retry)
         return this.setOverride(agentId, userId, tier, model, provider, authType, providerKeyLabel);
@@ -174,10 +184,7 @@ export class TierService {
     });
     if (!existing) return;
 
-    existing.override_model = null;
-    existing.override_provider = null;
-    existing.override_auth_type = null;
-    existing.override_provider_key_label = null;
+    existing.override_route = null;
     existing.updated_at = new Date().toISOString();
     await this.tierRepo.save(existing);
     this.routingCache.invalidateAgent(agentId);
@@ -187,11 +194,8 @@ export class TierService {
     await this.tierRepo.update(
       { agent_id: agentId },
       {
-        override_model: null,
-        override_provider: null,
-        override_auth_type: null,
-        override_provider_key_label: null,
-        fallback_models: null,
+        override_route: null,
+        fallback_routes: null,
         updated_at: new Date().toISOString(),
       },
     );
@@ -200,27 +204,78 @@ export class TierService {
 
   /* ── Fallbacks ── */
 
-  async getFallbacks(agentId: string, tier: string): Promise<string[]> {
+  async getFallbacks(agentId: string, tier: string): Promise<ModelRoute[]> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
-    return existing?.fallback_models ?? [];
+    return existing?.fallback_routes ?? [];
   }
 
-  async setFallbacks(agentId: string, tier: string, models: string[]): Promise<string[]> {
+  async setFallbacks(
+    agentId: string,
+    tier: string,
+    models: string[],
+    routes?: ModelRoute[],
+  ): Promise<ModelRoute[]> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (!existing) return [];
-    existing.fallback_models = models.length > 0 ? models : null;
+    existing.fallback_routes = await this.buildFallbackRoutes(agentId, models, routes);
     existing.updated_at = new Date().toISOString();
     await this.tierRepo.save(existing);
     this.routingCache.invalidateAgent(agentId);
-    return models;
+    return existing.fallback_routes ?? [];
   }
 
   async clearFallbacks(agentId: string, tier: string): Promise<void> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (!existing) return;
-    existing.fallback_models = null;
+    existing.fallback_routes = null;
     existing.updated_at = new Date().toISOString();
     await this.tierRepo.save(existing);
     this.routingCache.invalidateAgent(agentId);
+  }
+
+  /**
+   * Build the fallback_routes column from caller-provided routes when present,
+   * otherwise resolve each model name via discovery. Order is preserved.
+   * Returns null when any model can't be resolved unambiguously.
+   *
+   * `keyLabel` on each route is preserved as-is — the caller decides which
+   * provider key each fallback pins to.
+   */
+  private async buildFallbackRoutes(
+    agentId: string,
+    models: string[],
+    routes?: ModelRoute[],
+  ): Promise<ModelRoute[] | null> {
+    if (models.length === 0) return null;
+    const available = await this.discoveryService.getModelsForAgent(agentId);
+    if (routes && routes.length === models.length) {
+      const aligned = routes.every((r, i) => r.model === models[i]);
+      // Cross-check each caller-provided route against the discovered model
+      // list — a (provider, authType, model) tuple is only safe to persist
+      // if it actually corresponds to a connected provider that offers the
+      // model. Without this, a malformed payload could write a route that
+      // would later route to non-existent credentials. keyLabel is not
+      // validated here against the provider key set — that lives in
+      // ProviderService.cleanupProviderReferences and runs on every
+      // provider mutation.
+      const validated =
+        aligned &&
+        routes.every((r) =>
+          available.some(
+            (m) =>
+              m.id === r.model &&
+              m.provider.toLowerCase() === r.provider.toLowerCase() &&
+              m.authType === r.authType,
+          ),
+        );
+      if (validated) return routes;
+    }
+    const resolved: ModelRoute[] = [];
+    for (const m of models) {
+      const route = unambiguousRoute(m, available);
+      if (!route) return null;
+      resolved.push(route);
+    }
+    return resolved;
   }
 }

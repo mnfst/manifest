@@ -2,7 +2,6 @@ import { type Component, Show, createResource, createSignal } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import ModelSelectDropdown from './ModelSelectDropdown.jsx';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
-import { PROVIDERS } from '../services/providers.js';
 import { getAgentKey } from '../services/api.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import { platformIcon } from 'manifest-shared';
@@ -17,12 +16,7 @@ interface Props {
 
 const RoutingInstructionModal: Component<Props> = (props) => {
   const [selectedModel, setSelectedModel] = createSignal<string | null>(null);
-  const [selectedLabel, setSelectedLabel] = createSignal<string | null>(null);
   const isEnable = () => props.mode === 'enable';
-  const providerName = () => {
-    if (!props.connectedProvider) return null;
-    return PROVIDERS.find((p) => p.id === props.connectedProvider)?.name ?? props.connectedProvider;
-  };
   const title = () => (isEnable() ? 'Activate routing' : 'Deactivate routing');
   const modelOrPlaceholder = () => selectedModel() ?? '<provider/model>';
 
@@ -37,28 +31,11 @@ const RoutingInstructionModal: Component<Props> = (props) => {
     return `${window.location.origin}/v1`;
   };
 
-  const displayKey = () =>
-    apiKeyData()?.apiKey ??
-    (apiKeyData()?.keyPrefix ? `${apiKeyData()!.keyPrefix}...` : 'mnfst_YOUR_KEY');
-  const isKeyTruncated = () => !apiKeyData()?.apiKey;
-
-  const enableCmd = () => {
-    const providerJson = JSON.stringify({
-      baseUrl: baseUrl(),
-      api: 'openai-completions',
-      apiKey: displayKey(),
-      models: [{ id: 'auto', name: 'Manifest Auto' }],
-    });
-    return `openclaw config set models.providers.manifest '${providerJson}'\nopenclaw config set agents.defaults.model.primary manifest/auto\nopenclaw gateway restart`;
-  };
-
   const disableCmd = () =>
     `openclaw config unset models.providers.manifest\nopenclaw config unset agents.defaults.models.manifest/auto\nopenclaw config set agents.defaults.model.primary ${modelOrPlaceholder()}\nopenclaw gateway restart`;
-  const command = () => (isEnable() ? enableCmd() : disableCmd());
 
-  const handleModelSelect = (cliValue: string, displayLabel: string) => {
+  const handleModelSelect = (cliValue: string) => {
     setSelectedModel(cliValue);
-    setSelectedLabel(displayLabel);
   };
 
   return (

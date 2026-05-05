@@ -21,6 +21,7 @@ describe('TimeseriesQueriesService', () => {
     orderBy: jest.Mock;
     addOrderBy: jest.Mock;
     limit: jest.Mock;
+    setParameter: jest.Mock;
     getRawMany: jest.Mock;
     getRawOne: jest.Mock;
     getMany: jest.Mock;
@@ -42,6 +43,7 @@ describe('TimeseriesQueriesService', () => {
       orderBy: jest.fn().mockReturnThis(),
       addOrderBy: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
+      setParameter: jest.fn().mockReturnThis(),
       getRawMany: mockGetRawMany,
       getRawOne: jest.fn().mockResolvedValue({}),
       getMany: mockGetMany,
@@ -299,48 +301,59 @@ describe('TimeseriesQueriesService', () => {
   });
 
   describe('getAgentList', () => {
+    const recentIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const oldIso = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString();
+
     it('returns agents with sparkline data and display_name', async () => {
       mockGetMany.mockResolvedValueOnce([
-        { name: 'bot-1', display_name: 'Bot One', created_at: '2026-02-16' },
+        { id: 'agent-1', name: 'bot-1', display_name: 'Bot One', created_at: '2026-02-16' },
       ]);
-      mockGetRawMany
-        .mockResolvedValueOnce([
-          {
-            agent_name: 'bot-1',
-            message_count: 10,
-            last_active: '2026-02-16',
-            total_cost: 5.0,
-            total_tokens: 1000,
-          },
-        ])
-        .mockResolvedValueOnce([
-          { agent_name: 'bot-1', date: '2026-02-15', tokens: 100 },
-          { agent_name: 'bot-1', date: '2026-02-16', tokens: 200 },
-        ]);
+      mockGetRawMany.mockResolvedValueOnce([
+        {
+          agent_id: 'agent-1',
+          date: '2026-02-15',
+          message_count: 4,
+          cost: 2.0,
+          tokens: 400,
+          spark_tokens: 100,
+          last_active: recentIso,
+        },
+        {
+          agent_id: 'agent-1',
+          date: '2026-02-16',
+          message_count: 6,
+          cost: 3.0,
+          tokens: 600,
+          spark_tokens: 200,
+          last_active: recentIso,
+        },
+      ]);
 
       const result = await service.getAgentList('u1');
       expect(result).toHaveLength(1);
       expect(result[0].agent_name).toBe('bot-1');
       expect(result[0].display_name).toBe('Bot One');
-      expect(result[0].sparkline).toBeDefined();
+      expect(result[0].sparkline).toEqual([100, 200]);
       expect(result[0].total_cost).toBe(5.0);
+      expect(result[0].total_tokens).toBe(1000);
+      expect(result[0].message_count).toBe(10);
     });
 
     it('falls back to agent_name when display_name is null', async () => {
       mockGetMany.mockResolvedValueOnce([
-        { name: 'bot-1', display_name: null, created_at: '2026-02-16' },
+        { id: 'agent-1', name: 'bot-1', display_name: null, created_at: '2026-02-16' },
       ]);
-      mockGetRawMany
-        .mockResolvedValueOnce([
-          {
-            agent_name: 'bot-1',
-            message_count: 10,
-            last_active: '2026-02-16',
-            total_cost: 5.0,
-            total_tokens: 1000,
-          },
-        ])
-        .mockResolvedValueOnce([]);
+      mockGetRawMany.mockResolvedValueOnce([
+        {
+          agent_id: 'agent-1',
+          date: '2026-02-16',
+          message_count: 10,
+          cost: 5.0,
+          tokens: 1000,
+          spark_tokens: 0,
+          last_active: oldIso,
+        },
+      ]);
 
       const result = await service.getAgentList('u1');
       expect(result[0].display_name).toBe('bot-1');
@@ -348,19 +361,19 @@ describe('TimeseriesQueriesService', () => {
 
     it('returns empty sparkline for agent with no spark data', async () => {
       mockGetMany.mockResolvedValueOnce([
-        { name: 'lonely-bot', display_name: null, created_at: '2026-02-16' },
+        { id: 'agent-2', name: 'lonely-bot', display_name: null, created_at: '2026-02-16' },
       ]);
-      mockGetRawMany
-        .mockResolvedValueOnce([
-          {
-            agent_name: 'lonely-bot',
-            message_count: 1,
-            last_active: '2026-02-16',
-            total_cost: 0,
-            total_tokens: 0,
-          },
-        ])
-        .mockResolvedValueOnce([]);
+      mockGetRawMany.mockResolvedValueOnce([
+        {
+          agent_id: 'agent-2',
+          date: '2026-02-01',
+          message_count: 1,
+          cost: 0,
+          tokens: 0,
+          spark_tokens: 0,
+          last_active: oldIso,
+        },
+      ]);
 
       const result = await service.getAgentList('u1');
       expect(result[0].sparkline).toEqual([]);
@@ -368,9 +381,9 @@ describe('TimeseriesQueriesService', () => {
 
     it('returns agent with zero stats when no telemetry exists', async () => {
       mockGetMany.mockResolvedValueOnce([
-        { name: 'new-bot', display_name: null, created_at: '2026-02-16' },
+        { id: 'agent-3', name: 'new-bot', display_name: null, created_at: '2026-02-16' },
       ]);
-      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+      mockGetRawMany.mockResolvedValueOnce([]);
 
       const result = await service.getAgentList('u1');
       expect(result).toHaveLength(1);

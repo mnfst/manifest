@@ -7,8 +7,13 @@ import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
 import { AgentLog } from '../entities/agent-log.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
+import { UserProvider } from '../entities/user-provider.entity';
+import { TierAssignment } from '../entities/tier-assignment.entity';
+import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
+import { HeaderTier } from '../entities/header-tier.entity';
 import { OtlpModule } from '../otlp/otlp.module';
 import { RoutingCoreModule } from '../routing/routing-core/routing-core.module';
+import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { AggregationService } from './services/aggregation.service';
 import { AgentDuplicationService } from './services/agent-duplication.service';
 import { AgentLifecycleService } from './services/agent-lifecycle.service';
@@ -24,6 +29,8 @@ import { CostsController } from './controllers/costs.controller';
 import { MessagesController } from './controllers/messages.controller';
 import { AgentsController } from './controllers/agents.controller';
 import { AgentAnalyticsController } from './controllers/agent-analytics.controller';
+import { SavingsController } from './controllers/savings.controller';
+import { SavingsQueryService } from './services/savings-query.service';
 
 @Module({
   imports: [
@@ -35,9 +42,14 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
       ToolExecution,
       AgentLog,
       CustomProvider,
+      UserProvider,
+      TierAssignment,
+      SpecificityAssignment,
+      HeaderTier,
     ]),
     OtlpModule,
     RoutingCoreModule,
+    ModelPricesModule,
   ],
   controllers: [
     OverviewController,
@@ -46,6 +58,7 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
     MessagesController,
     AgentsController,
     AgentAnalyticsController,
+    SavingsController,
   ],
   providers: [
     AggregationService,
@@ -57,6 +70,7 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
     MessageFeedbackService,
     SpecificityFeedbackService,
     AgentAnalyticsService,
+    SavingsQueryService,
   ],
   exports: [SpecificityFeedbackService],
 })

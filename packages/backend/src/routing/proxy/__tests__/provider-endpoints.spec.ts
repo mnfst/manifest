@@ -196,9 +196,12 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(path).toBe('/v1/messages');
   });
 
-  it('google buildHeaders returns Content-Type only', () => {
-    const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('');
-    expect(headers).toEqual({ 'Content-Type': 'application/json' });
+  it('google buildHeaders sends the API key in x-goog-api-key (not query string)', () => {
+    const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('AIza-test');
+    expect(headers).toEqual({
+      'Content-Type': 'application/json',
+      'x-goog-api-key': 'AIza-test',
+    });
   });
 
   it('google buildPath includes model name with generateContent suffix', () => {

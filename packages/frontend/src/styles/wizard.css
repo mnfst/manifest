@@ -663,19 +663,40 @@
 }
 
 /* ── Toolkit language toggle ─────────────────────── */
-.toolkit-lang-toggle {
-  display: inline-flex;
-  gap: 2px;
-  padding: 2px;
-  background: hsl(var(--muted));
-  border-radius: var(--radius);
+.framework-snippets__toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
   margin-bottom: 12px;
 }
 
-.toolkit-lang-toggle__btn {
+.toolkit-lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 28px;
+  padding: 2px;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+}
+
+.toolkit-api-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 28px;
+  padding: 2px;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+}
+
+.toolkit-lang-toggle__btn,
+.toolkit-api-toggle__btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  height: 24px;
   padding: 4px 12px;
   border: none;
   border-radius: calc(var(--radius) - 2px);
@@ -684,21 +705,25 @@
   font-family: var(--font-family);
   font-size: var(--font-size-xs);
   font-weight: 500;
+  line-height: 1;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.toolkit-lang-toggle__btn:hover {
+.toolkit-lang-toggle__btn:hover,
+.toolkit-api-toggle__btn:hover {
   color: hsl(var(--foreground));
 }
 
-.toolkit-lang-toggle__btn--active {
+.toolkit-lang-toggle__btn--active,
+.toolkit-api-toggle__btn--active {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   font-weight: 600;
 }
 
-.toolkit-lang-toggle__btn:focus-visible {
+.toolkit-lang-toggle__btn:focus-visible,
+.toolkit-api-toggle__btn:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }

@@ -81,6 +81,16 @@ describe('Proxy E2E — /v1/chat/completions', () => {
     expect(res.body.error.message).toContain('Missing the Authorization header');
   });
 
+  it('rejects unauthenticated Responses API requests with HTTP 401', async () => {
+    const res = await api()
+      .post('/v1/responses')
+      .send({ input: 'hello' })
+      .expect(401);
+
+    expect(res.body.error.type).toBe('auth_error');
+    expect(res.body.error.message).toContain('Missing the Authorization header');
+  });
+
   it('returns the friendly envelope when the caller opts into SSE chat semantics', async () => {
     const res = await api()
       .post('/v1/chat/completions')
@@ -93,6 +103,15 @@ describe('Proxy E2E — /v1/chat/completions', () => {
 
   it('returns HTTP 400 when messages are missing', async () => {
     const res = await bearer(api().post('/v1/chat/completions'))
+      .send({})
+      .expect(400);
+
+    expect(res.body.error.type).toBe('invalid_request_error');
+    expect(res.body.error.message).toContain('messages');
+  });
+
+  it('returns HTTP 400 when Responses API input is missing', async () => {
+    const res = await bearer(api().post('/v1/responses'))
       .send({})
       .expect(400);
 

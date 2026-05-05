@@ -18,6 +18,11 @@ vi.mock('../../src/components/SingleTokenChart.jsx', () => ({
     <div data-testid="single-token-chart" data-points={props.data.length} />
   ),
 }));
+vi.mock('../../src/components/SavingsChart.jsx', () => ({
+  default: (props: { data: unknown[] }) => (
+    <div data-testid="savings-chart" data-points={props.data.length} />
+  ),
+}));
 
 import ChartCard from '../../src/components/ChartCard';
 
@@ -128,5 +133,92 @@ describe('ChartCard', () => {
     ));
     const badge = container.querySelector('.trend--up-bad');
     expect(badge?.textContent).toBe('+999%');
+  });
+
+  it('renders saved cost stat when savedCost is provided', () => {
+    const { container } = render(() => (
+      <ChartCard {...baseProps({ savedCost: 5.67, savedPct: 42 })} />
+    ));
+    expect(container.textContent).toContain('Savings');
+    expect(container.textContent).toContain('$5.67');
+    expect(container.querySelector('.chart-card__savings-pct')?.textContent).toBe('42%');
+  });
+
+  it('does not render savings stat when savedCost is null', () => {
+    const { container } = render(() => (
+      <ChartCard {...baseProps({ savedCost: null, savedPct: null })} />
+    ));
+    expect(container.textContent).not.toContain('Savings');
+  });
+
+  it('hides percentage badge when savedPct is 0', () => {
+    const { container } = render(() => (
+      <ChartCard {...baseProps({ savedCost: 0, savedPct: 0 })} />
+    ));
+    expect(container.querySelector('.chart-card__savings-pct')).toBeNull();
+  });
+
+  it('renders savingsInfoTooltip inside savings label', () => {
+    const tooltip = <span data-testid="test-tooltip">info</span>;
+    const { container } = render(() => (
+      <ChartCard {...baseProps({ savedCost: 5.0, savedPct: 20, savingsInfoTooltip: tooltip })} />
+    ));
+    expect(container.querySelector('[data-testid="test-tooltip"]')).not.toBeNull();
+  });
+
+  it('makes savings stat clickable and triggers onViewChange', () => {
+    const onViewChange = vi.fn();
+    const { container } = render(() => (
+      <ChartCard {...baseProps({ savedCost: 5.67, savedPct: 42, onViewChange })} />
+    ));
+    const stats = container.querySelectorAll('.chart-card__stat--clickable');
+    const savingsStat = Array.from(stats).find(s => s.textContent?.includes('Savings'));
+    expect(savingsStat).not.toBeNull();
+    fireEvent.click(savingsStat!);
+    expect(onViewChange).toHaveBeenCalledWith('savings');
+  });
+
+  it('renders savings chart when activeView is savings', () => {
+    const { container } = render(() => (
+      <ChartCard
+        {...baseProps({
+          activeView: 'savings',
+          savedCost: 5.0,
+          savedPct: 20,
+          savingsTimeseries: [{ date: '2026-04-20', actual_cost: 1, baseline_cost: 2 }],
+        })}
+      />
+    ));
+    expect(container.querySelector('[data-testid="savings-chart"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="cost-chart"]')).toBeNull();
+  });
+
+  it('shows fallback when savings view has no data', () => {
+    const { container } = render(() => (
+      <ChartCard
+        {...baseProps({
+          activeView: 'savings',
+          savedCost: 0,
+          savedPct: 0,
+          savingsTimeseries: [],
+        })}
+      />
+    ));
+    expect(container.textContent).toContain('No savings data for this time range');
+  });
+
+  it('marks savings stat as active when savings view is selected', () => {
+    const { container } = render(() => (
+      <ChartCard
+        {...baseProps({
+          activeView: 'savings',
+          savedCost: 5.0,
+          savedPct: 20,
+        })}
+      />
+    ));
+    const active = container.querySelectorAll('.chart-card__stat--active');
+    expect(active).toHaveLength(1);
+    expect(active[0].textContent).toContain('Savings');
   });
 });

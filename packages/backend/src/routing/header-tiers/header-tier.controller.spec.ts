@@ -127,7 +127,7 @@ describe('HeaderTierController', () => {
   it('setFallbacks forwards models', async () => {
     const { controller, service } = makeController();
     const out = await controller.setFallbacks(user, 'my-agent', 'ht-1', { models: ['a'] });
-    expect(service.setFallbacks).toHaveBeenCalledWith('agent-1', 'ht-1', ['a']);
+    expect(service.setFallbacks).toHaveBeenCalledWith('agent-1', 'ht-1', ['a'], undefined);
     expect(out).toEqual(['m']);
   });
 

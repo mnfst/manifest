@@ -58,12 +58,22 @@ services:
       - PORT=${PORT:-2099}
       - DATABASE_URL=${DATABASE_URL:-postgresql://manifest:manifest@postgres:5432/manifest}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set in .env}
+      # Optional dedicated at-rest encryption key for stored provider/OAuth
+      # credentials. When unset, the backend falls back to BETTER_AUTH_SECRET.
+      - MANIFEST_ENCRYPTION_KEY=${MANIFEST_ENCRYPTION_KEY:-}
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:${PORT:-2099}}
       # Defaults to the host-installed Ollama. Override in .env if your
       # Ollama runs elsewhere (e.g. on another host on your LAN).
       - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
       - SEED_DATA=false
       - NODE_ENV=production
+      # Force self-hosted semantics regardless of the container runtime.
+      # The auto-detection inside the app reads /.dockerenv (Docker),
+      # /run/.containerenv (Podman), and KUBERNETES_SERVICE_HOST, but
+      # explicit beats inferred — and a number of rootless / nspawn /
+      # exotic runtimes produce neither marker. Setting this avoids
+      # silently flipping users back to cloud-mode SSRF rules (issue #1780).
+      - MANIFEST_MODE=${MANIFEST_MODE:-selfhosted}
       # Email provider (optional). Covers both login/verification emails
       # and threshold alert notifications. Set one provider block — see
       # DOCKER_README.md "Email setup". Supports resend, mailgun, sendgrid.

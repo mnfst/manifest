@@ -18,11 +18,21 @@ import {
   normalizeProviderModel,
   resolveApiKey,
 } from './proxy-fallback.service';
-import { ProxyRequestOptions, SignatureLookup, ThinkingBlockLookup } from './proxy-types';
+import {
+  ProxyApiMode,
+  ProxyRequestOptions,
+  SignatureLookup,
+  ThinkingBlockLookup,
+} from './proxy-types';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
+import { formatManifestError } from '../../common/errors/error-codes';
+import { peekStream } from './stream-warmup';
 import type { AuthType } from 'manifest-shared';
+import { toChatCompletionsRequest } from './responses-adapter';
+
+const STREAM_WARMUP_MS = 15_000;
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
 
@@ -60,6 +70,13 @@ export interface RoutingMeta {
    * failure row to the correct vendor.
    */
   primaryProvider?: string;
+  /**
+   * Auth type of the primary model when a fallback ultimately succeeded.
+   * In a fallback-success flow, `auth_type` holds the fallback's auth so
+   * the recorder costs the success row correctly; this field preserves the
+   * primary's auth so the primary-failure row stays accurate too. See #1173.
+   */
+  primaryAuthType?: string;
 }
 
 export interface ProxyResult {
@@ -98,43 +115,46 @@ export class ProxyService {
       specificityOverride,
       headers,
     } = opts;
-    this.validatePayload(body);
+    const apiMode = opts.apiMode ?? 'chat_completions';
+    const chatBody = apiMode === 'responses' ? toChatCompletionsRequest(body) : undefined;
+    const routingBody = chatBody ?? body;
+    this.validatePayload(routingBody);
 
     const limitMessage = await this.enforceLimits(tenantId, agentName);
     if (limitMessage) {
-      return buildFriendlyResponse(limitMessage, body.stream === true, 'limit_exceeded');
+      return buildFriendlyResponse(limitMessage, routingBody.stream === true, 'limit_exceeded');
     }
 
     const resolved = await this.resolveRouting(
       agentId,
-      body,
+      routingBody,
       sessionKey,
       specificityOverride,
       headers,
     );
-    if (!resolved.model || !resolved.provider) {
+    if (!resolved.route) {
       this.logger.warn(
-        `No model available for agent=${agentId}: ` +
-          `tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} ` +
-          `confidence=${resolved.confidence} reason=${resolved.reason}`,
+        `No route available for agent=${agentId}: ` +
+          `tier=${resolved.tier} confidence=${resolved.confidence} reason=${resolved.reason}`,
       );
       return this.buildNoProviderResult(body.stream === true, agentName);
     }
 
+    const route = resolved.route;
     const credentials = await this.resolveCredentials(agentId, userId, {
-      provider: resolved.provider,
-      auth_type: resolved.auth_type,
-      provider_key_label: resolved.provider_key_label,
+      provider: route.provider,
+      auth_type: route.authType,
+      provider_key_label: route.keyLabel ?? undefined,
     });
     if (credentials === null) {
       const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
-      const content = `[🦚 Manifest] No ${resolved.provider} API key yet. Add one here: ${dashboardUrl}`;
+      const content = formatManifestError('M100', { provider: route.provider, dashboardUrl });
       return buildFriendlyResponse(content, body.stream === true, 'no_provider_key');
     }
 
-    const primaryModel = normalizeProviderModel(resolved.provider, resolved.model);
+    const primaryModel = normalizeProviderModel(route.provider, route.model);
     this.logger.log(
-      `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
+      `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${route.provider} auth_type=${route.authType} confidence=${resolved.confidence}`,
     );
 
     const stream = body.stream === true;
@@ -144,14 +164,16 @@ export class ProxyService {
       this.thinkingCache.retrieve(sessionKey, firstToolUseId);
 
     const forward = await this.fallbackService.tryForwardToProvider({
-      provider: resolved.provider,
+      provider: route.provider,
       apiKey: credentials.apiKey,
       model: primaryModel,
       body,
+      chatBody,
       stream,
       sessionKey,
       signal,
-      authType: resolved.auth_type,
+      authType: route.authType,
+      apiMode,
       resourceUrl: credentials.resourceUrl,
       providerRegion: credentials.providerRegion,
       signatureLookup,
@@ -166,13 +188,73 @@ export class ProxyService {
         primaryModel,
         forward,
         body,
+        chatBody,
         stream,
         sessionKey,
         signal,
         signatureLookup,
         thinkingLookup,
+        apiMode,
       });
       if (fallbackResult) return fallbackResult;
+    }
+
+    // Stream warm-up: for streaming 200 responses, verify the provider
+    // actually starts delivering data before committing to the client.
+    // If the stream stalls or dies, we can still try fallback providers.
+    if (forward.response.ok && stream && forward.response.body) {
+      const warmup = await peekStream(forward.response.body, STREAM_WARMUP_MS);
+      if (warmup.ok) {
+        const peeked: ForwardResult = {
+          response: new Response(warmup.stream, {
+            status: forward.response.status,
+            statusText: forward.response.statusText,
+            headers: forward.response.headers,
+          }),
+          isGoogle: forward.isGoogle,
+          isAnthropic: forward.isAnthropic,
+          isChatGpt: forward.isChatGpt,
+        };
+        this.recordTierIfScoring(sessionKey, resolved.tier);
+        this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
+        return { forward: peeked, meta: this.buildBaseMeta(resolved, primaryModel) };
+      }
+
+      this.logger.warn(
+        `Stream warmup failed: provider=${route.provider} model=${primaryModel} reason=${warmup.reason} message=${warmup.message}`,
+      );
+
+      const syntheticForward: ForwardResult = {
+        response: new Response(
+          JSON.stringify({ error: { message: `Stream warmup failed: ${warmup.message}` } }),
+          { status: 502, headers: { 'content-type': 'application/json' } },
+        ),
+        isGoogle: forward.isGoogle,
+        isAnthropic: forward.isAnthropic,
+        isChatGpt: forward.isChatGpt,
+      };
+      const fallbackResult = await this.tryFallbackChain({
+        agentId,
+        userId,
+        resolved,
+        primaryModel,
+        forward: syntheticForward,
+        body,
+        chatBody,
+        stream,
+        sessionKey,
+        signal,
+        signatureLookup,
+        thinkingLookup,
+        apiMode,
+      });
+      if (fallbackResult) return fallbackResult;
+
+      // Warmup failed and no fallbacks available: return the synthetic 502
+      // instead of the original forward (whose body was consumed by peekStream).
+      this.recordTierIfScoring(sessionKey, resolved.tier);
+      this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
+      return { forward: syntheticForward, meta: this.buildBaseMeta(resolved, primaryModel) };
     }
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
@@ -192,13 +274,11 @@ export class ProxyService {
   private validatePayload(body: ProxyRequestOptions['body']): void {
     const messages = body.messages;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      throw new BadRequestException('messages array is required');
+      throw new BadRequestException(formatManifestError('M300'));
     }
     sanitizeNullContent(messages as Record<string, unknown>[]);
     if (messages.length > MAX_MESSAGES_PER_REQUEST) {
-      throw new BadRequestException(
-        `messages array exceeds maximum length of ${MAX_MESSAGES_PER_REQUEST}`,
-      );
+      throw new BadRequestException(formatManifestError('M301', { max: MAX_MESSAGES_PER_REQUEST }));
     }
   }
 
@@ -269,21 +349,43 @@ export class ProxyService {
     primaryModel: string;
     forward: ForwardResult;
     body: ProxyRequestOptions['body'];
+    chatBody?: ProxyRequestOptions['body'];
     stream: boolean;
     sessionKey: string;
     signal?: AbortSignal;
     signatureLookup: SignatureLookup;
     thinkingLookup: ThinkingBlockLookup;
+    apiMode: ProxyApiMode;
   }): Promise<ProxyResult | null> {
-    const { agentId, userId, resolved, primaryModel, forward, body, stream, sessionKey, signal } =
-      args;
-    const tiers = await this.tierService.getTiers(agentId);
-    const assignment = tiers.find((t) => t.tier === resolved.tier);
-    const fallbackModels = resolved.fallback_models ?? assignment?.fallback_models;
-    if (!fallbackModels || fallbackModels.length === 0) return null;
+    const {
+      agentId,
+      userId,
+      resolved,
+      primaryModel,
+      forward,
+      body,
+      chatBody,
+      stream,
+      sessionKey,
+      signal,
+      apiMode,
+    } = args;
+    // Prefer the resolver's fallback_routes (which already contains the right
+    // tier's routes); fall back to a fresh tier lookup if the resolver returned
+    // null (e.g. the tier itself was missing).
+    let fallbackRoutes = resolved.fallback_routes ?? null;
+    if (!fallbackRoutes) {
+      const tiers = await this.tierService.getTiers(agentId);
+      const assignment = tiers.find((t) => t.tier === resolved.tier);
+      fallbackRoutes = assignment?.fallback_routes ?? null;
+    }
+    if (!fallbackRoutes || fallbackRoutes.length === 0) return null;
+    const fallbackModels = fallbackRoutes.map((r) => r.model);
 
     const primaryStatus = forward.response.status;
     const primaryErrorBody = await forward.response.text();
+    const primaryProvider = resolved.route?.provider;
+    const primaryAuth = resolved.route?.authType;
     const { success, failures } = await this.fallbackService.tryFallbacks(
       agentId,
       userId,
@@ -293,10 +395,13 @@ export class ProxyService {
       sessionKey,
       primaryModel,
       signal,
-      resolved.provider ?? undefined,
-      resolved.auth_type,
+      primaryProvider,
+      primaryAuth,
       args.signatureLookup,
       args.thinkingLookup,
+      apiMode,
+      chatBody,
+      fallbackRoutes,
     );
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
@@ -307,11 +412,13 @@ export class ProxyService {
         forward: success.forward,
         meta: this.buildBaseMeta(resolved, success.model, {
           provider: success.provider,
+          auth_type: success.authType,
           fallbackFromModel: primaryModel,
           fallbackIndex: success.fallbackIndex,
           primaryErrorStatus: primaryStatus,
           primaryErrorBody,
-          primaryProvider: resolved.provider ?? undefined,
+          primaryProvider,
+          primaryAuthType: primaryAuth,
         }),
         failedFallbacks: failures,
       };
@@ -339,30 +446,19 @@ export class ProxyService {
   }
 
   private buildBaseMeta(
-    resolved: {
-      tier: string;
-      confidence: number;
-      reason: string;
-      auth_type?: string;
-      specificity_category?: string;
-      header_tier_id?: string;
-      header_tier_name?: string;
-      header_tier_color?: string;
-      provider?: string | null;
-      provider_key_label?: string;
-    },
+    resolved: ResolvedRouting,
     model: string,
     overrides: Partial<RoutingMeta> = {},
   ): RoutingMeta {
     return {
-      tier: resolved.tier as TierSlot,
+      tier: resolved.tier,
       model,
-      provider: overrides.provider ?? resolved.provider ?? '',
+      provider: overrides.provider ?? resolved.route?.provider ?? '',
       confidence: resolved.confidence,
       reason: resolved.reason,
-      auth_type: resolved.auth_type,
+      auth_type: resolved.route?.authType,
       specificity_category: resolved.specificity_category,
-      provider_key_label: resolved.provider_key_label,
+      provider_key_label: resolved.route?.keyLabel ?? undefined,
       header_tier_id: resolved.header_tier_id,
       header_tier_name: resolved.header_tier_name,
       header_tier_color: resolved.header_tier_color,
@@ -390,7 +486,13 @@ export class ProxyService {
         ? `$${Number(exceeded.threshold).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         : Number(exceeded.threshold).toLocaleString(undefined, { maximumFractionDigits: 0 });
     const dashboardUrl = getDashboardUrl(this.config, agentName, 'limits');
-    return `[🦚 Manifest] You hit your ${exceeded.metricType} limit: ${fmt} used, ${threshFmt}/${exceeded.period} allowed. Adjust it here: ${dashboardUrl}`;
+    return formatManifestError('M200', {
+      metric: exceeded.metricType,
+      used: fmt,
+      threshold: threshFmt,
+      period: exceeded.period,
+      dashboardUrl,
+    });
   }
 
   private filterScoringMessages(messages: ScorerMessage[]): ScorerMessage[] {
@@ -413,7 +515,7 @@ export class ProxyService {
 
   private buildNoProviderResult(stream: boolean, agentName?: string): ProxyResult {
     const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
-    const content = `[🦚 Manifest] You're connected, but no providers are set up yet. Add one here: ${dashboardUrl}`;
+    const content = formatManifestError('M101', { dashboardUrl });
     return buildFriendlyResponse(content, stream, 'no_provider');
   }
 }

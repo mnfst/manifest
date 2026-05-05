@@ -213,7 +213,7 @@ describe('ST-05: Tier routing', () => {
       .expect(200);
 
     expect(res.body.tier).toBe('simple');
-    expect(res.body.model).not.toBeNull();
+    expect(res.body.route).not.toBeNull();
   });
 
   it('routes a complex prompt to a higher tier', async () => {
@@ -230,7 +230,7 @@ describe('ST-05: Tier routing', () => {
       .expect(200);
 
     expect(['complex', 'reasoning']).toContain(res.body.tier);
-    expect(res.body.model).not.toBeNull();
+    expect(res.body.route).not.toBeNull();
   });
 });
 

@@ -9,13 +9,23 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { IsArray, IsString } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import type { AuthUser } from '../../auth/auth.instance';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
+import { ModelRouteDto } from '../dto/routing.dto';
 import { HeaderTierService } from './header-tier.service';
-import type { TierColor } from 'manifest-shared';
+import { AUTH_TYPES, type TierColor } from 'manifest-shared';
 
 interface CreateHeaderTierBody {
   name: string;
@@ -35,16 +45,39 @@ interface ReorderBody {
   ids: string[];
 }
 
-interface OverrideBody {
-  model: string;
+class OverrideBody {
+  @IsString()
+  @IsNotEmpty()
+  model!: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   provider?: string;
-  authType?: 'api_key' | 'subscription';
+
+  @IsOptional()
+  @IsIn(AUTH_TYPES)
+  authType?: 'api_key' | 'subscription' | 'local';
+
+  // Validate the nested route shape so a malformed payload can't bypass the
+  // legacy field validators above by being smuggled in through `route`.
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ModelRouteDto)
+  route?: ModelRouteDto;
 }
 
 class FallbacksBody {
   @IsArray()
   @IsString({ each: true })
   models!: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(5)
+  @ValidateNested({ each: true })
+  @Type(() => ModelRouteDto)
+  routes?: ModelRouteDto[];
 }
 
 @Controller('api/v1/routing')
@@ -127,13 +160,10 @@ export class HeaderTierController {
     @Body() body: OverrideBody,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.headerTierService.setOverride(
-      agent.id,
-      id,
-      body.model,
-      body.provider,
-      body.authType,
-    );
+    const model = body.route?.model ?? body.model;
+    const provider = body.route?.provider ?? body.provider;
+    const authType = body.route?.authType ?? body.authType;
+    return this.headerTierService.setOverride(agent.id, id, model, provider, authType);
   }
 
   @Delete(':agentName/header-tiers/:id/override')
@@ -155,7 +185,7 @@ export class HeaderTierController {
     @Body() body: FallbacksBody,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.headerTierService.setFallbacks(agent.id, id, body.models);
+    return this.headerTierService.setFallbacks(agent.id, id, body.models, body.routes);
   }
 
   @Delete(':agentName/header-tiers/:id/fallbacks')

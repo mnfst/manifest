@@ -1,18 +1,16 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response as ExpressResponse } from 'express';
+import { formatManifestError, ManifestErrorCode } from '../../common/errors/error-codes';
 import { getDashboardUrl, sendFriendlyResponse } from './proxy-friendly-response';
 
 /** Guard-thrown messages that should become friendly chat responses. */
-const AUTH_ERROR_MESSAGES: Record<string, string> = {
-  'Authorization header required':
-    '[🦚 Manifest] Missing the Authorization header. Set it to "Bearer mnfst_<your-key>".',
-  'Empty token': '[🦚 Manifest] The Bearer token is empty. Paste your Manifest key into it.',
-  'Invalid API key format':
-    '[🦚 Manifest] That doesn\'t look right. Manifest keys start with "mnfst_". Grab yours from the dashboard.',
-  'API key expired': '[🦚 Manifest] This key has expired. Generate a new one here',
-  'Invalid API key':
-    "[🦚 Manifest] I don't recognize this key. It might have been rotated or deleted. Grab the current one from the dashboard.",
+const AUTH_ERROR_CODES: Record<string, ManifestErrorCode> = {
+  'Authorization header required': 'M001',
+  'Empty token': 'M002',
+  'Invalid API key format': 'M003',
+  'API key expired': 'M004',
+  'Invalid API key': 'M005',
 };
 
 /** Status codes that should pass through as normal HTTP errors. */
@@ -70,11 +68,12 @@ export class ProxyExceptionFilter implements ExceptionFilter {
     const isStream = (req.body as Record<string, unknown>)?.stream === true;
     const isChatClient = isChatRenderingClient(req);
 
-    const friendly = AUTH_ERROR_MESSAGES[message];
-    if (friendly) {
+    const errorCode = AUTH_ERROR_CODES[message];
+    if (errorCode) {
+      const friendly = formatManifestError(errorCode);
       const dashboardUrl = getDashboardUrl(this.config);
       const content =
-        message === 'API key expired'
+        errorCode === 'M004'
           ? `${friendly}: ${dashboardUrl}`
           : `${friendly}\n\nDashboard: ${dashboardUrl}`;
       if (isChatClient) {
@@ -90,10 +89,7 @@ export class ProxyExceptionFilter implements ExceptionFilter {
     }
 
     if (isChatClient) {
-      const content =
-        status >= 500
-          ? '[🦚 Manifest] Something broke on our end. Try again in a moment.'
-          : message;
+      const content = status >= 500 ? formatManifestError('M500') : message;
       sendFriendlyResponse(res, content, isStream);
       return;
     }

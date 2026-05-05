@@ -123,7 +123,8 @@ describe("FallbackList", () => {
     fireEvent.click(removeButtons[0]);
 
     await waitFor(() => {
-      expect(mockSetFallbacks).toHaveBeenCalledWith("test-agent", "tier-1", ["model-b"]);
+      // No fallbackRoutes passed → undefined for the routes arg.
+      expect(mockSetFallbacks).toHaveBeenCalledWith("test-agent", "tier-1", ["model-b"], undefined);
       expect(onUpdate).toHaveBeenCalled();
     });
     expect(mockClearFallbacks).not.toHaveBeenCalled();
@@ -168,10 +169,11 @@ describe("FallbackList", () => {
     await waitFor(() => {
       expect(mockSetFallbacks).toHaveBeenCalled();
     });
-    // First call: optimistic removal, second call: revert with original list
+    // First call: optimistic removal, second call: revert with original list.
+    // onUpdate now also carries `updatedRoutes` (null when no routes are tracked).
     expect(onUpdate).toHaveBeenCalledTimes(2);
-    expect(onUpdate).toHaveBeenNthCalledWith(1, ["model-b"]);
-    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a", "model-b"]);
+    expect(onUpdate).toHaveBeenNthCalledWith(1, ["model-b"], null);
+    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a", "model-b"], null);
   });
 
   it("reverts optimistic removal when clearFallbacks rejects", async () => {
@@ -191,10 +193,11 @@ describe("FallbackList", () => {
     await waitFor(() => {
       expect(mockClearFallbacks).toHaveBeenCalled();
     });
-    // First call: optimistic removal, second call: revert with original list
+    // First call: optimistic removal, second call: revert with original list.
+    // onUpdate now also carries `updatedRoutes` (null when no routes are tracked).
     expect(onUpdate).toHaveBeenCalledTimes(2);
-    expect(onUpdate).toHaveBeenNthCalledWith(1, []);
-    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a"]);
+    expect(onUpdate).toHaveBeenNthCalledWith(1, [], null);
+    expect(onUpdate).toHaveBeenNthCalledWith(2, ["model-a"], null);
   });
 
   it("displays display_name when model info has one", () => {
@@ -660,9 +663,15 @@ describe("FallbackList", () => {
     fireEvent.drop(list, { preventDefault: vi.fn() });
 
     await waitFor(() => {
-      // model-a moved to the end: ["model-b", "model-c", "model-a"]
-      expect(onUpdate).toHaveBeenCalledWith(["model-b", "model-c", "model-a"]);
-      expect(mockSetFallbacks).toHaveBeenCalledWith("test-agent", "tier-1", ["model-b", "model-c", "model-a"]);
+      // model-a moved to the end: ["model-b", "model-c", "model-a"].
+      // No fallbackRoutes passed → onUpdate gets null and persistSet gets undefined.
+      expect(onUpdate).toHaveBeenCalledWith(["model-b", "model-c", "model-a"], null);
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "test-agent",
+        "tier-1",
+        ["model-b", "model-c", "model-a"],
+        undefined,
+      );
     });
   });
 
@@ -692,9 +701,10 @@ describe("FallbackList", () => {
     fireEvent.drop(list, { preventDefault: vi.fn() });
 
     await waitFor(() => {
-      // First call is the optimistic reorder, second call reverts to original
+      // First call is the optimistic reorder, second call reverts to original.
+      // The route arg defaults to null when fallbackRoutes prop is omitted.
       expect(onUpdate).toHaveBeenCalledTimes(2);
-      expect(onUpdate).toHaveBeenLastCalledWith(["model-a", "model-b", "model-c"]);
+      expect(onUpdate).toHaveBeenLastCalledWith(["model-a", "model-b", "model-c"], null);
     });
   });
 
@@ -780,7 +790,8 @@ describe("FallbackList", () => {
     fireEvent.click(removeButtons[0]);
 
     await waitFor(() => {
-      expect(customPersist).toHaveBeenCalledWith("test-agent", "tier-1", ["model-b"]);
+      // 4th arg is undefined when no fallbackRoutes are tracked.
+      expect(customPersist).toHaveBeenCalledWith("test-agent", "tier-1", ["model-b"], undefined);
     });
     // Default setFallbacks should NOT have been called
     expect(mockSetFallbacks).not.toHaveBeenCalled();
@@ -822,8 +833,8 @@ describe("FallbackList", () => {
     fireEvent.click(removeButtons[0]);
 
     await waitFor(() => {
-      // Should use the default setFallbacks from api.js
-      expect(mockSetFallbacks).toHaveBeenCalledWith("test-agent", "tier-1", ["model-b"]);
+      // Should use the default setFallbacks from api.js. 4th arg undefined.
+      expect(mockSetFallbacks).toHaveBeenCalledWith("test-agent", "tier-1", ["model-b"], undefined);
     });
   });
 

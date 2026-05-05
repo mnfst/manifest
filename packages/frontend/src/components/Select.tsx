@@ -1,4 +1,4 @@
-import { createSignal, For, Show, onCleanup, type Component } from "solid-js";
+import { createSignal, For, Show, onCleanup, type Component } from 'solid-js';
 
 interface SelectOption {
   label: string;
@@ -11,6 +11,7 @@ interface SelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   label?: string;
+  displayValue?: string;
 }
 
 const Select: Component<SelectProps> = (props) => {
@@ -19,7 +20,7 @@ const Select: Component<SelectProps> = (props) => {
 
   const selectedLabel = () => {
     const opt = props.options.find((o) => o.value === props.value);
-    return opt?.label ?? props.placeholder ?? "Select...";
+    return opt?.label ?? props.placeholder ?? 'Select...';
   };
 
   const handleClickOutside = (e: MouseEvent) => {
@@ -29,15 +30,15 @@ const Select: Component<SelectProps> = (props) => {
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Escape") setOpen(false);
+    if (e.key === 'Escape') setOpen(false);
   };
 
-  if (typeof document !== "undefined") {
-    document.addEventListener("click", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
+  if (typeof document !== 'undefined') {
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
     onCleanup(() => {
-      document.removeEventListener("click", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     });
   }
 
@@ -45,16 +46,27 @@ const Select: Component<SelectProps> = (props) => {
     <div class="custom-select" ref={ref}>
       <button
         class="custom-select__trigger"
-        classList={{ "custom-select__trigger--open": open() }}
+        classList={{ 'custom-select__trigger--open': open() }}
         onClick={() => setOpen(!open())}
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open()}
         aria-label={props.label ?? selectedLabel()}
       >
-        <span class="custom-select__value">{selectedLabel()}</span>
-        <svg class="custom-select__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="m6 9 6 6 6-6"/>
+        <span class="custom-select__value">{props.displayValue ?? selectedLabel()}</span>
+        <svg
+          class="custom-select__chevron"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
       <Show when={open()}>
@@ -63,8 +75,11 @@ const Select: Component<SelectProps> = (props) => {
             {(opt) => (
               <button
                 class="custom-select__option"
-                classList={{ "custom-select__option--selected": props.value === opt.value }}
-                onClick={() => { props.onChange(opt.value); setOpen(false); }}
+                classList={{ 'custom-select__option--selected': props.value === opt.value }}
+                onClick={() => {
+                  props.onChange(opt.value);
+                  setOpen(false);
+                }}
                 type="button"
                 role="option"
                 aria-selected={props.value === opt.value}

@@ -42,14 +42,22 @@ export class TierController {
   ) {
     this.validateTier(tier);
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    // Prefer the structured route when the client sent it, otherwise use the
+    // flat fields. Either form is accepted — the service synthesizes the
+    // missing one before persisting. `route.keyLabel` and the legacy flat
+    // `providerKeyLabel` carry the same multi-key pin.
+    const model = body.route?.model ?? body.model;
+    const provider = body.route?.provider ?? body.provider;
+    const authType = body.route?.authType ?? body.authType;
+    const providerKeyLabel = body.route?.keyLabel ?? body.providerKeyLabel;
     return this.tierService.setOverride(
       agent.id,
       user.id,
       tier,
-      body.model,
-      body.provider,
-      body.authType,
-      body.providerKeyLabel,
+      model,
+      provider,
+      authType,
+      providerKeyLabel,
     );
   }
 
@@ -92,7 +100,7 @@ export class TierController {
   ) {
     this.validateTier(tier);
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.tierService.setFallbacks(agent.id, tier, body.models);
+    return this.tierService.setFallbacks(agent.id, tier, body.models, body.routes);
   }
 
   @Delete(':agentName/tiers/:tier/fallbacks')

@@ -1,6 +1,6 @@
 import { Controller, Sse, UnauthorizedException } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
 import { AuthUser } from '../auth/auth.instance';
@@ -20,8 +20,14 @@ export class SseController {
       throw new UnauthorizedException('Session required for SSE');
     }
 
+    // Each bus event fans out as TWO SSE messages: the typed one (so new
+    // clients can target by kind) AND the legacy 'ping' (so older frontends
+    // listening on 'ping' still see every change during a partial upgrade).
     return this.eventBus.forUser(user.id).pipe(
-      map(() => ({ type: 'ping', data: 'ping' })),
+      mergeMap((evt) => [
+        { type: evt.kind, data: evt.kind },
+        { type: 'ping', data: 'ping' },
+      ]),
     );
   }
 }

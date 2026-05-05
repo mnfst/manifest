@@ -1,10 +1,13 @@
 import { PROVIDERS } from './providers.js';
-import { inferProviderFromModel, SHARED_PROVIDERS, parseFallbackEntry } from 'manifest-shared';
+import { inferProviderFromModel, SHARED_PROVIDERS } from 'manifest-shared';
 import type { TierAssignment } from './api.js';
 
 /**
  * Collect all key labels already used for a given model within a tier
  * (primary + fallbacks). Used to prevent duplicate (model, key) combos.
+ *
+ * Reads through the structured `override_route`, `auto_assigned_route`,
+ * `fallback_routes` fields — `route.keyLabel` is the canonical pin location.
  *
  * @param excludeSlot - 'primary' to skip the primary slot (for the primary's
  *   own dropdown), or a fallback index to skip that fallback (for its dropdown).
@@ -21,19 +24,20 @@ export function usedKeyLabelsForModelInTier(
   if (!tier) return used;
   // Check primary
   if (excludeSlot !== 'primary') {
-    const primaryModel = tier.override_model ?? tier.auto_assigned_model;
-    if (primaryModel === modelName) {
-      const label = tier.override_provider_key_label ?? defaultKeyLabel;
+    const primary = tier.override_route ?? tier.auto_assigned_route ?? null;
+    if (primary && primary.model === modelName) {
+      const label = primary.keyLabel ?? defaultKeyLabel;
       if (label) used.add(label.toLowerCase());
     }
   }
   // Check fallbacks
-  const fallbacks = tier.fallback_models ?? [];
-  for (let i = 0; i < fallbacks.length; i++) {
+  const routes = tier.fallback_routes ?? [];
+  for (let i = 0; i < routes.length; i++) {
     if (excludeSlot === i) continue;
-    const parsed = parseFallbackEntry(fallbacks[i]);
-    if (parsed.model === modelName && parsed.providerKeyLabel) {
-      used.add(parsed.providerKeyLabel.toLowerCase());
+    const r = routes[i];
+    if (!r) continue;
+    if (r.model === modelName && r.keyLabel) {
+      used.add(r.keyLabel.toLowerCase());
     }
   }
   return used;

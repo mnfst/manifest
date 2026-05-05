@@ -1287,7 +1287,7 @@ describe('ProviderModelFetcherService', () => {
       await service.fetch('openai', 'my-oauth-token', 'subscription');
 
       expect(fetchSpy).toHaveBeenCalledWith(
-        'https://chatgpt.com/backend-api/codex/models?client_version=0.99.0',
+        'https://chatgpt.com/backend-api/codex/models?client_version=0.128.0',
         expect.objectContaining({
           headers: expect.objectContaining({
             Authorization: 'Bearer my-oauth-token',

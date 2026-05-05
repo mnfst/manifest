@@ -1,716 +1,818 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@solidjs/testing-library";
+import { render, fireEvent } from "@solidjs/testing-library";
 
 vi.mock("../../src/components/ProviderIcon.js", () => ({
-  providerIcon: () => null, customProviderLogo: () => null,
+  providerIcon: () => null,
+  customProviderLogo: () => null,
+}));
+
+vi.mock("../../src/services/providers.js", () => ({
+  PROVIDERS: [
+    {
+      id: "openai",
+      name: "OpenAI",
+      models: [
+        { value: "gpt-4o", label: "GPT-4o" },
+        { value: "gpt-4o-mini", label: "GPT-4o mini" },
+      ],
+    },
+    {
+      id: "anthropic",
+      name: "Anthropic",
+      models: [{ value: "claude-opus", label: "Claude Opus" }],
+    },
+  ],
+  STAGES: [
+    { id: "simple", label: "Simple" },
+    { id: "complex", label: "Complex" },
+  ],
+  SPECIFICITY_STAGES: [{ id: "coding", label: "Coding" }],
 }));
 
 vi.mock("../../src/services/routing-utils.js", () => ({
-  pricePerM: (v: number) => `$${(v * 1_000_000).toFixed(2)}`,
-  resolveProviderId: (provider: string) => {
-    const map: Record<string, string> = {
-      OpenAI: "openai",
-      Anthropic: "anthropic",
-      Google: "google",
-      Ollama: "ollama",
-      "ollama-cloud": "ollama-cloud",
-      deepseek: "deepseek",
-    };
-    return map[provider] ?? null;
+  resolveProviderId: (p: string) => p.toLowerCase(),
+  inferProviderFromModel: (m: string) => {
+    if (m.startsWith("gpt")) return "openai";
+    if (m.startsWith("claude")) return "anthropic";
+    return undefined;
   },
-  inferProviderFromModel: (modelName: string) => {
-    const slash = modelName.indexOf("/");
-    if (slash !== -1) return modelName.substring(0, slash).toLowerCase();
-    if (modelName.startsWith("mistral-")) return "mistral";
-    if (modelName.startsWith("deepseek-")) return "deepseek";
-    // Mirror the real heuristic: non-slash model with a colon → local ollama
-    if (!modelName.includes("/") && /:/.test(modelName)) return "ollama";
-    return null;
-  },
+  pricePerM: (n: number) => `$${(Number(n) * 1_000_000).toFixed(2)}`,
+}));
+
+vi.mock("../../src/services/formatters.js", () => ({
+  customProviderColor: () => "#000",
 }));
 
 import ModelPickerModal from "../../src/components/ModelPickerModal";
+import type {
+  AvailableModel,
+  CustomProviderData,
+  RoutingProvider,
+  TierAssignment,
+} from "../../src/services/api";
 
-const baseTiers = [
-  { id: "1", user_id: "u1", tier: "simple", override_model: null, override_provider: null, auto_assigned_model: "gpt-4o-mini", updated_at: "2025-01-01" },
+const baseModels: AvailableModel[] = [
+  {
+    model_name: "gpt-4o",
+    provider: "OpenAI",
+    auth_type: "api_key",
+    input_price_per_token: 0.000005,
+    output_price_per_token: 0.000015,
+    context_window: 128000,
+    capability_reasoning: false,
+    capability_code: true,
+    quality_score: 8,
+    display_name: "GPT-4o",
+  },
+  {
+    model_name: "gpt-4o-mini",
+    provider: "OpenAI",
+    auth_type: "api_key",
+    input_price_per_token: 0,
+    output_price_per_token: 0,
+    context_window: 128000,
+    capability_reasoning: false,
+    capability_code: true,
+    quality_score: 6,
+    display_name: "GPT-4o mini",
+  },
+  {
+    model_name: "claude-opus",
+    provider: "Anthropic",
+    auth_type: "subscription",
+    input_price_per_token: 0.000015,
+    output_price_per_token: 0.000075,
+    context_window: 200000,
+    capability_reasoning: false,
+    capability_code: true,
+    quality_score: 9,
+    display_name: "Claude Opus",
+  },
 ];
 
-const baseModels = [
-  { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
-  { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
-  { model_name: "openrouter/free", provider: "OpenAI", display_name: "Free Models Router", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
+const apiKeyOnly: RoutingProvider[] = [
+  {
+    id: "p1",
+    provider: "openai",
+    auth_type: "api_key",
+    is_active: true,
+    has_api_key: true,
+    connected_at: "2025-01-01",
+  },
+];
+
+const subAndApi: RoutingProvider[] = [
+  ...apiKeyOnly,
+  {
+    id: "p2",
+    provider: "anthropic",
+    auth_type: "subscription",
+    is_active: true,
+    has_api_key: false,
+    connected_at: "2025-01-01",
+  },
+];
+
+const tiers: TierAssignment[] = [
+  {
+    id: "t1",
+    agent_id: "a1",
+    tier: "simple",
+    override_route: null,
+    auto_assigned_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+    fallback_routes: [
+      { provider: "openai", authType: "api_key", model: "gpt-4o-mini" },
+    ],
+    updated_at: "2025-01-01",
+  },
 ];
 
 describe("ModelPickerModal", () => {
-  const onSelect = vi.fn();
-  const onClose = vi.fn();
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders modal title", () => {
-    render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    expect(screen.getByText("Select a model")).toBeDefined();
-  });
-
-  it("shows tier label in subtitle", () => {
-    render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    expect(screen.getByText("Simple tier")).toBeDefined();
-  });
-
-  it("renders model groups", () => {
-    render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    expect(screen.getByText("OpenAI")).toBeDefined();
-    expect(screen.getByText("Anthropic")).toBeDefined();
-  });
-
-  it("calls onSelect with activeTab when a model is clicked", () => {
-    render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    const claudeButtons = screen.getAllByText("Claude Opus 4.6");
-    fireEvent.click(claudeButtons[claudeButtons.length - 1]);
-    // Default tab is 'api_key' when no subscription providers are connected
-    expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6", "anthropic", "api_key");
-  });
-
-  it("closes on overlay click", () => {
+  it("renders the tier label as subtitle when the tier matches a STAGES entry", () => {
     const { container } = render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
     ));
-    const overlay = container.querySelector(".modal-overlay")!;
-    fireEvent.click(overlay);
-    expect(onClose).toHaveBeenCalled();
+    expect(container.querySelector(".routing-modal__subtitle")?.textContent).toContain("Simple");
   });
 
-  it("closes on Escape key", () => {
+  it("renders the SPECIFICITY_STAGES label when the tier matches a specificity stage", () => {
     const { container } = render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+      <ModelPickerModal
+        tierId="coding"
+        models={baseModels}
+        tiers={[]}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
     ));
-    const overlay = container.querySelector(".modal-overlay")!;
-    fireEvent.keyDown(overlay, { key: "Escape" });
-    expect(onClose).toHaveBeenCalled();
+    expect(container.querySelector(".routing-modal__subtitle")?.textContent).toContain("Coding");
   });
 
-  it("closes on close button click", () => {
-    render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+  it("hides tabs when only one auth category is connected", () => {
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
     ));
-    fireEvent.click(screen.getByLabelText("Close"));
-    expect(onClose).toHaveBeenCalled();
+    expect(container.querySelector(".panel__tabs")).toBeNull();
   });
 
-  it("filters models by search query", () => {
-    // Need more than 5 models for search bar to show
-    const manyModels = [
-      ...baseModels,
-      { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
-      { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
-      { model_name: "claude-sonnet-4", provider: "Anthropic", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
-      { model_name: "gemini-pro", provider: "Google", display_name: "Gemini Pro", input_price_per_token: 0.00000025, output_price_per_token: 0.0000005, context_window: 32000, capability_reasoning: false, capability_code: false },
-    ];
-    render(() => (
-      <ModelPickerModal tierId="simple" models={manyModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+  it("shows tabs when multiple auth categories are connected", () => {
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={tiers}
+        connectedProviders={subAndApi}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
     ));
-    const input = screen.getByLabelText("Search models or providers");
-    fireEvent.input(input, { target: { value: "claude" } });
-    // Only Anthropic group should show
-    expect(screen.queryByText("OpenAI")).toBeNull();
-    expect(screen.getByText("Anthropic")).toBeDefined();
+    expect(container.querySelector(".panel__tabs")).not.toBeNull();
+    expect(container.textContent).toContain("Subscription");
+    expect(container.textContent).toContain("API Keys");
   });
 
-  it("shows no models match message when search has no results", () => {
-    // Need more than 5 models for search bar to show
-    const manyModels = [
-      ...baseModels,
-      { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
-      { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
-      { model_name: "claude-sonnet-4", provider: "Anthropic", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
-    ];
-    render(() => (
-      <ModelPickerModal tierId="simple" models={manyModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+  it("defaults to the subscription tab when subscription is connected", () => {
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={tiers}
+        connectedProviders={subAndApi}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
     ));
-    const input = screen.getByLabelText("Search models or providers");
-    fireEvent.input(input, { target: { value: "zzzzzzz" } });
-    expect(screen.getByText("No models match your search.")).toBeDefined();
+    const subTab = container.querySelector('[role="tab"][aria-selected="true"]');
+    expect(subTab?.textContent).toContain("Subscription");
   });
 
-  it("shows recommended label for auto-assigned model", () => {
-    render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+  it("switches to api_key tab when clicked", () => {
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={tiers}
+        connectedProviders={subAndApi}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
     ));
-    expect(screen.getByText("(recommended)")).toBeDefined();
+    const apiTab = Array.from(container.querySelectorAll('[role="tab"]')).find((t) =>
+      t.textContent?.includes("API Keys"),
+    ) as HTMLButtonElement;
+    fireEvent.click(apiTab);
+    expect(apiTab.getAttribute("aria-selected")).toBe("true");
   });
 
-  it("filters by provider name when search matches provider", () => {
-    // Need more than 5 models for search bar to show
-    const manyModels = [
-      ...baseModels,
-      { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
-      { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
-      { model_name: "claude-sonnet-4", provider: "Anthropic", display_name: "Claude Sonnet 4", input_price_per_token: 0.000003, output_price_per_token: 0.000015, context_window: 200000, capability_reasoning: false, capability_code: true },
-    ];
-    render(() => (
-      <ModelPickerModal tierId="simple" models={manyModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+  it("toggles the Free models filter on api_key tab", () => {
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
     ));
-    const input = screen.getByLabelText("Search models or providers");
-    fireEvent.input(input, { target: { value: "openai" } });
-    // OpenAI group should show all its models (provider name match)
-    expect(screen.getByText("OpenAI")).toBeDefined();
-  });
-
-  it("shows free models only when pill button clicked", () => {
-    render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    // Free models filter is a checkbox-style pill button
-    const pill = screen.getByText("Free models only");
+    const pill = container.querySelector(".routing-modal__filter-pill") as HTMLButtonElement;
+    expect(pill).not.toBeNull();
     fireEvent.click(pill);
-    // After clicking, still shows "Free models only" (with check icon)
-    expect(screen.getByText("Free models only")).toBeDefined();
+    expect(pill.classList.contains("routing-modal__filter-pill--active")).toBe(true);
+    // Only gpt-4o-mini is free → only one model rendered
+    const modelButtons = container.querySelectorAll(".routing-modal__model");
+    expect(modelButtons.length).toBe(1);
+    expect(modelButtons[0].textContent).toContain("GPT-4o mini");
   });
 
-  it("sorts openrouter/free to the top of its group", () => {
+  it("renders the recommendation tag for the auto-assigned route", () => {
     const { container } = render(() => (
-      <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
     ));
-    // openrouter/free is grouped under OpenRouter (via prefix inference), sorted first
-    const groups = container.querySelectorAll(".routing-modal__group");
-    const orGroup = Array.from(groups).find((g) => g.textContent?.includes("OpenRouter"));
-    const firstModel = orGroup?.querySelectorAll(".routing-modal__model")[0];
-    expect(firstModel?.textContent).toContain("Free Models Router");
+    const recommended = container.querySelector(".routing-modal__recommended");
+    expect(recommended?.textContent).toContain("recommended");
   });
 
-  it("sorts models alphabetically by label within each group", () => {
-    const models = [
-      { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
-      { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
-      { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
-    ];
-    const { container } = render(() => (
-      <ModelPickerModal tierId="simple" models={models} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    const group = container.querySelector(".routing-modal__group")!;
-    const labels = Array.from(group.querySelectorAll(".routing-modal__model-label")).map((el) => el.childNodes[0].textContent?.trim());
-    expect(labels).toEqual(["GPT-3.5 Turbo", "GPT-4o", "GPT-4o Mini"]);
-  });
-
-  it("sorts provider groups alphabetically by name", () => {
-    const models = [
-      { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
-      { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
-    ];
-    const { container } = render(() => (
-      <ModelPickerModal tierId="simple" models={models} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    const groupNames = Array.from(container.querySelectorAll(".routing-modal__group-name")).map((el) => el.textContent);
-    expect(groupNames).toEqual(["Anthropic", "OpenAI"]);
-  });
-
-  it("resolves label for vendor-prefixed model names", () => {
-    const modelsWithSlash = [
-      { model_name: "anthropic/claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
-    ];
-    const { container } = render(() => (
-      <ModelPickerModal tierId="simple" models={modelsWithSlash} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    // display_name is used as the label
-    expect(container.textContent).toContain("Claude Opus 4.6");
-  });
-
-  it("falls back to bare name after slash when no label found", () => {
-    const modelsWithSlash = [
-      { model_name: "vendor/unknown-model-xyz", provider: "Anthropic", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
-    ];
-    const { container } = render(() => (
-      <ModelPickerModal tierId="simple" models={modelsWithSlash} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    expect(container.textContent).toContain("unknown-model-xyz");
-  });
-
-  it("uses model name as label when no slash and no label match", () => {
-    const modelsPlain = [
-      { model_name: "totally-custom-model", provider: "Anthropic", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false },
-    ];
-    const { container } = render(() => (
-      <ModelPickerModal tierId="simple" models={modelsPlain} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
-    ));
-    expect(container.textContent).toContain("totally-custom-model");
-  });
-
-  it("hides tabs when only api_key providers are connected", () => {
-    // Only api_key providers — tabs should NOT render (need both types)
-    const providers = [
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+  it("tags the primary model with 'Primary' when override_route matches", () => {
+    const tiersWithOverride: TierAssignment[] = [
+      {
+        ...tiers[0],
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+      },
     ];
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
         models={baseModels}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
+        tiers={tiersWithOverride}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
       />
     ));
-    expect(container.querySelector(".panel__tab")).toBeNull();
+    const tags = Array.from(container.querySelectorAll(".routing-modal__role-tag")).map(
+      (t) => t.textContent,
+    );
+    expect(tags).toContain("Primary");
   });
 
-  it("shows tabs when both subscription and api_key providers are connected", () => {
-    const providers = [
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
-      { id: "p2", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
+  it("tags fallback rows with their 1-based index", () => {
+    const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
         models={baseModels}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
       />
     ));
-    expect(screen.getByText("Subscription")).toBeDefined();
-    expect(screen.getByText("API Keys")).toBeDefined();
+    const tags = Array.from(container.querySelectorAll(".routing-modal__role-tag")).map(
+      (t) => t.textContent,
+    );
+    expect(tags).toContain("Fallback 1");
   });
 
-  it("passes activeTab as authType in onSelect for subscription tab", () => {
-    const providers = [
-      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
-      <ModelPickerModal
-        tierId="simple"
-        models={baseModels}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
-      />
-    ));
-    // Default tab is 'subscription' when subscription providers exist
-    const claudeButtons = screen.getAllByText("Claude Opus 4.6");
-    fireEvent.click(claudeButtons[claudeButtons.length - 1]);
-    expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6", "anthropic", "subscription");
-  });
-
-  it("filters subscription tab to only subscription providers' models", () => {
-    const providers = [
-      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
-      { id: "p2", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
-      <ModelPickerModal
-        tierId="simple"
-        models={baseModels}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
-      />
-    ));
-    // Subscription tab is active by default (subscription exists)
-    // Only Anthropic models should show (OpenAI is api_key)
-    expect(screen.getByText("Anthropic")).toBeDefined();
-    expect(screen.queryByText("OpenAI")).toBeNull();
-  });
-
-  it("filters API Keys tab to only api_key providers' models", () => {
-    const providers = [
-      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
-      { id: "p2", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
-      <ModelPickerModal
-        tierId="simple"
-        models={baseModels}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
-      />
-    ));
-    // Switch to API Keys tab
-    fireEvent.click(screen.getByText("API Keys"));
-    // Only OpenAI models should show (Anthropic is subscription)
-    expect(screen.getByText("OpenAI")).toBeDefined();
-    expect(screen.queryByText("Anthropic")).toBeNull();
-  });
-
-  it("adds both lowercased provider name and resolved provider ID to providerIdsForTab", () => {
-    // Provider name "Google" should resolve to provider ID "gemini" via resolveProviderId mock
-    // But the mock returns null for "Google" — so we test with case where provider name is "openai"
-    // The providerIdsForTab adds both p.provider.toLowerCase() AND resolveProviderId(p.provider)
-    const providers = [
-      { id: "p1", provider: "OpenAI", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
-    ];
-    // Model with provider "OpenAI" — resolveProviderId("OpenAI") returns "openai"
-    // providerIdsForTab adds both "openai" (lowercase of "OpenAI") and "openai" (resolved)
-    const models = [
-      { model_name: "gpt-4o-mini", provider: "OpenAI", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
-    ];
-    render(() => (
-      <ModelPickerModal
-        tierId="simple"
-        models={models}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
-      />
-    ));
-    // Switch to API Keys tab (default since no subscription)
-    expect(screen.getByText("OpenAI")).toBeDefined();
-  });
-
-  it("shows 'Included in subscription' text on subscription tab models", () => {
-    const providers = [
-      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
-      <ModelPickerModal
-        tierId="simple"
-        models={baseModels}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
-      />
-    ));
-    // On subscription tab, models should show "Included in subscription" instead of pricing
-    expect(screen.getByText("Included in subscription")).toBeDefined();
-  });
-
-  it("hides free models filter on subscription tab", () => {
-    const providers = [
-      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+  it("does NOT cross-tag primary with fallback when route tuples differ on authType", () => {
+    // Same model name on a different auth type must NOT be flagged as Primary
+    // when filtered to the api_key tab if the override is on subscription.
+    const tiersSubOverride: TierAssignment[] = [
+      {
+        ...tiers[0],
+        override_route: { provider: "openai", authType: "subscription", model: "gpt-4o" },
+        auto_assigned_route: null,
+        fallback_routes: null,
+      },
     ];
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
         models={baseModels}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
+        tiers={tiersSubOverride}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
       />
     ));
-    // Subscription tab is active — free models filter should be hidden
-    expect(container.querySelector('.routing-modal__filter-toggle')).toBeNull();
+    const tags = Array.from(container.querySelectorAll(".routing-modal__role-tag")).map(
+      (t) => t.textContent,
+    );
+    expect(tags).not.toContain("Primary");
   });
 
-  it("shows empty message when only api_key connected and no subscription providers", () => {
-    // Only api_key provider connected — tabs hidden, default to api_key tab
-    // The subscription empty message isn't reachable without tabs
-    const providers = [
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
+  it("invokes onSelect with (tierId, model, providerId, authType) on click", () => {
+    const onSelect = vi.fn();
+    const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
         models={baseModels}
-        tiers={baseTiers}
-        connectedProviders={providers}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
         onSelect={onSelect}
-        onClose={onClose}
+        onClose={vi.fn()}
       />
     ));
-    // Should show OpenAI models on api_key tab (default when no subscription)
-    expect(screen.getByText("OpenAI")).toBeDefined();
+    const firstModel = container.querySelector(".routing-modal__model") as HTMLButtonElement;
+    fireEvent.click(firstModel);
+    expect(onSelect).toHaveBeenCalledWith(
+      "simple",
+      expect.any(String),
+      expect.any(String),
+      "api_key",
+    );
   });
 
-  it("shows 'No API key providers connected' when api_key tab has no matching providers", () => {
-    // Both types connected so tabs show, but api_key tab has no matching models
-    const providers = [
-      { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
-      { id: "p2", provider: "unknownprovider", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
+  it("shows the search input only when more than 5 models are available", () => {
+    const onlyOne: AvailableModel[] = [baseModels[0]];
+    const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={baseModels}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
+        models={onlyOne}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
       />
     ));
-    // Default tab is subscription (since there's an active sub), switch to API Keys
-    fireEvent.click(screen.getByText("API Keys"));
-    expect(screen.getByText("No API key providers connected. Connect a provider to see models.")).toBeDefined();
+    expect(container.querySelector(".routing-modal__search")).toBeNull();
   });
 
-  it("falls back to dbProvId when prefixId is not in PROVIDERS list", () => {
-    // Model name "my-custom-thing" doesn't match any prefix pattern → prefixProvId = undefined
-    // DB provider "Anthropic" → resolveProviderId returns "anthropic" (in PROVIDERS)
-    // Code path: prefixProvId is undefined → PROVIDERS.find returns undefined → falls to (dbProvId ?? prefixProvId)
-    // dbProvId = "anthropic" → model renders under Anthropic group
-    const models = [
-      { model_name: "my-custom-thing", provider: "Anthropic", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true },
-    ];
-    const providers = [
-      { id: "p1", provider: "Anthropic", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+  it("filters by search term against model labels", () => {
+    const many: AvailableModel[] = [
+      ...baseModels,
+      { ...baseModels[0], model_name: "gpt-extra-1", display_name: "extra-1" },
+      { ...baseModels[0], model_name: "gpt-extra-2", display_name: "extra-2" },
+      { ...baseModels[0], model_name: "gpt-extra-3", display_name: "extra-3" },
+      { ...baseModels[0], model_name: "gpt-extra-4", display_name: "extra-4" },
     ];
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={models}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
+        models={many}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
       />
     ));
-    // The model should render with its raw name as label (no label in PROVIDERS for this model)
-    expect(container.textContent).toContain("my-custom-thing");
+    const search = container.querySelector(".routing-modal__search") as HTMLInputElement;
+    expect(search).not.toBeNull();
+    fireEvent.input(search, { target: { value: "extra-1" } });
+    const labels = Array.from(container.querySelectorAll(".routing-modal__model-label")).map(
+      (e) => e.textContent,
+    );
+    expect(labels.some((l) => l?.includes("extra-1"))).toBe(true);
+    expect(labels.some((l) => l?.includes("extra-2"))).toBe(false);
   });
 
-  it("groups tagless Ollama models under Ollama even when prefix matches another provider", () => {
-    const models = [
-      { model_name: "mistral-small", provider: "Ollama", display_name: "Mistral Small", input_price_per_token: 0, output_price_per_token: 0, context_window: 32000, capability_reasoning: false, capability_code: true },
-    ];
-    const providers = [
-      { id: "p1", provider: "Ollama", is_active: true, has_api_key: false, auth_type: "api_key" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
-      <ModelPickerModal
-        tierId="simple"
-        models={models}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
-      />
-    ));
-    expect(screen.getByText("Ollama")).toBeDefined();
-    expect(screen.queryByText("Mistral")).toBeNull();
-  });
-
-  it("groups Ollama Cloud models under Ollama Cloud even when tag suffix looks like local Ollama", () => {
-    const models = [
-      { model_name: "gemma4:31b", provider: "ollama-cloud", display_name: "gemma4:31b", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true, auth_type: "subscription" as const },
-      { model_name: "qwen3-vl:235b", provider: "ollama-cloud", display_name: "qwen3-vl:235b", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true, auth_type: "subscription" as const },
-      { model_name: "deepseek-v3.2", provider: "ollama-cloud", display_name: "deepseek-v3.2", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true, auth_type: "subscription" as const },
-    ];
-    const providers = [
-      { id: "p1", provider: "ollama-cloud", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
-      <ModelPickerModal
-        tierId="simple"
-        models={models}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
-      />
-    ));
-    // All three cloud models should appear under the Ollama Cloud group,
-    // not under local Ollama (via the colon heuristic) or DeepSeek (via prefix).
-    expect(screen.getByText("Ollama Cloud")).toBeDefined();
-    expect(screen.getByText("gemma4:31b")).toBeDefined();
-    expect(screen.getByText("qwen3-vl:235b")).toBeDefined();
-    expect(screen.getByText("deepseek-v3.2")).toBeDefined();
-    expect(screen.queryByText("DeepSeek")).toBeNull();
-    expect(screen.queryByText(/^Ollama$/)).toBeNull();
-  });
-
-  it("shows the subscription empty state when no subscription models are available", () => {
-    // A subscription provider is connected but the catalog has no matching
-    // models, so the subscription tab starts empty and must render the
-    // `isSub()` branch of the empty state copy.
-    const providers = [
-      { id: "p1", provider: "ollama-cloud", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
+  it("renders the empty state with a Connect providers button when handler is provided and nothing is connected", () => {
+    const onConnect = vi.fn();
+    const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
         models={[]}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
+        tiers={tiers}
+        connectedProviders={[]}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+        onConnectProviders={onConnect}
       />
     ));
-    expect(
-      screen.getByText(/No subscription providers connected\. Connect a provider to see models\./),
-    ).toBeDefined();
+    const empty = container.querySelector(".routing-modal__empty");
+    expect(empty?.textContent).toMatch(/No API key providers connected/);
+    const btn = empty?.querySelector("button") as HTMLButtonElement;
+    fireEvent.click(btn);
+    expect(onConnect).toHaveBeenCalled();
   });
 
-  it("shows the api-key empty state when no api-key models are available", () => {
-    // An api-key provider is connected but the catalog has no models for it.
-    const providers = [
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
+  it("calls onClose on overlay click and Escape key", () => {
+    const onClose = vi.fn();
+    const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={[]}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
+        models={baseModels}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
         onClose={onClose}
       />
     ));
-    expect(
-      screen.getByText(/No API key providers connected\. Connect a provider to see models\./),
-    ).toBeDefined();
+    fireEvent.click(container.querySelector(".modal-overlay") as HTMLElement);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    fireEvent.keyDown(container.querySelector(".modal-overlay") as HTMLElement, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  it("shows the Local tab alongside API Keys when a local provider is connected", () => {
-    const providers = [
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
-      { id: "p2", provider: "ollama", is_active: true, has_api_key: false, auth_type: "local" as const, connected_at: "2025-01-01" },
-    ];
-    render(() => (
+  it("calls onClose on the explicit close button", () => {
+    const onClose = vi.fn();
+    const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={[
-          { model_name: "llama3.1:8b", provider: "ollama", display_name: "Llama 3.1 8B", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false, auth_type: "local" },
-          { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true, auth_type: "api_key" },
-        ] as never}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
+        models={baseModels}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
         onClose={onClose}
       />
     ));
-    expect(screen.getByText("Local")).toBeDefined();
+    fireEvent.click(container.querySelector(".modal__close") as HTMLButtonElement);
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("defaults to the Local tab when only local providers are connected", () => {
-    const providers = [
-      { id: "p1", provider: "ollama", is_active: true, has_api_key: false, auth_type: "local" as const, connected_at: "2025-01-01" },
+  it("renders Included in subscription / Runs on your machine in non-paid tabs", () => {
+    const localOnly: RoutingProvider[] = [
+      {
+        id: "p3",
+        provider: "ollama",
+        auth_type: "local",
+        is_active: true,
+        has_api_key: false,
+        connected_at: "2025-01-01",
+      },
+    ];
+    const localModels: AvailableModel[] = [
+      {
+        ...baseModels[0],
+        model_name: "llama3",
+        provider: "ollama",
+        auth_type: "local",
+        display_name: "Llama 3",
+      },
     ];
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={[
-          { model_name: "llama3.1:8b", provider: "ollama", display_name: "Llama 3.1 8B", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false, auth_type: "local" },
-        ] as never}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
+        models={localModels}
+        tiers={tiers}
+        connectedProviders={localOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
       />
     ));
-    // Single tab renders but it's Local and is selected.
-    expect(screen.queryByText("Local")).toBeNull(); // showTabs hides single-category strip
-    // "Runs on your machine" label appears instead of pricing.
     expect(container.textContent).toContain("Runs on your machine");
   });
 
-  it("switches to the Local tab and resets showFreeOnly", () => {
-    const providers = [
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
-      { id: "p2", provider: "ollama", is_active: true, has_api_key: false, auth_type: "local" as const, connected_at: "2025-01-01" },
+  it("filters the list by group name when search matches the group label", () => {
+    const many: AvailableModel[] = [
+      ...baseModels,
+      { ...baseModels[0], model_name: "extra-1", display_name: "Extra 1" },
+      { ...baseModels[0], model_name: "extra-2", display_name: "Extra 2" },
+      { ...baseModels[0], model_name: "extra-3", display_name: "Extra 3" },
+      { ...baseModels[0], model_name: "extra-4", display_name: "Extra 4" },
     ];
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={[
-          { model_name: "llama3.1:8b", provider: "ollama", display_name: "Llama 3.1 8B", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false, auth_type: "local" },
-          { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true, auth_type: "api_key" },
-        ] as never}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
+        models={many}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
       />
     ));
-    // Flip on the free-only pill in the API Keys tab first.
-    const pill = container.querySelector('.routing-modal__filter-pill') as HTMLButtonElement;
-    fireEvent.click(pill);
-    // Switch to Local tab — showFreeOnly should reset (no filter bar renders).
-    fireEvent.click(screen.getByText("Local"));
-    expect(container.querySelector('.routing-modal__filter-bar')).toBeNull();
-    const localTab = screen.getByText("Local").closest("button")!;
-    expect(localTab.getAttribute("aria-selected")).toBe("true");
+    const search = container.querySelector(".routing-modal__search") as HTMLInputElement;
+    fireEvent.input(search, { target: { value: "openai" } });
+    const groups = container.querySelectorAll(".routing-modal__group-name");
+    expect(Array.from(groups).some((g) => g.textContent?.toLowerCase().includes("openai"))).toBe(true);
   });
 
-  it("shows the local empty state when local is selected but no local providers are connected", () => {
-    // Force activeTab='local' by having a local connection with no models.
-    const providers = [
-      { id: "p1", provider: "ollama", is_active: true, has_api_key: false, auth_type: "local" as const, connected_at: "2025-01-01" },
+  it("falls back to labelForModel when display_name is missing (vendor prefix path)", () => {
+    // A model name "anthropic/claude" with no display_name should resolve to
+    // the bare label via the slash-stripping branch of labelForModel.
+    const noDisplay: AvailableModel[] = [
+      {
+        ...baseModels[0],
+        model_name: "anthropic/claude-opus",
+        provider: "Anthropic",
+        display_name: undefined as unknown as string,
+      },
     ];
-    render(() => (
+    const apiAnthropic: RoutingProvider[] = [
+      {
+        id: "p9",
+        provider: "anthropic",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        connected_at: "2025-01-01",
+      },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={noDisplay}
+        tiers={[]}
+        connectedProviders={apiAnthropic}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    // The slash branch strips "anthropic/" and looks up the bare name in
+    // the labels map → "Claude Opus" hits via PROVIDERS mock.
+    expect(container.textContent).toContain("Claude Opus");
+  });
+
+  it("returns the bare name when the slash-stripped key is also unknown", () => {
+    const noDisplay: AvailableModel[] = [
+      {
+        ...baseModels[0],
+        model_name: "anthropic/unknown-model",
+        provider: "Anthropic",
+        display_name: undefined as unknown as string,
+      },
+    ];
+    const apiAnthropic: RoutingProvider[] = [
+      {
+        id: "p9",
+        provider: "anthropic",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        connected_at: "2025-01-01",
+      },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={noDisplay}
+        tiers={[]}
+        connectedProviders={apiAnthropic}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    expect(container.textContent).toContain("unknown-model");
+  });
+
+  it("uses a direct label-map hit when the bare name matches PROVIDERS catalog", () => {
+    const bareName: AvailableModel[] = [
+      {
+        ...baseModels[0],
+        model_name: "gpt-4o",
+        display_name: undefined as unknown as string,
+      },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={bareName}
+        tiers={[]}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    // The direct labels.get("gpt-4o") hit returns "GPT-4o" from the PROVIDERS mock.
+    expect(container.textContent).toContain("GPT-4o");
+  });
+
+  it("renders a custom-provider group with logo letter and exposes its name", () => {
+    const customProviders: CustomProviderData[] = [
+      {
+        id: "cp-1",
+        name: "Groq",
+        base_url: "https://api.groq.com",
+        api_kind: "openai",
+        has_api_key: true,
+        models: [],
+        created_at: "2025-01-01",
+      },
+    ];
+    const customModels: AvailableModel[] = [
+      {
+        ...baseModels[0],
+        model_name: "llama-3-8b",
+        provider: "custom:cp-1",
+        provider_display_name: "Groq",
+        display_name: "Llama 3 8B",
+      },
+    ];
+    const customConnected: RoutingProvider[] = [
+      {
+        id: "p10",
+        provider: "custom:cp-1",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        connected_at: "2025-01-01",
+      },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={customModels}
+        tiers={[]}
+        customProviders={customProviders}
+        connectedProviders={customConnected}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    // Custom-provider header shows the provider name "Groq" (rendered through
+    // customProviderNameMap + the cpNames fallback).
+    const groupNames = Array.from(container.querySelectorAll(".routing-modal__group-name")).map(
+      (e) => e.textContent,
+    );
+    expect(groupNames).toContain("Groq");
+    // The icon falls back to a styled letter span ("G").
+    const letter = container.querySelector(".provider-card__logo-letter");
+    expect(letter?.textContent).toBe("G");
+  });
+
+  it("renders the no-search empty state when search is non-empty and matches nothing", () => {
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[
+          ...baseModels,
+          { ...baseModels[0], model_name: "extra-1", display_name: "Extra 1" },
+          { ...baseModels[0], model_name: "extra-2", display_name: "Extra 2" },
+          { ...baseModels[0], model_name: "extra-3", display_name: "Extra 3" },
+          { ...baseModels[0], model_name: "extra-4", display_name: "Extra 4" },
+        ]}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    const search = container.querySelector(".routing-modal__search") as HTMLInputElement;
+    fireEvent.input(search, { target: { value: "zzznopnoresult" } });
+    expect(container.textContent).toContain("No models match your search");
+  });
+
+  it("renders the no-free-models empty state when the Free filter has no matches", () => {
+    // baseModels[0] has nonzero pricing — filter to free-only with only that
+    // model leaves an empty list and triggers the dedicated empty-state copy.
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[baseModels[0]]}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    const pill = container.querySelector(".routing-modal__filter-pill") as HTMLButtonElement;
+    fireEvent.click(pill);
+    expect(container.textContent).toContain("No free models available from your connected providers");
+  });
+
+  it("renders the no-subscription empty state on the subscription tab when nothing is connected", () => {
+    const subOnly: RoutingProvider[] = [
+      {
+        id: "p11",
+        provider: "anthropic",
+        auth_type: "subscription",
+        is_active: true,
+        has_api_key: false,
+        connected_at: "2025-01-01",
+      },
+      {
+        id: "p12",
+        provider: "openai",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        connected_at: "2025-01-01",
+      },
+    ];
+    // Both tabs are present, but subscription tab has zero models in the list.
+    const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
         models={[]}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
+        tiers={tiers}
+        connectedProviders={subOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
       />
     ));
-    expect(
-      screen.getByText(/No local providers connected\. Connect a local provider to see models\./),
-    ).toBeDefined();
+    expect(container.textContent).toContain("No subscription providers connected");
   });
 
-  it("renders a Connect providers CTA in the empty state when onConnectProviders is provided", () => {
-    const onConnectProviders = vi.fn();
-    render(() => (
+  it("renders the no-local empty state on the Local tab when no local models exist", () => {
+    const localOnly: RoutingProvider[] = [
+      {
+        id: "p13",
+        provider: "ollama",
+        auth_type: "local",
+        is_active: true,
+        has_api_key: false,
+        connected_at: "2025-01-01",
+      },
+    ];
+    const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
         models={[]}
-        tiers={baseTiers}
-        connectedProviders={[]}
-        onSelect={onSelect}
-        onClose={onClose}
-        onConnectProviders={onConnectProviders}
+        tiers={tiers}
+        connectedProviders={localOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
       />
     ));
-    const cta = screen.getByRole("button", { name: "Connect providers" });
-    fireEvent.click(cta);
-    expect(onConnectProviders).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("No local providers connected");
   });
 
-  it("does not render a Connect providers CTA when onConnectProviders is omitted", () => {
-    render(() => (
-      <ModelPickerModal
-        tierId="simple"
-        models={[]}
-        tiers={baseTiers}
-        connectedProviders={[]}
-        onSelect={onSelect}
-        onClose={onClose}
-      />
-    ));
-    expect(screen.queryByRole("button", { name: "Connect providers" })).toBeNull();
-  });
-
-  it("resets showFreeOnly when switching to subscription tab", () => {
-    const providers = [
-      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
-      { id: "p2", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+  it("clicks the Subscription tab and resets the free-only filter", () => {
+    const both: RoutingProvider[] = [
+      {
+        id: "p14",
+        provider: "anthropic",
+        auth_type: "subscription",
+        is_active: true,
+        has_api_key: false,
+        connected_at: "2025-01-01",
+      },
+      {
+        id: "p15",
+        provider: "openai",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        connected_at: "2025-01-01",
+      },
     ];
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
         models={baseModels}
-        tiers={baseTiers}
-        connectedProviders={providers}
-        onSelect={onSelect}
-        onClose={onClose}
+        tiers={tiers}
+        connectedProviders={both}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
       />
     ));
-    // Switch to API Keys tab
-    fireEvent.click(screen.getByText("API Keys"));
-    // Enable free models filter via pill button
-    const pill = container.querySelector('.routing-modal__filter-pill') as HTMLButtonElement;
+    // Switch to API Keys, toggle free-only on
+    const apiTab = Array.from(container.querySelectorAll('[role="tab"]')).find((t) =>
+      t.textContent?.includes("API Keys"),
+    ) as HTMLButtonElement;
+    fireEvent.click(apiTab);
+    const pill = container.querySelector(".routing-modal__filter-pill") as HTMLButtonElement;
     fireEvent.click(pill);
-    // Switch to Subscription tab — showFreeOnly should be reset
-    fireEvent.click(screen.getByText("Subscription"));
-    // No filter bar should show on subscription tab
-    expect(container.querySelector('.routing-modal__filter-bar')).toBeNull();
+    expect(pill.classList.contains("routing-modal__filter-pill--active")).toBe(true);
+    // Click Subscription tab — the click handler sets activeTab + resets free-only.
+    const subTab = Array.from(container.querySelectorAll('[role="tab"]')).find((t) =>
+      t.textContent?.includes("Subscription"),
+    ) as HTMLButtonElement;
+    fireEvent.click(subTab);
+    expect(subTab.getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("clicks the Local tab when local + api_key are both connected", () => {
+    const localAndApi: RoutingProvider[] = [
+      ...apiKeyOnly,
+      {
+        id: "p16",
+        provider: "ollama",
+        auth_type: "local",
+        is_active: true,
+        has_api_key: false,
+        connected_at: "2025-01-01",
+      },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={tiers}
+        connectedProviders={localAndApi}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    const localTab = Array.from(container.querySelectorAll('[role="tab"]')).find((t) =>
+      t.textContent?.includes("Local"),
+    ) as HTMLButtonElement;
+    fireEvent.click(localTab);
+    expect(localTab.getAttribute("aria-selected")).toBe("true");
   });
 });

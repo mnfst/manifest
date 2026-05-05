@@ -91,20 +91,33 @@ describe('isPrivateIp', () => {
 });
 
 describe('isCloudMetadataIp', () => {
-  it('detects 169.254.169.254 as cloud metadata', () => {
+  it('detects 169.254.169.254 as cloud metadata (AWS/GCP/Azure IMDS)', () => {
     expect(isCloudMetadataIp('169.254.169.254')).toBe(true);
   });
 
-  it('detects 169.254.0.1 as link-local (cloud metadata range)', () => {
-    expect(isCloudMetadataIp('169.254.0.1')).toBe(true);
+  it('detects 169.254.169.253 as cloud metadata (Alibaba/OCI IMDS)', () => {
+    expect(isCloudMetadataIp('169.254.169.253')).toBe(true);
   });
 
-  it('detects fd00::1 as cloud metadata IPv6', () => {
-    expect(isCloudMetadataIp('fd00::1')).toBe(true);
+  it('detects 100.100.100.200 as cloud metadata (Alibaba)', () => {
+    expect(isCloudMetadataIp('100.100.100.200')).toBe(true);
   });
 
-  it('detects fe80::1 as cloud metadata IPv6 link-local', () => {
-    expect(isCloudMetadataIp('fe80::1')).toBe(true);
+  it('does NOT flag generic link-local IPs (e.g. Podman host-gateway 169.254.1.2)', () => {
+    expect(isCloudMetadataIp('169.254.1.2')).toBe(false);
+    expect(isCloudMetadataIp('169.254.0.1')).toBe(false);
+  });
+
+  it('does NOT flag IPv6 ULA (fd00::/8) as metadata', () => {
+    expect(isCloudMetadataIp('fd00::1')).toBe(false);
+  });
+
+  it('does NOT flag IPv6 link-local (fe80::/10) as metadata', () => {
+    expect(isCloudMetadataIp('fe80::1')).toBe(false);
+  });
+
+  it('detects fd00:ec2::254 as IPv6 IMDS', () => {
+    expect(isCloudMetadataIp('fd00:ec2::254')).toBe(true);
   });
 
   it('detects IPv4-mapped metadata IP', () => {
@@ -210,7 +223,13 @@ describe('validatePublicUrl', () => {
 
   it('rejects plaintext http scheme (AC-2 passive exfiltration)', async () => {
     await expect(validatePublicUrl('http://example.com/api')).rejects.toThrow(
-      'Only https URLs are allowed',
+      /Only https URLs are allowed in cloud mode/,
+    );
+  });
+
+  it('hints at MANIFEST_MODE=selfhosted when http is rejected (issue #1780)', async () => {
+    await expect(validatePublicUrl('http://llamacpp:8080/v1')).rejects.toThrow(
+      /MANIFEST_MODE=selfhosted/,
     );
   });
 

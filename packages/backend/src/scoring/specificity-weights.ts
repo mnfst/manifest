@@ -70,7 +70,11 @@ export const KEYWORD_WEIGHTS: Record<string, number> = {
  * with additional signal before it flips routing. Other categories stay at 1.0
  * so prior positive-detection coverage (80%+ on 100 prompts per category)
  * remains intact — they never had the false-positive blast radius that
- * web_browsing did.
+ * web_browsing did. The `coding` false positive in #1767 was fixed at the
+ * signal source (trimming generic tool names, requiring a substantive code
+ * fence body, peeling agent metadata envelopes) rather than by raising this
+ * threshold — which would have hurt detection accuracy on real coding
+ * prompts that only carry a single technical keyword.
  */
 export const ACTIVATION_THRESHOLDS: Record<SpecificityCategory, number> = {
   coding: 1.0,

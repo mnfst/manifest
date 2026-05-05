@@ -9,7 +9,10 @@ function testCacheKey(token: string): string {
 }
 
 function makeContext(headers: Record<string, string | undefined>, ip = '203.0.113.1') {
-  const request: Record<string, unknown> = { headers, ip };
+  // The guard reads request.socket.remoteAddress for its loopback decision
+  // (request.ip is spoofable via X-Forwarded-For when trust proxy is set).
+  // Mirror the test's `ip` onto the socket so existing scenarios still hold.
+  const request: Record<string, unknown> = { headers, ip, socket: { remoteAddress: ip } };
   return {
     req: request,
     ctx: {
@@ -41,10 +44,16 @@ describe('AgentKeyAuthGuard', () => {
   function buildMockRepo() {
     mockGetMany = jest.fn().mockResolvedValue([]);
     const mockSelectQb = {
+      select: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
+      getCount: jest.fn().mockResolvedValue(0),
       getMany: mockGetMany,
+      // resolveDevContext seeds-tenant lookup; default to no row so it falls
+      // back to repo.findOne — preserves existing test scenarios.
+      getOne: jest.fn().mockResolvedValue(null),
     };
     mockExecute = jest.fn().mockResolvedValue({});
     const mockUpdateQb = {
@@ -331,7 +340,7 @@ describe('AgentKeyAuthGuard', () => {
   });
 
   it('handles request.ip being undefined without crashing', async () => {
-    const request: Record<string, unknown> = { headers: {}, ip: undefined };
+    const request: Record<string, unknown> = { headers: {}, ip: undefined, socket: {} };
     const ctx = {
       switchToHttp: () => ({
         getRequest: () => request,
@@ -510,6 +519,66 @@ describe('AgentKeyAuthGuard', () => {
     expect(internalCache.has(testCacheKey(token))).toBe(true);
   });
 
+  it('caches entries for the configured 5 minute TTL', async () => {
+    const token = 'mnfst_ttl-check-key';
+    mockGetMany.mockResolvedValue([
+      {
+        id: 'key-ttl',
+        tenant_id: 'tenant-1',
+        agent_id: 'agent-1',
+        key_hash: hashKey(token),
+        expires_at: null,
+        agent: { name: 'test-agent' },
+        tenant: { name: 'user-1' },
+      },
+    ]);
+
+    const before = Date.now();
+    const { ctx } = makeContext({ authorization: `Bearer ${token}` });
+    await guard.canActivate(ctx);
+
+    const internalCache = (guard as any).cache as Map<string, { expiresAt: number }>;
+    const entry = internalCache.get(testCacheKey(token));
+    expect(entry).toBeDefined();
+    const ttlMs = entry!.expiresAt - before;
+    expect(ttlMs).toBeGreaterThanOrEqual(5 * 60 * 1000 - 1000);
+    expect(ttlMs).toBeLessThanOrEqual(5 * 60 * 1000 + 1000);
+  });
+
+  it('LRU touch on cache hit moves entry to tail of insertion order', async () => {
+    const token = 'mnfst_lru-touch-key';
+    mockGetMany.mockResolvedValue([
+      {
+        id: 'key-lru',
+        tenant_id: 'tenant-1',
+        agent_id: 'agent-1',
+        key_hash: hashKey(token),
+        expires_at: null,
+        agent: { name: 'test-agent' },
+        tenant: { name: 'user-1' },
+      },
+    ]);
+
+    const { ctx } = makeContext({ authorization: `Bearer ${token}` });
+    await guard.canActivate(ctx);
+
+    const internalCache = (guard as any).cache as Map<string, unknown>;
+    internalCache.set(testCacheKey('mnfst_other-1'), {
+      tenantId: 't',
+      agentId: 'a',
+      agentName: 'n',
+      userId: 'u',
+      expiresAt: Date.now() + 999_999,
+    });
+
+    expect(Array.from(internalCache.keys())[0]).toBe(testCacheKey(token));
+
+    const { ctx: ctx2 } = makeContext({ authorization: `Bearer ${token}` });
+    await guard.canActivate(ctx2);
+
+    expect(Array.from(internalCache.keys())[1]).toBe(testCacheKey(token));
+  });
+
   it('invalidateCache removes a specific key from cache', async () => {
     const token = 'mnfst_inv-key-test';
     const storedHash = hashKey(token);
@@ -545,6 +614,8 @@ describe('AgentKeyAuthGuard', () => {
     ]);
 
     const mockSelectQb2 = {
+      select: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),

@@ -4,6 +4,7 @@ import { randomBytes, createHash } from 'crypto';
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
 import { ProviderService } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { PendingOAuth, OAuthTokenBlob, oauthDoneHtml } from './openai-oauth.types';
 
 export { PendingOAuth, OAuthTokenBlob, oauthDoneHtml };
@@ -49,11 +50,15 @@ export class OpenaiOauthService {
     const state = randomBytes(32).toString('hex');
     const verifier = randomBytes(32).toString('base64url');
     const challenge = createHash('sha256').update(verifier).digest('base64url');
+    // Validate the redirect target now (at storage time) instead of trusting
+    // it on the way out. The callback server only ever redirects to
+    // localhost-shaped origins, so anything else is dropped here.
+    const safeBackendUrl = backendUrl && this.isAllowedRedirectOrigin(backendUrl) ? backendUrl : '';
     this.pending.set(state, {
       verifier,
       agentId,
       userId,
-      backendUrl: backendUrl ?? '',
+      backendUrl: safeBackendUrl,
       expiresAt: Date.now() + STATE_TTL_MS,
     });
     if (this.useCallbackServer) {
@@ -92,7 +97,7 @@ export class OpenaiOauthService {
     });
     if (!response.ok) {
       const text = await response.text();
-      this.logger.error(`OpenAI token exchange failed: ${text}`);
+      this.logger.error(`OpenAI token exchange failed: ${scrubSecrets(text)}`);
       throw new Error('Token exchange failed');
     }
     const data = (await response.json()) as {
@@ -134,7 +139,7 @@ export class OpenaiOauthService {
     });
     if (!response.ok) {
       const text = await response.text();
-      this.logger.error(`OpenAI token refresh failed: ${text}`);
+      this.logger.error(`OpenAI token refresh failed: ${scrubSecrets(text)}`);
       throw new Error('Token refresh failed');
     }
     const data = (await response.json()) as {
@@ -186,7 +191,7 @@ export class OpenaiOauthService {
       });
       if (!response.ok) {
         const text = await response.text();
-        this.logger.warn(`OpenAI token revocation failed: ${text}`);
+        this.logger.warn(`OpenAI token revocation failed: ${scrubSecrets(text)}`);
       } else {
         this.logger.log('OpenAI OAuth token revoked');
       }

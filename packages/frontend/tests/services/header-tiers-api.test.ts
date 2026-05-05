@@ -84,7 +84,7 @@ describe('header-tiers API client', () => {
     expect(JSON.parse(init.body)).toEqual({ ids: ['a', 'b'] });
   });
 
-  it('overrideHeaderTier includes authType only when provided', async () => {
+  it('overrideHeaderTier includes authType + structured route only when authType is provided', async () => {
     const fetchMock = setupFetch({});
     await api.overrideHeaderTier('my-agent', 'ht-1', 'gpt-4o', 'OpenAI');
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
@@ -92,10 +92,13 @@ describe('header-tiers API client', () => {
       provider: 'OpenAI',
     });
     await api.overrideHeaderTier('my-agent', 'ht-1', 'gpt-4o', 'OpenAI', 'api_key');
+    // Dual-write: legacy fields PLUS the structured route. Older backends
+    // pick up authType, newer backends prefer the unambiguous route tuple.
     expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({
       model: 'gpt-4o',
       provider: 'OpenAI',
       authType: 'api_key',
+      route: { provider: 'OpenAI', authType: 'api_key', model: 'gpt-4o' },
     });
   });
 

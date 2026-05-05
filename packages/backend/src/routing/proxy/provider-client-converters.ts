@@ -108,10 +108,23 @@ function supportsReasoningContent(endpointKey: string, model: string): boolean {
   return false;
 }
 
+/**
+ * `reasoning_details` is OpenRouter's structured echo of extended-thinking
+ * blocks in assistant messages (array of `{type, thinking, signature}`).
+ * Only OpenRouter accepts it as an input field — every other OpenAI-compatible
+ * provider (Mistral, native OpenAI, Groq, etc.) rejects unknown message fields
+ * with `extra_forbidden` / 422. Strip it before forwarding to those targets so
+ * that turn N+1 doesn't fail when routing flips off a reasoning model.
+ */
+function supportsReasoningDetails(endpointKey: string): boolean {
+  return endpointKey === 'openrouter';
+}
+
 function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: string): unknown {
   if (!Array.isArray(messages)) return messages;
 
   const preserveReasoningContent = supportsReasoningContent(endpointKey, model);
+  const preserveReasoningDetails = supportsReasoningDetails(endpointKey);
   const isMistral = endpointKey === 'mistral';
   const mistralIdMap = new Map<string, string>();
   const reservedMistralIds = new Set<string>();
@@ -177,6 +190,9 @@ function sanitizeOpenAiMessages(messages: unknown, endpointKey: string, model: s
     const cleaned = { ...(message as Record<string, unknown>) };
     if (!preserveReasoningContent) {
       delete cleaned.reasoning_content;
+    }
+    if (!preserveReasoningDetails) {
+      delete cleaned.reasoning_details;
     }
 
     if (isMistral && Array.isArray(cleaned.tool_calls)) {

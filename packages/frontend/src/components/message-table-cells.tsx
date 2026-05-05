@@ -254,7 +254,7 @@ export function ModelCell(
             role="img"
             aria-label={`${provName ?? provId} (${authLabel(item.auth_type)})`}
             title={`${provName ?? provId} (${authLabel(item.auth_type)})`}
-            style="display: inline-flex; flex-shrink: 0; position: relative;"
+            style="display: inline-flex; flex-shrink: 0; position: relative; color: hsl(var(--foreground));"
           >
             {providerIcon(provId, 14)}
             {authBadgeFor(item.auth_type, 8)}

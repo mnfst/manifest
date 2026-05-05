@@ -189,6 +189,54 @@ describe('provider-client-converters', () => {
       expect(messages[0]).not.toHaveProperty('reasoning_content');
     });
 
+    /* ── Message sanitization: reasoning_details ── */
+
+    it('should strip reasoning_details for non-openrouter providers', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '4',
+            reasoning_details: [{ type: 'thinking', thinking: '2+2', signature: 'sig' }],
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'mistral', 'ministral-3b-2512');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).not.toHaveProperty('reasoning_details');
+    });
+
+    it('should strip reasoning_details for native openai targets', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '4',
+            reasoning_details: [{ type: 'thinking', thinking: 't', signature: 's' }],
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'openai', 'gpt-4o');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).not.toHaveProperty('reasoning_details');
+    });
+
+    it('should preserve reasoning_details for openrouter targets', () => {
+      const details = [{ type: 'thinking', thinking: 't', signature: 's' }];
+      const body = {
+        messages: [{ role: 'assistant', content: '4', reasoning_details: details }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'openrouter', 'minimax/minimax-m2.7');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).toHaveProperty('reasoning_details', details);
+    });
+
     it('should handle non-array messages gracefully', () => {
       const body = { messages: 'not-an-array' };
 

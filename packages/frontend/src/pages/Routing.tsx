@@ -137,7 +137,7 @@ const Routing: Component = () => {
     setFallbackPickerTier(null);
     if (isSpecificityTier(tierId)) {
       const sa = specificityAssignments()?.find((a) => a.category === tierId);
-      const current = sa?.fallback_models ?? [];
+      const current = sa?.fallback_routes?.map((r) => r.model) ?? [];
       if (current.includes(modelName)) return;
       const updated = [...current, modelName];
       try {
@@ -156,7 +156,7 @@ const Routing: Component = () => {
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
   const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
   const hasProviders = () => activeProviders().length > 0 || (customProviders()?.length ?? 0) > 0;
-  const hasOverrides = () => tiers()?.some((t) => t.override_model !== null) ?? false;
+  const hasOverrides = () => tiers()?.some((t) => t.override_route !== null) ?? false;
 
   const openProviderModal = () => {
     setWasEnabledBeforeModal(isEnabled());
@@ -214,7 +214,8 @@ const Routing: Component = () => {
     authType?: 'api_key' | 'subscription' | 'local',
   ) => {
     const assignment = specificityAssignments()?.find((a) => a.category === category);
-    const model = assignment?.override_model ?? assignment?.auto_assigned_model;
+    const effective = assignment?.override_route ?? assignment?.auto_assigned_route ?? null;
+    const model = effective?.model;
     if (!assignment || !model || !provider) return;
     setChangingSpecificity(category);
     try {
@@ -223,7 +224,7 @@ const Routing: Component = () => {
         category,
         model,
         provider,
-        authType ?? assignment.override_auth_type ?? undefined,
+        authType ?? effective?.authType,
         providerKeyLabel ?? undefined,
       );
       await refetchSpecificity();

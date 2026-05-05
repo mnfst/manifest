@@ -55,8 +55,8 @@ describe('Routing disabled → null model (OpenClaw uses Gemini default)', () =>
       .send({ messages: [{ role: 'user', content: 'hello' }] })
       .expect(200);
 
-    expect(res.body.model).toBeNull();
-    expect(res.body.provider).toBeNull();
+    expect(res.body.route).toBeNull();
+    expect(res.body.route).toBeNull();
     expect(res.body.tier).toBeDefined();
     expect(res.body.score).toBeDefined();
   });
@@ -77,8 +77,8 @@ describe('Routing disabled → null model (OpenClaw uses Gemini default)', () =>
     // Scorer still runs and classifies complexity correctly...
     expect(['complex', 'reasoning']).toContain(res.body.tier);
     // ...but no model is assigned because routing is disabled
-    expect(res.body.model).toBeNull();
-    expect(res.body.provider).toBeNull();
+    expect(res.body.route).toBeNull();
+    expect(res.body.route).toBeNull();
   });
 });
 
@@ -151,8 +151,8 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       .expect(200);
 
     expect(res.body.tier).toBe('simple');
-    expect(res.body.model).toBe('gpt-4o-mini');
-    expect(res.body.provider.toLowerCase()).toContain('open');
+    expect(res.body.route.model).toBe('gpt-4o-mini');
+    expect(res.body.route.provider.toLowerCase()).toContain('open');
     expect(res.body.confidence).toBeGreaterThan(0.8);
   });
 
@@ -162,7 +162,7 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       .expect(200);
 
     expect(res.body.tier).toBe('simple');
-    expect(res.body.model).not.toBeNull();
+    expect(res.body.route).not.toBeNull();
   });
 
   it('routes "what is a dog" → simple tier', async () => {
@@ -171,7 +171,7 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       .expect(200);
 
     expect(res.body.tier).toBe('simple');
-    expect(res.body.model).not.toBeNull();
+    expect(res.body.route).not.toBeNull();
   });
 
   it('routes complex React request → complex tier with high-quality model', async () => {
@@ -188,10 +188,10 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       .expect(200);
 
     expect(['complex', 'reasoning']).toContain(res.body.tier);
-    expect(res.body.model).not.toBeNull();
-    expect(res.body.provider).not.toBeNull();
+    expect(res.body.route).not.toBeNull();
+    expect(res.body.route?.provider).toBeDefined();
     // Complex tier should pick a high-quality model (not gpt-4o-mini)
-    expect(res.body.model).not.toBe('gpt-4o-mini');
+    expect(res.body.route.model).not.toBe('gpt-4o-mini');
   });
 
   it('routes math proof → reasoning tier with reasoning-capable model', async () => {
@@ -208,8 +208,8 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       .expect(200);
 
     expect(res.body.tier).toBe('reasoning');
-    expect(res.body.model).toBe('claude-opus-4-6');
-    expect(res.body.provider.toLowerCase()).toContain('anthropic');
+    expect(res.body.route.model).toBe('claude-opus-4-6');
+    expect(res.body.route.provider.toLowerCase()).toContain('anthropic');
     expect(res.body.confidence).toBeGreaterThan(0.9);
   });
 
@@ -227,7 +227,7 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       .expect(200);
 
     expect(['complex', 'reasoning']).toContain(res.body.tier);
-    expect(res.body.model).not.toBeNull();
+    expect(res.body.route).not.toBeNull();
   });
 
   it('tools floor query to at least standard tier', async () => {
@@ -247,7 +247,7 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       .expect(200);
 
     expect(res.body.tier).not.toBe('simple');
-    expect(res.body.model).not.toBeNull();
+    expect(res.body.route).not.toBeNull();
   });
 
   it('system messages do not inflate scoring', async () => {
@@ -378,8 +378,8 @@ describe('Routing disabled after deactivation → falls back to null', () => {
       .send({ messages: [{ role: 'user', content: 'hello' }] })
       .expect(200);
 
-    expect(res.body.model).toBeNull();
-    expect(res.body.provider).toBeNull();
+    expect(res.body.route).toBeNull();
+    expect(res.body.route).toBeNull();
     // Tier is still determined by the scorer
     expect(res.body.tier).toBeDefined();
   });
@@ -414,7 +414,7 @@ describe('Routing disabled after deactivation → falls back to null', () => {
       .send({ messages: [{ role: 'user', content: 'hi' }] })
       .expect(200);
 
-    expect(res.body.model).not.toBeNull();
+    expect(res.body.route).not.toBeNull();
     expect(res.body.tier).toBe('simple');
   });
 });

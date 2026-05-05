@@ -131,6 +131,7 @@ const Login: Component = () => {
         <label class="auth-form__label" for={emailId}>
           Email
           <input
+            ref={(el) => requestAnimationFrame(() => el.focus())}
             id={emailId}
             class="auth-form__input"
             type="email"

@@ -27,8 +27,11 @@ const URL_BOOST = 2;
 const BARE_HOST_BOOST = 1;
 
 // ── Code-context negative signals ──
-// Fenced code block — anywhere.
-const CODE_FENCE_REGEX = /```/;
+// Fenced code block with a non-trivial body. The previous ungated `/```/`
+// fired on agent metadata wrappers (e.g. ```json\n{}\n```) and pushed coding
+// onto every prompt — see #1767. Requiring a body of ≥40 chars keeps
+// real pasted code in scope while ignoring tiny envelope fences.
+const CODE_FENCE_REGEX = /```[a-z+_-]*\n[\s\S]{40,}?\n?```/i;
 // Looks like a file path. Covers `./foo`, `/foo` and the named `src/` /
 // `packages/` / etc. prefixes. Bare ` / ` (slash between whitespace, like
 // "a / b") is intentionally NOT matched — the `\/\w` trailer requires a
@@ -39,28 +42,28 @@ const FILE_PATH_REGEX =
   /(?:^|\s)(?:\.?\/\w|src\/|packages\/|app\/|lib\/|components\/|pages\/|[\w-]+\.(?:ts|tsx|js|jsx|py|go|rs|rb|java|kt|swift|php|cs|cpp|c|h|hpp|sh|sql|yaml|yml|json|toml|md|html|css|scss)\b)/i;
 // Stack trace fragments.
 const STACK_TRACE_REGEX = /\b(?:TypeError|ReferenceError|SyntaxError|Traceback|at \w+\.\w+\s*\()/;
-// Common coding tool names that imply a coding session.
+// Tool names that uniquely indicate a coding session. Generic agent verbs
+// (`read`, `write`, `edit`, `view`, `bash`, `grep`, `glob`, `create_file`)
+// were removed in #1767 — every modern agent CLI ships them, so they were
+// activating coding on every prompt regardless of intent.
 const CODING_TOOL_NAMES = new Set([
-  'read',
-  'write',
-  'edit',
-  'bash',
-  'grep',
-  'glob',
   'str_replace',
   'str_replace_editor',
   'apply_patch',
   'multiedit',
   'notebookedit',
-  'create_file',
-  'view',
 ]);
 
 /** Per-signal boost for coding. */
 const CODE_FENCE_BOOST = 3;
 const FILE_PATH_BOOST = 2;
 const STACK_TRACE_BOOST = 3;
-const CODING_TOOL_BOOST = 3;
+// A single tool-name match is a corroborating hint, not a strong anchor.
+// Lowered from 3 → 1 in #1767: the previous boost was enough to cross the
+// activation threshold all on its own, so any agent shipping `read`/`write`
+// tooling routed every prompt to coding. Requires combination with another
+// signal (keyword, file path, stack trace) for coding to activate now.
+const CODING_TOOL_BOOST = 1;
 
 /**
  * Inspect the user text + tool list and emit structural signal boosts.

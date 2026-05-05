@@ -17,7 +17,7 @@ import { toast } from '../services/toast-store.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { formatNumber } from '../services/formatters.js';
 import Sparkline from '../components/Sparkline.jsx';
-import { pingCount } from '../services/sse.js';
+import { agentPing, messagePing } from '../services/sse.js';
 import {
   type AgentCategory,
   type AgentPlatform,
@@ -87,7 +87,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') handleCreate();
+    if (e.key === 'Enter' && e.target instanceof HTMLInputElement) handleCreate();
     if (e.key === 'Escape') {
       props.onClose();
       resetForm();
@@ -110,6 +110,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           aria-modal="true"
           aria-labelledby="add-agent-title"
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={handleKeyDown}
         >
           <h2 class="modal-card__title" id="add-agent-title">
             Connect Agent
@@ -141,7 +142,6 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 placeholder="e.g. My Cool Agent"
                 value={name()}
                 onInput={(e) => setName(e.currentTarget.value)}
-                onKeyDown={handleKeyDown}
                 disabled={creating()}
               />
             </div>
@@ -285,7 +285,7 @@ const AgentCardMenu: Component<{
 
 const Workspace: Component = () => {
   const [data, { refetch }] = createResource(
-    () => ({ _ping: pingCount() }),
+    () => ({ _agentPing: agentPing(), _messagePing: messagePing() }),
     () => getAgents() as Promise<AgentsData>,
   );
   const [modalOpen, setModalOpen] = createSignal(false);

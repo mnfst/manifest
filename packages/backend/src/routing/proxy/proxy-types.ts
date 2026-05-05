@@ -16,6 +16,7 @@ export type SignatureLookup = (toolCallId: string) => string | null;
  * assistant turn; returns the ordered block sequence or null.
  */
 export type ThinkingBlockLookup = (firstToolUseId: string) => ThinkingBlock[] | null;
+export type ProxyApiMode = 'chat_completions' | 'responses';
 
 export interface OpenAIMessage {
   role: string;
@@ -35,6 +36,8 @@ export interface ForwardOptions {
   apiKey: string;
   model: string;
   body: Record<string, unknown>;
+  chatBody?: Record<string, unknown>;
+  apiMode?: ProxyApiMode;
   stream: boolean;
   signal?: AbortSignal;
   extraHeaders?: Record<string, string>;
@@ -51,6 +54,7 @@ export interface ProxyRequestOptions {
   agentId: string;
   userId: string;
   body: Record<string, unknown>;
+  apiMode?: ProxyApiMode;
   sessionKey: string;
   tenantId?: string;
   agentName?: string;

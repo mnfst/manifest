@@ -1,4 +1,5 @@
 import { ScorerMessage } from './types';
+import { peelEnvelope } from './envelope-peeler';
 
 export interface ExtractedText {
   text: string;
@@ -39,7 +40,11 @@ export function extractUserTexts(messages: ScorerMessage[]): ExtractedText[] {
     if (EXCLUDED_ROLES.has(msg.role)) continue;
     if (msg.role !== 'user') continue;
 
-    const text = extractTextFromContent(msg.content);
+    const raw = extractTextFromContent(msg.content);
+    if (raw.length === 0) continue;
+
+    // Score the human's words, not the agent's metadata envelope.
+    const text = peelEnvelope(raw);
     if (text.length === 0) continue;
 
     userMessages.push({ text, index: i });

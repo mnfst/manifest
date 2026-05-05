@@ -1,4 +1,10 @@
-import { initSseHeaders, parseSseEvents, pipeStream, extractUsageFromSse } from '../stream-writer';
+import {
+  initSseHeaders,
+  parseSseEvents,
+  pipeStream,
+  extractUsageFromSse,
+  parseUsageObject,
+} from '../stream-writer';
 
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean>;
@@ -506,6 +512,32 @@ describe('pipeStream', () => {
     });
   });
 
+  it('should capture response.usage from leftover passthrough buffer', async () => {
+    const { res } = mockResponse();
+    const usagePayload = JSON.stringify({
+      response: {
+        usage: {
+          input_tokens: 7,
+          output_tokens: 9,
+          input_tokens_details: { cached_tokens: 2 },
+        },
+      },
+    });
+    const stream = createReadableStream([
+      `data: ${JSON.stringify({ choices: [{ delta: { content: 'hi' } }] })}\n\n`,
+      `data: ${usagePayload}`,
+    ]);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(usage).toEqual({
+      prompt_tokens: 7,
+      completion_tokens: 9,
+      cache_read_tokens: 2,
+      cache_creation_tokens: 0,
+    });
+  });
+
   it('should handle non-JSON leftover in passthrough buffer', async () => {
     const { res } = mockResponse();
     const stream = createReadableStream([
@@ -559,6 +591,113 @@ describe('pipeStream', () => {
   });
 });
 
+describe('parseUsageObject', () => {
+  it('returns null for null/undefined/non-object', () => {
+    expect(parseUsageObject(null)).toBeNull();
+    expect(parseUsageObject(undefined)).toBeNull();
+    expect(parseUsageObject('not an object')).toBeNull();
+    expect(parseUsageObject(42)).toBeNull();
+  });
+
+  it('returns null when neither prompt_tokens nor input_tokens is present', () => {
+    expect(parseUsageObject({ total_tokens: 5 })).toBeNull();
+  });
+
+  it('falls back to prompt_tokens_details.cached_tokens when cache_read_tokens is absent', () => {
+    expect(
+      parseUsageObject({
+        prompt_tokens: 10,
+        completion_tokens: 5,
+        prompt_tokens_details: { cached_tokens: 4 },
+      }),
+    ).toEqual({
+      prompt_tokens: 10,
+      completion_tokens: 5,
+      cache_read_tokens: 4,
+      cache_creation_tokens: undefined,
+    });
+  });
+
+  it('ignores non-object prompt_tokens_details', () => {
+    expect(
+      parseUsageObject({ prompt_tokens: 7, completion_tokens: 1, prompt_tokens_details: null }),
+    ).toEqual({
+      prompt_tokens: 7,
+      completion_tokens: 1,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: undefined,
+    });
+  });
+
+  it('ignores non-numeric cached_tokens in prompt_tokens_details', () => {
+    expect(
+      parseUsageObject({
+        prompt_tokens: 7,
+        completion_tokens: 1,
+        prompt_tokens_details: { cached_tokens: 'oops' },
+      }),
+    ).toEqual({
+      prompt_tokens: 7,
+      completion_tokens: 1,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: undefined,
+    });
+  });
+
+  it('ignores non-object input_tokens_details and missing cached_tokens', () => {
+    expect(parseUsageObject({ input_tokens: 3, output_tokens: 2 })).toEqual({
+      prompt_tokens: 3,
+      completion_tokens: 2,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: 0,
+    });
+    expect(
+      parseUsageObject({ input_tokens: 3, output_tokens: 2, input_tokens_details: null }),
+    ).toEqual({
+      prompt_tokens: 3,
+      completion_tokens: 2,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: 0,
+    });
+    expect(
+      parseUsageObject({
+        input_tokens: 3,
+        output_tokens: 2,
+        input_tokens_details: { cached_tokens: 'oops' },
+      }),
+    ).toEqual({
+      prompt_tokens: 3,
+      completion_tokens: 2,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: 0,
+    });
+  });
+
+  it('passes through cache_creation_tokens for the OpenAI-compat shape', () => {
+    expect(
+      parseUsageObject({
+        prompt_tokens: 5,
+        completion_tokens: 5,
+        cache_creation_tokens: 11,
+      }),
+    ).toEqual({
+      prompt_tokens: 5,
+      completion_tokens: 5,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: 11,
+    });
+  });
+
+  it('defaults output_tokens to 0 in the Anthropic shape when missing', () => {
+    expect(parseUsageObject({ input_tokens: 4 })).toEqual({
+      prompt_tokens: 4,
+      completion_tokens: 0,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: 0,
+    });
+  });
+});
+
 describe('extractUsageFromSse', () => {
   it('should extract usage from SSE text with data prefix', () => {
     const sseText = `data: ${JSON.stringify({
@@ -602,6 +741,79 @@ describe('extractUsageFromSse', () => {
       completion_tokens: 0,
       cache_read_tokens: undefined,
       cache_creation_tokens: undefined,
+    });
+  });
+
+  it('should extract usage from Responses API usage objects', () => {
+    const sseText = `data: ${JSON.stringify({
+      usage: {
+        input_tokens: 150,
+        output_tokens: 60,
+        input_tokens_details: { cached_tokens: 25 },
+      },
+    })}\n\n`;
+
+    expect(extractUsageFromSse(sseText)).toEqual({
+      prompt_tokens: 150,
+      completion_tokens: 60,
+      cache_read_tokens: 25,
+      cache_creation_tokens: 0,
+    });
+  });
+
+  it('should extract cached prompt tokens from prompt_tokens_details (DeepSeek/Z.AI/Mistral shape)', () => {
+    const sseText = `data: ${JSON.stringify({
+      choices: [],
+      usage: {
+        prompt_tokens: 22,
+        completion_tokens: 4,
+        prompt_tokens_details: { cached_tokens: 8 },
+      },
+    })}\n\n`;
+
+    expect(extractUsageFromSse(sseText)).toEqual({
+      prompt_tokens: 22,
+      completion_tokens: 4,
+      cache_read_tokens: 8,
+      cache_creation_tokens: undefined,
+    });
+  });
+
+  it('should prefer top-level cache_read_tokens over prompt_tokens_details when both are present', () => {
+    const sseText = `data: ${JSON.stringify({
+      choices: [],
+      usage: {
+        prompt_tokens: 50,
+        completion_tokens: 10,
+        cache_read_tokens: 12,
+        prompt_tokens_details: { cached_tokens: 99 },
+      },
+    })}\n\n`;
+
+    expect(extractUsageFromSse(sseText)).toEqual({
+      prompt_tokens: 50,
+      completion_tokens: 10,
+      cache_read_tokens: 12,
+      cache_creation_tokens: undefined,
+    });
+  });
+
+  it('should extract usage from response.completed events', () => {
+    const sseText = `data: ${JSON.stringify({
+      response: {
+        usage: {
+          input_tokens: 12,
+          output_tokens: 8,
+          input_tokens_details: { cached_tokens: 3 },
+        },
+      },
+    })}\n\n`;
+
+    expect(extractUsageFromSse(sseText)).toEqual({
+      prompt_tokens: 12,
+      completion_tokens: 8,
+      cache_read_tokens: 3,
+      cache_creation_tokens: 0,
     });
   });
 });

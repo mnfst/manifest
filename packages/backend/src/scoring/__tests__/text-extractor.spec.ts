@@ -152,6 +152,14 @@ describe('extractUserTexts', () => {
     const result = extractUserTexts([{ role: 'assistant', content: 'I can help' }]);
     expect(result).toHaveLength(0);
   });
+
+  it('peels agent metadata envelopes before scoring (#1766)', () => {
+    const wrapped =
+      'Sender (untrusted metadata):\n```json\n{ "label": "openclaw-tui" }\n```\n\nsay hello';
+    const result = extractUserTexts([{ role: 'user', content: wrapped }]);
+    expect(result).toHaveLength(1);
+    expect(result[0].text).toBe('say hello');
+  });
 });
 
 describe('countConversationMessages', () => {

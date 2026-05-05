@@ -179,7 +179,9 @@ describe('ProxyExceptionFilter', () => {
 
       expect(res.status).toHaveBeenCalledWith(200);
       const content = res.json.mock.calls[0][0].choices[0].message.content;
-      expect(content).toBe('[🦚 Manifest] Something broke on our end. Try again in a moment.');
+      expect(content).toContain('[🦚 Manifest M500]');
+      expect(content).toContain('Something broke on our end');
+      expect(content).toContain('https://manifest.build/docs/errors/M500');
     });
 
     it('converts unknown auth message to friendly message', () => {

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Agent } from '../../entities/agent.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
@@ -32,7 +32,7 @@ export class ResolveAgentService {
     if (cached) this.cache.delete(cacheKey);
 
     const agent = await this.agentRepo.findOne({
-      where: { tenant_id: tenantId, name: agentName },
+      where: { tenant_id: tenantId, name: agentName, deleted_at: IsNull() },
     });
     if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
 

@@ -1,5 +1,11 @@
 import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../../common/constants/ollama';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
+import {
+  CODEX_CLI_ORIGINATOR,
+  CODEX_CLI_USER_AGENT,
+  COPILOT_EDITOR_VERSION,
+  COPILOT_PLUGIN_VERSION,
+} from '../../common/constants/subscription-clients';
 import { normalizeProviderBaseUrl } from '../provider-base-url';
 import { getQwenCompatibleBaseUrl } from '../qwen-region';
 
@@ -8,6 +14,15 @@ export interface ProviderEndpoint {
   buildHeaders: (apiKey: string, authType?: string) => Record<string, string>;
   buildPath: (model: string) => string;
   format: 'openai' | 'google' | 'anthropic' | 'chatgpt';
+  /**
+   * Set to `true` for endpoints whose `baseUrl` is user-supplied (custom
+   * providers, subscription resource URLs). The proxy re-runs SSRF
+   * validation against this URL immediately before each forward to defend
+   * against DNS rebinding — the hostname might have resolved to a public
+   * IP at registration time but rebinds to a private/metadata address at
+   * forward time.
+   */
+  requiresSsrfRevalidation?: boolean;
 }
 
 const openaiHeaders = (apiKey: string) => ({
@@ -59,8 +74,8 @@ const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
-  originator: 'codex_cli_rs',
-  'user-agent': 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown',
+  originator: CODEX_CLI_ORIGINATOR,
+  'user-agent': CODEX_CLI_USER_AGENT,
 });
 
 export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
@@ -146,7 +161,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   google: {
     baseUrl: 'https://generativelanguage.googleapis.com',
-    buildHeaders: () => ({ 'Content-Type': 'application/json' }),
+    // Google accepts the API key via the `x-goog-api-key` header as well as
+    // the `?key=` query parameter. Header is preferable: query strings show
+    // up in upstream proxy / load-balancer access logs, header values do not.
+    buildHeaders: (apiKey: string) => ({
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
+    }),
     buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
   },
@@ -155,8 +176,8 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: (apiKey: string) => ({
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'Editor-Version': 'vscode/1.100.0',
-      'Editor-Plugin-Version': 'copilot/1.300.0',
+      'Editor-Version': COPILOT_EDITOR_VERSION,
+      'Editor-Plugin-Version': COPILOT_PLUGIN_VERSION,
       'Copilot-Integration-Id': 'vscode-chat',
     }),
     buildPath: () => '/chat/completions',
@@ -212,6 +233,7 @@ export function buildCustomEndpoint(
       buildHeaders: anthropicHeaders,
       buildPath: () => '/v1/messages',
       format: 'anthropic',
+      requiresSsrfRevalidation: true,
     };
   }
   return {
@@ -219,6 +241,7 @@ export function buildCustomEndpoint(
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    requiresSsrfRevalidation: true,
   };
 }
 
@@ -230,6 +253,10 @@ export function buildEndpointOverride(baseUrl: string, templateKey: string): Pro
   return {
     ...template,
     baseUrl: normalizeProviderBaseUrl(baseUrl),
+    // The base URL came from a user-supplied source (Qwen region selector,
+    // MiniMax OAuth resource URL). Treat it as an SSRF candidate and
+    // re-validate before each forward.
+    requiresSsrfRevalidation: true,
   };
 }
 

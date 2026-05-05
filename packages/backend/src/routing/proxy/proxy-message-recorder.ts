@@ -13,6 +13,11 @@ import { computeTokenCost } from '../../common/utils/cost-calculator';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
+import { ProviderService } from '../routing-core/provider.service';
+import { computeBaselineCost, collectRoutedModelIds } from '../../common/utils/baseline-cost';
+import { TierService } from '../routing-core/tier.service';
+import { SpecificityService } from '../routing-core/specificity.service';
+import { HeaderTierService } from '../header-tiers/header-tier.service';
 
 export interface HeaderTierRef {
   headerTierId?: string | null;
@@ -71,6 +76,19 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   requestHeaders?: Record<string, string> | null;
 }
 
+/**
+ * Reasons that mark a `recordSuccessMessage` call as a Manifest-generated
+ * stub instead of a real upstream completion. The HTTP envelope is 200 OK
+ * (so the chat client renders the canned `[🦚 Manifest] …` text), but the
+ * dashboard should classify the row as failed and surface why.
+ */
+const CANNED_RESPONSE_REASONS: Record<string, string> = {
+  no_provider: 'No providers configured for this agent',
+  no_provider_key: 'Provider API key missing',
+  limit_exceeded: 'Usage limit exceeded',
+  friendly_error: 'Manifest internal error',
+};
+
 function buildMessageRow(
   ctx: IngestionContext,
   overrides: Partial<AgentMessage>,
@@ -104,6 +122,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly dedup: ProxyMessageDedup,
     private readonly eventBus: IngestEventBusService,
     private readonly customProviders: CustomProviderService,
+    private readonly providerService: ProviderService,
+    private readonly tierService: TierService,
+    private readonly specificityService: SpecificityService,
+    private readonly headerTierService: HeaderTierService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -219,12 +241,19 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierName,
       headerTierColor,
     } = opts ?? {};
+    if (failures.length === 0) return;
     // primaryModel is loop-invariant — canonicalize once.
     const canonicalPrimary = await this.customProviders.canonicalizeAgentMessageKeys(
       ctx.agentId,
       null,
       primaryModel,
     );
+    const canonicalFailures = await Promise.all(
+      failures.map((f) =>
+        this.customProviders.canonicalizeAgentMessageKeys(ctx.agentId, f.provider, f.model),
+      ),
+    );
+    const rows: Partial<AgentMessage>[] = [];
     for (let i = 0; i < failures.length; i++) {
       const f = failures[i];
       const ts = baseTimeMs
@@ -237,12 +266,14 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         : f.status === 429
           ? 'rate_limited'
           : 'error';
-      const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-        ctx.agentId,
-        f.provider,
-        f.model,
-      );
-      await this.messageRepo.insert(
+      const canonical = canonicalFailures[i];
+      // Prefer the per-failure auth_type when the proxy was able to record
+      // it (fallback came from a structured ModelRoute, or the legacy
+      // inference path tried a different credential than the primary).
+      // Falling back to the primary auth keeps behavior identical for rows
+      // that haven't been backfilled with routes.
+      const recordedAuth = f.authType ?? authType ?? null;
+      rows.push(
         buildMessageRow(ctx, {
           trace_id: traceId ?? null,
           timestamp: ts,
@@ -255,7 +286,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           routing_reason: reason ?? null,
           fallback_from_model: canonicalPrimary.model,
           fallback_index: f.fallbackIndex,
-          auth_type: authType ?? null,
+          auth_type: recordedAuth,
           caller_attribution: callerAttribution ?? null,
           request_headers: requestHeaders ?? null,
           header_tier_id: headerTierId ?? null,
@@ -264,6 +295,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         }),
       );
     }
+    await this.messageRepo.insert(rows);
     this.eventBus.emit(ctx.userId);
   }
 
@@ -345,6 +377,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       isSubscription: authType === 'subscription',
     });
 
+    const baseline = await this.computeBaseline(ctx.agentId, inputTokens, outputTokens);
+
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
       ctx.agentId,
       provider,
@@ -379,6 +413,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         header_tier_id: headerTierId ?? null,
         header_tier_name: headerTierName ?? null,
         header_tier_color: headerTierColor ?? null,
+        baseline_model_id: baseline?.modelId ?? null,
+        baseline_cost_usd: baseline?.cost ?? null,
       }),
     );
     this.eventBus.emit(ctx.userId);
@@ -415,6 +451,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       isSubscription: authType === 'subscription',
     });
 
+    const baseline = await this.computeBaseline(
+      ctx.agentId,
+      usage.prompt_tokens,
+      usage.completion_tokens,
+    );
+
     // `model` is a required string, so the overload on
     // `canonicalizeAgentMessageKeys` keeps `canonical.model` non-null.
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
@@ -426,6 +468,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const canonicalProvider = canonical.provider;
 
     const normalizedSessionKey = this.dedup.normalizeSessionKey(sessionKey);
+
+    const cannedMessage = CANNED_RESPONSE_REASONS[reason];
+    const status = cannedMessage ? 'error' : 'ok';
+    const errorMessage = cannedMessage ?? null;
 
     let wrote = false;
     await this.dedup.withSuccessWriteLock(
@@ -447,6 +493,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             if (hasRecordedTokens) return;
 
             const updatePayload: Partial<AgentMessage> = {
+              status,
+              error_message: errorMessage,
               model: canonicalModel,
               provider: canonicalProvider,
               routing_tier: tier,
@@ -466,6 +514,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
+              baseline_model_id: baseline?.modelId ?? null,
+              baseline_cost_usd: baseline?.cost ?? null,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
@@ -479,7 +529,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               trace_id: traceId ?? null,
               session_key: normalizedSessionKey,
               timestamp: new Date().toISOString(),
-              status: 'ok',
+              status,
+              error_message: errorMessage,
               model: canonicalModel,
               provider: canonicalProvider,
               routing_tier: tier,
@@ -500,6 +551,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
+              baseline_model_id: baseline?.modelId ?? null,
+              baseline_cost_usd: baseline?.cost ?? null,
             }),
           );
           wrote = true;
@@ -507,6 +560,35 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       },
     );
     if (wrote) this.eventBus.emit(ctx.userId);
+  }
+
+  private async computeBaseline(
+    agentId: string,
+    inputTokens: number,
+    outputTokens: number,
+  ): Promise<{ modelId: string; cost: number } | null> {
+    try {
+      const [providers, tiers, specificityAssignments, headerTiers] = await Promise.all([
+        this.providerService.getProviders(agentId),
+        this.tierService.getTiers(agentId),
+        this.specificityService.getAssignments(agentId),
+        this.headerTierService.list(agentId),
+      ]);
+      const routedModelIds = collectRoutedModelIds([
+        ...tiers,
+        ...specificityAssignments,
+        ...headerTiers,
+      ]);
+      return computeBaselineCost(
+        providers,
+        routedModelIds,
+        inputTokens,
+        outputTokens,
+        this.pricingCache,
+      );
+    } catch {
+      return null;
+    }
   }
 
   private evictExpiredCooldowns(): void {

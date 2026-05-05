@@ -2,9 +2,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
+import type { AuthType, ModelRoute } from 'manifest-shared';
 import { TIER_COLORS, type TierColor } from 'manifest-shared';
 import { HeaderTier } from '../../entities/header-tier.entity';
+import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { RoutingCacheService } from '../routing-core/routing-cache.service';
+import { explicitRoute, unambiguousRoute } from '../routing-core/route-helpers';
 
 export const RESERVED_HEADER_KEYS = new Set<string>([
   'authorization',
@@ -38,6 +41,7 @@ export class HeaderTierService {
     @InjectRepository(HeaderTier)
     private readonly repo: Repository<HeaderTier>,
     private readonly routingCache: RoutingCacheService,
+    private readonly discoveryService: ModelDiscoveryService,
   ) {}
 
   async list(agentId: string): Promise<HeaderTier[]> {
@@ -81,10 +85,8 @@ export class HeaderTierService {
       badge_color: badgeColor,
       sort_order: nextOrder,
       enabled: true,
-      override_model: null,
-      override_provider: null,
-      override_auth_type: null,
-      fallback_models: null,
+      override_route: null,
+      fallback_routes: null,
       created_at: now,
       updated_at: now,
     });
@@ -170,12 +172,16 @@ export class HeaderTierService {
     id: string,
     model: string,
     provider?: string,
-    authType?: 'api_key' | 'subscription',
+    authType?: AuthType,
   ): Promise<HeaderTier> {
     const row = await this.findOrThrow(agentId, id);
-    row.override_model = model;
-    row.override_provider = provider ?? null;
-    row.override_auth_type = authType ?? null;
+    // When the caller passes an explicit (provider, authType) the route is
+    // already unambiguous — skip the discovery fetch.
+    const explicit = explicitRoute(model, provider, authType);
+    const route =
+      explicit ??
+      unambiguousRoute(model, await this.discoveryService.getModelsForAgent(row.agent_id));
+    row.override_route = route;
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);
@@ -184,30 +190,63 @@ export class HeaderTierService {
 
   async clearOverride(agentId: string, id: string): Promise<void> {
     const row = await this.findOrThrow(agentId, id);
-    row.override_model = null;
-    row.override_provider = null;
-    row.override_auth_type = null;
-    row.fallback_models = null;
+    row.override_route = null;
+    row.fallback_routes = null;
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);
   }
 
-  async setFallbacks(agentId: string, id: string, models: string[]): Promise<string[]> {
+  async setFallbacks(
+    agentId: string,
+    id: string,
+    models: string[],
+    routes?: ModelRoute[],
+  ): Promise<ModelRoute[]> {
     const row = await this.findOrThrow(agentId, id);
-    row.fallback_models = models.length > 0 ? models : null;
+    row.fallback_routes = await this.buildFallbackRoutes(row.agent_id, models, routes);
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);
-    return models;
+    return row.fallback_routes ?? [];
   }
 
   async clearFallbacks(agentId: string, id: string): Promise<void> {
     const row = await this.findOrThrow(agentId, id);
-    row.fallback_models = null;
+    row.fallback_routes = null;
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);
+  }
+
+  private async buildFallbackRoutes(
+    agentId: string,
+    models: string[],
+    routes?: ModelRoute[],
+  ): Promise<ModelRoute[] | null> {
+    if (models.length === 0) return null;
+    const available = await this.discoveryService.getModelsForAgent(agentId);
+    if (routes && routes.length === models.length) {
+      const aligned = routes.every((r, i) => r.model === models[i]);
+      const validated =
+        aligned &&
+        routes.every((r) =>
+          available.some(
+            (m) =>
+              m.id === r.model &&
+              m.provider.toLowerCase() === r.provider.toLowerCase() &&
+              m.authType === r.authType,
+          ),
+        );
+      if (validated) return routes;
+    }
+    const resolved: ModelRoute[] = [];
+    for (const m of models) {
+      const route = unambiguousRoute(m, available);
+      if (!route) return null;
+      resolved.push(route);
+    }
+    return resolved;
   }
 
   private async findOrThrow(agentId: string, id: string): Promise<HeaderTier> {

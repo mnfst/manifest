@@ -1,9 +1,8 @@
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
-import { existsSync } from 'fs';
 import { DataSource } from 'typeorm';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { OLLAMA_HOST } from '../common/constants/ollama';
-import { isSelfHosted } from '../common/utils/detect-self-hosted';
+import { getContainerHostAlias, isSelfHosted } from '../common/utils/detect-self-hosted';
 
 /**
  * Postgres advisory lock key reserved for the first-run setup wizard.
@@ -29,15 +28,11 @@ export class SetupService {
   /**
    * Returns the hostname the backend should use to reach host-installed
    * LLM servers. Inside Docker the container reaches the host via
-   * `host.docker.internal` (mapped to the host-gateway in compose);
-   * on a native install, `localhost` resolves correctly.
+   * `host.docker.internal`; under Podman it's `host.containers.internal`.
+   * On a native install `localhost` resolves correctly.
    */
   getLocalLlmHost(): string {
-    try {
-      return existsSync('/.dockerenv') ? 'host.docker.internal' : 'localhost';
-    } catch {
-      return 'localhost';
-    }
+    return getContainerHostAlias();
   }
 
   /**
