@@ -69,6 +69,13 @@ export interface RoutingMeta {
    * failure row to the correct vendor.
    */
   primaryProvider?: string;
+  /**
+   * Auth type of the primary model when a fallback ultimately succeeded.
+   * In a fallback-success flow, `auth_type` holds the fallback's auth so
+   * the recorder costs the success row correctly; this field preserves the
+   * primary's auth so the primary-failure row stays accurate too. See #1173.
+   */
+  primaryAuthType?: string;
 }
 
 export interface ProxyResult {
@@ -401,11 +408,13 @@ export class ProxyService {
         forward: success.forward,
         meta: this.buildBaseMeta(resolved, success.model, {
           provider: success.provider,
+          auth_type: success.authType,
           fallbackFromModel: primaryModel,
           fallbackIndex: success.fallbackIndex,
           primaryErrorStatus: primaryStatus,
           primaryErrorBody,
           primaryProvider,
+          primaryAuthType: primaryAuth,
         }),
         failedFallbacks: failures,
       };
