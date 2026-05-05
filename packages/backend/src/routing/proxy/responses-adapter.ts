@@ -347,13 +347,22 @@ export function collectResponsesSseResponse(sseText: string): JsonRecord {
       }
     } else if (parsed.event === 'response.function_call_arguments.done') {
       // Some streams (e.g. no-argument calls) skip deltas and only ship the
-      // final argument string here. Treat it as authoritative.
+      // final argument string here. Two shapes are documented: top-level
+      // `arguments` and a nested `item.arguments`. Treat either as
+      // authoritative.
       const data = safeParse(parsed.data);
       if (!data) continue;
       const idx = typeof data.output_index === 'number' ? data.output_index : 0;
       const fc = functionCalls.get(idx);
-      if (fc && typeof data.arguments === 'string') {
-        fc.arguments = data.arguments;
+      const nestedItem = isRecord(data.item) ? (data.item as JsonRecord) : null;
+      const finalArgs =
+        typeof data.arguments === 'string'
+          ? data.arguments
+          : nestedItem && typeof nestedItem.arguments === 'string'
+            ? (nestedItem.arguments as string)
+            : null;
+      if (fc && finalArgs !== null) {
+        fc.arguments = finalArgs;
       }
     } else if (parsed.event === 'response.output_item.done') {
       const data = safeParse(parsed.data);

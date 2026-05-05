@@ -451,6 +451,30 @@ describe('Responses adapter', () => {
       );
     });
 
+    it('reads final args from response.function_call_arguments.done with nested item shape', () => {
+      // Documented Responses-API variant: { output_index, item: { arguments } }.
+      const completed = {
+        id: 'resp_done_nested',
+        object: 'response',
+        output: [],
+        usage: { input_tokens: 4, output_tokens: 2, total_tokens: 6 },
+      };
+      const sse = [
+        'event: response.output_item.added\ndata: {"output_index":0,"item":{"type":"function_call","id":"fc_n","call_id":"call_n","name":"get_weather"}}',
+        'event: response.function_call_arguments.done\ndata: {"output_index":0,"item":{"type":"function_call","id":"fc_n","call_id":"call_n","name":"get_weather","arguments":"{\\"city\\":\\"Paris\\"}"}}',
+        `event: response.completed\ndata: ${JSON.stringify({ response: completed })}`,
+        '',
+      ].join('\n\n');
+
+      const result = collectResponsesSseResponse(sse);
+      const output = result.output as Array<Record<string, unknown>>;
+
+      expect(output).toHaveLength(1);
+      expect(output[0]).toEqual(
+        expect.objectContaining({ id: 'fc_n', arguments: '{"city":"Paris"}' }),
+      );
+    });
+
     it('uses response.function_call_arguments.done as the authoritative final arguments', () => {
       // Some streams skip per-character deltas (e.g. no-argument calls) and
       // only ship the final argument string via `.arguments.done`.
