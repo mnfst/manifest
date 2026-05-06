@@ -12,6 +12,7 @@ import type {
   TierAssignment,
   AvailableModel,
   AuthType,
+  ModelRoute,
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
@@ -152,7 +153,7 @@ export interface RoutingSpecificitySectionProps {
     authType?: AuthType,
   ) => void;
   onReset: (category: string) => void;
-  onFallbackUpdate: (category: string, fallbacks: string[]) => void;
+  onFallbackUpdate: (category: string, fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onAddFallback: (category: string) => void;
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
