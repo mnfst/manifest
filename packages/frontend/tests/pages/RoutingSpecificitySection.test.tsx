@@ -54,6 +54,8 @@ vi.mock("../../src/pages/RoutingTierCard.js", () => ({
       props.connectedProviders,
       props.persistFallbacks,
       props.persistClearFallbacks,
+      props.persistParamDefaults,
+      props.onParamDefaultsSaved,
     ];
     void _read;
     return (

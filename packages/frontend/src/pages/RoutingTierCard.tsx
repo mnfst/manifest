@@ -12,13 +12,16 @@ import {
 } from '../services/routing-utils.js';
 import { customProviderColor } from '../services/formatters.js';
 import FallbackList from '../components/FallbackList.js';
+import ModelParamsDialog from '../components/ModelParamsDialog.jsx';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import { providerThinkingDefault } from 'manifest-shared';
 import type {
   TierAssignment,
   AvailableModel,
   AuthType,
   ModelRoute,
+  RequestParamDefaults,
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
@@ -102,6 +105,23 @@ export interface RoutingTierCardProps {
     routes?: ModelRoute[],
   ) => Promise<unknown>;
   persistClearFallbacks?: (agentName: string, tier: string) => Promise<unknown>;
+  /**
+   * Save the configured request body params for this tier (or specificity
+   * category — same shape). The dialog calls this on save; the parent is
+   * responsible for the API call. Optional so tests and embed contexts can
+   * skip the params surface entirely.
+   */
+  persistParamDefaults?: (
+    agentName: string,
+    tier: string,
+    paramDefaults: RequestParamDefaults | null,
+  ) => Promise<unknown>;
+  /**
+   * Optional optimistic-update hook the parent uses to update its tier
+   * snapshot after a successful save, so the icon's "configured" badge
+   * reflects the new state without a refetch.
+   */
+  onParamDefaultsSaved?: (tier: string, paramDefaults: RequestParamDefaults | null) => void;
 }
 
 const effectiveRoute = (
@@ -127,6 +147,23 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const [primaryDragging, setPrimaryDragging] = createSignal(false);
   const [fallbackDragging, setFallbackDragging] = createSignal<number | null>(null);
   const [primaryDropTarget, setPrimaryDropTarget] = createSignal(false);
+  const [paramsDialogOpen, setParamsDialogOpen] = createSignal(false);
+
+  // The sliders icon only renders for providers whose API consumes a known
+  // param key (today: DeepSeek's `thinking`). Picking the resolved primary's
+  // provider here keeps the icon consistent with the chip the user is
+  // looking at — multi-key compat is implicit because params are stored at
+  // the tier level, independent of which key is currently pinned.
+  const paramSurfaceProvider = () => {
+    const t = props.tier();
+    const route = t ? effectiveRoute(t) : null;
+    return route?.provider ?? null;
+  };
+  const supportsParams = () => {
+    const p = paramSurfaceProvider();
+    return p !== null && providerThinkingDefault(p) !== undefined;
+  };
+  const paramsConfigured = () => (props.tier()?.param_defaults ?? null) !== null;
 
   const handlePrimaryDragStart = (e: DragEvent) => {
     setPrimaryDragging(true);
@@ -463,6 +500,42 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                             }}
                             disabled={() => props.changingTier() === props.stage.id}
                           />
+                          <Show when={supportsParams() && props.persistParamDefaults}>
+                            <button
+                              class="routing-card__chip-action"
+                              classList={{
+                                'routing-card__chip-action--configured': paramsConfigured(),
+                              }}
+                              onClick={() => setParamsDialogOpen(true)}
+                              disabled={props.changingTier() === props.stage.id}
+                              aria-label={`Configure model parameters for ${props.stage.label}`}
+                              title="Model parameters"
+                            >
+                              <span class="routing-tooltip">Parameters</span>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="12"
+                                height="12"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <line x1="4" y1="21" x2="4" y2="14" />
+                                <line x1="4" y1="10" x2="4" y2="3" />
+                                <line x1="12" y1="21" x2="12" y2="12" />
+                                <line x1="12" y1="8" x2="12" y2="3" />
+                                <line x1="20" y1="21" x2="20" y2="16" />
+                                <line x1="20" y1="12" x2="20" y2="3" />
+                                <line x1="1" y1="14" x2="7" y2="14" />
+                                <line x1="9" y1="8" x2="15" y2="8" />
+                                <line x1="17" y1="16" x2="23" y2="16" />
+                              </svg>
+                            </button>
+                          </Show>
                           <button
                             class="routing-card__chip-action"
                             onClick={() => props.onDropdownOpen(props.stage.id)}
@@ -573,6 +646,28 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             </div>
           </div>
         </div>
+      </Show>
+
+      <Show when={paramsDialogOpen() && supportsParams() && props.persistParamDefaults}>
+        {(() => {
+          const provider = paramSurfaceProvider() ?? '';
+          const providerDefault = providerThinkingDefault(provider) ?? 'enabled';
+          return (
+            <ModelParamsDialog
+              open={paramsDialogOpen()}
+              slotLabel={props.stage.label}
+              current={props.tier()?.param_defaults ?? null}
+              providerDefault={providerDefault}
+              onSave={async (paramDefaults) => {
+                if (!props.persistParamDefaults) return;
+                await props.persistParamDefaults(props.agentName(), props.stage.id, paramDefaults);
+                props.onParamDefaultsSaved?.(props.stage.id, paramDefaults);
+                toast.success('Model parameters saved');
+              }}
+              onClose={() => setParamsDialogOpen(false)}
+            />
+          );
+        })()}
       </Show>
     </div>
   );

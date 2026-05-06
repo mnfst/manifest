@@ -1202,6 +1202,158 @@ describe("RoutingTierCard", () => {
       expect(container.querySelector(".routing-card__key-chip")).toBeNull();
     });
   });
+
+  /* ── Model Parameters dialog (sliders icon) ────────────────────────────── */
+  describe("Model Parameters dialog", () => {
+    const deepseekTier: TierAssignment = {
+      id: "t-ds",
+      agent_id: "a1",
+      tier: "simple",
+      override_route: { provider: "deepseek", authType: "api_key", model: "deepseek-v4-flash" },
+      auto_assigned_route: null,
+      fallback_routes: null,
+      updated_at: "2025-01-01",
+    };
+    const deepseekModels: AvailableModel[] = [
+      {
+        model_name: "deepseek-v4-flash",
+        provider: "DeepSeek",
+        auth_type: "api_key",
+        input_price_per_token: 0,
+        output_price_per_token: 0,
+        context_window: 128000,
+        capability_reasoning: false,
+        capability_code: false,
+        quality_score: 7,
+        display_name: "DeepSeek V4 Flash",
+      },
+    ];
+    const deepseekProviders: RoutingProvider[] = [
+      {
+        id: "p-ds",
+        provider: "deepseek",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        connected_at: "2025-01-01",
+      },
+    ];
+
+    it("does not render the sliders icon when the resolved provider has no known param key", () => {
+      // OpenAI is not in PROVIDER_THINKING_DEFAULTS today, so the icon stays
+      // hidden. Adding a new provider to that registry lights up its chip
+      // automatically (see manifest-shared/thinking-defaults.ts).
+      const { container } = render(() => (
+        <RoutingTierCard {...makeProps({ persistParamDefaults: vi.fn() })} />
+      ));
+      const labels = Array.from(
+        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+      ).map((b) => b.getAttribute("aria-label"));
+      expect(labels.some((l) => l?.startsWith("Configure model parameters"))).toBe(false);
+    });
+
+    it("does not render the sliders icon when persistParamDefaults is not wired (embed/test contexts)", () => {
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => deepseekTier,
+            models: () => deepseekModels,
+            activeProviders: () => deepseekProviders,
+            connectedProviders: () => deepseekProviders,
+          })}
+        />
+      ));
+      const labels = Array.from(
+        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+      ).map((b) => b.getAttribute("aria-label"));
+      expect(labels.some((l) => l?.startsWith("Configure model parameters"))).toBe(false);
+    });
+
+    it("renders the sliders icon for DeepSeek when persistParamDefaults is wired", () => {
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => deepseekTier,
+            models: () => deepseekModels,
+            activeProviders: () => deepseekProviders,
+            connectedProviders: () => deepseekProviders,
+            persistParamDefaults: vi.fn(),
+          })}
+        />
+      ));
+      const btn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+      ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"));
+      expect(btn).toBeDefined();
+      // Configured-state class only flips when param_defaults is non-null. Plain
+      // tier with `param_defaults: undefined` stays in the default style.
+      expect(btn!.classList.contains("routing-card__chip-action--configured")).toBe(false);
+    });
+
+    it("flips the configured class when param_defaults is non-null", () => {
+      const configuredTier: TierAssignment = {
+        ...deepseekTier,
+        param_defaults: { thinking: { type: "disabled" } },
+      };
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => configuredTier,
+            models: () => deepseekModels,
+            activeProviders: () => deepseekProviders,
+            connectedProviders: () => deepseekProviders,
+            persistParamDefaults: vi.fn(),
+          })}
+        />
+      ));
+      const btn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+      ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"));
+      expect(btn).toBeDefined();
+      expect(btn!.classList.contains("routing-card__chip-action--configured")).toBe(true);
+    });
+
+    it("clicking the icon opens the dialog and saving flows through persistParamDefaults + onParamDefaultsSaved", async () => {
+      const persist = vi.fn().mockResolvedValue(undefined);
+      const saved = vi.fn();
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => deepseekTier,
+            models: () => deepseekModels,
+            activeProviders: () => deepseekProviders,
+            connectedProviders: () => deepseekProviders,
+            persistParamDefaults: persist,
+            onParamDefaultsSaved: saved,
+          })}
+        />
+      ));
+      const btn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+      ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"))!;
+      fireEvent.click(btn);
+
+      // Dialog mounts; toggling the thinking switch + clicking Save should
+      // wire through to the persist callback. Provider default for DeepSeek
+      // is "enabled", so the dialog opens with that selection. Toggling
+      // flips to "disabled" — a non-default value the dialog persists.
+      const toggle = await waitFor(() => {
+        const t = container.querySelector(".model-params__toggle") as HTMLButtonElement | null;
+        expect(t).not.toBeNull();
+        return t!;
+      });
+      fireEvent.click(toggle);
+      const save = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find((b) =>
+        b.textContent?.includes("Save"),
+      )!;
+      fireEvent.click(save);
+
+      await waitFor(() => {
+        expect(persist).toHaveBeenCalledWith("demo", "simple", { thinking: { type: "disabled" } });
+        expect(saved).toHaveBeenCalledWith("simple", { thinking: { type: "disabled" } });
+      });
+    });
+  });
 });
 
 /* ── providerIdForModel: dbId-vs-prefix precedence ──────────────────────── */
