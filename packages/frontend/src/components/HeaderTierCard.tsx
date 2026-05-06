@@ -19,6 +19,7 @@ import { PROVIDERS } from '../services/providers.js';
 import FallbackList from './FallbackList.js';
 import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
+import { toast } from '../services/toast-store.js';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
@@ -124,8 +125,9 @@ const HeaderTierCard: Component<Props> = (props) => {
       try {
         await setHeaderTierFallbacks(props.agentName, props.tier.id, next, nextRoutes);
         props.onFallbacksUpdate(next);
+        toast.success('Fallback added');
       } catch {
-        // toast handled by FallbackList parent flow normally; keep silent here.
+        toast.error('Failed to add fallback');
       }
     }
   };
