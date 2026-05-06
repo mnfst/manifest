@@ -34,7 +34,7 @@
     "packages/wingman"
   ],
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter=manifest-frontend --filter=manifest-wingman",
     "build": "turbo build",
     "test": "turbo test",
     "start": "node packages/backend/dist/main.js",

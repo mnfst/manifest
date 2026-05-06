@@ -64,6 +64,16 @@ export interface MessageDetailResponse {
     feedback_tags: string[] | null;
     feedback_details: string | null;
     request_headers: Record<string, string> | null;
+    /**
+     * Per-message snapshot of effective model parameters merged into the
+     * outbound provider request (today: `{ thinking: { type: 'enabled' |
+     * 'disabled' } }` for DeepSeek; future provider knobs append here as
+     * keys are added to `RequestParamDefaults` in `manifest-shared`). The
+     * `unknown` value type lets the dashboard render arbitrary shapes
+     * (incl. forthcoming user-defined custom-provider params) without a
+     * frontend release per knob.
+     */
+    request_params: { [key: string]: unknown } | null;
     header_tier_id: string | null;
     header_tier_name: string | null;
     header_tier_color: string | null;

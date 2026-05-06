@@ -27,3 +27,13 @@ export function applyRequestParamDefaults<T extends Record<string, unknown>>(
   if (!defaults) return body;
   return { ...defaults, ...body } as T;
 }
+
+/**
+ * Known top-level keys in `RequestParamDefaults`. Append here when adding a
+ * new provider knob (`reasoning_effort`, `safety`, …) so the per-message
+ * telemetry snapshot picks it up. Stays in sync with the interface above by
+ * convention — adding a key without listing it here means the snapshot
+ * silently drops it on the way to the dashboard.
+ */
+export const REQUEST_PARAM_KEYS = ['thinking'] as const;
+export type RequestParamKey = (typeof REQUEST_PARAM_KEYS)[number];

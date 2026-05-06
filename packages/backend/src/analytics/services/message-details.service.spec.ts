@@ -59,6 +59,7 @@ describe('MessageDetailsService', () => {
     feedback_tags: null,
     feedback_details: null,
     request_headers: null,
+    request_params: null,
     caller_attribution: null,
   };
 
@@ -241,6 +242,7 @@ describe('MessageDetailsService', () => {
       feedback_tags: null,
       feedback_details: null,
       request_headers: null,
+      request_params: null,
       caller_attribution: null,
     });
   });
@@ -257,6 +259,32 @@ describe('MessageDetailsService', () => {
     msgQb.getOne.mockResolvedValue({ ...baseMessage, request_headers: headers });
     const result = await service.getDetails('msg-1', 'u1');
     expect(result.message.request_headers).toEqual(headers);
+  });
+
+  it('returns request_params when stored on the message', async () => {
+    // Per-message effective parameter snapshot — drives the dashboard's
+    // Model Parameters accordion. Today only DeepSeek's `thinking` knob
+    // ships, but the JSONB column accepts any shape so future provider
+    // models and user-defined custom params land here without a schema
+    // migration; the projection just round-trips whatever is stored.
+    const params = { thinking: { type: 'disabled' } };
+    msgQb.getOne.mockResolvedValue({ ...baseMessage, request_params: params });
+    const result = await service.getDetails('msg-1', 'u1');
+    expect(result.message.request_params).toEqual(params);
+  });
+
+  it('round-trips arbitrary multi-key request_params shapes (forward-compat)', async () => {
+    // The detail endpoint must not silently drop unfamiliar keys — that
+    // would break the future "users define their own custom-provider
+    // params" UI. Anything the proxy stores has to come back through.
+    const future = {
+      thinking: { type: 'enabled' },
+      reasoning_effort: 'high',
+      custom_safety: { mode: 'permissive', threshold: 0.8 },
+    };
+    msgQb.getOne.mockResolvedValue({ ...baseMessage, request_params: future });
+    const result = await service.getDetails('msg-1', 'u1');
+    expect(result.message.request_params).toEqual(future);
   });
 
   it('splits feedback_tags into an array when present', async () => {

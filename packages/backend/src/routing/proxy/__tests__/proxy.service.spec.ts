@@ -438,6 +438,81 @@ describe('ProxyService — orchestration', () => {
       await svc.proxyRequest(baseOpts());
       expect(momentum.recordTier).not.toHaveBeenCalled();
     });
+
+    // Telemetry snapshot proofs. The `RoutingMeta.request_params` field
+    // drives the per-row Model Parameters accordion in the dashboard; these
+    // tests pin (a) it gets populated for the primary provider on success,
+    // (b) the snapshot is re-derived per provider so a fallback record
+    // never carries another vendor's knob, and (c) providers without a
+    // known param key (today: anything that isn't DeepSeek for `thinking`)
+    // produce a null snapshot so existing rows stay clean.
+    it("populates meta.request_params with the provider's effective default for known keys (DeepSeek thinking enabled)", async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const result = await svc.proxyRequest(baseOpts());
+      // DeepSeek's silent default is `enabled`; on the `standard` tier
+      // Manifest's tier-aware opinion is `disabled` (the cost-saving fix
+      // from #1729). User defaults trump the tier opinion if set, but
+      // here nothing was configured, so the snapshot reflects Manifest's
+      // contribution which lands on `disabled`.
+      expect(result.meta.request_params).toEqual({ thinking: { type: 'disabled' } });
+    });
+
+    it("snapshot reflects the user's stored override when present", async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+        param_defaults: { thinking: { type: 'enabled' } },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const result = await svc.proxyRequest(baseOpts());
+      expect(result.meta.request_params).toEqual({ thinking: { type: 'enabled' } });
+    });
+
+    it('snapshot is null when the provider has no known param keys (today: any non-DeepSeek provider)', async () => {
+      // Forward-compat property: providers that never appear in the
+      // `PROVIDER_THINKING_DEFAULTS` registry produce a null snapshot,
+      // so the existing experience for OpenAI/Anthropic/Gemini/etc. rows
+      // stays unchanged. New providers light up by adding an entry to
+      // the registry — no proxy code needed.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const result = await svc.proxyRequest(baseOpts());
+      expect(result.meta.request_params).toBeNull();
+    });
   });
 
   describe('fallback chain on non-2xx responses', () => {

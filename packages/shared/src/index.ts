@@ -24,8 +24,10 @@ export {
   routeToLegacy,
 } from './model-route';
 export type { ModelRoute, LegacyOverrideTriple } from './model-route';
-export { applyRequestParamDefaults } from './request-params';
-export type { RequestParamDefaults } from './request-params';
+export { applyRequestParamDefaults, REQUEST_PARAM_KEYS } from './request-params';
+export type { RequestParamDefaults, RequestParamKey } from './request-params';
+export { snapshotRequestParams } from './request-params-snapshot';
+export type { RequestParamsSnapshotInput } from './request-params-snapshot';
 export {
   PROVIDER_THINKING_DEFAULTS,
   providerThinkingDefault,

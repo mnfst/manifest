@@ -10,8 +10,8 @@ import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
-import type { SpecificityCategory, TierSlot } from 'manifest-shared';
-import { SPECIFICITY_CATEGORIES } from 'manifest-shared';
+import type { RequestParamDefaults, SpecificityCategory, TierSlot } from 'manifest-shared';
+import { SPECIFICITY_CATEGORIES, snapshotRequestParams } from 'manifest-shared';
 import type { ParamMergeContext } from './proxy-fallback.service';
 import {
   ProxyFallbackService,
@@ -77,6 +77,16 @@ export interface RoutingMeta {
    * primary's auth so the primary-failure row stays accurate too. See #1173.
    */
   primaryAuthType?: string;
+  /**
+   * Effective request body parameters for this attempt — the merged result
+   * of (1) client body keys in `REQUEST_PARAM_KEYS`, (2) the user's
+   * `param_defaults` filtered for the resolved provider, (3) Manifest's
+   * tier-aware default (e.g. DeepSeek thinking-off on speed/cost tiers).
+   * Persisted on `agent_messages.request_params` so the dashboard can show
+   * "this request had thinking=disabled" alongside Request Headers in the
+   * expanded row. `null` when no known params apply.
+   */
+  request_params?: RequestParamDefaults | null;
 }
 
 export interface ProxyResult {
@@ -174,6 +184,20 @@ export class ProxyService {
       isSpecificity: !!resolved.specificity_category,
     };
 
+    // Snapshot of which known param keys are *effectively in play* for the
+    // primary attempt. Stored on every `agent_messages` row recorded for
+    // this request so the dashboard can display the effective parameters
+    // (today: DeepSeek's `thinking` toggle) in the expanded message detail.
+    // Re-derived for fallback successes against the actual fallback
+    // provider so the persisted snapshot matches what was sent on that row.
+    const primaryRequestParams = snapshotRequestParams({
+      body: routingBody as Record<string, unknown>,
+      userDefaults: paramMergeContext.userDefaults,
+      tier: paramMergeContext.tier,
+      isSpecificity: paramMergeContext.isSpecificity,
+      provider: route.provider,
+    });
+
     const forward = await this.fallbackService.tryForwardToProvider({
       provider: route.provider,
       apiKey: credentials.apiKey,
@@ -230,7 +254,12 @@ export class ProxyService {
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
         this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
-        return { forward: peeked, meta: this.buildBaseMeta(resolved, primaryModel) };
+        return {
+          forward: peeked,
+          meta: this.buildBaseMeta(resolved, primaryModel, {
+            request_params: primaryRequestParams,
+          }),
+        };
       }
 
       this.logger.warn(
@@ -268,14 +297,21 @@ export class ProxyService {
       // instead of the original forward (whose body was consumed by peekStream).
       this.recordTierIfScoring(sessionKey, resolved.tier);
       this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
-      return { forward: syntheticForward, meta: this.buildBaseMeta(resolved, primaryModel) };
+      return {
+        forward: syntheticForward,
+        meta: this.buildBaseMeta(resolved, primaryModel, {
+          request_params: primaryRequestParams,
+        }),
+      };
     }
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
     return {
       forward,
-      meta: this.buildBaseMeta(resolved, primaryModel),
+      meta: this.buildBaseMeta(resolved, primaryModel, {
+        request_params: primaryRequestParams,
+      }),
     };
   }
 
@@ -422,6 +458,16 @@ export class ProxyService {
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
 
     if (success) {
+      // Re-snapshot for the fallback's actual provider — different vendor
+      // means a different filter (e.g. DeepSeek's `thinking` is dropped on
+      // an Anthropic fallback, matching what the proxy actually sent).
+      const fallbackRequestParams = snapshotRequestParams({
+        body: body as Record<string, unknown>,
+        userDefaults: args.paramMergeContext.userDefaults,
+        tier: args.paramMergeContext.tier,
+        isSpecificity: args.paramMergeContext.isSpecificity,
+        provider: success.provider,
+      });
       return {
         forward: success.forward,
         meta: this.buildBaseMeta(resolved, success.model, {
@@ -433,6 +479,7 @@ export class ProxyService {
           primaryErrorBody,
           primaryProvider,
           primaryAuthType: primaryAuth,
+          request_params: fallbackRequestParams,
         }),
         failedFallbacks: failures,
       };
@@ -447,6 +494,15 @@ export class ProxyService {
     safeHeaders.delete('transfer-encoding');
     const rebuilt = new Response(primaryErrorBody, { status: primaryStatus, headers: safeHeaders });
 
+    // Fallback exhausted — recorded against the primary provider, so use
+    // the primary-provider snapshot for the row.
+    const exhaustedRequestParams = snapshotRequestParams({
+      body: body as Record<string, unknown>,
+      userDefaults: args.paramMergeContext.userDefaults,
+      tier: args.paramMergeContext.tier,
+      isSpecificity: args.paramMergeContext.isSpecificity,
+      provider: primaryProvider ?? '',
+    });
     return {
       forward: {
         response: rebuilt,
@@ -454,7 +510,9 @@ export class ProxyService {
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
       },
-      meta: this.buildBaseMeta(resolved, primaryModel),
+      meta: this.buildBaseMeta(resolved, primaryModel, {
+        request_params: exhaustedRequestParams,
+      }),
       failedFallbacks: failures,
     };
   }
