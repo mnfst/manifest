@@ -118,8 +118,11 @@ const HeaderTierCard: Component<Props> = (props) => {
       await props.onOverride(model, provider, authType);
     } else if (mode === 'fallback') {
       const next = [...fallbacks(), model];
+      const currentRoutes = props.tier.fallback_routes ?? [];
+      const nextRoutes =
+        authType !== undefined ? [...currentRoutes, { provider, authType, model }] : undefined;
       try {
-        await setHeaderTierFallbacks(props.agentName, props.tier.id, next);
+        await setHeaderTierFallbacks(props.agentName, props.tier.id, next, nextRoutes);
         props.onFallbacksUpdate(next);
       } catch {
         // toast handled by FallbackList parent flow normally; keep silent here.

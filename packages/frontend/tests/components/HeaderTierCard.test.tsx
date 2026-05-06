@@ -545,7 +545,15 @@ describe("HeaderTierCard", () => {
     fireEvent.click(getByTestId("fb-add") as HTMLButtonElement);
     fireEvent.click(getByTestId("picker-pick") as HTMLButtonElement);
     await waitFor(() => {
-      expect(mockSetHeaderTierFallbacks).toHaveBeenCalledWith("demo", "ht-1", ["old", "gpt-4o"]);
+      expect(mockSetHeaderTierFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "ht-1",
+        ["old", "gpt-4o"],
+        [
+          { provider: "openai", authType: "api_key", model: "old" },
+          { provider: "openai", authType: "api_key", model: "gpt-4o" },
+        ],
+      );
       expect(onFallbacksUpdate).toHaveBeenCalledWith(["old", "gpt-4o"]);
     });
   });
