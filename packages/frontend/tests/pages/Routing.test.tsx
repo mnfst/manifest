@@ -642,6 +642,30 @@ describe("Routing page", () => {
     // The optimistic state mutation only updates local resource state.
     // Persistence is handled by persistFallbacks; a second call here would
     // race the first and could drop route metadata.
+    // Seed an assignment so mutateSpecificity actually maps over a non-empty array
+    // (covers the `a.category === category ? ... : a` ternary branches).
+    mockGetSpecificityAssignments.mockResolvedValue([
+      {
+        id: "s1",
+        agent_id: "a",
+        category: "coding",
+        is_active: true,
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: null,
+        updated_at: "2025-01-01",
+      },
+      {
+        id: "s2",
+        agent_id: "a",
+        category: "trading",
+        is_active: true,
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: null,
+        updated_at: "2025-01-01",
+      },
+    ]);
     render(() => <Routing />);
     await waitFor(() => {
       expect(screen.getByTestId("spec-fb-update-add")).toBeDefined();
