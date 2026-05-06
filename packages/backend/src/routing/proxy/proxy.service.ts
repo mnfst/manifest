@@ -59,6 +59,7 @@ export interface RoutingMeta {
   header_tier_id?: string;
   header_tier_name?: string;
   header_tier_color?: string;
+  provider_key_label?: string;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
@@ -149,6 +150,7 @@ export class ProxyService {
     const credentials = await this.resolveCredentials(agentId, userId, {
       provider: route.provider,
       auth_type: route.authType,
+      provider_key_label: route.keyLabel ?? undefined,
     });
     if (credentials === null) {
       const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
@@ -318,12 +320,13 @@ export class ProxyService {
   private async resolveCredentials(
     agentId: string,
     userId: string,
-    resolved: { provider: string; auth_type?: AuthType },
+    resolved: { provider: string; auth_type?: AuthType; provider_key_label?: string },
   ): Promise<{ apiKey: string; resourceUrl?: string; providerRegion?: string | null } | null> {
     const apiKey = await this.providerKeyService.getProviderApiKey(
       agentId,
       resolved.provider,
       resolved.auth_type,
+      resolved.provider_key_label,
     );
     if (apiKey === null) return null;
 
@@ -340,6 +343,7 @@ export class ProxyService {
       agentId,
       resolved.provider,
       resolved.auth_type,
+      resolved.provider_key_label,
     );
     return { ...unwrapped, providerRegion };
   }
@@ -460,6 +464,7 @@ export class ProxyService {
       reason: resolved.reason,
       auth_type: resolved.route?.authType,
       specificity_category: resolved.specificity_category,
+      provider_key_label: resolved.route?.keyLabel ?? undefined,
       header_tier_id: resolved.header_tier_id,
       header_tier_name: resolved.header_tier_name,
       header_tier_color: resolved.header_tier_color,

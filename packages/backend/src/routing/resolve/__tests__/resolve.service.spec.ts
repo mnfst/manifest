@@ -46,7 +46,10 @@ const route = (provider: string, authType: ModelRoute['authType'], model: string
 describe('ResolveService', () => {
   let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let providerKeyService: jest.Mocked<
-    Pick<ProviderKeyService, 'isModelAvailable' | 'hasActiveProvider' | 'getAuthType'>
+    Pick<
+      ProviderKeyService,
+      'isModelAvailable' | 'hasActiveProvider' | 'getAuthType' | 'getDefaultKeyLabel'
+    >
   >;
   let specificityService: jest.Mocked<Pick<SpecificityService, 'getActiveAssignments'>>;
   let pricingCache: jest.Mocked<Pick<ModelPricingCacheService, 'getByModel'>>;
@@ -65,6 +68,10 @@ describe('ResolveService', () => {
       isModelAvailable: jest.fn().mockResolvedValue(true),
       hasActiveProvider: jest.fn().mockResolvedValue(true),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
+      // Default to undefined so resolved routes carry no `keyLabel` unless a
+      // test explicitly sets one — keeps assertions on legacy route shapes
+      // (no keyLabel) passing.
+      getDefaultKeyLabel: jest.fn().mockResolvedValue(undefined),
     };
     specificityService = { getActiveAssignments: jest.fn().mockResolvedValue([]) };
     pricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };

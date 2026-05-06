@@ -33,6 +33,7 @@ vi.mock("../../src/services/providers.js", () => ({
 vi.mock("../../src/services/routing-utils.js", () => ({
   resolveProviderId: (p: string) => p.toLowerCase(),
   stripCustomPrefix: (m: string) => m.replace(/^custom:[^/]+\//, ""),
+  usedKeyLabelsForModelInTier: () => new Set<string>(),
 }));
 
 vi.mock("../../src/services/provider-utils.js", () => ({
@@ -885,5 +886,163 @@ describe("FallbackList", () => {
     fireEvent.dragEnd(list);
 
     expect(onFallbackDragEnd).toHaveBeenCalled();
+  });
+
+  describe("multi-key chip", () => {
+    const multiKeyProps = {
+      ...defaultProps,
+      connectedProviders: [
+        {
+          id: "p1",
+          provider: "openai",
+          auth_type: "api_key",
+          is_active: true,
+          has_api_key: true,
+          label: "Personal",
+          priority: 0,
+          key_prefix: "sk-pers-",
+        },
+        {
+          id: "p2",
+          provider: "openai",
+          auth_type: "api_key",
+          is_active: true,
+          has_api_key: true,
+          label: "Work",
+          priority: 1,
+          key_prefix: "sk-work-",
+        },
+      ] as any[],
+    };
+
+    it("hides the chip when only one key is connected", () => {
+      const { queryByLabelText } = render(() => (
+        <FallbackList {...defaultProps} fallbacks={["model-a"]} />
+      ));
+      expect(queryByLabelText(/API key for/i)).toBeNull();
+    });
+
+    it("renders the chip on the row when 2+ keys exist for the resolved provider", () => {
+      const { getByLabelText } = render(() => (
+        <FallbackList {...multiKeyProps} fallbacks={["model-a"]} />
+      ));
+      expect(getByLabelText(/API key for/i)).toBeDefined();
+    });
+
+    it("shows the pinned label from the structured fallbackRoutes entry", () => {
+      // Multi-key pin now lives in the structured `fallbackRoutes[i].keyLabel`
+      // rather than the legacy `||<label>` suffix on the model string.
+      const { container } = render(() => (
+        <FallbackList
+          {...multiKeyProps}
+          fallbacks={["model-a"]}
+          fallbackRoutes={[
+            { provider: "openai", authType: "api_key", model: "model-a", keyLabel: "Work" },
+          ] as any}
+        />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLElement;
+      expect(chip).not.toBeNull();
+      expect(chip.textContent).toContain("Work");
+    });
+
+    it("falls back to the first key's label when nothing is pinned", () => {
+      const { container } = render(() => (
+        <FallbackList {...multiKeyProps} fallbacks={["model-a"]} />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLElement;
+      expect(chip.textContent).toContain("Personal");
+    });
+
+    it("renders a Clear pin option when the row is currently pinned", () => {
+      const { container, getByText } = render(() => (
+        <FallbackList
+          {...multiKeyProps}
+          fallbacks={["model-a"]}
+          fallbackRoutes={[
+            { provider: "openai", authType: "api_key", model: "model-a", keyLabel: "Work" },
+          ] as any}
+        />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLButtonElement;
+      fireEvent.click(chip);
+      expect(getByText("Clear pin")).toBeDefined();
+    });
+
+    it("does not render Clear pin when no label is currently set", () => {
+      const { container, queryByText } = render(() => (
+        <FallbackList {...multiKeyProps} fallbacks={["model-a"]} />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLButtonElement;
+      fireEvent.click(chip);
+      expect(queryByText("Clear pin")).toBeNull();
+    });
+
+    it("Clear pin nulls the keyLabel on the structured route and persists", async () => {
+      // After the merge, "Clear pin" no longer rewrites the model string —
+      // it sets `route.keyLabel` to null on the matching `fallbackRoutes`
+      // entry and forwards that structure to setFallbacks.
+      const onUpdate = vi.fn();
+      const initialRoutes = [
+        { provider: "openai", authType: "api_key", model: "model-a", keyLabel: "Work" },
+      ];
+      const { container, getByText } = render(() => (
+        <FallbackList
+          {...multiKeyProps}
+          fallbacks={["model-a"]}
+          fallbackRoutes={initialRoutes as any}
+          onUpdate={onUpdate}
+        />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLButtonElement;
+      fireEvent.click(chip);
+      fireEvent.click(getByText("Clear pin"));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(onUpdate).toHaveBeenCalledWith(
+        ["model-a"],
+        [{ provider: "openai", authType: "api_key", model: "model-a", keyLabel: null }],
+      );
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "test-agent",
+        "tier-1",
+        ["model-a"],
+        [{ provider: "openai", authType: "api_key", model: "model-a", keyLabel: null }],
+      );
+    });
+
+    it("opens the listbox and persists a new label via setFallbacks", async () => {
+      // Picking a key now writes the label into `route.keyLabel` of the
+      // structured fallbackRoutes entry; the model name stays bare.
+      const onUpdate = vi.fn();
+      const initialRoutes = [
+        { provider: "openai", authType: "api_key", model: "model-a", keyLabel: null },
+      ];
+      const { container, getByText } = render(() => (
+        <FallbackList
+          {...multiKeyProps}
+          fallbacks={["model-a"]}
+          fallbackRoutes={initialRoutes as any}
+          onUpdate={onUpdate}
+        />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLButtonElement;
+      fireEvent.click(chip);
+      // Listbox is now visible.
+      expect(container.querySelector('ul[role="listbox"]')).toBeDefined();
+      fireEvent.click(getByText("Work"));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(onUpdate).toHaveBeenCalledWith(
+        ["model-a"],
+        [{ provider: "openai", authType: "api_key", model: "model-a", keyLabel: "Work" }],
+      );
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "test-agent",
+        "tier-1",
+        ["model-a"],
+        [{ provider: "openai", authType: "api_key", model: "model-a", keyLabel: "Work" }],
+      );
+    });
   });
 });

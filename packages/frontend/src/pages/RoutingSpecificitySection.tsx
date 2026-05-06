@@ -145,6 +145,12 @@ export interface RoutingSpecificitySectionProps {
   addingFallback: () => string | null;
   onDropdownOpen: (category: string) => void;
   onOverride: (category: string, model: string, provider: string, authType?: AuthType) => void;
+  onPinKey?: (
+    category: string,
+    providerId: string,
+    providerKeyLabel: string | null,
+    authType?: AuthType,
+  ) => void;
   onReset: (category: string) => void;
   onFallbackUpdate: (category: string, fallbacks: string[]) => void;
   onAddFallback: (category: string) => void;
@@ -229,6 +235,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 agentName={props.agentName}
                 onDropdownOpen={props.onDropdownOpen}
                 onOverride={props.onOverride}
+                onPinKey={props.onPinKey}
                 onReset={props.onReset}
                 onFallbackUpdate={props.onFallbackUpdate}
                 onAddFallback={props.onAddFallback}

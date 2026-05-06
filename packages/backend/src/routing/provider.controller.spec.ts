@@ -27,6 +27,8 @@ describe('ProviderController', () => {
       getProviders: jest.fn().mockResolvedValue([]),
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: false }),
       removeProvider: jest.fn().mockResolvedValue({ notifications: 0 }),
+      renameKey: jest.fn(),
+      reorderKeys: jest.fn(),
       deactivateAllProviders: jest.fn().mockResolvedValue(undefined),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
     };
@@ -216,12 +218,15 @@ describe('ProviderController', () => {
         'sk-ant-test',
         undefined,
         undefined,
+        undefined,
       );
       expect(result).toEqual({
         id: 'p1',
         provider: 'anthropic',
         auth_type: 'api_key',
         is_active: true,
+        label: undefined,
+        priority: undefined,
         region: null,
       });
     });
@@ -243,12 +248,15 @@ describe('ProviderController', () => {
         undefined,
         undefined,
         undefined,
+        undefined,
       );
       expect(result).toEqual({
         id: 'p1',
         provider: 'openai',
         auth_type: 'api_key',
         is_active: true,
+        label: undefined,
+        priority: undefined,
         region: null,
       });
     });
@@ -375,6 +383,7 @@ describe('ProviderController', () => {
         TEST_AGENT_ID,
         'openai',
         undefined,
+        undefined,
       );
       expect(result).toEqual({ ok: true, notifications: 3 });
     });
@@ -403,6 +412,7 @@ describe('ProviderController', () => {
         TEST_AGENT_ID,
         'anthropic',
         'subscription',
+        undefined,
       );
     });
   });
@@ -463,6 +473,91 @@ describe('ProviderController', () => {
           {} as never,
         ),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  /* ── multi-key endpoints ── */
+
+  describe('renameProviderKey', () => {
+    it('forwards label rename to service and returns mapped row', async () => {
+      mockProviderService.renameKey.mockResolvedValue({
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Work',
+        priority: 1,
+      });
+
+      const result = await controller.renameProviderKey(
+        mockUser,
+        { agentName: 'test-agent', provider: 'openai', label: 'Personal' } as never,
+        { newLabel: 'Work' } as never,
+      );
+
+      expect(mockProviderService.renameKey).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'openai',
+        'api_key',
+        'Personal',
+        'Work',
+      );
+      expect(result).toEqual({
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Work',
+        priority: 1,
+      });
+    });
+
+    it('honors explicit authType in body', async () => {
+      mockProviderService.renameKey.mockResolvedValue({
+        id: 'p1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        label: 'Renamed',
+        priority: 0,
+      });
+
+      await controller.renameProviderKey(
+        mockUser,
+        { agentName: 'test-agent', provider: 'anthropic', label: 'Default' } as never,
+        { newLabel: 'Renamed', authType: 'subscription' } as never,
+      );
+
+      expect(mockProviderService.renameKey).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'anthropic',
+        'subscription',
+        'Default',
+        'Renamed',
+      );
+    });
+  });
+
+  describe('reorderProviderKeys', () => {
+    it('passes ordered labels to service and returns rows sorted by priority', async () => {
+      mockProviderService.reorderKeys.mockResolvedValue([
+        { id: 'p1', label: 'Personal', priority: 1 },
+        { id: 'p2', label: 'Work', priority: 0 },
+      ]);
+
+      const result = await controller.reorderProviderKeys(
+        mockUser,
+        { agentName: 'test-agent', provider: 'openai' } as never,
+        { labels: ['Work', 'Personal'] } as never,
+      );
+
+      expect(mockProviderService.reorderKeys).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'openai',
+        'api_key',
+        ['Work', 'Personal'],
+      );
+      expect(result).toEqual([
+        { id: 'p2', label: 'Work', priority: 0 },
+        { id: 'p1', label: 'Personal', priority: 1 },
+      ]);
     });
   });
 });

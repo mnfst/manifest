@@ -94,7 +94,16 @@ describe("createRoutingActions", () => {
       });
       const { actions } = setupActions();
       await actions.handleOverride("simple", "new-model", "openai", "api_key");
-      expect(mockOverrideTier).toHaveBeenCalledWith("demo", "simple", "new-model", "openai", "api_key");
+      // 6th arg is the optional providerKeyLabel; undefined here because the
+      // caller didn't pin a specific multi-key label.
+      expect(mockOverrideTier).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        "new-model",
+        "openai",
+        "api_key",
+        undefined,
+      );
       expect(mockToastSuccess).toHaveBeenCalledWith("Routing updated");
       expect(actions.getTier("simple")?.override_route?.model).toBe("new-model");
     });
@@ -104,6 +113,69 @@ describe("createRoutingActions", () => {
       const { actions } = setupActions();
       await actions.handleOverride("simple", "x", "openai");
       expect(actions.changingTier()).toBeNull();
+    });
+
+    it("auto-removes conflicting fallback when its full tuple matches the new primary", async () => {
+      // Tier starts with two fallbacks. The override returns a primary whose
+      // full (model, provider, authType, keyLabel) tuple matches the second
+      // fallback ("fb-2" / anthropic). The handler should call setFallbacks
+      // with the cleaned route list (only "fb-1" remains).
+      const tier = {
+        ...baseTier,
+        fallback_routes: [
+          { provider: "openai", authType: "api_key" as const, model: "fb-1" },
+          {
+            provider: "anthropic",
+            authType: "api_key" as const,
+            model: "claude-opus",
+            keyLabel: "Work",
+          },
+        ],
+      };
+      mockOverrideTier.mockResolvedValue({
+        ...tier,
+        override_route: {
+          provider: "Anthropic", // case differs — must still match
+          authType: "api_key",
+          model: "claude-opus",
+          keyLabel: "Work",
+        },
+        fallback_routes: tier.fallback_routes,
+      });
+      mockSetFallbacks.mockResolvedValue([
+        { provider: "openai", authType: "api_key", model: "fb-1" },
+      ]);
+      const { actions } = setupActions([tier]);
+      await actions.handleOverride("simple", "claude-opus", "anthropic", "api_key", "Work");
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        ["fb-1"],
+        [{ provider: "openai", authType: "api_key", model: "fb-1" }],
+      );
+      expect(actions.getTier("simple")?.fallback_routes?.length).toBe(1);
+    });
+
+    it("does not call setFallbacks when no fallback conflicts with the new primary", async () => {
+      mockOverrideTier.mockResolvedValue({
+        ...baseTier,
+        override_route: { provider: "openai", authType: "api_key", model: "non-conflicting" },
+      });
+      const { actions } = setupActions();
+      await actions.handleOverride("simple", "non-conflicting", "openai", "api_key");
+      expect(mockSetFallbacks).not.toHaveBeenCalled();
+    });
+
+    it("does not filter fallbacks when override returns no override_route (primary null)", async () => {
+      // Primary is null after override (e.g. server cleared it). Filter logic
+      // treats `cleanedRoutes` as the original routes — no setFallbacks call.
+      mockOverrideTier.mockResolvedValue({
+        ...baseTier,
+        override_route: null,
+      });
+      const { actions } = setupActions();
+      await actions.handleOverride("simple", "anything", "openai");
+      expect(mockSetFallbacks).not.toHaveBeenCalled();
     });
 
     it("sets and clears changingTier around the override call", async () => {
@@ -183,6 +255,10 @@ describe("createRoutingActions", () => {
       ]);
       const { actions } = setupActions();
       await actions.handleAddFallback("simple", "fb-new", "openai", "api_key");
+      // setFallbacks now receives the parallel route array as its 4th arg so
+      // multi-key pins (route.keyLabel) ride along with the persist. Existing
+      // fallbacks here have no pin, so each route is the bare (provider,
+      // authType, model) triple.
       expect(mockSetFallbacks).toHaveBeenCalledWith(
         "demo",
         "simple",
@@ -226,7 +302,12 @@ describe("createRoutingActions", () => {
       );
     });
 
-    it("omits the routes payload when the caller has no authType", async () => {
+    it("defaults missing authType to 'api_key' on the new route so the backend can disambiguate", async () => {
+      // Multi-key support means we always need to send the full route tuple
+      // (the keyLabel pin rides along with it). When the caller passes no
+      // authType, fall back to 'api_key' rather than dropping the route — the
+      // alternative (sending undefined) made the backend silently drop saves
+      // when the same model name was offered under multiple auth_types.
       mockSetFallbacks.mockResolvedValue([]);
       const { actions } = setupActions();
       await actions.handleAddFallback("simple", "fb-new", "openai");
@@ -234,7 +315,11 @@ describe("createRoutingActions", () => {
         "demo",
         "simple",
         ["fb-1", "fb-2", "fb-new"],
-        undefined,
+        [
+          { provider: "openai", authType: "api_key", model: "fb-1" },
+          { provider: "anthropic", authType: "api_key", model: "fb-2" },
+          { provider: "openai", authType: "api_key", model: "fb-new" },
+        ],
       );
     });
 
@@ -245,6 +330,129 @@ describe("createRoutingActions", () => {
       // Final state matches the persisted backend (still original 2 fallbacks)
       expect(actions.getFallbacksFor("simple")).toEqual(["fb-1", "fb-2"]);
       expect(actions.addingFallback()).toBeNull();
+    });
+  });
+
+  describe("handlePinKey", () => {
+    it("re-overrides with the same model + new keyLabel when a tier has an explicit override", async () => {
+      const tier = {
+        ...baseTier,
+        override_route: {
+          provider: "openai",
+          authType: "api_key" as const,
+          model: "gpt-4o",
+        },
+      };
+      mockOverrideTier.mockResolvedValue({
+        ...tier,
+        override_route: {
+          provider: "openai",
+          authType: "api_key" as const,
+          model: "gpt-4o",
+          keyLabel: "Work",
+        },
+      });
+      const { actions } = setupActions([tier]);
+      await actions.handlePinKey("simple", "openai", "Work", "api_key");
+      expect(mockOverrideTier).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        "gpt-4o",
+        "openai",
+        "api_key",
+        "Work",
+      );
+      expect(mockToastSuccess).toHaveBeenCalledWith('Pinned to "Work" key');
+      expect(actions.getTier("simple")?.override_route?.keyLabel).toBe("Work");
+    });
+
+    it("falls back to auto_assigned_route's model when the tier has no override", async () => {
+      mockOverrideTier.mockResolvedValue({ ...baseTier });
+      const { actions } = setupActions();
+      await actions.handlePinKey("simple", "openai", "Personal");
+      // baseTier.auto_assigned_route.model = "auto-1"
+      expect(mockOverrideTier).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        "auto-1",
+        "openai",
+        "api_key",
+        "Personal",
+      );
+    });
+
+    it("emits a 'Key pin cleared' toast when providerKeyLabel is null", async () => {
+      mockOverrideTier.mockResolvedValue({ ...baseTier });
+      const { actions } = setupActions();
+      await actions.handlePinKey("simple", "openai", null);
+      expect(mockToastSuccess).toHaveBeenCalledWith("Key pin cleared");
+    });
+
+    it("returns silently when the tier has neither override nor auto_assigned route (no model to re-pin)", async () => {
+      const tier = { ...baseTier, auto_assigned_route: null };
+      const { actions } = setupActions([tier]);
+      await actions.handlePinKey("simple", "openai", "Work");
+      expect(mockOverrideTier).not.toHaveBeenCalled();
+    });
+
+    it("returns silently when providerId is empty", async () => {
+      const { actions } = setupActions();
+      await actions.handlePinKey("simple", "", "Work");
+      expect(mockOverrideTier).not.toHaveBeenCalled();
+    });
+
+    it("returns silently when the tier id is unknown", async () => {
+      const { actions } = setupActions();
+      await actions.handlePinKey("unknown", "openai", "Work");
+      expect(mockOverrideTier).not.toHaveBeenCalled();
+    });
+
+    it("clears changingTier even when the override call rejects", async () => {
+      mockOverrideTier.mockRejectedValue(new Error("boom"));
+      const { actions } = setupActions();
+      await actions.handlePinKey("simple", "openai", "Work");
+      expect(actions.changingTier()).toBeNull();
+    });
+  });
+
+  describe("handleAddFallback with provider key labels", () => {
+    it("includes the keyLabel on the new fallback route when supplied", async () => {
+      mockSetFallbacks.mockResolvedValue([
+        { provider: "openai", authType: "api_key", model: "fb-1" },
+        { provider: "anthropic", authType: "api_key", model: "fb-2" },
+        {
+          provider: "openai",
+          authType: "api_key",
+          model: "fb-new",
+          keyLabel: "Work",
+        },
+      ]);
+      const { actions } = setupActions();
+      await actions.handleAddFallback("simple", "fb-new", "openai", "api_key", "Work");
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        ["fb-1", "fb-2", "fb-new"],
+        [
+          { provider: "openai", authType: "api_key", model: "fb-1" },
+          { provider: "anthropic", authType: "api_key", model: "fb-2" },
+          {
+            provider: "openai",
+            authType: "api_key",
+            model: "fb-new",
+            keyLabel: "Work",
+          },
+        ],
+      );
+    });
+
+    it("allows the same model under a different keyLabel (not deduped)", async () => {
+      mockSetFallbacks.mockResolvedValue([]);
+      const { actions } = setupActions();
+      // fb-1 already exists without a keyLabel; adding it with keyLabel "Work"
+      // is a different routing slot and must persist.
+      await actions.handleAddFallback("simple", "fb-1", "openai", "api_key", "Work");
+      expect(mockSetFallbacks).toHaveBeenCalled();
     });
   });
 

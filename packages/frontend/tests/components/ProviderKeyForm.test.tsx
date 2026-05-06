@@ -2,18 +2,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
 import type { ProviderDef } from '../../src/services/providers';
-import type { AuthType } from '../../src/services/api';
+import type { AuthType, RoutingProvider } from '../../src/services/api';
 
 /* ── API mocks ──────────────────────────────────────────────── */
 
 const connectProviderMock = vi.fn().mockResolvedValue({});
 const disconnectProviderMock = vi.fn().mockResolvedValue({});
 const revokeOpenaiOAuthMock = vi.fn().mockResolvedValue(undefined);
+const renameProviderKeyMock = vi.fn().mockResolvedValue({});
+const reorderProviderKeysMock = vi.fn().mockResolvedValue([]);
 
 vi.mock('../../src/services/api.js', () => ({
   connectProvider: (...args: unknown[]) => connectProviderMock(...args),
   disconnectProvider: (...args: unknown[]) => disconnectProviderMock(...args),
   revokeOpenaiOAuth: (...args: unknown[]) => revokeOpenaiOAuthMock(...args),
+  renameProviderKey: (...args: unknown[]) => renameProviderKeyMock(...args),
+  reorderProviderKeys: (...args: unknown[]) => reorderProviderKeysMock(...args),
 }));
 
 vi.mock('../../src/services/provider-utils.js', () => ({
@@ -66,6 +70,8 @@ interface MountOpts {
   selectedAuthType?: AuthType;
   editing?: boolean;
   keyInput?: string;
+  providers?: RoutingProvider[];
+  addKeyOpen?: boolean;
   onBack?: () => void;
   onUpdate?: () => void;
 }
@@ -75,6 +81,7 @@ function mount(opts: MountOpts) {
   const [keyInput, setKeyInput] = createSignal(opts.keyInput ?? '');
   const [editing, setEditing] = createSignal(opts.editing ?? false);
   const [validationError, setValidationError] = createSignal<string | null>(null);
+  const [addKeyOpen, setAddKeyOpen] = createSignal(opts.addKeyOpen ?? false);
 
   const onBack = opts.onBack ?? vi.fn();
   const onUpdate = opts.onUpdate ?? vi.fn();
@@ -96,12 +103,15 @@ function mount(opts: MountOpts) {
       validationError={validationError}
       setValidationError={setValidationError}
       getKeyPrefixDisplay={() => 'sk-***'}
+      providers={opts.providers}
+      addKeyOpen={addKeyOpen}
+      setAddKeyOpen={setAddKeyOpen}
       onBack={onBack}
       onUpdate={onUpdate}
     />
   ));
 
-  return { ...result, setKeyInput, onBack, onUpdate };
+  return { ...result, setKeyInput, setAddKeyOpen, onBack, onUpdate };
 }
 
 /* ── Tests ──────────────────────────────────────────────────── */
@@ -494,6 +504,371 @@ describe('ProviderKeyForm', () => {
       await Promise.resolve();
       expect(connectProviderMock).toHaveBeenCalled();
       expect(toastSuccess).toHaveBeenCalledWith('OpenAI key updated');
+    });
+  });
+
+  /* ── multi-key chain (api_key only) ─────────────────────────── */
+
+  function makeProvider(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
+    return {
+      id: 'p1',
+      provider: 'openai',
+      auth_type: 'api_key',
+      is_active: true,
+      has_api_key: true,
+      key_prefix: 'sk-test-',
+      label: 'Default',
+      priority: 0,
+      region: null,
+      connected_at: '2026-04-27',
+      ...overrides,
+    };
+  }
+
+  describe('multi-key chain', () => {
+    it('shows the legacy single-key view (no list, no Primary badge) when only one key is connected', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        connected: true,
+        providers: [makeProvider()],
+      });
+      // Header still says "API Key" (singular).
+      expect(container.querySelector('.provider-detail__label')!.textContent).toBe('API Key');
+      // The legacy disabled key input is rendered; there's no <ul role=list>.
+      expect(container.querySelector('input[disabled]')).toBeDefined();
+      expect(container.querySelector('ul[role="list"]')).toBeNull();
+    });
+
+    it('renders the add-key form when addKeyOpen signal is true for api_key providers', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { getByText } = mount({
+        provDef: def,
+        connected: true,
+        addKeyOpen: true,
+        providers: [makeProvider()],
+      });
+      expect(getByText('Add key')).toBeDefined();
+    });
+
+    it('renders the add-key form when addKeyOpen is true for subscription providers (multi-account chain)', () => {
+      const def = makeProviderDef({
+        id: 'anthropic',
+        name: 'Anthropic',
+        supportsSubscription: true,
+        subscriptionLabel: 'Claude Pro',
+      });
+      const { getByText } = mount({
+        provDef: def,
+        connected: true,
+        isSubMode: true,
+        selectedAuthType: 'subscription',
+        addKeyOpen: true,
+        providers: [
+          makeProvider({ provider: 'anthropic', auth_type: 'subscription', label: 'Default' }),
+        ],
+      });
+      expect(getByText('Add key')).toBeDefined();
+    });
+
+    it('does not show "+ Add another key" for local providers (Ollama)', () => {
+      const def = makeProviderDef({ id: 'ollama', name: 'Ollama' });
+      const { queryByText } = mount({
+        provDef: def,
+        connected: true,
+        selectedAuthType: 'local',
+        providers: [
+          makeProvider({
+            provider: 'ollama',
+            auth_type: 'local',
+            label: 'Default',
+            has_api_key: false,
+          }),
+        ],
+      });
+      expect(queryByText('+ Add another key')).toBeNull();
+    });
+
+    it('switches to list mode (header "API Keys", <ul role="list">) when 2+ keys exist', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        connected: true,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      expect(container.querySelector('.provider-detail__label')!.textContent).toBe('API Keys');
+      expect(container.querySelector('ul[role="list"]')).toBeDefined();
+    });
+
+    it('renders each key by its label without chain badges', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { getByText, queryByText } = mount({
+        provDef: def,
+        connected: true,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      expect(getByText('Personal')).toBeDefined();
+      expect(getByText('Work')).toBeDefined();
+      // No "Primary" / "Fallback N" — keys are equal, fallback is configured
+      // separately via the existing model-fallback UI.
+      expect(queryByText('Primary')).toBeNull();
+      expect(queryByText('Fallback 1')).toBeNull();
+    });
+
+    it('rename invokes renameProviderKey with the auth_type and refreshes', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const onUpdate = vi.fn();
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        onUpdate,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      // Open rename for the first row (Personal).
+      const renameButtons = container.querySelectorAll('button');
+      const personalRename = Array.from(renameButtons).find(
+        (b) => b.textContent === 'Rename',
+      ) as HTMLButtonElement;
+      fireEvent.click(personalRename);
+
+      const renameInput = container.querySelector(
+        'input[aria-label="Rename Personal"]',
+      ) as HTMLInputElement;
+      fireEvent.input(renameInput, { target: { value: 'Home' } });
+      fireEvent.click(getByText('Save'));
+
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(renameProviderKeyMock).toHaveBeenCalledWith(
+        'test-agent',
+        'openai',
+        'Personal',
+        'Home',
+        'api_key',
+      );
+      expect(onUpdate).toHaveBeenCalled();
+    });
+
+    it('does not render reorder controls — keys are equal credentials, not a chain', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        connected: true,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      expect(container.querySelector('button[aria-label="Move Personal down"]')).toBeNull();
+      expect(container.querySelector('button[aria-label="Move Work up"]')).toBeNull();
+    });
+
+    it('trash icon on a list row deletes by label without unmounting the modal', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const onBack = vi.fn();
+      const onUpdate = vi.fn();
+      const { container } = mount({
+        provDef: def,
+        connected: true,
+        onBack,
+        onUpdate,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      const deleteWork = container.querySelector(
+        'button[aria-label="Delete key Work"]',
+      ) as HTMLButtonElement;
+      fireEvent.click(deleteWork);
+
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(disconnectProviderMock).toHaveBeenCalledWith(
+        'test-agent',
+        'openai',
+        'api_key',
+        'Work',
+      );
+      // Stays on the modal so the user can keep editing the chain.
+      expect(onBack).not.toHaveBeenCalled();
+      expect(onUpdate).toHaveBeenCalled();
+    });
+
+    it('inline rename for a chain row calls renameProviderKey and refreshes', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const onUpdate = vi.fn();
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        onUpdate,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      // Click the first row's Rename button.
+      const renameBtns = Array.from(container.querySelectorAll('button')).filter(
+        (b) => b.textContent === 'Rename',
+      );
+      fireEvent.click(renameBtns[0] as HTMLButtonElement);
+      const input = container.querySelector('input[type="text"]') as HTMLInputElement;
+      fireEvent.input(input, { target: { value: 'Home' } });
+      fireEvent.click(getByText('Save'));
+
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(renameProviderKeyMock).toHaveBeenCalledWith(
+        'test-agent',
+        'openai',
+        'Personal',
+        'Home',
+        'api_key',
+      );
+      expect(toastSuccess).toHaveBeenCalledWith('Renamed to "Home"');
+    });
+
+    it('AddAnotherKeyAction submits a new labeled key with the suggested default label', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const onUpdate = vi.fn();
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        addKeyOpen: true,
+        onUpdate,
+        providers: [makeProvider({ id: 'p1', label: 'Default', priority: 0 })],
+      });
+      // Form is already open via addKeyOpen. The api-key input has a placeholder "sk-...".
+      const apiKeyInput = container.querySelector(
+        'input[placeholder="sk-..."]',
+      ) as HTMLInputElement;
+      fireEvent.input(apiKeyInput, { target: { value: 'sk-second' } });
+      fireEvent.click(getByText('Add key'));
+
+      await Promise.resolve();
+      await Promise.resolve();
+      // Default suggestion for the 2nd key is "Key 2".
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'openai',
+        apiKey: 'sk-second',
+        authType: 'api_key',
+        label: 'Key 2',
+      });
+      expect(toastSuccess).toHaveBeenCalledWith('OpenAI key "Key 2" added');
+    });
+
+    it('list-mode AddAnotherKeyAction submits a 3rd key via connectProvider with the chain auth_type', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const onUpdate = vi.fn();
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        addKeyOpen: true,
+        onUpdate,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      // List mode is active because there are 2 keys; form is open via addKeyOpen.
+      // The api-key input has id="add-key-value".
+      const apiKeyInput = container.querySelector('#add-key-value') as HTMLInputElement;
+      fireEvent.input(apiKeyInput, { target: { value: 'sk-third' } });
+      fireEvent.click(getByText('Add key'));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'openai',
+        apiKey: 'sk-third',
+        authType: 'api_key',
+        label: 'Key 3',
+      });
+      expect(toastSuccess).toHaveBeenCalledWith('OpenAI key "Key 3" added');
+    });
+
+    it('list-mode AddAnotherKey routes through validateSubscriptionKey when chain is subscription', async () => {
+      const def = makeProviderDef({
+        id: 'anthropic',
+        name: 'Anthropic',
+        supportsSubscription: true,
+        subscriptionLabel: 'Claude Pro',
+      });
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        isSubMode: true,
+        selectedAuthType: 'subscription',
+        addKeyOpen: true,
+        providers: [
+          makeProvider({
+            id: 's1',
+            provider: 'anthropic',
+            auth_type: 'subscription',
+            label: 'Personal',
+            priority: 0,
+          }),
+          makeProvider({
+            id: 's2',
+            provider: 'anthropic',
+            auth_type: 'subscription',
+            label: 'Work',
+            priority: 1,
+          }),
+        ],
+      });
+      const tokenInput = container.querySelector('#add-key-value') as HTMLInputElement;
+      fireEvent.input(tokenInput, { target: { value: 'sub-third-token' } });
+      fireEvent.click(getByText('Add key'));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'anthropic',
+        apiKey: 'sub-third-token',
+        authType: 'subscription',
+        label: 'Key 3',
+      });
+    });
+
+    it('handleAddKey returns false when connectProvider rejects', async () => {
+      connectProviderMock.mockRejectedValueOnce(new Error('bad'));
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        addKeyOpen: true,
+        providers: [makeProvider({ id: 'p1', label: 'Default', priority: 0 })],
+      });
+      const apiKeyInput = container.querySelector('#add-key-value') as HTMLInputElement;
+      fireEvent.input(apiKeyInput, { target: { value: 'sk-second' } });
+      fireEvent.click(getByText('Add key'));
+      await Promise.resolve();
+      await Promise.resolve();
+      // No success toast, form remains open (the catch returned false).
+      expect(toastSuccess).not.toHaveBeenCalled();
+    });
+
+    it('AddAnotherKeyAction Cancel closes the form without submitting', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container, getByText, queryByText } = mount({
+        provDef: def,
+        connected: true,
+        addKeyOpen: true,
+        providers: [makeProvider({ id: 'p1', label: 'Default', priority: 0 })],
+      });
+      expect(queryByText('Cancel')).toBeDefined();
+      fireEvent.click(getByText('Cancel'));
+      // Form collapses; the Cancel button is gone.
+      expect(container.querySelector('input[placeholder="sk-..."]')).toBeNull();
+      expect(connectProviderMock).not.toHaveBeenCalled();
     });
   });
 });

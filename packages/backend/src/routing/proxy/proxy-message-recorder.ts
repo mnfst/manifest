@@ -40,6 +40,7 @@ export interface ProviderErrorOpts extends HeaderTierRef {
    */
   reason?: string;
   specificityCategory?: string;
+  providerKeyLabel?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
 }
@@ -57,6 +58,7 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
    * keep the same audit context as their non-fallback siblings.
    */
   reason?: string;
+  providerKeyLabel?: string;
   usage?: StreamUsage;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
@@ -69,6 +71,7 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   sessionKey?: string;
   durationMs?: number;
   specificityCategory?: string;
+  providerKeyLabel?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
 }
@@ -150,6 +153,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       authType,
       reason,
       specificityCategory,
+      providerKeyLabel,
       callerAttribution,
       requestHeaders,
       headerTierId,
@@ -194,6 +198,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         fallback_index: fallbackIndex ?? null,
         auth_type: authType ?? null,
         specificity_category: specificityCategory ?? null,
+        provider_key_label: providerKeyLabel ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
         header_tier_id: headerTierId ?? null,
@@ -352,6 +357,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       timestamp,
       authType,
       reason,
+      providerKeyLabel,
       usage,
       callerAttribution,
       requestHeaders,
@@ -401,6 +407,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         auth_type: authType ?? null,
         fallback_from_model: canonicalFallbackFrom.model,
         fallback_index: fallbackIndex ?? null,
+        provider_key_label: providerKeyLabel ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
         header_tier_id: headerTierId ?? null,
@@ -428,6 +435,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       sessionKey,
       durationMs,
       specificityCategory,
+      providerKeyLabel,
       callerAttribution,
       requestHeaders,
       headerTierId,
@@ -500,6 +508,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               user_id: ctx.userId,
               duration_ms: durationMs ?? null,
               specificity_category: specificityCategory ?? null,
+              provider_key_label: providerKeyLabel ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
               header_tier_id: headerTierId ?? null,
@@ -536,6 +545,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               fallback_index: null,
               duration_ms: durationMs ?? null,
               specificity_category: specificityCategory ?? null,
+              provider_key_label: providerKeyLabel ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
               header_tier_id: headerTierId ?? null,

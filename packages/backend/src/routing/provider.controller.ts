@@ -5,7 +5,9 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -19,8 +21,11 @@ import { PricingSyncService } from '../database/pricing-sync.service';
 import {
   AgentNameParamDto,
   AgentProviderParamDto,
+  AgentProviderKeyParamDto,
   ConnectProviderDto,
   RemoveProviderQueryDto,
+  RenameProviderKeyDto,
+  ReorderProviderKeysDto,
 } from './dto/routing.dto';
 import { isQwenRegion } from './qwen-region';
 
@@ -72,6 +77,8 @@ export class ProviderController {
       is_active: p.is_active,
       has_api_key: !!p.api_key_encrypted,
       key_prefix: p.key_prefix ?? null,
+      label: p.label,
+      priority: p.priority,
       region: p.region ?? null,
       connected_at: p.connected_at,
     }));
@@ -108,6 +115,7 @@ export class ProviderController {
       body.apiKey,
       body.authType,
       body.region,
+      body.label,
     );
 
     // Discover models and recalculate tiers before returning so the
@@ -128,8 +136,55 @@ export class ProviderController {
       provider: result.provider,
       auth_type: result.auth_type ?? 'api_key',
       is_active: result.is_active,
+      label: result.label,
+      priority: result.priority,
       region: result.region ?? null,
     };
+  }
+
+  @Patch(':agentName/providers/:provider/keys/:label')
+  async renameProviderKey(
+    @CurrentUser() user: AuthUser,
+    @Param() params: AgentProviderKeyParamDto,
+    @Body() body: RenameProviderKeyDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const updated = await this.providerService.renameKey(
+      agent.id,
+      params.provider,
+      body.authType ?? 'api_key',
+      params.label,
+      body.newLabel,
+    );
+    return {
+      id: updated.id,
+      provider: updated.provider,
+      auth_type: updated.auth_type,
+      label: updated.label,
+      priority: updated.priority,
+    };
+  }
+
+  @Put(':agentName/providers/:provider/keys/order')
+  async reorderProviderKeys(
+    @CurrentUser() user: AuthUser,
+    @Param() params: AgentProviderParamDto,
+    @Body() body: ReorderProviderKeysDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const updated = await this.providerService.reorderKeys(
+      agent.id,
+      params.provider,
+      body.authType ?? 'api_key',
+      body.labels,
+    );
+    return updated
+      .sort((a, b) => a.priority - b.priority)
+      .map((row) => ({
+        id: row.id,
+        label: row.label,
+        priority: row.priority,
+      }));
   }
 
   @Post(':agentName/providers/deactivate-all')
@@ -150,6 +205,7 @@ export class ProviderController {
       agent.id,
       params.provider,
       query.authType,
+      query.label,
     );
     return { ok: true, notifications };
   }

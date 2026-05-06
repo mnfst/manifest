@@ -38,9 +38,13 @@ export class SpecificityController {
   ) {
     this.validateCategory(category);
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    // Prefer the structured route when the client sent it, otherwise use the
+    // flat fields. `route.keyLabel` and the legacy flat `providerKeyLabel`
+    // carry the same multi-key pin.
     const model = body.route?.model ?? body.model;
     const provider = body.route?.provider ?? body.provider;
     const authType = body.route?.authType ?? body.authType;
+    const providerKeyLabel = body.route?.keyLabel ?? body.providerKeyLabel;
     return this.specificityService.setOverride(
       agent.id,
       user.id,
@@ -48,6 +52,7 @@ export class SpecificityController {
       model,
       provider,
       authType,
+      providerKeyLabel,
     );
   }
 

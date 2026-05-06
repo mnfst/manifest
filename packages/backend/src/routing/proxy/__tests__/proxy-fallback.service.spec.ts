@@ -483,11 +483,55 @@ describe('ProxyFallbackService', () => {
         'Anthropic',
         new Set(['subscription']),
       );
-      // getProviderApiKey should use the alternate auth type
+      // getProviderApiKey should use the alternate auth type. The 4th arg is
+      // the optional providerKeyLabel — undefined when the fallback entry
+      // has no `||<label>` suffix.
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
         'agent-1',
         'Anthropic',
         'api_key',
+        undefined,
+      );
+    });
+
+    it('forwards keyLabel from a structured fallback route to getProviderApiKey', async () => {
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-work-key');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      // Structured route (ModelRoute[]) is the canonical fallback shape now.
+      // keyLabel rides along with each route — no more `||<label>` parsing.
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['gemini-2.5-flash'],
+        body,
+        false,
+        'sess-1',
+        'gpt-4o',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [{ provider: 'Google', authType: 'api_key', model: 'gemini-2.5-flash', keyLabel: 'Work' }],
+      );
+
+      expect(result.success).not.toBeNull();
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
+        'agent-1',
+        'Google',
+        'api_key',
+        'Work',
+      );
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({ model: 'gemini-2.5-flash' }),
       );
     });
 

@@ -100,7 +100,10 @@ function RequestHeadersSection(props: { headers: Record<string, string> }): JSX.
         aria-expanded={open() ? 'true' : 'false'}
         aria-controls={tableId}
         onClick={() => setOpen((v) => !v)}
+        style="font-size: 12px;"
       >
+        Request Headers
+        <span class="msg-detail__count-badge">{entries().length}</span>
         <span
           class="msg-detail__chevron"
           classList={{ 'msg-detail__chevron--open': open() }}
@@ -108,8 +111,6 @@ function RequestHeadersSection(props: { headers: Record<string, string> }): JSX.
         >
           &#9656;
         </span>
-        Request Headers
-        <span class="msg-detail__count">{entries().length}</span>
       </button>
       <Show when={open()}>
         <div class="data-table-scroll" id={tableId}>
@@ -239,6 +240,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   <MetaField label="ID" value={m.id} />
                   <MetaField label="Provider" value={provider} />
                   <MetaField label="Auth" value={m.auth_type} />
+                  <MetaField label="API Key" value={m.provider_key_label ?? 'Default'} />
                   <MetaField label="Model" value={m.model ? getModelDisplayName(m.model) : null} />
                   <MetaField label="Model ID" value={m.model} />
                   <MetaField label="Trace" value={m.trace_id?.slice(0, 16)} />

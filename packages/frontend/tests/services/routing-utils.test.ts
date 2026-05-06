@@ -5,7 +5,9 @@ import {
   inferProviderFromModel,
   inferProviderName,
   stripCustomPrefix,
+  usedKeyLabelsForModelInTier,
 } from "../../src/services/routing-utils";
+import type { TierAssignment } from "../../src/services/api";
 
 /* ── pricePerM ─────────────────────────────────── */
 
@@ -227,5 +229,106 @@ describe("stripCustomPrefix", () => {
 
   it("returns the original string for malformed custom prefix", () => {
     expect(stripCustomPrefix("custom:no-slash")).toBe("custom:no-slash");
+  });
+});
+
+/* ── usedKeyLabelsForModelInTier ──────────────── */
+
+describe("usedKeyLabelsForModelInTier", () => {
+  const baseTier = (overrides: Partial<TierAssignment>): TierAssignment => ({
+    id: "t1",
+    agent_id: "a1",
+    tier: "standard",
+    override_route: null,
+    auto_assigned_route: null,
+    fallback_routes: null,
+    updated_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  });
+
+  it("returns an empty set for an undefined tier", () => {
+    expect(usedKeyLabelsForModelInTier(undefined, "gpt-4o")).toEqual(new Set());
+  });
+
+  it("collects the primary's keyLabel (case-folded) when its model matches", () => {
+    const tier = baseTier({
+      override_route: {
+        provider: "openai",
+        authType: "api_key",
+        model: "gpt-4o",
+        keyLabel: "Work",
+      },
+    });
+    expect(usedKeyLabelsForModelInTier(tier, "gpt-4o")).toEqual(new Set(["work"]));
+  });
+
+  it("falls back to defaultKeyLabel when primary has no explicit pin", () => {
+    const tier = baseTier({
+      auto_assigned_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+    });
+    expect(usedKeyLabelsForModelInTier(tier, "gpt-4o", undefined, "Default")).toEqual(
+      new Set(["default"]),
+    );
+  });
+
+  it("does not include the primary slot when excludeSlot is 'primary'", () => {
+    const tier = baseTier({
+      override_route: {
+        provider: "openai",
+        authType: "api_key",
+        model: "gpt-4o",
+        keyLabel: "Work",
+      },
+    });
+    expect(usedKeyLabelsForModelInTier(tier, "gpt-4o", "primary")).toEqual(new Set());
+  });
+
+  it("ignores the primary when its model does not match", () => {
+    const tier = baseTier({
+      override_route: {
+        provider: "openai",
+        authType: "api_key",
+        model: "claude-opus-4",
+        keyLabel: "Work",
+      },
+    });
+    expect(usedKeyLabelsForModelInTier(tier, "gpt-4o")).toEqual(new Set());
+  });
+
+  it("collects keyLabels from matching fallback routes", () => {
+    const tier = baseTier({
+      fallback_routes: [
+        { provider: "openai", authType: "api_key", model: "gpt-4o", keyLabel: "Work" },
+        { provider: "openai", authType: "api_key", model: "gpt-4o", keyLabel: "Personal" },
+        { provider: "openai", authType: "api_key", model: "claude-opus-4", keyLabel: "Other" },
+        { provider: "openai", authType: "api_key", model: "gpt-4o" }, // no keyLabel
+      ],
+    });
+    expect(usedKeyLabelsForModelInTier(tier, "gpt-4o")).toEqual(new Set(["work", "personal"]));
+  });
+
+  it("excludes a specific fallback index from collection", () => {
+    const tier = baseTier({
+      fallback_routes: [
+        { provider: "openai", authType: "api_key", model: "gpt-4o", keyLabel: "Work" },
+        { provider: "openai", authType: "api_key", model: "gpt-4o", keyLabel: "Personal" },
+      ],
+    });
+    expect(usedKeyLabelsForModelInTier(tier, "gpt-4o", 0)).toEqual(new Set(["personal"]));
+  });
+
+  it("combines primary and fallback labels when both match", () => {
+    const tier = baseTier({
+      override_route: {
+        provider: "openai",
+        authType: "api_key",
+        model: "gpt-4o",
+        keyLabel: "Work",
+      },
+      fallback_routes: [
+        { provider: "openai", authType: "api_key", model: "gpt-4o", keyLabel: "Personal" },
+      ],
+    });
+    expect(usedKeyLabelsForModelInTier(tier, "gpt-4o")).toEqual(new Set(["work", "personal"]));
   });
 });

@@ -1,4 +1,4 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
+import { createSignal, createEffect, onCleanup, For, Show, type Component } from 'solid-js';
 import {
   clearFallbacks,
   setFallbacks,
@@ -6,11 +6,16 @@ import {
   type CustomProviderData,
   type ModelRoute,
   type RoutingProvider,
+  type TierAssignment,
 } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
 import { getModelLabel } from '../services/provider-utils.js';
 import { PROVIDERS } from '../services/providers.js';
-import { resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
+import {
+  resolveProviderId,
+  stripCustomPrefix,
+  usedKeyLabelsForModelInTier,
+} from '../services/routing-utils.js';
 import { toast } from '../services/toast-store.js';
 import { authBadgeFor } from './AuthBadge.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
@@ -18,6 +23,7 @@ import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 interface FallbackListProps {
   agentName: string;
   tier: string;
+  tierData?: () => TierAssignment | undefined;
   fallbacks: string[];
   // Optional structured route per fallback. When present (length matches
   // fallbacks), each row renders provider/auth from the route instead of
@@ -62,6 +68,57 @@ const FallbackList: Component<FallbackListProps> = (props) => {
       if (provId) return getModelLabel(provId, model);
     }
     return stripCustomPrefix(model);
+  };
+
+  /**
+   * Active labeled keys for (provider, auth_type), sorted by priority. Used
+   * to decide whether to render the key chip on a fallback row — chip only
+   * shows when 2+ keys exist (single-key users see the row exactly as
+   * before).
+   */
+  const keysForFallback = (
+    providerId: string | undefined,
+    auth: string | null,
+  ): RoutingProvider[] => {
+    if (!providerId || !auth || auth === 'local') return [];
+    return props.connectedProviders
+      .filter(
+        (p) =>
+          p.provider.toLowerCase() === providerId.toLowerCase() &&
+          p.auth_type === auth &&
+          p.is_active &&
+          p.has_api_key,
+      )
+      .slice()
+      .sort((a, b) => a.priority - b.priority);
+  };
+
+  /**
+   * Update the keyLabel pin on a single fallback row. Reads/writes through the
+   * structured `fallbackRoutes` so the persisted shape stays canonical
+   * (ModelRoute[] with `keyLabel`); the encoded string list is rebuilt to
+   * keep optimistic-update parents that still consume `string[]` working.
+   */
+  const setLabelAt = async (index: number, newLabel: string | null) => {
+    const original = [...props.fallbacks];
+    const originalRoutes = props.fallbackRoutes ? [...props.fallbackRoutes] : null;
+    const updatedRoutes: ModelRoute[] | null = originalRoutes
+      ? originalRoutes.map((r, i) =>
+          i === index ? ({ ...r, keyLabel: newLabel ?? null } as ModelRoute) : r,
+        )
+      : null;
+    // Bare model names — no `||<label>` encoding now that the structured
+    // `fallbackRoutes` carries keyLabel directly. The model list is just for
+    // the optimistic-update parents that still consume `string[]`; the
+    // canonical persisted shape is the route array.
+    const updated = [...props.fallbacks];
+    props.onUpdate(updated, updatedRoutes);
+    try {
+      await persistSet(props.agentName, props.tier, updated, updatedRoutes ?? undefined);
+      toast.success(newLabel ? `Fallback pinned to "${newLabel}"` : 'Fallback key pin cleared');
+    } catch {
+      props.onUpdate(original, originalRoutes);
+    }
   };
 
   const providerIdFor = (model: string, index: number): string | undefined => {
@@ -238,11 +295,19 @@ const FallbackList: Component<FallbackListProps> = (props) => {
           onDragEnd={handleDragEnd}
         >
           <For each={props.fallbacks}>
-            {(model, i) => {
-              const provId = () => providerIdFor(model, i());
+            {(entry, i) => {
+              // Each fallback row reads its model + (optional) keyLabel pin
+              // from the structured `fallbackRoutes`, which is the canonical
+              // location for the pin now that `||<label>` encoding has been
+              // dropped. The bare `entry` string carries only the model name.
+              const model = () => entry;
+              const route = () => props.fallbackRoutes?.[i()];
+              const pinnedLabel = () => route()?.keyLabel ?? null;
+              const provId = () => providerIdFor(model(), i());
               const isCustom = () => provId()?.startsWith('custom:');
               const auth = () => authTypeFor(provId(), i());
               const title = () => providerTitle(provId(), auth());
+              const keys = () => keysForFallback(provId(), auth());
               return (
                 <>
                   <div
@@ -270,16 +335,6 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     // row itself catches every drop target.
                     onDragEnd={handleDragEnd}
                   >
-                    <span class="fallback-list__drag-handle" aria-hidden="true">
-                      <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor">
-                        <circle cx="2" cy="2" r="1.2" />
-                        <circle cx="6" cy="2" r="1.2" />
-                        <circle cx="2" cy="7" r="1.2" />
-                        <circle cx="6" cy="7" r="1.2" />
-                        <circle cx="2" cy="12" r="1.2" />
-                        <circle cx="6" cy="12" r="1.2" />
-                      </svg>
-                    </span>
                     <Show when={provId() && !isCustom()}>
                       <span class="fallback-list__icon" title={title()}>
                         {providerIcon(provId()!, 14)}
@@ -289,7 +344,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     <Show when={isCustom()}>
                       {(() => {
                         const cp = props.customProviders.find((c) => `custom:${c.id}` === provId());
-                        const logo = customProviderLogo(cp?.name ?? '', 14, cp?.base_url, model);
+                        const logo = customProviderLogo(cp?.name ?? '', 14, cp?.base_url, model());
                         if (logo) {
                           return (
                             <span class="fallback-list__icon" title={cp?.name ?? 'Custom'}>
@@ -315,12 +370,23 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                         );
                       })()}
                     </Show>
-                    <span class="fallback-list__model">{modelLabel(model)}</span>
+                    <span class="fallback-list__model">{modelLabel(model())}</span>
+                    <Show when={keys().length > 1}>
+                      <FallbackKeyChip
+                        keys={keys()}
+                        currentLabel={pinnedLabel() ?? undefined}
+                        modelLabel={modelLabel(model())}
+                        modelName={model()}
+                        tier={props.tierData ?? (() => undefined)}
+                        fallbackIndex={i()}
+                        onPick={(label) => setLabelAt(i(), label)}
+                      />
+                    </Show>
                     <button
                       class="fallback-list__remove"
                       onClick={() => handleRemove(i())}
                       title="Remove fallback"
-                      aria-label={`Remove ${modelLabel(model)}`}
+                      aria-label={`Remove ${modelLabel(model())}`}
                       disabled={removingIndex() !== null}
                     >
                       {removingIndex() === i() ? (
@@ -427,6 +493,123 @@ const FallbackList: Component<FallbackListProps> = (props) => {
         </Show>
       </Show>
     </div>
+  );
+};
+
+/**
+ * Compact inline pill that shows the currently-pinned API key for a fallback
+ * row and lets the user pick a different one. Renders only when the row's
+ * provider has 2+ active keys, so single-key users never see it.
+ */
+interface FallbackKeyChipProps {
+  keys: RoutingProvider[];
+  currentLabel: string | undefined;
+  modelLabel: string;
+  modelName: string;
+  tier: () => TierAssignment | undefined;
+  fallbackIndex: number;
+  onPick: (label: string | null) => void;
+}
+
+const FallbackKeyChip: Component<FallbackKeyChipProps> = (props) => {
+  const [open, setOpen] = createSignal(false);
+  let containerRef: HTMLSpanElement | undefined;
+  createEffect(() => {
+    if (open()) {
+      const handler = (e: MouseEvent) => {
+        if (containerRef && !containerRef.contains(e.target as Node)) setOpen(false);
+      };
+      document.addEventListener('mousedown', handler);
+      onCleanup(() => document.removeEventListener('mousedown', handler));
+    }
+  });
+  const displayLabel = () => props.currentLabel ?? props.keys[0]?.label ?? '';
+  const usedKeys = () =>
+    usedKeyLabelsForModelInTier(
+      props.tier(),
+      props.modelName,
+      props.fallbackIndex,
+      props.keys[0]?.label,
+    );
+
+  return (
+    <span ref={containerRef} style="position: relative; display: inline-flex; flex-shrink: 0;">
+      <button
+        type="button"
+        class="fallback-list__key-chip"
+        aria-haspopup="listbox"
+        aria-expanded={open()}
+        aria-label={`API key for ${props.modelLabel}: currently ${displayLabel()}. Click to change.`}
+        title={displayLabel()}
+        onClick={() => setOpen(!open())}
+        style="background: hsl(var(--muted) / 0.5); border: 1px solid hsl(var(--border)); border-radius: 999px; padding: 2px 8px; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); cursor: pointer; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px;"
+      >
+        <span style="overflow: hidden; text-overflow: ellipsis;">{displayLabel()}</span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      <Show when={open()}>
+        <ul
+          role="listbox"
+          aria-label="Choose API key"
+          style="position: absolute; top: 100%; right: 0; margin-top: 4px; list-style: none; padding: 4px; min-width: 160px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); box-shadow: 0 4px 12px hsl(var(--foreground) / 0.08); z-index: 10; display: flex; flex-direction: column; gap: 2px;"
+        >
+          <Show when={props.currentLabel}>
+            <li>
+              <button
+                type="button"
+                role="option"
+                aria-selected={false}
+                onClick={() => {
+                  setOpen(false);
+                  props.onPick(null);
+                }}
+                style="width: 100%; text-align: left; background: none; border: none; padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); border-bottom: 1px solid hsl(var(--border)); margin-bottom: 2px; padding-bottom: 6px;"
+              >
+                Clear pin
+              </button>
+            </li>
+          </Show>
+          <For each={props.keys}>
+            {(k) => {
+              const isUsed = () => usedKeys().has(k.label.toLowerCase());
+              const isSelected = () =>
+                props.currentLabel
+                  ? props.currentLabel.toLowerCase() === k.label.toLowerCase()
+                  : displayLabel().toLowerCase() === k.label.toLowerCase();
+              return (
+                <li>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected()}
+                    disabled={isUsed()}
+                    onClick={() => {
+                      setOpen(false);
+                      if ((props.currentLabel ?? '').toLowerCase() !== k.label.toLowerCase()) {
+                        props.onPick(k.label);
+                      }
+                    }}
+                    style={`width: 100%; text-align: left; background: none; border: none; padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: var(--font-size-xs); color: hsl(var(--foreground)); display: flex; align-items: center; gap: 6px;${isUsed() ? ' opacity: 0.4; cursor: not-allowed;' : ''}`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="8"
+                      height="8"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      style={`visibility: ${isSelected() ? 'visible' : 'hidden'}`}
+                    >
+                      <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
+                    </svg>
+                    {k.label}
+                  </button>
+                </li>
+              );
+            }}
+          </For>
+        </ul>
+      </Show>
+    </span>
   );
 };
 

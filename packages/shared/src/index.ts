@@ -25,6 +25,12 @@ export {
 } from './model-route';
 export type { ModelRoute, LegacyOverrideTriple } from './model-route';
 export { API_KEY_PREFIX } from './api-key';
+export {
+  FALLBACK_KEY_DELIMITER,
+  parseFallbackEntry,
+  encodeFallbackEntry,
+} from './fallback-encoding';
+export type { FallbackEntry } from './fallback-encoding';
 export { MODEL_PREFIX_MAP, inferProviderFromModel } from './provider-inference';
 export {
   SHARED_PROVIDERS,

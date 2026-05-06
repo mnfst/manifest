@@ -177,13 +177,18 @@ export class ResolveService {
 
     const provider =
       overrideRoute.provider || (await this.resolveProviderForModel(agentId, overrideRoute.model));
-    const authType =
+    const authType: AuthType =
       overrideRoute.authType ??
       (await this.providerKeyService.getAuthType(agentId, provider ?? ''));
+    const baseRoute: ModelRoute | null =
+      provider && authType
+        ? { provider, authType, model: overrideRoute.model, keyLabel: overrideRoute.keyLabel }
+        : null;
+    const route = baseRoute ? await this.enrichRouteKeyLabel(agentId, baseRoute) : null;
 
     return {
       tier: 'standard',
-      route: provider && authType ? { provider, authType, model: overrideRoute.model } : null,
+      route,
       fallback_routes: readFallbackRoutes(match),
       confidence: 1,
       score: 0,
@@ -253,7 +258,7 @@ export class ResolveService {
 
     return {
       tier: 'standard',
-      route,
+      route: await this.enrichRouteKeyLabel(agentId, route),
       fallback_routes: readFallbackRoutes(assignment),
       confidence: detected.confidence,
       score: 0,
@@ -265,7 +270,8 @@ export class ResolveService {
   /**
    * Build the resolved route for a tier assignment. Validates the override
    * still points to an available model; falls through to auto-assigned when
-   * the override is orphaned.
+   * the override is orphaned. Enriches with the default key label when no
+   * explicit pin is present.
    */
   private async buildResolvedRoute(
     agentId: string,
@@ -274,13 +280,36 @@ export class ResolveService {
     const override = readOverrideRoute(assignment);
     if (override) {
       if (await this.providerKeyService.isModelAvailable(agentId, override.model)) {
-        return override;
+        return this.enrichRouteKeyLabel(agentId, override);
       }
       this.logger.warn(
         `Override ${override.model} unavailable for agent=${agentId} — falling back to auto`,
       );
     }
-    return assignment.auto_assigned_route ?? null;
+    return assignment.auto_assigned_route
+      ? this.enrichRouteKeyLabel(agentId, assignment.auto_assigned_route)
+      : null;
+  }
+
+  /**
+   * Fill in `route.keyLabel` from the agent's default (priority-0) key for
+   * (route.provider, route.authType) when the route doesn't already pin a
+   * specific label. The proxy needs a concrete keyLabel to pick the right
+   * row in `user_providers`; without this, multi-key users would always hit
+   * the first key, ignoring per-tier pins set on auto-assigned routes.
+   *
+   * authType is taken from the route itself (not from any assignment-level
+   * legacy field), so this can't accidentally use the override's authType
+   * for an auto-assigned model picked under a different auth mode.
+   */
+  private async enrichRouteKeyLabel(agentId: string, route: ModelRoute): Promise<ModelRoute> {
+    if (route.keyLabel) return route;
+    const label = await this.providerKeyService.getDefaultKeyLabel(
+      agentId,
+      route.provider,
+      route.authType,
+    );
+    return label ? { ...route, keyLabel: label } : route;
   }
 
   /**
@@ -302,10 +331,6 @@ export class ResolveService {
     if (pricing && pricing.provider !== 'OpenRouter') return pricing.provider;
     return null;
   }
-
-  /** Suppress lint for unused type — kept for future provider-key integrations. */
-
-  private _typeMarker?: AuthType;
 }
 
 function matchesHeaderRule(headers: IncomingHttpHeaders, tier: HeaderTier): boolean {

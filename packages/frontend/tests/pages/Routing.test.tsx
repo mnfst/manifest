@@ -290,6 +290,12 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
     onReset: (cat: string) => void;
     onFallbackUpdate: (cat: string, fbs: string[]) => void;
     onAddFallback: (cat: string) => void;
+    onPinKey?: (
+      cat: string,
+      provider: string,
+      label: string | null,
+      authType?: string,
+    ) => void;
   }) => (
     <div data-testid="spec-section">
       <button data-testid="spec-open" onClick={() => props.onDropdownOpen("coding")}>
@@ -315,6 +321,30 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
         onClick={() => props.onAddFallback("coding")}
       >
         spec-add-fallback
+      </button>
+      <button
+        data-testid="spec-pin-key"
+        onClick={() => props.onPinKey?.("coding", "anthropic", "Work", "api_key")}
+      >
+        spec-pin-key
+      </button>
+      <button
+        data-testid="spec-pin-key-clear"
+        onClick={() => props.onPinKey?.("coding", "anthropic", null)}
+      >
+        spec-pin-key-clear
+      </button>
+      <button
+        data-testid="spec-pin-key-missing-cat"
+        onClick={() => props.onPinKey?.("unknown-category", "anthropic", "Work")}
+      >
+        spec-pin-key-missing-cat
+      </button>
+      <button
+        data-testid="spec-pin-key-missing-provider"
+        onClick={() => props.onPinKey?.("coding", "", "Work")}
+      >
+        spec-pin-key-missing-provider
       </button>
     </div>
   ),
@@ -553,6 +583,7 @@ describe("Routing page", () => {
         "claude",
         "anthropic",
         "api_key",
+        undefined,
       );
     });
   });
@@ -626,6 +657,128 @@ describe("Routing page", () => {
     fireEvent.click(screen.getByTestId("spec-fb-update-add"));
     await waitFor(() => {
       expect(mockToastError).toHaveBeenCalledWith("Failed to update fallbacks");
+    });
+  });
+
+  describe("handleSpecificityPinKey", () => {
+    const codingAssignment = {
+      id: "s1",
+      agent_id: "a",
+      category: "coding",
+      is_active: true,
+      override_route: { provider: "anthropic", authType: "api_key" as const, model: "claude-opus" },
+      auto_assigned_route: null,
+      fallback_routes: [],
+      updated_at: "2025-01-01",
+    };
+
+    it("calls overrideSpecificity with the new keyLabel and re-uses the existing model", async () => {
+      mockGetSpecificityAssignments.mockResolvedValue([codingAssignment]);
+      mockOverrideSpecificity.mockResolvedValue(undefined);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key"));
+      await waitFor(() => {
+        expect(mockOverrideSpecificity).toHaveBeenCalledWith(
+          "demo",
+          "coding",
+          "claude-opus",
+          "anthropic",
+          "api_key",
+          "Work",
+        );
+        expect(mockToastSuccess).toHaveBeenCalledWith('Pinned to "Work" key');
+      });
+    });
+
+    it("emits 'Key pin cleared' when the label is null", async () => {
+      mockGetSpecificityAssignments.mockResolvedValue([codingAssignment]);
+      mockOverrideSpecificity.mockResolvedValue(undefined);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key-clear")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key-clear"));
+      await waitFor(() => {
+        expect(mockOverrideSpecificity).toHaveBeenCalledWith(
+          "demo",
+          "coding",
+          "claude-opus",
+          "anthropic",
+          "api_key",
+          undefined,
+        );
+        expect(mockToastSuccess).toHaveBeenCalledWith("Key pin cleared");
+      });
+    });
+
+    it("falls back to auto_assigned_route's model when override is null", async () => {
+      const autoAssignment = {
+        ...codingAssignment,
+        override_route: null,
+        auto_assigned_route: {
+          provider: "anthropic",
+          authType: "api_key" as const,
+          model: "claude-haiku",
+        },
+      };
+      mockGetSpecificityAssignments.mockResolvedValue([autoAssignment]);
+      mockOverrideSpecificity.mockResolvedValue(undefined);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key"));
+      await waitFor(() => {
+        expect(mockOverrideSpecificity).toHaveBeenCalledWith(
+          "demo",
+          "coding",
+          "claude-haiku",
+          "anthropic",
+          "api_key",
+          "Work",
+        );
+      });
+    });
+
+    it("does nothing when the category does not match an existing assignment", async () => {
+      mockGetSpecificityAssignments.mockResolvedValue([codingAssignment]);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key-missing-cat")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key-missing-cat"));
+      // Wait one tick to make sure no async overrideSpecificity call slips through
+      await new Promise((r) => setTimeout(r, 5));
+      expect(mockOverrideSpecificity).not.toHaveBeenCalled();
+    });
+
+    it("does nothing when the provider id is empty", async () => {
+      mockGetSpecificityAssignments.mockResolvedValue([codingAssignment]);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key-missing-provider")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key-missing-provider"));
+      await new Promise((r) => setTimeout(r, 5));
+      expect(mockOverrideSpecificity).not.toHaveBeenCalled();
+    });
+
+    it("swallows errors silently (toast handled upstream by fetchMutate)", async () => {
+      mockGetSpecificityAssignments.mockResolvedValue([codingAssignment]);
+      mockOverrideSpecificity.mockRejectedValue(new Error("boom"));
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key"));
+      await waitFor(() => {
+        expect(mockOverrideSpecificity).toHaveBeenCalled();
+      });
+      // No success toast on rejection
+      expect(mockToastSuccess).not.toHaveBeenCalledWith('Pinned to "Work" key');
     });
   });
 

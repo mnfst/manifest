@@ -74,6 +74,7 @@ function formatModelSlug(slug: string): string {
 }
 
 export function getModelLabel(providerId: string, modelValue: string): string {
+  if (!modelValue) return '';
   const prov = getProvider(providerId);
   if (!prov) return modelValue;
   // Exact match in provider's static models (if any remain)

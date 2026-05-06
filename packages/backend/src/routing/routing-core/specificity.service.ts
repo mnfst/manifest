@@ -75,10 +75,16 @@ export class SpecificityService {
     model: string,
     provider?: string,
     authType?: AuthType,
+    providerKeyLabel?: string,
   ): Promise<SpecificityAssignment> {
-    const explicit = explicitRoute(model, provider, authType);
+    const explicit = explicitRoute(model, provider, authType, providerKeyLabel);
     const route =
-      explicit ?? unambiguousRoute(model, await this.discoveryService.getModelsForAgent(agentId));
+      explicit ??
+      unambiguousRoute(
+        model,
+        await this.discoveryService.getModelsForAgent(agentId),
+        providerKeyLabel,
+      );
     if (!route) {
       throw new BadRequestException(
         `Model "${model}" is offered by multiple providers — pass an explicit ` +
@@ -111,7 +117,16 @@ export class SpecificityService {
       await this.repo.insert(record);
     } catch {
       const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
-      if (retry) return this.setOverride(agentId, userId, category, model, provider, authType);
+      if (retry)
+        return this.setOverride(
+          agentId,
+          userId,
+          category,
+          model,
+          provider,
+          authType,
+          providerKeyLabel,
+        );
     }
     this.routingCache.invalidateAgent(agentId);
     return record;

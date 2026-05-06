@@ -6,7 +6,7 @@ import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import { RoutingCacheService } from './routing-cache.service';
+import { CachedProviderKey, RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import {
@@ -28,20 +28,52 @@ export class ProviderKeyService {
     private readonly providerService: ProviderService,
   ) {}
 
+  /**
+   * Returns the ordered list of API keys for (agent, provider, authType),
+   * lowest priority first (priority 0 is the primary). Each entry's apiKey
+   * is decrypted; entries that fail to decrypt are dropped silently. Local
+   * providers (Ollama) yield a single empty-key entry.
+   */
+  async getProviderKeys(
+    agentId: string,
+    provider: string,
+    authType?: AuthType,
+  ): Promise<CachedProviderKey[]> {
+    if (provider.toLowerCase() === 'ollama') {
+      return [{ id: 'ollama', label: 'Default', priority: 0, apiKey: '', region: null }];
+    }
+
+    const cached = this.routingCache.getProviderKeys(agentId, provider, authType);
+    if (cached !== undefined) return cached;
+
+    const result = await this.resolveProviderKeys(agentId, provider, authType);
+    this.routingCache.setProviderKeys(agentId, provider, result, authType);
+    return result;
+  }
+
+  /** Returns the label of the first (default) key for the given provider+authType. */
+  async getDefaultKeyLabel(
+    agentId: string,
+    provider: string,
+    authType?: AuthType,
+  ): Promise<string | undefined> {
+    const keys = await this.getProviderKeys(agentId, provider, authType);
+    return keys[0]?.label;
+  }
+
   async getProviderApiKey(
     agentId: string,
     provider: string,
     authType?: AuthType,
+    label?: string,
   ): Promise<string | null> {
-    // Ollama runs locally — no API key needed
-    if (provider.toLowerCase() === 'ollama') return '';
-
-    const cached = this.routingCache.getApiKey(agentId, provider, authType);
-    if (cached !== undefined) return cached;
-
-    const result = await this.resolveProviderApiKey(agentId, provider, authType);
-    this.routingCache.setApiKey(agentId, provider, result, authType);
-    return result;
+    const keys = await this.getProviderKeys(agentId, provider, authType);
+    if (keys.length === 0) return null;
+    if (label) {
+      const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
+      if (match) return match.apiKey;
+    }
+    return keys[0].apiKey;
   }
 
   async getAuthType(
@@ -61,11 +93,6 @@ export class ProviderKeyService {
     // Local providers (Ollama, LM Studio) don't store a key — prefer them
     // explicitly before the key-based heuristics below so a local-only
     // record doesn't get overridden by a keyed record for a sibling alias.
-    // We trust the DB row's auth_type here: both migrations and the
-    // insert-time tagging in CustomProviderService cover Ollama and LM
-    // Studio. Matching on CANONICAL_LOCAL_IDS alone would override a
-    // user who explicitly tagged the row as subscription (e.g. Ollama
-    // Cloud re-aliased) or hand-managed api_key, which is surprising.
     const localMatch = matches.find((r) => r.auth_type === 'local');
     if (localMatch) return 'local';
     // Prefer subscription if both exist and the subscription record has a usable key
@@ -87,12 +114,15 @@ export class ProviderKeyService {
     agentId: string,
     provider: string,
     authType?: AuthType,
+    label?: string,
   ): Promise<string | null> {
-    const names = expandProviderNames([provider]);
-    const records = await this.providerService.getProviders(agentId);
-    const matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
-    const match = authType ? matches.find((r) => r.auth_type === authType) : matches[0];
-    return match?.region ?? null;
+    const keys = await this.getProviderKeys(agentId, provider, authType);
+    if (keys.length === 0) return null;
+    if (label) {
+      const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
+      if (match) return match.region;
+    }
+    return keys[0].region;
   }
 
   async findProviderForModel(agentId: string, model: string): Promise<string | undefined> {
@@ -125,35 +155,30 @@ export class ProviderKeyService {
     return autoModel;
   }
 
-  private async resolveProviderApiKey(
+  private async resolveProviderKeys(
     agentId: string,
     provider: string,
     preferredAuthType?: AuthType,
-  ): Promise<string | null> {
+  ): Promise<CachedProviderKey[]> {
     // Custom providers: exact match on provider key, allow empty key for local endpoints
     if (provider.startsWith('custom:')) {
-      const record = await this.providerRepo.findOne({
+      const records = await this.providerRepo.find({
         where: { agent_id: agentId, provider, is_active: true },
+        order: { priority: 'ASC' },
       });
-      if (!record) return null;
-      if (!record.api_key_encrypted) return '';
-      try {
-        return decrypt(record.api_key_encrypted, getEncryptionSecret());
-      } catch {
-        this.logger.warn(`Failed to decrypt API key for custom provider ${provider}`);
-        return null;
-      }
+      return records.flatMap((record) => this.decryptOne(record));
     }
 
     const names = expandProviderNames([provider]);
     const records = await this.providerRepo.find({
       where: { agent_id: agentId, is_active: true },
+      order: { priority: 'ASC' },
     });
 
     const matches = records.filter(
       (r) => isManifestUsableProvider(r) && names.has(r.provider.toLowerCase()),
     );
-    if (matches.length === 0) return null;
+    if (matches.length === 0) return [];
 
     // When a caller explicitly requests an auth type, do not fall through
     // to a different auth type record.
@@ -162,20 +187,59 @@ export class ProviderKeyService {
       : [...matches].sort((a, b) => {
           const aPref = a.auth_type === 'api_key' ? 0 : 1;
           const bPref = b.auth_type === 'api_key' ? 0 : 1;
-          return aPref - bPref;
+          if (aPref !== bPref) return aPref - bPref;
+          return a.priority - b.priority;
         });
 
-    for (const match of candidates) {
-      if (!match.api_key_encrypted) continue;
-      try {
-        return decrypt(match.api_key_encrypted, getEncryptionSecret());
-      } catch {
-        const label = match.auth_type === 'subscription' ? 'token' : 'API key';
-        this.logger.warn(`Failed to decrypt ${label} for provider ${provider}`);
-      }
-    }
+    return candidates.flatMap((record) => this.decryptOne(record));
+  }
 
-    return null;
+  private decryptOne(record: UserProvider): CachedProviderKey[] {
+    if (!record.api_key_encrypted) {
+      // Local providers (auth_type='local') legitimately have no key — surface
+      // an empty string so callers treat the provider as "available". Other
+      // keyless records (e.g. a subscription row pre-staged before OAuth
+      // completes) should not be returned as resolvable.
+      if (record.auth_type === 'local') {
+        return [
+          {
+            id: record.id,
+            label: record.label,
+            priority: record.priority,
+            apiKey: '',
+            region: record.region,
+          },
+        ];
+      }
+      // Custom providers without a key (local-style endpoints) are also valid.
+      if (record.provider.startsWith('custom:')) {
+        return [
+          {
+            id: record.id,
+            label: record.label,
+            priority: record.priority,
+            apiKey: '',
+            region: record.region,
+          },
+        ];
+      }
+      return [];
+    }
+    try {
+      return [
+        {
+          id: record.id,
+          label: record.label,
+          priority: record.priority,
+          apiKey: decrypt(record.api_key_encrypted, getEncryptionSecret()),
+          region: record.region,
+        },
+      ];
+    } catch {
+      const credentialLabel = record.auth_type === 'subscription' ? 'token' : 'API key';
+      this.logger.warn(`Failed to decrypt ${credentialLabel} for provider ${record.provider}`);
+      return [];
+    }
   }
 
   async isModelAvailable(agentId: string, model: string): Promise<boolean> {

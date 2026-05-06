@@ -132,6 +132,7 @@ const Routing: Component = () => {
     modelName,
     providerId,
     authType,
+    providerKeyLabel,
   ) => {
     setFallbackPickerTier(null);
     if (isSpecificityTier(tierId)) {
@@ -158,7 +159,7 @@ const Routing: Component = () => {
       }
       return;
     }
-    return actions.handleAddFallback(tierId, modelName, providerId, authType);
+    return actions.handleAddFallback(tierId, modelName, providerId, authType, providerKeyLabel);
   };
 
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
@@ -197,13 +198,48 @@ const Routing: Component = () => {
     model: string,
     provider: string,
     authType?: 'api_key' | 'subscription' | 'local',
+    providerKeyLabel?: string,
   ) => {
     setChangingSpecificity(category);
     try {
-      await overrideSpecificity(agentName(), category, model, provider, authType);
+      await overrideSpecificity(agentName(), category, model, provider, authType, providerKeyLabel);
       await refetchSpecificity();
     } catch {
       toast.error('Failed to update specificity model');
+    } finally {
+      setChangingSpecificity(null);
+    }
+  };
+
+  /**
+   * Pin a task-specific (specificity) tier to a labeled provider key.
+   * Re-uses the same PUT endpoint as `handleSpecificityOverride` — the
+   * model/provider/auth_type stay the same, only the key label changes.
+   */
+  const handleSpecificityPinKey = async (
+    category: string,
+    provider: string,
+    providerKeyLabel: string | null,
+    authType?: 'api_key' | 'subscription' | 'local',
+  ) => {
+    const assignment = specificityAssignments()?.find((a) => a.category === category);
+    const effective = assignment?.override_route ?? assignment?.auto_assigned_route ?? null;
+    const model = effective?.model;
+    if (!assignment || !model || !provider) return;
+    setChangingSpecificity(category);
+    try {
+      await overrideSpecificity(
+        agentName(),
+        category,
+        model,
+        provider,
+        authType ?? effective?.authType,
+        providerKeyLabel ?? undefined,
+      );
+      await refetchSpecificity();
+      toast.success(providerKeyLabel ? `Pinned to "${providerKeyLabel}" key` : 'Key pin cleared');
+    } catch {
+      // toast handled upstream
     } finally {
       setChangingSpecificity(null);
     }
@@ -355,6 +391,7 @@ const Routing: Component = () => {
                   addingFallback={actions.addingFallback}
                   onDropdownOpen={(tierId) => setDropdownTier(tierId)}
                   onOverride={handleOverride}
+                  onPinKey={actions.handlePinKey}
                   onReset={actions.handleReset}
                   onFallbackUpdate={actions.handleFallbackUpdate}
                   onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
@@ -380,6 +417,7 @@ const Routing: Component = () => {
                   addingFallback={() => null}
                   onDropdownOpen={(category) => setSpecificityDropdown(category)}
                   onOverride={handleSpecificityOverride}
+                  onPinKey={handleSpecificityPinKey}
                   onReset={async (category) => {
                     setResettingSpecificity(category);
                     try {
