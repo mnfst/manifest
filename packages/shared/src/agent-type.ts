@@ -1,4 +1,4 @@
-export const AGENT_CATEGORIES = ['personal', 'app'] as const;
+export const AGENT_CATEGORIES = ['personal', 'app', 'coding'] as const;
 export type AgentCategory = (typeof AGENT_CATEGORIES)[number];
 
 export const AGENT_PLATFORMS = [
@@ -17,6 +17,7 @@ export type AgentPlatform = (typeof AGENT_PLATFORMS)[number];
 export const CATEGORY_LABELS: Readonly<Record<AgentCategory, string>> = {
   personal: 'Personal AI Agent',
   app: 'App AI SDK',
+  coding: 'Coding Assistant',
 };
 
 export const PLATFORM_LABELS: Readonly<Record<AgentPlatform, string>> = {
@@ -32,8 +33,9 @@ export const PLATFORM_LABELS: Readonly<Record<AgentPlatform, string>> = {
 };
 
 export const PLATFORMS_BY_CATEGORY: Readonly<Record<AgentCategory, readonly AgentPlatform[]>> = {
-  personal: ['openclaw', 'hermes', 'claude-code', 'other'],
+  personal: ['openclaw', 'hermes', 'other'],
   app: ['openai-sdk', 'anthropic-sdk', 'vercel-ai-sdk', 'langchain', 'other'],
+  coding: ['claude-code', 'other'],
 };
 
 export const PLATFORM_ICONS: Readonly<Partial<Record<AgentPlatform, string>>> = {
@@ -55,5 +57,8 @@ export function platformIcon(
   if (platform === 'other') {
     return category === 'personal' ? '/icons/other-agent.svg' : '/icons/other.svg';
   }
+  // Object.hasOwn so a hostile string like "__proto__" or "constructor" can't
+  // resolve to a value on Object.prototype.
+  if (!Object.hasOwn(PLATFORM_ICONS, platform)) return undefined;
   return PLATFORM_ICONS[platform as AgentPlatform];
 }

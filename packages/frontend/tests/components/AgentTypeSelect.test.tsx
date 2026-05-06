@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, fireEvent } from "@solidjs/testing-library";
 
 vi.mock("manifest-shared", () => ({
-  AGENT_CATEGORIES: ["personal", "app"],
+  AGENT_CATEGORIES: ["personal", "app", "coding"],
   CATEGORY_LABELS: {
     personal: "Personal AI Agent",
     app: "App AI SDK",
+    coding: "Coding Assistant",
   },
   PLATFORM_LABELS: {
     openclaw: "OpenClaw",
@@ -14,11 +15,13 @@ vi.mock("manifest-shared", () => ({
     "vercel-ai-sdk": "Vercel AI SDK",
     langchain: "LangChain",
     curl: "cURL",
+    "claude-code": "Claude Code",
     other: "Other",
   },
   PLATFORMS_BY_CATEGORY: {
     personal: ["openclaw", "hermes", "other"],
     app: ["openai-sdk", "vercel-ai-sdk", "langchain", "other"],
+    coding: ["claude-code", "other"],
   },
   PLATFORM_ICONS: {
     openclaw: "/icons/openclaw.png",
@@ -26,6 +29,7 @@ vi.mock("manifest-shared", () => ({
     "openai-sdk": "/icons/providers/openai.svg",
     "vercel-ai-sdk": "/icons/vercel.svg",
     langchain: "/icons/langchain.svg",
+    "claude-code": "/icons/providers/claude-code.svg",
   },
 }));
 
@@ -68,21 +72,22 @@ describe("AgentTypeSelect", () => {
     expect(container.querySelector(".agent-type-select__dropdown")).not.toBeNull();
   });
 
-  it("shows both category group labels in dropdown", () => {
+  it("shows all three category group labels in dropdown order (personal → app → coding)", () => {
     const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
     fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
     const labels = container.querySelectorAll(".agent-type-select__group-label");
-    expect(labels).toHaveLength(2);
+    expect(labels).toHaveLength(3);
     expect(labels[0].textContent).toContain("Personal AI Agent");
     expect(labels[1].textContent).toContain("App AI SDK");
+    expect(labels[2].textContent).toContain("Coding Assistant");
   });
 
-  it("shows all platforms from both categories in dropdown", () => {
+  it("shows all platforms from all three categories in dropdown", () => {
     const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
     fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
     const options = container.querySelectorAll(".agent-type-select__option");
-    // personal: openclaw, hermes, other; app: openai-sdk, vercel-ai-sdk, langchain, other = 7
-    expect(options).toHaveLength(7);
+    // personal: 3, app: 4, coding: 2 = 9
+    expect(options).toHaveLength(9);
   });
 
   it("shows platform names in options", () => {
@@ -94,6 +99,17 @@ describe("AgentTypeSelect", () => {
     expect(dropdown.textContent).toContain("OpenAI SDK");
     expect(dropdown.textContent).toContain("Vercel AI SDK");
     expect(dropdown.textContent).toContain("LangChain");
+    expect(dropdown.textContent).toContain("Claude Code");
+  });
+
+  it("places Claude Code in the coding column with the official Claude mark", () => {
+    const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
+    fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
+    const options = container.querySelectorAll(".agent-type-select__option");
+    // Coding column is rightmost: index 7 = claude-code, index 8 = coding/Other
+    expect(options[7].textContent).toContain("Claude Code");
+    const claudeIcon = options[7].querySelector(".agent-type-select__option-icon");
+    expect(claudeIcon!.getAttribute("src")).toBe("/icons/providers/claude-code.svg");
   });
 
   it("shows platform icons in options", () => {
@@ -149,6 +165,41 @@ describe("AgentTypeSelect", () => {
     expect(onPlatformChange).toHaveBeenCalledWith("openai-sdk");
   });
 
+  it("calls with coding category when Claude Code selected", () => {
+    const onCategoryChange = vi.fn();
+    const onPlatformChange = vi.fn();
+    const { container } = render(() => (
+      <AgentTypeSelect
+        {...defaultProps}
+        onCategoryChange={onCategoryChange}
+        onPlatformChange={onPlatformChange}
+      />
+    ));
+    fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
+    const options = container.querySelectorAll(".agent-type-select__option");
+    // Click "Claude Code" (index 7, coding category: after personal[3] + app[4])
+    fireEvent.click(options[7]);
+    expect(onCategoryChange).toHaveBeenCalledWith("coding");
+    expect(onPlatformChange).toHaveBeenCalledWith("claude-code");
+  });
+
+  it("calls with coding category when coding/Other selected", () => {
+    const onCategoryChange = vi.fn();
+    const onPlatformChange = vi.fn();
+    const { container } = render(() => (
+      <AgentTypeSelect
+        {...defaultProps}
+        onCategoryChange={onCategoryChange}
+        onPlatformChange={onPlatformChange}
+      />
+    ));
+    fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
+    const options = container.querySelectorAll(".agent-type-select__option");
+    fireEvent.click(options[8]); // coding Other
+    expect(onCategoryChange).toHaveBeenCalledWith("coding");
+    expect(onPlatformChange).toHaveBeenCalledWith("other");
+  });
+
   it("closes dropdown after selection", () => {
     const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
     fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
@@ -198,23 +249,34 @@ describe("AgentTypeSelect", () => {
     expect(icon!.getAttribute("src")).toBe("/icons/other.svg");
   });
 
-  it("shows Other in both personal and app groups", () => {
-    const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
-    fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
-    const options = container.querySelectorAll(".agent-type-select__option");
-    // personal other at index 2, app other at index 6
-    expect(options[2].textContent).toContain("Other");
-    expect(options[6].textContent).toContain("Other");
+  it("shows other.svg for coding other (not the personal-agent variant)", () => {
+    const { container } = render(() => (
+      <AgentTypeSelect {...defaultProps} category="coding" platform="other" />
+    ));
+    const icon = container.querySelector(".agent-type-select__trigger-icon");
+    expect(icon!.getAttribute("src")).toBe("/icons/other.svg");
   });
 
-  it("uses different icons for personal other vs app other in dropdown", () => {
+  it("shows Other in all three groups", () => {
     const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
     fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
     const options = container.querySelectorAll(".agent-type-select__option");
-    const personalOtherIcon = options[2].querySelector(".agent-type-select__option-icon");
-    const appOtherIcon = options[6].querySelector(".agent-type-select__option-icon");
-    expect(personalOtherIcon!.getAttribute("src")).toBe("/icons/other-agent.svg");
-    expect(personalOtherIcon!.getAttribute("src")).not.toBe(appOtherIcon!.getAttribute("src"));
+    // personal other at index 2, app other at index 6, coding other at index 8
+    expect(options[2].textContent).toContain("Other");
+    expect(options[6].textContent).toContain("Other");
+    expect(options[8].textContent).toContain("Other");
+  });
+
+  it("uses the personal-agent icon only for personal/Other (app + coding share other.svg)", () => {
+    const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
+    fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
+    const options = container.querySelectorAll(".agent-type-select__option");
+    const personalOther = options[2].querySelector(".agent-type-select__option-icon");
+    const appOther = options[6].querySelector(".agent-type-select__option-icon");
+    const codingOther = options[8].querySelector(".agent-type-select__option-icon");
+    expect(personalOther!.getAttribute("src")).toBe("/icons/other-agent.svg");
+    expect(appOther!.getAttribute("src")).toBe("/icons/other.svg");
+    expect(codingOther!.getAttribute("src")).toBe("/icons/other.svg");
   });
 
   it("sets aria-expanded on trigger", () => {
@@ -242,7 +304,7 @@ describe("AgentTypeSelect", () => {
     const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
     fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
     const options = container.querySelectorAll('[role="option"]');
-    expect(options).toHaveLength(7);
+    expect(options).toHaveLength(9);
   });
 
   it("sets aria-selected on selected option", () => {
@@ -277,5 +339,21 @@ describe("AgentTypeSelect", () => {
     const icon = container.querySelector(".agent-type-select__trigger-icon");
     expect(icon).not.toBeNull();
     expect(icon!.getAttribute("src")).toBe("/icons/other.svg");
+  });
+
+  it("aria-label says 'Select' when no platform is selected, otherwise the platform label", () => {
+    const { container: blankContainer } = render(() => (
+      <AgentTypeSelect {...defaultProps} category={null} platform={null} />
+    ));
+    expect(
+      blankContainer.querySelector(".agent-type-select__trigger")!.getAttribute("aria-label"),
+    ).toBe("Agent type: Select");
+
+    const { container: pickedContainer } = render(() => (
+      <AgentTypeSelect {...defaultProps} category="coding" platform="claude-code" />
+    ));
+    expect(
+      pickedContainer.querySelector(".agent-type-select__trigger")!.getAttribute("aria-label"),
+    ).toBe("Agent type: Claude Code");
   });
 });
