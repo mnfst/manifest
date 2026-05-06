@@ -177,17 +177,17 @@ To use Wingman with `/serve` or any single-service backend on a custom port, set
 
 Wingman is intentionally **not shipped to production or Docker self-hosted bundles**. The exclusion is enforced in four places:
 
-| Layer                              | Mechanism                                                                                                                                         |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/frontend/vite.config.ts` | `__DEV_MODE__` build constant flips to `false` when `VITE_MANIFEST_SELFHOSTED=true` is set; esbuild dead-code-eliminates the FAB + drawer module. |
-| `docker/Dockerfile`                | Build stage runs `turbo build --filter=manifest-backend --filter=manifest-frontend --filter=manifest-shared` — Wingman is never built.            |
-| `.dockerignore`                    | `packages/wingman/` is excluded from the build context.                                                                                           |
-| `.changeset/config.json`           | `manifest-wingman` is in the ignored list — it can never trigger a Docker release.                                                                |
+| Layer                              | Mechanism                                                                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `packages/frontend/vite.config.ts` | `__DEV_MODE__` is `true` only when Vite runs in dev mode (`vite serve`). Any production build sets it to `false` so esbuild dead-code-eliminates the FAB + drawer module. |
+| `docker/Dockerfile`                | Build stage runs `turbo build --filter=manifest-backend --filter=manifest-frontend --filter=manifest-shared` — Wingman is never built.     |
+| `.dockerignore`                    | `packages/wingman/` is excluded from the build context.                                                                                    |
+| `.changeset/config.json`           | `manifest-wingman` is in the ignored list — it can never trigger a Docker release.                                                         |
 
 After every change to the Wingman code, verify the production bundle stays clean:
 
 ```bash
-VITE_MANIFEST_SELFHOSTED=true npm run build --workspace=manifest-frontend
+npm run build --workspace=manifest-frontend
 grep -lc 'wingman\|Wingman' packages/frontend/dist/assets/*.js | grep -v ':0$'
 # ^ no JS chunk should match
 ```
