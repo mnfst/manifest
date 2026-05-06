@@ -480,6 +480,89 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.primaryProvider).toBe('openai');
     });
 
+    it('returns the successful fallback auth_type, not the primary auth_type (#1173)', async () => {
+      // Mixed-auth chain: primary openai/api_key fails, fallback
+      // anthropic/subscription succeeds. The recorder reads meta.auth_type to
+      // compute cost_usd (subscription => 0, api_key => priced). Returning
+      // the primary's auth_type here charges or zeros the wrong row.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: [route('anthropic', 'subscription', 'claude')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('rate limited', { status: 429 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(),
+            isGoogle: false,
+            isAnthropic: true,
+            isChatGpt: false,
+          },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          authType: 'subscription',
+        },
+        failures: [],
+      } as never);
+
+      const result = await svc.proxyRequest(baseOpts());
+      // Successful fallback row needs the FALLBACK's auth_type for correct cost.
+      expect(result.meta.auth_type).toBe('subscription');
+      // Primary failure row (recorded later by the response handler) needs the
+      // PRIMARY's auth_type — preserved separately so we don't lose it.
+      expect(result.meta.primaryAuthType).toBe('api_key');
+    });
+
+    it('records the api_key fallback auth_type when a subscription primary fails (#1173 inverse)', async () => {
+      // Inverse of the previous case: subscription primary fails to a billed
+      // api_key fallback. Without the fix, the success row would carry
+      // auth_type=subscription and write cost_usd=0 for what was actually
+      // a paid API call.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-4o'),
+        fallback_routes: [route('anthropic', 'api_key', 'claude')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('subscription expired', { status: 503 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(),
+            isGoogle: false,
+            isAnthropic: true,
+            isChatGpt: false,
+          },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          authType: 'api_key',
+        },
+        failures: [],
+      } as never);
+
+      const result = await svc.proxyRequest(baseOpts());
+      expect(result.meta.auth_type).toBe('api_key');
+      expect(result.meta.primaryAuthType).toBe('subscription');
+    });
+
     it('does not trigger fallback when the primary returns 200', async () => {
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: okResponse(200),

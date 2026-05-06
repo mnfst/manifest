@@ -1,5 +1,13 @@
 # manifest
 
+## 6.0.2
+
+### Patch Changes
+
+- cf98f70: Fix OpenAI subscription model discovery so newer Codex CLI models (e.g. `gpt-5.5`) appear. The hardcoded `client_version=0.99.0` query param made `https://chatgpt.com/backend-api/codex/models` silently return only the older subset; bump it to `0.128.0` and lift Codex/Copilot client identifiers into a shared constants file so future bumps are a one-line change.
+- a7a9c3b: Fix fallback success rows recording the primary route's `auth_type` instead of the fallback's, which caused `cost_usd` to be miscomputed on mixed-auth chains (subscription fallbacks were charged, api_key fallbacks were stored as $0).
+- be679c4: Strip Codex-unsupported parameters on the OpenAI subscription proxy path. Requests forwarded to `chatgpt.com/backend-api/codex/responses` now drop `temperature`, `top_p`, `max_output_tokens`, `metadata`, `safety_identifier`, `prompt_cache_retention`, and `truncation` before the upstream call, and force `store: false`. Previously these fields propagated through and Codex returned `400 unsupported_parameter`, breaking OpenAI-SDK clients that set sampling defaults. Closes #1791.
+
 ## 6.0.1
 
 ### Patch Changes

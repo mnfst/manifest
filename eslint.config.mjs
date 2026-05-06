@@ -7,7 +7,14 @@ export default [
     ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', '**/*.js', '**/*.mjs'],
   },
   {
-    files: ['packages/shared/src/**/*.ts', 'packages/backend/src/**/*.ts', 'packages/frontend/src/**/*.ts', 'packages/frontend/src/**/*.tsx'],
+    files: [
+      'packages/shared/src/**/*.ts',
+      'packages/backend/src/**/*.ts',
+      'packages/frontend/src/**/*.ts',
+      'packages/frontend/src/**/*.tsx',
+      'packages/wingman/src/**/*.ts',
+      'packages/wingman/src/**/*.tsx',
+    ],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
