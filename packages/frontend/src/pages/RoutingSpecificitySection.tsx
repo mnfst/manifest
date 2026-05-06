@@ -243,8 +243,8 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                   getAssignment(cat)?.fallback_routes?.map((r) => r.model) ?? []
                 }
                 connectedProviders={props.connectedProviders}
-                persistFallbacks={(_agentName, category, models) =>
-                  setSpecificityFallbacks(_agentName, category, models)
+                persistFallbacks={(_agentName, category, models, routes) =>
+                  setSpecificityFallbacks(_agentName, category, models, routes)
                 }
                 persistClearFallbacks={(_agentName, category) =>
                   clearSpecificityFallbacks(_agentName, category)
