@@ -324,15 +324,19 @@ describe("Header - self-hosted badge", () => {
     mockCheckIsSelfHosted.mockResolvedValue(true);
     const { container } = render(() => <Header />);
     await new Promise((r) => setTimeout(r, 0));
-    const badge = container.querySelector(".header__mode-badge");
+    const badge = container.querySelector(
+      ".header__mode-badge:not(.header__mode-badge--dev)",
+    );
     expect(badge).not.toBeNull();
     expect(badge?.textContent?.trim()).toBe("Self-hosted");
   });
 
-  it("does not render the badge in cloud mode", async () => {
+  it("does not render the Self-hosted badge in cloud mode", async () => {
     mockCheckIsSelfHosted.mockResolvedValue(false);
     const { container } = render(() => <Header />);
     await new Promise((r) => setTimeout(r, 0));
-    expect(container.querySelector(".header__mode-badge")).toBeNull();
+    expect(
+      container.querySelector(".header__mode-badge:not(.header__mode-badge--dev)"),
+    ).toBeNull();
   });
 });
