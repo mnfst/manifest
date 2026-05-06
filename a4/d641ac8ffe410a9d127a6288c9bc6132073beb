@@ -1,0 +1,21 @@
+packages/frontend/src/components/HeaderTierCard.tsx
+  s_b970ffa4b91350::t_b36bcd6c1aacfa 121-123,125
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_b970ffa4b91350::t_0470990e06d5d0 548-556
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "a4d641ac8ffe410a9d127a6288c9bc6132073beb",
+  "prompts": {},
+  "sessions": {
+    "s_b970ffa4b91350": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "08aba76f-94e6-4d75-86fc-c6884c5ba244",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
