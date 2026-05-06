@@ -13,6 +13,7 @@ import {
   buildMinimaxResourceUrl,
   getMinimaxResourceUrl,
   getMinimaxOauthBaseUrl,
+  normalizeMinimaxVerificationUri,
   toAbsoluteExpiryTimestamp,
   toPollIntervalMs,
   isOAuthTokenBlob,
@@ -123,6 +124,7 @@ export class MinimaxOauthService {
     if (payload.state !== flowId) throw new Error('MiniMax OAuth state mismatch');
     const pollIntervalMs = toPollIntervalMs(payload.interval);
     const expiresAt = toAbsoluteExpiryTimestamp(payload.expired_in);
+    const verificationUri = normalizeMinimaxVerificationUri(payload.verification_uri);
     this.pending.set(flowId, {
       verifier,
       userCode: payload.user_code,
@@ -136,7 +138,7 @@ export class MinimaxOauthService {
     return {
       flowId,
       userCode: payload.user_code,
-      verificationUri: payload.verification_uri,
+      verificationUri,
       expiresAt,
       pollIntervalMs,
     };

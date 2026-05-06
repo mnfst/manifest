@@ -34,6 +34,29 @@ export function buildMinimaxResourceUrl(baseUrl: string): string {
   return `${baseUrl}/anthropic`;
 }
 
+const VERIFICATION_HOST_REWRITES: Record<string, string> = {
+  'www.minimax.io': 'platform.minimax.io',
+  'www.minimaxi.com': 'platform.minimaxi.com',
+};
+
+// Upstream MiniMax /oauth/code returns verification_uri pointing at
+// www.minimax.io/oauth-authorize, which 307-redirects to the homepage. The
+// real authorize page lives on platform.{minimax.io,minimaxi.com}. Rewrite
+// only that exact host+path pair so any future upstream fix keeps working.
+export function normalizeMinimaxVerificationUri(verificationUri: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(verificationUri);
+  } catch {
+    return verificationUri;
+  }
+  if (parsed.pathname !== '/oauth-authorize') return verificationUri;
+  const replacement = VERIFICATION_HOST_REWRITES[parsed.hostname];
+  if (!replacement) return verificationUri;
+  parsed.hostname = replacement;
+  return parsed.toString();
+}
+
 export function getMinimaxResourceUrl(resourceUrl?: string): string | null {
   if (!resourceUrl) return null;
   return normalizeMinimaxSubscriptionBaseUrl(resourceUrl);

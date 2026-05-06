@@ -12,6 +12,7 @@ import {
   isMinimaxRegion,
   isOAuthTokenBlob,
   MINIMAX_BASE_URLS,
+  normalizeMinimaxVerificationUri,
   toAbsoluteExpiryTimestamp,
   toPollIntervalMs,
 } from './minimax-oauth-helpers';
@@ -109,6 +110,43 @@ describe('minimax-oauth-helpers', () => {
 
     it('converts small values (assumed to be seconds) to milliseconds', () => {
       expect(toPollIntervalMs(5)).toBe(5000);
+    });
+  });
+
+  describe('normalizeMinimaxVerificationUri', () => {
+    it('rewrites the broken www.minimax.io oauth-authorize host to platform.minimax.io', () => {
+      expect(
+        normalizeMinimaxVerificationUri(
+          'https://www.minimax.io/oauth-authorize?user_code=ABCD-1234&client=OpenClaw',
+        ),
+      ).toBe('https://platform.minimax.io/oauth-authorize?user_code=ABCD-1234&client=OpenClaw');
+    });
+
+    it('rewrites the CN equivalent www.minimaxi.com to platform.minimaxi.com', () => {
+      expect(
+        normalizeMinimaxVerificationUri(
+          'https://www.minimaxi.com/oauth-authorize?user_code=ABCD-1234',
+        ),
+      ).toBe('https://platform.minimaxi.com/oauth-authorize?user_code=ABCD-1234');
+    });
+
+    it('passes through URLs that already point at the correct host', () => {
+      const ok = 'https://platform.minimax.io/oauth-authorize?user_code=Y3CN-NY48';
+      expect(normalizeMinimaxVerificationUri(ok)).toBe(ok);
+    });
+
+    it('passes through unrelated paths even on the broken host', () => {
+      const other = 'https://www.minimax.io/something-else?user_code=Y3CN-NY48';
+      expect(normalizeMinimaxVerificationUri(other)).toBe(other);
+    });
+
+    it('passes through unrelated hosts on the oauth-authorize path', () => {
+      const other = 'https://example.com/oauth-authorize?user_code=Y3CN-NY48';
+      expect(normalizeMinimaxVerificationUri(other)).toBe(other);
+    });
+
+    it('returns the input unchanged when it is not a valid URL', () => {
+      expect(normalizeMinimaxVerificationUri('not a url')).toBe('not a url');
     });
   });
 
