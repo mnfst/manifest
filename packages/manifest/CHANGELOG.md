@@ -1,5 +1,27 @@
 # manifest
 
+## 6.1.0
+
+### Minor Changes
+
+- ab9f0cb: Add an Anthropic Messages-compatible endpoint at `POST /v1/messages`. Anthropic SDK clients (Claude Code, `@anthropic-ai/sdk`) can now point `ANTHROPIC_BASE_URL` at a Manifest gateway and route through Manifest's tier/specificity pipeline like any OpenAI client. The implementation translates Anthropic Messages requests into the internal chat-completions form (and back on the response side), reusing the existing routing, scoring, fallback, and recording machinery.
+- 1627493: Add a "Coding Assistant" category in the agent picker and move Claude Code into it. The Connect Agent / Change Agent Type modal now shows three columns instead of two: Personal AI Agent | App AI SDK | Coding Assistant. Claude Code is no longer mis-bucketed under personal agents — it sits in the new column with the existing copper-orange Claude mark. Picker order, icons, and the existing Claude Code setup wizard are unchanged.
+- fb7d921: Add support for multiple API keys per provider per agent. Users with several accounts for the same provider (a personal + work OpenAI key, two ChatGPT Plus subscriptions, two Anthropic Pro tokens) can attach all credentials and pin specific tiers or fallback rows to a specific labeled key. Multi-key applies to both `api_key` and `subscription` providers; local providers (Ollama, LM Studio) stay single-row since they don't carry credentials. Cap is 5 active keys per (agent, provider, auth_type). Single-key users see no UI change — the chip + "+ Add another key" affordance only appear once a provider has 2+ active keys.
+- c6efb87: Add Wingman, an in-dashboard gateway tester for contributors. Embedded as a half-screen iframe drawer behind a floating action button in dev mode, stripped from Docker / cloud bundles. Lets contributors send one-shot requests at the gateway while impersonating OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL, or Raw — with editable code panels that actually execute via stubbed SDKs.
+
+### Patch Changes
+
+- 9a0e8c3: Fix silent failure when adding a fallback that shares a provider with an existing route. Adding an OpenAI API key model as a fallback to an OpenAI subscription model (or any other same-provider, different-auth combination) now persists correctly instead of showing a success toast and dropping the change. The frontend now sends the explicit `(provider, authType, model)` tuple alongside the model name so the backend can disambiguate when the same model id is offered by two connected providers. Affects both complexity tier and specificity ("custom") routing.
+- 30d19ab: Stop silently wiping the saved fallback list when an unresolvable model is added (issue #1790).
+
+  `buildFallbackRoutes()` in `tier`, `specificity`, and `header-tier` services used to return `null` whenever any single model couldn't be resolved to a unique `(provider, authType, model)` tuple. `setFallbacks` then persisted that `null`, so the user's existing `fallback_routes` row was overwritten with `null` and the controller returned `[]`. The toast still said "Fallback added" — the only visible result was the previously-saved fallbacks disappearing.
+
+  PR #1825 already plugged the most common trigger by sending an explicit `routes` payload from the add handlers. This change removes the underlying footgun: `buildFallbackRoutes` now throws `400 Bad Request` instead of returning `null`, so the row is left untouched on resolution failure and the frontend shows the error.
+
+  Scoped strictly to the backend wipe path. Does not change input validation, the `authType !== undefined` guard in the add handlers, or the discovery-fallback shape of `buildFallbackRoutes`.
+
+- 022529a: Fix MiniMax Token Plan activation redirecting to the homepage. The MiniMax `/oauth/code` endpoint returns a `verification_uri` pointing at `https://www.minimax.io/oauth-authorize?...`, which 307-redirects to the homepage with no instructions. The real authorize page lives on `platform.minimax.io` (and `platform.minimaxi.com` for the CN region). The MiniMax OAuth start flow now rewrites the host before returning the URI, so users land on the actual page where their 6-digit code can be entered. Closes #1796.
+
 ## 6.0.2
 
 ### Patch Changes
