@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "MIT, founded in 1861, is ranked as the #1 university in the world and has an extremely selective acceptance rate of just 3.9%. The institution serves 11,500 students annually with a tuition cost of $57,590, supported by a massive $24.6 billion endowment and a distinguished faculty that includes 98 Nobel laureates among its 1,069 members.",
+  "score": 0,
+  "cost": 0.00010692,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 93
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "On Saturday at 2 AM, a disk space alert occurred on the production database server prod-db-01 due to misconfigured log rotation after a recent migration, but automated cleanup freed 40GB and manual intervention at 8 AM restored service with no customer impact during a maintenance window. The root cause analysis indicates a need to reconfigure log rotation to prevent future incidents.",
+  "score": 0,
+  "cost": 0.000315,
+  "expected": "",
+  "tokens": {
+    "input": 291,
+    "output": 321
+  }
+}

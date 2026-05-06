@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 47,
+  "response": "```python\nreturn ' '.join(str(i) for i in range(n + 1))\n```",
+  "score": 0,
+  "cost": 0.00018824,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 20
+  }
+}

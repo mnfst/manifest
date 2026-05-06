@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a programmer named Dave,  \nWho coded from dawn until grave.  \nWith bugs in his code,  \nHe'd curse and explode,  \nBut fixed 'em with coffee and save!",
+  "score": 0,
+  "cost": 0.0002422,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 261
+  }
+}

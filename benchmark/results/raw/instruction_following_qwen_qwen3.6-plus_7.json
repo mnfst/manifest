@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Crack 3 eggs into a bowl. Add salt and pepper. Whisk until smooth. Melt 1 tbsp butter in a nonstick pan over medium-low heat. Pour in eggs. Gently push with a spatula until softly set but slightly wet. Remove immediately. Serve warm.",
+  "score": 0,
+  "cost": 0.0011722750000000002,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 895
+  }
+}

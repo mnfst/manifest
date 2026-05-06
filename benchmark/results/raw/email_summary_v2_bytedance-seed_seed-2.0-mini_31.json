@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The email proposes a new $29/month \u201cStarter\u201d pricing tier placed between the existing Free and $79 Pro tiers, noting that 40% of churned users cited price as their reason for leaving and detailing the tier\u2019s perks of 5 user accounts, 10K API calls, and email support. This proposed Starter tier is projected to recover 15% of these price-related churned users and generate $180K in additional annual recurring revenue.",
+  "score": 0,
+  "cost": 0.000315,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 747
+  }
+}

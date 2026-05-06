@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_generation",
+  "case": 10,
+  "response": "count = 0\n    for num in arr:\n        s = str(num)\n        if s[0] == '-':\n            digits = s[1:]\n            total = -int(digits[0]) + sum(int(d) for d in digits[1:])\n        else:\n            total = sum(int(d) for d in s)\n        if total > 0:\n            count += 1\n    return count",
+  "score": 0,
+  "cost": 0.001819605,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 1006
+  }
+}

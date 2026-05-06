@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "Red, Orange, Yellow, Green, Blue, Indigo, Violet",
+  "score": 0,
+  "cost": 9.740000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 80
+  }
+}

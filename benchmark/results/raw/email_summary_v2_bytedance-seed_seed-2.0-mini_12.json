@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "This engineering hiring update details four open engineering roles (two backend, one frontend, one ML), a hiring pipeline with 23 candidates in process and 5 in final rounds, along with a key concern that the frontend role has been open for 60 days without attracting strong candidates.\nThe recruiting team has recommended expanding the search to remote candidates or adjusting the frontend role\u2019s compensation band as solutions to fill the open frontend position.",
+  "score": 0,
+  "cost": 0.0002728,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 646
+  }
+}

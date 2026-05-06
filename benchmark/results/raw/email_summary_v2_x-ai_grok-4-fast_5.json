@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product launch is delayed due to the payment integration failing PCI compliance, requiring an additional two weeks, with two options: (1) launch without payments and integrate them later, which would need updated T&Cs per legal, or (2) postpone the full launch to May 15. A meeting is scheduled for tomorrow at 10am to discuss and decide on the next steps.",
+  "score": 0,
+  "cost": 0.0002598,
+  "expected": "",
+  "tokens": {
+    "input": 247,
+    "output": 263
+  }
+}

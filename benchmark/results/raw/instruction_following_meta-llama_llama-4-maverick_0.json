@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "Here are 3 benefits of exercise:\n* Improves cardiovascular health\n* Increases strength and flexibility\n* Enhances mental well-being and reduces stress",
+  "score": 0,
+  "cost": 2.085e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 29
+  }
+}

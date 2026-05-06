@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs have long been hailed as humanity\u2019s most loyal companion, a timeless bond woven through centuries of shared adventures, cozy routines, and quiet resilience. Every soft headbutt, wagging tail, or sleepy snuggle on the couch offers a tangible reminder of their loyal devotion that never fades, even after months of separation or a harried, long day. Search-and-rescue dogs traipse through rubble and wilderness alike, their focused determination fueled by a loyal commitment to locating those in need and bringing them home safely. When their owners are grappling with grief, stress, or simply a rough day, a dog will settle close without a single word, delivering a warm source of loyal comfort that feels like a safe haven. Even senior dogs who have spent a decade or more by their families\u2019 sides remain loyal right up to their final moments, clinging to the familiar touches and voices of the humans who have loved them always. Dogs never hold grudges, never grow bored of their people\u2019s quirks and little habits, and carry a loyal heart that makes them far more than just pets\u2014they are cherished family members through every stage of life.",
+  "score": 0,
+  "cost": 0.0006656,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 1648
+  }
+}

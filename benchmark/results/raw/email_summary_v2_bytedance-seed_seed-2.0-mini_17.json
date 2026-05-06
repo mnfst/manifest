@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "The Release Manager is rolling back software version 4.2, as a data corruption bug in the new sync engine has impacted 23 accounts, and a hotfix branch has already been established for this rollback. The required recovery and follow-up steps include restoring from a pre-release backup, re-running affected transactions, and notifying the impacted customers.",
+  "score": 0,
+  "cost": 0.0002635,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 622
+  }
+}

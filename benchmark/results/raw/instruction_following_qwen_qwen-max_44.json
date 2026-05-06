@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Romaine lettuce\n- [ ] Cherry tomatoes\n- [ ] Cucumber\n- [ ] Red onion\n- [ ] Carrot\n- [ ] Bell pepper\n- [ ] Feta cheese (optional)\n- [ ] Olives (optional)\n- [ ] Dressing (e.g., olive oil, vinegar, salt, and pepper)",
+  "score": 0,
+  "cost": 0.00032760000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 74
+  }
+}

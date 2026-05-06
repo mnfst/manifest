@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "The prod-web-01 server in the us-east-1 region has been running continuously for 45 days, with current CPU utilization sitting at 78%, 12.4 of 16 total gigabytes of memory in use, and 234 of 500 total gigabytes of disk space consumed. It currently hosts 127 active connections, has a P99 latency of 145 milliseconds, and reports 3 errors per hour.",
+  "score": 0,
+  "cost": 0.0004733,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 1144
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm is a dramatic display of nature's power, engaging multiple senses and evoking a mix of awe and trepidation. As the storm approaches, the air is filled with the scent of ozone, a sharp, pungent smell that signals the electrical activity in the atmosphere. The sky darkens, and the wind picks up, rustling leaves and carrying the faint sound of distant thunder, a low rumble that grows louder and more intense as the storm draws near.\n\nAs the storm unleashes its fury, the sound of thunder becomes almost deafening, a cacophony of booms and cracks that shake the air. The flashes of lightning illuminate the dark sky, casting an otherworldly glow over the landscape. The light is so intense that it casts sharp shadows on the ground, making it seem as though the world is being redefined in stark, binary terms.\n\nThe rain pounds against the ground, drumming a relentless beat that is both soothing and intimidating. The droplets hit the skin with a cool, wet slap, refreshing in the midst of the storm's turmoil. As the storm intensifies, the rain becomes a deluge, reducing visibility and creating miniature rivers on the ground. The sound of raindrops hitting the pavement, leaves, and other surfaces creates a symphony of pattering, splashing, and gurgling noises that are both chaotic and mesmerizing.\n\nAs the storm rages on, the air is filled with the smell of wet earth and leaves, a rich, loamy scent that is released as the rain washes over the ground. The combination of sights, sounds, and smells creates a multisensory experience that is both exhilarating and humbling, a reminder of the power and majesty of nature.",
+  "score": 0,
+  "cost": 0.0002145,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 352
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The email from Network Ops highlights that the current 1Gbps network links are at 78% capacity during peak times and proposes upgrading to 10Gbps for a one-time cost of $45K plus $2K monthly, or alternatively, implementing traffic shaping and CDN optimization for $15K. Given projected growth, they recommend the 10Gbps upgrade to prevent needing another review in six months.",
+  "score": 0,
+  "cost": 0.0002706,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 262
+  }
+}

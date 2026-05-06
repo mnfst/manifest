@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "KMJ-TV",
+  "score": 0,
+  "cost": 0.0001492,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 346,
+    "output": 100
+  }
+}

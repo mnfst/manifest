@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Thin, crisp, golden-brown, hand-tossed crust; tangy, slow-simmered, bright-red tomato marinara; velvety, stringy melted mozzarella cheese; smoky, crisp, salty pepperoni slices; earthy, tender saut\u00e9ed mushrooms; juicy, bursting cherry tomato halves; fresh, frilled basil leaves; crumbly, briny feta crumbles; crisp, peppery arugula; golden, smooth olive oil drizzle; flaky, coarse sea salt; fresh-cracked black peppercorns.",
+  "score": 0,
+  "cost": 0.0011857,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 2949
+  }
+}

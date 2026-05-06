@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "\u2022 **Improved physical health** - Regular exercise strengthens the heart, builds muscle, increases bone density, and helps maintain a healthy weight\n\n\u2022 **Enhanced mental well-being** - Exercise releases endorphins that reduce stress, anxiety, and depression while improving mood and cognitive function\n\n\u2022 **Increased energy levels** - Physical activity boosts circulation and oxygen flow throughout the body, leading to greater stamina and reduced fatigue",
+  "score": 0,
+  "cost": 7.656e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 82
+  }
+}

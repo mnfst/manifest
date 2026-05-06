@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a MinStack data structure that supports push, pop, and get_min operations in O(1) time by using an auxiliary stack (`min_stack`) to track the minimum value at each level of the main stack. When elements are pushed, the minimum of the current value and the previous minimum is stored in `min_stack`, allowing `get_min()` to simply return the top of `min_stack` in constant time.",
+  "score": 0,
+  "cost": 0.0001034,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 87
+  }
+}

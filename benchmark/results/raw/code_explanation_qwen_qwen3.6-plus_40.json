@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements the **Circuit Breaker pattern**, a fault-tolerance algorithm that prevents cascading failures by tracking consecutive errors and temporarily blocking function calls when a failure threshold is exceeded. It uses a three-state machine (`closed`, `open`, `half-open`) to immediately reject requests during outages and periodically allow a single test call after a timeout to verify service recovery before resuming normal operation.",
+  "score": 0,
+  "cost": 0.001872,
+  "expected": "",
+  "tokens": {
+    "input": 220,
+    "output": 1385
+  }
+}

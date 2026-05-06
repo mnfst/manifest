@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "data_to_text",
+  "case": 19,
+  "response": "The iPhone 15 Pro boasts a 6.1-inch OLED display, runs on the A17 Pro chip, has a 48MP main camera, and is available in 128GB, 256GB, 512GB, and 1TB storage variants. It packs a 3274mAh battery, weighs 187g, starts at $999, and has earned a solid 4.6/5 overall rating.",
+  "score": 0,
+  "cost": 0.00033050000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 786
+  }
+}

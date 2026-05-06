@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_generation",
+  "case": 43,
+  "response": "result = []\n    for i, num in enumerate(numbers):\n        if i > 0:\n            result.append(delimeter)\n        result.append(num)\n    return result",
+  "score": 0,
+  "cost": 0.000614655,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 322
+  }
+}

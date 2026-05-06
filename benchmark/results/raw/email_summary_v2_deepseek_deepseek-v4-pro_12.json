@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The recruiting team reports four open engineering positions with 23 candidates in process, but the frontend role has been unfilled for 60 days with no strong applicants. They recommend expanding the search to remote candidates or adjusting the compensation band to attract better talent.",
+  "score": 0,
+  "cost": 0.00048719999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 256
+  }
+}

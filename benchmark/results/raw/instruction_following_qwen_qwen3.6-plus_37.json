@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes like a slow-burning ember wrapped in velvet. The initial contact is impossibly smooth, a gentle sweetness that yields and spreads across the tongue like warm silk. But beneath that soft exterior lies a deep, glowing core of roasted bitterness and earthy richness that steadily builds as the piece melts. With each passing second, the heat of the flavor fans outward, revealing hidden layers: a whisper of dried fruit, a trace of toasted nut, or a faint floral lift, all woven into a dense, comforting weight that coats the palate. The finish doesn't simply vanish; it lingers like the steady warmth of coals long after the fire has settled, leaving behind a quiet, resonant depth that asks you to stay a moment longer.",
+  "score": 0,
+  "cost": 0.001597375,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 1223
+  }
+}

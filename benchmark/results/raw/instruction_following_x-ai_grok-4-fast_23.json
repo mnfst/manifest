@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "apple; banana; cherry; date; elderberry",
+  "score": 0,
+  "cost": 0.00011460000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 101
+  }
+}

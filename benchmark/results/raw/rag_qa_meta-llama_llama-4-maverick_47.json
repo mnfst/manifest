@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The Urarina.",
+  "score": 0,
+  "cost": 3.78e-05,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 228,
+    "output": 6
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law of Motion",
+  "score": 0,
+  "cost": 0.00023229,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 262,
+    "output": 68
+  }
+}

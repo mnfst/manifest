@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan has a population of 125 million, with a $4.2 trillion GDP that saw 1.1% annual growth and total exports valued at $756 billion. Other key metrics for the country include a 2.6% unemployment rate, 3.2% inflation rate, a debt-to-GDP ratio of 263%, and an average life expectancy of 84.6 years.",
+  "score": 0,
+  "cost": 0.00038570000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 926
+  }
+}

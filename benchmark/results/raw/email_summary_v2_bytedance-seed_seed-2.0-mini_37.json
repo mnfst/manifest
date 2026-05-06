@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "The CEO follows up on a prior conversation with BigCo, which has offered $15 million to acqui-hire the company\u2019s 5-person ML team, and judges the offer as too low, recommending either a polite counteroffer or a respectful decline. The necessary action items are to convene a discussion about the offer before responding formally and to notify the company\u2019s board of the acquisition interest and the CEO\u2019s recommended course of action.",
+  "score": 0,
+  "cost": 0.0002583,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 609
+  }
+}

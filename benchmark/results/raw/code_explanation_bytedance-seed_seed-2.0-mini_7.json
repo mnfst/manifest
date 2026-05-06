@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code defines a factory for Least Recently Used (LRU) cache decorators, which uses Python\u2019s `OrderedDict` to track cache entry recency. When the wrapped function is called with an argument tuple `args`, the decorator first checks if `args` exists in the cache: if present, it moves that entry to the end of the `OrderedDict` to mark it as recently used and returns the cached value; if not, it computes the function\u2019s result, stores it in the cache, evicts the oldest cached entry via `popitem(last=False)` if the cache exceeds the specified `maxsize`, then returns the newly calculated result.",
+  "score": 0,
+  "cost": 0.00046760000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 1125
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "Let's break down each option:\n1.  **Option A**: Erosion of rocks occurs when water from the hydrosphere (rain, rivers, waves, etc.) wears away surface rocks of the lithosphere. This is a direct effect of the hydrosphere on the lithosphere.\n2.  **Option B**: Evaporation of water is part of the water cycle involving the hydrosphere and atmosphere, not an impact on the lithosphere.\n3.  **Option C**: Earth's core heating is driven by radioactive decay and primordial heat, not influenced by the hydrosphere.\n4.  **Option D**: Crust melting is primarily caused by mantle convection, decompression, or volatile additions, not a direct effect from the hydrosphere.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.000169,
+  "expected": "A",
+  "tokens": {
+    "input": 122,
+    "output": 392
+  }
+}

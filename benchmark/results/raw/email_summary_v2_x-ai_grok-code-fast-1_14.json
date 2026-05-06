@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "The AWS bill has increased by 40% month-over-month, primarily due to new ML training jobs using costly p4d instances at $32 per hour, resulting in an estimated $45K monthly impact. Options include switching to spot instances for 70% savings with interruption risk or reserved instances for 30% savings with a commitment, and a decision is needed by Friday.",
+  "score": 0,
+  "cost": 0.0002528,
+  "expected": "",
+  "tokens": {
+    "input": 304,
+    "output": 240
+  }
+}

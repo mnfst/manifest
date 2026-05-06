@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 40,
+  "response": "if a == 0:\n    return True\nabs_a = abs(a)\nlow = 1\nhigh = abs_a\nwhile low <= high:\n    mid = (low + high) // 2\n    cube = mid * mid * mid\n    if cube == abs_a:\n        return True\n    elif cube < abs_a:\n        low = mid + 1\n    else:\n        high = mid -1\nreturn False",
+  "score": 0,
+  "cost": 0.0030151,
+  "expected": "",
+  "tokens": {
+    "input": 199,
+    "output": 7488
+  }
+}

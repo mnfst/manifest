@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 0,
+  "response": "**Code under review**\n\n```python\ndef login(username, password):\n    query = f\"SELECT * FROM users WHERE username='{username}' AND password='{password}'\"\n    result = db.execute(query)\n    if result:\n        session['user'] = username\n        return redirect('/dashboard')\n    return 'Invalid credentials', 401\n```\n\nBelow is a systematic walk\u2011through of the problems (bugs, security flaws, and maintainability concerns) followed by concrete, actionable fixes.\n\n---\n\n## 1. Security Issues\n\n| # | Issue | Why it\u2019s dangerous | How to fix it |\n|---|-------|--------------------|---------------|\n| **1** | **SQL Injection** \u2013 the query is built by string\u2011interpolating raw user input (`username` and `password`). | An attacker can supply `username = \"admin' --\"` (or similar) to bypass authentication, extract data, or even modify/delete tables. | Use **parameterized queries** (prepared statements) or an ORM that does this automatically. Example with SQLite/MySQL\u2011style DB\u2011API: <br>`db.execute(\"SELECT * FROM users WHERE username = %s AND password = %s\", (username, password))` |\n| **2** | **Plain\u2011text password storage** \u2013 the code compares the supplied password directly with the column `password`. | If the DB is ever leaked, attackers obtain every user\u2019s password in clear text, enabling credential stuffing on other sites. | Store **only a salted hash** (e.g., bcrypt, Argon2, scrypt). When creating a user: `hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())`. On login: retrieve the hash and verify with `bcrypt.checkpw(password.encode(), stored_hash)`. |\n| **3** | **No password hashing verification** \u2013 even if the column stored a hash, the code would still compare the raw password to the hash string, which will always fail. | Login would never succeed (bug) or, if the column accidentally held plain text, you\u2019d be back to issue\u202f2. | After fetching the row, compare the hash: `if bcrypt.checkpw(password.encode(), row['password'].encode()): \u2026` |\n| **4** | **Session fixation / insecure session handling** \u2013 the code simply sets `session['user'] = username` without regenerating the session ID after a successful login. | An attacker who can force a user to use a known session ID (e.g., via a link) can hijack the account after the user logs in. | Call `session.regenerate()` (or Flask\u2019s `session.clear(); session['user'] = username`) after successful authentication, and",
+  "score": 0,
+  "cost": 8.190000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 800
+  }
+}

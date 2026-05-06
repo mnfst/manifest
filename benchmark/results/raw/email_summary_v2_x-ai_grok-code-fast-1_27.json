@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint retrospective highlighted successes like shipping the auth redesign on time and strong cross-team collaboration with design, while identifying issues such as excessive context switches across three projects and standups exceeding the 15-minute target at 25 minutes. Action items include limiting work-in-progress to two items per developer and implementing timeboxed standups with a parking lot for off-topic discussions.",
+  "score": 0,
+  "cost": 0.00025,
+  "expected": "",
+  "tokens": {
+    "input": 298,
+    "output": 238
+  }
+}

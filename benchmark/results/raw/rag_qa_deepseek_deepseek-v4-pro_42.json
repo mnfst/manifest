@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "",
+  "score": 0,
+  "cost": 0.000433695,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 197,
+    "output": 200
+  }
+}

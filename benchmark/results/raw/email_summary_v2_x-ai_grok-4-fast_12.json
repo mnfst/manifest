@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The email provides an update on engineering hiring, noting 4 open requisitions (2 backend, 1 frontend, 1 ML) with a pipeline of 23 candidates in process and 5 in final rounds. It highlights a concern that the frontend role has been open for 60 days without strong candidates and recommends expanding to remote hiring or adjusting the compensation band.",
+  "score": 0,
+  "cost": 0.00023940000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 245,
+    "output": 238
+  }
+}

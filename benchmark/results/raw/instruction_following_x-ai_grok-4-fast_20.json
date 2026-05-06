@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Plants perform photosynthesis. Sunlight provides power. Special pigments soak sunlight. Sunlight splits substances. Substances supply sugar plus pure surplus.",
+  "score": 0,
+  "cost": 0.0018348000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 2251
+  }
+}

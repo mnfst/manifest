@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are 4 programming languages:\n\n1. Java\n2. C++\n3. Ruby\n4. Swift",
+  "score": 0,
+  "cost": 2.486e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 23
+  }
+}

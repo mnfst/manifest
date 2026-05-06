@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**  \n\"Good day. How may I assist you today?\"\n\n**Casual:**  \n\"Hey there! What can I help with?\"\n\n**Humorous:**  \n\"Greetings, human! I've been expecting you. What cosmic query brings you to my digital doorstep?\"",
+  "score": 0,
+  "cost": 0.00035409,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 198
+  }
+}

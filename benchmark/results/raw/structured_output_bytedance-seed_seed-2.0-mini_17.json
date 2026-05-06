@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "structured_output",
+  "case": 17,
+  "response": "{\"message\": \"fix(auth): resolve session timeout on mobile browsers.\", \"type\": \"fix\", \"scope\": \"auth\", \"author\": \"@jdoe\", \"branch\": \"fix/session-timeout\", \"files_changed\": 3, \"insertions\": 47, \"deletions\": 12, \"pr_number\": 892}",
+  "score": 0,
+  "cost": 0.000497,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 1199
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "long_summarization",
+  "case": 40,
+  "response": "Originating in the 1960s as a US Department of Defense project, the internet evolved from the 1969 ARPANET demonstration and the 1983 adoption of TCP/IP protocols into a foundational global network. The 1989 invention of the World Wide Web and the 1993 launch of the Mosaic browser democratized access, fueling the dot-com boom, social media expansion, and the mobile and cloud computing revolutions of the 2000s. Today, this continuous technological evolution connects over 5 billion people worldwide, serving as the indispensable infrastructure for modern commerce, communication, and daily life.",
+  "score": 0,
+  "cost": 0.002570425,
+  "expected": "",
+  "tokens": {
+    "input": 341,
+    "output": 1892
+  }
+}

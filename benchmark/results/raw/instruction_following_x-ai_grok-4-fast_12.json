@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is like a helpful middleman that lets different computer programs talk to each other and share information or tasks without getting into the messy details of how everything works behind the scenes.\n\nImagine you're at a restaurant. You don't need to know how the kitchen cooks your food\u2014you just tell the waiter what you want (like \"a burger with fries\"), and the waiter handles getting it from the kitchen and brings it to you. The API is that waiter, connecting your request to the service that can fulfill it, so apps can work together smoothly.",
+  "score": 0,
+  "cost": 0.0002322,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 248
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is like a warm hug on a cold day - rich, comforting, and enveloping. Just as a gentle squeeze from a loved one can melt away worries and leave you feeling cozy, the deep, velvety flavors of chocolate melt on your tongue, releasing a sense of indulgent pleasure that wraps around your senses. The sweetness is like the tender touch, soothing and reassuring, while the bitterness is like the gentle firmness that holds you close, balancing out the experience and leaving you feeling satisfied and content.",
+  "score": 0,
+  "cost": 6.84e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 108
+  }
+}

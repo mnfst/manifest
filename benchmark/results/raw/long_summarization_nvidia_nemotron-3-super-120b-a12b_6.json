@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work shifted from a niche benefit\u2014under 5\u202f% of workers were fully remote before COVID\u201119\u2014to a mass experiment in 2020, enabled by tools like Zoom, Slack, and cloud infrastructure. Research, including Stanford\u2019s Nick\u202fBloom studies, shows mixed productivity outcomes, prompting a return\u2011to\u2011office push while many firms adopt hybrid models. This transition has reshaped commercial real estate, spurred geographic arbitrage as employees relocate to lower\u2011cost areas, affected company culture and junior\u2011staff development, and led governments to introduce digital\u2011nomad visas to attract remote workers.",
+  "score": 0,
+  "cost": 2.421e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 123
+  }
+}

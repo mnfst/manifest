@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "The context provided does not explicitly state the target percentage of households BSkyB wanted to reach. It mentions that BSkyB's reach into 36% of households in the UK represented an audience of more than 25 million people, but it does not specify if this was the target percentage. Therefore, the answer based on the given context is:\n\nNot found in context.",
+  "score": 0,
+  "cost": 0.0005096,
+  "expected": "36%",
+  "tokens": {
+    "input": 182,
+    "output": 77
+  }
+}

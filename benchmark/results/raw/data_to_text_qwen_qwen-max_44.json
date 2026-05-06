@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "MIT, founded in 1861, is a prestigious institution ranked #1 globally, boasting an impressive community of 11,500 students and 1,069 faculty members, including 98 Nobel laureates. With a highly selective acceptance rate of 3.9% and an annual tuition of $57,590, the university is supported by a substantial endowment of $24.6 billion.",
+  "score": 0,
+  "cost": 0.00050128,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 92
+  }
+}

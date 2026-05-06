@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "Based on the provided context, members of the lobate genera Bathocyroe and Ocyropsis can escape from danger by clapping their lobes, so that the jet of expelled water drives them backwards very quickly.",
+  "score": 0,
+  "cost": 9.878e-05,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 273,
+    "output": 44
+  }
+}

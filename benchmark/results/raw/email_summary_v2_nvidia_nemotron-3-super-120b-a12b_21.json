@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team reports 47 active feature flags, with 23 older than six months, and proposes a cleanup sprint to remove 15 fully rolled\u2011out flags and archive 8 dead\u2011code flags. This cleanup is expected to reduce configuration complexity and speed up the test suite by approximately 12%.",
+  "score": 0,
+  "cost": 1.449e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 61
+  }
+}

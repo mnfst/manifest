@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "email_summary_v2",
+  "case": 0,
+  "response": "Marketing exceeded its Q3 budget by 15% because of the August campaign, while engineering is 8% under",
+  "score": 0,
+  "cost": 2.7629999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 200
+  }
+}

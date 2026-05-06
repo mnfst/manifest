@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The production web server prod-web-01, located in the us-east-1 region, has been running for 45 days with 127 active connections. It is currently utilizing 78% of its CPU, 12.4 GB out of 16 GB of memory, and 234 GB out of 500 GB of disk space. Performance metrics show a P99 latency of 145ms and only 3 errors per hour.",
+  "score": 0,
+  "cost": 0.00026419999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 249,
+    "output": 268
+  }
+}

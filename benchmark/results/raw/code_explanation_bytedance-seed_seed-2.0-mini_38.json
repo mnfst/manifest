@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 38,
+  "response": "This code implements a configurable consistent hashing algorithm: the outer `consistent_hash` function builds a sorted hash ring by creating the specified number of virtual replicas (default 100) for each input physical node, hashing each replica\u2019s unique `node:index` string to populate the ring, then sorting all virtual node hashes. The inner `get_node` function returned by this utility maps an input item to a physical node by hashing the item, using binary search to locate the nearest matching position on the sorted ring (wrapping around to the start if the item\u2019s hash exceeds all ring keys), and returning the physical node assigned to that ring spot.",
+  "score": 0,
+  "cost": 0.0006563000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 191,
+    "output": 1593
+  }
+}

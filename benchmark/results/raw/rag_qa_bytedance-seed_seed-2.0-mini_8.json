@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "36% of UK households.",
+  "score": 0,
+  "cost": 0.0003509,
+  "expected": "36%",
+  "tokens": {
+    "input": 225,
+    "output": 821
+  }
+}

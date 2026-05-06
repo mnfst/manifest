@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "long_summarization",
+  "case": 11,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe European Union's General Data Protection Regulation (GDPR), effective since May 2018, has significantly impacted how organizations handle personal data, applying to any company processing EU residents' data. Key provisions include the right to access and erase personal data, data portability, and explicit consent, with fines for non-compliance reaching up to 4% of global annual revenue or 20 million euros. Major tech companies, such as Meta, Amazon, and Google, have received significant fines for GDPR violations, with amounts totaling over 2 billion euros. GDPR has set a global standard for data protection legislation, inspiring similar laws worldwide, despite criticisms of creating compliance burdens and inconsistent enforcement.",
+  "score": 0,
+  "cost": 0.00013754999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 151
+  }
+}

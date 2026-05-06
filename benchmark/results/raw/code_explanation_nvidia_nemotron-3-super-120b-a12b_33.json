@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "The function implements the classic reservoir\u2011sampling algorithm: it fills a reservoir with the first\u202fk\u202fitems from the stream, then for each subsequent item at position\u202fi\u202fit replaces a randomly chosen element in the reservoir with probability\u202fk/(i+1)\u202f(by picking a uniform index\u202fj\u202f\u2208\u202f[0,i] and swapping when\u202fj<k). This yields a uniform random sample of size\u202fk\u202ffrom the entire (potentially unbounded) stream.",
+  "score": 0,
+  "cost": 2.196e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 140
+  }
+}

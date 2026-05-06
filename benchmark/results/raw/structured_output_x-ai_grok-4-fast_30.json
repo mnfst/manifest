@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "structured_output",
+  "case": 30,
+  "response": "{\"name\": \"Bitcoin\", \"symbol\": \"BTC\", \"price\": 43250.80, \"change_24h_percent\": -1.2, \"market_cap\": \"$847B\", \"volume_24h\": \"$18.5B\", \"circulating_supply\": \"19.6M BTC\"}",
+  "score": 0,
+  "cost": 0.00027840000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 268,
+    "output": 281
+  }
+}

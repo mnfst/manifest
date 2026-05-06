@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government",
+  "score": 0,
+  "cost": 0.000515125,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 165,
+    "output": 355
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "structured_output",
+  "case": 31,
+  "response": "To extract the required information and format it into valid JSON according to the given schema, we will parse the provided text step by step.\n\n1. **Extract \"From\" Information:**\n   - Name: Acme Inc\n   - Address: 100 Tech Drive\n   - City: Austin\n   - State: TX\n   - Zip: 78701\n\n2. **Extract \"To\" Information:**\n   - Name: John Doe\n   - Address: 500 Market St\n   - City: San Francisco\n   - State: CA\n   - Zip: 94105\n\n3. **Extract Package Details:**\n   - Weight: 2.5 lbs\n   - Dimensions: 12x8x4 inches\n   - Service: Priority Mail\n\nNow, let's format this information into the required JSON schema:\n\n```json\n{\n  \"from\": {\n    \"name\": \"Acme Inc\",\n    \"address\": \"100 Tech Drive\",\n    \"city\": \"Austin\",\n    \"state\": \"TX\",\n    \"zip\": \"78701\"\n  },\n  \"to\": {\n    \"name\": \"John Doe\",\n    \"address\": \"500 Market St\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"zip\": \"94105\"\n  },\n  \"weight_lbs\": 2.5,\n  \"dimensions\": \"12x8x4 inches\",\n  \"service\": \"Priority Mail\"\n}\n```\n\nThis JSON object matches the provided schema and contains all the required information extracted from the given text.",
+  "score": 0,
+  "cost": 0.0002151,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 318
+  }
+}

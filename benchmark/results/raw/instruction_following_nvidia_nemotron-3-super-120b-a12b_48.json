@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Romeo Montague and Juliet Capulet fall instantly in love at a masked ball, despite their families\u2019 bitter feud. Secretly married with the help of Friar Laurence, they hope to end the rivalry, but a clash leads to Mercutio\u2019s death and Romeo\u2019s banishment after he kills Tybalt. Juliet, pressured to marry Paris, takes a potion to feign death; Romeo, unaware of the plan, believes she is truly dead and kills himself beside her. Juliet awakens, sees Romeo dead, and stabs herself, uniting the lovers in tragedy and prompting their families to reconcile.",
+  "score": 0,
+  "cost": 1.818e-05,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 164
+  }
+}

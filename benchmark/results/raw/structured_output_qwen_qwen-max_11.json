@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "structured_output",
+  "case": 11,
+  "response": "```json\n{\n  \"name\": \"Maria Rodriguez\",\n  \"date_of_birth\": \"1985-03-22\",\n  \"blood_type\": \"O+\",\n  \"allergies\": [\"penicillin\", \"shellfish\"],\n  \"medications\": [\n    {\n      \"name\": \"lisinopril\",\n      \"dosage\": \"10mg\",\n      \"frequency\": \"daily\"\n    }\n  ]\n}\n```",
+  "score": 0,
+  "cost": 0.0005283200000000001,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 96
+  }
+}

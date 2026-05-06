@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew significantly and became much more interconnected on a global scale as a result of imperialism.",
+  "score": 0,
+  "cost": 0.00032864,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 232,
+    "output": 21
+  }
+}

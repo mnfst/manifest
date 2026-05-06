@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort_list(arr):\n    \"\"\"Sorts the given list in ascending order in place.\n\n    Args:\n        arr (list): The list of comparable elements to sort. Elements must support\n            comparison operators (e.g., numbers or strings).\n\n    Returns:\n        None: The input list is modified in place and sorted.\n\n    Raises:\n        TypeError: If the list contains incomparable elements (e.g., mixing numbers\n            and strings without proper comparison).\n    \"\"\"\n```",
+  "score": 0,
+  "cost": 0.00037080000000000007,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 409
+  }
+}

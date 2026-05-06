@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "Members of the lobate genera Bathocyroe and Ocyropsis escape danger by clapping their lobes, which expels a jet of water that drives them backwards very quickly.",
+  "score": 0,
+  "cost": 2.7899999999999997e-05,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 272,
+    "output": 38
+  }
+}

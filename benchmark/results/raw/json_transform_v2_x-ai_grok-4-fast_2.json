@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "json_transform_v2",
+  "case": 2,
+  "response": "{\"admins\": [\"Alice\", \"Charlie\"], \"users\": [\"Bob\"], \"inactive_count\": 1}",
+  "score": 0,
+  "cost": 0.00031539999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 277,
+    "output": 325
+  }
+}

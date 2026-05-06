@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "The Design System (DS) v3 is now ready for adoption, featuring updates such as new color tokens, a revised spacing scale, and updated components, with a migration tool available to facilitate the transition. The Design Team recommends a team-by-team rollout, starting with the Settings page, to implement the new design system.",
+  "score": 0,
+  "cost": 5.22e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 65
+  }
+}

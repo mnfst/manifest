@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "The provided Python function implements the Reservoir Sampling algorithm, which is used to randomly select `k` elements from a large or potentially infinite stream of data. It works by initially filling a \"reservoir\" with the first `k` elements of the stream, then for each subsequent element, it randomly decides whether to include that element in the reservoir, replacing one of the existing elements, thereby maintaining a uniform probability of selection for all elements seen so far.",
+  "score": 0,
+  "cost": 0.00047736,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 91
+  }
+}

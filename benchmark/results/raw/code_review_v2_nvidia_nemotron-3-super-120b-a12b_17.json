@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 17,
+  "response": "**Quick TL\u2011DR**\n\n| Line | What it does | Why it\u2019s risky / problematic | How to fix / improve |\n|------|--------------|-----------------------------|----------------------|\n| `app.use(cors({ origin: '*' }));` | Allows **any** web site to make AJAX/fetch calls to your API. | \u2022 Opens the door to CSRF\u2011style data leakage if you ever rely on cookies or HTTP",
+  "score": 0,
+  "cost": 7.821e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 800
+  }
+}

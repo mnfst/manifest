@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "The provided Python function `crc32` computes the CRC-32 (Cyclic Redundancy Check) checksum of the input `data`. It uses a bitwise algorithm where each byte of the input is processed through a series of bitwise operations, including XOR and bit shifting, with a specific polynomial (0xEDB88320) to update the CRC value, and finally inverts the result to produce the checksum.",
+  "score": 0,
+  "cost": 0.0004763200000000001,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 87
+  }
+}

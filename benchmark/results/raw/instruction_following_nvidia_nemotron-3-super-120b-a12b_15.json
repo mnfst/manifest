@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are 4 perfect rhyming words for \"cat\" (all sharing the exact /\u00e6t/ sound at the end):\n\n1. **Bat**  \n2. **Hat**  \n3. **Mat**  \n4. **Rat**  \n\n### Why these work:\n- All end with the **-at** sound (/\u00e6t/), matching \"cat\" (/k\u00e6t/).  \n- They are **perfect rhymes** (identical vowel + final consonant sound).  \n\n### Common mistakes to avoid:\n- \u274c *That* (/\u00f0\u00e6t/) \u2013 The initial \"th\" sound makes it a **slant rhyme** (not perfect).  \n- \u274c *Chat* (/t\u0283\u00e6t/) \u2013 Starts with \"ch,\" so it\u2019s a perfect rhyme too! (But you asked for 4, so bat",
+  "score": 0,
+  "cost": 4.7520000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 500
+  }
+}

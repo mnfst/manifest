@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The thunderstorm erupted suddenly across the darkening sky, transforming the peaceful afternoon into a symphony of nature's raw power. **The sharp, metallic scent of ozone** filled the air as lightning split the heavens, its brilliant white forks illuminating the landscape in stark, fleeting flashes. **The deep, rumbling growl of thunder** rolled across the valley, vibrating through the ground and rattling windows with each successive boom. **The cool, electric breeze** carried the first fat raindrops against my skin, followed quickly by a deluge that drummed relentlessly against the roof and pavement. Within minutes, the world had become a swirling maze of wind, water, and wild energy that both terrified and mesmerized all who witnessed its fury.",
+  "score": 0,
+  "cost": 0.00013662,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 150
+  }
+}

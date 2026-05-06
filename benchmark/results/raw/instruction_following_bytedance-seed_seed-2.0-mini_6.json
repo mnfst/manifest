@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Waves kiss sun-warmed sand",
+  "score": 0,
+  "cost": 0.00025100000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 613
+  }
+}

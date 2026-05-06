@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "### Crust\nThin, crispy base. Golden, bubbly edges. Soft, chewy interior.\n\n### Sauce\nRich, tomato foundation. Tangy, herby flavor. Smooth, even spread.\n\n### Cheese\nMelted, mozzarella layer. Stringy, gooey texture. Salty, creamy taste.\n\n### Toppings\nSpicy, pepperoni slices. Juicy, mushroom caps. Crisp, green bell pepper strips. Fresh, basil leaves. Savory, sausage crumbles.\n\n### Overall\nHot, aromatic delight. Round, generous portion. Flavorful, satisfying creation.",
+  "score": 0,
+  "cost": 0.000392,
+  "expected": "",
+  "tokens": {
+    "input": 216,
+    "output": 436
+  }
+}

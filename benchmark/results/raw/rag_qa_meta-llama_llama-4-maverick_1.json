@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "1665.",
+  "score": 0,
+  "cost": 5.34e-05,
+  "expected": "1665",
+  "tokens": {
+    "input": 340,
+    "output": 4
+  }
+}

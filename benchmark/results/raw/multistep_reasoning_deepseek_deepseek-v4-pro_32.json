@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "multistep_reasoning",
+  "case": 32,
+  "response": "B",
+  "score": 5,
+  "cost": 0.00036627,
+  "expected": "B",
+  "tokens": {
+    "input": 86,
+    "output": 189
+  }
+}

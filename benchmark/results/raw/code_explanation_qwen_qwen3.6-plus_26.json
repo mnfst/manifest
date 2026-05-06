@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This function solves the **0/1 knapsack problem** using **bottom-up dynamic programming** with a 2D tabulation table. It iteratively computes the maximum total value achievable by selecting each item at most once without exceeding the specified weight capacity.",
+  "score": 0,
+  "cost": 0.00116545,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 855
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\ndef sum_of_digits(n):\n    return sum(int(digit) if d % 2 == 0 or n > 0 else -int(digit) for d, digit in enumerate(str(abs(n) if n >= 0 else str(n)[1:])))\n\nreturn sum(1 for x in arr if sum_of_digits(x) > 0)\n```",
+  "score": 0,
+  "cost": 0.00048776,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 77
+  }
+}

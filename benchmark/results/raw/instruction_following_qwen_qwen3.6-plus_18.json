@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It\u2019s a story that lives in the space between longing and illusion, set against a backdrop of glittering excess and quiet decay. The narrative unfolds through the eyes of a reserved observer who becomes entangled in the orbit of a man who has built an entire world of spectacle to reach across a divide that time, geography, and social standing have made impassable. There\u2019s a recurring symbol\u2014a distant, colored light\u2014that pulses with the weight of everything the characters want but can never quite hold. \n\nThe prose moves like a slow tide, elegant and precise, carrying you through lavish gatherings that mask profound loneliness, through conversations that circle around love, ambition, and the quiet tragedy of trying to rewrite the past. Beneath the surface glamour lies a sharp meditation on what we chase, what we sacrifice, and how the promises we\u2019re sold often crumble under the weight of reality. It\u2019s a book that feels like watching a beautiful, inevitable collision: haunting, lyrical, and impossible to forget once you\u2019ve turned the final page.",
+  "score": 0,
+  "cost": 0.001869725,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 1433
+  }
+}

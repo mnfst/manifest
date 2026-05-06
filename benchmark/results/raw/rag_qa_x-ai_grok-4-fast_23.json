@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "Mortgage banker",
+  "score": 0,
+  "cost": 0.000149,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 345,
+    "output": 100
+  }
+}

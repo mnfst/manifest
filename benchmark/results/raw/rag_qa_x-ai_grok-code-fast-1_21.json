@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Anaerobic bacteria that cause gas gangrene.",
+  "score": 0,
+  "cost": 0.000413,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 397,
+    "output": 417
+  }
+}

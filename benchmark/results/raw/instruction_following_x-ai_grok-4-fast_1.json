@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "The CPU, or Central Processing Unit, is the primary component of a computer that executes instructions from programs by fetching, decoding, and performing arithmetic, logical, control, and input/output operations.",
+  "score": 0,
+  "cost": 0.00011080000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 97
+  }
+}

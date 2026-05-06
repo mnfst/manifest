@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort_list(arr, key=None, reverse=False):\n    \"\"\"Sorts the elements of a list in place.\n\n    The default sort order is ascending. If a custom `key` function is provided,\n    the list is sorted based on the values returned by the key function applied to\n    each element. The sort is stable, meaning that the relative order of elements\n    that compare equal is preserved.\n\n    Note:\n        This function modifies the original list. For a version that returns a new\n        sorted list without changing the input, see `sorted()`.\n\n    Args:\n        arr (list): The list to be sorted in place. May contain any comparable\n            elements or elements that become comparable through the `key` function.\n        key (callable, optional): A function of one argument that extracts a\n            comparison key from each element. Defaults to None, which uses the\n            elements themselves for comparison.\n        reverse (bool, optional): If True, the list is sorted in descending order.\n            Defaults to False.\n\n    Returns:\n        None: The list is modified in place.\n\n    Raises:\n        TypeError: If the elements are not comparable or the `key` function cannot\n            be applied to one or more elements.\n\n    Examples:\n        >>> data = [3, 1, 2]\n        >>> sort_list(data)\n        >>> data\n        [1, 2, 3]\n\n        Sort with a key and in descending order:\n\n        >>> words = ['banana',",
+  "score": 0,
+  "cost": 0.00087783,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 500
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has shared the Q1 board deck draft showing strong revenue performance (127% of target) and healthy net revenue retention (115%), though customer acquisition costs have increased by 22%. The main action item is to provide the product roadmap section by Wednesday in preparation for next Tuesday's board meeting.",
+  "score": 0,
+  "cost": 7.853999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 66
+  }
+}

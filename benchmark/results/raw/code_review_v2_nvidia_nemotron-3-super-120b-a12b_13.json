@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 13,
+  "response": "**Code under review**\n\n```javascript\nfunction renderHTML(userInput) {\n  document.getElementById('output').innerHTML = userInput;\n}\n```\n\n---\n\n## 1. Security Issues  \n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Cross\u2011Site Scripting (XSS)** \u2013 direct assignment to `innerHTML` | Any HTML/JS supplied by the user is parsed and executed by the browser. An attacker can inject `<script>alert('XSS')</script>` or event\u2011handler attributes (`<img src=x onerror=\u2026>`) and run arbitrary code in the victim\u2019s context. | \u2022 **Never trust raw user input** for `innerHTML`. <br>\u2022 If you must insert HTML, **sanitize** it with a trusted library (e.g., [DOMPurify](https://github.com/cure53/DOMPurify)). <br>\u2022 Prefer **text\u2011only insertion** (`textContent`) when the intent is to display plain text. |\n| **Missing Content Security Policy (CSP) mitigation** | Even if you sanitize, a CSP that disallows `unsafe-inline` scripts provides a defense\u2011in\u2011depth layer. | Deploy a strict CSP (e.g., `script-src 'self'; object-src 'none'; base-uri 'self';`) and report violations. |\n| **Potential injection via data\u2011attributes or SVG** | Some XSS vectors survive simple HTML\u2011escaping (e.g., `<svg onload=\u2026>`). | Use a sanitizer that understands SVG/MathML contexts, or avoid allowing those elements altogether. |\n\n---\n\n## 2. Functional / Bug\u2011Related Issues  \n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Assumes the element exists** | If there is no element with id `output`, `getElementById` returns `null` and accessing `.innerHTML` throws `TypeError: Cannot set property 'innerHTML' of null`. | Guard against a missing element: <br>`const el = document.getElementById('output'); if (el) { \u2026 } else { console.warn('Output element not found'); }` |\n| **No type checking** | Passing a non\u2011string (e.g., `null`, `undefined`, an object) will be coerced to a string (`\"[object Object]\"`) which may be unexpected. | Validate/coerce explicitly: <br>`if",
+  "score": 0,
+  "cost": 7.821e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 800
+  }
+}

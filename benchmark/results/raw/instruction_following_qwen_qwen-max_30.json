@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Savory, cheesy, crispy, round, hot, delicious, Italian, traditional, tomato, basil, mozzarella, pepperoni, crust, toppings",
+  "score": 0,
+  "cost": 0.0001508,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 31
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden was formally a royal garden.",
+  "score": 0,
+  "cost": 3.96e-05,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 429,
+    "output": 11
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "Strictly contained in P or equal to P.",
+  "score": 0,
+  "cost": 0.001360775,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 127,
+    "output": 1015
+  }
+}

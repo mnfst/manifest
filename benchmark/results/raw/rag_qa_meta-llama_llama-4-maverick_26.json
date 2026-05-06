@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "KMJ-TV, which debuted on June 1, 1953, and is now known as NBC affiliate KSEE.",
+  "score": 0,
+  "cost": 4.65e-05,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 206,
+    "output": 26
+  }
+}

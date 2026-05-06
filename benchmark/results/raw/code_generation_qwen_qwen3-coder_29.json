@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\ndef order_by_points(nums):\n    def digit_sum(n):\n        return sum(int(digit) for digit in str(abs(n)))\n    \n    # Create list of tuples (original_index, number, digit_sum)\n    indexed_nums = [(i, num, digit_sum(num)) for i, num in enumerate(nums)]\n    \n    # Sort by digit sum first, then by original index\n    sorted_nums = sorted(indexed_nums, key=lambda x: (x[2], x[0]))\n    \n    # Extract just the numbers from the sorted result\n    return [num for _, num, _ in sorted_nums]\n```",
+  "score": 0,
+  "cost": 0.00014652,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 128
+  }
+}

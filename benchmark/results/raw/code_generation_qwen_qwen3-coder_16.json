@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    n = len(grid)\n    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]  # right, left, down, up\n    \n    def get_neighbors(row, col):\n        neighbors = []\n        for dr, dc in directions:\n            new_row, new_col = row + dr, col + dc\n            if 0 <= new_row < n and 0 <= new_col < n:\n                neighbors.append((new_row, new_col))\n        return neighbors\n    \n    # Generate all possible paths of length k\n    def dfs(row, col, path, remaining):\n        if remaining == 0:\n            return [path[:]]\n        \n        paths = []\n        for nr, nc in get_neighbors(row, col):\n            path.append(grid[nr][nc])\n            paths.extend(dfs(nr, nc, path, remaining - 1))\n            path.pop()\n        \n        return paths\n    \n    # Get all possible paths starting from each cell\n    all_paths = []\n    for i in range(n):\n        for j in range(n):\n            all_paths.extend(dfs(i, j, [grid[i][j]], k - 1))\n    \n    # Find the lexicographically smallest path\n    min_path = min(all_paths)\n    return min_path\n```",
+  "score": 0,
+  "cost": 0.0003355,
+  "expected": "",
+  "tokens": {
+    "input": 429,
+    "output": 274
+  }
+}

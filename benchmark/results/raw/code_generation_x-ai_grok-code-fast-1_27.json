@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 27,
+  "response": "max_strength = float('-inf')\nstrongest = None\nfor ext in extensions:\n    cap = sum(1 for c in ext if c.isupper())\n    sm = sum(1 for c in ext if c.islower())\n    strength = cap - sm\n    if strength > max_strength:\n        max_strength = strength\n        strongest = ext\nreturn class_name + '.' + strongest",
+  "score": 0,
+  "cost": 0.0006954000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 501,
+    "output": 744
+  }
+}

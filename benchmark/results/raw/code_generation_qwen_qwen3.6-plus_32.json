@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 32,
+  "response": "return ' '.join(''.join(sorted(word)) for word in s.split(' '))",
+  "score": 0,
+  "cost": 0.003730675,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 2826
+  }
+}

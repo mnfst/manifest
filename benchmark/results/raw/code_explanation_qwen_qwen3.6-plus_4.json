@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements the **memoization** pattern using a Python decorator, which caches function results in a dictionary keyed by input arguments to avoid redundant computations. When the decorated function is called, the wrapper checks the cache first and returns the stored result if it exists, otherwise it computes, stores, and returns the new value.",
+  "score": 0,
+  "cost": 0.000638625,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 470
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "\u2022 **Vehicle Collision Details**: Two vehicles collided at the intersection of Main Street and Oak Avenue when the northbound sedan ran a red light and struck the eastbound pickup truck on the passenger side, causing significant front-end damage to both vehicles.\n\n\u2022 **Injuries and Damage Assessment**: The pickup truck driver sustained minor injuries and was transported to the hospital for evaluation, while the sedan driver refused medical treatment; estimated property damage totals $15,000 for both vehicles combined.\n\n\u2022 **Incident Investigation**: Traffic camera footage confirms the sedan entered the intersection against the traffic signal, and witnesses corroborate the pickup truck had the right of way; citations are pending for running a red light and failure to yield.",
+  "score": 0,
+  "cost": 0.00013024,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 143
+  }
+}

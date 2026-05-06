@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 15,
+  "response": "```python\ni = 2\n    while i * i <= n:\n        if n % i:\n            i += 1\n        else:\n            n //= i\n    return n\n```",
+  "score": 0,
+  "cost": 5.940000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 42
+  }
+}

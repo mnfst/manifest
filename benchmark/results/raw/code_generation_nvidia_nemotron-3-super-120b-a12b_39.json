@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_generation",
+  "case": 39,
+  "response": "if x == 0:\n        return \"0\"\n    digits = []\n    while x > 0:\n        digits.append(str(x % base))\n        x //= base\n    return ''.join(reversed(digits))",
+  "score": 0,
+  "cost": 3.7170000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 275
+  }
+}

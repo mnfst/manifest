@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s have seen rapid growth in both scientific and commercial space exploration, with key national space agency milestones including NASA\u2019s Artemis program to return humans to the Moon, China\u2019s operational space station and lunar ambitions, India\u2019s successful Chandrayaan lunar missions, and transformative scientific discoveries from the James Webb Space Telescope.\nPrivate aerospace firms are a major driver of this expansion, with companies like SpaceX advancing its Starship spacecraft and Starlink satellite internet constellation alongside rival OneWeb, launching space tourism flights through Blue Origin and Virgin Galactic, and exploring the early feasibility of asteroid mining.\nThis booming sector also faces significant ongoing challenges, including regulatory gaps in the outdated Outer Space Treaty and the urgent problem of accumulating space debris as more commercial launches enter orbit.",
+  "score": 0,
+  "cost": 0.00042760000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 1024
+  }
+}

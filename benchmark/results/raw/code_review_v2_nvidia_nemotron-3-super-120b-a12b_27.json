@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 27,
+  "response": "**Code under review**\n\n```javascript\nasync function authenticate(token) {\n  try {\n    const user = jwt.verify(token, process.env.JWT_SECRET);\n    return user;\n  } catch (e) {\n    return null;\n  }\n}\n```\n\n---\n\n## 1. Functional / Logical Issues  \n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **`async` without an `await`** | `jwt.verify` (the synchronous API from `jsonwebtoken`) returns a value immediately. Declaring the function `async` is misleading and can cause callers to incorrectly expect a Promise that resolves later. | Either make the function **synchronous** (`function authenticate(token) { \u2026 }`) **or** switch to the promise\u2011based API (`jwt.verify` wrapped with `util.promisify` or the `jsonwebtoken`\u2011promise wrapper) and `await` it. |\n| **No input validation** | If `token` is `undefined`, `null`, a number, or an empty string, `jwt.verify` will throw a generic error that is swallowed and turned into `null`. This hides programming errors and makes debugging harder. | Validate the token up\u2011front: <br>`if (!token || typeof token !== 'string' || token.trim() === '') { throw new Error('Invalid token'); }` |\n| **Broad `catch` that returns `null`** | All error types (malformed token, expired token, invalid signature, missing secret, etc.) are collapsed into the same return value. Callers cannot distinguish *why* authentication failed (e.g., to return a 401 vs. a 403). | Either: <br>1. **Re\u2011throw** a more specific error (`throw new AuthenticationError(e",
+  "score": 0,
+  "cost": 7.983e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 800
+  }
+}

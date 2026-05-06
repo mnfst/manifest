@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sunshine, sugar, substance, synthesis, spectrum, spreading, sprouting, splendid.",
+  "score": 0,
+  "cost": 9.984e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 18
+  }
+}

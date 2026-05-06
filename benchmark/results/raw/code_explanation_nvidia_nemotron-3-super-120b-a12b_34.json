@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "The `MinStack` maintains two parallel stacks: `stack` holds the actual values, while `min_stack` stores the minimum value seen so far at each depth (the current minimum is the top of `min_stack`). Each `push` updates `min_stack` with `min(val, previous_min)`, and `pop` removes the top from both stacks, allowing `get_min` to return the current minimum in O(1) time. This pattern is a classic auxiliary\u2011stack technique for constant\u2011time minimum queries.",
+  "score": 0,
+  "cost": 2.061e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 108
+  }
+}

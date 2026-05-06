@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom wrote \"The Closing of the American Mind\".",
+  "score": 0,
+  "cost": 0.00023192000000000002,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 175,
+    "output": 12
+  }
+}

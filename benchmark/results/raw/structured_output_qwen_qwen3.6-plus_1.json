@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "structured_output",
+  "case": 1,
+  "response": "{\n  \"title\": \"Q4 Planning\",\n  \"date\": \"Dec 15 2024\",\n  \"time\": \"2pm\",\n  \"attendees\": [\"Alice\", \"Bob\", \"Charlie\"],\n  \"room\": \"301B\"\n}",
+  "score": 0,
+  "cost": 0.0011804,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 884
+  }
+}

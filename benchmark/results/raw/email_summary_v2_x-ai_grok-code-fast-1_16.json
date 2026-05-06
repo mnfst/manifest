@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign achieved 45,000 impressions, 2,300 clicks with a 5.1% click-through rate, and 187 signups at an 8.1% conversion rate, costing $12,000 for a customer acquisition cost of $64, with CTR improving by 1.2 percentage points but conversion dropping by 0.8 percentage points compared to March. The recommendation is to conduct A/B testing on the landing page call-to-action.",
+  "score": 0,
+  "cost": 0.00027120000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 261
+  }
+}

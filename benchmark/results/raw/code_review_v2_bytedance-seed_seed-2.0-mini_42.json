@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_review_v2",
+  "case": 42,
+  "response": "",
+  "score": 0,
+  "cost": 0.0011857999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 2933
+  }
+}

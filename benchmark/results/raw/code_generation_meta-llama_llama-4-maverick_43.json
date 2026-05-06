@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_generation",
+  "case": 43,
+  "response": "```python\nif not numbers:\n    return []\nresult = [numbers[0]]\nfor num in numbers[1:]:\n    result.extend([delimeter, num])\nreturn result\n```",
+  "score": 0,
+  "cost": 5.3099999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 198,
+    "output": 39
+  }
+}

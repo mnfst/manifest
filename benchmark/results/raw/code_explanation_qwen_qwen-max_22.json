@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "The provided code implements an LRU (Least Recently Used) Cache using a combination of a dictionary and an ordered dictionary (`OrderedDict`) from Python's `collections` module. The `get` method retrieves an item by key, moving it to the end to mark it as recently used, and returns its value or -1 if the key is not found. The `put` method inserts or updates a key-value pair, moving the updated key to the end to mark it as recently used, and if the cache exceeds its capacity, it removes the least recently used item (the first item in the `OrderedDict`).",
+  "score": 0,
+  "cost": 0.00066456,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 124
+  }
+}

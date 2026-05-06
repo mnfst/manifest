@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "structured_output",
+  "case": 31,
+  "response": "{\"from\":{\"name\":\"Acme Inc\",\"address\":\"100 Tech Drive\",\"city\":\"Austin\",\"state\":\"TX\",\"zip\":\"78701\"},\"to\":{\"name\":\"John Doe\",\"address\":\"500 Market St\",\"city\":\"San Francisco\",\"state\":\"CA\",\"zip\":\"94105\"},\"weight_lbs\":2.5,\"dimensions\":\"12x8x4 inches\",\"service\":\"Priority Mail\"}",
+  "score": 0,
+  "cost": 0.00036400000000000007,
+  "expected": "",
+  "tokens": {
+    "input": 308,
+    "output": 378
+  }
+}

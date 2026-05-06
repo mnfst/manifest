@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 25,
+  "response": "```python\nresult = []\ncurrent = ''\nbalance = 0\nfor char in paren_string.replace(' ', ''):\n    if char == '(':\n        if balance == 0 and current != '':\n            result.append(current)\n            current = ''\n        balance += 1\n        current += char\n    elif char == ')':\n        balance -= 1\n        current += char\n        if balance == 0:\n            result.append(current)\n            current = ''\nif current:\n    result.append(current)\nreturn result\n```",
+  "score": 0,
+  "cost": 0.00059072,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 105
+  }
+}

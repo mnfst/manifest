@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sky transforms into a kaleidoscope of warm hues as the day comes to a close. Soft oranges and golden tones gradually deepen, casting a gentle glow over the landscape. The sun, a burning orb, sinks slowly below the horizon, painting the clouds with shades of coral and amber. As the light fades, the colors in the sky become even more vibrant, creating a breathtaking spectacle that captivates all who witness it. The atmosphere is filled with a sense of serenity and peacefulness, as if the world is slowing down to appreciate the fleeting moment.",
+  "score": 0,
+  "cost": 8.295e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 115
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "The Charles River",
+  "score": 0,
+  "cost": 0.000102,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 300,
+    "output": 180
+  }
+}

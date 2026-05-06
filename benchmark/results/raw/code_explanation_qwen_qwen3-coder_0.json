@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "This code implements the Fibonacci sequence using a recursive algorithm, where each number is calculated as the sum of the two preceding numbers (with base cases of 0 and 1 returning themselves). The function calls itself twice for each non-base case, creating a binary tree of recursive calls that grows exponentially with the input size.",
+  "score": 0,
+  "cost": 6.952e-05,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 63
+  }
+}

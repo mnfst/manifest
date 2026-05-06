@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old lighthouse keeper found the message in a bottle washed up on shore, its paper yellowed with age. Inside, a child's desperate plea for help from an island that didn't exist on any map. Despite knowing it was likely a prank, he radioed the coast guard anyway. Three days later, a small boat appeared on the horizon, carrying a young girl who had been stranded for weeks. She explained that she'd written dozens of messages, but his was the first to respond. As they walked back to the lighthouse together, he realized that sometimes the most important discoveries come from believing in the impossible.",
+  "score": 0,
+  "cost": 0.00011396,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 125
+  }
+}

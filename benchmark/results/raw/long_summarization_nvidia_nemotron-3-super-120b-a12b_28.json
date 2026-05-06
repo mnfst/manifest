@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "long_summarization",
+  "case": 28,
+  "response": "The internet originated in the 1960s with U.S. Department of Defense\u2011funded research, leading to ARPANET\u2019s first message in 1969 and the adoption of TCP/IP in 1983, which laid the groundwork for today\u2019s network. Tim Berners\u2011Lee\u2019s invention of the World Wide Web in 1989 (HTML, URLs, HTTP) and the release of the Mosaic browser in 1993 made the web usable by the public, sparking the dot\u2011com boom of the late 1990s and later the rise of social media, mobile internet after the 2007 iPhone launch, and cloud computing pioneered by AWS in 2006. Currently, over\u202f5\u202fbillion people are online, and the internet underpins virtually all facets of modern life, from commerce to communication to entertainment.",
+  "score": 0,
+  "cost": 5.085e-05,
+  "expected": "",
+  "tokens": {
+    "input": 347,
+    "output": 218
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "This sprint retrospective notes that the sprint was successful thanks to the on-time shipping of the auth redesign and strong cross-team collaboration with design, while also flagging two areas for improvement: excessive context switches from managing three different projects and standups that run 25 minutes, missing the 15-minute target. The outlined action items to address these gaps are limiting each developer\u2019s work in progress to two items and implementing timeboxed standups paired with a parking lot for off-topic conversation.",
+  "score": 0,
+  "cost": 0.0002284,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 533
+  }
+}

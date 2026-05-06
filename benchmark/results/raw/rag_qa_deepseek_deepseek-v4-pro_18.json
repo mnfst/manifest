@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom",
+  "score": 0,
+  "cost": 0.00018835500000000002,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 169,
+    "output": 66
+  }
+}

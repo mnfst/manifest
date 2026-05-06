@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "data_to_text",
+  "case": 19,
+  "response": "Priced at $999, the iPhone 15 Pro features a 6.1-inch OLED display, is powered by the A17 Pro chip, and weighs just 187 grams. It comes equipped with a 48MP main camera, a 3274mAh battery, and storage options of 128GB, 256GB, 512GB, or 1TB, earning an impressive 4.6/5 rating.",
+  "score": 0,
+  "cost": 0.002109575,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1592
+  }
+}

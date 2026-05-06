@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "The prod-web-01 server, located in the us-east-1 region, has been online for 45 consecutive days and currently maintains 127 active connections. Its current operational metrics include 78% CPU utilization, 12.4 of 16 total gigabytes of memory in use, 234 of 500 total gigabytes of disk space consumed, a P99 latency of 145 milliseconds, and 3 errors reported each hour.",
+  "score": 0,
+  "cost": 0.00037610000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 901
+  }
+}

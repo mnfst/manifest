@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "structured_output",
+  "case": 15,
+  "response": "{\n  \"cpu_percent\": 78,\n  \"memory\": {\n    \"used_gb\": 12.4,\n    \"total_gb\": 16\n  },\n  \"disk\": {\n    \"used_gb\": 234,\n    \"total_gb\": 500\n  },\n  \"uptime_days\": 45,\n  \"active_connections\": 127,\n  \"p99_latency_ms\": 145\n}",
+  "score": 0,
+  "cost": 5.3729999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 439
+  }
+}

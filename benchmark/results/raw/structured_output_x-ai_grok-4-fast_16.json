@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "structured_output",
+  "case": 16,
+  "response": "{\"artist\": \"Taylor Swift\", \"tour_name\": \"Eras Tour\", \"venue\": \"SoFi Stadium\", \"city\": \"Los Angeles\", \"date\": \"Aug 9 2024\", \"doors_time\": \"5pm\", \"show_time\": \"7pm\", \"price_range\": {\"min\": 89, \"max\": 899}, \"seats\": {\"section\": \"234\", \"row\": \"F\", \"numbers\": [12, 13]}}",
+  "score": 0,
+  "cost": 0.00033440000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 304,
+    "output": 342
+  }
+}

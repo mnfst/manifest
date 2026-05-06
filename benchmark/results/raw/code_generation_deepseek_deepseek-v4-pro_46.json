@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\n    if not arr:\n        return []\n    best_val = None\n    best_idx = -1\n    for i, val in enumerate(arr):\n        if val % 2 == 0:\n            if best_val is None or val < best_val:\n                best_val = val\n                best_idx = i\n    if best_val is None:\n        return []\n    return [best_val, best_idx]\n```",
+  "score": 0,
+  "cost": 0.0008321550000000001,
+  "expected": "",
+  "tokens": {
+    "input": 341,
+    "output": 393
+  }
+}

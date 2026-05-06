@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "json_transform_v2",
+  "case": 49,
+  "response": "We need to transform the given JSON input: {\"event: signup",
+  "score": 0,
+  "cost": 1.512e-05,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 14
+  }
+}

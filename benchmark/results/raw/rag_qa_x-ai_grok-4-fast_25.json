@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "infrastructure",
+  "score": 0,
+  "cost": 0.0001642,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 309,
+    "output": 128
+  }
+}

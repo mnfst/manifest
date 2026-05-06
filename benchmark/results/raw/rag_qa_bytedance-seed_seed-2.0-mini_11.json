@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "Approximately 10% of the world's ecosystem carbon stores, of the order of 1.1 \u00d7 10\u00b9\u00b9 metric tonnes of carbon.",
+  "score": 0,
+  "cost": 0.0005999,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 223,
+    "output": 1444
+  }
+}

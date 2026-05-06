@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements the Observer design pattern in a simple event-driven system: it allows registering callback functions for specific events using the `on` method, triggering all registered callbacks with arguments via `emit`, and removing specific callbacks with `off`, all managed through a dictionary of event names mapped to lists of functions. The algorithm uses a dictionary for efficient event lookup and list operations for adding/removing listeners, ensuring O(1) average-time complexity for registration and emission.",
+  "score": 0,
+  "cost": 0.00028440000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 314,
+    "output": 277
+  }
+}

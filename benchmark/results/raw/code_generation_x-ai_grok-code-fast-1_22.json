@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 22,
+  "response": "stack = []\nfor char in brackets:\n    if char == \"<\":\n        stack.append(char)\n    elif char == \">\":\n        if not stack:\n            return False\n        stack.pop()\nreturn not stack",
+  "score": 0,
+  "cost": 0.0002682,
+  "expected": "",
+  "tokens": {
+    "input": 321,
+    "output": 255
+  }
+}

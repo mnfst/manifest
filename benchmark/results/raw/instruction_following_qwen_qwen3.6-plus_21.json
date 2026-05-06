@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "1. Turn left.\n2. Turn right.\n3. Turn left.\n4. Turn right.\n5. Turn left.\n6. Turn right.\n7. Turn left.",
+  "score": 0,
+  "cost": 0.003638375,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 2792
+  }
+}

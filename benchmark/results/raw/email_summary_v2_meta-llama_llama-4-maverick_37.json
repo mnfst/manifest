@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "Here is a summary of the email in exactly 2 sentences:\n\nBigCo has expressed interest in acquiring the company's ML team for $15M, which the CEO believes is too low. The CEO recommends discussing the offer before responding, either to counter or decline politely, and suggests informing the board of the development.",
+  "score": 0,
+  "cost": 5.4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 64
+  }
+}

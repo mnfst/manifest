@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "json_transform_v2",
+  "case": 11,
+  "response": "{\"sensors\": [{\"id\": \"temp_1\", \"avg\": 22.42, \"min\": 22.0, \"max\": 23.5, \"anomalies\": 0}, {\"id\": \"temp_2\", \"avg\": 22.56, \"min\": 21.0, \"max\": 28.5, \"anomalies\": 1}]}",
+  "score": 0,
+  "cost": 0.00011792,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 94
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 29,
+  "response": "We need to review code: Express route, SQL injection vulnerability, missing input validation, missing error handling, potential performance issues, missing parameterized query, missing sanitization, missing async handling, missing rate limiting, missing authentication/authorization, missing escaping of special characters, missing handling of empty q, missing proper response status codes, missing handling of DB errors, missing use of prepared statements,",
+  "score": 0,
+  "cost": 1.5479999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 78
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "The code defines a `producer_consumer` function that implements a producer-consumer pattern using a shared queue. The `producer` function adds items to the queue and signals the end of production by putting a `None` value, while the `consumer` function continuously retrieves and processes items from the queue, stopping when it encounters the `None` signal, which it then reinserts to pass the signal to other consumers.",
+  "score": 0,
+  "cost": 0.00045864,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 84
+  }
+}

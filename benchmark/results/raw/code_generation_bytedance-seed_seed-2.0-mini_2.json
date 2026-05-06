@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 2,
+  "response": "temp = list(lst)\nresult = []\ntake_min = True\nwhile temp:\n    val = min(temp) if take_min else max(temp)\n    result.append(val)\n    temp.remove(val)\n    take_min = not take_min\nreturn result",
+  "score": 0,
+  "cost": 0.0008969,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 2190
+  }
+}

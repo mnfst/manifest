@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is an invisible natural force that pulls any two objects with mass toward each other. We only really notice the powerful pull of extremely large masses, like Earth: it\u2019s what keeps our feet planted firmly on the ground instead of floating off into space, what makes a dropped book tumble downward instead of rising, and what keeps the moon circling our planet instead of drifting into the void. The sun\u2019s even stronger gravitational pull holds every planet, asteroid, and comet in our solar system locked in their orbits around it. Even tiny things like a pencil or a butterfly have their own minuscule gravity, but those pulls are far too weak for us to perceive. That is gravity.",
+  "score": 0,
+  "cost": 0.0003993,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 981
+  }
+}

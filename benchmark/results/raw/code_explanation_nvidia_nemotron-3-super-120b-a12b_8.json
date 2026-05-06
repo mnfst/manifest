@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "The `debounce` function returns a decorator that wraps a given function so that each time the wrapped function is called, any previously scheduled execution is cancelled and a new `threading.Timer` is started to invoke the original function after `wait` seconds; thus the function only runs after a period of inactivity equal to `wait`. The mutable `timer = [None]` list lets the inner `debounced` closure update and access the timer reference across calls.",
+  "score": 0,
+  "cost": 1.7909999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 95
+  }
+}

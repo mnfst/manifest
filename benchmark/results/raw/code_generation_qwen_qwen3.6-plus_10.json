@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 10,
+  "response": "count = 0\n    for n in arr:\n        s = str(n)\n        if s[0] == '-':\n            digit_sum = -int(s[1]) + sum(int(c) for c in s[2:])\n        else:\n            digit_sum = sum(int(c) for c in s)\n        if digit_sum > 0:\n            count += 1\n    return count",
+  "score": 0,
+  "cost": 0.007353125,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 5614
+  }
+}

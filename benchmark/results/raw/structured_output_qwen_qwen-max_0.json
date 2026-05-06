@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "structured_output",
+  "case": 0,
+  "response": "```json\n{\n  \"name\": \"John Smith\",\n  \"age\": 32,\n  \"job_title\": \"software engineer\",\n  \"company\": \"Google\",\n  \"location\": {\n    \"city\": \"Mountain View\",\n    \"state\": \"CA\"\n  }\n}\n```",
+  "score": 0,
+  "cost": 0.00033488,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 60
+  }
+}

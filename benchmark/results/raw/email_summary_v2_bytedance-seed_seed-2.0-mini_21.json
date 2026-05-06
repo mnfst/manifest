@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team reports there are 47 active feature flags, 23 of which stem from releases older than six months, and proposes a dedicated feature flag cleanup sprint.\nThis proposed sprint will involve removing 15 fully rolled-out flags and archiving 8 dead code flags, which will reduce configuration complexity and speed up the test suite by roughly 12%.",
+  "score": 0,
+  "cost": 0.0002942,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 698
+  }
+}

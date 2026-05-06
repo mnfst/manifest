@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "json_transform_v2",
+  "case": 21,
+  "response": "```json\n{\"type\": \"function\", \"name\": \"transform_json\", \"parameters\": {\"input_json\": \"{\\\"order_id\\\": \\\"ORD-001\\\", \\\"items\\\": [{\\\"sku\\\": \\\"A1\\\", \\\"qty\\\": 2, \\\"price\\\": 29.99}, {\\\"sku\\\": \\\"B2\\\", \\\"qty\\\": 1, \\\"price\\\": 49.99}], \\\"shipping\\\": 5.99, \\\"discount_pct\\\": 10}\"}}",
+  "score": 0,
+  "cost": 8.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 210,
+    "output": 96
+  }
+}

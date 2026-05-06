@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Gaseous oxygen",
+  "score": 0,
+  "cost": 0.00143195,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 174,
+    "output": 1058
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "The code defines a decorator that implements a least\u2011recently\u2011used (LRU) cache: it stores each function call\u2019s result in an `OrderedDict` keyed by the argument tuple, moves a key to the end when it\u2019s accessed (marking it as most\u2011recently used), and when the cache exceeds `maxsize` it removes the oldest entry (the first item) via `popitem(last=False)`. This gives O(1) lookup, update, and eviction for cached results.",
+  "score": 0,
+  "cost": 1.998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 104
+  }
+}

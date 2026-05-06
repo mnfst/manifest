@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "structured_output",
+  "case": 22,
+  "response": "{\n  \"activity\": \"run\",\n  \"distance_km\": 5.0,\n  \"duration\": \"24:30\",\n  \"avg_pace\": \"4:54/km\",\n  \"heart_rate\": {\n    \"avg_bpm\": 155,\n    \"max_bpm\": 178\n  },\n  \"calories\": 380,\n  \"date\": \"Monday March 4\"\n}",
+  "score": 0,
+  "cost": 1.9169999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 86
+  }
+}

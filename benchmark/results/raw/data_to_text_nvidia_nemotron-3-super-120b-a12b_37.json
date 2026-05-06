@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "data_to_text",
+  "case": 37,
+  "response": "We need to produce a natural language paragraph, 2-3 sentences, including all key data points: Movie: Oppenheimer, Director: Christopher Nolan, Year: 2023, Runtime: 180 min, Budget: $100M, Box office: $952M, IMDB: 8.3, RT: 93%, Genre: Drama/History, Oscar: Best Picture.\n\nWe need to include all these points. Write 2-3 sentences. Let's craft maybe 2 sentences: \"Oppenheimer, a 2023 drama/history film directed by Christopher Nolan, runs for 180 minutes and was made on a $100 million budget.\" Then second sentence: \"It grossed $952 million worldwide, earned an IMDb rating of 8.3, a Rotten Tomatoes score of 93%, and won the Oscar for Best Picture.\" That includes all points. Ensure we mention genre, director, year, runtime, budget, box office, IMDB, RT, Oscar. Yes.\n\nWe need to ensure we include all data points exactly. Let's double-check: Movie: Oppenheimer (title), Director: Christopher Nolan, Year: 2023, Runtime: 180 min, Budget: $100M, Box office: $952M, IMDB: 8.3, RT: 93%, Genre",
+  "score": 0,
+  "cost": 3.726e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 300
+  }
+}

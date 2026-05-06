@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements the circuit breaker fault tolerance design pattern, which protects against repeated calls to an unreliable or failing function: it initializes with a configurable failure threshold and cooldown timeout, starts in a closed state allowing calls to the wrapped function, increments its failure counter on raised exceptions, trips to an open blocking state once the failure threshold is hit, blocks all subsequent calls until the timeout elapses, then allows a single test call that resets the circuit to closed on success or re-trips it to open on failure.",
+  "score": 0,
+  "cost": 0.0005429,
+  "expected": "",
+  "tokens": {
+    "input": 265,
+    "output": 1291
+  }
+}

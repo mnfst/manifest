@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "In response to American aid to Israel.",
+  "score": 0,
+  "cost": 0.00018440000000000004,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 414,
+    "output": 127
+  }
+}

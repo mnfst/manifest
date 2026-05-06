@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Login failed. Please check your username and password, then try again.",
+  "score": 0,
+  "cost": 1.782e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 14
+  }
+}

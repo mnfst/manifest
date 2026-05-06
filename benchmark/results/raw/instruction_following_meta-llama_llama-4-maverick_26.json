@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, is the continuous process by which water is circulated between the Earth's oceans, atmosphere, and land. It is a vital process that sustains life on our planet. The cycle begins with evaporation, where the sun's energy heats up the surface of the oceans, lakes, and rivers, causing water to evaporate into the air as water vapor.\n\nAs water vapor rises into the atmosphere, it cools and condenses into tiny droplets, forming clouds. This process is facilitated by the presence of condensation nuclei, such as dust particles and salt crystals, which provide a surface for the water vapor to condense onto. The condensed water droplets in the clouds grow and become heavier, eventually becoming too heavy to remain suspended in the air, at which point they fall to the ground as precipitation, such as rain or snow.\n\nOnce the precipitation reaches the ground, it can follow several different paths. Some of it may be absorbed into the soil, recharging groundwater aquifers and eventually feeding into streams and rivers. Some of it may be taken up by plants, which use it for photosynthesis and release it back into the atmosphere as water vapor through a process called transpiration. Other precipitation may run off the surface of the land, flowing into streams, rivers, and lakes, and eventually returning to the oceans.\n\nThe water cycle is a continuous process, with water constantly being cycled between the Earth's oceans, atmosphere, and land. The cycle is driven by the energy of the sun and is influenced by factors such as temperature, humidity, and wind patterns. Understanding the water cycle is essential for managing water resources, predicting weather patterns, and mitigating the impacts of droughts and floods. By studying the water cycle, we can gain a deeper appreciation for the complex and interconnected systems that sustain life on our planet.",
+  "score": 0,
+  "cost": 0.00022395,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 368
+  }
+}

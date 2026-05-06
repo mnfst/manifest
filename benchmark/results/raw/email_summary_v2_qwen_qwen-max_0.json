@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "email_summary_v2",
+  "case": 0,
+  "response": "The marketing department exceeded its Q3 budget by 15% due to the August campaign, while engineering is 8% under budget because of delayed hiring. Sarah proposes moving $50K from the engineering budget to cover the marketing overspend and suggests discussing this on Thursday.",
+  "score": 0,
+  "cost": 0.00033488,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 56
+  }
+}

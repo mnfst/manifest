@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Charles River",
+  "score": 0,
+  "cost": 0.00013580000000000002,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 395,
+    "output": 71
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "data_to_text",
+  "case": 24,
+  "response": "The patient is a 45-year-old female nonsmoker with a BMI of 27.3, blood pressure of 138/88, total cholesterol of 225 mg/dL, and a fasting glucose of 110 mg/dL. She exercises twice a week and has a family history of diabetes through her mother.",
+  "score": 0,
+  "cost": 0.00035234999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 180
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "email_summary_v2",
+  "case": 45,
+  "response": "A misconfigured load balancer at 2:14 PM caused a 47-minute service degradation affecting 12,000 users. Action items include adding load balancer config validation to CI, updating the runbook, and implementing traffic distribution alerts.",
+  "score": 0,
+  "cost": 0.000420645,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 216
+  }
+}

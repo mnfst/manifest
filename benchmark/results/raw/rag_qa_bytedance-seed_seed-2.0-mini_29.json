@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Istanbul",
+  "score": 0,
+  "cost": 4.0900000000000005e-05,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 221,
+    "output": 47
+  }
+}

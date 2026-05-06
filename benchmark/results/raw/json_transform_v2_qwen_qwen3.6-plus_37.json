@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "json_transform_v2",
+  "case": 37,
+  "response": "{\"company\": \"Acme Corp\", \"age_years\": 9, \"size\": \"150\", \"total_funding\": 25000000, \"latest_round\": {\"series\": \"B\", \"amount\": 20000000}}",
+  "score": 0,
+  "cost": 0.003462875,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 2620
+  }
+}

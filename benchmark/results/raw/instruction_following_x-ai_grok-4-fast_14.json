@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated on the go with our sleek, insulated stainless steel water bottle, designed to keep your drinks ice-cold for up to 24 hours or piping hot for 12. Crafted from durable, BPA-free materials with a leak-proof lid and ergonomic grip, it's the perfect companion for workouts, office days, or outdoor adventures. Elevate your eco-friendly lifestyle while enjoying every sip in style.",
+  "score": 0,
+  "cost": 0.00019160000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 197
+  }
+}

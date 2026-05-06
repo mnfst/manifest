@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo has expressed interest in acqui-hiring the company's 5-person ML team for $15M, which the CEO believes is too low and recommends countering or declining. The CEO suggests discussing the offer before responding and informing the board of the acquisition interest.",
+  "score": 0,
+  "cost": 7.238e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 56
+  }
+}

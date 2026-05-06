@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly ETL job failed due to a Salesforce schema change that broke the data connector, causing dashboards to show stale data. The fix has been deployed with backfill running, and full recovery is expected by 4 PM today.",
+  "score": 0,
+  "cost": 6.204e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 47
+  }
+}

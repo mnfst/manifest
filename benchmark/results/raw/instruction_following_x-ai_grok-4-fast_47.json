@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. **Length**: A good password should be at least 12-16 characters long. Longer passwords are exponentially harder to crack through brute-force attacks.\n\n2. **Complexity**: Include a mix of character types\u2014uppercase letters (A-Z), lowercase letters (a-z), numbers (0-9), and special symbols (e.g., !, @, #, $). Avoid simple patterns like \"123\" or \"abc\".\n\n3. **Uniqueness**: Use a different password for every account or service. Reusing passwords across sites increases risk if one is compromised.\n\n4. **Avoid Predictable Information**: Do not base passwords on easily guessable personal details like your name, birthday, address, pet's name, or common words (e.g., \"password123\"). Steer clear of dictionary words unless modified heavily.\n\n5. **Use Passphrases**: Opt for a memorable passphrase made from random words or a sentence (e.g., \"BlueHorseBatteryStaple!\"), which is easier to remember than random strings but still secure.\n\n6. **Regular Updates**: Change passwords periodically (e.g., every 6-12 months) or immediately if a breach is suspected, but avoid frequent changes that lead to weaker, predictable variations.\n\n7. **Password Manager**: Employ a reputable password manager to generate, store, and autofill strong passwords securely, reducing the need to remember them all.",
+  "score": 0,
+  "cost": 0.000383,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 437
+  }
+}

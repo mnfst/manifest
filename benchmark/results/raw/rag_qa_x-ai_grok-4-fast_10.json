@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "**Saxon Garden**\n\nThe context states that the Saxon Garden \"was formally a royal garden,\" indicating it was originally reserved for royalty.",
+  "score": 0,
+  "cost": 0.0002364,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 562,
+    "output": 155
+  }
+}

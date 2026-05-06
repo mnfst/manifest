@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is like a velvet curtain embracing your palate, rich and smooth, with a depth that reveals notes of sweetness entwined with subtle hints of bitterness, much like a well-composed symphony where each note, from the deep bass to the high treble, plays a role in creating a harmonious and luxurious experience.",
+  "score": 0,
+  "cost": 0.00030471999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 68
+  }
+}

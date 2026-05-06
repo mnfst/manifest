@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe",
+  "score": 0,
+  "cost": 6.19e-05,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 267,
+    "output": 88
+  }
+}

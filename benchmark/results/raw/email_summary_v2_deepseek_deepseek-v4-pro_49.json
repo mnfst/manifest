@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch is delayed by two weeks due to a failed PCI compliance check on the payment integration, with options to either launch without payments (requiring updated T&Cs) or delay fully until May 15. A meeting is scheduled for tomorrow at 10am to decide the path forward.",
+  "score": 0,
+  "cost": 0.000501555,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 264
+  }
+}

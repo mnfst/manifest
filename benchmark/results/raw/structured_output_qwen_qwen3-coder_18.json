@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "structured_output",
+  "case": 18,
+  "response": "```json\n{\n  \"plan\": \"Pro Plan\",\n  \"price_monthly\": 29.0,\n  \"price_annual\": 348.0,\n  \"start_date\": \"Jan 1 2024\",\n  \"renewal_date\": \"Jan 1 2025\",\n  \"payment_method\": \"Visa\",\n  \"card_last4\": \"4242\",\n  \"status\": \"active\"\n}\n```",
+  "score": 0,
+  "cost": 0.00011616,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 99
+  }
+}

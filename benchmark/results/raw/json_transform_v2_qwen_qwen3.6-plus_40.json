@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "json_transform_v2",
+  "case": 40,
+  "response": "{\"items\": 4, \"subtotal\": 1136, \"discount_code\": \"SAVE20\", \"member_discount\": true, \"estimated_total\": 908.8}",
+  "score": 0,
+  "cost": 0.0036409750000000003,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 2764
+  }
+}

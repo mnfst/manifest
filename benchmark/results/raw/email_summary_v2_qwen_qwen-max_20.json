@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "An alert was triggered on Saturday at 2 AM due to disk space issues on prod-db-01, which was temporarily resolved by an automated cleanup but required manual intervention at 8 AM to fully restore service; the root cause was a misconfigured log rotation after the last migration. There was no customer impact as the issue was resolved during the maintenance window, and no further action is required.",
+  "score": 0,
+  "cost": 0.00043056,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 79
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a magic notebook that lots of friends share. When someone draws a picture or writes a story, it gets added to everyone\u2019s notebook at the same time, and once it's there, no one can ever erase or change it. That way, everybody always has the exact same pages and can trust what\u2019s written.",
+  "score": 0,
+  "cost": 0.00031798499999999996,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 178
+  }
+}

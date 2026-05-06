@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Lines of code unfold,  \nSilent logic speaks in light,  \nBugs hide in the dark.",
+  "score": 0,
+  "cost": 0.000474585,
+  "expected": "",
+  "tokens": {
+    "input": 11,
+    "output": 270
+  }
+}

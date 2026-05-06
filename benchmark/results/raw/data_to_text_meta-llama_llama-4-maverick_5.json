@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "data_to_text",
+  "case": 5,
+  "response": "Here is a natural language paragraph summarizing the data:\n\n\"Christopher Nolan's 2023 biographical drama 'Oppenheimer' is a 180-minute epic that tells a gripping historical story, boasting a budget of $100M and raking in an impressive $952M at the box office. The film has received widespread critical acclaim, with an 8.3 rating on IMDB and a 93% approval rating on Rotten Tomatoes. Notably, 'Oppenheimer' has achieved Oscar success, taking home the prestigious Best Picture award.\"",
+  "score": 0,
+  "cost": 8.144999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 111
+  }
+}

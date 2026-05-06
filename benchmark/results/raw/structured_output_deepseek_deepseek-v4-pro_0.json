@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "structured_output",
+  "case": 0,
+  "response": "{\"name\": \"John Smith\", \"age\": 32, \"job_title\": \"software engineer\", \"company\": \"Google\", \"location\": {\"city\": \"Mountain View\", \"state\": \"CA\"}}",
+  "score": 0,
+  "cost": 0.00036975,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 193
+  }
+}

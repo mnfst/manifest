@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "The Release Manager is rolling back version 4.2 due to a data corruption bug in the new sync engine that affected 23 accounts. The recovery plan involves restoring from a pre-release backup, re-running affected transactions, notifying impacted customers, and a hotfix branch has been created.",
+  "score": 0,
+  "cost": 7.414e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 58
+  }
+}

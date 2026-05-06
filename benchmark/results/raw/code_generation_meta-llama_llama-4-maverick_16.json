@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    n = len(grid)\n    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]\n    queue = [(grid[i][j], [grid[i][j]], (i, j)) for i in range(n) for j in range(n)]\n    import heapq\n    heapq.heapify(queue)\n    for _ in range(k - 1):\n        new_queue = []\n        while queue:\n            val, path, (x, y) = heapq.heappop(queue)\n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < n and 0 <= ny < n:\n                    heapq.heappush(new_queue, (val + (grid[nx][ny],), path + [grid[nx][ny]], (nx, ny)))\n        queue = new_queue\n    return heapq.heappop(queue)[1]\n```",
+  "score": 0,
+  "cost": 0.00018930000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 430,
+    "output": 208
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Crispy golden crust, rich tangy tomato sauce, gooey melted mozzarella cheese, savory pepperoni slices, aromatic fresh basil leaves.",
+  "score": 0,
+  "cost": 0.00045762,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 259
+  }
+}

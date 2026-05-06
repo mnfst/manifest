@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "data_to_text",
+  "case": 40,
+  "response": "The 45-year-old female patient has a BMI of 27.3, indicating she is overweight, and her blood pressure reading of 138/88 suggests she may be experiencing hypertension. Her cholesterol level is 225 mg/dL, and her fasting glucose is 110 mg/dL, which is slightly elevated; she exercises twice a week and does not smoke, but her family history includes diabetes, as her mother had the condition.",
+  "score": 0,
+  "cost": 0.0005148,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 97
+  }
+}

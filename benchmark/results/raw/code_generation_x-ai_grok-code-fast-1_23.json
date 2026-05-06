@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 23,
+  "response": "if not nums:\n    return 0\nmin_ending_here = nums[0]\nmin_so_far = nums[0]\nfor num in nums[1:]:\n    min_ending_here = min(num, min_ending_here + num)\n    min_so_far = min(min_so_far, min_ending_here)\nreturn min_so_far",
+  "score": 0,
+  "cost": 0.0005298000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 583
+  }
+}

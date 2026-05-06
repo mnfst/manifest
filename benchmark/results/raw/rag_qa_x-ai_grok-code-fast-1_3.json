@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "Hassan al-Turabi\n\nThe context explicitly states: \"For many years, Sudan had an Islamist regime under the leadership of Hassan al-Turabi.\" It further describes his role in building influence through the National Islamic Front, economic ties, and recruitment efforts.",
+  "score": 0,
+  "cost": 0.0003452,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 346,
+    "output": 345
+  }
+}

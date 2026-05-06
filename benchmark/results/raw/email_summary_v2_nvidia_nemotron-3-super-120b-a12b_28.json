@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test missed the 4\u2011hour RTO, taking 6\u202fhours\u202f23\u202fminutes primarily because the database restore required 3\u202fhours instead of the expected 1\u202fhour due to a larger dataset. The SRE recommends increasing backup frequency and pre\u2011provisioning a standby database, with the next test scheduled for October",
+  "score": 0,
+  "cost": 2.871e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 200
+  }
+}

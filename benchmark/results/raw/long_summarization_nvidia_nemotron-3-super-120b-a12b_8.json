@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "The passage traces AI\u2019s evolution from Alan Turing\u2019s early question through the AI winters of the 1970s\u201180s, the deep\u2011learning revival of the 2010s, and the 2017 transformer architecture paper that enabled models like GPT and the scaling hypothesis. It highlights the competitive race among OpenAI, Google, Anthropic, and Meta, the ongoing open\u2011vs\u2011closed\u2011source debate, and mounting safety worries about alignment, misuse, and job displacement, alongside regulatory moves such as the EU AI Act and U.S. executive orders. Finally, it notes the growing economic impact of AI on knowledge\u2011work sectors. (Key dates:",
+  "score": 0,
+  "cost": 4.1939999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 300
+  }
+}

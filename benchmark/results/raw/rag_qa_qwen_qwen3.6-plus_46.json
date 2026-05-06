@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "Los Angeles Kings",
+  "score": 0,
+  "cost": 0.0007293,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 124,
+    "output": 530
+  }
+}

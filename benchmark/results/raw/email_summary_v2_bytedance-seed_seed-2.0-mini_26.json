@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The Privacy Team has received a GDPR data export request for user ID 45892, which has a 30-day deadline of May 25 and requires compiling all personal data across the company\u2019s services, documentation of data processing purposes, a third-party data sharing log, and analytics data as mandated by the legal team.\nThe required action is to gather all these specified materials within the allotted timeframe to fulfill the compliance request.",
+  "score": 0,
+  "cost": 0.0004233,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 1021
+  }
+}

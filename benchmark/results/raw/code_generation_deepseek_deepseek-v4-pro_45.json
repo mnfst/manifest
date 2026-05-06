@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_generation",
+  "case": 45,
+  "response": "return sorted(set(l1) & set(l2))",
+  "score": 0,
+  "cost": 0.000476325,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 238
+  }
+}

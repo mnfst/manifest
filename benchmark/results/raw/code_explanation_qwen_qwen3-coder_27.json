@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This code implements a sliding window maximum algorithm using a deque to efficiently find the maximum value in each contiguous subarray of size `k`. The algorithm maintains a monotonic decreasing deque where indices of elements are stored such that their corresponding values are in decreasing order, allowing O(1) access to the maximum element in the current window.",
+  "score": 0,
+  "cost": 8.558e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 66
+  }
+}

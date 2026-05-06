@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "The capital of the Ottoman Empire was Istanbul.",
+  "score": 0,
+  "cost": 4.708e-05,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 178,
+    "output": 9
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "The DevOps team sent an infrastructure cost alert stating that the AWS monthly bill has increased 40% month-over-month, primarily driven by new ML training jobs using $32/hr p4d instances, resulting in an estimated $45K in additional monthly costs. The team has proposed two cost-saving options\u2014spot instances with 70% savings but interruption risk and reserved instances with 30% savings but a financial commitment\u2014and requests a formal decision by Friday.",
+  "score": 0,
+  "cost": 0.00023930000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 559
+  }
+}

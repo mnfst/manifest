@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "Erg\u00e4nzungsschulen are funded in whole by charging their students tuition fees.",
+  "score": 0,
+  "cost": 0.000276,
+  "expected": "tuition",
+  "tokens": {
+    "input": 340,
+    "output": 260
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Sarah shared Q3 budget review updates with her team, noting that marketing exceeded its spend by 15% due to the August campaign and engineering is 8% under budget because of delayed hiring, and put forward a proposal to reallocate $50K from engineering to cover marketing\u2019s overspend. She invited the team to join a discussion about this proposed budget adjustment during a Thursday meeting.",
+  "score": 0,
+  "cost": 0.0003178,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 759
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "The hydrosphere consists of all the water on Earth, while the lithosphere consists of the Earth's crust and upper mantle (rocks and land). One of the most significant interactions between these two spheres is the movement of water over land. Flowing water in rivers, ocean waves, and rain physically wears away rock and soil, transporting sediment to new locations. This process is known as erosion.\n\nTherefore, the hydrosphere causes the erosion of rocks in the lithosphere.\n\nA",
+  "score": 5,
+  "cost": 0.00109785,
+  "expected": "A",
+  "tokens": {
+    "input": 86,
+    "output": 823
+  }
+}

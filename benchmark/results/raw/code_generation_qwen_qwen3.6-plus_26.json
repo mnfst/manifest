@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 26,
+  "response": "for i in range(len(l)):\n        seen = set()\n        for j in range(i + 1, len(l)):\n            target = -(l[i] + l[j])\n            if target in seen:\n                return True\n            seen.add(l[j])\n    return False",
+  "score": 0,
+  "cost": 0.005002400000000001,
+  "expected": "",
+  "tokens": {
+    "input": 204,
+    "output": 3797
+  }
+}

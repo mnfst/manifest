@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "1. Java  \n2. C++  \n3. Ruby  \n4. Go",
+  "score": 0,
+  "cost": 0.0001308,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 121
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "### Capital Cities by Continent\n\nHere are 5 capital cities, each from a different continent, along with their countries and a brief note:\n\n- **Africa**: Nairobi, Kenya \u2013 Known for its wildlife reserves and as a hub for East African business.\n- **Asia**: Tokyo, Japan \u2013 A bustling metropolis blending tradition with cutting-edge technology.\n- **Europe**: Paris, France \u2013 Famous for its art, cuisine, and landmarks like the Eiffel Tower.\n- **North America**: Washington, D.C., United States \u2013 The political center housing the White House and Capitol Building.\n- **South America**: Bras\u00edlia, Brazil \u2013 A planned city designed in the 1950s with modernist architecture.",
+  "score": 0,
+  "cost": 0.0003436,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 375
+  }
+}

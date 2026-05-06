@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Imagine you\u2019re at a restaurant. You look at the menu and decide what you want to eat. Instead of walking into the kitchen and cooking the meal yourself, you tell the waiter your order. The waiter takes your request to the kitchen, and after a while, brings back your prepared food.\n\nAn API is just like that waiter. It\u2019s a messenger that lets two separate things talk to each other. One side asks for something, the messenger delivers that request, and then brings back the result. You never need to know how the kitchen works\u2014only what you can order and what you\u2019ll get in return.",
+  "score": 0,
+  "cost": 0.0007173149999999999,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 408
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 23,
+  "response": "if not nums:\n    return 0\nmin_current = nums[0]\nmin_global = nums[0]\nfor i in range(1, len(nums)):\n    min_current = min(nums[i], min_current + nums[i])\n    min_global = min(min_global, min_current)\nreturn min_global",
+  "score": 0,
+  "cost": 0.0005474,
+  "expected": "",
+  "tokens": {
+    "input": 269,
+    "output": 617
+  }
+}

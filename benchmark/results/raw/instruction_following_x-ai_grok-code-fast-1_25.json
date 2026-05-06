@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Invitation to Quarterly Team Strategy Meeting",
+  "score": 0,
+  "cost": 0.00024700000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 254
+  }
+}

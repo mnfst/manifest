@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_generation",
+  "case": 3,
+  "response": "```python\nreturn [i * x for i, x in enumerate(xs[1:], start=1)]\n```",
+  "score": 0,
+  "cost": 3.57e-05,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 24
+  }
+}

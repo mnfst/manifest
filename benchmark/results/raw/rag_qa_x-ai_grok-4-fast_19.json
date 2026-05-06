@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Advancements in communication.",
+  "score": 0,
+  "cost": 0.000188,
+  "expected": "communication",
+  "tokens": {
+    "input": 304,
+    "output": 159
+  }
+}

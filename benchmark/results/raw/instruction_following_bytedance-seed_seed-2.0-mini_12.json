@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Let me explain this with simple, everyday examples! An API is just a friendly middleman that lets two different services or tools talk to each other smoothly, without either one needing to understand all the complicated behind-the-scenes stuff the other uses.\n\nThink about ordering pizza from your favorite spot:\nIf you walk right into the pizzeria, you talk directly to the cashier, they take your order, make the pizza, and hand it over. But if you order via a delivery app? The app is the API here. You tell the app exactly what you want (a large pepperoni pizza with extra cheese, no olives) and the app passes that simple message straight to the pizzeria. The pizzeria makes the pizza, sends it with a delivery driver, and the app makes sure the driver brings it straight to your door. You don\u2019t need to know how the pizza oven works, how the cashier tracks orders, or even how the driver navigates to your house\u2014 the app handles all the tricky bits so you just get the pizza you want.\n\nAnother common example: Say you check the weather on your phone. Your phone\u2019s weather app doesn\u2019t have a full weather station built into it! Instead, it uses an API to send a quick request to a big professional weather service. That service collects data from satellites, ground sensors, and weather balloons, then sends back a simple, easy-to-read answer like \u201c68 degrees and sunny near you.\u201d The app just shows you that clear info. You never have to sort through all the messy raw weather data yourself\u2014 the API does all the hard work of passing your request and the simple answer back and forth.\n\nAt the end of the day, APIs are all about making things easy. They let you use apps, order food, check the weather, or do tons of other everyday things without having to learn how every single service actually works under the hood.",
+  "score": 0,
+  "cost": 0.0007758999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 1924
+  }
+}

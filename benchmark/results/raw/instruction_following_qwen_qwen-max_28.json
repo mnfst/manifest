@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Believe in the power within you; it's stronger than you think.",
+  "score": 0,
+  "cost": 8.944e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 15
+  }
+}

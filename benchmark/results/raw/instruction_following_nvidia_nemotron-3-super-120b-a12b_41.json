@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort_sequence(seq, *, reverse=False, key=None):\n    \"\"\"Return a new list containing all items from *seq* in sorted order.\n\n    Args:\n        seq (Iterable): The collection of items to sort. Items must be mutually\n            comparable unless a *key* function is supplied.\n        reverse (bool, optional): If True, the list is sorted in descending\n            order. Defaults to False.\n        key (callable, optional): A function that takes a single argument and\n            returns a value used for sorting comparisons. If None (default),\n            the items themselves are compared.\n\n    Returns:\n        list: A new list with the elements of *seq* arranged according to the\n            specified ordering.\n\n    Raises:\n        TypeError: If the elements in *seq* cannot be compared with each other",
+  "score": 0,
+  "cost": 4.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 500
+  }
+}

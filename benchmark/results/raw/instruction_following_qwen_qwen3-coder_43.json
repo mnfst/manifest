@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that if you could drive a car to space at highway speeds (about 60 mph), it would take you roughly an hour to reach the edge of space? Space officially begins at the K\u00e1rm\u00e1n line, which is only about 62 miles (100 km) above Earth's surface - closer than many cities are from each other!",
+  "score": 0,
+  "cost": 7.15e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 75
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 23,
+  "response": "**Code review**\n\n```javascript\nfunction checkAdmin(req, res, next) {\n  if (req.headers['x-admin'] === 'true') {\n    next();\n  } else {\n    res.status(403).json({ error: 'Not admin' });\n  }\n}\n```\n\n---\n\n## 1. Bugs / Logical Issues\n\n| Issue | Why it\u2019s a problem | Fix |\n|-------|-------------------|-----|\n| **Header name case\u2011sensitivity** | HTTP header names are case\u2011insensitive, but `req.headers['x-admin']` only matches the exact lower\u2011case key. If a client sends `X-Admin` or `X-ADMIN` the lookup returns `undefined` and the request is incorrectly rejected. | Use the accessor provided by Express: `req.get('x-admin')` (or `req.header('x-admin')`). This normalises the name. |\n| **Whitespace / unexpected values** | A client could send `\"true \"` (trailing space) or `\"True\"` (different casing). The strict `=== 'true'` check will fail, returning 403 even though the intent was to authorize. | Trim the value and compare case\u2011insensitively: `req.get('x-admin')?.trim().toLowerCase() === 'true'`. |\n| **Missing `return` after sending a response** | Although Express will not call `next()` after you send a response, it\u2019s easy to accidentally add logic after the `else` block that would still run. Explicitly returning makes the intent clear and prevents future mistakes. | Add `return` before `res.status(...).json(...)`. |\n| **No handling of non\u2011string values** | If",
+  "score": 0,
+  "cost": 8.073000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 800
+  }
+}

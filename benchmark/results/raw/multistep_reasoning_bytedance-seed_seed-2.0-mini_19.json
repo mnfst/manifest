@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "Let's work through each option:\n1.  Option A: The Sun being made of hydrogen and helium describes its composition, not why planets orbit it. This is incorrect.\n2.  Option B: The Sun's age relative to other solar system objects has no direct link to causing planetary orbital motion. This is incorrect.\n3.  Option C: The Sun as a heat/light source explains its role for life and energy on Earth, but not why planets revolve around it. This is incorrect.\n4.  Option D: The Sun has over 99% of the total mass of the solar system, making it the strongest gravitational source. Gravitational pull is the force that keeps planets bound in orbit around the Sun. This is correct.\n\nFinal answer: D",
+  "score": 5,
+  "cost": 0.00016680000000000002,
+  "expected": "D",
+  "tokens": {
+    "input": 144,
+    "output": 381
+  }
+}

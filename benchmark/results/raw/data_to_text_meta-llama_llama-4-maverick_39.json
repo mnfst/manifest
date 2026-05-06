@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "data_to_text",
+  "case": 39,
+  "response": "Apple's (AAPL) stock is currently trading at $185.50, representing a 2.3% increase for the day, with a trading volume of 45 million shares. The company has a market capitalization of $2.87 trillion, a price-to-earnings ratio of 28.4, and a dividend yield of 0.55%. The stock has fluctuated between $155 and $198 over the past 52 weeks.",
+  "score": 0,
+  "cost": 7.139999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 92
+  }
+}

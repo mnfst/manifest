@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "json_transform_v2",
+  "case": 32,
+  "response": "{\n  \"admins\": [\"Alice\", \"Charlie\"],\n  \"users\": [\"Bob\"],\n  \"inactive_count\": 1\n}",
+  "score": 0,
+  "cost": 0.00024648000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 27
+  }
+}

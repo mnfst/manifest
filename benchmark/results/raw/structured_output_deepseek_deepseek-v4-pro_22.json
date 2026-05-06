@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "structured_output",
+  "case": 22,
+  "response": "{\n  \"activity\": \"run\",\n  \"distance_km\": 5.0,\n  \"duration\": \"24:30\",\n  \"avg_pace\": \"4:",
+  "score": 0,
+  "cost": 0.000924375,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 500
+  }
+}

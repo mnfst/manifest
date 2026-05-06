@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\nvowels = 'aeiou'\nencoded_message = ''\n\nfor char in message:\n    if char.isalpha():\n        if char.lower() in vowels:\n            index = ord(char.lower()) - ord('a') + 2\n            new_char = chr(index % 26 + ord('a'))\n            if char.isupper():\n                new_char = new_char.upper()\n            encoded_message += new_char\n        else:\n            if char.islower():\n                encoded_message += char.upper()\n            else:\n                encoded_message += char.lower()\n    else:\n        encoded_message += char\n\nreturn encoded_message\n```",
+  "score": 0,
+  "cost": 0.0006718399999999999,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 126
+  }
+}

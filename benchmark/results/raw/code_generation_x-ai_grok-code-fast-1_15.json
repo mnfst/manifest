@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 15,
+  "response": "if n % 2 == 0:\n        max_factor = 2\n        while n % 2 == 0:\n            n //= 2\n    else:\n        max_factor = 1\n    \n    i = 3\n    while i * i <= n:\n        if n % i == 0:\n            max_factor = i\n            while n % i == 0:\n                n //= i\n        i += 2\n    \n    if n > 1:\n        max_factor = n\n    \n    return max_factor",
+  "score": 0,
+  "cost": 0.000428,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 462
+  }
+}

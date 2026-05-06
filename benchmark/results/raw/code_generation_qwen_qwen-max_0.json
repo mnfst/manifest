@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 0,
+  "response": "result = \"\"\nfor string in strings:\n    result += string\nreturn result",
+  "score": 0,
+  "cost": 0.000156,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 15
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This Python function calculates all connected components of a graph stored as an adjacency list dictionary, using the breadth-first search (BFS) algorithm to fully explore each unvisited node's connected neighborhood, then returns a list where each sublist comprises all nodes in a single connected component.",
+  "score": 0,
+  "cost": 0.0003,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 703
+  }
+}

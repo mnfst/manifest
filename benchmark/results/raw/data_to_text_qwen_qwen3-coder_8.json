@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "data_to_text",
+  "case": 8,
+  "response": "A 45-year-old female patient has a BMI of 27.3, which falls in the overweight category, and her blood pressure reading of 138/88 indicates stage 1 hypertension. Her cholesterol level is elevated at 225 mg/dL, and her fasting glucose level of 110 mg/dL suggests prediabetes, which is concerning given her family history of diabetes from her mother. While she is a non-smoker who exercises twice per week, these metabolic markers indicate an increased risk for cardiovascular disease and type 2 diabetes that should be monitored closely.",
+  "score": 0,
+  "cost": 0.00013178,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 123
+  }
+}

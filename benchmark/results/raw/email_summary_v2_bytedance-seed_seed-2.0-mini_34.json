@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The Database Team has shared a plan to migrate their database from MySQL 5.7 to PostgreSQL 16, with a three-month timeline that includes schema conversion and testing in May, a dual-write period in June, and final cutover in July, alongside key details that three stored procedures need rewriting, blue-green deployment will prevent planned downtime, and the testing environment is already prepared.\nStakeholders should prepare to adhere to the outlined sequential phase schedule to support the smooth execution of the migration.",
+  "score": 0,
+  "cost": 0.0008402,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 2065
+  }
+}

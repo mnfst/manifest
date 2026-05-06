@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Lettuce (or mixed greens)\n- [ ] Tomatoes\n- [ ] Cucumbers\n- [ ] Red onion\n- [ ] Carrots (shredded)\n- [ ] Salad dressing (e.g., vinaigrette or ranch)",
+  "score": 0,
+  "cost": 0.000183,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 187
+  }
+}

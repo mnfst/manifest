@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible force that pulls objects with mass toward each other. The more mass something has, the stronger its pull. Earth\u2019s huge mass pulls everything\u2014people, air, oceans, the Moon\u2014toward its center, which keeps us grounded and the Moon in orbit. Gravity also shapes the universe, holding planets around stars, stars together in galaxies, and even bending light. It\u2019s not just a downward pull; it\u2019s the curvature of space and time caused by mass, like a heavy ball sitting on a stretched rubber sheet, making smaller objects roll toward it. That is gravity.",
+  "score": 0,
+  "cost": 0.00033756,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 188
+  }
+}

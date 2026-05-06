@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, two rival families, the Montagues and Capulets, have a long-standing feud. Romeo, a Montague, falls in love with Juliet, a Capulet, at a ball. They secretly marry, but their families' hatred for each other ultimately leads to tragedy. Romeo kills Juliet's cousin in a duel and is banished. Juliet fakes her own death to avoid marrying another, but Romeo believes she's really dead and poisons himself in her tomb. Juliet awakens to find Romeo dead and kills herself as well, ultimately uniting the families in grief.",
+  "score": 0,
+  "cost": 7.53e-05,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 118
+  }
+}

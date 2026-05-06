@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit is scheduled to start on January 15, and a pre-audit checklist has been provided, including finalizing Q4 revenue recognition, reconciling bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A meeting for the controllers is set for next Tuesday to assign these tasks.",
+  "score": 0,
+  "cost": 0.00036920000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 64
+  }
+}

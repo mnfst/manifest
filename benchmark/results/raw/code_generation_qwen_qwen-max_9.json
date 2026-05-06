@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 9,
+  "response": "result = 0\n    for num in lst:\n        if num > 0 and num % 2 == 1 and num == int(num):\n            result += num ** 2\n    return result",
+  "score": 0,
+  "cost": 0.00035776,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 43
+  }
+}

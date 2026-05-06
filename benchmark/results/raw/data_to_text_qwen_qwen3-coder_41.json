@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan, with a population of 125 million, has a substantial economy valued at $4.2 trillion, though it experienced modest GDP growth of 1.1% alongside a low unemployment rate of 2.6%. The country faces economic challenges including 3.2% inflation and a significant debt-to-GDP ratio of 263%, while its citizens enjoy a high quality of life with a life expectancy of 84.6 years and strong international trade performance with $756 billion in exports.",
+  "score": 0,
+  "cost": 0.0001188,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 107
+  }
+}

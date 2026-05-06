@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "long_summarization",
+  "case": 12,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe internet originated in the 1960s with the US Department of Defense's funding of computer networking research, leading to the development of ARPANET in 1969. The modern internet took shape in the 1980s and 1990s with the adoption of TCP/IP protocols and the invention of the World Wide Web by Tim Berners-Lee in 1989. The internet has since become ubiquitous, with over 5 billion people connected today, and has given rise to major technological and economic shifts, including the dot-com boom, the rise of social media, and the emergence of cloud computing. Key milestones include the launch of the first web browser Mosaic in 1993, the iPhone in 2007, and AWS in 2006.",
+  "score": 0,
+  "cost": 0.0001494,
+  "expected": "",
+  "tokens": {
+    "input": 316,
+    "output": 170
+  }
+}

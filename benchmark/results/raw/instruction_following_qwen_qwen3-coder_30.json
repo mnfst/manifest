@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Savory, cheesy, tomatoey, garlicky, herbaceous, crispy, golden, bubbly, aromatic, satisfying, comforting, indulgent, flavorful, zesty, melty, gooey, charred, smoky, wood-fired, artisanal, fresh, vibrant, colorful, appetizing, mouthwatering, delicious, perfect.",
+  "score": 0,
+  "cost": 6.798000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 72
+  }
+}

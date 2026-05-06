@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "structured_output",
+  "case": 22,
+  "response": "{\"activity\": \"5km run\", \"distance_km\": 5.0, \"duration\": \"24:30\", \"avg_pace\": \"4:54/km\", \"heart_rate\": {\"avg_bpm\": 155, \"max_bpm\": 178}, \"calories\": 380, \"date\": \"Monday March 4\"}",
+  "score": 0,
+  "cost": 0.0003086,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 727
+  }
+}

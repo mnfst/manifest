@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "multistep_reasoning",
+  "case": 0,
+  "response": "B\n\nThe shelves above the washing machine in a small laundry room are an example of using storage space efficiently. This option (B) best describes the practical use of shelves in such a setting, where maximizing the available space is a common goal. The shelves aren't making the wall stronger (A), they are not using the machine for more than one purpose (C), and they do not solve the need for shelter (D). Thus, the most appropriate answer is B.",
+  "score": 5,
+  "cost": 0.00049608,
+  "expected": "B",
+  "tokens": {
+    "input": 97,
+    "output": 95
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "**Q: What is the primary purpose of a VPN?**  \nA: A VPN (Virtual Private Network) creates an encrypted, secure connection between your device and the internet, routing your traffic through a remote server operated by the VPN provider.  \n\n**Q: How does a VPN protect my online privacy?**  \nA: It encrypts all data sent between your device and the VPN server, preventing hackers, ISPs, or others on your network (like public Wi-Fi) from seeing your browsing activity, messages, or sensitive information.  \n\n**Q: Does a VPN hide my identity online?**  \nA: It masks your",
+  "score": 0,
+  "cost": 4.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 500
+  }
+}

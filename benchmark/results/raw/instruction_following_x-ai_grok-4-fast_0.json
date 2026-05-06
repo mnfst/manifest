@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- **Improved cardiovascular health**: Regular exercise strengthens the heart and reduces the risk of heart disease by improving blood circulation and lowering blood pressure.\n- **Enhanced mental well-being**: Exercise releases endorphins, which can reduce symptoms of depression and anxiety while boosting mood and cognitive function.\n- **Better weight management**: It helps burn calories, build muscle, and maintain a healthy metabolism, aiding in weight loss or maintenance.",
+  "score": 0,
+  "cost": 0.0002,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 208
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Our matte-finish double-walled stainless steel water bottle keeps drinks icy cold for up to 24 hours and steamy hot for 12, with a leakproof one-handed flip lid ideal for morning commutes, weekend hikes, and daily desk use.\nIt fits snugly in standard car cup holders, comes in a range of muted on-trend colors to match your personal style, and is 100% BPA-free, durable enough to survive accidental drops and months of daily use.\nDitch single-use plastic water bottles for this eco-friendly reusable option to cut down on landfill waste while staying conveniently hydrated on the go.",
+  "score": 0,
+  "cost": 0.0002466,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 601
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code defines an LRU (Least Recently Used) cache decorator in Python. It uses an `OrderedDict` to store the results of function calls, where the most recently accessed items are moved to the end, and the least recently used items are removed when the cache exceeds the specified `maxsize`.",
+  "score": 0,
+  "cost": 0.00037752000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 61
+  }
+}

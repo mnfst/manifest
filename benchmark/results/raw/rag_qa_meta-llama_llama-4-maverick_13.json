@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government.",
+  "score": 0,
+  "cost": 2.715e-05,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 161,
+    "output": 5
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "Urarina",
+  "score": 0,
+  "cost": 6.09e-05,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 205,
+    "output": 101
+  }
+}

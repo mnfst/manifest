@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Review of The Moonlit Vine**\n\nNestled in the heart of the bustling yet charming downtown of Willowbrook, The Moonlit Vine offers an enchanting escape from the ordinary. This quaint, dimly lit bistro has quickly become a favorite among locals and curious visitors alike, thanks to its innovative fusion of traditional and contemporary cuisine, coupled with an atmosphere that feels both intimate and inviting.\n\n**Ambiance:**\nFrom the moment you step through the door, The Moonlit Vine captivates your senses. The interior is a delightful blend of rustic and modern elements, with exposed brick walls adorned with artistic murals, soft, candle-lit tables, and plush, comfortable seating that invites you to linger. The soft, melodic jazz playing in the background adds to the cozy, almost romantic atmosphere, making it a perfect spot for a date night or a quiet evening with friends.\n\n**Cuisine:**\nThe real star of The Moonlit Vine, however, is its menu. The chef, a local culinary genius, has crafted a menu that seamlessly blends classic French techniques with bold, international flavors. The seasonal specials are a must-try, showcasing the best of local and exotic ingredients. One standout dish is the Seared Scallops with a delicate saffron-infused cream sauce, served atop a bed of garlic mashed potatoes. The scallops were perfectly cooked, tender and sweet, complemented beautifully by the rich, aromatic sauce. For those looking for a vegetarian option, the Grilled Eggplant Tower, layered with a zesty tomato relish and creamy goat cheese, is a delightful symphony of textures and tastes.\n\n**Service:**\nThe service at The Moonlit Vine is impeccable. The staff, dressed in crisp, elegant attire, are attentive without being intrusive, knowledgeable, and always ready with a smile. Our server, Maria, was particularly commendable, offering thoughtful wine pairings and explaining each dish with enthusiasm and passion. The pacing of the meal was perfect, allowing us to savor each course without feeling rushed.\n\n**Dessert:**\nDo not leave The Moonlit Vine without trying the Chocolate Lava Cake. Served with a scoop of homemade vanilla bean ice cream, this dessert is a decadent delight, with a warm, gooey center that oozes out at the touch of a fork. It's the perfect end to an already memorable meal.\n\n**Overall Experience:**\nThe Moonlit Vine is a gem in the culinary scene of Willow",
+  "score": 0,
+  "cost": 0.002106,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 500
+  }
+}

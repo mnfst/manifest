@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit is scheduled to start on January 15, and a pre-audit checklist has been provided that includes tasks such as finalizing revenue recognition and reconciling bank accounts. A meeting with the Controller is scheduled for next Tuesday to assign responsibilities for completing the pre-audit tasks.",
+  "score": 0,
+  "cost": 5.009999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 59
+  }
+}

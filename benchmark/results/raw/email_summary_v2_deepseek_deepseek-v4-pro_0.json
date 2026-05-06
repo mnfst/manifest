@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "email_summary_v2",
+  "case": 0,
+  "response": "Sarah proposes reallocating $50,000 from the engineering budget to cover marketing's 15% overspend from the August campaign, since engineering is under budget due to delayed hiring.  \nThe action item is to discuss this proposal on Thursday.",
+  "score": 0,
+  "cost": 0.0004437,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 232
+  }
+}

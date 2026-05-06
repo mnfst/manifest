@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 22,
+  "response": "count = 0\n    for char in brackets:\n        if char == '<':\n            count += 1\n        elif char == '>':\n            if count == 0:\n                return False\n            count -= 1\n    return count == 0",
+  "score": 0,
+  "cost": 0.00048580000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 273,
+    "output": 539
+  }
+}

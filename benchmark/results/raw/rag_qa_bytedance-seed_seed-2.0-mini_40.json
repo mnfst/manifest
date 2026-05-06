@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Full citizenship rights \u2013 \u2018assimilation\u2019",
+  "score": 0,
+  "cost": 0.0002479,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 219,
+    "output": 565
+  }
+}

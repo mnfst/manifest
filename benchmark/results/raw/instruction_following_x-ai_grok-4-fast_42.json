@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The sky darkens to an inky black as heavy clouds roll in, unleashing jagged bolts of lightning that streak across the horizon like electric veins. A deep, rumbling thunder echoes through the air, vibrating the ground beneath your feet and sending a shiver down your spine. The air grows thick with the sharp, metallic scent of ozone, while cool rain begins to pelt the earth in relentless sheets, soaking everything in its path with a refreshing chill.",
+  "score": 0,
+  "cost": 0.0002232,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 237
+  }
+}

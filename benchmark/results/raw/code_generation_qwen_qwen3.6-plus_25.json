@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 25,
+  "response": "result = []\n    current = []\n    balance = 0\n    for char in paren_string:\n        if char == ' ':\n            continue\n        current.append(char)\n        if char == '(':\n            balance += 1\n        elif char == ')':\n            balance -= 1\n        if balance == 0:\n            result.append(''.join(current))\n            current = []\n    return result",
+  "score": 0,
+  "cost": 0.0037934,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 2879
+  }
+}

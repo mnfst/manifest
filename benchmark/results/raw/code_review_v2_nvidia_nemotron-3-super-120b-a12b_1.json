@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 1,
+  "response": "**What\u2019s wrong / risky**\n\n| # | Issue | Why it\u2019s a problem | How to fix it |\n|---|-------|--------------------|---------------|\n| 1 | **Password is sent back to the client** | Exposes the password hash (or plain\u2011text if the DB stores it that way). Even a hash can be cracked offline and gives attackers useful information. | Never return the password column. Either omit it from the SELECT or delete it before sending the response. |\n| 2 | **`SELECT *`** | Returns every column, including any future sensitive columns you might add (e.g., `reset_token`, `two_factor_secret`). It also makes the API brittle to schema changes. | Explicitly list only the columns you need to expose (e.g., `id, username, email, created_at`). |\n| 3 | **No validation of `req.params.id`** | If a non\u2011numeric value is passed, PostgreSQL will still try to use it as a parameter (it will be cast or cause an error). Worse, a malicious client could send a very large string that causes unnecessary work or a DoS. | Validate that the id is a positive integer (e.g., with `express-validator` or a simple regex) and reject malformed input with `400 Bad Request`. |\n| 4 | **No handling of the \u201cuser not found\u201d case** | When no row matches, `user.rows[0]` is `undefined`. Spreading `undefined` throws a `TypeError` \u2192 500 error, leaking stack traces. | Check `if (!user.rows.length)` and respond with `404",
+  "score": 0,
+  "cost": 8.145e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 800
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are 5 capital cities, each from a different continent:\n\n1. **Cairo** (Africa)\n2. **Tokyo** (Asia)\n3. **Paris** (Europe)\n4. **Ottawa** (North America)\n5. **Bras\u00edlia** (South America)",
+  "score": 0,
+  "cost": 0.0008008,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 610
+  }
+}

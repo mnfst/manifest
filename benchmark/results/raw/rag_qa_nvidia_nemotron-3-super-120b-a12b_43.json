@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 43,
+  "response": "Amazonia: Man and Culture in a Counterfeit Paradise",
+  "score": 0,
+  "cost": 2.376e-05,
+  "expected": "Amazonia: Man and Culture in a Counterfeit Paradise",
+  "tokens": {
+    "input": 252,
+    "output": 12
+  }
+}

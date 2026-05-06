@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "rag_qa",
+  "case": 49,
+  "response": "Based on the provided context, clinical pharmacists often participate in **patient care rounds drug product selection**.",
+  "score": 0,
+  "cost": 0.00182975,
+  "expected": "patient care rounds drug product selection",
+  "tokens": {
+    "input": 146,
+    "output": 1371
+  }
+}

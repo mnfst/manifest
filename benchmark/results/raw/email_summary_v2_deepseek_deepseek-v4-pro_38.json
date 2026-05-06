@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The bug bounty program's first month yielded 47 reports with 12 valid findings, including 3 critical vulnerabilities that were all patched within 24 hours. Given the strong ROI, the recommendation is to continue the program.",
+  "score": 0,
+  "cost": 0.00048328499999999996,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 250
+  }
+}

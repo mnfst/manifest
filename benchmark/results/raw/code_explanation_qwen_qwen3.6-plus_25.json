@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements the **Observer (Publish-Subscribe) pattern** by using a dictionary to map event names to lists of callback functions, enabling decoupled components to register listeners (`on`), trigger them with arbitrary arguments (`emit`), and unregister them (`off`).",
+  "score": 0,
+  "cost": 0.00081705,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 596
+  }
+}

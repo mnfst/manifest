@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "data_to_text",
+  "case": 32,
+  "response": "Acme Corp, headquartered in Austin, TX, reported quarterly revenues of $12.3\u202fmillion in Q1, $14.1\u202fmillion in Q2, $11.8\u202fmillion in Q3, and $16.2\u202fmillion in Q4, for a total of $54.4\u202fmillion for the year. The company achieved an 18% year\u2011over\u2011year growth and currently employs 342 people.",
+  "score": 0,
+  "cost": 1.8269999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 95
+  }
+}

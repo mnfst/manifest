@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Code flows like a stream\n Bugs hide in every line\n Debugging my fate",
+  "score": 0,
+  "cost": 1.17e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 15
+  }
+}

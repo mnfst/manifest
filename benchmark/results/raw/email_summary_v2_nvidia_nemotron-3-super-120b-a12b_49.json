@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "We need to summarize in exactly 2 sentences, capturing main point and any action items. The email: payment integration not passing PCI compliance, need 2 more weeks. Options: launch without payments and add later (requires updated T&Cs per legal) or delay full launch to May 15. Meeting tomorrow at 10am. So main point: payment integration issue causing delay; need decision. Action items: decide between options, prepare updated T&Cs if option 1, attend meeting tomorrow at 10am. Must be exactly 2 sentences. Let's craft: \"The payment integration failed PCI compliance, requiring either a two\u2011week delay to launch the full product on May\u202f15 or a launch without payments now (which would need updated terms and conditions). Please review the two options and be prepared to discuss them at the product team meeting tomorrow at 10\u202fam.\" That's two sentences. Ensure no extra punctuation that creates extra sentences? It's",
+  "score": 0,
+  "cost": 2.808e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 200
+  }
+}

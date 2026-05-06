@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO shared the Q1 board deck draft, highlighting strong revenue and net revenue retention but a significant rise in customer acquisition cost. The action item is to provide the product roadmap section by Wednesday ahead of next Tuesday's board meeting.",
+  "score": 0,
+  "cost": 0.000472845,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 251
+  }
+}

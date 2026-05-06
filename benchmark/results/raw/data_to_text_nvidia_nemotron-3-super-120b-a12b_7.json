@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "data_to_text",
+  "case": 7,
+  "response": "Apple (AAPL) is trading at $185.50, up 2.3% today on volume of 45\u202fmillion shares. The company has a market cap of $2.87\u202ftrillion, a P/E ratio of 28.4, a dividend yield of",
+  "score": 0,
+  "cost": 3.8700000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 300
+  }
+}

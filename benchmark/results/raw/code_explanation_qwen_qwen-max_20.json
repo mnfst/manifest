@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "The code defines a `partition` function that takes a predicate (a function that returns True or False) and an iterable, then splits the iterable into two separate iterables: one containing elements for which the predicate returns `True`, and the other containing elements for which the predicate returns `False`. It uses `itertools.tee` to create two independent iterators from the input iterable and then applies `filter` and `itertools.filterfalse` to separate the elements based on the predicate.",
+  "score": 0,
+  "cost": 0.00048152,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 98
+  }
+}

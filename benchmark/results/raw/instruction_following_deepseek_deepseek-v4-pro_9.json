@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April, June, September, November",
+  "score": 0,
+  "cost": 0.00011310000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 60
+  }
+}

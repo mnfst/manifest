@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "json_transform_v2",
+  "case": 20,
+  "response": "```json\n{\n  \"departments\": {\n    \"eng\": {\n      \"headcount\": 2,\n      \"avg_salary\": 115000,\n      \"employees\": [\"Alice\", \"Bob\"]\n    },\n    \"sales\": {\n      \"headcount\": 2,\n      \"avg_salary\": 100000,\n      \"employees\": [\"Carol\", \"Dave\"]\n    }\n  }\n}\n```",
+  "score": 0,
+  "cost": 8.28e-05,
+  "expected": "",
+  "tokens": {
+    "input": 216,
+    "output": 84
+  }
+}

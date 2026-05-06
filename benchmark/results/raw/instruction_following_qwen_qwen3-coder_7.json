@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "**Scrambled Eggs**\n\nCrack 3 eggs into a bowl, add salt and pepper. Heat butter in a non-stick pan over medium-low heat. Pour in eggs, gently stir continuously until creamy and set. Serve immediately with toast or herbs.",
+  "score": 0,
+  "cost": 5.126e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 52
+  }
+}

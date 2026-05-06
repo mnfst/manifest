@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "The release of v4.2 is being rolled back due to a data corruption bug in the new sync engine that affected 23 accounts. A recovery plan is in place, which includes restoring from a pre-release backup, re-running affected transactions, and notifying impacted customers.",
+  "score": 0,
+  "cost": 4.935e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 56
+  }
+}

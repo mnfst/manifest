@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated in style with our sleek, double-walled stainless steel water bottle that keeps drinks icy cold for 24 hours or piping hot for 12. The leakproof, flip-top lid and wide mouth make sipping and cleaning effortless, while the durable, sweat-free finish fits perfectly in your hand and most cup holders. Whether you\u2019re at the gym, office, or on a weekend hike, this bottle is your go-to companion for all-day refreshment.",
+  "score": 0,
+  "cost": 0.00027057,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 151
+  }
+}

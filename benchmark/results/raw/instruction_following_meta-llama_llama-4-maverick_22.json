@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are often considered to be man's best friend due to their loyal nature, always by their owner's side. A loyal companion, a dog will follow its owner around the house and even to the park. The loyal bond between a dog and its owner is unbreakable, with dogs showing affection and devotion to their family. As a loyal protector, a dog will defend its family from any perceived threats, whether it be a stranger at the door or a suspicious noise. With their loyal hearts, dogs bring joy and companionship to countless people around the world, making them a beloved and integral part of many families.",
+  "score": 0,
+  "cost": 7.829999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 124
+  }
+}

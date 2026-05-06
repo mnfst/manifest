@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun dips slow, slipping past the treeline like melted honey poured over a wooden bowl. The sky unfurls in soft, shifting layers: the highest vault holds pale, cool lavender, fading down to pearl pink before bleeding into a thick, glowing band stretched along the horizon\u2014first soft mango, deepening to burnt amber as each minute ticks past.\n\nThe lake\u2019s surface, once dappled with sharp golden flecks, softens into swathes of peach and saffron, each ripple tilting the light to shift the hues in tiny, fleeting waves. Dock posts, their sides slick with overnight dew, glow as if polished with beeswax, their shadows stretching long across the water, tinted with the faint lavender of the upper sky.\n\nA great blue heron stills its stance in the shallow reeds, its plumage catching the low light to shine like polished amber. A cluster of wildflowers along the shore transforms: daisy petals glow cream edged with peach, clover heads blur into tiny amber orbs. A group huddled on the lakeside porch pauses mid-conversation, their hands still hovering over half-empty glasses of lemonade, their faces lit soft and warm. An older couple leans together, their shoulders brushing, as they watch the last of the sun\u2019s glow bleed from the horizon.\n\nCrickets start their evening chirp earlier than expected, their sound weaving with the distant tang of a backyard grill\u2019s smoke curling upward. A stray cat pads along the grass, its fur flushed with the same saffron hue that tints the oak leaves overhead, dappling the ground below in streaks of peach and pale gold. Even the air smells different, thick with the sweet tang of ripening blackberries from the vine at the fence line, and the faint, earthy scent of damp soil being warmed by the day\u2019s last breath of light.\n\nAs the sun fully vanishes, the horizon lingers with that burnt amber glow, which slowly fades to soft coral before the first bright star pricks through the lavender sky. No one moves for a long moment, savoring the quiet wash of light that wraps around the shore, softening every sharp edge of the day, turning ordinary moments into something weighty and gentle.",
+  "score": 0,
+  "cost": 0.0010154,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 2523
+  }
+}

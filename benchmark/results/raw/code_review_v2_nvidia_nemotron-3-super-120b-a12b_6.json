@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 6,
+  "response": "**Code under review**\n\n```javascript\nfunction updateUser(req, res) {\n  const { id, role } = req.body;\n  db.query('UPDATE users SET role = $1 WHERE id = $2', [role, id]);\n  res.json({ success: true });\n}\n```\n\n---\n\n## 1. Functional / Logic Bugs\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **No validation of `id` and `role`** | If the request body is missing either field, `undefined` is passed to the query. PostgreSQL will try to set `role = NULL` or update a row with `id = NULL`, which may silently affect the wrong rows or cause a constraint violation. | Validate that both fields exist and are of the expected type (e.g., `id` is a non\u2011zero integer, `role` is one of an allowed enum). Return `400 Bad Request` with a clear message when validation fails. |\n| **No error handling for the DB call** | If the query throws (connection loss, constraint violation, syntax error, etc.) the error propagates uncaught, causing the server to crash or return an unhelpful 500 without logging. | Wrap the query in a `try / catch` (or use `.catch` if `db.query` returns a promise). On error, log the details, return `500 Internal Server Error` (or a more specific status like `409 Conflict` for constraint violations). |\n| **Assuming the query always succeeds** | The code always replies `{ success: true }` even when zero rows were updated (e.g., non\u2011existent `id`). Callers cannot distinguish \u201cno\u2011op\u201d from a genuine update. | After the query, inspect the result object (`result.rowCount` for pg\u2011lib). If `rowCount === 0`, respond with `404 Not Found` or `{ success: false, message: 'User not found' }`. |\n| **Missing `async` / `await`** | If",
+  "score": 0,
+  "cost": 8.064e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 800
+  }
+}

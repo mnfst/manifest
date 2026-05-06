@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "json_transform_v2",
+  "case": 2,
+  "response": "{\"admins\": [\"Alice\", \"Charlie\"], \"users\": [\"Bob\"], \"inactive_count\": 1}",
+  "score": 0,
+  "cost": 0.0005898599999999999,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 307
+  }
+}

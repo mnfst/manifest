@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_generation",
+  "case": 46,
+  "response": "min_even = None\n    min_index = None\n    for i, val in enumerate(arr):\n        if val % 2 == 0:\n            if min_even is None or val < min_even or (val == min_even and i < min_index):\n                min_even = val\n                min_index = i\n    if min_even is None:\n        return []\n    return [min_even, min_index]",
+  "score": 0,
+  "cost": 3.87e-05,
+  "expected": "",
+  "tokens": {
+    "input": 344,
+    "output": 86
+  }
+}

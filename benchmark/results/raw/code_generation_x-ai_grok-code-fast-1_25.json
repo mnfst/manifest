@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 25,
+  "response": "result = []\n    current = \"\"\n    balance = 0\n    for char in paren_string:\n        if char == ' ':\n            continue\n        current += char\n        if char == '(':\n            balance += 1\n        elif char == ')':\n            balance -= 1\n        if balance == 0:\n            result.append(current)\n            current = \"\"\n    return result",
+  "score": 0,
+  "cost": 0.00037140000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 345,
+    "output": 378
+  }
+}

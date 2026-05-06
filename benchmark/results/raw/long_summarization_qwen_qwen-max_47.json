@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "long_summarization",
+  "case": 47,
+  "response": "The European Union's General Data Protection Regulation (GDPR), which came into effect in May 2018, significantly altered how organizations handle personal data, applying to any company processing the data of EU residents. Key provisions include the right to access and erase personal data, data portability, and the need for explicit consent. Non-compliance can result in fines up to 4% of global annual revenue or 20 million euros, with major tech companies like Meta, Amazon, and Google facing substantial penalties. While GDPR has set a global standard for data protection and inspired similar laws, it has also been criticized for creating compliance burdens, especially for small businesses, and for inconsistent enforcement across member states.",
+  "score": 0,
+  "cost": 0.0009235199999999999,
+  "expected": "",
+  "tokens": {
+    "input": 320,
+    "output": 142
+  }
+}

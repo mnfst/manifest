@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 3,
+  "response": "result = []\nfor i in range(1, len(xs)):\n    result.append(xs[i] * i)\nreturn result",
+  "score": 0,
+  "cost": 0.0005288000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 336,
+    "output": 577
+  }
+}

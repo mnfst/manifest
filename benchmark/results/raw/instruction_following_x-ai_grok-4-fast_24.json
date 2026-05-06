@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- **Incident Details**: On October 15, 2023, at approximately 2:30 PM, a two-vehicle collision occurred at the intersection of Main Street and Elm Avenue in downtown Springfield, involving a red sedan (Vehicle 1, driven by John Doe) and a blue SUV (Vehicle 2, driven by Jane Smith).\n- **Sequence of Events**: Vehicle 1, traveling north on Main Street, ran a red light and struck the front left side of Vehicle 2, which was proceeding east on Elm Avenue with the right of way; both drivers reported clear weather and dry roads, with no involvement of pedestrians or other factors.\n- **Outcomes and Response**: Minor injuries were sustained by both drivers (whiplash for Doe, a sprained wrist for Smith); vehicles sustained moderate damage (dented fenders and bumper); police issued citations for failure to obey traffic signals, and both parties were transported to a local hospital for evaluation.",
+  "score": 0,
+  "cost": 0.00028,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 308
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "We need to summarize email in exactly 2 sentences, capturing main point and any action items. The email: Subject: Engineering Hiring Update. Content: We have 4 open reqs: 2 backend, 1 frontend, 1 ML. Pipeline: 23 candidates in process, 5 in final rounds. Concern: frontend req open 60 days with no strong candidates. Recommend expanding to remote or adjusting comp band. - Recruiting\n\nSo main point: 4 open reqs, pipeline status, concern about frontend role. Action items: consider expanding to remote or adjusting compensation band for frontend req.\n\nWe need exactly 2 sentences. Let's craft: \"The team has four open engineering requisitions (two backend, one frontend, one ML) with 23 candidates in the pipeline and five in final rounds.\" Second sentence: \"Because the frontend requisition has been open for 60 days without strong candidates, recruiting recommends expanding the search to remote candidates",
+  "score": 0,
+  "cost": 2.799e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 200
+  }
+}

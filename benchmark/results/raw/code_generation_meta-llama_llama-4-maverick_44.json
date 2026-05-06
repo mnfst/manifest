@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\nvowels = 'aeiou'\nencoded_message = ''\nfor char in message:\n    if char.islower():\n        encoded_char = char.upper()\n    else:\n        encoded_char = char.lower()\n    if char.lower() in vowels:\n        idx = ord(char.lower()) - ord('a')\n        encoded_char = chr((idx + 2) % 26 + ord('a' if char.islower() else 'A'))\n    encoded_message += encoded_char\nreturn encoded_message\n```",
+  "score": 0,
+  "cost": 8.31e-05,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 103
+  }
+}

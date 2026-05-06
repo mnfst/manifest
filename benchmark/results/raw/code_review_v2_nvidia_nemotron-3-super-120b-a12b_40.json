@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 40,
+  "response": "**Code under review**\n\n```python\ndef background_task(data):\n    thread = threading.Thread(target=process, args=(data,))\n    thread.start()\n    return {'status': 'started'}\n```\n\n---\n\n## 1. Bugs / Functional Problems\n\n| # | Issue | Why it\u2019s a problem | How to fix it |\n|---|-------|--------------------|---------------|\n| 1 | **Missing import** \u2013 `threading` is never imported. | `NameError: name 'threading' is not raised` when the function is called. | Add `import threading` at the top of the module (or import the specific class). |\n| 2 | **Undefined `process` callable** \u2013 The function assumes a global name `process` exists. | If `process` is not defined, you get `NameError`. If it is defined elsewhere but changes signature, you get a `TypeError`. | Pass the callable explicitly (e.g., `def background_task(data, worker): \u2026`) or import/define `process` in the same module. |\n| 3 | **No error handling inside the thread** \u2013 Any exception raised by `process(data)` is silently swallowed; the main thread never sees it. | Makes debugging extremely hard; failures appear as \u201cthe task just didn\u2019t do anything\u201d. | Wrap the target in a try/except block that logs or stores the exception (e.g., via a `queue.Queue`, `concurrent.futures.Future`, or a shared result object). |\n| 4 | **Thread lifecycle not managed** \u2013 The caller never joins or otherwise waits for the thread; the thread is left as a non\u2011daemon thread by default. | If the program exits while the thread is still running, the interpreter will wait for all non\u2011daemon threads to finish, potentially causing a hang. Conversely, if the main program ends quickly, the thread may be killed abruptly leaving resources uncleaned. | \u2022 Decide whether the thread should be **daemon** (`thread.daemon = True`) if it\u2019s safe to abort",
+  "score": 0,
+  "cost": 7.902e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 800
+  }
+}

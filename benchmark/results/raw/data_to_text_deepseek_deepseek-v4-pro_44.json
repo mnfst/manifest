@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "Founded in 1861 and consistently ranked #1, the Massachusetts Institute of Technology educates 11,500 students with a highly selective 3.9% acceptance rate, supported by a $24.6 billion endowment, 1,069 faculty members, and an astounding 98 Nobel laureates affiliated with the institution, all while charging an annual tuition of $57,590.",
+  "score": 0,
+  "cost": 0.0004959,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 261
+  }
+}

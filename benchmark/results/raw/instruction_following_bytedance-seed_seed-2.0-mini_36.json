@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are 4 programming languages outside of Python and JavaScript, with brief context for each:\n1.  **Java**: A statically-typed, object-oriented language widely used for enterprise backend systems, legacy Android mobile apps, and cross-platform desktop software.\n2.  **C++**: A high-performance systems programming language that extends the C language, commonly used for building game engines, operating systems, and computationally intensive tools.\n3.  **Ruby**: A dynamically-typed, user-friendly object-oriented language most famously paired with the Ruby on Rails web development framework.\n4.  **Go (Golang)**: An open-source, statically typed language built by Google, known for its simple syntax, built-in concurrency tools, and efficiency for cloud-native backend services.",
+  "score": 0,
+  "cost": 0.0001861,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 450
+  }
+}

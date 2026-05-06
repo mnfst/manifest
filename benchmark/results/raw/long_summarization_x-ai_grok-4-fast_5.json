@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Alexander Fleming's discovery of penicillin in 1928 revolutionized medicine by transforming surgery and disease treatment, enabling safer procedures and effective control of bacterial infections that previously caused widespread mortality. The 1950s and 1960s marked a golden age of antibiotic discovery, but development declined due to poor financial returns for pharmaceutical companies, leading to the rise of antimicrobial resistance, including dangerous strains like MRSA. Contributing factors include the heavy use of antibiotics in livestock agriculture, exacerbating the crisis; however, promising current research focuses on alternatives such as phage therapy, CRISPR-based approaches, and AI-driven drug discovery to combat resistant bacteria.",
+  "score": 0,
+  "cost": 0.0004024,
+  "expected": "",
+  "tokens": {
+    "input": 280,
+    "output": 433
+  }
+}

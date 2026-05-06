@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "json_transform_v2",
+  "case": 44,
+  "response": "```json\n{\n  \"services\": [\n    {\"name\": \"database\", \"host\": \"db.prod.internal\", \"port\": 5432},\n    {\"name\": \"cache\", \"host\": \"redis.prod.internal\", \"port\": 6379}\n  ],\n  \"app_settings\": {\n    \"debug\": false,\n    \"log_level\": \"warn\",\n    \"workers\": 4\n  }\n}\n```",
+  "score": 0,
+  "cost": 8.43e-05,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 87
+  }
+}

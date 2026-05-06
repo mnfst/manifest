@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "structured_output",
+  "case": 27,
+  "response": "{\n  \"type\": \"RSA\",\n  \"bits\": 4096,\n  \"fingerprint\": \"SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8\",\n  \"created\": \"2024-01-15\",\n  \"comment\": \"deploy-key-prod\"\n}",
+  "score": 0,
+  "cost": 4.5449999999999993e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 376
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "Here is a natural language paragraph summarizing the key data points:\n\nThe Massachusetts Institute of Technology (MIT), founded in 1861, is the world's top-ranked university, boasting an esteemed faculty of 1,069 and a distinguished history of producing 98 Nobel laureates. With a highly selective acceptance rate of 3.9%, MIT enrolls around 11,500 students who pay $57,590 per year in tuition, and is backed by a substantial endowment of $24.6 billion.",
+  "score": 0,
+  "cost": 7.829999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 105
+  }
+}

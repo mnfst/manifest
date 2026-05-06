@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 3,
+  "response": "return [i * coef for i, coef in enumerate(xs) if i > 0]",
+  "score": 0,
+  "cost": 0.00022776,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 19
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "json_transform_v2",
+  "case": 25,
+  "response": "{\"items\":4,\"subtotal\":1136,\"discount_code\":\"SAVE20\",\"member_discount\":true,\"estimated_total\":1136}",
+  "score": 0,
+  "cost": 0.002425,
+  "expected": "",
+  "tokens": {
+    "input": 285,
+    "output": 2960
+  }
+}

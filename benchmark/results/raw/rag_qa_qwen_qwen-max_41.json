@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "The context states that Governor Duquesne sent additional French forces under Claude-Pierre Pecaudy de Contrec\u0153ur to relieve Saint-Pierre. Contrec\u0153ur led 500 men. Therefore, the number of men that Duquesne sent to relieve Saint-Pierre was 500.",
+  "score": 0,
+  "cost": 0.00046384000000000003,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 198,
+    "output": 62
+  }
+}

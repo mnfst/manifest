@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "structured_output",
+  "case": 4,
+  "response": "{\"error_code\": 503, \"message\": \"503 Service Unavailable\", \"timestamp\": \"2024-01-15T14:30:00Z\", \"endpoint\": \"/api/v2/users\", \"server\": \"prod-west-2\", \"retry_after_seconds\": 30}",
+  "score": 0,
+  "cost": 0.0008231,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 2018
+  }
+}

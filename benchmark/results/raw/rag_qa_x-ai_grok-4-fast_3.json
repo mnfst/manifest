@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "Hassan al-Turabi",
+  "score": 0,
+  "cost": 0.0001396,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 298,
+    "output": 100
+  }
+}

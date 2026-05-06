@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "data_to_text",
+  "case": 46,
+  "response": "We need to produce a natural language paragraph, 2-3 sentences, include all key data points: Sprint: Team Alpha #23, Duration: Jan 15-26, Planned: 42 pts? Wait, no, the query is super basic, or someone needing a quick reference, or a non-native speaker, or maybe a teacher making flashcards, or a non-native speaker practicing English. Could also be for a coding project where they need the alphabet listed. \n\nHmm, they didn't specify case, so I'll stick to uppercase since that's how the query wrote it (\"Team Alpha #23\" uses caps). But I'll mention lowercase too just in case\u2014better to cover bases. \n\nWait, they said \"include all key data points,\" so I must not miss anything: the sprint label, dates, planned/completed points, velocity, stories, bugs, blockers, satisfaction. Gotta weave those in smoothly without making it sound like a robot list. \n\n*checks notes* Velocity avg is 36\u2014interesting, since planned was 42 and completed 38. Shows they overcommitted slightly but still delivered well. Satisfaction 4.1/5 is solid. \n\n...Should I explain what velocity means? Nah, they just asked for the data conversion, not interpretation. Keep it factual. \n\n*imagines user scrolling on phone* Better keep sentences",
+  "score": 0,
+  "cost": 3.735e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 300
+  }
+}

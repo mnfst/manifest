@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n        return -1\n    avg = (n + m) / 2\n    rounded_avg = round(avg)\n    return bin(rounded_avg)",
+  "score": 0,
+  "cost": 0.00034424,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 37
+  }
+}

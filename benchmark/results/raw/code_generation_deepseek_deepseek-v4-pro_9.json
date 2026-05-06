@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_generation",
+  "case": 9,
+  "response": "```python\n    return sum(x * x for x in lst if isinstance(x, int) and not isinstance(x, bool) and x >= 0 and x %",
+  "score": 0,
+  "cost": 0.000945255,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 500
+  }
+}

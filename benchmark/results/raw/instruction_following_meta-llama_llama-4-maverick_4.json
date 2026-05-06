@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "Here is the translation of \"hello world\" to French, Spanish, and German, formatted as a numbered list:\n\n1. French: Bonjour le monde\n2. Spanish: Hola mundo\n3. German: Hallo Welt\n\nLet me know if you'd like me to help with anything else!",
+  "score": 0,
+  "cost": 4.05e-05,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 60
+  }
+}

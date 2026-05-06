@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "British bacteriologist J. F. D. Shrewsbury challenged the plague theory first in 1970.",
+  "score": 0,
+  "cost": 6.709999999999999e-05,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 201,
+    "output": 26
+  }
+}

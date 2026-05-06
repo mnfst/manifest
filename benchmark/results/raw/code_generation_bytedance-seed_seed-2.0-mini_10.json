@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 10,
+  "response": "count = 0\nfor num in arr:\n    s = str(num)\n    total = 0\n    for i, c in enumerate(s):\n        if c == '-':\n            continue\n        if i > 0 and s[i-1] == '-':\n            total -= int(c)\n        else:\n            total += int(c)\n    if total > 0:\n        count += 1\nreturn count",
+  "score": 0,
+  "cost": 0.0009778,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 2391
+  }
+}

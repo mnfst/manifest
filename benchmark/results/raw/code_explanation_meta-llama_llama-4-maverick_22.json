@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "**The given code implements a Least Recently Used (LRU) cache using an OrderedDict data structure in Python.** The LRU algorithm is used to evict the least recently accessed items when the cache reaches its capacity, ensuring efficient cache management.",
+  "score": 0,
+  "cost": 5.175e-05,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 50
+  }
+}

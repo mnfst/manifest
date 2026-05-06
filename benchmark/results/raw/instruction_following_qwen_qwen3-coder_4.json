@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "1. French: bonjour le monde\n2. Spanish: hola mundo\n3. German: hallo welt",
+  "score": 0,
+  "cost": 2.794e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 25
+  }
+}

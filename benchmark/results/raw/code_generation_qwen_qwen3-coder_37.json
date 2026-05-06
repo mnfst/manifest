@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 37,
+  "response": "```python\nreturn 0.5 * a * h\n```",
+  "score": 0,
+  "cost": 2.97e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 14
+  }
+}

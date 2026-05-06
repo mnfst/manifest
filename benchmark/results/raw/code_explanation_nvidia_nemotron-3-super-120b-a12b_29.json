@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_explanation",
+  "case": 29,
+  "response": "The `curry` function builds a manually\u2011curried wrapper for `fn`: it first determines `fn`\u2019s arity with `inspect.signature`, then returns a `curried`",
+  "score": 0,
+  "cost": 2.745e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 200
+  }
+}

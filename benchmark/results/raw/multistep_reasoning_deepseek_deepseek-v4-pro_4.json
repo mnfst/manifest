@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "multistep_reasoning",
+  "case": 4,
+  "response": "A) common forces",
+  "score": 5,
+  "cost": 0.00022011,
+  "expected": "A",
+  "tokens": {
+    "input": 66,
+    "output": 110
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old lighthouse keeper had not heard the foghorn in thirty years, not since the accident that stole his hearing and his wife in one terrible night. He tended the light by touch and routine, a solitary ritual of brass polish and paraffin. One evening, a fierce storm blew in, rattling the glass so violently he felt the vibrations deep in his chest like a forgotten heartbeat. As he climbed the spiral stairs to check the lamp, a sudden flash of lightning illuminated a small, waterlogged rowboat smashed against the rocks below. He flew down the steps, his old legs finding a desperate speed, and waded into the churning surf. In the boat, shivering and silent, was a young girl with eyes the color of the sea he had long ago stopped hearing.",
+  "score": 0,
+  "cost": 0.00086043,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 491
+  }
+}

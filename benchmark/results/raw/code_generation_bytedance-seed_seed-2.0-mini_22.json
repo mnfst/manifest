@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 22,
+  "response": "balance = 0\nfor c in brackets:\n    if c == '<':\n        balance += 1\n    else:\n        balance -= 1\n    if balance < 0:\n        return False\nreturn balance == 0",
+  "score": 0,
+  "cost": 0.0002268,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 523
+  }
+}

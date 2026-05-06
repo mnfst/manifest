@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The Privacy Team has received a GDPR data export request from user ID 45892 with a deadline of May 25, and requires gathering all personal data, processing purposes documentation, and third-party data sharing logs. The team must also include analytics data in the export, as per Legal's instructions, to fulfill the request within the 30-day timeframe.",
+  "score": 0,
+  "cost": 5.8049999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 71
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering is proposing a team restructuring that splits the Platform team into two separate teams: Infrastructure and Developer Experience, to alleviate the bottleneck where infrastructure incidents take priority over Developer Experience work. The proposal includes a draft org chart, which is attached to the email for review.",
+  "score": 0,
+  "cost": 4.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 56
+  }
+}

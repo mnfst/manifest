@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "The presence of the mortgage banker is highly likely, even in relatively small projects.",
+  "score": 0,
+  "cost": 5.8299999999999994e-05,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 201,
+    "output": 16
+  }
+}

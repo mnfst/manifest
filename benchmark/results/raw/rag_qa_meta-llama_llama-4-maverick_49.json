@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "rag_qa",
+  "case": 49,
+  "response": "Patient care rounds.",
+  "score": 0,
+  "cost": 3.4649999999999995e-05,
+  "expected": "patient care rounds drug product selection",
+  "tokens": {
+    "input": 211,
+    "output": 5
+  }
+}

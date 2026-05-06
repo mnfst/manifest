@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- Incident Overview: A collision occurred at the intersection of Main Street and Elm Avenue on March 15, 2023, at 4:30 PM, involving a red sedan and a blue SUV.\n- Parties Involved: The driver of the red sedan, John Doe (age 28), and the driver of the blue SUV, Jane Smith (age 35), both sustained minor injuries and were treated at the scene by emergency medical services.\n- Damage and Traffic Impact: Both vehicles sustained significant front-end damage, with the SUV also experiencing a deployed airbag. The accident caused a temporary closure of the intersection, leading to moderate traffic congestion in the area.",
+  "score": 0,
+  "cost": 0.00059904,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 139
+  }
+}

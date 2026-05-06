@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "They escape by clapping their lobes, which creates a jet of expelled water that drives them backwards very quickly. This is stated in the context as a behavior of the lobate genera Bathocyroe and Ocyropsis.",
+  "score": 0,
+  "cost": 0.000324,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 460,
+    "output": 290
+  }
+}

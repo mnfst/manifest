@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "structured_output",
+  "case": 30,
+  "response": "{\n  \"name\": \"Bitcoin\",\n  \"symbol\": \"BTC\",\n  \"price\": 43250.8,\n  \"change_24h_percent\": -1.2,\n  \"market_cap\": \"$847B\",\n  \"volume_24h\": \"$18.5B\",\n  \"circulating_supply\": \"19.6M BTC\"\n}",
+  "score": 0,
+  "cost": 0.002032875,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 1530
+  }
+}

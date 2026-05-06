@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "# TCP vs UDP: Detailed Comparison\n\n## Overview\n**TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)** are two core transport layer protocols that handle data transmission differently based on application requirements.\n\n## Comparison Table\n\n| Feature | TCP | UDP |\n|---------|-----|-----|\n| **Full Name** | Transmission Control Protocol | User Datagram Protocol |\n| **Connection** | Connection-oriented | Connectionless |\n| **Reliability** | Reliable, guaranteed delivery | Unreliable, no guarantee |\n| **Error Checking** | Extensive (checksum, retransmission) | Basic checksum only |\n| **Ordering** | Maintains packet order | No ordering guarantee |\n| **Speed** | Slower due to overhead | Faster, minimal overhead |\n| **Header Size** | 20-60 bytes | 8 bytes |\n| **Flow Control** | Yes (windowing mechanism) | No |\n| **Congestion Control** | Yes | No |\n| **Handshake** | Three-way handshake required | No handshake |\n| **Acknowledgments** | Yes (ACK packets) | No |\n| **Retransmission** | Automatic retransmission of lost packets | No retransmission |\n| **Use Cases** | Web browsing, email, file transfer | Video streaming, online gaming, DNS |\n| **Port Usage** | HTTP(80), HTTPS(443), FTP(21) | DNS(53), DHCP(67/68), VoIP |\n\n## When to Use Each\n\n### Choose TCP when you need:\n- Guaranteed delivery\n- Data integrity\n- Ordered packet arrival\n- Error recovery\n- Examples: File downloads, web pages, emails\n\n### Choose UDP when you need:\n- Speed over reliability\n- Real-time applications\n- Minimal overhead\n- Tolerance for some data loss\n- Examples: Live video/audio, online games, broadcasts\n\nBoth protocols serve essential roles in modern networking, with the choice depending entirely on your application's specific requirements for speed, reliability, and data integrity.",
+  "score": 0,
+  "cost": 0.00037202,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 418
+  }
+}

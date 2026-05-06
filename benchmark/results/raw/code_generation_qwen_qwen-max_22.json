@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 22,
+  "response": "stack = []\n    for bracket in brackets:\n        if bracket == '<':\n            stack.append(bracket)\n        elif bracket == '>' and stack:\n            stack.pop()\n        else:\n            return False\n    return not stack",
+  "score": 0,
+  "cost": 0.00031720000000000007,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 45
+  }
+}

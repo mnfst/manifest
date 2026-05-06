@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test was completed with an actual recovery time of 6 hours 23 minutes, exceeding the 4-hour target due to a 3-hour database restore caused by a larger-than-expected dataset. Recommended actions include increasing backup frequency and pre-provisioning a standby database, with the next test scheduled for October.",
+  "score": 0,
+  "cost": 8.404e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 68
+  }
+}

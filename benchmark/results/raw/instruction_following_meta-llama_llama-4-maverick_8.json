@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine you have a notebook that you share with your friends, and in it, you write down every time someone trades a toy with someone else. Once something is written in the notebook, it can't be erased, so everyone can trust that the trades really happened. This special notebook is like a blockchain!",
+  "score": 0,
+  "cost": 4.035e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 61
+  }
+}

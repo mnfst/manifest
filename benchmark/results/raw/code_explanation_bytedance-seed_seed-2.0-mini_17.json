@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 17,
+  "response": "This code implements the Chain of Responsibility behavioral design pattern, which accepts any number of handler functions as positional arguments. The returned handle function sequentially passes the given request to each handler in order, returning the first non-None result from a handler that processed the request, or None if no handler handled the request.",
+  "score": 0,
+  "cost": 0.0001842,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 429
+  }
+}

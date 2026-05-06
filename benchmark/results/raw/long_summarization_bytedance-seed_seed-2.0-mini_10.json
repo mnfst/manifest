@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "long_summarization",
+  "case": 10,
+  "response": "The global food system faces unprecedented strain from overlapping crises: the world\u2019s population is projected to hit 9.7 billion by 2050, requiring a 60% increase in global food production, alongside climate-related crop yield losses, agriculture accounting for roughly 25% of global greenhouse gas emissions, widespread water and soil degradation, and one-third of all food produced being lost or wasted between farm and fork.\nCritical farming regions face severe water stress, including the U.S. Great Plains\u2019 Ogallala Aquifer, which is being depleted faster than it can recharge, with similar overextraction issues in India, China, and the Middle East, while 33% of the world\u2019s arable land has seen reduced productivity due to intensive farming practices.\nProposed solutions span technological innovations like precision agriculture, vertical farming, alternative proteins, drought-resistant genetically modified crops, and regenerative farming, plus policy shifts around subsidies, trade, and carbon pricing.\nThe core challenge is scaling these solutions globally while ensuring food remains affordable and accessible to the world\u2019s most vulnerable populations.",
+  "score": 0,
+  "cost": 0.000556,
+  "expected": "",
+  "tokens": {
+    "input": 348,
+    "output": 1303
+  }
+}

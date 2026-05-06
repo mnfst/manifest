@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that there is a giant storm on Jupiter that has been raging for centuries, known as the Great Red Spot, and it's so large that three Earths could fit inside it?",
+  "score": 0,
+  "cost": 3.825e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 40
+  }
+}

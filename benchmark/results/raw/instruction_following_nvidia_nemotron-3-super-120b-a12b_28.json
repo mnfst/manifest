@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Believe in your journey, turn obstacles into stepping stones, and watch your dreams become reality.",
+  "score": 0,
+  "cost": 1.431e-05,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 125
+  }
+}

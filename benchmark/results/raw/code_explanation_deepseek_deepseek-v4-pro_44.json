@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "The function finds all connected components in an undirected graph represented as an adjacency list, using a Breadth-First Search (BFS) traversal. It iterates over every node, and for each unvisited node, performs BFS to collect all reachable nodes into a separate component.",
+  "score": 0,
+  "cost": 0.000430215,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 215
+  }
+}

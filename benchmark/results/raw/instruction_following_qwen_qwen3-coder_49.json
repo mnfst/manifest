@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**\n\"Good day! I'm here to assist you with any questions or tasks you may have. How may I be of service to you today?\"\n\n**Casual:**\n\"Hey there! What's up? I'm ready to help out with whatever you need - just let me know!\"\n\n**Humorous:**\n\"Beep boop! \ud83e\udd16 Your friendly neighborhood AI assistant is here! What can I help you with before I take over the world? (Just kidding... or am I?)\"",
+  "score": 0,
+  "cost": 0.0001001,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 107
+  }
+}

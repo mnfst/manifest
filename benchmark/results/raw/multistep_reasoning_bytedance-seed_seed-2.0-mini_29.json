@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 29,
+  "response": "### Step 1: Recall the aerobic cellular respiration equation\nThe standard overall reaction for aerobic cellular respiration is:\n$$\\text{Glucose (sugar)} + 6\\text{O}_2 \\rightarrow 6\\text{CO}_2 + 6\\text{H}_2\\text{O} + \\text{ATP (usable cell energy)}$$\n- **Reactants (used in the process):** Sugar (glucose) and oxygen\n- **Products (waste products + energy):** Carbon dioxide, water, and cell-ready energy.\n\n---\n### Step 2: Evaluate each option\n1.  **Option A:** Matches the reaction: oxygen + sugar are used, water/CO2 are waste products. Correct.\n2.  **Option B:** Incorrect reactants (water is not a starting material; oxygen is a reactant, not a waste product here).\n3.  **Option C:** Incorrect: carbon dioxide is a waste product, not a starting material, and sugar/water are not wastes.\n4.  **Option D:** Incorrect: carbon dioxide is a waste product, not a starting material, and oxygen is a reactant, not a waste.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.0001905,
+  "expected": "A",
+  "tokens": {
+    "input": 197,
+    "output": 427
+  }
+}

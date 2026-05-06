@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 employee engagement survey results show an overall score of 7.8/10, with team collaboration being a strength and career growth clarity being an area for improvement. The People Team has proposed actions to address the areas for improvement, including quarterly career conversations, an internal mobility program, and mentorship matching, which will be discussed at a town hall meeting on Friday.",
+  "score": 0,
+  "cost": 6.33e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 76
+  }
+}

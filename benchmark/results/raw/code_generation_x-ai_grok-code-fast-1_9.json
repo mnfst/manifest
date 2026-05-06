@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 9,
+  "response": "result = 0\nfor num in lst:\n    if isinstance(num, int) and num > 0 and num % 2 != 0:\n        result += num ** 2\nreturn result",
+  "score": 0,
+  "cost": 0.0004596,
+  "expected": "",
+  "tokens": {
+    "input": 366,
+    "output": 483
+  }
+}

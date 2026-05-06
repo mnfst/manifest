@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 41,
+  "response": "```python\n    # Extract elements at indices divisible by 3\n    third_elements = [l[i] for i in range(0, len(l), 3)]\n    \n    # Sort these elements\n    third_elements.sort()\n    \n    # Create result list\n    result = l.copy()\n    \n    # Replace elements at indices divisible by 3 with sorted values\n    third_index = 0\n    for i in range(0, len(l), 3):\n        result[i] = third_elements[third_index]\n        third_index += 1\n    \n    return result\n```",
+  "score": 0,
+  "cost": 0.00014586,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 120
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\neven_nodes = [(val, idx) for idx, val in enumerate(arr) if val % 2 == 0]\nreturn min(even_nodes, key=lambda x: (x[0], x[1])) if even_nodes else []\n```",
+  "score": 0,
+  "cost": 8.475e-05,
+  "expected": "",
+  "tokens": {
+    "input": 349,
+    "output": 54
+  }
+}

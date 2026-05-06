@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "The South African Schools Act of 1996.",
+  "score": 0,
+  "cost": 2.367e-05,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 155,
+    "output": 108
+  }
+}

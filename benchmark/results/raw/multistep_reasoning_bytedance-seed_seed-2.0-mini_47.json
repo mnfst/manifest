@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 47,
+  "response": "Let's work through each option step-by-step:\n1.  **Option A**: Building a prototype to test allows the students to directly observe if the boat design stays upright and floats stably in water, which directly addresses the goal of avoiding tipping. This matches the question's requirement perfectly.\n2.  **Option B**: Calculating the total mass of all boats only relates to overall material usage and total weight, not the stability or ability to float without tipping individual boats.\n3.  **Option C**: Measuring total weight each boat can carry focuses on cargo load capacity, not whether the boat itself will tip over when simply floating in water.\n4.  **Option D**: Testing material strength only checks if the boats will break, not their floating stability or tendency to tip.\n\nA",
+  "score": 5,
+  "cost": 0.0002037,
+  "expected": "A",
+  "tokens": {
+    "input": 197,
+    "output": 460
+  }
+}

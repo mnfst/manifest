@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 43,
+  "response": "Amazonia: Man and Culture in a Counterfeit Paradise",
+  "score": 0,
+  "cost": 0.00025317,
+  "expected": "Amazonia: Man and Culture in a Counterfeit Paradise",
+  "tokens": {
+    "input": 242,
+    "output": 85
+  }
+}

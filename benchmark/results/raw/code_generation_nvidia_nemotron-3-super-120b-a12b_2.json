@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_generation",
+  "case": 2,
+  "response": "We need to implement strange_sort_list: given list of integers, return list in strange order: start with min, then max of remaining, then min of remaining, then max, etc. Equivalent to repeatedly taking min then max from remaining list.\n\nImplementation: we can sort the list, then take from both ends: first smallest, then largest, then second smallest, then second largest, etc. However careful: after taking min, we remove it; then max from remaining; then min from remaining; etc. This yields pattern: sorted list ascending: a0 <= a1 <= ... <= a_{n-1}. The result: a0, a_{n-1}, a1, a_{n-2}, a2, a_{n-3}, ... So we can produce by iterating i from 0 to floor((n-1)/2): output sorted[i], sorted[n-1-i]; if odd length, after loop we may have middle element left (when i == n-1-i). Actually for odd n, after we output pairs, we will have one element left (the median). The pattern: start with min then max then min then max... So for odd length, after we output min, max, min, max,... we will end with the median as the last element (since after taking pairs, one left). Let's test: list [1,2,3] sorted [1,2,3]; result: 1 (min), 3 (max), then remaining [2]; min=2 => result [1,3,2]. Using algorithm: i=0: output sorted[0]=1, sorted[2]=3; i=1: sorted[1]=2, sorted[1]=2 (same). We need to avoid duplicate. So we need to handle when i >= n-1-i break. So loop while left <= right: if left == right: output sorted[left]; break; else output sorted[left], sorted[right]; left+=1; right-=1.\n\nThus implement.\n\nEdge cases: empty list returns [].\n\nWe need to return only function body (code after def strange_sort_list(lst):). So we need to write code inside function.\n\nImplementation:\n\ndef strange_sort_list(lst):\n    # body\n\nWe need to return list.\n\nWe'll write:\n\n    sorted_lst = sorted(lst)\n    result = []\n    left, right = 0,",
+  "score": 0,
+  "cost": 5.994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 500
+  }
+}

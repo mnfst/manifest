@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 45,
+  "response": "The code defines a `Middleware` class that implements a chain of responsibility pattern. It allows functions (`fn`) to be added to a stack, and when `execute` is called, it sequentially runs each function in the stack, passing a `context` and a callback to proceed to the next function in the chain.",
+  "score": 0,
+  "cost": 0.0003796,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 64
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 22,
+  "response": "**Code review**\n\n```python\ndef send_email(to, subject, body):\n    msg = f'From: noreply@app.com\\nTo: {to}\\nSubject: {subject}\\n\\n{body}'\n    smtp = smtplib.SMTP('localhost')\n    smtp.sendmail('noreply@app.com', to, msg)\n    smtp.quit()\n```\n\n---\n\n## 1. Bugs / Functional Problems\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Missing import** | `smtplib` is not imported \u2192 `NameError` at runtime. | Add `import smtplib` (and any other needed modules). |\n| **No error handling** | Network failures, authentication errors, or malformed messages raise uncaught exceptions that crash the caller. | Wrap the SMTP interaction in a `try/except/finally` (or use a context manager) and log/re\u2011raise meaningful errors. |\n| **SMTP connection never closed on error** | If an exception occurs before `smtp.quit()`, the socket stays open, leaking resources. | Use `with smtplib.SMTP(...) as smtp:` or ensure `quit()` is called in a `finally` block. |\n| **Hard\u2011coded SMTP host/port** | `'localhost'` assumes a local MTA listening on the default port\u202f25. In many environments (containers, cloud, dev\u2011machines) this is false, causing connection refusals. | Make host, port, and optionally TLS/SSL parameters configurable (function arguments, environment variables, or a config object). |\n| **No authentication** | Most real\u2011world SMTP servers require login credentials; the code will fail with `SMTPAuthenticationError` or be rejected as spam. | Add optional `username`/`password` arguments and call `smtp.login()` when they are supplied. |\n| **No TLS/STARTTLS** | Sending credentials or message content in clear text is insecure. | After connecting, call `smtp.starttls()` (or use `SMTP_SSL` for implicit TLS) before authentication/sending. |\n| **Message built manually** | Manual header construction is prone to formatting errors (extra spaces, missing CRLF, line\u2011length limits) and does not handle non\u2011ASCII or MIME content correctly. | Use the standard library\u2019s `email.message.EmailMessage` (or `email.mime` classes) to build a properly\u2011formatted MIME message. |\n| **Header injection vulnerability** | If `to`, `subject`, or `body` contain newline characters (`\\n` or `\\r`), an attacker can inject additional SMTP headers (",
+  "score": 0,
+  "cost": 8.262e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 800
+  }
+}

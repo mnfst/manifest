@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The v1 API is scheduled for deprecation on June 30 and complete removal on September 30, with 340 integrations still using it and a migration guide available since last month, though 12 enterprise customers have yet to begin migrating. The plan includes personal outreach to the top 20 integrations and a webinar for the remaining ones.",
+  "score": 0,
+  "cost": 0.00026680000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 290,
+    "output": 261
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "The function implements the A* search algorithm: it repeatedly expands the node with the lowest estimated total cost\u202f\\(f = g + h\\) (where\u202f\\(g\\) is the actual path cost so far and\u202f\\(h\\) is the heuristic estimate to the goal) using a min\u2011heap priority queue, tracking visited nodes to avoid cycles, and returns the first path that reaches the goal (or\u202fNone if no path exists).",
+  "score": 0,
+  "cost": 2.34e-05,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 92
+  }
+}

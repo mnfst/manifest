@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign achieved a 5.1% click-through rate and an 8.1% conversion rate, resulting in 187 signups at a $64 cost per acquisition, with CTR up 1.2 percentage points but conversion down 0.8 points from March. The marketing team recommends A/B testing the landing page call-to-action to improve conversion.",
+  "score": 0,
+  "cost": 0.0007769100000000001,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 418
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The Network Ops team\u2019s network upgrade proposal notes that current 1Gbps links run at 78% capacity during peak hours, and outlines two solutions: a one-time $45,000 + $2,000 monthly upgrade to 10Gbps links, or a $15,000 traffic shaping and CDN optimization plan. Per the proposal, the 10Gbps upgrade is the recommended option to avoid needing to address network capacity again within six months, based on future growth projections.",
+  "score": 0,
+  "cost": 0.00029580000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 700
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. **Prioritize length:** Aim for at least 12\u201316 characters. Each additional character exponentially increases the time and computing power required for brute-force attacks.\n\n2. **Combine multiple character types:** Include uppercase letters, lowercase letters, numbers, and special symbols. This expands the mathematical search space and defeats basic dictionary attacks.\n\n3. **Eliminate predictability:** Avoid common words, keyboard patterns (e.g., \"qwerty\", \"asdf\"), sequential characters (e.g., \"1234\", \"abcd\"), and personal information like names, birthdays, or addresses.\n\n4. **Ensure complete uniqueness:** Never reuse a password across different accounts. A breach on one platform should not grant attackers access to your email, banking, or social media.\n\n5. **Rely on true randomness:** Human-created passwords tend to follow subconscious patterns. Use a cryptographically secure random generator to produce strings that lack logical or linguistic structure.\n\n6. **Consider a randomized passphrase:** If memorization is necessary, string together 4\u20136 unrelated, randomly selected words with numbers or symbols (e.g., `Guitar#7Cloud$Mango!2`). Avoid famous quotes, song lyrics, or common idioms.\n\n7. **Verify against known breaches:** Before adopting a password, check it against public compromise databases (like Have I Been Pwned or NIST's banned password list) to ensure it hasn't already been exposed in a data leak.\n\n8. **Store and manage securely:** A good password is only as strong as its protection. Use a reputable, zero-knowledge password manager to generate, encrypt, and autofill credentials, eliminating the need to memorize or write them down.",
+  "score": 0,
+  "cost": 0.002419625,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 1856
+  }
+}

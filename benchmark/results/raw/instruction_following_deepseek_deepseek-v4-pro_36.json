@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "- Java\n- C++\n- Rust\n- Go",
+  "score": 0,
+  "cost": 0.000169215,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 93
+  }
+}

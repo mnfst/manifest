@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 24,
+  "response": "if not (a + b > c and a + c > b and b + c > a):\n    return -1\ns = (a + b + c) / 2\narea = math.sqrt(s * (s - a) * (s - b) * (s - c))\nreturn round(area, 2)",
+  "score": 0,
+  "cost": 0.000638,
+  "expected": "",
+  "tokens": {
+    "input": 302,
+    "output": 722
+  }
+}

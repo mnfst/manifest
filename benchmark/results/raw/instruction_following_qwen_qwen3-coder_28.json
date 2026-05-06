@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "\"Believe in yourself, take action, and watch your dreams transform into reality.\"",
+  "score": 0,
+  "cost": 2.156e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 18
+  }
+}

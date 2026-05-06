@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team is proposing a cleanup sprint to simplify the configuration and improve test suite performance by removing or archiving 23 outdated feature flags. The proposed action is to remove 15 fully rolled-out flags and archive 8 dead code flags, which is expected to speed up the test suite by approximately 12%.",
+  "score": 0,
+  "cost": 5.3099999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 63
+  }
+}

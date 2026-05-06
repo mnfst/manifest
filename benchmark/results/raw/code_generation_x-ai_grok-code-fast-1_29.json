@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\ndef sum_digits(n):\n    n = abs(n)\n    total = 0\n    while n:\n        total += n % 10\n        n //= 10\n    return total\n\nreturn sorted(nums, key=sum_digits)\n```",
+  "score": 0,
+  "cost": 0.001108,
+  "expected": "",
+  "tokens": {
+    "input": 344,
+    "output": 1299
+  }
+}

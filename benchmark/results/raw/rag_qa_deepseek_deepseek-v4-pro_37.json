@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "",
+  "score": 0,
+  "cost": 0.000439785,
+  "expected": "northeast",
+  "tokens": {
+    "input": 211,
+    "output": 200
+  }
+}

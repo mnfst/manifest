@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s have seen significant advancements in space exploration, with SpaceX developing the Starship for reusable rocket technology, NASA launching the Artemis program to return humans to the Moon by 2025, and the James Webb Space Telescope uncovering new insights into the universe's origins. China has established its own space station and is pursuing lunar missions, while India has achieved success with Chandrayaan missions, including Chandrayaan-3's historic lunar landing in 2023. Commercial ventures are booming, including satellite internet constellations like Starlink (with over 5,000 satellites) and OneWeb, space tourism from Blue Origin and Virgin Galactic, and prospects for asteroid mining, though challenges like the Outer Space Treaty's limitations on resource claims and the growing issue of space debris threaten sustainable progress.",
+  "score": 0,
+  "cost": 0.0004098,
+  "expected": "",
+  "tokens": {
+    "input": 325,
+    "output": 431
+  }
+}

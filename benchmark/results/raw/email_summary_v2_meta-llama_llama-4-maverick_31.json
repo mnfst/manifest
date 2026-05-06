@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "Here is a 2-sentence summary of the email:\n\nA new 'Starter' pricing tier is proposed at $29/month, positioned between the existing Free and Pro tiers, to target users who churn due to price sensitivity. The proposed Starter tier is expected to recover 15% of price-churned users, resulting in $180K in additional Annual Recurring Revenue (ARR).",
+  "score": 0,
+  "cost": 6.36e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 78
+  }
+}

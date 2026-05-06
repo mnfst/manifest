@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "data_to_text",
+  "case": 36,
+  "response": "Flight AA\u202f1234 travels from JFK to LAX, departing at\u202f08:30 and arriving at\u202f11:45 for a total duration of\u202f5\u202fhours\u202f15\u202fminutes. The Boeing\u202f787 operates in economy class, with a ticket price of\u202f$289 and an on\u2011time performance of\u202f82%.",
+  "score": 0,
+  "cost": 3.1049999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 227
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU (Central Processing Unit) executes program instructions by performing arithmetic, logic, control, and input/output operations.",
+  "score": 0,
+  "cost": 0.00027230999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 153
+  }
+}

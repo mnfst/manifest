@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "structured_output",
+  "case": 19,
+  "response": "{\"type\": \"A\", \"hostname\": \"api.example.com\", \"value\": \"203.0.113.50\", \"ttl_seconds\": 3600, \"created\": \"2024-01-01\", \"modified\": \"2024-06-15\"}",
+  "score": 0,
+  "cost": 0.00026260000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 301,
+    "output": 253
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "The given code implements the Producer-Consumer pattern using a queue, where multiple producers add items to the queue and multiple consumers process these items. The algorithm uses a poison pill (`None`) to signal the consumers to stop processing when all items have been consumed, and it also handles multiple consumers by having each consumer put the poison pill back into the queue after receiving it, so that other consumers can also stop.",
+  "score": 0,
+  "cost": 7.544999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 82
+  }
+}

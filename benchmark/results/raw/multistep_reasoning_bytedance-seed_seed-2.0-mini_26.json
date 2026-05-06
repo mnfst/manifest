@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "Let's break down each option:\n1.  **Option A (Condensation):** This is the process where water vapor turns back into liquid water, not the reverse, so this is incorrect.\n2.  **Option B (Transportation):** This refers to the movement of water through the water cycle (e.g., water being carried via rivers or atmospheric currents), not a phase change of water, so this is incorrect.\n3.  **Option C (Evaporation):** This is the exact process where liquid water heats up and changes into water vapor, matching the question.\n4.  **Option D (Accumulation):** This describes water collecting in bodies like oceans or lakes, not a phase change, so this is incorrect.\n\nC",
+  "score": 5,
+  "cost": 0.0001291,
+  "expected": "C",
+  "tokens": {
+    "input": 111,
+    "output": 295
+  }
+}

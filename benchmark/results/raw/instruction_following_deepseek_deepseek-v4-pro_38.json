@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Invalid username or password.",
+  "score": 0,
+  "cost": 0.00031668,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 177
+  }
+}

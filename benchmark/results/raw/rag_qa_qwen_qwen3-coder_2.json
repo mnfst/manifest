@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Based on the provided context, colonialism often means a country taking physical control of another area, beginning a conquest over an area, and eventually ruling over the areas that the previous nation had controlled. It also involves the exploitation of the valuable assets and supplies of the conquered nation, with the conquering nation gaining benefits from the spoils of the war. Additionally, colonialism involves the builder and preserver of colonial possessions in an area by a population coming from a foreign region.",
+  "score": 0,
+  "cost": 0.00015356000000000001,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 314,
+    "output": 96
+  }
+}

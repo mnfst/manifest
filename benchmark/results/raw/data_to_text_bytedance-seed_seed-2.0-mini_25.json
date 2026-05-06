@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "data_to_text",
+  "case": 25,
+  "response": "Japan is a country with a total population of 125 million, posting a $4.2 trillion gross domestic product that saw 1.1% annual GDP growth, alongside a 2.6% unemployment rate and 3.2% inflation. The nation also carries a debt-to-GDP ratio of 263%, boasts a life expectancy of 84.6 years, and recorded $756 billion in total exports during the tracked timeframe.",
+  "score": 0,
+  "cost": 0.00048570000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 1176
+  }
+}

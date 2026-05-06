@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "### Basic Salad Ingredients\n- [ ] Lettuce (e.g., romaine or iceberg)\n- [ ] Tomatoes\n- [ ] Cucumbers\n- [ ] Carrots\n- [ ] Red onion (optional)\n- [ ] Olive oil or vinaigrette dressing\n- [ ] Salt and pepper to taste\n- [ ] Lemon juice or vinegar (optional for dressing)",
+  "score": 0,
+  "cost": 0.0002174,
+  "expected": "",
+  "tokens": {
+    "input": 215,
+    "output": 218
+  }
+}

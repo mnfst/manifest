@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\nreturn sorted(nums, key=lambda x: (sum(int(digit) for digit in str(abs(x))), nums.index(x)))\n```",
+  "score": 0,
+  "cost": 4.05e-05,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 30
+  }
+}

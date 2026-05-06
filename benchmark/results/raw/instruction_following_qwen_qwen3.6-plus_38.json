@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Invalid username or password. Please check your credentials and try again.",
+  "score": 0,
+  "cost": 0.0007120750000000001,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 541
+  }
+}

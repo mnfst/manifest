@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave,\nWho wrote every script he could save.\nHe typed through the night,\nTill the screen glowed so bright,\nAnd finally fixed the bug he'd been brave.",
+  "score": 0,
+  "cost": 0.001048125,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 801
+  }
+}

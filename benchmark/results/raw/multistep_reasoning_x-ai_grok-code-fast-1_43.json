@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "Coal is a fossil fuel formed through the process of carbonization, where ancient plant material (such as ferns and trees) accumulates in swamps, decomposes, and is subjected to heat and pressure over millions of years, transforming into coal.\n\nD",
+  "score": 5,
+  "cost": 0.0002994,
+  "expected": "D",
+  "tokens": {
+    "input": 273,
+    "output": 306
+  }
+}

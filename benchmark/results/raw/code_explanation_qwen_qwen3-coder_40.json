@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements the **Circuit Breaker pattern**, which prevents repeated failures in distributed systems by temporarily stopping calls to a failing service. The algorithm tracks consecutive failures and opens the circuit (blocks calls) when failures exceed a threshold, then automatically attempts to close it again after a timeout period.",
+  "score": 0,
+  "cost": 9.570000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 203,
+    "output": 58
+  }
+}

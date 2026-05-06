@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "The production web server prod-web-01, located in the us-east-1 region, is currently operating with 78% CPU utilization and 12.4 GB of its 16 GB memory in use, while storing 234 GB out of 500 GB on disk. The server has maintained an uptime of 45 days and is currently handling 127 active connections with a 99th percentile latency of 145ms, experiencing an average of 3 errors per hour.",
+  "score": 0,
+  "cost": 0.00012209999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 110
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| **Pros** | **Cons** |\n|----------|----------|\n| **Flexibility and Work-Life Balance** - Ability to create your own schedule and work from anywhere, leading to better personal time management | **Isolation and Loneliness** - Lack of face-to-face interaction with colleagues can lead to feelings of disconnection and reduced team bonding |\n| **Cost Savings** - No commuting expenses, reduced wardrobe costs, and lower food expenses from eating at home | **Communication Challenges** - Misunderstandings can occur more easily through digital communication, and spontaneous collaboration becomes harder |\n| **Increased Productivity** - Fewer office distractions and interruptions often result in deeper focus and higher output for many workers | **Work-Life Boundaries** - Difficulty separating work from personal life when your home becomes your office, potentially leading to overwork |",
+  "score": 0,
+  "cost": 0.00015224000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 167
+  }
+}

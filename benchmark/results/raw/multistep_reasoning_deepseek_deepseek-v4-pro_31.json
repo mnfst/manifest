@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "multistep_reasoning",
+  "case": 31,
+  "response": "B) begging for food",
+  "score": 5,
+  "cost": 0.000262305,
+  "expected": "B",
+  "tokens": {
+    "input": 75,
+    "output": 132
+  }
+}

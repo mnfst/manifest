@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "structured_output",
+  "case": 26,
+  "response": "{\"title\": \"Team standup\", \"recurrence\": \"recurring weekdays\", \"time_start\": \"9:00 AM\", \"time_end\": \"9:15 AM\", \"timezone\": \"PST\", \"meeting_link\": \"meet.google.com/abc-defg-hij\", \"organizer\": \"sarah@company.com\"}",
+  "score": 0,
+  "cost": 0.0002706,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 638
+  }
+}

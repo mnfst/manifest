@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "long_summarization",
+  "case": 11,
+  "response": "The EU's General Data Protection Regulation (GDPR), effective since May 2018, established comprehensive data privacy rights including access, erasure, and portability, while requiring explicit consent and mandating breach reporting within 72 hours. Companies violating GDPR face fines up to 4% of global revenue or 20 million euros, with major tech companies like Meta (1.2 billion euros), Amazon (746 million euros), and Google (over 200 million euros) receiving significant penalties. The regulation has influenced similar laws globally in California, Brazil, and India, though critics argue it creates compliance burdens that harm small businesses and stifle innovation. Despite enforcement challenges and user frustration with cookie consent banners, GDPR established data privacy as a fundamental right and set the global standard for data protection legislation.",
+  "score": 0,
+  "cost": 0.00021736000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 320,
+    "output": 167
+  }
+}

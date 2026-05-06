@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "long_summarization",
+  "case": 40,
+  "response": "The modern internet emerged from 1960s U.S. Department of Defense networking research, beginning with the 1969 launch of precursor ARPANET, which expanded to connect academic and research institutions through the 1970s before gaining its formal foundational framework via the 1983 shift to TCP/IP protocols; Tim Berners-Lee later invented the World Wide Web in 1989 at CERN, introducing core tools like HTML, URLs, and HTTP.\nThe web went fully mainstream in 1993 with the launch of Mosaic, the first widely accessible web browser, spurring the late-1990s dot-com boom that brought massive venture investment to internet startups, before a 2001 market crash wiped out most firms, though survivors Amazon and Google went on to become some of the world\u2019s most valuable companies.\nSubsequent key developments included mid-2000s social media platforms like Facebook, Twitter, and YouTube that redefined global human communication, the 2007 launch of the iPhone spurring ubiquitous mobile internet access, and Amazon Web Services\u2019 2006 launch establishing cloud computing as a dominant technology sector.\nToday, the global internet connects over 5 billion people and underpins nearly every facet of modern daily life, including commerce, communication, and entertainment.",
+  "score": 0,
+  "cost": 0.0006776,
+  "expected": "",
+  "tokens": {
+    "input": 380,
+    "output": 1599
+  }
+}

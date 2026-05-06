@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 17,
+  "response": "```python\nimport hashlib\n\nif text == '':\n    return None\nreturn hashlib.md5(text.encode()).hexdigest()\n```",
+  "score": 0,
+  "cost": 4.818e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 25
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The Compliance Team announced the completion of the SOC 2 Type II compliance audit, noting that there were no critical findings but identifying three key observations: insufficient access review frequency, an incident response plan that has not been tested in six months, and incomplete vendor risk assessments for two vendors. All remediation efforts to resolve these three audit observations are due to be completed within 30 days.",
+  "score": 0,
+  "cost": 0.00021590000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 504
+  }
+}

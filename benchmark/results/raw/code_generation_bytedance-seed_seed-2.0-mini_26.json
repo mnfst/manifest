@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 26,
+  "response": "if len(l) < 3:\n    return False\nfor i in range(len(l)):\n    for j in range(i + 1, len(l)):\n        for k in range(j + 1, len(l)):\n            if l[i] + l[j] + l[k] == 0:\n                return True\nreturn False",
+  "score": 0,
+  "cost": 0.0010999,
+  "expected": "",
+  "tokens": {
+    "input": 243,
+    "output": 2689
+  }
+}

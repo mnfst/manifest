@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew significantly and became much more interconnected on a global scale as a result of imperialism.",
+  "score": 0,
+  "cost": 3.555e-05,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 246,
+    "output": 149
+  }
+}

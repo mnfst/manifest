@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n    return -1\nreturn bin(round((n + m) / 2))",
+  "score": 0,
+  "cost": 0.0009364000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 232,
+    "output": 2283
+  }
+}

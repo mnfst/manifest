@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "long_summarization",
+  "case": 13,
+  "response": "Quantum computing utilizes qubits, which can exist in multiple states simultaneously, enabling these machines to solve specific problems exponentially faster than classical computers. Major tech companies and startups, including IBM, Google, IonQ, and Rigetti, are developing quantum hardware using various approaches, such as superconducting circuits and trapped ions. While Google achieved a significant milestone in 2019 by demonstrating quantum supremacy, practical quantum computing is still hindered by the fragility of qubits and high error rates, requiring extensive error correction and potentially millions of qubits for meaningful applications.",
+  "score": 0,
+  "cost": 0.0007748,
+  "expected": "",
+  "tokens": {
+    "input": 289,
+    "output": 114
+  }
+}

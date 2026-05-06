@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\nmapping = {'a':'c', 'e':'g', 'i':'k', 'o':'q', 'u':'w', 'A':'C', 'E':'G', 'I':'K', 'O':'Q', 'U':'W'}\nresult = []\nfor char in message:\n    if char.isalpha():\n        if char.lower() in 'aeiou':\n            new_char = mapping[char]\n        else:\n            new_char = char\n        result.append(new_char.swapcase())\n    else:\n        result.append(char)\nreturn ''.join(result)\n```",
+  "score": 0,
+  "cost": 0.0014432,
+  "expected": "",
+  "tokens": {
+    "input": 288,
+    "output": 1732
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "long_summarization",
+  "case": 15,
+  "response": "The EU's GDPR, in force since May 2018, requires any organization handling EU residents' data to uphold rights like access, erasure, and explicit consent, with mandatory breach reporting within 72 hours and fines reaching up to \u20ac20 million or 4% of global annual revenue. Major penalties have hit tech giants\u2014Meta was fined \u20ac1.2 billion in 2023, Amazon \u20ac746 million, and Google over \u20ac200 million\u2014while the law has inspired similar privacy frameworks worldwide. Critics argue it imposes heavy compliance burdens on small businesses, creates user frustration with cookie banners, and suffers from inconsistent enforcement across member states. Despite these issues, GDPR cemented data privacy as a fundamental right and became the global benchmark for data protection legislation.",
+  "score": 0,
+  "cost": 0.001510755,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 792
+  }
+}

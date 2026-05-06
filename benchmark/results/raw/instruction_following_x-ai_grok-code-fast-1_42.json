@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "### Visual Spectacle\nA thunderstorm unfolds with dramatic skies, where towering cumulonimbus clouds swell like bruised giants, their dark underbellies churning with shades of purple and gray. Lightning arcs across the heavens in jagged, electric veins, illuminating the landscape in fleeting, blinding flashes that reveal rain-swept fields or city streets in stark, momentary brilliance.\n\n### Auditory Thunder\nThe air fills with a symphony of sound: deep, rumbling thunder that rolls like distant artillery, echoing off hills and buildings, while heavy raindrops pelt the ground in a relentless drumbeat, crescendoing into a roaring downpour that drowns out all other noise.\n\n### Tactile and Olfactory Sensation\nThe wind whips fiercely, carrying cool, damp gusts that sting the skin and tousle hair, as rain falls in sheets, soaking everything in a refreshing chill. In the aftermath, the air carries a sharp, metallic scent of ozone, a crisp reminder of the storm's electric fury.",
+  "score": 0,
+  "cost": 0.000384,
+  "expected": "",
+  "tokens": {
+    "input": 216,
+    "output": 426
+  }
+}

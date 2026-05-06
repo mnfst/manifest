@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements a **decorator** that applies the **Least Recently Used (LRU) caching algorithm** to a function, using an `OrderedDict` to track access order and automatically evict the least recently accessed entry when the cache exceeds `maxsize`. It transparently intercepts function calls to return cached results for repeated arguments or compute and store new results on cache misses.",
+  "score": 0,
+  "cost": 0.0015600000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 1167
+  }
+}

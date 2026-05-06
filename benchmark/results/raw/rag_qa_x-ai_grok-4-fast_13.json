@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "Victorian Government",
+  "score": 0,
+  "cost": 0.000158,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 306,
+    "output": 121
+  }
+}

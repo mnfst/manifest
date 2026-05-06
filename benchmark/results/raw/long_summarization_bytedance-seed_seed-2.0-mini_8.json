@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "This text traces the full evolution of artificial intelligence, starting from Alan Turing\u2019s original foundational question and moving through major milestones including the AI winters of the 1970s and 1980s, a 2010s resurgence powered by deep learning, and the landmark 2017 release of the transformer architecture paper.\nIt covers the post-transformer boom tied to models like GPT and the scaling hypothesis, the competitive race for AI leadership between OpenAI, Google, Anthropic, and Meta, and the fierce debate between proponents of open-source and closed-source AI development.\nThe summary also highlights critical AI-related concerns such as model alignment, malicious misuse, and job displacement within knowledge work, alongside ongoing global regulatory efforts including the European Union\u2019s AI Act and U.S. executive orders aimed at overseeing the fast-expanding field.",
+  "score": 0,
+  "cost": 0.00045730000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 201,
+    "output": 1093
+  }
+}

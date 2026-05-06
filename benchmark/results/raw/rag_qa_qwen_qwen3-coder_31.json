@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Based on the provided context, Maududi believed that Muslim society could not be Islamic in the absence of Sharia.\n\nThe context explicitly states: \"Maududi also believed that Muslim society could not be Islamic without Sharia.\"",
+  "score": 0,
+  "cost": 7.766e-05,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 177,
+    "output": 44
+  }
+}

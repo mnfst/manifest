@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 6,
+  "response": "from collections import Counter\n    counter = Counter(numbers)\n    return [num for num in numbers if counter[num] == 1]",
+  "score": 0,
+  "cost": 0.00028660000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 280
+  }
+}

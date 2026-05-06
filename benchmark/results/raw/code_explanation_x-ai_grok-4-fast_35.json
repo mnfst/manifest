@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This code implements the Knuth-Morris-Pratt (KMP) string-searching algorithm to find the first occurrence of a `pattern` substring within a `text` string, returning the starting index of the match or -1 if not found. It first preprocesses the pattern to compute its longest proper prefix-suffix (LPS) array, which enables efficient skipping of redundant comparisons during the search phase by backtracking to the longest matching prefix when a mismatch occurs.",
+  "score": 0,
+  "cost": 0.00032260000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 333,
+    "output": 320
+  }
+}

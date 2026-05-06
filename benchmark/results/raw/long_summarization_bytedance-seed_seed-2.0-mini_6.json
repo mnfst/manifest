@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Before the COVID-19 pandemic, remote work was a rare perk available to fewer than 5% of fully remote workers, but the 2020 forced mass adaptation of remote setups turned it into a mainstream workplace practice, enabled by tools like Zoom, Slack, and cloud-based infrastructure. Stanford economist Nick Bloom\u2019s research documented mixed productivity results from fully remote work, and while companies faced significant return-to-office backlash, hybrid work models emerged as a widespread middle-ground solution, opening the door to geographic arbitrage where workers relocated to lower-cost regions domestically and abroad. The shift also spurred the rise of digital nomad visas across many countries, drove substantial disruptions to commercial real estate markets, and sparked ongoing debate about its effects on workplace culture and the professional development of junior employees.",
+  "score": 0,
+  "cost": 0.00040280000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 959
+  }
+}

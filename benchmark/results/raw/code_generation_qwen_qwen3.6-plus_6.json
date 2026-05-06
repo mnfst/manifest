@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 6,
+  "response": "counts = {}\n    for num in numbers:\n        counts[num] = counts.get(num, 0) + 1\n    return [num for num in numbers if counts[num] == 1]",
+  "score": 0,
+  "cost": 0.003219125,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 2445
+  }
+}

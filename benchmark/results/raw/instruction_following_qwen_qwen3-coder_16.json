@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible force that pulls objects toward each other. The bigger and more massive an object is, the stronger its gravitational pull. This is why Earth pulls you down toward its surface, keeping your feet on the ground and causing things to fall when dropped.\n\nGravity works everywhere in the universe - it's what keeps the Moon orbiting around Earth, Earth orbiting around the Sun, and all the planets in their paths around the stars. Without gravity, you would float away into space, and there would be no structure to our solar system or galaxies.\n\nThe strength of gravity depends on two things: how much mass the objects have, and how far apart they are. More massive objects create stronger gravitational fields, while greater distances weaken the gravitational pull between objects.\n\nThat is gravity.",
+  "score": 0,
+  "cost": 0.00014718,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 160
+  }
+}

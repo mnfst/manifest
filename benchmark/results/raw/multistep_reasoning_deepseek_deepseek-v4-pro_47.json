@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "multistep_reasoning",
+  "case": 47,
+  "response": "A) construct a prototype of a boat for testing",
+  "score": 5,
+  "cost": 0.0005594100000000001,
+  "expected": "A",
+  "tokens": {
+    "input": 150,
+    "output": 284
+  }
+}

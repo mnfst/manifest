@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines a plan for launching in Japan, with key milestones including setting up a legal entity in May, completing localization in June, running a beta with 10 customers in July, and going for general availability in August, with a total budget of $200K. The action item is to obtain CEO approval to proceed with the plan.",
+  "score": 0,
+  "cost": 0.00040248000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 71
+  }
+}

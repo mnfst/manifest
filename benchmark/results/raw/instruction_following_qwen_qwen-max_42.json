@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm is a powerful natural phenomenon characterized by dark, swirling clouds, heavy rainfall, and, of course, thunder and lightning. As the storm approaches, the air becomes thick and heavy, almost electric, with a cool, damp scent that invades your senses, a mixture of the earthy smell of wet soil and the sharp, clean freshness of the rain. The sky darkens, and the once-blue expanse is overtaken by a deep, almost inky blackness, punctuated by flashes of bright, jagged lightning that crackle across the horizon, illuminating the landscape in sudden, stark relief. The most striking sensory detail, however, is the sound. The thunder, a deep, rumbling roar that shakes the very ground, echoes through the air, growing louder and more intense as the storm intensifies, a powerful, almost primal symphony that commands attention and respect.",
+  "score": 0,
+  "cost": 0.0007748000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 181
+  }
+}

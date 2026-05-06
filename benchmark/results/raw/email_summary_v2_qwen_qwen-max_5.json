@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product launch is being delayed due to the payment integration not meeting PCI compliance, with options to either launch without the payment feature or delay the full launch to May 15; if launching without payments, updated terms and conditions are required. A meeting is scheduled for tomorrow at 10 AM to discuss further.",
+  "score": 0,
+  "cost": 0.00037024000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 63
+  }
+}

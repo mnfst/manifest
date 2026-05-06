@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a super special notebook that you and all your friends share. Every time you trade stickers or toys",
+  "score": 0,
+  "cost": 4.788e-05,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 500
+  }
+}

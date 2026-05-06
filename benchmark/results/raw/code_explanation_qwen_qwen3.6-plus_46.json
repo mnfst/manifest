@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_explanation",
+  "case": 46,
+  "response": "This function restores Red-Black Tree invariants after a new node insertion by iteratively applying case-based recoloring and left/right rotations to eliminate consecutive red nodes. It implements the standard Red-Black Tree insertion fixup algorithm, ensuring the tree maintains its logarithmic height and balancing properties.",
+  "score": 0,
+  "cost": 0.0011687,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 851
+  }
+}

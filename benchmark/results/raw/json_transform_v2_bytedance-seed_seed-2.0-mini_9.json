@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "json_transform_v2",
+  "case": 9,
+  "response": "{\"summary\":{\"total\":5,\"by_level\":{\"ERROR\":3,\"WARN\":1,\"INFO\":1}},\"errors\":[{\"msg\":\"timeout\",\"count\":2,\"first_seen\":\"10:00\"},{\"msg\":\"slow query\",\"count\":1,\"first_seen\":\"10:01\"},{\"msg\":\"recovered\",\"count\":1,\"first_seen\":\"10:03\"},{\"msg\":\"disk full\",\"count\":1,\"first_seen\":\"10:05\"}]}",
+  "score": 0,
+  "cost": 0.0006885,
+  "expected": "",
+  "tokens": {
+    "input": 249,
+    "output": 1659
+  }
+}

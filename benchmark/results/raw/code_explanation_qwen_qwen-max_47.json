@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 47,
+  "response": "The provided code implements the Shunting Yard algorithm, which is used to convert expressions from infix notation to Reverse Polish Notation (RPN). It processes a list of tokens, using a stack to manage operators and parentheses, and outputs a list of tokens in RPN order based on operator precedence.",
+  "score": 0,
+  "cost": 0.00045656,
+  "expected": "",
+  "tokens": {
+    "input": 203,
+    "output": 59
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "The capital of the Ottoman Empire was Istanbul, as explicitly stated in the provided context: \"With Istanbul as its capital and control of lands around the Mediterranean basin...\"",
+  "score": 0,
+  "cost": 0.000308,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 372,
+    "output": 292
+  }
+}

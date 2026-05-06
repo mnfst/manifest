@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "The function performs a depth\u2011first search on the directed graph, adding each node to `stack` only after all of its reachable neighbors have been visited (post\u2011order). Reversing the `stack` yields a topological ordering of the graph\u2019s nodes.",
+  "score": 0,
+  "cost": 2.1419999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 118
+  }
+}

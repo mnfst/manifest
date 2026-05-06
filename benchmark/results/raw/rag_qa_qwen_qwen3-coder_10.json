@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden was formally a royal garden.",
+  "score": 0,
+  "cost": 0.00010428,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 434,
+    "output": 10
+  }
+}

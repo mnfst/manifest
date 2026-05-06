@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "structured_output",
+  "case": 34,
+  "response": "```json\n{\n  \"student_id\": \"20240156\",\n  \"course_code\": \"CS301\",\n  \"course_name\": \"Algorithms\",\n  \"score\": 87,\n  \"max_score\": 100,\n  \"grade\": \"A-\",\n  \"semester\": \"Fall 2024\",\n  \"instructor\": \"Prof. Williams\"\n}\n```",
+  "score": 0,
+  "cost": 0.00010604000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 89
+  }
+}

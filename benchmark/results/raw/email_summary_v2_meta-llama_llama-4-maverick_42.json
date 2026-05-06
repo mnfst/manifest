@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The customer workshop gathered feedback from 15 enterprise customers, highlighting the need for improved bulk import and SSO capabilities, while also sparking interest in a potential new product. A follow-up report is attached, which likely contains more detailed information and may require review and action from the recipient.",
+  "score": 0,
+  "cost": 5.1e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 57
+  }
+}

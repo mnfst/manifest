@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This function implements the dynamic programming algorithm for the 0/1 Knapsack problem, which computes the maximum total value that can be achieved by selecting a subset of items (each with a weight and value) without exceeding a given capacity, ensuring no item is used more than once. It builds a 2D DP table where dp[i][w] represents the maximum value using the first i items with capacity w, iteratively filling it by taking the maximum of excluding the current item (dp[i-1][w]) or including it if feasible (dp[i-1][w - weight] + value).",
+  "score": 0,
+  "cost": 0.0003608,
+  "expected": "",
+  "tokens": {
+    "input": 300,
+    "output": 376
+  }
+}

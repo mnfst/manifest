@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has attached a draft of the Q1 board deck, highlighting strong performance with revenue at 127% of target and NRR at 115%, though customer acquisition cost (CAC) has increased by 22%. You are requested to provide your section on the product roadmap by Wednesday in preparation for the board meeting next Tuesday.",
+  "score": 0,
+  "cost": 0.00023240000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 234,
+    "output": 232
+  }
+}

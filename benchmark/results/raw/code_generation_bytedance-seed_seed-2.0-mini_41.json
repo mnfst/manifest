@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 41,
+  "response": "third_vals = [l[i] for i in range(len(l)) if i % 3 == 0]\nsorted_third = sorted(third_vals)\nresult = []\nptr = 0\nfor i in range(len(l)):\n    if i % 3 != 0:\n        result.append(l[i])\n    else:\n        result.append(sorted_third[ptr])\n        ptr += 1\nreturn result",
+  "score": 0,
+  "cost": 0.0006372000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 236,
+    "output": 1534
+  }
+}

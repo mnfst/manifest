@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 0,
+  "cost": 5.2799999999999996e-05,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 220,
+    "output": 77
+  }
+}

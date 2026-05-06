@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "multistep_reasoning",
+  "case": 48,
+  "response": "C\n\nTo break down the reasoning:\n- A) Knowing how deep the river got when it rained is not necessary for finding the exact location of the dig site.\n- B) The distance from the town is not relevant to resuming the dig in the same spot.\n- C) Accurate notes describing the location are crucial for another scientist to find and continue the work at the exact same spot.\n- D) Weather records for the past few months are not directly useful for locating the specific dig site.\n\nThus, the most logical answer is C.",
+  "score": 5,
+  "cost": 0.000598,
+  "expected": "C",
+  "tokens": {
+    "input": 131,
+    "output": 111
+  }
+}

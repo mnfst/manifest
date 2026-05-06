@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "structured_output",
+  "case": 2,
+  "response": "{\"product\": \"iPhone 15 Pro\", \"price\": 999.0, \"colors\": [\"black titanium\", \"white titanium\", \"blue titanium\"], \"storage_options\": [\"128GB\", \"256GB\", \"512GB\", \"1TB\"]}",
+  "score": 0,
+  "cost": 0.00021400000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 242,
+    "output": 207
+  }
+}

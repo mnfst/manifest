@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 10,
+  "response": "**Code under review**\n\n```javascript\nasync function fetchAll(urls) {\n  const results = [];\n  for (const url of urls) {\n    const res = await fetch(url);\n    results.push(await res.json());\n  }\n  return results;\n}\n```\n\n---\n\n## 1. Functional / Correctness Issues  \n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **No error handling** \u2013 `fetch` rejects on network errors, and `res.json()` throws if the body isn\u2019t valid JSON. The function will abort on the first failure, leaving the caller with an uncaught promise rejection. | Callers cannot distinguish \u201cone URL failed\u201d from \u201call succeeded\u201d. | Wrap each request in a `try / catch` (or use `Promise.allSettled`) and return a structured result that indicates success/failure for each URL. |\n| **Ignores HTTP status codes** \u2013 A 404, 500, or redirect still yields a `Response` object; `res.json()` will try to parse whatever body the server returned (often an HTML error page) and will likely throw. | Misleading data or unexpected errors. | Check `if (!res.ok) { \u2026 }` and treat non\u20112xx responses as failures (or return the status/text separately). |\n| **Sequential execution** \u2013 Each `await` waits for the previous request to finish before starting the next. With many URLs this can be unnecessarily slow. | Poor performance, especially when latency dominates. | Fire all requests in parallel (e.g., `Promise.all` or `Promise.allSettled`) and await the collective result. |\n| **No timeout / cancellation** \u2013 A hung or slow endpoint can block the function indefinitely. | Denial\u2011of\u2011service risk; unresponsive UI. | Attach an `AbortSignal` (with a timeout) to each `fetch`. |\n| **Assumes input is an iterable of strings** \u2013 Passing `null`, `undefined`, or a non\u2011iterable will throw a `TypeError`. | Fragile API. |",
+  "score": 0,
+  "cost": 8.01e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 800
+  }
+}

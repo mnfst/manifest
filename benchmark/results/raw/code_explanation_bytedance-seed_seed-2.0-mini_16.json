@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "This async utility uses an asyncio Semaphore to enforce a concurrency limit on a collection of input coroutines: each coroutine is wrapped to wait to acquire the semaphore before executing, ensuring no more than the specified `limit` tasks run simultaneously, then `asyncio.gather` runs all wrapped coroutines and returns their results in the original input order.",
+  "score": 0,
+  "cost": 0.00026090000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 618
+  }
+}

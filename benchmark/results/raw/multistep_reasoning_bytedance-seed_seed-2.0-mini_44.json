@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 44,
+  "response": "Let's analyze each option to identify which adaptation reduces survival ability:\n1.  **Option A**: Producing many seeds increases the number of offspring, raising the chance that some will successfully establish and survive. This is a beneficial adaptation, not a harmful one.\n2.  **Option B**: Herbicide resistance allows the plant to avoid being killed by herbicides that target competing plants, boosting its survival and reproductive success. This is helpful.\n3.  **Option C**: Rapid root growth improves the plant's ability to take up water and nutrients from the soil, enhancing its growth and resilience. This is a beneficial trait.\n4.  **Option D**: Slow leaf formation limits the production of photosynthetic tissue. Leaves are the site of energy production via photosynthesis; slower leaf growth reduces the plant's access to the energy it needs to grow, resist stress, and reproduce, directly decreasing its survival chances.\n\nFinal answer: D",
+  "score": 5,
+  "cost": 0.00020480000000000002,
+  "expected": "D",
+  "tokens": {
+    "input": 152,
+    "output": 474
+  }
+}

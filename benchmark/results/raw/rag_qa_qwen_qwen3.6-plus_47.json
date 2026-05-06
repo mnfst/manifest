@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The Urarina",
+  "score": 0,
+  "cost": 0.001151475,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 163,
+    "output": 845
+  }
+}

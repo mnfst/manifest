@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne\n\nThe context states: \"Culturally, Melbourne is home to a number of museums, art galleries and theatres and is also described as the 'sporting capital of Australia'.\" Melbourne is located in Victoria, as indicated by references to the Melbourne Cricket Ground and the University of Melbourne.",
+  "score": 0,
+  "cost": 0.0004160000000000001,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 444,
+    "output": 409
+  }
+}

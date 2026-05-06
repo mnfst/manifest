@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that improves the speed of data retrieval operations on a table by allowing the database to locate rows without scanning the entire table. It works similarly to an index in a book, storing sorted pointers to the actual data so that queries can be resolved faster.",
+  "score": 0,
+  "cost": 6.93e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 57
+  }
+}

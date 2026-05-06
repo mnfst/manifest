@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The v1 API will be deprecated on June\u202f30 and removed on September\u202f30, with 340",
+  "score": 0,
+  "cost": 2.8170000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 200
+  }
+}

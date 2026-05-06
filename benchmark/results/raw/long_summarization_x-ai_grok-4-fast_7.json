@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s mark a dynamic era in space exploration, blending scientific advancements and commercial ventures, with key developments including SpaceX's ambitious Starship program for reusable rocketry, NASA's Artemis initiative aiming to return humans to the Moon, China's operational space station and lunar exploration goals, and India's successful Chandrayaan missions that achieved lunar landings. Scientific highlights feature the James Webb Space Telescope's groundbreaking discoveries in cosmology and exoplanets, while commercial growth is evident in expanding satellite internet constellations like Starlink and OneWeb, space tourism offerings from Blue Origin and Virgin Galactic, and emerging prospects for asteroid mining to harness extraterrestrial resources. However, these progresses are tempered by challenges, such as the limitations of the 1967 Outer Space Treaty in regulating private activities and the escalating problem of space debris threatening orbital sustainability.",
+  "score": 0,
+  "cost": 0.0004794,
+  "expected": "",
+  "tokens": {
+    "input": 277,
+    "output": 530
+  }
+}

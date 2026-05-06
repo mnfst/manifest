@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_generation",
+  "case": 42,
+  "response": "```python\nif n > m:\n    return -1\navg = (n + m) / 2\ntotal_sum = (m - n + 1) * avg\nrounded_avg = round(total_sum / (m - n + 1))\nreturn bin(rounded_avg)\n```",
+  "score": 0,
+  "cost": 6.285e-05,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 61
+  }
+}

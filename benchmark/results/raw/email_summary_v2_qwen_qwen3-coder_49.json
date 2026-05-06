@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch is delayed due to failed PCI compliance for payment integration, requiring either a launch without payments or a full delay until May 15. The team needs to decide between these options and update terms and conditions if choosing the partial launch, with a meeting scheduled for tomorrow at 10am to discuss the decision.",
+  "score": 0,
+  "cost": 8.096e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 66
+  }
+}

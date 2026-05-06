@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "Lisa reported that the March onboarding cohort's satisfaction dropped to 7.2/10, with the buddy system and IT setup working well but benefits deadlines, delayed tools access, and a missing culture handbook causing issues. The priority action item is to fix the tools access delay, which took 3-5 days instead of the 1-day target.",
+  "score": 0,
+  "cost": 0.000525915,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 275
+  }
+}

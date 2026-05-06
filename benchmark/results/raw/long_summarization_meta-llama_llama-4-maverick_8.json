@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Here is a summary of the text in 3-4 sentences:\n\nThe development of artificial intelligence (AI) has experienced significant fluctuations, from the \"AI winters\" of the 1970s and 1980s to a resurgence in the 2010s driven by deep learning and the 2017 transformer architecture paper. The subsequent advancements in models like GPT have sparked a competitive landscape among companies like OpenAI, Google, Anthropic, and Meta, with debates surrounding open vs closed source development and AI safety concerns. Regulatory efforts, such as the EU AI Act and US executive orders, aim to address issues like alignment, misuse, and job displacement. The economic impact of AI on knowledge work is also a significant consideration.",
+  "score": 0,
+  "cost": 0.0001113,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 148
+  }
+}

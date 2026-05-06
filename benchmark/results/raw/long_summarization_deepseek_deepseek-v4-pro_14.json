@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "long_summarization",
+  "case": 14,
+  "response": "The global food system faces immense strain from a projected population of 9.7 billion by 2050, requiring a 60% increase in production, while climate change, water scarcity, and soil degradation\u2014which has reduced the productivity of 33% of arable land\u2014",
+  "score": 0,
+  "cost": 0.00064815,
+  "expected": "",
+  "tokens": {
+    "input": 290,
+    "output": 300
+  }
+}

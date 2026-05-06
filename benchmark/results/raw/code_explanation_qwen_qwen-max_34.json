@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code defines a `MinStack` class that implements a stack data structure with an additional feature to retrieve the minimum element in constant time. It uses two stacks: one for storing all the elements (`self.stack`) and another for keeping track of the minimum values (`self.min_stack`). The `push` method adds an element to both stacks, ensuring that `self.min_stack` always contains the current minimum, while the `pop` method removes the top elements from both stacks. The `get_min` method returns the current minimum value by accessing the top of `self.min_stack`.",
+  "score": 0,
+  "cost": 0.0006136000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 117
+  }
+}

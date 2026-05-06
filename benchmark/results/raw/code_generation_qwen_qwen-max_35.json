@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\nreturn (abs(a) % 10) * (abs(b) % 10)\n```",
+  "score": 0,
+  "cost": 0.00025168,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 24
+  }
+}

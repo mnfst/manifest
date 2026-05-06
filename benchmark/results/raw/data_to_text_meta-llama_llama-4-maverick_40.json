@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "data_to_text",
+  "case": 40,
+  "response": "Here is a natural language paragraph summarizing the patient's data:\n\nThe 45-year-old female patient has a BMI of 27.3 and a blood pressure reading of 138/88, indicating potential health risks. Her cholesterol level is 225 mg/dL and fasting glucose is 110 mg/dL, which are slightly elevated. With a family history of diabetes, specifically her mother having the condition, and exercising moderately (2 times a week), she is considered to be at risk, although she is a non-smoker.",
+  "score": 0,
+  "cost": 7.829999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 106
+  }
+}

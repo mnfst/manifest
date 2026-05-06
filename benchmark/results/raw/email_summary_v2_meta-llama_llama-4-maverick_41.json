@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The current network links are at 78% capacity during peak usage, prompting a proposal to upgrade to 10Gbps for a one-time cost of $45K and a monthly fee of $2K. The network operations team recommends upgrading to 10Gbps due to growth projections, although an alternative solution involving traffic shaping and CDN optimization is available for $15K.",
+  "score": 0,
+  "cost": 6.225e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 76
+  }
+}

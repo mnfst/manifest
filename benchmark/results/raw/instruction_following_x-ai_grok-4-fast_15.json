@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "hat, mat, bat, rat",
+  "score": 0,
+  "cost": 0.00012859999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 119
+  }
+}

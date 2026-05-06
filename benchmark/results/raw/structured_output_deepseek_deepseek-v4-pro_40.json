@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "structured_output",
+  "case": 40,
+  "response": "{\n  \"ticket_id\": 8472,\n  \"priority\": \"High\",\n  \"created\": \"2h ago\",\n  \"user\": \"premium_user@corp.com\",\n  \"category\": \"billing\",\n  \"subject\": \"Double charged for March subscription\",\n  \"assigned_to\": \"Agent Mike\",\n  \"status\": \"in progress\"\n}",
+  "score": 0,
+  "cost": 0.000571155,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 299
+  }
+}

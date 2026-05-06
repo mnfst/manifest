@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a key customer with $450K ARR, is threatening to churn after their CTO directly contacted support regarding API latency spikes over the past three weeks and a five-day lack of response from the team. James, the CS Lead, has assigned a dedicated engineer to address the issues and requires an executive sponsor for a call this week.",
+  "score": 0,
+  "cost": 0.00024340000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 249,
+    "output": 242
+  }
+}

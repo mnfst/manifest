@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "structured_output",
+  "case": 7,
+  "response": "To extract the required information and return it as valid JSON matching the given schema, we will parse the provided text.\n\n1. **Symbol**: The stock symbol is \"AAPL\".\n2. **Price**: The current price is $185.50, so the price is 185.50.\n3. **Change Percent**: The stock is up 2.3% today, so the change percent is 2.3.\n4. **Volume**: The volume is 45M shares, which translates to \"45M\".\n5. **High 52w**: The 52-week high is $198, so the high 52-week is 198.0.\n6. **Low 52w**: The 52-week low is $155, so the low 52-week is 155.0.\n7. **Market Cap**: The market cap is $2.87T, which translates to \"2.87T\".\n\nLet's format this information according to the given schema:\n\n```json\n{\n  \"symbol\": \"AAPL\",\n  \"price\": 185.50,\n  \"change_percent\": 2.3,\n  \"volume\": \"45M\",\n  \"high_52w\": 198.0,\n  \"low_52w\": 155.0,\n  \"market_cap\": \"2.87T\"\n}\n```\n\nHere's how you might achieve this with Python, using regular expressions to extract the relevant data:\n\n```python\nimport re\nimport json\n\ndef extract_info(text):\n    pattern = r\"Stock: (\\w+) at \\$(\\d+\\.\\d+), up (\\d+\\.\\d+)% today\\. Volume (\\d+\\w+) shares\\. 52-week high \\$(\\d+), low \\$(\\d+)\\. Market cap \\$(\\d+\\.\\d+\\w+)\"\n    match = re.match(pattern, text)\n    if match:\n        symbol, price, change_percent, volume, high_52w, low_52w, market_cap = match.groups()\n        data = {\n            \"symbol\": symbol,\n            \"price\": float(price),\n            \"change_percent\": float(change_percent),\n            \"volume\": volume,\n            \"high_52w\": float(high_52w),\n            \"low_52w\": float(low_52w),\n            \"market_cap\": market_cap\n        }\n        return json.dumps(data)\n    else:\n        return \"Failed to match the pattern.\"\n\ntext = \"",
+  "score": 0,
+  "cost": 0.00032775,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 500
+  }
+}

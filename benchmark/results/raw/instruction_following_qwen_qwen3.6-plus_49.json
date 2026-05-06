@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**  \nHello, and welcome. I\u2019m here to assist you with any questions or requests you may have. How may I help you today?\n\n**Casual:**  \nHey there! \ud83d\udc4b I\u2019m your virtual assistant. What can I help you with today?\n\n**Humorous:**  \nGreetings, human! \ud83e\udd16 I\u2019m powered by code and curiosity. What can I help you figure out before my circuits get too excited?",
+  "score": 0,
+  "cost": 0.000894725,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 681
+  }
+}

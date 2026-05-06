@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "We need to produce exactly 2 sentences, summarizing main point and any action items. The email: completed OSS dependency audit, results: 234 packages scanned, 2 issues found. Issue 1: charting library uses AGPL (viral license, incompatible with SaaS). Alternative: switch to Apache-licensed Chart.js. Issue 2: one package has no license. Recommend removing both before next release. So summary: The audit of 234 OSS dependencies found two licensing issues: an AGPL-licensed charting library incompatible with our SaaS model (suggest switching to Chart.js) and a package lacking a license; both should be removed or replaced before the next release. That's two sentences. Ensure exactly two sentences. Let's craft: \"The audit of 234 open\u2011source dependencies identified two licensing problems: the charting library is AGPL\u2011licensed (viral and incompatible with our Saa",
+  "score": 0,
+  "cost": 2.907e-05,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 200
+  }
+}

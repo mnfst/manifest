@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "multistep_reasoning",
+  "case": 21,
+  "response": "The investigation placed Maryland-native plants in desert-like conditions\u2014a drastic change from their typical environment. Most plants failed to survive because they were not adapted to such extreme conditions, illustrating that few organisms can endure severe environmental changes. The other options are either factually incorrect (A, D) or non-scientific judgments (C).\n\nB",
+  "score": 5,
+  "cost": 0.00076995,
+  "expected": "B",
+  "tokens": {
+    "input": 202,
+    "output": 392
+  }
+}

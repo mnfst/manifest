@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan, home to 125 million people with a life expectancy of 84.6 years, supports a $4.2 trillion economy that is currently expanding at a 1.1% growth rate. Despite carrying a substantial debt-to-GDP ratio of 263%, the nation maintains a low unemployment rate of 2.6%, an inflation rate of 3.2%, and generates $756 billion in annual exports.",
+  "score": 0,
+  "cost": 0.001932775,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 1458
+  }
+}

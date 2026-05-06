@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "### Formal\nHello, I am your AI assistant. How may I help you today?\n\n### Casual\nHey! What's up? Ready to chat?\n\n### Humorous\nGreetings, earthling! Beam me up some questions, Scotty!",
+  "score": 0,
+  "cost": 0.000194,
+  "expected": "",
+  "tokens": {
+    "input": 222,
+    "output": 187
+  }
+}

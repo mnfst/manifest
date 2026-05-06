@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth's only natural satellite and is about 4.5 billion years old, roughly the same age as Earth.\n2. It is in synchronous rotation with Earth, meaning the same side (the near side) always faces us, while the far side remains mostly hidden.\n3. The Moon's surface is covered in a fine, powdery soil called regolith, created by billions of years of meteorite impacts.",
+  "score": 0,
+  "cost": 0.00025056,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 138
+  }
+}

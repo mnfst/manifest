@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "J. F. D. Shrewsbury",
+  "score": 0,
+  "cost": 0.0001974,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 335,
+    "output": 163
+  }
+}

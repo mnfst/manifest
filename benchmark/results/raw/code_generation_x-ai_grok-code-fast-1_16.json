@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 16,
+  "response": "# Find the position of the minimum value in the grid\nmin_val = min(min(row) for row in grid)\nstart_i, start_j = next((i, j) for i in range(len(grid)) for j in range(len(grid[0])) if grid[i][j] == min_val)\n\n# Initialize the path with the starting value\npath = [min_val]\ncurrent_i, current_j = start_i, start_j\n\n# Directions for neighbors\ndirections = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n\n# For each remaining step\nfor _ in range(k - 1):\n    neighbors = []\n    for di, dj in directions:\n        ni, nj = current_i + di, current_j + dj\n        if 0 <= ni < len(grid) and 0 <= nj < len(grid[0]):\n            neighbors.append((grid[ni][nj], ni, nj))\n    # Find the neighbor with the smallest value\n    if neighbors:\n        min_neighbor = min(neighbors)\n        path.append(min_neighbor[0])\n        current_i, current_j = min_neighbor[1], min_neighbor[2]\n\nreturn path",
+  "score": 0,
+  "cost": 0.001035,
+  "expected": "",
+  "tokens": {
+    "input": 623,
+    "output": 1138
+  }
+}

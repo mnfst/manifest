@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "The Ohio Company of Virginia",
+  "score": 0,
+  "cost": 0.0004654,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 276,
+    "output": 289
+  }
+}

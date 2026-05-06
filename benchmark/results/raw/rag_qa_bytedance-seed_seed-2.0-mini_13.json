@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government.",
+  "score": 0,
+  "cost": 4.6299999999999994e-05,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 203,
+    "output": 65
+  }
+}

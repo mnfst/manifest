@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Silent screen awakens,  \nFingers weave logic's fine thread,  \nBug whispers defeat.",
+  "score": 0,
+  "cost": 0.0001694,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 171
+  }
+}

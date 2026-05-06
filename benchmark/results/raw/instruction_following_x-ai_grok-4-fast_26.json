@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, is the continuous process by which water circulates through Earth's atmosphere, land, and oceans. It is driven primarily by the sun's energy, which heats the Earth's surface and causes water to change states from liquid to vapor and back again. This cycle is essential for distributing fresh water, regulating climate, and supporting life on the planet. The main stages include evaporation, condensation, precipitation, and collection, forming a natural loop that replenishes resources and maintains ecological balance.\n\nEvaporation is the first key stage, where water from oceans, lakes, rivers, and even plants (through transpiration) turns into water vapor due to heat from the sun. This vapor rises into the atmosphere, carrying moisture from the Earth's surface. Transpiration from vegetation contributes significantly, especially in forested areas, adding to the overall humidity in the air. As the vapor ascends, it cools in the higher altitudes, setting the stage for the next phase.\n\nCondensation occurs when the rising water vapor cools and transforms back into tiny liquid droplets, forming clouds. This happens as the air temperature drops, often at higher elevations or during cooler nights. The droplets cluster around microscopic particles like dust or salt in the atmosphere, creating visible clouds, fog, or dew. When enough droplets accumulate, the clouds become saturated, leading to precipitation.\n\nPrecipitation, such as rain, snow, hail, or sleet, falls back to Earth when the droplets in clouds grow heavy enough to overcome gravity. This water then infiltrates the soil, runs off into streams and rivers, or collects in bodies of water like lakes and oceans, completing the cycle through infiltration and runoff. Some water may also be temporarily stored in groundwater aquifers. This process ensures that water is redistributed globally, sustaining ecosystems, agriculture, and human needs while preventing stagnation.",
+  "score": 0,
+  "cost": 0.0004158,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 478
+  }
+}

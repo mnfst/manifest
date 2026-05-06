@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 5,
+  "response": "This Python code implements the Singleton creational design pattern by overriding the `__new__` special method to control instance creation. The first time the `Singleton` class is instantiated, a new object is created and stored in the class-level `_instance` attribute; every subsequent attempt to create a `Singleton` instance will return the pre-existing saved object instead of allocating a new one.",
+  "score": 0,
+  "cost": 0.00021350000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 503
+  }
+}

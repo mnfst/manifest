@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "json_transform_v2",
+  "case": 9,
+  "response": "{\n  \"summary\": {\n    \"total\": 5,\n    \"by_level\": {\n      \"ERROR\": 3,\n      \"WARN\": 1,\n      \"INFO\": 1\n    }\n  },\n  \"errors\": [\n    {\n      \"msg\": \"timeout\",\n      \"count\": 2,\n      \"first_seen\": \"10:00\"\n    },\n    {\n      \"msg\": \"disk full\",\n      \"count\": 1,\n      \"first_seen\": \"10:05\"\n    }\n  ]\n}",
+  "score": 0,
+  "cost": 0.00068224,
+  "expected": "",
+  "tokens": {
+    "input": 204,
+    "output": 113
+  }
+}

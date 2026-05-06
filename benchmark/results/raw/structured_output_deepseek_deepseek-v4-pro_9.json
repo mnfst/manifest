@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "structured_output",
+  "case": 9,
+  "response": "{\n  \"title\": \"Introduction to Machine Learning\",\n  \"instructor\": \"Dr. Sarah Chen\",\n  \"duration_weeks\": 12,\n  \"prerequisites\": [\"Linear Algebra\", \"Python\"],\n  \"level\": \"Intermediate\"\n}",
+  "score": 0,
+  "cost": 0.00038497499999999997,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 199
+  }
+}

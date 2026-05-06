@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Login failed. Please check your credentials and try again.",
+  "score": 0,
+  "cost": 7.176e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 11
+  }
+}

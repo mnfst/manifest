@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 17,
+  "response": "The code defines a `chain_of_responsibility` function that implements the Chain of Responsibility design pattern. It takes multiple handler functions as arguments and returns a new function `handle` that processes a request by passing it through each handler in sequence until one of the handlers returns a non-`None` result, which is then returned. If no handler returns a non-`None` result, `None` is returned.",
+  "score": 0,
+  "cost": 0.0004368,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 85
+  }
+}

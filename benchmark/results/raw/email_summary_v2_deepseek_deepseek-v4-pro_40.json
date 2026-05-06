@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "",
+  "score": 0,
+  "cost": 0.00040019999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 200
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "json_transform_v2",
+  "case": 12,
+  "response": "{\"total_duration_min\": 16.083333333333334, \"track_count\": 4, \"artists\": {\"Band X\": 2, \"Band Y\": 1, \"Band Z\": 1}, \"longest_track\": \"Song C\"}",
+  "score": 0,
+  "cost": 0.00043888000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 65
+  }
+}

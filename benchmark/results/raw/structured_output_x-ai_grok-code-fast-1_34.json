@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "structured_output",
+  "case": 34,
+  "response": "{\"student_id\": \"20240156\", \"course_code\": \"CS301\", \"course_name\": \"Algorithms\", \"score\": 87, \"max_score\": 100, \"grade\": \"A-\", \"semester\": \"Fall 2024\", \"instructor\": \"Prof. Williams\"}",
+  "score": 0,
+  "cost": 0.0002638,
+  "expected": "",
+  "tokens": {
+    "input": 311,
+    "output": 252
+  }
+}

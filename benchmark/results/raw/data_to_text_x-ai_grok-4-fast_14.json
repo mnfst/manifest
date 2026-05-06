@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "data_to_text",
+  "case": 14,
+  "response": "Team Alpha completed Sprint #23 from January 15 to 26, where they planned for 42 story points but managed to finish 38, achieving an average velocity of 36. The team successfully delivered 8 stories and fixed 5 bugs during this period, despite encountering 2 blockers. Overall satisfaction for the sprint was rated at 4.1 out of 5.",
+  "score": 0,
+  "cost": 0.00022420000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 245,
+    "output": 219
+  }
+}

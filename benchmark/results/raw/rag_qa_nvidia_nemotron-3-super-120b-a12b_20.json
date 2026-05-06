@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "Erg\u00e4nzungsschulen are funded entirely by charging their students tuition fees.",
+  "score": 0,
+  "cost": 1.494e-05,
+  "expected": "tuition",
+  "tokens": {
+    "input": 148,
+    "output": 18
+  }
+}

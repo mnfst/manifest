@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "long_summarization",
+  "case": 20,
+  "response": "The internet began as a U.S. Defense Department project called ARPANET, which sent its first message in 1969. Key milestones\u2014the TCP/IP protocols (1983), Tim Berners-Lee\u2019s World Wide Web (1989), and the Mosaic browser (1993)\u2014opened the network to the public, fueling the dot-com boom, the rise of social media, and mobile internet after the iPhone\u2019s 2007 launch. Today, it connects over 5 billion people and underpins nearly all commerce, communication, and entertainment.",
+  "score": 0,
+  "cost": 0.0010566150000000001,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 530
+  }
+}

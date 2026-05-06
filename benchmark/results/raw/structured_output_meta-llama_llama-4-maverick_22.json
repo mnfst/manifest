@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "structured_output",
+  "case": 22,
+  "response": "To extract the required information and format it into valid JSON according to the given schema, we will parse the provided text.\n\n1. **Activity**: The activity is mentioned as \"5km run\", so `activity` = \"5km run\".\n2. **Distance in km**: The distance is 5 km, so `distance_km` = 5.0.\n3. **Duration**: The duration is given as \"24:30\", so `duration` = \"24:30\".\n4. **Average Pace**: The average pace is \"4:54/km\", so `avg_pace` = \"4:54\".\n5. **Heart Rate**:\n   - Average heart rate is \"155bpm\", so `avg_bpm` = 155.\n   - Maximum heart rate is \"178bpm\", so `max_bpm` = 178.\n6. **Calories**: Calories burned are 380, so `calories` = 380.\n7. **Date**: The date is \"Monday March 4\". To match a standard date format, we might need to adjust this, but as per the schema, it is accepted as is, so `date` = \"Monday March 4\".\n\nNow, let's format this information into the required JSON schema:\n\n```json\n{\n  \"activity\": \"5km run\",\n  \"distance_km\": 5.0,\n  \"duration\": \"24:30\",\n  \"avg_pace\": \"4:54\",\n  \"heart_rate\": {\n    \"avg_bpm\": 155,\n    \"max_bpm\": 178\n  },\n  \"calories\": 380,\n  \"date\": \"Monday March 4\"\n}\n```\n\nThis JSON object matches the provided schema and contains the extracted information from the given text.",
+  "score": 0,
+  "cost": 0.00023684999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 363
+  }
+}

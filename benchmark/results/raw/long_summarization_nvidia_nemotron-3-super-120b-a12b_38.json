@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "long_summarization",
+  "case": 38,
+  "response": "The global food system faces mounting pressure as the world\u2019s population is expected to reach 9.7\u202fbillion by 2050, demanding a 60\u202f% rise in food production while climate change, water scarcity, and soil degradation cut yields and increase greenhouse\u2011gas emissions (agriculture accounts for ~25\u202f% of emissions). About one\u2011third of all food produced is lost or wasted, and major aquifers like the Ogallala are being depleted faster than they recharge, with similar crises in India, China, and the Middle East. To meet these challenges, solutions such as precision agriculture, vertical farming, alternative proteins, drought\u2011resistant crops, and regenerative practices are being pursued, alongside policy reforms on subsidies, trade, and carbon pricing. Scaling these innovations while keeping food affordable and accessible for the poorest remains the central challenge.",
+  "score": 0,
+  "cost": 4.662e-05,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 205
+  }
+}

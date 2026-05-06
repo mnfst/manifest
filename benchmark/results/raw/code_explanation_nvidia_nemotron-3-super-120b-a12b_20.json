@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "The function splits an iterable into two lazy iterators: one yielding elements for which `predicate` returns\u202fTrue, and the other yielding elements for which it returns\u202fFalse. It first duplicates the original iterator with `itertools.tee` so that both `filter` and `filterfalse` can traverse the same source without interfering with each other.",
+  "score": 0,
+  "cost": 2.043e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 144
+  }
+}

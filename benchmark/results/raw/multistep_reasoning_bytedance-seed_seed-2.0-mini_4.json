@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 4,
+  "response": "### Step 1: Eliminate incorrect options\n1.  **Option C**: States of matter refer to phases like solid, liquid, gas, and plasma. Gravity and magnetism have no connection to states of matter, so this is wrong.\n2.  **Option B**: Natural cycles are repeating physical/biological processes (e.g., water cycle). Gravity and magnetism are not cycles, so this is invalid.\n3.  **Option D**: Gravity and magnetism are *forces*, not forms of energy. Gravitational or magnetic potential energy are forms of energy derived from these forces, but the forces themselves are not energy. This is incorrect.\n\n### Step 2: Confirm the correct option\nBoth gravity and magnetism are fundamental natural forces, so they qualify as common forces.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.0002388,
+  "expected": "A",
+  "tokens": {
+    "input": 112,
+    "output": 569
+  }
+}

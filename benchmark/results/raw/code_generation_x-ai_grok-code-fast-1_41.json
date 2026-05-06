@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 41,
+  "response": "indices = [i for i in range(len(l)) if i % 3 == 0]\n    values = [l[i] for i in indices]\n    values.sort()\n    result = l.copy()\n    for idx, val in zip(indices, values):\n        result[idx] = val\n    return result",
+  "score": 0,
+  "cost": 0.0005356,
+  "expected": "",
+  "tokens": {
+    "input": 382,
+    "output": 574
+  }
+}

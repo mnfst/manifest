@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Design System v3 is now ready for adoption, featuring updated dark mode color tokens, a revised 4px spacing scale, and improved Button and Modal components alongside a migration tool. Teams should implement the update through a phased, team-by-team rollout that begins with the Settings page.",
+  "score": 0,
+  "cost": 0.0010396749999999999,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 777
+  }
+}

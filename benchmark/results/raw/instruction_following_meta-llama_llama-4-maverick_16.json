@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is a fundamental force of nature that causes objects with mass to attract each other. The more massive the objects, the stronger the gravitational pull between them. On Earth, we experience gravity as a downward force that pulls us towards the ground, keeping our feet on the ground and what we drop falling towards the surface. The Earth's mass is what creates this gravitational force, and it's what keeps us and everything else on the planet from floating off into space. The same force is at work between the Earth and the Moon, keeping the Moon in orbit around our planet, and between the Sun and the planets, holding them in their orbits. Gravity is a universal force that affects everything with mass, shaping the very fabric of our universe. That is gravity.",
+  "score": 0,
+  "cost": 9.645e-05,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 153
+  }
+}

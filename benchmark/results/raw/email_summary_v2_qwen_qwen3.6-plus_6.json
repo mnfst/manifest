@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "High-value customer Acme Corp is threatening to churn due to persistent API latency spikes and unresponsive support. A dedicated engineer has been assigned to resolve the technical issues, and an executive sponsor is urgently needed to join a customer call this week.",
+  "score": 0,
+  "cost": 0.001087775,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 809
+  }
+}

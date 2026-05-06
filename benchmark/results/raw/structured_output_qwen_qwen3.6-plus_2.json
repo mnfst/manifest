@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "structured_output",
+  "case": 2,
+  "response": "{\n  \"product\": \"iPhone 15 Pro\",\n  \"price\": 999.0,\n  \"colors\": [\n    \"black titanium\",\n    \"white titanium\",\n    \"blue titanium\"\n  ],\n  \"storage_options\": [\n    \"128GB\",\n    \"256GB\",\n    \"512GB\",\n    \"1TB\"\n  ]\n}",
+  "score": 0,
+  "cost": 0.0017865250000000002,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 1348
+  }
+}

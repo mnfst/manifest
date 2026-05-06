@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "The Datadog contract is up for renewal at a reduced rate of $155K/year, but switching to Grafana Cloud would save $60K/year despite a 3-month migration. IT Procurement must decide by May 15 to meet Finance's deadline.",
+  "score": 0,
+  "cost": 0.00048894,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 257
+  }
+}

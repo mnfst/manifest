@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "structured_output",
+  "case": 23,
+  "response": "To extract the required information from the given text and format it into valid JSON according to the provided schema, we will first identify the relevant details in the text.\n\nThe given text is: \"Notification: Your package #TRK-99281 has been delivered to front door at 2:15 PM on March 12. Signed by: M. Johnson. Carrier: FedEx\"\n\nLet's break down the information:\n- \"type\" is not directly mentioned, but based on the context, it can be inferred as \"delivery notification\".\n- \"tracking_number\" is \"TRK-99281\".\n- \"status\" is \"delivered\".\n- \"delivery_location\" is \"front door\".\n- \"delivery_time\" is \"2:15 PM\".\n- \"delivery_date\" is \"March 12\".\n- \"signed_by\" is \"M. Johnson\".\n- \"carrier\" is \"FedEx\".\n\nNow, let's format this information into JSON according to the given schema:\n\n```json\n{\n  \"type\": \"delivery notification\",\n  \"tracking_number\": \"TRK-99281\",\n  \"status\": \"delivered\",\n  \"delivery_location\": \"front door\",\n  \"delivery_time\": \"2:15 PM\",\n  \"delivery_date\": \"March 12\",\n  \"signed_by\": \"M. Johnson\",\n  \"carrier\": \"FedEx\"\n}\n```\n\nThis JSON object matches the required schema and contains the extracted information from the given text.",
+  "score": 0,
+  "cost": 0.00019485,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 296
+  }
+}

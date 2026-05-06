@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here are directions from the park to the library using only left and right turns:\n\n1. Start at the park entrance\n2. Turn right onto Main Street\n3. Turn left onto Oak Avenue\n4. Turn right onto Pine Street\n5. Turn left onto Elm Road\n6. Turn right into the library parking lot\n7. Arrive at the library\n\nNote: These are generic directions since I don't know the specific locations of the park and library you're referring to. The actual streets and turns would depend on your local area layout.",
+  "score": 0,
+  "cost": 0.00010406,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 112
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 46,
+  "response": "evens = [(num, idx) for idx, num in enumerate(arr) if num % 2 == 0]\nreturn list(min(evens)) if evens else []",
+  "score": 0,
+  "cost": 0.0011375,
+  "expected": "",
+  "tokens": {
+    "input": 415,
+    "output": 2740
+  }
+}

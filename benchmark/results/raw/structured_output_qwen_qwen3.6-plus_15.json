@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "structured_output",
+  "case": 15,
+  "response": "{\n  \"cpu_percent\": 78,\n  \"memory\": {\n    \"used_gb\": 12.4,\n    \"total_gb\": 16\n  },\n  \"disk\": {\n    \"used_gb\": 234,\n    \"total_gb\": 500\n  },\n  \"uptime_days\": 45,\n  \"active_connections\": 127,\n  \"p99_latency_ms\": 145\n}",
+  "score": 0,
+  "cost": 0.0021430499999999996,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 1612
+  }
+}

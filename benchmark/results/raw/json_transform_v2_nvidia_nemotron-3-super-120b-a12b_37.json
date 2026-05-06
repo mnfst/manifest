@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "json_transform_v2",
+  "case": 37,
+  "response": "We need to transform input JSON to target format.\n\nInput:\n{\n  \"name\": \"Acme Corp\",\n  \"founded\": 2015,\n  \"employees\": 150,",
+  "score": 0,
+  "cost": 2.034e-05,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 43
+  }
+}

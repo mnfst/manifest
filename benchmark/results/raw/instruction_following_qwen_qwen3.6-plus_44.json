@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Mixed salad greens or leaf lettuce\n- [ ] Cherry tomatoes or diced tomatoes\n- [ ] Cucumber, sliced or diced\n- [ ] Red onion, thinly sliced\n- [ ] Olive oil\n- [ ] Vinegar (balsamic, red wine, or apple cider)\n- [ ] Salt\n- [ ] Black pepper",
+  "score": 0,
+  "cost": 0.0007829250000000001,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 597
+  }
+}

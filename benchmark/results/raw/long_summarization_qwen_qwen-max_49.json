@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "long_summarization",
+  "case": 49,
+  "response": "Quantum computing utilizes qubits, which can exist in a superposition of both 0 and 1 states, along with entanglement and interference, to solve specific problems exponentially faster than classical computers. Leading companies like IBM, Google, and startups such as IonQ and Rigetti are developing quantum hardware using various approaches, including superconducting circuits and trapped ions. In 2019, Google achieved a milestone by performing a calculation in 200 seconds that would take a classical supercomputer 10,000 years, though practical quantum computing still faces significant challenges, such as qubit fragility and high error rates. Despite these hurdles, quantum computing holds promise for applications in drug discovery, materials science, cryptography, and optimization problems.",
+  "score": 0,
+  "cost": 0.0009412,
+  "expected": "",
+  "tokens": {
+    "input": 289,
+    "output": 154
+  }
+}

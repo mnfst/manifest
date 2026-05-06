@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "1. **Formal:** \"Greetings. I trust you are well. How may I be of assistance to you today?\"\n\n2. **Casual:** \"Hey there! How's it going? What can I help you with today?\"\n\n3. **Humorous:** \"Ahoy, matey! Ready to set sail on a quest for answers? Or maybe just looking for some treasure (like, say, a good joke)? Let's chat!\"",
+  "score": 0,
+  "cost": 0.00040664,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 91
+  }
+}

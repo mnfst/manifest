@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X has launched AI features including auto-categorization at a price point twice as high as ours, with a neutral market response. The recommendation is to fast-track our AI roadmap development to maintain our competitive advantage in API and integrations.",
+  "score": 0,
+  "cost": 6.512e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a big chain made of special blocks, where each block holds important information like who sent what to whom, and once a block is added, it can't be changed. Everyone who uses the chain has a copy, so it's like a shared storybook that everyone agrees on and trusts. This is how things like digital money work safely without needing a boss to check everything.",
+  "score": 0,
+  "cost": 0.0002886,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 306
+  }
+}

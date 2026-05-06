@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "structured_output",
+  "case": 23,
+  "response": "{\"type\": \"notification\", \"tracking_number\": \"TRK-99281\", \"status\": \"delivered\", \"delivery_location\": \"front door\", \"delivery_time\": \"2:15 PM\", \"delivery_date\": \"March 12\", \"signed_by\": \"M. Johnson\", \"carrier\": \"FedEx\"}",
+  "score": 0,
+  "cost": 0.00029780000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 261,
+    "output": 307
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 39,
+  "response": "**What\u2019s wrong with the line**\n\n```sql\nSELECT * FROM users WHERE id = \" + request.params.id + \" LIMIT 1\n```\n\n| Category | Issue | Why it\u2019s a problem | How to fix it |\n|----------|-------|--------------------|---------------|\n| **Security** | **SQL\u2011Injection** \u2013 the value coming from `request.params.id` is concatenated directly into the SQL string. | An attacker can supply something like `1 OR 1=1;--` (or any payload that closes the quote and adds arbitrary SQL) and execute arbitrary commands, read/modify/delete data, or even run stored procedures. | Use **parameterised queries / prepared statements** (or an ORM/query\u2011builder) so the driver sends the value separately from the SQL text. |\n| **Correctness / Bugs** | **Missing type handling / quoting** \u2013 the snippet assumes `id` is a numeric literal without quotes. If `id` is a string (or contains spaces, quotes, etc.) the generated SQL will be syntactically invalid (`WHERE id = abc` \u2192 column name, not a literal) or will raise a syntax error. | The query may fail for legitimate inputs (e.g., `id = \"abc123\"`), or produce unexpected results if the DB implicitly casts the string. | Validate that `id` is the expected type (usually an integer) **before** building the query, and cast it (`Number(id)` or `parseInt(id, 10)`). If the column is truly a string, let the driver handle quoting via a parameter. |\n| **Information disclosure** | **`SELECT *`** \u2013 returns every column in the `users` table. | If the table stores sensitive data (password hashes, tokens, PII, etc.) you may unintentionally expose it to the client or to any code that consumes the result. | Explicitly list only the columns you need (`SELECT id, username, email FROM users \u2026`). |\n| **Error handling** | No error handling shown. | If the query fails (e.g., connection loss, constraint violation) the error may bubble up unhandled, causing crashes or leaking stack traces. | Wrap the DB call in a `try/catch` (or use promise `.catch`) and return an appropriate HTTP status (500) with a generic error message. |\n| **Input validation** | No validation of `request.params.id`.",
+  "score": 0,
+  "cost": 7.776e-05,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 800
+  }
+}

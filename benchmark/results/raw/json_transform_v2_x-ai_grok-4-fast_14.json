@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "json_transform_v2",
+  "case": 14,
+  "response": "{\"services\":[{\"name\":\"database\",\"host\":\"db.prod.internal\",\"port\":5432},{\"name\":\"cache\",\"host\":\"redis.prod.internal\",\"port\":6379}],\"app_settings\":{\"debug\":false,\"log_level\":\"warn\",\"workers\":4}}",
+  "score": 0,
+  "cost": 0.00033280000000000007,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 343
+  }
+}

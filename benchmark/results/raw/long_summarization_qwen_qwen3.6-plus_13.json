@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "long_summarization",
+  "case": 13,
+  "response": "Quantum computing leverages qubits and quantum phenomena like superposition and entanglement to solve specific problems exponentially faster than classical machines, as demonstrated by Google\u2019s 2019 milestone of completing a calculation in 200 seconds that would take a classical supercomputer 10,000 years. However, practical deployment faces major technical barriers, including extreme cooling needs, high error rates, and a significant hardware gap, since today's systems only contain 100\u20131,000 qubits while millions will likely be required for real-world utility. Despite these challenges, rapid development by major tech firms and startups continues to drive progress, with the technology showing strong promise for revolutionizing drug discovery, cryptography, and complex optimization.",
+  "score": 0,
+  "cost": 0.0019675499999999998,
+  "expected": "",
+  "tokens": {
+    "input": 294,
+    "output": 1440
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort_array(arr, reverse=False):\n    \"\"\"Sort an array in ascending or descending order.\n\n    This function sorts the elements of an array using Python's built-in\n    sorting algorithm. The original array is not modified; a new sorted\n    array is returned.\n\n    Args:\n        arr (list): The input array to be sorted. Can contain any\n            comparable elements (integers, floats, strings, etc.).\n        reverse (bool, optional): If True, sort in descending order.\n            If False, sort in ascending order. Defaults to False.\n\n    Returns:\n        list: A new list containing the sorted elements. The original\n            list remains unchanged.\n\n    Raises:\n        TypeError: If the elements in the array cannot be compared\n            with each other.\n\n    Examples:\n        >>> sort_array([3, 1, 4, 1, 5])\n        [1, 1, 3, 4, 5]\n        \n        >>> sort_array([3, 1, 4, 1, 5], reverse=True)\n        [5, 4, 3, 1, 1]\n        \n        >>> sort_array(['banana', 'apple', 'cherry'])\n        ['apple', 'banana', 'cherry']\n    \"\"\"\n    return sorted(arr, reverse=reverse)\n```",
+  "score": 0,
+  "cost": 0.00024772,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 276
+  }
+}

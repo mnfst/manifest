@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code defines a decorator `retry` that allows a function to be retried up to `max_attempts` times if it raises an exception. If an exception occurs, the function waits for an increasing amount of time (exponential backoff) before retrying, with the delay starting at `delay` and doubling each time.",
+  "score": 0,
+  "cost": 0.00039312,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 66
+  }
+}

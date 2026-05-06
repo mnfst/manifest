@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "### Step 1: Define extrusive igneous rocks\nExtrusive igneous rocks form when molten lava cools and solidifies **at Earth's surface**, often associated with volcanic eruptions.\n\n### Step 2: Eliminate incorrect options\n- **Option A**: Intrusive igneous rocks form slowly underground from cooling magma. A single rock cannot be both intrusive and extrusive, so this is wrong.\n- **Option B**: Clastic sedimentary rocks form from compacted/cemented rock fragments, a completely different rock class than igneous rocks. Incorrect.\n- **Option C**: Metamorphic rocks form when existing rocks are altered by heat and pressure, unrelated to igneous classification. Incorrect.\n- **Option D**: Extrusive igneous rocks are universally called volcanic rocks, as they form from volcanic eruptions. This is an accurate alternate categorization.\n\nD",
+  "score": 5,
+  "cost": 0.0002335,
+  "expected": "D",
+  "tokens": {
+    "input": 135,
+    "output": 550
+  }
+}

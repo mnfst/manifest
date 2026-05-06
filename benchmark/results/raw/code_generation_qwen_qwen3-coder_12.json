@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 12,
+  "response": "```python\nreturn [s for s in strings if substring in s]\n```",
+  "score": 0,
+  "cost": 4.268e-05,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 17
+  }
+}

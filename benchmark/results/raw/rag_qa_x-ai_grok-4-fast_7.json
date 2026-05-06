@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "the mass of the system",
+  "score": 0,
+  "cost": 0.00029,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 310,
+    "output": 285
+  }
+}

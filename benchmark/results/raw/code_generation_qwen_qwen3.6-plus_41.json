@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 41,
+  "response": "res = l[:]\n    res[::3] = sorted(res[::3])\n    return res",
+  "score": 0,
+  "cost": 0.0036673,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 2773
+  }
+}

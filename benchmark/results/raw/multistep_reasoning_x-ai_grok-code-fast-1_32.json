@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "multistep_reasoning",
+  "case": 32,
+  "response": "A) Liquid water does not hold its shape; it takes the shape of its container, like other liquids.  \nB) Water changes to a gas (steam or vapor) when it boils, which is a correct phase change property.  \nC) Freezing turns liquid water into solid ice, not the reverse; melting turns ice into liquid.  \nD) Solid ice is rigid and does not change shape with its container, unlike liquids.  \n\nAnswer: B",
+  "score": 5,
+  "cost": 0.00040420000000000007,
+  "expected": "B",
+  "tokens": {
+    "input": 285,
+    "output": 434
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "### Mammals\n- Dog\n- Elephant\n- Dolphin\n\n### Birds\n- Eagle\n- Penguin\n- Sparrow\n\n### Fish\n- Shark\n- Salmon\n- Goldfish",
+  "score": 0,
+  "cost": 0.000215,
+  "expected": "",
+  "tokens": {
+    "input": 223,
+    "output": 213
+  }
+}

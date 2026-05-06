@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 2 eggs with salt and pepper. Melt butter in a nonstick pan over medium-low heat. Pour in eggs, stir gently with a spatula until soft curds form. Remove from heat while slightly runny; they\u2019ll finish cooking from residual heat. Serve immediately.",
+  "score": 0,
+  "cost": 0.0001914,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 105
+  }
+}

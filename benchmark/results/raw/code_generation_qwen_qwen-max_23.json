@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 23,
+  "response": "min_sum = float('inf')\n    current_sum = 0\n    for num in nums:\n        current_sum = min(num, current_sum + num)\n        min_sum = min(min_sum, current_sum)\n    return min_sum",
+  "score": 0,
+  "cost": 0.00032552,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 48
+  }
+}

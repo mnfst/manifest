@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements a **Least Recently Used (LRU) cache** that stores key-value pairs up to a fixed capacity, leveraging Python's `OrderedDict` to track access order. It achieves O(1) time complexity for both `get` and `put` by moving accessed or updated keys to the end of the dictionary and evicting the first (least recently used) item whenever the capacity is exceeded.",
+  "score": 0,
+  "cost": 0.0009902749999999999,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 723
+  }
+}

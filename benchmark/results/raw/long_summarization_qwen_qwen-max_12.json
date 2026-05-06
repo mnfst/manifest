@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "long_summarization",
+  "case": 12,
+  "response": "The internet's origins trace back to the 1960s with ARPANET, which was first demonstrated in 1969, and grew through the 1970s, connecting universities and research institutions. The transition to TCP/IP in 1983 and the invention of the World Wide Web by Tim Berners-Lee in 1989 laid the foundation for its modern structure, while the launch of the Mosaic browser in 1993 and the dot-com boom propelled its widespread adoption. Surviving companies like Amazon and Google became industry giants, and the rise of social media and mobile internet, along with cloud computing, have made the internet an integral part of daily life for over 5 billion people.",
+  "score": 0,
+  "cost": 0.0009859200000000002,
+  "expected": "",
+  "tokens": {
+    "input": 336,
+    "output": 153
+  }
+}

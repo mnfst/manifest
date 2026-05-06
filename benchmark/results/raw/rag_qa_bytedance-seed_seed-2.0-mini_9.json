@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "70",
+  "score": 0,
+  "cost": 0.0001388,
+  "expected": "70",
+  "tokens": {
+    "input": 192,
+    "output": 299
+  }
+}

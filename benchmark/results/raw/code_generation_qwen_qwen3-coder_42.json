@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 42,
+  "response": "```python\nif n > m:\n        return -1\n    \n    # Calculate average of integers from n to m (inclusive)\n    total = sum(range(n, m + 1))\n    count = m - n + 1\n    average = total / count\n    \n    # Round to nearest integer\n    rounded_avg = round(average)\n    \n    # Convert to binary\n    return bin(rounded_avg)\n```",
+  "score": 0,
+  "cost": 0.00011506,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 85
+  }
+}

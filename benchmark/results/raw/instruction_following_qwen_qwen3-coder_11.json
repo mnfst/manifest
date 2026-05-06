@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "What message are you referring to? Could you please share the message you'd like me to respond to? What kind of questions would be most helpful for you?",
+  "score": 0,
+  "cost": 3.256e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 33
+  }
+}

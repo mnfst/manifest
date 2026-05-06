@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 45,
+  "response": "This server outage post-mortem email from Jen details that the incident was triggered by a misconfigured load balancer at 2:14 PM, causing 47 minutes of degraded service that impacted 12,000 users, with the full post-mortem document attached. The listed action items to avoid future similar outages are adding load balancer configuration validation to CI, updating the runbook, and implementing traffic distribution alerts.",
+  "score": 0,
+  "cost": 0.0003072,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 730
+  }
+}

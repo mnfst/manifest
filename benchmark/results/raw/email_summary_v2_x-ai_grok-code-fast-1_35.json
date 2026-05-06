@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The email announces an update to the content moderation policy to regulate AI-generated content, introducing rules that require labeling of AI-generated images, prohibit deepfakes, and mandate disclosure for AI-assisted text. Enforcement of these rules begins on June 1, with training materials currently being prepared.",
+  "score": 0,
+  "cost": 0.00024200000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 294,
+    "output": 229
+  }
+}

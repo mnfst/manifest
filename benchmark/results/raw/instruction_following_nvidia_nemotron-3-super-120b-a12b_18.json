@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "My favorite book unfolds in a slow-burning Southern town where the air hangs thick with magnolia blossoms and unspoken tensions. It follows a young girl navigating the bewildering contradictions of adulthood\u2014watching her principled father defend a Black man falsely accused of a crime, while she and her brother grapple with local myths about a reclusive neighbor. The story aches with",
+  "score": 0,
+  "cost": 4.7520000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 500
+  }
+}

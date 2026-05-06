@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a stack data structure that efficiently supports standard push and pop operations while allowing retrieval of the current minimum element in constant time. It achieves this using an auxiliary stack (`min_stack`) that stores the minimum value up to each point, where each entry is the minimum of the newly pushed value and the previous minimum (or the value itself if it's the first).",
+  "score": 0,
+  "cost": 0.00032260000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 324
+  }
+}

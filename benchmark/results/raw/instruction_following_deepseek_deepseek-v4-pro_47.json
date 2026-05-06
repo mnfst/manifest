@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here\u2019s what makes a good password, broken down into numbered steps:\n\n1. **Make it long**  \n   Length is the most important factor. Aim for at least 12\u201316 characters. Every additional character makes the password exponentially harder to crack.\n\n2. **Use a mix of character types**  \n   Combine uppercase letters, lowercase letters, numbers, and symbols (e.g., `!`, `@`, `#`, `$`). This increases the possible combinations an attacker must try.\n\n3. **Avoid dictionary words and obvious patterns**  \n   Don\u2019t use single words, common phrases, or predictable sequences like `password`, `123456`, `qwerty`, or `letmein`. Attackers use dictionaries and common-password lists first.\n\n4. **Skip personal information**  \n   Never include names, birthdays, addresses, pet names, or anything easily found on social media. This information is often the first thing an attacker will guess.\n\n5. **Make it random and unpredictable**  \n   A good password looks like a meaningless string of characters. You can create one by using a random password generator or by stringing together unrelated words with numbers and symbols (e.g., `Correct-Horse-Battery-Staple` is better than a single word, but truly random is best).\n\n6. **Use a unique password for every account**  \n   Never reuse passwords across different sites or services. If one account is compromised, all others that share the same password become vulnerable.\n\n7. **Consider a passphrase**  \n   A long, memorable sentence or a string of random words (like `purple-banana-swims-42-lakes!`) can be both strong and easier to remember than a short, complex jumble.\n\n8. **Use a password manager**  \n   Since remembering dozens of long, unique, random passwords is nearly impossible, a password manager can generate, store, and autofill them securely. You only need to remember one strong master password.\n\n9. **Enable two-factor authentication",
+  "score": 0,
+  "cost": 0.000876525,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 500
+  }
+}

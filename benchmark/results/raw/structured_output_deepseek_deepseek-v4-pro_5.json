@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "structured_output",
+  "case": 5,
+  "response": "{\n  \"name\": \"Spaghetti Carbonara\",\n  \"servings\": 4,\n  \"prep_time_minutes\": 25,\n  \"",
+  "score": 0,
+  "cost": 0.00091698,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 500
+  }
+}

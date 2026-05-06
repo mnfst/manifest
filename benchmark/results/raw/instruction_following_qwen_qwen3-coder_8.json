@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine you and your friends have a special notebook where everyone writes down trades - like when you trade your apple for your friend's cookie at lunch. Instead of just one person keeping track, everyone has the same notebook and has to agree on what's written in it, so no one can cheat or erase what happened. That's kind of like how blockchain works - it's like a shared notebook that lots of computers keep track of together!",
+  "score": 0,
+  "cost": 8.272e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 88
+  }
+}

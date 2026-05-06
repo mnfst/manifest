@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "json_transform_v2",
+  "case": 26,
+  "response": "",
+  "score": 0,
+  "cost": 6.021e-05,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 500
+  }
+}

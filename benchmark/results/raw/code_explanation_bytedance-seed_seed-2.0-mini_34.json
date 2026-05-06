@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This `MinStack` class implements an efficient minimum-tracking stack via a two-stack synchronization pattern, using a main stack to store all pushed values and a parallel min stack that tracks the smallest value present in the main stack up to each corresponding position: each push operation appends the input value to the main stack and the minimum of the new value and the current min stack top (or the value itself if the min stack is empty) to the min stack, while pop operations remove elements from both stacks in lockstep so that `get_min` can return the current minimum in constant O(1) time by returning the top of the min stack.",
+  "score": 0,
+  "cost": 0.0004047,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 968
+  }
+}

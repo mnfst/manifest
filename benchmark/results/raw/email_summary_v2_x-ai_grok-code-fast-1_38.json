@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The bug bounty program's first month yielded 47 reports, with 12 valid ones including three critical vulnerabilities\u2014IDOR on user profiles, SSRF via webhook URL, and JWT secret in client bundle\u2014all patched within 24 hours, resulting in $15K in payouts. The program demonstrates strong ROI, and it is recommended to continue.",
+  "score": 0,
+  "cost": 0.0002708,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 262
+  }
+}

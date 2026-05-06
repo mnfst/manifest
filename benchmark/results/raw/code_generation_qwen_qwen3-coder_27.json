@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 27,
+  "response": "```python\ndef Strongest_Extension(class_name, extensions):\n    max_strength = float('-inf')\n    strongest_extension = None\n    \n    for extension in extensions:\n        cap_count = sum(1 for char in extension if char.isupper())\n        sm_count = sum(1 for char in extension if char.islower())\n        strength = cap_count - sm_count\n        \n        if strength > max_strength:\n            max_strength = strength\n            strongest_extension = extension\n    \n    return f\"{class_name}.{strongest_extension}\"\n```",
+  "score": 0,
+  "cost": 0.00016060000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 310,
+    "output": 105
+  }
+}

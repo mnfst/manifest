@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "json_transform_v2",
+  "case": 34,
+  "response": "{\n  \"event_type\": \"signup\",\n  \"date\": \"2024-03-15\",\n  \"time\": \"14:30\",\n  \"user_id\": \"u_123\",\n  \"attribution\": {\n    \"source\": \"google_ads\",\n    \"platform\": \"mobile\"\n  }\n}",
+  "score": 0,
+  "cost": 0.00044928,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 72
+  }
+}

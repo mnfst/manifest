@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 27,
+  "response": "def calculate_strength(extension):\n        cap = sum(1 for c in extension if c.isupper())\n        sm = sum(1 for c in extension if c.islower())\n        return cap - sm\n\n    strongest = max(extensions, key=calculate_strength)\n    return f\"{class_name}.{strongest}\"",
+  "score": 0,
+  "cost": 0.0005886400000000001,
+  "expected": "",
+  "tokens": {
+    "input": 310,
+    "output": 64
+  }
+}

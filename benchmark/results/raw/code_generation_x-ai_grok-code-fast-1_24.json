@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 24,
+  "response": "if a + b <= c or a + c <= b or b + c <= a:\n    return -1\ns = (a + b + c) / 2\narea = (s * (s - a) * (s - b) * (s - c)) ** 0.5\nreturn round(area, 2)",
+  "score": 0,
+  "cost": 0.0003028,
+  "expected": "",
+  "tokens": {
+    "input": 350,
+    "output": 291
+  }
+}

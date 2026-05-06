@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 30,
+  "response": "```python\ndef is_prime(num):\n    if num < 2:\n        return False\n    if num == 2:\n        return True\n    if num % 2 == 0:\n        return False\n    for i in range(3, int(num**0.5) + 1, 2):\n        if num % i == 0:\n            return False\n    return True\n\ndef prime_fib(n: int):\n    a, b = 0, 1\n    count = 0\n    while count < n:\n        a, b = b, a + b\n        if is_prime(a):\n            count += 1\n            if count == n:\n                return a\n```",
+  "score": 0,
+  "cost": 0.00016015999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 149
+  }
+}

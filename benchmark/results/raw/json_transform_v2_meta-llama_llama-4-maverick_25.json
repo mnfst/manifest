@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "json_transform_v2",
+  "case": 25,
+  "response": "```json\n{\n  \"items\": 4,\n  \"subtotal\": 1087,\n  \"discount_code\": \"SAVE20\",\n  \"member_discount\": true,\n  \"estimated_total\": 869.6\n}\n```",
+  "score": 0,
+  "cost": 6.045e-05,
+  "expected": "",
+  "tokens": {
+    "input": 207,
+    "output": 49
+  }
+}

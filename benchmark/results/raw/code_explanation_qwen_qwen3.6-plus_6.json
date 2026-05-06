@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_explanation",
+  "case": 6,
+  "response": "This function recursively flattens arbitrarily nested lists into a single-level generator using a depth-first traversal pattern, leveraging `yield from` to delegate to recursive calls for sublists and `yield` to output individual non-list elements.",
+  "score": 0,
+  "cost": 0.00070265,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 522
+  }
+}

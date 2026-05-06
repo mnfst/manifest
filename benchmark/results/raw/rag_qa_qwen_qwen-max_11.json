@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "According to the provided context, Amazonian forests store about 10% of the carbon in ecosystems.",
+  "score": 0,
+  "cost": 0.00027456000000000003,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 180,
+    "output": 21
+  }
+}

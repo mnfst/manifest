@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Antibiotics, beginning with Alexander Fleming\u2019s 1928 discovery of penicillin, revolutionized medicine by making surgery safer and curing previously fatal infections, ushering in a \u201cgolden age\u201d of drug development in the 1950s\u201160s that yielded dozens of new classes. Since then, the pipeline has dried up because low financial returns discourage investment, while widespread use in human medicine and agriculture\u2014especially livestock\u2014has driven the emergence of resistant pathogens like MRSA, contributing to a growing antimicrobial\u2011resistance crisis. Today, researchers are exploring alternatives such as phage therapy, CRISPR\u2011based antimicrobials, and AI\u2011driven drug discovery to replenish the antibiotic arsenal and combat resistance.",
+  "score": 0,
+  "cost": 2.88e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 173
+  }
+}

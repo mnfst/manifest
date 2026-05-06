@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "json_transform_v2",
+  "case": 18,
+  "response": "{\"product\": \"Widget Pro\", \"avg_rating\": 3.8, \"review_count\": 5, \"rating_distribution\": {\"1\": 0, \"2\": 1, \"3\": 1, \"4\": 1, \"5\": 2}}",
+  "score": 0,
+  "cost": 0.0006873000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 355
+  }
+}

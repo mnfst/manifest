@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "multistep_reasoning",
+  "case": 49,
+  "response": "A) The air stays cleaner.",
+  "score": 5,
+  "cost": 0.00028139999999999996,
+  "expected": "A",
+  "tokens": {
+    "input": 295,
+    "output": 278
+  }
+}

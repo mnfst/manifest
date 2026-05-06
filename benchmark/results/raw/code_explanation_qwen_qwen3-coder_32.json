@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements the **Union-Find (Disjoint Set Union)** data structure with path compression and union by rank optimizations. It creates a system where elements can be grouped into disjoint sets, supporting efficient `find` operations (to determine which set an element belongs to) and `union` operations (to merge two sets together), both running in nearly constant time due to the optimizations.",
+  "score": 0,
+  "cost": 0.00010318000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 77
+  }
+}

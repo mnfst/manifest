@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is like a velvet whisper from a sun-kissed cocoa dream\u2014rich, smooth, and subtly bittersweet, melting into pure indulgence on your tongue.",
+  "score": 0,
+  "cost": 0.00016500000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 164
+  }
+}

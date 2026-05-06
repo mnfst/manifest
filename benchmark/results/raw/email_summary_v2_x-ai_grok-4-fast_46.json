@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "email_summary_v2",
+  "case": 46,
+  "response": "David has reported a critical SQL injection vulnerability (CVSS 9.8) in the /api/v2/auth/login endpoint, affecting versions 3.2.0 through 3.4.1. The recommended fix is to parameterize the query in auth_controller.py at line 142, with a patch ready for review and a hotfix urged within 24 hours.",
+  "score": 0,
+  "cost": 0.00025,
+  "expected": "",
+  "tokens": {
+    "input": 246,
+    "output": 251
+  }
+}

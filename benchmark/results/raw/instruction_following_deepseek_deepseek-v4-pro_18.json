@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It begins with a young man from the Midwest, restless and seeking something larger than the narrow certainties of his hometown. He moves east to a glittering, cacophonous island just outside a great city, where the summer air hums with jazz and money and clandestine desires. Next door lives a mysterious figure who throws the most extravagant parties\u2014orchestras, champagne fountains, crowds of strangers who whisper rumors: he\u2019s a war hero, a bootlegger, a man who killed someone. No one truly knows him, and few ever see his face.\n\nAcross the bay, a green light pulses at the end of a dock, and it means everything to him. It\u2019s not just a light; it\u2019s a lost girl made of money and melody, a girl whose voice is full of promises she can\u2019t keep. She\u2019s married now to a brutal, old-money brute, a man whose casual cruelty is as vast as his inheritance. And so the dreamer, who has painstakingly reinvented himself from poverty into a shimmering illusion, reaches out toward that light, believing he can repeat the past,",
+  "score": 0,
+  "cost": 0.000876525,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 500
+  }
+}

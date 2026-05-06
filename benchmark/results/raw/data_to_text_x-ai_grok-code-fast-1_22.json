@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "The server prod-web-01 in the us-east-1 region has been running for 45 days with a CPU utilization of 78%, memory usage at 12.4 out of 16 GB, and disk space at 234 out of 500 GB. It currently handles 127 connections, with a P99 latency of 145ms and an error rate of 3 per hour. Overall, the server appears to be operating within acceptable parameters despite moderate resource consumption.",
+  "score": 0,
+  "cost": 0.0002786,
+  "expected": "",
+  "tokens": {
+    "input": 297,
+    "output": 274
+  }
+}

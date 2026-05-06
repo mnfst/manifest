@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "json_transform_v2",
+  "case": 38,
+  "response": "{\n  \"rankings\": [\n    {\n      \"name\": \"Ben\",\n      \"average\": 91,\n      \"rank\": 1\n    },\n    {\n      \"name\": \"Ali\",\n      \"average\": 85,\n      \"rank\": 2\n    },\n    {\n      \"name\": \"Cat\",\n      \"average\": 73.33,\n      \"rank\": 3\n    }\n  ],\n  \"class_average\": 83.11\n}",
+  "score": 0,
+  "cost": 0.00012034,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 104
+  }
+}

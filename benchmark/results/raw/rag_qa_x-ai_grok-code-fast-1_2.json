@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Colonialism often means a country taking physical control of another country or area, exploiting its valuable assets and supplies, and ruling over the conquered territories.",
+  "score": 0,
+  "cost": 0.0003768,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 500,
+    "output": 346
+  }
+}

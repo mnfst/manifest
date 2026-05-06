@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index speeds up the retrieval of data by creating a quick lookup structure that points to the actual location of the data in the table, thus reducing the need to scan the entire table. This makes queries that search, sort, or filter data more efficient, but at the cost of additional storage space and maintenance overhead for the index itself.",
+  "score": 0,
+  "cost": 0.00030471999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 68
+  }
+}

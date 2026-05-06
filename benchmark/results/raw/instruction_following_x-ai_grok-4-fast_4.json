@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "1. French: Bonjour le monde  \n2. Spanish: Hola mundo  \n3. German: Hallo Welt",
+  "score": 0,
+  "cost": 0.000127,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 115
+  }
+}

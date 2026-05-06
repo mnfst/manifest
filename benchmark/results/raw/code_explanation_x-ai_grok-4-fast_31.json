@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This function implements the A* search algorithm to find the shortest path from a `start` node to a `goal` node in a weighted graph, represented as a dictionary where keys are nodes and values are lists of (neighbor, weight) tuples. It uses a priority queue (via `heapq`) to explore nodes in order of increasing f-score (f(n) = g(n) + h(n)), where g(n) is the path cost from start to n and h(n) is the provided heuristic estimate from n to goal, while tracking visited nodes to avoid cycles and reconstructing the path upon reaching the goal.",
+  "score": 0,
+  "cost": 0.0003868000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 318,
+    "output": 404
+  }
+}

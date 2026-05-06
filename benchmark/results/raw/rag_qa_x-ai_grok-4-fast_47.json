@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "Urarina",
+  "score": 0,
+  "cost": 0.0002434,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 297,
+    "output": 230
+  }
+}

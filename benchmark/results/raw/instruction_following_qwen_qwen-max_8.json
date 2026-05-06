@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine if you and your friends had a special notebook where you all write down your game scores, and everyone has the exact same copy. Every time someone changes their score, it updates in everyone's notebook, so no one can cheat by changing just one notebook. That's a bit like how a blockchain works!",
+  "score": 0,
+  "cost": 0.00028288,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 62
+  }
+}

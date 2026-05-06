@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "**Mammals**\n- Human (Homo sapiens)\n- African Elephant (Loxodonta africana)\n- Bottlenose Dolphin (Tursiops truncatus)\n\n**Birds**\n- Bald Eagle (Haliaeetus leucocephalus)\n- Emperor Penguin (Aptenodytes forsteri)\n- Ruby-throated Hummingbird (Archilochus colubris)\n\n**Fish**\n- Atlantic Salmon (Salmo salar)\n- Clownfish (Amphiprion ocellaris)\n- Great White Shark (Carcharodon carcharias)",
+  "score": 0,
+  "cost": 1.341e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 123
+  }
+}

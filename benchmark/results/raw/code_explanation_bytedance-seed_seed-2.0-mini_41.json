@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This function computes the standard IEEE CRC32 checksum for the input byte sequence `data`: it initializes the CRC register to all 1s (0xFFFFFFFF), processes each byte by XORing it into the register then runs 8 rounds of bitwise shifting and conditional XOR with the reversed 32-bit CRC polynomial 0xEDB88320 for each applicable least significant bit, then flips every bit of the final register value to return the standardized CRC32 result.",
+  "score": 0,
+  "cost": 0.00024410000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 569
+  }
+}

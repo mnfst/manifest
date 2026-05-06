@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "long_summarization",
+  "case": 34,
+  "response": "The global food system faces a severe crisis, as the population is expected to reach 9.7 billion by 2050, demanding a 60% rise in food production while climate change simultaneously cuts crop yields. Agriculture itself drives roughly 25% of greenhouse gas emissions",
+  "score": 0,
+  "cost": 0.00064815,
+  "expected": "",
+  "tokens": {
+    "input": 290,
+    "output": 300
+  }
+}

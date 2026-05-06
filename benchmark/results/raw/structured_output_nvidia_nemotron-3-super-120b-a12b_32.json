@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "structured_output",
+  "case": 32,
+  "response": "{\n  \"image\": \"nginx:1.25-alpine\",\n  \"status\": \"running\",\n  \"ports\": \"80:8080\",\n  \"cpu_percent\": 0.5,\n  \"memory\": {\n    \"used_mb\": 24,\n    \"limit_mb\": 128\n  },\n  \"created\": \"3 days ago\",\n  \"network\": \"bridge\"\n}",
+  "score": 0,
+  "cost": 1.8e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 82
+  }
+}

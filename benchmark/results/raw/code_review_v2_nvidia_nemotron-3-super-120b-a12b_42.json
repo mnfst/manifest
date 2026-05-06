@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 42,
+  "response": "**Review of the supplied snippet**\n\n```python\ndef upload_to_s3(data, bucket, key):\n    s3.put_object(Bucket=bucket, Key=key, Body=data)\n    return f'https://{bucket}.s3.amazonaws.com/{key}'\n```\n\n| Category | Issue | Why it\u2019s a problem | How to fix / improve |\n|----------|-------|--------------------|----------------------|\n| **Undefined / hidden dependencies** | `s3` is used but never created or imported. | The function will raise a `NameError` at runtime unless `s3` happens to be a global variable defined elsewhere (tight coupling, hidden state). | Create a boto3 client/resource inside the function (or inject it as a parameter). Prefer explicit dependency injection for testability. |\n| **Missing imports / type hints** | No `import boto3`, no type annotations. | Makes the code harder to read and IDE\u2011less. | Add `import boto3` (or `from botocore.exceptions import ClientError`) and annotate arguments/return type. |\n| **No input validation** | `bucket`, `key`, and `data` are accepted blindly. | \u2022 Bucket name must obey DNS\u2011compatible rules (3\u201163 chars, lowercase, no underscores, etc.).<br>\u2022 Key may contain `..` or leading slash that could be interpreted as a path traversal when combined with a bucket policy or when constructing URLs.<br>\u2022 `data` may be a string when boto3 expects bytes, causing a silent encoding issue or `TypeError`. | Validate bucket name with a regex, reject keys that contain `..` or start with `/`, and ensure `data` is `bytes` (or convert `str` \u2192 `bytes` with an explicit encoding). |\n| **Hard\u2011coded URL format** | Returns `https://{bucket}.s3.amazonaws.com/{key}`. | This URL is only correct for the **US\u2011East\u20111** region. For",
+  "score": 0,
+  "cost": 8.01e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 800
+  }
+}

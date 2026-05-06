@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "Based on the provided context, the Rhine bridge is located at Arnhem.",
+  "score": 0,
+  "cost": 0.001813825,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 245,
+    "output": 1334
+  }
+}

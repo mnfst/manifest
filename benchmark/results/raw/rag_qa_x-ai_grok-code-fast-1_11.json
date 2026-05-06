@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "1.1 \u00d7 10^11 metric tonnes of carbon.",
+  "score": 0,
+  "cost": 0.0012364000000000001,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 362,
+    "output": 1455
+  }
+}

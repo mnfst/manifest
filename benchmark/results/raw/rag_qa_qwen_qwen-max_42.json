@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Not found in context.\n\nThe provided context does not specify which of the tributaries (Neckar, Main, or Moselle) contributes the most to the Rhine. It only mentions that the Moselle contributes an average discharge of more than 300 m\u00b3/s, but there's no comparative information about the contributions of the Neckar and the Main.",
+  "score": 0,
+  "cost": 0.00054496,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 224,
+    "output": 75
+  }
+}

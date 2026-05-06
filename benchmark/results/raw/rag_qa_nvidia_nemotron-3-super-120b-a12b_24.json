@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "5,500,000 square kilometres",
+  "score": 0,
+  "cost": 2.7989999999999998e-05,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 303,
+    "output": 8
+  }
+}

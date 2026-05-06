@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "json_transform_v2",
+  "case": 17,
+  "response": "{\"admins\": [\"Alice\", \"Charlie\"], \"users\": [\"Bob\"], \"inactive_count\": 1}",
+  "score": 0,
+  "cost": 0.0001884,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 427
+  }
+}

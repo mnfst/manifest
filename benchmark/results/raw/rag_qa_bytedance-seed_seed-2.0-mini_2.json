@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Colonialism often means a country taking physical control of another area, beginning a conquest over that area, ruling over the conquered territories, exploiting the conquered nation\u2019s valuable assets and supplies to gain benefits from war spoils, building and preserving colonial possessions in the area with a foreign population, and changing the conquered area\u2019s existing social, physical, and economic structures while spreading the characteristics of the conquering people to the conquered indigenous populations.",
+  "score": 0,
+  "cost": 0.0008173000000000001,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 357,
+    "output": 1954
+  }
+}

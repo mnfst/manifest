@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Sarah reports that marketing overspent by 15% due to the August campaign, while engineering is 8% under budget from delayed hiring, and proposes reallocating $50K from engineering to cover the marketing overspend. She suggests discussing this on Thursday.",
+  "score": 0,
+  "cost": 0.0002246,
+  "expected": "",
+  "tokens": {
+    "input": 291,
+    "output": 208
+  }
+}

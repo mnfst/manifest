@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```python\nif x == 0:\n    return '0'\n    \nresult = ''\nwhile x > 0:\n    result = str(x % base) + result\n    x = x // base\n    \nreturn result\n```",
+  "score": 0,
+  "cost": 6.908e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 46
+  }
+}

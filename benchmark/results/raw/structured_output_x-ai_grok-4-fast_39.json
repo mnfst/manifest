@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "structured_output",
+  "case": 39,
+  "response": "{\"build_number\":4521,\"branch\":\"feature/auth-v2\",\"status\":\"failed\",\"failed_stage\":\"test\",\"duration\":\"8m 32s\",\"tests\":{\"passed\":247,\"failed\":3,\"skipped\":0},\"trigger\":\"push\",\"author\":\"@alice\"}",
+  "score": 0,
+  "cost": 0.00036520000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 282,
+    "output": 386
+  }
+}

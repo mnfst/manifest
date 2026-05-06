@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 30,
+  "response": "**Review of the `rate_limit` decorator**\n\n| Category | What\u2019s wrong / risky | Why it matters | How to fix it |\n|----------|----------------------|----------------|---------------|\n| **Missing import** | `time` is used but never imported. | `NameError` at runtime. | Add `import time` (or `from time import time, monotonic`). |\n| **Incomplete signature** | Wrapper only accepts `*args`. | Decorated functions that receive keyword arguments (`func(a=1, b=2)`) will raise `TypeError`. | Accept `**kwargs` and forward them: `def wrapper(*args, **kwargs): \u2026 return func(*args, **kwargs)`. |\n| **Generic exception** | Raises the base `Exception` class. | Callers cannot distinguish a rate\u2011limit error from other unexpected errors; also leaks a stack trace if not caught. | Define a specific exception (e.g., `class RateLimitExceeded(RuntimeError): \u2026`) and raise that. |\n| **State storage** | Uses a list `[0]` as a mutable cell to hold `last_call`. | Works, but is less readable and prevents using `nonlocal` (Python\u00a03) which is clearer. | Use a plain integer with `nonlocal last_call` (or store in a closure cell via a function attribute). |\n| **Clock choice** | Uses `time.time()` (wall\u2011clock). | System clock adjustments (NTP, manual changes) can make the limiter appear to jump forward or backward, causing bursts or unnecessary blocks. | Prefer `time.monotonic()` (or `time.perf_counter()`) which is monotonic and not affected by wall\u2011clock changes. |\n| **Thread\u2011safety** | The `last_call` variable is shared across threads without synchronization. | Two threads could read the same stale value, both pass the check, and update `last_call` almost simultaneously \u2192 the limiter allows more than the intended rate. | Protect the check\u2011and\u2011update with a `threading.Lock` (or `RLock`). |\n| **Missing metadata preservation** | The wrapper does not copy `__name__`, `__doc__`, `__module__`, etc. | Debugging, introspection, and tools that rely on `functools.wraps` (e.g., `help()`, Sphinx) see",
+  "score": 0,
+  "cost": 8.181e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 800
+  }
+}

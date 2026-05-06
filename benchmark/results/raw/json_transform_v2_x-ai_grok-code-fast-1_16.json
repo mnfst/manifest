@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "json_transform_v2",
+  "case": 16,
+  "response": "{\"by_date\": {\"2024-01-15\": {\"total\": 165.5, \"categories\": {\"food\": 120.5, \"transport\": 45.0}}, \"2024-01-16\": {\"total\": 230.0, \"categories\": {\"food\": 200.0, \"transport\": 30.0}}}}",
+  "score": 0,
+  "cost": 0.00036820000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 357,
+    "output": 371
+  }
+}

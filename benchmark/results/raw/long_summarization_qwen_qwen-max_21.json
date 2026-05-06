@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "long_summarization",
+  "case": 21,
+  "response": "Quantum computing utilizes qubits, which can exist in multiple states simultaneously, allowing for exponential speedups in solving specific problems compared to classical computers. Major tech companies and startups are developing quantum hardware using various approaches, with Google claiming a milestone in 2019 by performing a calculation in 200 seconds that would take a classical supercomputer 10,000 years. However, practical quantum computing faces significant challenges, such as qubit fragility and high error rates, requiring advanced error correction. Despite these hurdles, quantum computing holds potential for applications in drug discovery, materials science, cryptography, and optimization.",
+  "score": 0,
+  "cost": 0.00082472,
+  "expected": "",
+  "tokens": {
+    "input": 289,
+    "output": 126
+  }
+}

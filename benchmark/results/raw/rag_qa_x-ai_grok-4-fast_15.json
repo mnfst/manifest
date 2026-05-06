@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "**Prussia**\n\nThe context specifies that Prussia's Calvinist Great Elector Frederick William welcomed the Huguenots to help rebuild his war-ravaged and underpopulated country.",
+  "score": 0,
+  "cost": 0.000227,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 359,
+    "output": 194
+  }
+}

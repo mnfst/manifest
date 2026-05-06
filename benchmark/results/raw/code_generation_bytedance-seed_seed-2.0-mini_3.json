@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 3,
+  "response": "return [i * xs[i] for i in range(1, len(xs))]",
+  "score": 0,
+  "cost": 0.00023610000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 193,
+    "output": 542
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The SRE team reported that the annual disaster recovery test has been completed, with the actual recovery time objective (RTO) of 6 hours 23 minutes missing the 4-hour target because the database restore took three hours instead of the projected one hour due to a larger-than-expected dataset. The team recommended two corrective actions\u2014increasing backup frequency and pre-provisioning a standby database\u2014and scheduled the next disaster recovery test for October.",
+  "score": 0,
+  "cost": 0.00046280000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 1119
+  }
+}

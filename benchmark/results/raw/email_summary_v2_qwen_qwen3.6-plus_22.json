@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The International team has outlined a $200K budget and a May-to-August timeline for launching operations in Japan. CEO approval is required to proceed with this expansion plan.",
+  "score": 0,
+  "cost": 0.001367275,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 1025
+  }
+}

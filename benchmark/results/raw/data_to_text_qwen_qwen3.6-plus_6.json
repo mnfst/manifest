@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The prod-web-01 server in the us-east-1 region has been running continuously for 45 days, currently utilizing 78% of its CPU, 12.4 out of 16 GB of memory, and 234 out of 500 GB of disk space. It is actively handling 127 connections with a P99 latency of 145ms while maintaining a stable error rate of just 3 per hour.",
+  "score": 0,
+  "cost": 0.00178035,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 1340
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "The satisfaction score for the March onboarding cohort decreased to 7.2/10, with positives including the buddy system and timely IT setup, but issues such as confusion about benefits deadlines, delayed tools access, and missing culture handbooks. The priority action item is to address the tools access delay, which currently takes 3-5 days instead of the target of 1 day.",
+  "score": 0,
+  "cost": 0.00044512,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 78
+  }
+}

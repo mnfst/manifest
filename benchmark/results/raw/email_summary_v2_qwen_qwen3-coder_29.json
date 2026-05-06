@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "The mobile app's crash rate spiked to 2.3% since yesterday's release, primarily due to a null pointer error in the notification handler on Android 12+ devices. The Mobile Team has merged a fix to main and submitted an emergency release request to the Play Store, while noting that iOS devices are unaffected.",
+  "score": 0,
+  "cost": 7.964e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 66
+  }
+}

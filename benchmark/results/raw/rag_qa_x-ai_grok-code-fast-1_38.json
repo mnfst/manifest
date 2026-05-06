@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "The Charles River.",
+  "score": 0,
+  "cost": 0.00036940000000000003,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 443,
+    "output": 351
+  }
+}

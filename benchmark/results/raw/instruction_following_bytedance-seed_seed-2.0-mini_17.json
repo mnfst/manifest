@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| Category               | Detailed Breakdown of Remote Work Impacts                                                                 |\n|------------------------|----------------------------------------------------------------------------------------------------------|\n| **3 Key Pros of Remote Work** | 1.  **Enhanced Flexibility**: Adapt work hours to personal priorities (e.g., childcare, medical appointments) and eliminate stressful daily commutes<br>2.  **Dual Cost Savings**: Cut personal expenses like transit fares, work attire, and office lunches; employers reduce real estate and in-office operational overhead<br>3.  **Wider Talent Access**: Hire qualified candidates from any geographic location, building a more diverse, specialized team |\n| **3 Key Cons of Remote Work** | 1.  **Blurred Work-Life Boundaries**: Difficulty disconnecting from work, elevated risk of extended workdays as home and professional spaces overlap<br>2.  **Diminished In-Person Collaboration**: Spontaneous brainstorming, quick problem-solving, and informal team bonding are harder to replicate virtually, potentially slowing project momentum<br>3.  **Social Isolation & Mental Health Risks**: Lack of casual in-office interaction can lead to feelings of loneliness, burnout, or reduced professional engagement over time |",
+  "score": 0,
+  "cost": 0.00044280000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 1091
+  }
+}

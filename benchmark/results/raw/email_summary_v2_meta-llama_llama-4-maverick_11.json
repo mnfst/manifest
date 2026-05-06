@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe Compliance Team has completed the SOC 2 Type II audit with no critical findings, but identified three observations that require remediation. The team is required to remediate the issues, which include improving access review frequency, testing the incident response plan, and completing vendor risk assessments, within 30 days.",
+  "score": 0,
+  "cost": 6.914999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 73
+  }
+}

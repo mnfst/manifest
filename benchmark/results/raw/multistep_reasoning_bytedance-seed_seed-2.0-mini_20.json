@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 20,
+  "response": "Let's break down each option using the definition of a trade-off: a situation where one desirable improvement comes at the cost of sacrificing another feature.\n1.  **Option A**: Increasing gas mileage (a gain) requires sacrificing engine power (a lost feature). This perfectly matches the trade-off definition.\n2.  **Option B**: A more efficient engine *and* higher performance has no sacrificed features, so this is not a trade-off.\n3.  **Option C**: Improved taste with no loss of nutritional content has no sacrificed features, so this is not a trade-off.\n4.  **Option D**: Upgraded hardware with unchanged pricing has no sacrificed features, so this is not a trade-off.\n\nA",
+  "score": 5,
+  "cost": 0.0001439,
+  "expected": "A",
+  "tokens": {
+    "input": 179,
+    "output": 315
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 36,
+  "response": "for i in range(n//2, 1, -1):\n    if n % i == 0:\n        return i\nreturn 1",
+  "score": 0,
+  "cost": 0.00034740000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 836
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "structured_output",
+  "case": 34,
+  "response": "To extract the required information from the given text and return it as valid JSON matching the provided schema, we first need to identify the relevant details in the text.\n\nThe given text is: \"Exam result: Student ID 20240156, Course: CS301 Algorithms, Score: 87/100, Grade: A-, Semester: Fall 2024, Instructor: Prof. Williams\"\n\nLet's break down the information:\n\n1. **Student ID**: 20240156\n2. **Course Code**: CS301 (extracted from \"CS301 Algorithms\")\n3. **Course Name**: Algorithms (extracted from \"CS301 Algorithms\")\n4. **Score**: 87\n5. **Max Score**: 100\n6. **Grade**: A-\n7. **Semester**: Fall 2024\n8. **Instructor**: Prof. Williams\n\nNow, let's map this information to the given schema:\n\n- **student_id**: \"20240156\"\n- **course_code**: \"CS301\"\n- **course_name**: \"Algorithms\"\n- **score**: 87\n- **max_score**: 100\n- **grade**: \"A-\"\n- **semester**: \"Fall 2024\"\n- **instructor**: \"Prof. Williams\"\n\nTo create the JSON object, we will use the extracted information.\n\n```json\n{\n  \"student_id\": \"20240156\",\n  \"course_code\": \"CS301\",\n  \"course_name\": \"Algorithms\",\n  \"score\": 87,\n  \"max_score\": 100,\n  \"grade\": \"A-\",\n  \"semester\": \"Fall 2024\",\n  \"instructor\": \"Prof. Williams\"\n}\n```\n\nThis JSON object matches the provided schema and contains the information extracted from the given text.",
+  "score": 0,
+  "cost": 0.00023280000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 359
+  }
+}

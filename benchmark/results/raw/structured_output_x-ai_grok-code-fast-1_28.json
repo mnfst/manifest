@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "structured_output",
+  "case": 28,
+  "response": "{\"podcast\": \"The Daily\", \"publisher\": \"The New York Times\", \"episode_title\": \"The AI Race\", \"duration_minutes\": 28, \"release_date\": \"March 15 2024\", \"rating\": 4.8, \"downloads\": \"2.3M\"}",
+  "score": 0,
+  "cost": 0.00026619999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 311,
+    "output": 255
+  }
+}

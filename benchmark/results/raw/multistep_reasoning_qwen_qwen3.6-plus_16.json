@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "multistep_reasoning",
+  "case": 16,
+  "response": "The surface of Europa is characterized by a network of long, dark streaks known as *lineae*. These features are interpreted as fractures in the moon's icy crust. The cracking patterns are caused by the stress placed on the ice shell due to tidal forces from Jupiter, which cause the crust to flex, crack, and shift. This process is a form of **tectonic activity** (specifically ice tectonics). While volcanic activity (cryovolcanism) may be present, the distinctive cracking patterns themselves are the result of the movement and fracturing of the crust.\n\nB",
+  "score": 5,
+  "cost": 0.0016685500000000002,
+  "expected": "C",
+  "tokens": {
+    "input": 106,
+    "output": 1257
+  }
+}

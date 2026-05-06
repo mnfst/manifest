@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Based on the provided context, the central European country that had a Calvinist ruler was Prussia. The text specifically mentions \"Prussia \u2014 whose Calvinist Great Elector Frederick William welcomed them.\"\n\nAnswer: Prussia",
+  "score": 0,
+  "cost": 8.931999999999999e-05,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 230,
+    "output": 44
+  }
+}

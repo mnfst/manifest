@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The server `prod-web-01` in the `us-east-1` region has been running for 45 days with a CPU usage of 78% and 12.4 out of 16 GB of memory utilized. The disk usage is at 234 out of 500 GB, it currently handles 127 connections, and the 99th percentile latency is 145ms, with an average of 3 errors per hour.",
+  "score": 0,
+  "cost": 0.0005439199999999999,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 102
+  }
+}

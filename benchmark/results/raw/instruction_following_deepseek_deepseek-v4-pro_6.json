@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "The ocean whispers stories.",
+  "score": 0,
+  "cost": 0.00046196999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 262
+  }
+}

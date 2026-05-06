@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 20,
+  "response": "roman_numerals = [\n    (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),\n    (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),\n    (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')\n]\nresult = ''\nfor value, symbol in roman_numerals:\n    while number >= value:\n        result += symbol\n        number -= value\nreturn result",
+  "score": 0,
+  "cost": 0.0006083999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 282,
+    "output": 690
+  }
+}

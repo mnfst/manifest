@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are often celebrated as loyal companions, demonstrating a loyal bond with their human families that is both profound and enduring. A loyal dog not only provides unwavering support and affection but also stands as a loyal guardian, ready to protect its home and loved ones at all times. Even in challenging or unfamiliar situations, one can always count on a loyal dog to remain steadfast and dependable, showcasing the true essence of loyalty. Training and socializing these loyal animals further strengthens their ability to be loyal, making them even more in tune with their human's needs and emotions.",
+  "score": 0,
+  "cost": 0.00049504,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 113
+  }
+}

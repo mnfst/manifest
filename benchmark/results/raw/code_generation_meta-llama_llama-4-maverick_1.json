@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_generation",
+  "case": 1,
+  "response": "```python\nmax_depths = []\nfor group in paren_string.split():\n    depth = 0\n    max_depth = 0\n    for char in group:\n        if char == '(':\n            depth += 1\n            max_depth = max(max_depth, depth)\n        elif char == ')':\n            depth -= 1\n    max_depths.append(max_depth)\nreturn max_depths\n```",
+  "score": 0,
+  "cost": 7.259999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 84
+  }
+}

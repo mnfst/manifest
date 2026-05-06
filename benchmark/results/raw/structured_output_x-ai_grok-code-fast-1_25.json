@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "structured_output",
+  "case": 25,
+  "response": "{\"status_code\": 200, \"status_text\": \"OK\", \"content_type\": \"application/json\", \"payload_size_kb\": 1.2, \"latency_ms\": 45, \"rate_limit\": {\"remaining\": 98, \"total\": 100}, \"request_id\": \"abc-123-def\"}",
+  "score": 0,
+  "cost": 0.00029020000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 315,
+    "output": 284
+  }
+}

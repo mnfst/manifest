@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This Python `EventEmitter` class implements the canonical publish-subscribe event listener pattern, using a private dictionary `_events` to track named events and their associated callback functions: the `on` method adds a callback to an event\u2019s listener list, `emit` runs all registered callbacks for a specified event with any passed positional arguments, and `off` removes a specific registered callback from the event\u2019s listener pool.",
+  "score": 0,
+  "cost": 0.000294,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 692
+  }
+}

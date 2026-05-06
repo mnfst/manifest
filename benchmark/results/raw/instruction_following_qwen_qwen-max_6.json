@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Waves crash on shore.",
+  "score": 0,
+  "cost": 4.368e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 6
+  }
+}

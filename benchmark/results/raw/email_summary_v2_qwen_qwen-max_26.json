@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The Privacy Team has received a GDPR data export request for user ID 45892, with a deadline of May 25, requiring all personal data, processing purposes documentation, and a third-party data sharing log, along with analytics data as per legal advice. There are no specific action items mentioned, but the implication is that the relevant teams need to gather and prepare the requested information by the deadline.",
+  "score": 0,
+  "cost": 0.00045656000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 83
+  }
+}

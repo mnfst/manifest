@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "long_summarization",
+  "case": 19,
+  "response": "The EU's General Data Protection Regulation (GDPR), effective May 2018, established data privacy as a fundamental right and set a global standard by granting individuals rights like access, erasure, and data portability, while requiring explicit consent and breach reporting within 72 hours. It applies worldwide to any organization handling EU residents' data and imposes fines of up to 4% of global",
+  "score": 0,
+  "cost": 0.000654675,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 300
+  }
+}

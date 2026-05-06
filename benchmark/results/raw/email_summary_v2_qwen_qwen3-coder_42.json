@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The sales team hosted a workshop with 15 enterprise customers who provided key feedback on product improvements needed, including better bulk import functionality and SSO capabilities, while also expressing interest in an internal tool as a standalone product. A follow-up report is attached for further review.",
+  "score": 0,
+  "cost": 7.303999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 55
+  }
+}

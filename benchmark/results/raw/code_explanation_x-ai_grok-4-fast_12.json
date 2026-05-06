@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This function implements a topological sort on a directed acyclic graph (DAG) represented as an adjacency list dictionary, producing an ordered list of nodes where for every directed edge from node u to v, u appears before v in the result. It employs a depth-first search (DFS) algorithm that recursively visits each unvisited node, explores all its outgoing neighbors first, appends the node to a stack upon completing its subtree, and then reverses the stack to yield the final linear order.",
+  "score": 0,
+  "cost": 0.00026460000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 255,
+    "output": 267
+  }
+}

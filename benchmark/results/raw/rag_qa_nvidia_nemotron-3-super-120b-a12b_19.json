@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Advancements in communication.",
+  "score": 0,
+  "cost": 1.4669999999999998e-05,
+  "expected": "communication",
+  "tokens": {
+    "input": 157,
+    "output": 6
+  }
+}

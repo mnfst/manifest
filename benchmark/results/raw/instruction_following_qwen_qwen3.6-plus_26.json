@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle begins with evaporation, a process powered primarily by solar energy. When sunlight warms surface water in oceans, lakes, and rivers, the liquid transforms into invisible water vapor and rises into the atmosphere. Plants also contribute through transpiration, releasing moisture from their leaves into the surrounding air. Together, these processes continuously transfer massive amounts of water from Earth's surface upward, initiating the cycle.\n\nAs the water vapor climbs higher, it encounters progressively cooler temperatures that cause it to lose thermal energy and undergo condensation. During this phase change, the gaseous vapor converts back into microscopic liquid droplets or ice crystals that cling to airborne particles like dust and pollen. These suspended droplets accumulate and merge, eventually forming visible clouds that act as temporary atmospheric reservoirs.\n\nWhen cloud droplets collide, coalesce, and become too heavy to remain suspended, they fall to the ground as precipitation. Depending on the temperature profile of the lower atmosphere, this moisture may descend as rain, snow, sleet, or hail. Precipitation is the critical delivery mechanism that returns atmospheric water to Earth's surface, replenishing freshwater systems and supporting terrestrial and aquatic life.\n\nOnce precipitation lands, it enters the collection phase, where water accumulates in streams, lakes, oceans, and underground aquifers through surface runoff and soil infiltration. Some moisture is absorbed by vegetation or stored temporarily in glaciers and wetlands, while the remainder flows downhill toward larger water bodies. Driven continuously by solar heat and gravity, this collected water eventually evaporates once more, perpetuating an endless, self-sustaining loop that regulates Earth's climate and sustains all known life.",
+  "score": 0,
+  "cost": 0.00140335,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 1074
+  }
+}

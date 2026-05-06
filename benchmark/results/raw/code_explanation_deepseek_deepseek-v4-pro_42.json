@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements a bounded asynchronous queue using the **producer-consumer pattern** with **futures as synchronization primitives**. Producers calling `put` wait on a future if the queue is full, while consumers calling `get` wait on a future if the queue is empty; each operation wakes the opposite side when an item is added or removed.",
+  "score": 0,
+  "cost": 0.00057681,
+  "expected": "",
+  "tokens": {
+    "input": 222,
+    "output": 276
+  }
+}

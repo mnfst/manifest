@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 4,
+  "response": "non_decreasing = all(l[i] <= l[i+1] for i in range(len(l)-1))\nnon_increasing = all(l[i] >= l[i+1] for i in range(len(l)-1))\nreturn non_decreasing or non_increasing",
+  "score": 0,
+  "cost": 0.00046340000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 1116
+  }
+}

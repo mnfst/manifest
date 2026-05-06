@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU article 294.",
+  "score": 0,
+  "cost": 6.464999999999999e-05,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 403,
+    "output": 7
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- **Improved cardiovascular health:** Regular aerobic exercise strengthens the heart muscle, lowers resting heart rate, reduces harmful LDL cholesterol levels, and cuts the long-term risk of developing heart disease, high blood pressure, and stroke.\n- **Enhanced mental well-being:** Physical activity stimulates the production of mood-regulating neurotransmitters like endorphins, dopamine, and serotonin, while also reducing stress hormones such as cortisol. This leads to reduced symptoms of anxiety and depression, better sleep quality, and sharper daily cognitive focus.\n- **Long-term physical independence:** Consistent exercise preserves lean muscle mass and bone density, lowering the risk of osteoporosis and age-related muscle loss (sarcopenia). It also boosts balance and flexibility, reducing fall risk and making everyday tasks like carrying groceries or climbing stairs easier to complete without strain.",
+  "score": 0,
+  "cost": 0.00023720000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 578
+  }
+}

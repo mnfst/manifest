@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Lake \u00dcberlingen",
+  "score": 0,
+  "cost": 2.2049999999999997e-05,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 241,
+    "output": 4
+  }
+}

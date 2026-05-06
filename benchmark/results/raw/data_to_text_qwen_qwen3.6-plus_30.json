@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "data_to_text",
+  "case": 30,
+  "response": "During Team Alpha's Sprint #23 from January 15 to 26, the team completed 38 out of 42 planned points, slightly exceeding their average velocity of 36. They successfully delivered 8 stories and fixed 5 bugs despite encountering 2 blockers, ultimately achieving a team satisfaction score of 4.1 out of 5.",
+  "score": 0,
+  "cost": 0.00275925,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 2096
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "json_transform_v2",
+  "case": 35,
+  "response": "{\n  \"departments\": {\n    \"eng\": {\n      \"headcount\": 2,\n      \"avg_salary\": 115000,\n      \"employees\": [\"Alice\", \"Bob\"]\n    },\n    \"sales\": {\n      \"headcount\": 2,\n      \"avg_salary\": 100000,\n      \"employees\": [\"Carol\", \"Dave\"]\n    }\n  }\n}",
+  "score": 0,
+  "cost": 0.0005189600000000001,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 85
+  }
+}

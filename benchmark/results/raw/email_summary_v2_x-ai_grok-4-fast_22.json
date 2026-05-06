@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines the Japan launch timeline for international expansion, including legal entity setup in May, localization completion in June, beta testing with 10 customers in July, and general availability in August, with a total budget of $200K allocated to legal ($50K), localization ($80K), and local hires ($70K). It requires CEO approval to proceed with the plan.",
+  "score": 0,
+  "cost": 0.0002312,
+  "expected": "",
+  "tokens": {
+    "input": 244,
+    "output": 228
+  }
+}

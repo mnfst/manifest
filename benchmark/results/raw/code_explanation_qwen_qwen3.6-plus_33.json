@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This function implements the **reservoir sampling algorithm (Algorithm R)** to uniformly select exactly `k` random items from a data stream of unknown or large size in a single pass. It maintains a fixed-size buffer by initially storing the first `k` elements, then probabilistically replacing each subsequent element with a `k/(i+1)` chance, guaranteeing every item in the stream has an equal probability of appearing in the final sample.",
+  "score": 0,
+  "cost": 0.0017120999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 1291
+  }
+}

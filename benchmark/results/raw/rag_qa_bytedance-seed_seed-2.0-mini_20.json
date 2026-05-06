@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "Erg\u00e4nzungsschulen are funded in whole by charging their students tuition fees.",
+  "score": 0,
+  "cost": 9.240000000000001e-05,
+  "expected": "tuition",
+  "tokens": {
+    "input": 188,
+    "output": 184
+  }
+}

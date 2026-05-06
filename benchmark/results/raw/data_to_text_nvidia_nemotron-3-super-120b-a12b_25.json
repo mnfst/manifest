@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "data_to_text",
+  "case": 25,
+  "response": "Japan, with a population of roughly 125\u202fmillion, boasts a GDP of $4.2\u202ftrillion and a modest growth rate of 1.1\u202f%. The country\u2019s unemployment rate is 2.6\u202f%, inflation sits at 3.2\u202f%, its debt\u2011to\u2011GDP ratio reaches 263\u202f%, life",
+  "score": 0,
+  "cost": 3.7980000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 300
+  }
+}

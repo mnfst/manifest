@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "This code defines a naive recursive function that computes the nth term of the standard Fibonacci sequence. It uses base cases that return `n` directly when `n \u2264 1` (defining `F(0)=0` and `F(1)=1`), and for all larger `n` returns the sum of the function\u2019s outputs for `n-1` and `n-2`, with repeated redundant subproblem calculations leading to exponential time complexity.",
+  "score": 0,
+  "cost": 0.00034270000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 829
+  }
+}

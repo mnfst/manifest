@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "multistep_reasoning",
+  "case": 37,
+  "response": "A) copper wire",
+  "score": 5,
+  "cost": 0.00030363,
+  "expected": "A",
+  "tokens": {
+    "input": 94,
+    "output": 151
+  }
+}

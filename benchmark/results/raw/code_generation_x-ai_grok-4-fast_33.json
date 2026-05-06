@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 33,
+  "response": "hyp = max(a, b, c)\nif hyp == a:\n    return b**2 + c**2 == a**2\nelif hyp == b:\n    return a**2 + c**2 == b**2\nelse:\n    return a**2 + b**2 == c**2",
+  "score": 0,
+  "cost": 0.000509,
+  "expected": "",
+  "tokens": {
+    "input": 289,
+    "output": 564
+  }
+}

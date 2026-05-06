@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```python\nif x == 0:\n    return '0'\nresult = ''\nwhile x > 0:\n    result = str(x % base) + result\n    x //= base\nreturn result\n```",
+  "score": 0,
+  "cost": 4.59e-05,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 45
+  }
+}

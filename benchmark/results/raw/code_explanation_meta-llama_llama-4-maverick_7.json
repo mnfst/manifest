@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "The given code implements a Least Recently Used (LRU) cache decorator using an OrderedDict, which maintains a cache of a specified maximum size (`maxsize`) by evicting the least recently accessed items when the cache is full. The LRU algorithm is used to manage the cache, ensuring that the most recently accessed items are retained.",
+  "score": 0,
+  "cost": 5.984999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 69
+  }
+}

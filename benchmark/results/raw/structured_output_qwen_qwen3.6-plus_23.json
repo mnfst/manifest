@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "structured_output",
+  "case": 23,
+  "response": "{\n  \"type\": \"package\",\n  \"tracking_number\": \"TRK-99281\",\n  \"status\": \"delivered\",\n  \"delivery_location\": \"front door\",\n  \"delivery_time\": \"2:15 PM\",\n  \"delivery_date\": \"March 12\",\n  \"signed_by\": \"M. Johnson\",\n  \"carrier\": \"FedEx\"\n}",
+  "score": 0,
+  "cost": 0.001990625,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 1501
+  }
+}

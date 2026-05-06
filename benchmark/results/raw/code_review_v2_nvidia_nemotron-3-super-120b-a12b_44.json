@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 44,
+  "response": "**Code under review**\n\n```python\ndef cleanup_old_files(directory, days=30):\n    import shutil\n    for f in os.listdir(directory):\n        path = os.path.join(directory, f)\n        if os.path.getmtime(path) < time.time() - days * 86400:\n            shutil.rmtree(path)\n```\n\n---\n\n## 1. Bugs / Logical Errors\n\n| # | Issue | Why it\u2019s a problem | Fix |\n|---|-------|--------------------|-----|\n| 1 | **Missing imports** (`os`, `time`) | The function will raise `NameError` when called. | Add `import os, time, shutil` at the top (or inside the function). |\n| 2 | **`shutil.rmtree` used on every entry** | `shutil.rmtree` expects a *directory*. If `f` is a regular file, symlink, or other non\u2011directory, the call will raise `NotADirectoryError` (or silently delete the wrong thing if the file happens to be a directory\u2011like name). | Distinguish files vs. directories: use `os.remove` (or `Path.unlink`) for files and `shutil.rmtree` only for directories. |\n| 3 | **No check for symlinks** | A symlink pointing outside the target tree will be followed by `os.path.getmtime` and `shutil.rmtree`, potentially deleting files outside the intended directory. | Resolve symlinks (`os.path.realpath`) or explicitly skip/delete them based on policy. |\n| 4 | **No error handling** | `os.listdir`, `os.path.getmtime`, `os.remove`, `shutil.rmtree` can all raise `OSError` (e.g., permission denied, file disappeared mid\u2011iteration). The function will abort and leave a partially\u2011cleaned state. | Wrap each operation in a `try/except` block, log the error, and continue. |\n| 5 | **Potential race condition** | Between `listdir` and `getmtime`/removal, a file could be created, renamed, or deleted, leading to `FileNotFoundError` or operating on the wrong file. | Use `os.scandir` (or `Path.iterdir`) which returns DirEntry objects with cached stat info, reducing the window. |\n| 6 | **Hard\u2011coded seconds per day**",
+  "score": 0,
+  "cost": 8.226e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 800
+  }
+}

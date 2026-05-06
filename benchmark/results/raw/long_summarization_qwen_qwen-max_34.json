@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "long_summarization",
+  "case": 34,
+  "response": "The global food system faces significant challenges due to a projected 9.7 billion population by 2050, necessitating a 60% increase in food production, while climate change and water scarcity are reducing crop yields. Agriculture contributes about 25% of greenhouse gas emissions, and 33% of the world's arable land is degraded, further compounded by the loss or waste of one-third of all food produced. Potential solutions include precision agriculture, vertical farming, alternative proteins, and regenerative practices, alongside policy changes, but scaling these while keeping food affordable and accessible is a major challenge.",
+  "score": 0,
+  "cost": 0.000832,
+  "expected": "",
+  "tokens": {
+    "input": 304,
+    "output": 124
+  }
+}

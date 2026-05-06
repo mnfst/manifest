@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "North America",
+  "score": 0,
+  "cost": 0.0003802,
+  "expected": "North America",
+  "tokens": {
+    "input": 349,
+    "output": 388
+  }
+}

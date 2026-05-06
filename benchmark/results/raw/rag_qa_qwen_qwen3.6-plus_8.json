@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "36%",
+  "score": 0,
+  "cost": 0.0017793750000000001,
+  "expected": "36%",
+  "tokens": {
+    "input": 187,
+    "output": 1322
+  }
+}

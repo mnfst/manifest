@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous queue using the **producer-consumer pattern** with backpressure handling. When the queue is full, `put()` operations wait (suspend the coroutine) until space becomes available, and when the queue is empty, `get()` operations wait until items are available, using asyncio Futures to efficiently suspend and resume coroutines.\n\nThe algorithm uses two waiting queues (`_getters` and `_putters`) to track suspended operations, and when a `put()` or `get()` completes, it wakes up the corresponding waiting operation from the opposite queue to maintain flow control.",
+  "score": 0,
+  "cost": 0.00015004,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 117
+  }
+}

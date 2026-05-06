@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 3,
+  "response": "This `compose` utility function accepts any number of single-argument functions as arguments, then uses `functools.reduce` to combine them into a single composed function that applies input functions in right-to-left order: when invoked, it runs the rightmost provided function first on the input, passes its output to the next leftward function, and repeats this chain until all functions execute, returning the final computed result.",
+  "score": 0,
+  "cost": 0.00039410000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 958
+  }
+}

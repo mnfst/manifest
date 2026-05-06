@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "### Stellar Bites: A Cosmic Culinary Adventure\n\nI recently dined at Stellar Bites, a quirky fictional restaurant tucked away in the heart of downtown that's themed around outer space. From the moment you walk in, you're greeted by glowing neon stars on the ceiling, astronaut murals on the walls, and servers dressed as friendly aliens. It's like stepping into a sci-fi movie, which immediately sets a fun, immersive vibe\u2014perfect for a date night or family outing with kids who love all things galactic.\n\nThe menu is inventive and plays on the space theme without going overboard. I started with the \"Meteorite Mozzarella Sticks,\" which were crispy, gooey perfection dipped in a tangy cosmic sauce (think spicy marinara with a hint of star anise). For the main course, the \"Black Hole Burger\" was a standout: a juicy beef patty smothered in melted cheddar, caramelized onions, and a secret \"nebula\" relish that added a sweet-savory kick. Sides like \"Lunar Fries\" (truffle-seasoned shoestrings) were solid, though a bit salty for my taste. My companion opted for the \"Galaxy Pasta,\" a creamy Alfredo with shrimp and spinach that evoked a swirling vortex of flavors\u2014delicious, but portions were generous enough to share.\n\nService was out-of-this-world friendly; our server, \"Zog,\" was attentive without hovering and even explained the fun backstory behind each dish. The atmosphere buzzes with energy, especially on weekends when they play ambient space soundtracks. One minor gripe: the wait for a table can be long (about 20 minutes on a Friday), and the drinks menu leans heavily on themed cocktails that are fun but pricey\u2014my \"Comet Cosmo\" was tasty but set me back $14.\n\nOverall, Stellar Bites delivers a memorable experience that's equal parts tasty and theatrical. It's not fine dining, but for creative comfort food in a playful setting, it's a winner. I'd go back in a heartbeat.\n\n**Rating: 4 out of 5 stars**",
+  "score": 0,
+  "cost": 0.00046100000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 533
+  }
+}

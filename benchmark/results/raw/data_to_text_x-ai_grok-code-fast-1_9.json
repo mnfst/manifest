@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "data_to_text",
+  "case": 9,
+  "response": "Japan, with a population of 125 million, boasts a robust economy featuring a GDP of $4.2 trillion, a modest growth rate of 1.1%, and low unemployment at 2.6%, though it faces inflation at 3.2% and a high debt-to-GDP ratio of 263%. The country's exports total $756 billion, contributing significantly to its economic strength. Additionally, Japan enjoys a high life expectancy of 84.6 years, reflecting its advanced healthcare and quality of life.",
+  "score": 0,
+  "cost": 0.00027,
+  "expected": "",
+  "tokens": {
+    "input": 298,
+    "output": 263
+  }
+}

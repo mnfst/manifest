@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 5,
+  "response": "return max(l)",
+  "score": 0,
+  "cost": 0.0001542,
+  "expected": "",
+  "tokens": {
+    "input": 263,
+    "output": 127
+  }
+}

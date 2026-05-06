@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This implements a **debounce decorator**: it ensures that the decorated function `fn` is only executed after `wait` seconds",
+  "score": 0,
+  "cost": 0.000394545,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 200
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign generated 187 signups at a $64 acquisition cost, showing improved click-through rates but a slight decline in conversions compared to March. To address the lower conversion rate, the team recommends A/B testing the landing page's call-to-action.",
+  "score": 0,
+  "cost": 0.00112255,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 831
+  }
+}

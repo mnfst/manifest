@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "structured_output",
+  "case": 35,
+  "response": "{\n  \"product\": \"Samsung 65-inch TV\",\n  \"model\": \"QN65S95D\",\n  \"serial_number\": \"SN-2024-XYZ789\",\n  \"duration_years\": 2,\n  \"purchase_date\": \"2024-03-01\",\n  \"covers\": [\"manufacturer defects\"],\n  \"excludes\": [\"accidental damage\"]\n}",
+  "score": 0,
+  "cost": 0.0007351500000000001,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 391
+  }
+}

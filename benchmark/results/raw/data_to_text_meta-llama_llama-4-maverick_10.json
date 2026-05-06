@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "data_to_text",
+  "case": 10,
+  "response": "Here's a natural language paragraph summarizing the data: \n\nPad Thai is a medium-difficulty Thai dish that can be prepared in just 25 minutes, serving four people. Each serving contains 380 calories, with a balanced mix of 22g protein, 45g carbohydrates, and 12g fat. This recipe is a great option for a quick and nutritious meal.",
+  "score": 0,
+  "cost": 5.94e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 75
+  }
+}

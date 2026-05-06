@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 35,
+  "response": "return (abs(a) % 10) * (abs(b) % 10)",
+  "score": 0,
+  "cost": 0.0028538250000000004,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 2156
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "The server prod\u2011web\u201101 in the us\u2011east\u20111 region has been running for 45 days, with CPU utilization at 78% and memory usage of 12.4\u202fGB out of 16\u202fGB. It currently handles 127 connections, uses 234\u202fGB of its 500\u202fGB disk, exhibits a P99 latency of 145\u202fms, and experiences an average of 3 errors per hour.",
+  "score": 0,
+  "cost": 1.7549999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 95
+  }
+}

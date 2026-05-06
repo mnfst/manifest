@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "Apple; Banana; Cherry; Date; Elderberry",
+  "score": 0,
+  "cost": 0.00017240000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 415
+  }
+}

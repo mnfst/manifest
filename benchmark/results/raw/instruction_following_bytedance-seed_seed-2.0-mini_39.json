@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "# VPN Q&A\nQ1: What is a VPN, in plain language?\nA1: VPN stands for Virtual Private Network. It is a cybersecurity and privacy tool that creates an encrypted, secure \"tunnel\" between your personal device (such as a phone, laptop, or tablet) and a remote server run by your VPN service provider.\n\n---\nQ2: What core protections and perks do VPNs offer for my online activity?\nA2: VPNs deliver two primary security layers plus additional practical benefits:\n1.  **End-to-end encryption**: They scramble all data you send and receive online (like passwords, credit card details, or browsing traffic) so unauthorized third parties\u2014including hackers, snoopers, or even your internet service provider (ISP)\u2014cannot read or intercept it.\n2.  **IP address masking**: They replace your device\u2019s unique real IP address with the IP of the connected VPN server, hiding your approximate physical location and preventing websites, advertisers, or trackers from linking your browsing activity directly to you.\nBeyond security, VPNs also let you bypass region-locked content, as covered in the next question.\n\n---\nQ3: Can VPNs help me access region-locked content?\nA3: Yes, this is one of the most popular secondary uses for VPNs. Since your online activity appears to originate from the VPN server\u2019s physical location, you can trick streaming platforms, news sites, or other services into showing you content normally blocked for users in your region. For example, you could access a U.S.-only Netflix library or an EU-restricted news site by connecting to a VPN server in those locations.\n\n---\nQ4: When is using a VPN most recommended?\nA4: VPNs are especially valuable in these scenarios:\n- Connecting to unsecured public Wi-Fi networks (like coffee shops, airports, or hotels) where hackers often target unprotected devices\n- Accessing sensitive personal or work data (such as online banking portals or internal company emails) outside a secure office network\n- Bypassing government-imposed internet censorship in countries with strict online restrictions\n- Avoiding targeted advertising by blocking advertisers from tracking your browsing history\n- Protecting your browsing data from being logged and sold by your ISP\n\n---\nQ5: What are common misconceptions and limitations of VPNs?\nA5: There are key details to avoid overestimating VPN capabilities:",
+  "score": 0,
+  "cost": 0.0008794000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 2183
+  }
+}

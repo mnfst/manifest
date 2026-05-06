@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 49,
+  "response": "for i in range(len(string) + 1):\n        if is_palindrome(string[i:]):\n            return string + string[:i][::-1]",
+  "score": 0,
+  "cost": 0.00385385,
+  "expected": "",
+  "tokens": {
+    "input": 190,
+    "output": 2917
+  }
+}

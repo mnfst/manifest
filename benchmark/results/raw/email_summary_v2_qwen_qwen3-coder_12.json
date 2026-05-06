@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The engineering team has 4 open positions (2 backend, 1 frontend, 1 ML) with 23 candidates in the hiring pipeline and 5 in final rounds. The frontend position has been open for 60 days without strong candidates, prompting a recommendation to expand the search to remote options or adjust the compensation band.",
+  "score": 0,
+  "cost": 8.118e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 67
+  }
+}

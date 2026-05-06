@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April, June, September, November",
+  "score": 0,
+  "cost": 9.44e-05,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 75
+  }
+}

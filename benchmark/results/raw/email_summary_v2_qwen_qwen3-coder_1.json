@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "A misconfigured load balancer caused 47 minutes of degraded service affecting 12K users at 2:14 PM. Action items include adding LB config validation to CI, updating the runbook, and implementing traffic distribution alerts.",
+  "score": 0,
+  "cost": 6.82e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 50
+  }
+}

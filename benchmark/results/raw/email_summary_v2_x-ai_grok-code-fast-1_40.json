@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows Engineering and Support meeting their 0.7 targets, Sales exceeding at 0.9, and Product falling short at 0.6 due to a delayed AI feature. Ops recommends carrying forward the AI OKR with increased allocation, and next quarter planning begins Monday.",
+  "score": 0,
+  "cost": 0.00025580000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 319,
+    "output": 240
+  }
+}

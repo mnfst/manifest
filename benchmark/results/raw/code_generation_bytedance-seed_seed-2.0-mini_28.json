@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 28,
+  "response": "result = []\nfor row_idx, row in enumerate(lst):\n    matches = [col for col, val in enumerate(row) if val == x]\n    for col in sorted(matches, reverse=True):\n        result.append((row_idx, col))\nreturn result",
+  "score": 0,
+  "cost": 0.0007977,
+  "expected": "",
+  "tokens": {
+    "input": 353,
+    "output": 1906
+  }
+}

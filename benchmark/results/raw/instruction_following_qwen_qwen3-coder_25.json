@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Team Meeting - Project Update & Next Steps",
+  "score": 0,
+  "cost": 1.232e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 8
+  }
+}

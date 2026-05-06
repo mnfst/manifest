@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_generation",
+  "case": 38,
+  "response": "neg = [x for x in lst if x < 0]\n    pos = [x for x in lst if x > 0]\n    return (max(neg) if neg else None, min(pos) if pos else None)",
+  "score": 0,
+  "cost": 0.000599865,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 301
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that a single teaspoon of a neutron star would weigh about 6 billion tons on Earth\u2014roughly the weight of all the world's elephants combined?",
+  "score": 0,
+  "cost": 0.0001586,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 155
+  }
+}

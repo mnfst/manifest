@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "\"Discover the future! AI is transforming industries and revolutionizing the way we live and work. #AI #Innovation #Tech\"",
+  "score": 0,
+  "cost": 3.03e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 28
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU article 294",
+  "score": 0,
+  "cost": 0.000296235,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 397,
+    "output": 71
+  }
+}

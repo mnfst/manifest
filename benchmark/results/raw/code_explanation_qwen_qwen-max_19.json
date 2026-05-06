@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This code defines a rate limiter function that restricts the number of function calls within a specified period. It uses a sliding window algorithm to keep track of the timestamps of the allowed calls and ensures that no more than `calls` number of calls are made within the `period` by filtering out timestamps that are older than the period.",
+  "score": 0,
+  "cost": 0.00038480000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 67
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Believe in your inner strength, embrace challenges, and soar to unimaginable heights of success.",
+  "score": 0,
+  "cost": 0.0002056,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 214
+  }
+}

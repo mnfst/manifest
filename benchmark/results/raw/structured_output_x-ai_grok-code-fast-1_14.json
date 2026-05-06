@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "structured_output",
+  "case": 14,
+  "response": "{\n  \"title\": \"The Great Gatsby\",\n  \"author\": \"F. Scott Fitzgerald\",\n  \"year\": 1925,\n  \"genre\": \"literary fiction\",\n  \"pages\": 180,\n  \"isbn\": \"978-0743273565\",\n  \"rating\": 4.2\n}",
+  "score": 0,
+  "cost": 0.00025360000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 304,
+    "output": 241
+  }
+}

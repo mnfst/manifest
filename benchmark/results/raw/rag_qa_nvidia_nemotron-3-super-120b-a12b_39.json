@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "circuit switching",
+  "score": 0,
+  "cost": 1.9169999999999998e-05,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 155,
+    "output": 58
+  }
+}

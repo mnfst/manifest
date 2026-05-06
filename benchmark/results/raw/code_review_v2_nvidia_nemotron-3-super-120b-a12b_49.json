@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 49,
+  "response": "**What\u2019s wrong / risky**\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Unnecessary `async` wrapper** |",
+  "score": 0,
+  "cost": 7.973999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 800
+  }
+}

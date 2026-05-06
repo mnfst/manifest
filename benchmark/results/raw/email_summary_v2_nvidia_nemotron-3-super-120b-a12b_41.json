@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "We need to summarize in exactly 2 sentences, capturing main point and any action items. The email: Subject Network Upgrade Proposal. Current 1Gbps links at 78% capacity during peak. Proposal: upgrade to 10Gbps for $45K one-time + $2K/month. Alternative: traffic shaping + CDN optimization for $15K. Given growth projections, recommend 10Gbps to avoid revisiting in 6 months. - Network Ops.\n\nThus main point: recommend upgrading to 10Gbps due to capacity and growth. Action item: approve the 10Gbps upgrade (cost $45K one-time + $2K/month) or consider alternative? The recommendation is to go with 10Gbps. So action: approve the 10Gbps upgrade.\n\nWe need exactly 2 sentences. Let's craft: \"The network operations team",
+  "score": 0,
+  "cost": 2.988e-05,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 200
+  }
+}

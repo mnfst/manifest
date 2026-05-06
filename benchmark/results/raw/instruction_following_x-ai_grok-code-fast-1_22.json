@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known for their loyal nature, often forming unbreakable bonds with their owners that last a lifetime. A loyal dog will stand by you through thick and thin, offering unwavering support during challenging times. Many breeds, like the German Shepherd, exemplify loyalty in their protective instincts, guarding their families fiercely. Even in stories and myths, dogs are portrayed as loyal heroes, such as the faithful hound Argos in Homer's Odyssey. Training a dog enhances its loyal traits, teaching it to respond reliably to commands and cues. Ultimately, the loyal companionship of a dog brings joy and comfort to countless households worldwide.",
+  "score": 0,
+  "cost": 0.000259,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 269
+  }
+}

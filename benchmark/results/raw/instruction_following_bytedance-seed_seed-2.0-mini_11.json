@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "What specific topic or subject were you hoping to explore? Is there any additional context or details you could share about what brought you to this prompt? Would you like to ask a question, share a thought, or work through a particular concern together?",
+  "score": 0,
+  "cost": 0.0002508,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 613
+  }
+}

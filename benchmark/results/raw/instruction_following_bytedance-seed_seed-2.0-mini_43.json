@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that Saturn\u2019s oddly shaped, cratered moon Hyperion is so porous and low-density that it could actually float if you could find a large enough barrel of liquid water? Discovered way back in 1848, Hyperion is one of the largest irregularly shaped moons in our solar system, looking like a lumpy cosmic sponge rather than a smooth, rounded satellite. It only has about 70% the density of plain water thanks to its rubble-pile structure made of loosely packed rock and ice, rather than the solid, dense rock that makes up Earth\u2019s moon. On top of that quirky trait, Hyperion also tumbles chaotically through space instead of rotating steadily like most moons, meaning its days and seasonal cycles are totally unpredictable!",
+  "score": 0,
+  "cost": 0.0002841,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 694
+  }
+}

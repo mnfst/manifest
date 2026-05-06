@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "Lila dragged a dust-caked steamer trunk from the back of her grandmother\u2019s attic, the quiet creak of the floorboards echoing around the few stacked crates and faded quilts left untouched for a decade.\nWhen she lifted the rusted brass latch, a jumble of ivory ribbon and a crumpled lemon-yellow letter fluttered out, landing soft against her scuffed white sneakers.\nThe letter was postmarked 1957, addressed to her grandmother under her maiden name, and signed in a looping handwriting she\u2019d only seen on her grandma\u2019s old chocolate chip recipe cards.\nShe read aloud the final line: \u201cI\u2019ll wait for the sunset you promised we\u2019d chase together, right here on the dock by the lake,\u201d and suddenly she heard the distant, familiar gurgle of the nearby creek.\nGrabbing the letter and the spool of ribbon, Lila raced down the attic stairs and out to the weathered wooden dock, her grandma\u2019s frayed wool shawl wrapped tight around her shoulders against the evening chill.\nHalfway along the planks, she spotted her 82-year-old grandmother sitting on the edge, dangling her feet in the cool water and smiling as the golden sunset painted the sky in the exact soft hues the letter had described.",
+  "score": 0,
+  "cost": 0.0004266,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 1052
+  }
+}

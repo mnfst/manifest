@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "json_transform_v2",
+  "case": 15,
+  "response": "{\"full_name\": \"Jane Doe\", \"contact\": {\"email\": \"jane.doe@email.com\", \"phone\": \"+1-555-0123\"}, \"metadata\": {\"age\": 32}}",
+  "score": 0,
+  "cost": 6.622e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 47
+  }
+}

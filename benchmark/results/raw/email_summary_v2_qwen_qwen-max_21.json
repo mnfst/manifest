@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team proposes a cleanup sprint to reduce 47 active feature flags by removing 15 that are fully rolled out and archiving 8 that are dead code, which will decrease configuration complexity and speed up the test suite by approximately 12%. No specific action items are mentioned, but the proposal implies a need for agreement or approval to proceed with the cleanup.",
+  "score": 0,
+  "cost": 0.00042328,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 75
+  }
+}

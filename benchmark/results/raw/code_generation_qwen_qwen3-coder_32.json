@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 32,
+  "response": "```python\ndef anti_shuffle(s):\n    words = s.split(' ')\n    ordered_words = []\n    \n    for word in words:\n        # Sort characters in each word based on ASCII values\n        sorted_chars = sorted(word)\n        ordered_word = ''.join(sorted_chars)\n        ordered_words.append(ordered_word)\n    \n    # Join the ordered words back with spaces\n    return ' '.join(ordered_words)\n```",
+  "score": 0,
+  "cost": 0.00010978,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 84
+  }
+}

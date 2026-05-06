@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 17,
+  "response": "Tymnet was an international data communications network headquartered in San Jose, CA, that utilized virtual call packet switched technology and used X.25, SNA/SDLC, BSC, and ASCII interfaces to connect host computers (servers) at thousands of large companies, educational institutions, and government agencies. Users typically connected via dial-up connections or dedicated async connections. The business consisted of a large public network that supported dial-up users and a private network business that allowed government agencies and large companies (mostly banks and airlines) to build their own dedicated networks. The private networks were often connected via gateways to the public network to reach locations not on the private network. Tymnet was also connected to dozens of other public networks in the U.S. and internationally via X.25/X.75 gateways. (Interesting note: Tymnet was not named after Mr. Tyme. Another employee suggested the name.)",
+  "score": 0,
+  "cost": 0.000481,
+  "expected": "an international data communications network headquartered in San Jose, CA",
+  "tokens": {
+    "input": 417,
+    "output": 497
+  }
+}

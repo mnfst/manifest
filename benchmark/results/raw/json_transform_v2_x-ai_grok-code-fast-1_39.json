@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "json_transform_v2",
+  "case": 39,
+  "response": "{\"summary\": {\"total\": 5, \"by_level\": {\"ERROR\": 3, \"WARN\": 1, \"INFO\": 1}}, \"errors\": [{\"msg\": \"timeout\", \"count\": 2, \"first_seen\": \"10:00\"}, {\"msg\": \"disk full\", \"count\": 1, \"first_seen\": \"10:05\"}]}",
+  "score": 0,
+  "cost": 0.000636,
+  "expected": "",
+  "tokens": {
+    "input": 388,
+    "output": 698
+  }
+}

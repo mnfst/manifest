@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "structured_output",
+  "case": 24,
+  "response": "{\n  \"restaurant\": \"Chez Marie\",\n  \"rating\": 4.5,\n  \"cuisine\": \"French\",\n  \"price_range\": \"$$$\",\n  \"recommended_dish\": \"duck confit\",\n  \"service_rating\": \"excellent\",\n  \"wait_time_minutes\": 15,\n  \"recommended_for\": \"date night\"\n}",
+  "score": 0,
+  "cost": 0.0002856,
+  "expected": "",
+  "tokens": {
+    "input": 316,
+    "output": 278
+  }
+}

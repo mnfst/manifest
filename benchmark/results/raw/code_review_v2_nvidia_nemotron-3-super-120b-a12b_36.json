@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 36,
+  "response": "**Bugs / Logical Issues**\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **KeyError on unknown discount code** | `discounts[code]` raises a `KeyError` if the caller supplies a code that isn\u2019t in the dictionary (e.g., typo, user\u2011supplied value). The function will crash instead of returning a sensible result or signalling the error clearly. | Use `dict.get()` with a default (e.g., `0` for \u201cno discount\u201d) **or** raise a custom, well\u2011documented exception (`ValueError` or `DiscountCodeError`). |\n| **No validation of `price`** | The function assumes `price` is a numeric type \u2265\u202f0. Supplying a string, `None`, or a negative number will produce a `TypeError` or an nonsensical result (e.g., a negative final price). | Check that `price` is an `int` or `float` (or `Decimal`) and that it is \u2265\u202f0; raise `ValueError` otherwise. |\n| **No validation of discount value** | Although the hard\u2011coded dict only contains safe values, if the dict is ever extended or sourced from external data a discount\u202f>\u202f1 or\u202f<\u202f0 could produce a price\u202f>\u202foriginal or a negative price. | After looking up the discount, assert `0 \u2264 discount \u2264 1` (or clamp it) and raise an error if the invariant is violated. |\n| **Floating\u2011point rounding for currency** | Multiplying a float by a fraction can yield results like `9.999999999` instead of `10.00`. For monetary values this can cause off\u2011by\u2011a\u2011cent errors when displayed or persisted. | Use `Decimal` for the calculation, or round the result to the smallest currency unit (`round(price * (1 - discount), 2)`). |\n| **Immutable default argument risk (not present here, but worth noting)** | If the function ever accepted a mutable default (e.g., `discounts=None` and then `discounts = discounts or {...}`) and mutated it, callers could see unexpected state changes. | Keep the discount map as a literal inside the function (as it is now) or make it a module\u2011level constant (`_DISCOUNTS = {...}`) and treat it as read\u2011only. |\n| **Case\u2011sensitivity** | The dictionary keys are uppercase (`'SAVE10'`). If a user types `'save10'` they get a KeyError even though the intent is the same. |",
+  "score": 0,
+  "cost": 8.118e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 800
+  }
+}

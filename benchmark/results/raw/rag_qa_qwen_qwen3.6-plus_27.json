@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law",
+  "score": 0,
+  "cost": 0.000509275,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 279,
+    "output": 322
+  }
+}

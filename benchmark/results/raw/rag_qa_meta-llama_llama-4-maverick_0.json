@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Lake \u00dcberlingen.",
+  "score": 0,
+  "cost": 3.9e-05,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 240,
+    "output": 5
+  }
+}

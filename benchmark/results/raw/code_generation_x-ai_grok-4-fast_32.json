@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 32,
+  "response": "return ' '.join(''.join(sorted(word)) for word in s.split())",
+  "score": 0,
+  "cost": 0.0009696,
+  "expected": "",
+  "tokens": {
+    "input": 308,
+    "output": 1135
+  }
+}

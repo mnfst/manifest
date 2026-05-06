@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo has expressed interest in acqui-hiring the company's ML team of five people for $15 million, but the CEO considers this offer too low given the team's value. The CEO recommends discussing options to counter the offer or decline politely before responding, and suggests informing the board.",
+  "score": 0,
+  "cost": 0.00022960000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 296,
+    "output": 213
+  }
+}

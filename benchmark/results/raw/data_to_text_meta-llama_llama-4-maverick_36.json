@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "data_to_text",
+  "case": 36,
+  "response": "American Airlines flight AA 1234 is scheduled to depart from JFK at 08:30 and arrive at LAX at 11:45, with a total duration of 5 hours and 15 minutes on a Boeing 787 aircraft. The economy class ticket is priced at $289, and the flight has an on-time performance record of 82%. This flight is available for booking.",
+  "score": 0,
+  "cost": 6.209999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 79
+  }
+}

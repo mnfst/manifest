@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "json_transform_v2",
+  "case": 13,
+  "response": "{\"total_credits\":8000,\"total_debits\":4500,\"net\":3500,\"transaction_count\":5}",
+  "score": 0,
+  "cost": 2.736e-05,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 150
+  }
+}

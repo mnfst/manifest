@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "The March cohort satisfaction score was 7.2/10, down from 8.1, with positives including the buddy system and timely IT setup, but issues with benefits deadline clarity, tools access, and not receiving a culture handbook. The priority action item is to fix the tools access issue, which currently takes 3-5 days, with a target of achieving access within 1 day.",
+  "score": 0,
+  "cost": 6.584999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 81
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "\"Believe in yourself, take the leap, and watch your dreams unfold with determination and courage.\"",
+  "score": 0,
+  "cost": 1.65e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 21
+  }
+}

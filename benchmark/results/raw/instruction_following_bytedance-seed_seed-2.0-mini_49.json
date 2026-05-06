@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "### Formal\nGood [morning/afternoon/evening]. Thank you for contacting our official support chatbot. My name is AssistCore, and I am dedicated to assisting you with a range of services including account verification, product troubleshooting, billing questions, and service status updates. Please specify how I may best support you at this time.\n\n---\n\n### Casual\nHey there! So glad you hopped into the chat. Whether you\u2019re hunting for a last-minute gift, need help curating a workout playlist, or just want to ramble about your favorite TV show, I\u2019m all ears. What\u2019s the first thing you need help with today?\n\n---\n\n### Humorous\nWell well, look who decided to grace my chat box with their presence! I\u2019m your resident chatbot here to skip the stuffy small talk and either help you crush your task or make you snort-laugh at a terrible dad joke midway through. Full disclosure: I will never ask you to fill out a unprompted post-chat survey, and I will definitely pretend to know what you\u2019re talking about if you rant about your cat\u2019s obsession with stealing toilet paper. What\u2019s the mission today?",
+  "score": 0,
+  "cost": 0.000726,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 1798
+  }
+}

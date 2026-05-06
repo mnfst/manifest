@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "Lisa shares that the March onboarding cohort\u2019s overall satisfaction fell to 7.2/10 from 8.1, noting strong positives including the 9.1/10 rated buddy system and timely IT onboarding, as well as critical issues: 5 out of 8 cohort members were confused about benefits deadlines, tool access took 3-5 days instead of the 1-day target, and no culture handbook was received by the group. The specified top priority to improve the onboarding process is resolving the delayed tool access issue.",
+  "score": 0,
+  "cost": 0.00024660000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 577
+  }
+}

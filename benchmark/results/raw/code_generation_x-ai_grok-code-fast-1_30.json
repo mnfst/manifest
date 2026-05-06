@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 30,
+  "response": "count = 0\na, b = 0, 1\nwhile True:\n    if is_prime(b):\n        count += 1\n        if count == n:\n            return b\n    a, b = b, a + b\n\ndef is_prime(num):\n    if num <= 1:\n        return False\n    for i in range(2, int(num**0.5) + 1):\n        if num % i == 0:\n            return False\n    return True",
+  "score": 0,
+  "cost": 0.0006298,
+  "expected": "",
+  "tokens": {
+    "input": 325,
+    "output": 706
+  }
+}

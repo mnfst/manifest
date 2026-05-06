@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "structured_output",
+  "case": 17,
+  "response": "{\"message\": \"fix(auth): resolve session timeout on mobile browsers\", \"type\": \"fix\", \"scope\": \"auth\", \"author\": \"jdoe\", \"branch\": \"fix/session-timeout\", \"files_changed\": 3, \"insertions\": 47, \"deletions\": 12, \"pr_number\": 892}",
+  "score": 0,
+  "cost": 0.00033700000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 273,
+    "output": 353
+  }
+}

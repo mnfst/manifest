@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering proposes splitting the Platform team into dedicated Infrastructure and Developer Experience groups to resolve prioritization bottlenecks. Please review the attached draft organizational chart to evaluate the proposed restructuring.",
+  "score": 0,
+  "cost": 0.0018534749999999998,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 1401
+  }
+}

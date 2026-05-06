@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a $450K ARR customer, is threatening to churn due to unresolved API latency issues and lack of support response over the past 5 days. James has assigned a dedicated engineer and requests an executive sponsor for a customer call this week to address the escalation.",
+  "score": 0,
+  "cost": 7.458e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 58
+  }
+}

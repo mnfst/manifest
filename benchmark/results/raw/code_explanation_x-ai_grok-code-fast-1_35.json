@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This code implements the Knuth-Morris-Pratt (KMP) string search algorithm, which efficiently finds the starting index of a given pattern within a text string by first constructing a Longest Prefix Suffix (LPS) array for the pattern to avoid redundant comparisons, then scanning the text while using the LPS array to skip characters when mismatches occur, returning the index if the pattern is found or -1 otherwise.",
+  "score": 0,
+  "cost": 0.0002586,
+  "expected": "",
+  "tokens": {
+    "input": 381,
+    "output": 228
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE  \nGERMANY  \nITALY  \nSPAIN  \nUNITED KINGDOM",
+  "score": 0,
+  "cost": 0.00010820000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 93
+  }
+}

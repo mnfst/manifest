@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU (Central Processing Unit) executes instructions from computer programs by performing basic arithmetic, logic, control, and input/output operations.",
+  "score": 0,
+  "cost": 2.706e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 26
+  }
+}

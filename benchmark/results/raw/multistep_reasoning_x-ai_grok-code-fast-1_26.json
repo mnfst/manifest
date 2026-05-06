@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "Liquid water changing into water vapor is the process of evaporation, where heat causes the liquid to turn into gas.\n\nC",
+  "score": 5,
+  "cost": 0.000185,
+  "expected": "C",
+  "tokens": {
+    "input": 265,
+    "output": 165
+  }
+}

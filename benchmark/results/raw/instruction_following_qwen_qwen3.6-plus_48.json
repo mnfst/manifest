@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, young Romeo Montague and Juliet Capulet fall in love despite their families\u2019 bitter feud. They secretly marry, hoping to reconcile their houses. After Romeo kills Juliet\u2019s cousin Tybalt in a duel, he is banished. To escape an arranged marriage, Juliet takes a potion to feign death. A misdelivered letter convinces Romeo she is truly dead; he returns to her tomb, drinks poison, and dies. Juliet awakens, finds him lifeless, and stabs herself. Their tragic suicides finally end the generations-old conflict.",
+  "score": 0,
+  "cost": 0.0031304,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 2400
+  }
+}

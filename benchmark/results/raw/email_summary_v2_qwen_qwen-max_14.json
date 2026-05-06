@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "The AWS bill has increased by 40% month-over-month, primarily due to new machine learning training jobs using p4d instances, with an estimated monthly impact of $45,000. A decision is needed by Friday on whether to use spot instances (which offer 70% savings but come with interruption risks) or reserved instances (which provide 30% savings but require a commitment).",
+  "score": 0,
+  "cost": 0.000468,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 84
+  }
+}

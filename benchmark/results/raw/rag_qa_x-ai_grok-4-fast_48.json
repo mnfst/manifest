@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "L is contained in P (possibly strictly or equally).",
+  "score": 0,
+  "cost": 0.0004706,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 269,
+    "output": 521
+  }
+}

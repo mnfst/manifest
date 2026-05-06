@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "The South African Schools Act of 1996.  \n\nThis is explicitly stated in the provided context, which describes it as recognizing two categories of schools: \"public\" (state-controlled) and \"independent.\"",
+  "score": 0,
+  "cost": 0.0003326,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 339,
+    "output": 331
+  }
+}

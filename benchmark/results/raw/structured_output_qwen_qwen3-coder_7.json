@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "structured_output",
+  "case": 7,
+  "response": "```json\n{\n  \"symbol\": \"AAPL\",\n  \"price\": 185.5,\n  \"change_percent\": 2.3,\n  \"volume\": \"45M\",\n  \"high_52w\": 198.0,\n  \"low_52w\": 155.0,\n  \"market_cap\": \"2.87T\"\n}\n```",
+  "score": 0,
+  "cost": 0.00010362,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 86
+  }
+}

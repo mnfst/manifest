@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "Show globe\n\n## Explanation\n\nThe reasoning process begins by examining the question, which asks for the symbol employed until early in the 20th century. Next, the relevant part of the context is identified: \"The show globe was also used until the early 20th century.\" This directly matches the question's timeframe and specifies the symbol. Other symbols in the context, such as the mortar and pestle or the \u211e character, lack this temporal detail, so they are not selected. The process concludes that the show globe is the precise answer based solely on the provided information.",
+  "score": 0,
+  "cost": 0.0002456,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 368,
+    "output": 215
+  }
+}

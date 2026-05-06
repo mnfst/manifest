@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew significantly and became much more interconnected.",
+  "score": 0,
+  "cost": 0.00024795,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 218,
+    "output": 88
+  }
+}

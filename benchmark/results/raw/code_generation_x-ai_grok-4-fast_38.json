@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 38,
+  "response": "a = None\n    b = None\n    for num in lst:\n        if num < 0:\n            if a is None or num > a:\n                a = num\n        elif num > 0:\n            if b is None or num < b:\n                b = num\n    return (a, b)",
+  "score": 0,
+  "cost": 0.00036700000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 323,
+    "output": 378
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "multistep_reasoning",
+  "case": 5,
+  "response": "C",
+  "score": 5,
+  "cost": 0.00030020000000000003,
+  "expected": "C",
+  "tokens": {
+    "input": 293,
+    "output": 302
+  }
+}

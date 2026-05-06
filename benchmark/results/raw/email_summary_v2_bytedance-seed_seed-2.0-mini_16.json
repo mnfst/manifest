@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign generated 45K impressions, 2.3K clicks with a 5.1% CTR, 187 signups at an 8.1% conversion rate, costing $12K for a $64 customer acquisition cost per signup, and saw a 1.2 percentage point increase in CTR compared to March alongside a 0.8 percentage point drop in conversion rate. The marketing team\u2019s recommended action to improve future campaign performance is running A/B tests on the landing page CTA.",
+  "score": 0,
+  "cost": 0.0002573,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 602
+  }
+}

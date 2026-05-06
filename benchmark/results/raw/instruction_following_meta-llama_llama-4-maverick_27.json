@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "### Mammals\n1. Lion\n2. Elephant\n3. Kangaroo\n\n### Birds\n1. Eagle\n2. Parrot\n3. Ostrich\n\n### Fish\n1. Salmon\n2. Tuna\n3. Swordfish",
+  "score": 0,
+  "cost": 4.575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 52
+  }
+}

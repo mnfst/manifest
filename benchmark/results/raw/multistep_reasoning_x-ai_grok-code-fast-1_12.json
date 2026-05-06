@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "A) erosion of rocks",
+  "score": 5,
+  "cost": 0.0002358,
+  "expected": "A",
+  "tokens": {
+    "input": 275,
+    "output": 226
+  }
+}

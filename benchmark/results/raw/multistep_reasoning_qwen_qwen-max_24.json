@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "To answer this question, let's break down the key information and the options provided:\n\n1. **Extrusive Igneous Rock**: This type of rock forms from magma that cools and solidifies on the Earth's surface. Examples include basalt and pumice.\n\n2. **Intrusive Igneous Rock (Option A)**: This type of rock forms from magma that cools and solidifies below the Earth's surface. Examples include granite and gabbro. This is not the same as extrusive igneous rock, so this option is incorrect.\n\n3. **Clastic Sedimentary Rock (Option B)**: This type of rock forms from the accumulation and lithification of clastic sediments, such as sand, silt, and gravel. Examples include sandstone and shale. This is not the same as extrusive igneous rock, so this option is incorrect.\n\n4. **Metamorphic Rock (Option C)**: This type of rock forms from the transformation of existing rock types (igneous, sedimentary, or other metamorphic rocks) under high pressure and temperature. Examples include marble and slate. This is not the same as extrusive igneous rock, so this option is incorrect.\n\n5. **Volcanic Rock (Option D)**: Volcanic rock is another term for extrusive igneous rock, as it forms from lava that cools and solidifies on the Earth's surface. This is the same as extrusive igneous rock, so this option is correct.\n\nTherefore, the correct answer is:\n\nD",
+  "score": 5,
+  "cost": 0.00140504,
+  "expected": "D",
+  "tokens": {
+    "input": 87,
+    "output": 316
+  }
+}

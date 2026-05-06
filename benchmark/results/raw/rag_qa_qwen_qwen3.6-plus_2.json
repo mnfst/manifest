@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Based on the provided context, colonialism means a country **taking physical control of another area, beginning a conquest over it, and eventually ruling over it to exploit its valuable assets and supplies.**",
+  "score": 0,
+  "cost": 0.0028999750000000004,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 319,
+    "output": 2151
+  }
+}

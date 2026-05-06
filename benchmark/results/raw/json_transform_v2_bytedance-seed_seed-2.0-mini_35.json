@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "json_transform_v2",
+  "case": 35,
+  "response": "{\"departments\": {\"eng\": {\"headcount\": 2, \"avg_salary\": 115000, \"employees\": [\"Alice\", \"Bob\"]}, \"sales\": {\"headcount\": 2, \"avg_salary\": 100000, \"employees\": [\"Carol\", \"Dave\"]}}}",
+  "score": 0,
+  "cost": 0.00026010000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 217,
+    "output": 596
+  }
+}

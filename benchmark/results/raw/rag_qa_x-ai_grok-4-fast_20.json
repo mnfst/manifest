@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "They are funded in whole by charging their students tuition fees.",
+  "score": 0,
+  "cost": 0.00016160000000000002,
+  "expected": "tuition",
+  "tokens": {
+    "input": 292,
+    "output": 129
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines a Japan launch plan with a phased timeline from May to August and a $200K budget covering legal, localization, and a local hire. CEO approval is needed to proceed.",
+  "score": 0,
+  "cost": 0.000435,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 227
+  }
+}

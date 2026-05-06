@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "structured_output",
+  "case": 8,
+  "response": "```json\n{\n  \"unit\": \"Apartment 4B\",\n  \"street\": \"123 Main Street\",\n  \"city\": \"San Francisco\",\n  \"state\": \"CA\",\n  \"zip\": \"94105\",\n  \"country\": \"United States\"\n}\n```",
+  "score": 0,
+  "cost": 7.37e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 62
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_generation",
+  "case": 32,
+  "response": "result = []\ncurrent_word = []\ncurrent_spaces = []\nfor c in s:\n    if c.isspace():\n        if current_word:\n            result.append(''.join(sorted(current_word)))\n            current_word.clear()\n        current_spaces.append(c)\n    else:\n        if current_spaces:\n            result.append(''.join(current_spaces))\n            current_spaces.clear()\n        current_word.append(c)\nif current_word:\n    result.append(''.join(sorted(current_word)))\nif current_spaces:\n    result.append(''.join(current_spaces))\nreturn ''.join(result)",
+  "score": 0,
+  "cost": 0.0015851,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 3908
+  }
+}

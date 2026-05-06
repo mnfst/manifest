@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure in Warsaw (or simply infrastructure) suffered considerably during Warsaw's time as an Eastern Bloc economy, as the context explicitly states infrastructure in Warsaw suffered considerably during that period.",
+  "score": 0,
+  "cost": 9.08e-05,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 208,
+    "output": 175
+  }
+}

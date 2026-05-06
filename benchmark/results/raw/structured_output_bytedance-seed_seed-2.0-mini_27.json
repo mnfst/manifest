@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "structured_output",
+  "case": 27,
+  "response": "{\"type\": \"RSA\", \"bits\": 4096, \"fingerprint\": \"SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8\", \"created\": \"2024-01-15\", \"comment\": \"deploy-key-prod\"}",
+  "score": 0,
+  "cost": 0.0002084,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 481
+  }
+}

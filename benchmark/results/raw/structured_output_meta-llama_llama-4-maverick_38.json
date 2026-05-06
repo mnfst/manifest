@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "structured_output",
+  "case": 38,
+  "response": "```json\n{\n  \"version\": 42,\n  \"name\": \"AddUserPreferences\",\n  \"created\": \"2024-03-15\",\n  \"status\": \"applied\",\n  \"duration_ms\": 340,\n  \"sql\": \"ALTER TABLE users ADD COLUMN preferences JSONB DEFAULT '{}'\"\n}\n```",
+  "score": 0,
+  "cost": 6.495e-05,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 66
+  }
+}

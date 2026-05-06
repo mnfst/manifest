@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s have witnessed significant advancements in space exploration, with SpaceX developing its Starship rocket while NASA pursues its Artemis program to return humans to the Moon. Major scientific achievements include discoveries from the James Webb Space Telescope, alongside China's construction of a space station and India's successful Chandrayaan lunar missions. The decade has also seen the emergence of commercial space ventures like satellite internet constellations (Starlink, OneWeb) and space tourism companies (Blue Origin, Virgin Galactic), along with growing interest in asteroid mining. However, these developments face challenges including the 1967 Outer Space Treaty's limitations and the increasing problem of space debris.",
+  "score": 0,
+  "cost": 0.00014982,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 136
+  }
+}

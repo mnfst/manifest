@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "In the heart of the forgotten forest, under the light of a silver moon, an old owl named Elias discovered a map leading to the legendary Whispering Caverns. Elias, known for his wisdom and curiosity, decided it was his destiny to uncover the secrets hidden within. With a small backpack filled with essentials and the map secured in his talons, he embarked on his journey, the trees bowing slightly as he passed. After days of travel, guided by the stars and the ancient map, Elias found the entrance, veiled by a waterfall that seemed to sing with enchantment. Inside, the caverns echoed not with whispers but with the clear, melodious voices of a forgotten choir, their songs of peace and unity filling Elias with a profound sense of belonging. Forever changed, Elias returned to his forest, his heart a beacon of the magic and harmony he had witnessed, sharing the songs with all who would listen, and the forest, in turn, grew more vibrant and alive than ever before.",
+  "score": 0,
+  "cost": 0.00085904,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 202
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "structured_output",
+  "case": 8,
+  "response": "To extract the information from the given text and return it as valid JSON matching the provided schema, we first need to parse the address string into its components. The given text is: \"Address: Apartment 4B, 123 Main Street, San Francisco, CA 94105, United States\".\n\nLet's break down the address into its components:\n- Unit: Apartment 4B\n- Street: 123 Main Street\n- City: San Francisco\n- State: CA\n- Zip: 94105\n- Country: United States\n\nNow, let's convert this information into the required JSON format.\n\n```json\n{\n  \"unit\": \"Apartment 4B\",\n  \"street\": \"123 Main Street\",\n  \"city\": \"San Francisco\",\n  \"state\": \"CA\",\n  \"zip\": \"94105\",\n  \"country\": \"United States\"\n}\n```\n\nHere's a simple Python code snippet that accomplishes this task:\n\n```python\nimport json\nimport re\n\ndef parse_address(text):\n    # Remove the \"Address: \" prefix if it exists\n    text = text.replace(\"Address: \", \"\")\n    \n    # Regular expression to match the address components\n    pattern = r\"(.+), (.+), (.+), (.+) (.+), (.+)\"\n    match = re.match(pattern, text)\n    \n    if match:\n        unit = match.group(1).strip()\n        street = match.group(2).strip()\n        city = match.group(3).strip()\n        state = match.group(4).strip()\n        zip_code = match.group(5).strip()\n        country = match.group(6).strip()\n        \n        address_data = {\n            \"unit\": unit,\n            \"street\": street,\n            \"city\": city,\n            \"state\": state,\n            \"zip\": zip_code,\n            \"country\": country\n        }\n        \n        return json.dumps(address_data, indent=2)\n    else:\n        return None\n\ntext = \"Address: Apartment 4B, 123 Main Street, San Francisco, CA 94105, United States\"\nprint(parse_address(text))\n```\n\nThis Python script defines a function `parse_address` that takes an address string, parses it into its components using a regular expression, and then returns a JSON string representing the address data according to the given schema.",
+  "score": 0,
+  "cost": 0.00029655,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 473
+  }
+}

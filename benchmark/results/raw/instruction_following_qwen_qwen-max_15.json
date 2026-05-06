@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Sure, here are four words that rhyme with \"cat\":\n\n1. Bat\n2. Hat\n3. Mat\n4. Rat",
+  "score": 0,
+  "cost": 0.00013312,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 27
+  }
+}

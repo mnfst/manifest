@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "structured_output",
+  "case": 33,
+  "response": "To extract the required information and format it into valid JSON according to the given schema, we'll go through the provided text step by step.\n\n1. **Username**: The username is `@techguru42`.\n2. **Joined Year**: The user joined in `2020`, which is an integer.\n3. **Followers**: The user has `1.2K` followers. This is a string representation of a number (1200 followers).\n4. **Following**: The user is `890` following. This is an integer.\n5. **Posts**: The user has `342` posts. This is an integer.\n6. **Verified**: The account is `verified`, which translates to `true` in boolean.\n7. **Bio**: The bio is `Building the future of AI`.\n\nLet's format this information according to the given schema:\n\n- `username`: `@techguru42` (string)\n- `joined_year`: `2020` (integer)\n- `followers`: `1.2K` (string)\n- `following`: `890` (integer)\n- `posts`: `342` (integer)\n- `verified`: `true` (boolean, because the account is verified)\n- `bio`: `Building the future of AI` (string)\n\nNow, let's put this information into the required JSON format:\n\n```json\n{\n  \"username\": \"@techguru42\",\n  \"joined_year\": 2020,\n  \"followers\": \"1.2K\",\n  \"following\": 890,\n  \"posts\": 342,\n  \"verified\": true,\n  \"bio\": \"Building the future of AI\"\n}\n```\n\nThis JSON object matches the provided schema and contains the extracted information from the given text.",
+  "score": 0,
+  "cost": 0.00022979999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 356
+  }
+}

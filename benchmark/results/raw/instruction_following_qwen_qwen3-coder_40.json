@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are 5 capital cities from different continents:\n\n1. **Washington, D.C.** (North America) - United States\n2. **London** (Europe) - United Kingdom\n3. **Tokyo** (Asia) - Japan\n4. **Cairo** (Africa) - Egypt\n5. **Canberra** (Australia/Oceania) - Australia",
+  "score": 0,
+  "cost": 7.26e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 77
+  }
+}

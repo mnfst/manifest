@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 38,
+  "response": "Step 1: Recall Newton's second law of motion, which is defined as \\(F = ma\\), where \\(F\\) is force, \\(m\\) is mass, and \\(a\\) is acceleration.\nStep 2: Rearrange the formula to solve for acceleration: \\(a = \\frac{F}{m}\\). Assuming mass \\(m\\) stays constant, acceleration is directly proportional to applied force.\nStep 3: If force is increased four times, the acceleration will scale by the same factor. So acceleration increases 4 times.\n\nAnswer: B",
+  "score": 5,
+  "cost": 9.51e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 151,
+    "output": 200
+  }
+}

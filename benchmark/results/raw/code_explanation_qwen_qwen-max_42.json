@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code defines an `AsyncQueue` class that implements an asynchronous queue using Python's `asyncio` for concurrent operations. It uses a `collections.deque` to store queue items and manages asynchronous put and get operations with futures, allowing tasks to wait (yield control) until space is available for putting or an item is available for getting, thus enabling non-blocking behavior. The queue supports a maximum size, and when full, put operations wait until space is available, and when empty, get operations wait until an item is available.",
+  "score": 0,
+  "cost": 0.00066768,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 107
+  }
+}

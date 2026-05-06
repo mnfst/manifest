@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 employee engagement survey showed an overall score of 7.8/10, with team collaboration scoring highest at 8.9/10 and career growth clarity the lowest at 6.1/10; proposed actions include implementing quarterly career conversations, an internal mobility program, and a mentorship matching system, to be discussed at the town hall on Friday.",
+  "score": 0,
+  "cost": 0.00044512,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 77
+  }
+}

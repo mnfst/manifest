@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 2,
+  "response": "Let's analyze each option:\n1.  **Option B**: The fossils are of *warm water* marine creatures, so claiming they were adapted to cold climates reverses the premise. This is incorrect.\n2.  **Option C**: Fossilization preserves or partially replaces original material but does not move or relocate the fossils to mountainous regions. This does not explain their current location. This is incorrect.\n3.  **Option D**: Scavengers could not systematically carry marine creature remains all the way up mountainous regions to be fossilized there. This is not a plausible explanation.\n4.  **Option A**: Over geologic time, New England was once submerged under a warm shallow sea, and tectonic activity later uplifted that sea floor into mountainous terrain. The regional climate and landscape have drastically changed since then, which explains why warm marine fossils now exist in these mountains. This is correct.\n\nFinal Answer: A",
+  "score": 5,
+  "cost": 0.0002165,
+  "expected": "A",
+  "tokens": {
+    "input": 181,
+    "output": 496
+  }
+}

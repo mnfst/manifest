@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure in Warsaw suffered considerably during its time as an Eastern Bloc economy, as stated in the context: \"infrastructure in Warsaw suffered considerably during its time as an Eastern Bloc economy \u2013 though it is worth mentioning that the initial Three-Year Plan to rebuild Poland (especially Warsaw) was a major success, but what followed was very much the opposite.\"",
+  "score": 0,
+  "cost": 0.00034980000000000005,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 357,
+    "output": 348
+  }
+}

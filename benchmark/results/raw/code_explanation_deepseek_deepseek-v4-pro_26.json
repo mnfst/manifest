@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This function solves the 0/1 knapsack problem using bottom-up dynamic programming: it builds a 2D table `dp` where `dp[i][w]` stores the maximum value achievable with the first `i` items and capacity `w`,",
+  "score": 0,
+  "cost": 0.00041412,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 200
+  }
+}

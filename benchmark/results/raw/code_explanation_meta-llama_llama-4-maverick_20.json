@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "The given code defines a function `partition` that splits an input iterable into two separate iterables based on a given predicate, using the `itertools.tee` function to duplicate the input iterable and then applying the predicate to each duplicate using `filter` and `filterfalse`. This is an efficient implementation of the partition pattern, allowing for a single pass through the input iterable.",
+  "score": 0,
+  "cost": 5.7449999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 77
+  }
+}

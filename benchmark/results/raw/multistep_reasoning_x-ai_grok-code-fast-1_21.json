@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "multistep_reasoning",
+  "case": 21,
+  "response": "B) Few plants survive severe changes to their environment.",
+  "score": 5,
+  "cost": 0.00031720000000000007,
+  "expected": "B",
+  "tokens": {
+    "input": 402,
+    "output": 296
+  }
+}

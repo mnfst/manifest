@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In feuding Verona, Romeo Montague sneaks into a rival Capulet ball, where he and Juliet Capulet fall instantly in love and marry secretly. After Romeo kills Juliet\u2019s cousin Tybalt and is banished, Juliet fakes her death with a sleeping potion to escape a forced Paris marriage. Mistakenly believing she\u2019s dead, Romeo poisons himself beside her; waking to find his body, Juliet stabs herself, finally ending their families\u2019 bitter rivalry.",
+  "score": 0,
+  "cost": 0.0006502000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 1608
+  }
+}

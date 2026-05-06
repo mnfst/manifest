@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "json_transform_v2",
+  "case": 9,
+  "response": "```json\n{\n  \"summary\": {\n    \"total\": 5,\n    \"by_level\": {\n      \"ERROR\": 3,\n      \"WARN\": 1,\n      \"INFO\": 1\n    }\n  },\n  \"errors\": [\n    {\"msg\": \"timeout\", \"count\": 2, \"first_seen\": \"10:00\"},\n    {\"msg\": \"slow query\", \"count\": 1, \"first_seen\": \"10:01\"},\n    {\"msg\": \"disk full\", \"count\": 1, \"first_seen\": \"10:05\"}\n  ]\n}\n```",
+  "score": 0,
+  "cost": 0.0001146,
+  "expected": "",
+  "tokens": {
+    "input": 264,
+    "output": 125
+  }
+}

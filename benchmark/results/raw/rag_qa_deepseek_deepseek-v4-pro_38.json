@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Charles River",
+  "score": 0,
+  "cost": 0.000212715,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 249,
+    "output": 60
+  }
+}

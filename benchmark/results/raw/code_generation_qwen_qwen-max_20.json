@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 20,
+  "response": "val = [\n    1000, 900, 500, 400,\n    100, 90, 50, 40,\n    10, 9, 5, 4,\n    1\n]\nsyb = [\n    \"m\", \"cm\", \"d\", \"cd\",\n    \"c\", \"xc\", \"l\", \"xl\",\n    \"x\", \"ix\", \"v\", \"iv\",\n    \"i\"\n]\nroman_num = ''\ni = 0\nwhile number > 0:\n    for _ in range(number // val[i]):\n        roman_num += syb[i]\n        number -= val[i]\n    i += 1\nreturn roman_num",
+  "score": 0,
+  "cost": 0.00080392,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 158
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 32,
+  "response": "**Code under review**\n\n```python\ndef get_env(key):\n    return os.environ[key]\n```\n\n---\n\n## 1. Bugs / Functional Issues\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Missing import** | `os` is not imported, so calling `get_env` raises `NameError: name 'os' is not defined`. | Add `import os` at the top of the module (or `from os import environ` if you prefer). |\n| **KeyError on missing variable** | Direct indexing (`os.environ[key]`) raises a `KeyError` if the environment variable is not set. Callers often expect a graceful fallback or a clear error message. | Use `os.getenv(key)` (which returns `None` when missing) or `os.environ.get(key, default)`. If a missing variable is truly an error, raise a more informative exception (e.g., `EnvironmentError` or a custom `MissingEnvVarError`). |\n| **No type safety / documentation** | The function accepts any object as `key`; if `key` is not a string you\u2019ll get a `TypeError` from `os.environ`. Callers also have no clue what the function returns (str? None?). | Add type hints (`def get_env(key: str) -> Optional[str]:`) and a docstring describing behavior, possible return values, and exceptions. |\n| **No caching / repeated look\u2011ups** | If the function is called many times for the same key, each call does a dictionary lookup. While cheap, in hot\u2011paths it can add up. | Cache the result (e.g., with `functools.lru_cache`) **only** if you are sure the environment won\u2019t change during the process lifetime (which is typical). |\n| **Potential silent failure with default `None`** | Returning `None` for a missing variable can hide configuration bugs, leading to subtle runtime errors later. | Require callers to explicitly handle the missing case, or provide a sentinel/default that makes the error obvious (e.g., raise an exception or return a clearly marked placeholder). |\n\n---\n\n## 2. Security\u2011Related Concerns\n\n| Concern | Why it matters | Mitigation |\n|---------|----------------|------------|\n| **Exposure of secrets** | The function returns the raw value of any environment variable, including passwords, API keys, tokens, etc. If the returned value is later logged, printed, or passed to a subprocess without sanitisation, it can leak. | \u2022 Document that callers must treat the result as sensitive.<br>\u2022 Avoid logging the return value.<br>\u2022 When passing to subprocesses, use the `env` parameter of `subprocess.run`/`Popen` instead of interpolating",
+  "score": 0,
+  "cost": 7.713e-05,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 800
+  }
+}

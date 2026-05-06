@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "structured_output",
+  "case": 24,
+  "response": "To extract the required information from the given text and format it into valid JSON according to the provided schema, we will analyze the text and map its components to the corresponding fields in the schema.\n\n1. **\"restaurant\"**: The name of the restaurant is \"Chez Marie\".\n2. **\"rating\"**: The rating given is \"4.5 stars\", which translates to a float value of 4.5.\n3. **\"cuisine\"**: The cuisine is mentioned as \"French\".\n4. **\"price_range\"**: The price range is indicated by \"$$$\", which is a common notation for a higher price range.\n5. **\"recommended_dish\"**: The best dish is stated as \"duck confit\".\n6. **\"service_rating\"**: The service is described as \"excellent\".\n7. **\"wait_time_minutes\"**: The wait time is given as \"15 minutes\", which is 15 minutes.\n8. **\"recommended_for\"**: It is recommended for \"date night\".\n\nNow, let's format this information into JSON according to the given schema:\n\n```json\n{\n  \"restaurant\": \"Chez Marie\",\n  \"rating\": 4.5,\n  \"cuisine\": \"French\",\n  \"price_range\": \"$$$\",\n  \"recommended_dish\": \"duck confit\",\n  \"service_rating\": \"excellent\",\n  \"wait_time_minutes\": 15,\n  \"recommended_for\": \"date night\"\n}\n```\n\nThis JSON object matches the provided schema and contains the extracted information from the text.",
+  "score": 0,
+  "cost": 0.00020745,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 315
+  }
+}

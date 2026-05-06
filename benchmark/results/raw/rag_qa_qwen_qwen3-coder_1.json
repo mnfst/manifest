@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "The Great Plague of London occurred in 1665.",
+  "score": 0,
+  "cost": 8.206e-05,
+  "expected": "1665",
+  "tokens": {
+    "input": 313,
+    "output": 15
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Meeting Invitation: Marketing Campaign Brainstorm",
+  "score": 0,
+  "cost": 0.001207125,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 689
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate is a perfectly tended winter campfire: first, the soft, crumbly snap of breaking off a piece mirrors the crackle of dry kindling catching flame, then as it melts on your tongue, it unfurls in layers of flavor that mirror the fire\u2019s shifting warmth. The initial smooth, velvety coating of cocoa butter is the gentle, hazy smoke that wraps around your hands, before the sharp, earthy bite of roasted cacao pricks at your taste buds like a tiny, playful spark. Then the sweet, mellow swell of sugar and toasted vanilla unfurls, softening the edge of the bitterness like a thick wool blanket draped over your shoulders, and by the time the last crumble dissolves, you\u2019re left with a slow, lingering warmth in your ribs\u2014the same cozy, satisfied ache of sitting by the fire long after the embers have faded to soft gold.",
+  "score": 0,
+  "cost": 0.0010608999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 2637
+  }
+}

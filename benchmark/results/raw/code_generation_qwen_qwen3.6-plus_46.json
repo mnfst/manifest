@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 46,
+  "response": "min_val = None\n    min_idx = -1\n    for i, v in enumerate(arr):\n        if v % 2 == 0:\n            if min_val is None or v < min_val:\n                min_val = v\n                min_idx = i\n    return [min_val, min_idx] if min_val is not None else []",
+  "score": 0,
+  "cost": 0.003492125,
+  "expected": "",
+  "tokens": {
+    "input": 373,
+    "output": 2593
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Before the pandemic, less than 5% of workers were fully remote, but the sudden shift to remote work in 2020, enabled by tools like Zoom, Slack, and cloud infrastructure, transformed it into a mainstream practice. While productivity studies, such as those by Stanford's Nick Bloom, have shown mixed results, the trend has led to a return-to-office backlash and the adoption of hybrid work models, impacting commercial real estate and prompting workers to move to lower-cost areas. This shift has also raised concerns about company culture and the development of junior employees, alongside the emergence of digital nomad visas.",
+  "score": 0,
+  "cost": 0.00066664,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 123
+  }
+}

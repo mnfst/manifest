@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 10,
+  "response": "count = 0\n    for num in arr:\n        s = str(abs(num))\n        digit_sum = 0\n        for i, char in enumerate(s):\n            d = int(char)\n            if num < 0 and i == 0:\n                digit_sum -= d\n            else:\n                digit_sum += d\n        if digit_sum > 0:\n            count += 1\n    return count",
+  "score": 0,
+  "cost": 0.000777,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 895
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is a force that attracts two objects towards each other. It is what keeps our feet planted on the ground and causes objects to fall when dropped. This force is described by Newton's law of universal gravitation, which states that every particle in the universe attracts every other particle with a force that is directly proportional to the product of their masses and inversely proportional to the square of the distance between their centers. This means the more massive the objects, the stronger the gravitational pull, but as the distance between them increases, the strength of this pull decreases. On Earth, we experience gravity as the force that gives weight to physical objects and makes them fall to the ground when dropped. That is gravity.",
+  "score": 0,
+  "cost": 0.0006291999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 144
+  }
+}

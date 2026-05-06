@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign generated 187 signups at a cost of $64 per signup, with a 5.1% click-through rate and $12K total spend. The marketing team recommends A/B testing the landing page call-to-action (CTA) to potentially improve conversion rates, which were down 0.8 percentage points from the previous month.",
+  "score": 0,
+  "cost": 6.089999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 72
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "structured_output",
+  "case": 27,
+  "response": "{\"type\": \"RSA\", \"bits\": 4096, \"fingerprint\": \"SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8\", \"created\": \"2024-01-15\", \"comment\": \"deploy-key-prod\"}",
+  "score": 0,
+  "cost": 0.00030260000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 302
+  }
+}

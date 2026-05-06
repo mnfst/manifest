@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "D\n\nThe correct answer is D. The planets in the solar system revolve around the Sun because the Sun, by virtue of its enormous mass, is the strongest source of gravity in the solar system. This gravitational force keeps the planets in their orbits. While the Sun is indeed made of hydrogen and helium (A), is the source of most heat and light energy (C), and is one of the older objects in the solar system (B), these are not the reasons why the planets revolve around it.",
+  "score": 5,
+  "cost": 0.0005314400000000001,
+  "expected": "D",
+  "tokens": {
+    "input": 99,
+    "output": 103
+  }
+}

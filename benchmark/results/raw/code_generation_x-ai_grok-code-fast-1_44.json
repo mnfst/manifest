@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 44,
+  "response": "result = []\nvowel_map = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w', 'A': 'C', 'E': 'G', 'I': 'K', 'O': 'Q', 'U': 'W'}\nfor char in message:\n    if char.isalpha():\n        if char in vowel_map:\n            new_char = vowel_map[char]\n        else:\n            new_char = char\n        if new_char.islower():\n            new_char = new_char.upper()\n        else:\n            new_char = new_char.lower()\n    else:\n        new_char = char\n    result.append(new_char)\nreturn ''.join(result)",
+  "score": 0,
+  "cost": 0.0011896,
+  "expected": "",
+  "tokens": {
+    "input": 336,
+    "output": 1403
+  }
+}

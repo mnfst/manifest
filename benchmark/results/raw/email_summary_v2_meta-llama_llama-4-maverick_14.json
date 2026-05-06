@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "The AWS bill has increased by 40% month-over-month, primarily due to new ML training jobs using costly p4d instances, resulting in an estimated monthly impact of $45K. To mitigate this, DevOps is proposing two cost-saving options - spot instances or reserved instances - and requires a decision by Friday.",
+  "score": 0,
+  "cost": 5.55e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 65
+  }
+}

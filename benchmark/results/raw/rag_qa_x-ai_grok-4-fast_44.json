@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "**Ohio Company of Virginia**",
+  "score": 0,
+  "cost": 0.0001614,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 407,
+    "output": 100
+  }
+}

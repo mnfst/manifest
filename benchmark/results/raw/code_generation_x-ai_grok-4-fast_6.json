@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 6,
+  "response": "seen = {}\n    for num in numbers:\n        if num in seen:\n            seen[num] += 1\n        else:\n            seen[num] = 1\n    result = [num for num in numbers if seen[num] == 1]\n    return result",
+  "score": 0,
+  "cost": 0.0008138,
+  "expected": "",
+  "tokens": {
+    "input": 265,
+    "output": 951
+  }
+}

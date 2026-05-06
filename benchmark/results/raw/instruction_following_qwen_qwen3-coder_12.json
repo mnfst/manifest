@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is like a messenger or go-between that helps different computer systems talk to each other.\n\nThink of it like ordering food from a restaurant. You don't go into the kitchen and cook your own meal - instead, you tell the waiter what you want, they take your order to the kitchen, and then bring your food back to you. The waiter is acting like an API.\n\nIn the digital world, when you check the weather on your phone, your phone app doesn't actually know what the weather is. It asks (sends a request to) a weather service's API, which then gets the information and brings it back to your app so you can see it.\n\nAPIs simply make it possible for different apps and services to share information and work together, even though they were built by different companies.",
+  "score": 0,
+  "cost": 0.0001485,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 163
+  }
+}

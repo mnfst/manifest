@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "1. C  \n2. C++  \n3. Java  \n4. Ruby",
+  "score": 0,
+  "cost": 0.000154,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 138
+  }
+}

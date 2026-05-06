@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI won\u2019t replace you. But someone using AI will. The real advantage isn\u2019t the tool\u2014it\u2019s the willingness to adapt.",
+  "score": 0,
+  "cost": 0.00018966,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 105
+  }
+}

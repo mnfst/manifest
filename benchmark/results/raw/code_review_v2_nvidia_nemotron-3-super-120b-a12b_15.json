@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 15,
+  "response": "**Code review**\n\n```python\ndef retry_request(url, max_retries=3):\n    for i in range(max_retries):\n        try:\n            return requests.get(url, timeout=30)\n        except:\n            time.sleep(1)\n    return None\n```\n\n---\n\n## 1. Bugs / Functional Problems\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Missing imports** (`requests`, `time`) | The function will raise `NameError` when executed. | Add `import requests` and `import time` at the top of the module (or pass them in as dependencies). |\n| **Bare `except:`** | Catches *every* exception, including `KeyboardInterrupt`, `SystemExit`, and programmer errors (e.g., `AttributeError`). This makes the program impossible to interrupt with Ctrl\u2011C and hides bugs. | Catch only the exceptions that are truly transient, e.g. `requests.exceptions.RequestException` (or a subset like `ConnectionError`, `Timeout`, `TooManyRedirects`). |\n| **No distinction between transient and permanent errors** | A 4xx client error (e.g., 404 Not Found) is retried uselessly, wasting time and possibly triggering rate\u2011limits. | After a successful GET, check `",
+  "score": 0,
+  "cost": 8.037e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 800
+  }
+}

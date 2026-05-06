@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 8,
+  "response": "return [x for x in values if type(x) == int]",
+  "score": 0,
+  "cost": 0.0005526,
+  "expected": "",
+  "tokens": {
+    "input": 323,
+    "output": 610
+  }
+}

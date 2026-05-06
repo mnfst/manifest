@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrological cycle, is the continuous movement of water throughout Earth's systems. This natural process involves the circulation of water between the atmosphere, land, and oceans through various physical processes. The cycle has no beginning or end and operates continuously, ensuring that water is constantly recycled and redistributed across the planet. This fundamental process is essential for maintaining life on Earth and shaping our planet's climate and weather patterns.\n\nThe cycle begins with evaporation, where water from oceans, lakes, rivers, and other bodies of water transforms from liquid to water vapor due to heat from the sun. Plants also contribute to this process through transpiration, releasing water vapor from their leaves into the atmosphere. As water vapor rises higher into the atmosphere, it cools and undergoes condensation, forming tiny water droplets that cluster together to create clouds. This process of water vapor turning back into liquid droplets is crucial for the formation of precipitation.\n\nWhen the water droplets in clouds become too heavy to remain suspended in the air, they fall back to Earth as precipitation in various forms including rain, snow, sleet, or hail. This precipitation replenishes surface water bodies like rivers, lakes, and oceans, while some of it infiltrates into the ground to become groundwater. The water that reaches the surface flows downhill due to gravity, eventually making its way back to larger bodies of water, continuing the cycle.\n\nThe final stage involves collection and storage, where water gathers in oceans, lakes, rivers, and underground aquifers. Some water becomes temporarily locked in ice caps and glaciers, while groundwater slowly moves through rock formations before eventually returning to surface water bodies. From these collection points, the cycle begins anew as solar energy once again drives evaporation, ensuring that water continuously circulates through Earth's interconnected systems in an endless loop that has operated for billions of years.",
+  "score": 0,
+  "cost": 0.00033351999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 374
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP Engineering has proposed restructuring the Platform team by splitting it into two specialized teams\u2014Infrastructure, handling networking, compute, and storage, and Developer Experience, overseeing CI/CD, tooling, and onboarding\u2014to address the bottleneck where developer experience work always loses out to infrastructure incidents. A draft org chart detailing this proposed team structure is attached to the email.",
+  "score": 0,
+  "cost": 0.0003985,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 962
+  }
+}

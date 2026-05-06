@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "data_to_text",
+  "case": 7,
+  "response": "Apple Inc. (AAPL) is trading at $185.50 per share, showing a positive daily movement of +2.3% with a trading volume of 45 million shares. The stock has a market capitalization of $2.87 trillion and trades at a P/E ratio of 28.4, offering a dividend yield of 0.55%. Over the past 52 weeks, the stock has ranged between a low of $155 and a high of $198.",
+  "score": 0,
+  "cost": 0.00012319999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 110
+  }
+}

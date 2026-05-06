@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "circuit switching",
+  "score": 0,
+  "cost": 0.000202275,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 141,
+    "output": 81
+  }
+}

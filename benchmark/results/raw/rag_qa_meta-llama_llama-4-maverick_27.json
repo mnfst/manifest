@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law.",
+  "score": 0,
+  "cost": 4.35e-05,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 266,
+    "output": 6
+  }
+}

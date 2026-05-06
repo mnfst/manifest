@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "multistep_reasoning",
+  "case": 4,
+  "response": "Gravity is a force that attracts objects with mass towards one another. Magnetism is a force that attracts or repels certain materials and is produced by moving electric charges. Therefore, both are classified as forces. They are not cycles, states of matter, or forms of energy themselves (though they are related to energy).\n\nA",
+  "score": 5,
+  "cost": 0.001148225,
+  "expected": "A",
+  "tokens": {
+    "input": 73,
+    "output": 865
+  }
+}

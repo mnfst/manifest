@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "json_transform_v2",
+  "case": 30,
+  "response": "{\"full_name\": \"Jane Doe\", \"contact\": {\"email\": \"jane.doe@email.com\", \"phone\": \"+1-555-0123\"}, \"metadata\": {\"age\": 32}}",
+  "score": 0,
+  "cost": 0.000235,
+  "expected": "",
+  "tokens": {
+    "input": 255,
+    "output": 230
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "data_to_text",
+  "case": 18,
+  "response": "Stockholm, the capital of Sweden, was founded in 1252 and now covers an area of 188\u202fkm\u00b2 while being home to about 1.6\u202fmillion residents. The city enjoys a temperate climate with average January temperatures around\u202f\u20113\u202f\u00b0C and July temperatures near\u202f18\u202f\u00b0C, and its inhabitants primarily speak Swedish, contributing to a high standard of living reflected in a GDP per capita of roughly\u202f$62,000.",
+  "score": 0,
+  "cost": 2.853e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 205
+  }
+}

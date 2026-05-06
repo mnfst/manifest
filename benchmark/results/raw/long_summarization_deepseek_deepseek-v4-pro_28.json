@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "long_summarization",
+  "case": 28,
+  "response": "The internet originated in",
+  "score": 0,
+  "cost": 0.0006564149999999999,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 300
+  }
+}

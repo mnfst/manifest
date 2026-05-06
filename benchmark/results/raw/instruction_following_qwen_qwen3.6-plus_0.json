@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- Improves cardiovascular health by strengthening the heart and enhancing blood circulation\n- Enhances mental well-being by reducing stress, anxiety, and symptoms of depression\n- Strengthens muscles and bones, helping to maintain mobility and prevent age-related injuries",
+  "score": 0,
+  "cost": 0.00049075,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 372
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "structured_output",
+  "case": 14,
+  "response": "{\"title\": \"The Great Gatsby\", \"author\": \"F. Scott Fitzgerald\", \"year\": 1925, \"genre\": \"literary fiction\", \"pages\": 180, \"isbn\": \"978-0743273565\", \"rating\": 4.2}",
+  "score": 0,
+  "cost": 0.0001316,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 288
+  }
+}

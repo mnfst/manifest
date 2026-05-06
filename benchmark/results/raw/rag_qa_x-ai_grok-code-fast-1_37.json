@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Korea bordered Kublai's territory on the northeast.",
+  "score": 0,
+  "cost": 0.00035860000000000004,
+  "expected": "northeast",
+  "tokens": {
+    "input": 409,
+    "output": 346
+  }
+}

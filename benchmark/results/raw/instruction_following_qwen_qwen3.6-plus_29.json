@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA, or deoxyribonucleic acid, is a double-stranded molecule that carries the genetic instructions necessary for the growth, development, and reproduction of all known living organisms. Its specific sequence of four chemical bases forms a biological blueprint that determines an organism's inherited traits and cellular functions.",
+  "score": 0,
+  "cost": 0.001490125,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 1140
+  }
+}

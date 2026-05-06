@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "As the sun set over the ocean, a lone sailor stood at the helm of his small boat, gazing out at the endless blue horizon. The salty sea air filled his lungs as he steered the vessel through the gentle waves, the sound of the gulls crying overhead. He had been at sea for weeks, and the solitude was starting to feel like a comfortable old friend. As the stars began to twinkle in the night sky, the sailor spotted a faint light on the horizon, and his heart quickened with excitement. As he drew closer, he saw that it was a small island, its shores lined with palm trees swaying in the breeze. The sailor dropped anchor in a secluded cove, feeling a sense of peace wash over him as he gazed up at the island's tranquil beauty.",
+  "score": 0,
+  "cost": 0.0001038,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 168
+  }
+}

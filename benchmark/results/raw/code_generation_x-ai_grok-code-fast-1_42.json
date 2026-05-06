@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n    return -1\nelse:\n    total_sum = (m * (m + 1) // 2) - ((n - 1) * n // 2)\n    count = m - n + 1\n    avg = total_sum / count\n    rounded = round(avg)\n    return bin(rounded)",
+  "score": 0,
+  "cost": 0.0005282,
+  "expected": "",
+  "tokens": {
+    "input": 369,
+    "output": 568
+  }
+}

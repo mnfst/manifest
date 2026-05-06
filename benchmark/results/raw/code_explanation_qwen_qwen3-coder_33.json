@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This code implements the **reservoir sampling** algorithm, which randomly selects k items from a stream of unknown length in a single pass while ensuring each item has an equal probability of being selected. The algorithm works by first filling a \"reservoir\" with the first k items, then for each subsequent item, it replaces a randomly chosen reservoir element with probability k/(i+1), where i is the current stream position.",
+  "score": 0,
+  "cost": 9.481999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 84
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 25,
+  "response": "Let's analyze each option against the apple tree life cycle:\n1.  **Option A**: Apple trees do not produce eggs growing from seedlings. This is incorrect.\n2.  **Option B**: Flowers develop into fruit, not the reverse. This statement is backwards and wrong.\n3.  **Option C**: Seedlings grow from dormant seeds germinating, not from leaves. This is incorrect.\n4.  **Option D**: After pollination and fertilization of an apple tree's flower, the flower's ovary develops into fruit containing seeds. This is a valid step in the life cycle.\n\nFinal Answer: D",
+  "score": 5,
+  "cost": 0.000168,
+  "expected": "D",
+  "tokens": {
+    "input": 132,
+    "output": 387
+  }
+}

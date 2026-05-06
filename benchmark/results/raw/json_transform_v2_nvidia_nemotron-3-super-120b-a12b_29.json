@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "json_transform_v2",
+  "case": 29,
+  "response": "{\n  \"services\": [\n    {\"name\": \"database\", \"host\": \"db.prod.internal\", \"port\": 5432},\n    {\"name\": \"cache\", \"host\": \"redis.prod.internal\", \"port\": 6379}\n  ],\n  \"app_settings\": {\n    \"debug\": false,\n    \"log_level\": \"warn\",\n    \"workers\": 4\n  }\n}",
+  "score": 0,
+  "cost": 2.034e-05,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 83
+  }
+}

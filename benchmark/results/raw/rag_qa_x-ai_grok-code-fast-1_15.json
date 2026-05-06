@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia",
+  "score": 0,
+  "cost": 0.0003222,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 407,
+    "output": 301
+  }
+}

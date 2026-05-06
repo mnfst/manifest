@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "D\n\nThe correct answer is D. Coal is formed from plant remains that were buried and decomposed under pressure over millions of years. This process, known as coalification, transforms the organic material into peat, which then becomes lignite, sub-bituminous coal, bituminous coal, and, finally, anthracite, depending on the amount of heat and pressure applied. Options A, B, and C do not accurately describe the formation of coal.",
+  "score": 5,
+  "cost": 0.00047424,
+  "expected": "D",
+  "tokens": {
+    "input": 80,
+    "output": 94
+  }
+}

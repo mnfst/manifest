@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Packet Switching contrasts with circuit switching, another principal networking paradigm.",
+  "score": 0,
+  "cost": 0.00020592,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 146,
+    "output": 13
+  }
+}

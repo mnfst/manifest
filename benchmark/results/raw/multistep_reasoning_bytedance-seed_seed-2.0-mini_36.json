@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 36,
+  "response": "### Step 1: Recall the momentum formula\nMomentum \\( p \\) of an object is calculated as \\( p = m \\times v \\), where \\( m \\) is mass and \\( v \\) is velocity.\n\n### Step 2: Plug in the given values\nHere, \\( m = 0.15 \\, \\text{kg} \\) and \\( v = 40 \\, \\text{m/s} \\). Calculate the product:\n\\( p = 0.15 \\times 40 = 6.0 \\, \\text{kg\u00b7m/s} \\)\n\nC\nD",
+  "score": 5,
+  "cost": 0.00013130000000000002,
+  "expected": "C",
+  "tokens": {
+    "input": 169,
+    "output": 286
+  }
+}

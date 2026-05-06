@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The backend team reported that the P99 latency of the /api/v2/search API increased from 200ms to 800ms after Thursday\u2019s deployment, with the root cause found to be the new full-text search query not utilizing an index. The solution is to add a GIN index on the content column, and the corrected deployment will go live tonight during the scheduled maintenance window.",
+  "score": 0,
+  "cost": 0.0001501,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 339
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_review_v2",
+  "case": 2,
+  "response": "**Code under review**\n\n```python\ndef transfer_money(from_account, to_account, amount):\n    from_balance = get_balance(from_account)\n    if from_balance >= amount:\n        set_balance(from_account, from_balance - amount)\n        set_balance(to_account, get_balance(to_account) + amount)\n    return True\n```\n\n---\n\n## 1. Bugs / Logical Problems  \n\n| # | Issue | Why it\u2019s a problem | Fix |\n|---|-------|--------------------|-----|\n| 1 | **Always returns `True`** even when the transfer fails (insufficient funds). | Callers cannot distinguish success from failure; they may assume money moved when it didn\u2019t. | Return `False` (or raise an exception) when `from_balance < amount`. |\n| 2 | **No validation of `amount`**. Negative or zero amounts are allowed, which could be used to *increase* the source balance or to create a zero\u2011value loop. | Allows abuse (e.g., `transfer_money(A, B, -100)` adds 100 to A). | Verify `amount > 0` (and optionally that it is within a sane limit). |\n| 3 | **No check that accounts exist**. If `get_balance` raises or returns a sentinel for a non\u2011existent account, the function will propagate that error or behave incorrectly. | May leak internal errors or silently create balances for phantom accounts. | Validate that both accounts exist before proceeding (e.g., `if not account_exists(from_account) or not account_exists(to_account): \u2026`). |\n| 4 | **Floating\u2011point / integer precision** \u2013 using plain numeric types for money can cause rounding errors. | Over many transfers, pennies can disappear or appear. | Use a fixed\u2011point type (`Decimal` in Python, `NUMERIC/DECIMAL` in SQL) for all monetary values. |\n| 5 | **No error handling for `get_balance` / `set_balance`**. If either call raises an exception, the function aborts leaving the system in an inconsistent state (source may have been debited but destination not credited). | Breaks atomicity and can lead to lost money. | Wrap calls in a `try/except` and roll back any partial changes, or better, perform the whole operation inside a transaction. |\n| 6 | **Missing idempotency / duplicate\u2011transfer protection**. Retrying the same call (e.g., due to network timeout",
+  "score": 0,
+  "cost": 8.127e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 800
+  }
+}

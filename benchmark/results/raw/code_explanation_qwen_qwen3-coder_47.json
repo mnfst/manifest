@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_explanation",
+  "case": 47,
+  "response": "This code implements Dijkstra's Shunting Yard algorithm to convert infix mathematical expressions into postfix notation (Reverse Polish Notation). It processes tokens representing numbers and operators, using a stack to reorder them according to operator precedence and parentheses, ultimately producing a list where operators appear after their operands.",
+  "score": 0,
+  "cost": 9.394e-05,
+  "expected": "",
+  "tokens": {
+    "input": 203,
+    "output": 56
+  }
+}

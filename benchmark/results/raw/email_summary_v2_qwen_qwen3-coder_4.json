@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 4,
+  "response": "Maria Chen from DataSync proposes a partnership where DataSync handles data sync infrastructure and the recipient integrates their SDK, potentially reducing customer latency by 60% and generating $2M in additional annual revenue for both companies. She requests a technical discussion next week to explore this revenue-share partnership opportunity.",
+  "score": 0,
+  "cost": 7.325999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 60
+  }
+}

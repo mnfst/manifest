@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 15,
+  "response": "max_factor = 0\n    while n % 2 == 0:\n        max_factor = 2\n        n //= 2\n    i = 3\n    while i * i <= n:\n        while n % i == 0:\n            max_factor = i\n            n //= i\n        i += 2\n    if n > 2:\n        max_factor = n\n    return max_factor",
+  "score": 0,
+  "cost": 0.005605925,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 4285
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU, or Central Processing Unit, executes instructions and processes data to perform the tasks of a computer program.",
+  "score": 0,
+  "cost": 0.00011128000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 22
+  }
+}

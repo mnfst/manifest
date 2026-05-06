@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "The function first builds the LPS (longest\u2011proper\u2011prefix\u2011which\u2011is\u2011also\u2011suffix) table for the pattern, then scans the text while using that table to skip unnecessary comparisons, returning the index of the first occurrence of the pattern or\u202f-1 if it isn\u2019t found. This implements the Knuth\u2011Morris\u2011Pratt string\u2011matching algorithm.",
+  "score": 0,
+  "cost": 3.285e-05,
+  "expected": "",
+  "tokens": {
+    "input": 194,
+    "output": 171
+  }
+}

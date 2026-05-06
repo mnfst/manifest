@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This `partition` function splits an input iterable into two disjoint filtered iterators using `itertools.tee` to create two independent copies of the original iterable: the first returned iterator yields every element that satisfies the provided predicate via `filter`, while the second uses `itertools.filterfalse` to return only elements that fail the predicate.",
+  "score": 0,
+  "cost": 0.00021419999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 505
+  }
+}

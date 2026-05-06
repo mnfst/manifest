@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "March's onboarding satisfaction declined to 7.2/10 due to delayed tool access, confusion over benefits deadlines, and missing culture handbooks. Lisa has prioritized fixing the tool access process to meet the one-day target while resolving the remaining communication and material gaps.",
+  "score": 0,
+  "cost": 0.0014534,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 1088
+  }
+}

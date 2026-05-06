@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "Marine waters worldwide.",
+  "score": 0,
+  "cost": 6.3e-05,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 350,
+    "output": 70
+  }
+}

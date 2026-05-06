@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law of Motion.",
+  "score": 0,
+  "cost": 0.00031240000000000006,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 458,
+    "output": 276
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code defines a Python decorator named `retry` that implements an exponential backoff retry pattern for handling exceptions in decorated functions. It attempts to execute the function up to `max_attempts` times (default 3), catching any exception on failure and pausing for a delay that doubles exponentially (`delay * 2^i` seconds, where `i` starts at 0) before each retry, before re-raising the exception on the final failure.",
+  "score": 0,
+  "cost": 0.000361,
+  "expected": "",
+  "tokens": {
+    "input": 261,
+    "output": 386
+  }
+}

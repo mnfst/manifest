@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an LRU (Least Recently Used) cache using Python's `OrderedDict` to maintain insertion order. The `get` method retrieves values and moves accessed items to the end (marking them as recently used), while the `put` method adds new items and removes the least recently used item (from the beginning) when the cache exceeds its capacity.",
+  "score": 0,
+  "cost": 9.746e-05,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 75
+  }
+}

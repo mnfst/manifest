@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, the feuding houses of Montague and Capulet breed endless strife. At a Capulet ball, young Romeo Montague falls instantly in love with Juliet Capulet. They secretly marry with Friar Laurence's aid, but tragedy strikes when Tybalt kills Romeo's friend Mercutio, prompting Romeo to slay Tybalt and face banishment. Desperate to avoid marrying Paris, Juliet takes a potion to feign death. Believing her truly dead, Romeo poisons himself at her tomb; awakening, Juliet stabs herself in grief. The lovers' deaths reconcile their families.",
+  "score": 0,
+  "cost": 0.00028460000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 312
+  }
+}

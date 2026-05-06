@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Q1 customer success metrics demonstrate strong performance with improved satisfaction scores, reduced churn, and $800K in pending enterprise expansions. The team should prioritize developing the top-requested features (SSO, custom dashboards, and API limits) while actively advancing the three expansion deals.",
+  "score": 0,
+  "cost": 0.00175825,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 1321
+  }
+}

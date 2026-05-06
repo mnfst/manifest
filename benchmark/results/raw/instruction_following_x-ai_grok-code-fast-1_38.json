@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Invalid username or password. Please try again.",
+  "score": 0,
+  "cost": 0.00019520000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 220,
+    "output": 189
+  }
+}

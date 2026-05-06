@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "Engineering currently has four open roles with 23 candidates in the pipeline, but the frontend position has been vacant for 60 days due to a lack of strong applicants. To resolve this bottleneck, recruiting recommends expanding the search to remote candidates or adjusting the compensation band.",
+  "score": 0,
+  "cost": 0.001534325,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 1154
+  }
+}

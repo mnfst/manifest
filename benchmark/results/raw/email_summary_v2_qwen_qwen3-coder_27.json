@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint retrospective identified successes in shipping the auth redesign on time and strong cross-team collaboration, while noting issues with excessive context switching and lengthy standups. Action items include limiting work-in-progress to 2 items per developer and implementing timeboxed standups with a parking lot for extended discussions.",
+  "score": 0,
+  "cost": 7.436e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 57
+  }
+}

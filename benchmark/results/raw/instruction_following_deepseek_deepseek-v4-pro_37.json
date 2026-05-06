@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes like a slow, velvet dusk settling over the tongue\u2014a deep, bittersweet darkness folding into creamy warmth, as if night itself melted into a whispered promise.",
+  "score": 0,
+  "cost": 0.000271875,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 152
+  }
+}

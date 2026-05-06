@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Subject: Farewell and Best Wishes\n\nDear Team,\n\nAs I prepare to leave the company, I wanted to take a moment to express my heartfelt gratitude for the incredible support and collaboration we've shared over the years. Working alongside such talented and dedicated professionals has been one of the highlights of my career, and I'm grateful for all the memories we've created together. While I'm excited for my next adventure, I'll truly miss our daily interactions, brainstorming sessions, and the camaraderie that made coming to work each day so enjoyable. Please stay in touch \u2013 I'd love to hear about your future successes and projects, and I hope our paths cross again soon. Wishing you all continued success, happiness, and fulfillment in your professional and personal endeavors.\n\nBest regards,\n[Your Name]",
+  "score": 0,
+  "cost": 0.00014696000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 162
+  }
+}

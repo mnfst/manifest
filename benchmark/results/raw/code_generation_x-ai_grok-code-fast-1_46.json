@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 46,
+  "response": "if not arr:\n    return []\nsmallest_even = float('inf')\nindex = -1\nfor i, num in enumerate(arr):\n    if num % 2 == 0 and num < smallest_even:\n        smallest_even = num\n        index = i\nif index == -1:\n    return []\nreturn [smallest_even, index]",
+  "score": 0,
+  "cost": 0.0005338000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 537,
+    "output": 533
+  }
+}

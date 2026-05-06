@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**The Spice Route: A Flavorful Journey**\n\nTucked away in a quiet corner of the city, The Spice Route is a hidden gem that will transport your taste buds on a culinary adventure around the world. This cozy restaurant, with its warm and inviting atmosphere, is a must-visit for anyone looking to spice up their dining routine.\n\nUpon entering, you're greeted by the aroma of exotic spices and the sound of sizzling pans. The menu is a reflection of the restaurant's name, featuring a diverse array of dishes inspired by the flavors of India, Southeast Asia, and the Middle East. From the creamy, slow-cooked curries to the bold, aromatic street food, every dish is a testament to the chef's skill and creativity.\n\nWe started with the Papri Chaat, a delightful street food snack from India, consisting of crispy fried bread, boiled potatoes, and chickpeas, all topped with a tangy yogurt sauce. The flavors were complex and refreshing, and the portion was generous. For our main courses, we opted for the Massaman Lamb Curry and the Pan-Seared Salmon with a fragrant Thai red curry sauce. Both dishes were cooked to perfection, with the lamb falling apart tenderly and the salmon flaking beautifully.\n\nThe service was attentive and knowledgeable, with our server happy to guide us through the menu and make recommendations. The prices were reasonable, with most main courses falling in the $15-$25 range.\n\nOverall, we were thoroughly impressed with The Spice Route, and would highly recommend it to anyone looking for a flavorful and authentic dining experience. With its creative menu, warm atmosphere, and excellent service, this restaurant is a true gem.\n\n**Rating: 4.5/5 stars**\n\nThe only deduction from a perfect score was the slightly slow service during peak hours, but this was a minor quibble in an otherwise exceptional dining experience. We can't wait to return and try more of the menu!",
+  "score": 0,
+  "cost": 0.00023805,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 390
+  }
+}

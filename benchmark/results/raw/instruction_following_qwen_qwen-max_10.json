@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave,\nWho'd debug till the break of the wave.\nWith his screen in the night,\nHe'd code with pure might,\nTill the software behaved well and gave.",
+  "score": 0,
+  "cost": 0.00019031999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 41
+  }
+}

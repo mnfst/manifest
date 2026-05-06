@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "The code implements the **Union-Find (Disjoint Set Union)** data structure, returning optimized `find` and `union` operations that use **path compression** and **union by rank** to efficiently manage disjoint sets.",
+  "score": 0,
+  "cost": 0.00031711500000000003,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 143
+  }
+}

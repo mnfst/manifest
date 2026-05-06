@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "The ocean waves crash endlessly.",
+  "score": 0,
+  "cost": 0.00016760000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 156
+  }
+}

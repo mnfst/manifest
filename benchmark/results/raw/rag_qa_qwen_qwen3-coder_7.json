@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "When an external force acts on the system, the center of mass will experience an acceleration proportional to the magnitude of the external force divided by the mass of the system.\n\nAnswer: The magnitude of force is divided by the mass of the system.",
+  "score": 0,
+  "cost": 7.964e-05,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 166,
+    "output": 49
+  }
+}

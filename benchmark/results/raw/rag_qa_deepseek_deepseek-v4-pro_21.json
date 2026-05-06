@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Not found in context.",
+  "score": 0,
+  "cost": 0.000306675,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 201,
+    "output": 126
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "TCP (Transmission Control Protocol) and UDP (User Datagram Protocol) are the two most common transport-layer protocols in the IP suite. They both send data over the internet, but they do so in fundamentally different ways, trading off reliability for speed and simplicity.\n\nHere\u2019s a side-by-side comparison:\n\n| Feature | TCP | UDP |\n|---------|-----|-----|\n| **Connection type** | Connection-oriented \u2013 a connection is established before data transfer (three-way handshake). | Connectionless \u2013 data is sent without establishing a connection. |\n| **Reliability** | Reliable \u2013 guarantees delivery of data in the correct order. Lost packets are retransmitted. | Unreliable \u2013 no guarantee of delivery, ordering, or duplicate protection. |\n| **Ordering** | Maintains strict ordering of data segments. | No ordering \u2013 packets may arrive out of sequence. |\n| **Error checking** | Extensive error checking and recovery mechanisms (checksums, acknowledgements, retransmission). | Basic error checking via a checksum (optional in IPv4, mandatory in IPv6), but no recovery. |\n| **Flow control** | Yes \u2013 uses sliding window and congestion control to avoid overwhelming the receiver/network. | No built-in flow or congestion control. |\n| **Speed & overhead** | Slower due to connection setup, acknowledgements, and retransmissions. Higher header overhead (20 bytes). | Faster, lightweight, minimal overhead (8-byte header). |\n| **Data boundary** | Stream-oriented \u2013 data is a continuous stream of bytes without message boundaries. | Message-oriented \u2013 each send corresponds to a distinct datagram, preserving boundaries. |\n| **Broadcast / Multicast** | Not supported \u2013 only unicast (one-to-one). | Supports broadcast and multicast (one-to-many). |\n| **Typical use cases** | Web browsing (HTTP/HTTPS), email (SMTP, IMAP), file transfers (FTP), remote administration (SSH). | Real-time streaming (VoIP, video conferencing), online gaming, DNS queries, DHCP, live broadcasts. |\n|",
+  "score": 0,
+  "cost": 0.00087609,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 500
+  }
+}

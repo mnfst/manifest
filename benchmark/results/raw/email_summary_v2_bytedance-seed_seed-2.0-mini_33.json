@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The People Team shared the results of the Q1 employee engagement survey, which found an overall engagement score of 7.8/10, above the industry average of 7.2, with team collaboration ranking highest at 8.9/10 and career growth clarity as the lowest-scoring category at 6.1/10. To address the low career growth clarity score, three proposed actions\u2014quarterly career conversations, an internal mobility program, and mentorship matching\u2014will be discussed at a Friday town hall.",
+  "score": 0,
+  "cost": 0.00032070000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 761
+  }
+}

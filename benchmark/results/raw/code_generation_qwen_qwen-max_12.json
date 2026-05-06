@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 12,
+  "response": "return [s for s in strings if substring in s]",
+  "score": 0,
+  "cost": 0.00018512000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 13
+  }
+}

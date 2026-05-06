@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Based on the provided context, France offered full citizenship rights ('assimilation') to its colonial subjects, which was rare by imperial standards. The text notes that this was \"contrasting from Britain, France sent small numbers of settlers to its colonies,\" implying that offering full citizenship rights while maintaining minimal settler presence was unusual compared to other imperial powers.",
+  "score": 0,
+  "cost": 0.00010164,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 178,
+    "output": 71
+  }
+}

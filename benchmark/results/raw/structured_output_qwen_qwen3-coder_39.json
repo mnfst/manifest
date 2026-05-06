@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "structured_output",
+  "case": 39,
+  "response": "```json\n{\n  \"build_number\": 4521,\n  \"branch\": \"feature/auth-v2\",\n  \"status\": \"failed\",\n  \"failed_stage\": \"test\",\n  \"duration\": \"8m 32s\",\n  \"tests\": {\n    \"passed\": 247,\n    \"failed\": 3,\n    \"skipped\": 0\n  },\n  \"trigger\": \"push\",\n  \"author\": \"alice\"\n}\n```",
+  "score": 0,
+  "cost": 0.00011857999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 100
+  }
+}

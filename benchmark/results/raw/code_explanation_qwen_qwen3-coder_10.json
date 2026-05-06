@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This code implements the Sieve of Eratosthenes algorithm to find all prime numbers up to `n`. It works by initializing a boolean array where each index represents whether that number is prime, then iteratively marking multiples of each prime number as composite (not prime), starting from the square of each prime.",
+  "score": 0,
+  "cost": 8.536e-05,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 63
+  }
+}

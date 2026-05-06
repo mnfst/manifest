@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 31,
+  "response": "filtered = [s for s in lst if len(s) % 2 == 0]\n    return sorted(filtered, key=lambda s: (len(s), s))",
+  "score": 0,
+  "cost": 0.00047339999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 367,
+    "output": 500
+  }
+}

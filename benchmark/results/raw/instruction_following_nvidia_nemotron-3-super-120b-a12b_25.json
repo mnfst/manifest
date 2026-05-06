@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Project Sync: Aligning Goals for Q4 Launch",
+  "score": 0,
+  "cost": 1.2059999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 102
+  }
+}

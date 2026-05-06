@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "The March cohort's onboarding satisfaction dropped to 7.2/10 from 8.1, with positives including the buddy system and timely IT support, but issues like confusion over benefits deadlines, delayed tools access (3-5 days instead of 1), and missing culture handbooks. The priority action is to fix tools access.",
+  "score": 0,
+  "cost": 0.000265,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 254
+  }
+}

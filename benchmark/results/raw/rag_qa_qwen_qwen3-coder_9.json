@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "Based on the provided context, the high end of the temperature range in winter is 70 degrees. The context states that \"winters are 70-50's\" for temperature ranges in Southern California.",
+  "score": 0,
+  "cost": 7.128e-05,
+  "expected": "70",
+  "tokens": {
+    "input": 148,
+    "output": 44
+  }
+}

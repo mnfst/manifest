@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "A critical SQL injection vulnerability (CVSS 9.8) has been identified in the /api/v2/auth/login endpoint, affecting versions 3.2.0 to 3.4.1, and a patch is available for review. The recommended action is to apply a hotfix within 24 hours by parameterizing the query in auth_controller.py at line 142.",
+  "score": 0,
+  "cost": 6.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 78
+  }
+}

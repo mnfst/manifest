@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 4,
+  "response": "is_inc = all(l[i] <= l[i+1] for i in range(len(l)-1))\n    is_dec = all(l[i] >= l[i+1] for i in range(len(l)-1))\n    return is_inc or is_dec",
+  "score": 0,
+  "cost": 0.0007516000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 262,
+    "output": 874
+  }
+}

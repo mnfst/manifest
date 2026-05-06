@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The late July thunderstorm rolled in slow, swallowing the last of the golden afternoon light one gray bank at a time. I\u2019d been perched on the splintered wooden porch rail, fanning myself with a crumpled grocery bag, when the first hint of it pricked my senses: the thick, cloying heat suddenly shifted, thickening into something that stuck to my skin like wet linen, every breath a labored drag of wilted clover and sunbaked asphalt.\n\nThen came the sound\u2014low, rumbled, not from a truck or a lawnmower, but the sky itself, a deep, resonant growl that vibrated through the porch posts and made the loose nail on my boot jingle. A split second later, a lightning bolt split the western sky: searing white that turned the oak tree at the end of the driveway a ghostly, silvery blue, casting long, sharp shadows of its gnarled branches across the overgrown lawn before everything went dark again. I flinched, knocking my half-empty lemonade off the rail; it spilled across the wood, sweet citrus sticky on my wrist, just as the first raindrops slammed down.\n\nThe first drops were cold, hard, stinging the back of my neck as I darted inside, but they were soon joined by a deluge, fat and heavy, pounding the tin roof above the kitchen window with a rhythm so loud it drowned out the distant thunder that rolled closer, deeper each time. The air outside shifted again, suddenly thick with that familiar petrichor tang, the way dry garden soil wakes up and releases its earthy sweetness when the rain hits it. I pressed my palm to the fogging glass, watching as the street turned into a sheet of glistening black, puddles bubbling where each raindrop struck, tiny craters popping up across the pavement.\n\nWhen the storm peaked, the lightning came faster now, jagged forks of pink and purple that lit up the room for half a heartbeat before the thunder cracked so loud it made the dishes rattle in the cabinet under the sink. I leaned in closer to the window, and a gust of wind blew rain against the glass, carrying that sharp, clean metallic taste on my breath\u2014raindrops that had collected the dust and ozone from high up in the atmosphere, cool and sharp on my tongue when I accidentally breathed a mouthful through the cracked window screen.\n\nBy",
+  "score": 0,
+  "cost": 0.0010649,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 2647
+  }
+}

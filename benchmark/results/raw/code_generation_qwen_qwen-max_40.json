@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "code_generation",
+  "case": 40,
+  "response": "import math\n\ncube_root = round(a ** (1/3))\n\nreturn cube_root**3 == a",
+  "score": 0,
+  "cost": 0.0002392,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 21
+  }
+}

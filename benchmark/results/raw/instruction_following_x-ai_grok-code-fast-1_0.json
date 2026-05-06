@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- Improves cardiovascular health by strengthening the heart and reducing the risk of heart disease.\n- Enhances mental well-being by reducing stress, anxiety, and depression through the release of endorphins.\n- Supports weight management by burning calories and building muscle, helping to maintain a healthy body composition.",
+  "score": 0,
+  "cost": 0.00023440000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 216,
+    "output": 239
+  }
+}

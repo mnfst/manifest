@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_generation",
+  "case": 26,
+  "response": "```python\nl.sort()\nfor i in range(len(l) - 2):\n    if i > 0 and l[i] == l[i - 1]:\n        continue\n    left, right = i + 1, len(l) - 1\n    while left < right:\n        total = l[i] + l[left] + l[right]\n        if total < 0:\n            left += 1\n        elif total > 0:\n            right -= 1\n        else:\n            return True\nreturn False\n```",
+  "score": 0,
+  "cost": 0.0001065,
+  "expected": "",
+  "tokens": {
+    "input": 262,
+    "output": 112
+  }
+}

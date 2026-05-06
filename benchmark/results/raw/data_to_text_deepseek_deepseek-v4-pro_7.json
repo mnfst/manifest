@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "data_to_text",
+  "case": 7,
+  "response": "Apple (AAPL) shares are trading at $185.50, up 2.3% on the day with a volume of 45 million shares. The company, which has a market capitalization of $2.87 trillion and a price-to-earnings ratio of 28.4, offers a 0.55% dividend yield and has traded between a 52-week low of $155 and a high of $198.",
+  "score": 0,
+  "cost": 0.0007090499999999999,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 382
+  }
+}

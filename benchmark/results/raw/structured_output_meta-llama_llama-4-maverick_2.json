@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "structured_output",
+  "case": 2,
+  "response": "To extract the required information and format it according to the given schema, we will parse the provided text.\n\n1. **Product Name**: The product name is \"iPhone 15 Pro\".\n2. **Price**: The price is given as \"$999\". To fit the schema, we need to convert this to a float, so we remove the dollar sign, resulting in `999.0`.\n3. **Colors**: The colors available are \"black titanium\", \"white titanium\", and \"blue titanium\".\n4. **Storage Options**: The storage options are \"128GB\", \"256GB\", \"512GB\", and \"1TB\".\n\nNow, let's format this information into the required JSON schema:\n\n```json\n{\n  \"product\": \"iPhone 15 Pro\",\n  \"price\": 999.0,\n  \"colors\": [\"black titanium\", \"white titanium\", \"blue titanium\"],\n  \"storage_options\": [\"128GB\", \"256GB\", \"512GB\", \"1TB\"]\n}\n```\n\nHere's a Python code snippet that accomplishes this task:\n\n```python\nimport json\nimport re\n\ndef extract_info(text):\n    # Regular expressions to extract the required information\n    product_match = re.search(r'Product: (.+?),', text)\n    price_match = re.search(r'price \\$(\\d+)', text)\n    colors_match = re.search(r'colors: (.+?)\\. Storage:', text)\n    storage_match = re.search(r'Storage: (.+)', text)\n\n    if product_match and price_match and colors_match and storage_match:\n        product = product_match.group(1)\n        price = float(price_match.group(1))\n        colors = [color.strip() for color in colors_match.group(1).split(',')]\n        storage_options = [storage.strip() for storage in storage_match.group(1).split(',')]\n\n        info = {\n            \"product\": product,\n            \"price\": price,\n            \"colors\": colors,\n            \"storage_options\": storage_options\n        }\n\n        return json.dumps(info, indent=2)\n    else:\n        return \"Failed to extract information.\"\n\ntext = \"Product: iPhone 15 Pro, price $999, colors: black titanium, white titanium, blue titanium. Storage: 128GB, 256GB, 512GB, 1TB\"\nprint(extract_info(text))\n```\n\nThis code defines a function `extract_info` that takes the input text, extracts the necessary",
+  "score": 0,
+  "cost": 0.0003144,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 500
+  }
+}

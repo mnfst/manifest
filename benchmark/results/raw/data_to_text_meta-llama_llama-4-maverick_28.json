@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "Here is a natural language paragraph summarizing the key data points:\n\nThe Massachusetts Institute of Technology (MIT), founded in 1861, is the #1 ranked university with a highly selective acceptance rate of 3.9% among its 11,500 students. With a faculty of 1,069 and a notable count of 98 Nobel laureates, MIT is a prestigious institution that comes with a hefty price tag of $57,590 per year. The university is backed by a substantial endowment of $24.6 billion.",
+  "score": 0,
+  "cost": 7.965000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 107
+  }
+}

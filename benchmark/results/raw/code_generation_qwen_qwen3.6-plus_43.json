@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 43,
+  "response": "result = []\n    for i, n in enumerate(numbers):\n        result.append(n)\n        if i < len(numbers) - 1:\n            result.append(delimeter)\n    return result",
+  "score": 0,
+  "cost": 0.004446650000000001,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 3387
+  }
+}

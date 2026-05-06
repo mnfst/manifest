@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "anaerobic bacteria",
+  "score": 0,
+  "cost": 0.000225,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 349,
+    "output": 194
+  }
+}

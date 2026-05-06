@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "* A two-vehicle collision occurred at the intersection of Main St and Oak Ave on a rainy evening.\n* Vehicle 1, a sedan, failed to stop at a red light and collided with Vehicle 2, a truck, causing significant damage to both vehicles.\n* There were no reported fatalities, but two occupants of Vehicle 1 were taken to the hospital with minor injuries for treatment.",
+  "score": 0,
+  "cost": 6.15e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 80
+  }
+}

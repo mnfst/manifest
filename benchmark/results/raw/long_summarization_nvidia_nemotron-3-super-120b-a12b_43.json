@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "long_summarization",
+  "case": 43,
+  "response": "The EU\u2019s General Data Protection Regulation (GDPR), effective May\u202f2018, applies to any organization processing the personal data of EU residents and grants rights such as access, erasure, portability, and explicit consent, while mandating Data Protection Officers for large\u2011scale processing and 72\u2011hour breach notifications. Violations can incur fines of up to 4\u202f% of global annual revenue or \u20ac20\u202fmillion, with notable penalties including a \u20ac1.2\u202fbillion fine against Meta in 2023, \u20ac746\u202fmillion for Amazon, and over \u20ac200\u202fmillion for Google. GDPR has inspired similar privacy laws worldwide (e.g., California\u2019s CCPA, Brazil\u2019s LGPD, India\u2019s DPDP Act) but faces criticism for imposing heavy compliance costs on small firms, generating user fatigue with cookie banners, and uneven enforcement across member states. Despite these challenges, it has cemented data privacy as a fundamental right and set the global benchmark for data\u2011protection legislation.",
+  "score": 0,
+  "cost": 5.283e-05,
+  "expected": "",
+  "tokens": {
+    "input": 339,
+    "output": 248
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "structured_output",
+  "case": 9,
+  "response": "{\"title\": \"Introduction to Machine Learning\", \"instructor\": \"Dr. Sarah Chen\", \"duration_weeks\": 12, \"prerequisites\": [\"Linear Algebra\", \"Python\"], \"level\": \"Intermediate\"}",
+  "score": 0,
+  "cost": 0.0002108,
+  "expected": "",
+  "tokens": {
+    "input": 238,
+    "output": 204
+  }
+}

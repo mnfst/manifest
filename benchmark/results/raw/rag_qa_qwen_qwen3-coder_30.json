@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne is called the sporting capital of Australia.",
+  "score": 0,
+  "cost": 6.578e-05,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 259,
+    "output": 10
+  }
+}

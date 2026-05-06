@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "code_generation",
+  "case": 21,
+  "response": "even_count = 0\n    odd_count = 0\n    for i in range(1, n + 1):\n        s = str(i)\n        if s == s[::-1]:\n            if i % 2 == 0:\n                even_count += 1\n            else:\n                odd_count += 1\n    return (even_count, odd_count)",
+  "score": 0,
+  "cost": 0.00040760000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 390,
+    "output": 412
+  }
+}

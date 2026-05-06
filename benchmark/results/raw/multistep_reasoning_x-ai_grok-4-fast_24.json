@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "D\n\n## Explanation\n\nThe reasoning begins by defining key rock types to clarify the question. Igneous rocks form from the cooling of molten material, with extrusive igneous rocks cooling rapidly on Earth's surface, such as basalt or rhyolite, often associated with volcanic activity. Intrusive igneous rocks, by contrast, cool slowly beneath the surface, like granite, making option A incompatible.\n\nNext, the process eliminates other options: Clastic sedimentary rocks form from compacted fragments of pre-existing rocks, such as sandstone, which differs from igneous origins (option B). Metamorphic rocks result from heat and pressure altering existing rocks, like marble, ruling out option C.\n\nThe analysis then identifies that extrusive igneous rocks are specifically those formed from lava eruptions, which aligns directly with the term \"volcanic.\" Thus, option D is accurate, as \"volcanic\" serves as a synonymous descriptor for extrusive igneous rocks in geological contexts.",
+  "score": 5,
+  "cost": 0.00037160000000000003,
+  "expected": "D",
+  "tokens": {
+    "input": 230,
+    "output": 407
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "Hassan al-Turabi",
+  "score": 0,
+  "cost": 5.15e-05,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 195,
+    "output": 80
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "This customer workshop recap email from Sales shares key takeaways from yesterday\u2019s session with 15 enterprise customers, including that 8 attendees requested improved bulk import functionality, SSO blockers created issues for 5 accounts, positive feedback on the new analytics dashboard, and a surprise finding that three customers want the company\u2019s internal tool as a standalone product.\nThe email also includes an attached follow-up report that summarizes all workshop insights for recipient review.",
+  "score": 0,
+  "cost": 0.000526,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 1276
+  }
+}

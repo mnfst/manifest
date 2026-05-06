@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "The email announces the rollback of release v4.2 due to a data corruption bug in the new sync engine that affected 23 accounts. The recovery plan includes restoring from a pre-release backup, re-running affected transactions, notifying impacted customers, and a hotfix branch has been created.",
+  "score": 0,
+  "cost": 0.000234,
+  "expected": "",
+  "tokens": {
+    "input": 298,
+    "output": 218
+  }
+}

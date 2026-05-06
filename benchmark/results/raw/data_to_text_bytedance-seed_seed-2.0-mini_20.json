@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "data_to_text",
+  "case": 20,
+  "response": "Your reservation is for American Airlines flight AA 1234, which travels between JFK International Airport and Los Angeles International Airport, with a scheduled 08:30 departure, 11:45 arrival, and a total flight duration of 5 hours and 15 minutes aboard a Boeing 787 aircraft. This economy-class ticket costs $289, and the route has an 82% on-time performance rate for all scheduled flights.",
+  "score": 0,
+  "cost": 0.0005816,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 1416
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a stack that supports constant-time retrieval of the minimum element using the two-stack pattern: a main stack stores all values, while a parallel `min_stack` records the running minimum at each level by pushing the minimum between the new value and the previous top of `min_stack`. On pop, both stacks are popped in sync, and `get_min` simply returns the top of `min_stack`.",
+  "score": 0,
+  "cost": 0.000548535,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 286
+  }
+}

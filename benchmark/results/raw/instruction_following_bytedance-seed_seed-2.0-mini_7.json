@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Beat 2 large eggs with a pinch of salt and pepper. Melt butter in a low-heat nonstick pan, pour in eggs, stir gently until soft curds form. Remove before fully set, serve warm immediately.",
+  "score": 0,
+  "cost": 0.0001745,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 420
+  }
+}

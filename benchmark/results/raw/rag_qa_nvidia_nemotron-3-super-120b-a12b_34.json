@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Infinitely many primes.",
+  "score": 0,
+  "cost": 3.4649999999999995e-05,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 257,
+    "output": 128
+  }
+}

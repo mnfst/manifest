@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The email notifies that the year-end audit begins on January 15 and outlines a pre-audit checklist requiring the team to finalize Q4 revenue recognition, reconcile all bank accounts, verify stock option records, and prepare related-party transaction disclosures. A controller meeting is scheduled for next Tuesday to assign responsibilities for these tasks.",
+  "score": 0,
+  "cost": 0.00023200000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 244,
+    "output": 229
+  }
+}

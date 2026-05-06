@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen-max",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Subject: Farewell and Thank You\n\nDear Team,\n\nI wanted to reach out and say goodbye as I embark on my next journey. It's been an incredible experience working alongside such talented and supportive individuals, and I will cherish the memories and lessons shared. I am truly grateful for the opportunities and the friendships formed here, and I look forward to staying in touch.\n\nWishing you all the best in your future endeavors.\n\nWarm regards,\n\n[Your Name]",
+  "score": 0,
+  "cost": 0.00039936,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 91
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 39,
+  "response": "### Step 1: Recall relative masses of the particles\n1.  **Electrons**: Have a negligible mass (~1/1836 the mass of a proton/neutron, ~9.11\u00d710\u207b\u00b3\u00b9 kg compared to ~1.67\u00d710\u207b\u00b2\u2077 kg for protons/neutrons).\n2.  **Protons/Neutrons**: Each has a mass roughly 1800 times larger than an electron.\n3.  **Atomic nucleus**: Contains nearly all of an atom's total mass, so losing a nucleus would remove an enormous amount of mass.\n\n### Step 2: Evaluate each option\n-   Option A (proton): Removes ~1.67\u00d710\u207b\u00b2\u2077 kg of mass, far more than an electron.\n-   Option B (neutron): Same approximate mass as a proton, so also a large mass loss.\n-   Option C (nucleus): Removes the vast majority of the atom's total mass.\n-   Option D (electron): Removes the smallest amount of mass by orders of magnitude compared to the other choices.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.00026230000000000003,
+  "expected": "D",
+  "tokens": {
+    "input": 119,
+    "output": 626
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "They can escape from danger by clapping their lobes, so that the jet of expelled water drives them backwards very quickly.",
+  "score": 0,
+  "cost": 0.000152,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 316,
+    "output": 301
+  }
+}

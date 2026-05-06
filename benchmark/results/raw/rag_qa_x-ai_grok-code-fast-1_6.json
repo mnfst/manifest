@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "Article 294 of the TFEU.",
+  "score": 0,
+  "cost": 0.0002546,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 593,
+    "output": 170
+  }
+}

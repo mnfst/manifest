@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "## The Clockwork Sparrow: Where Time Slows Down (and the Scones Are Divine)\n\nTucked down a cobblestone alley behind a shuttered bookstore in the rain-kissed district of Oakhaven, *The Clockwork Sparrow* isn\u2019t easy to find\u2014but oh, it\u2019s worth the hunt. You won\u2019t see a neon sign; instead, a small, brass sp",
+  "score": 0,
+  "cost": 4.7969999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 500
+  }
+}

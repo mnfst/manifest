@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "structured_output",
+  "case": 4,
+  "response": "{\"error_code\": 503, \"message\": \"Service Unavailable\", \"timestamp\": \"2024-01-15T14:30:00Z\", \"endpoint\": \"/api/v2/users\", \"server\": \"prod-west-2\", \"retry_after_seconds\": 30}",
+  "score": 0,
+  "cost": 0.00027360000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 300,
+    "output": 267
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "**Dijkstra's Algorithm Implementation**\n\nThe given code implements Dijkstra's algorithm to find the shortest distances from a specified `start` node to all other nodes in a weighted graph. It utilizes a priority queue to efficiently explore nodes in order of their minimum distance from the start node.",
+  "score": 0,
+  "cost": 5.6099999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 57
+  }
+}

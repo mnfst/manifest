@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "C) evaporation",
+  "score": 5,
+  "cost": 0.000176175,
+  "expected": "C",
+  "tokens": {
+    "input": 65,
+    "output": 85
+  }
+}

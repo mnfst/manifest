@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan, home to 125 million people, boasts a $4.2 trillion economy that grew by 1.1% with low unemployment of 2.6% and inflation running at 3.2%. The nation carries a debt-to-GDP ratio of 263% and exports $756 billion worth of goods, while its citizens enjoy a life expectancy of 84.6 years.",
+  "score": 0,
+  "cost": 0.000537225,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 284
+  }
+}

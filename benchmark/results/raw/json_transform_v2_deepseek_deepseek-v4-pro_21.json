@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "json_transform_v2",
+  "case": 21,
+  "response": "",
+  "score": 0,
+  "cost": 0.000933075,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 500
+  }
+}

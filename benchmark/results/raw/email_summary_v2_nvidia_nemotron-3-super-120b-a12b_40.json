@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "We need to summarize email in exactly 2 sentences, capturing main point and any action items. Email: OKR scores: Engineering 0.7 (target 0.7), Product 0.6 (target 0.7), Sales 0.9 (target 0.7), Support 0.8 (target 0.7). Product missed due to delayed AI feature. Recommend: carry forward AI OKR with increased allocation. Next quarter planning starts Monday. - Ops\n\nMain point: OKR review shows most teams met targets except Product due to delayed AI feature. Action items: carry forward AI OKR with increased allocation; next quarter planning starts Monday.\n\nWe need exactly 2 sentences. Could be: \"The quarterly OKR review shows Engineering, Sales, and Support met or exceeded their targets, while Product fell short at 0.6 due to a delayed AI feature.\" Second sentence: \"It is recommended to carry forward the AI OKR with",
+  "score": 0,
+  "cost": 2.997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 200
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "multistep_reasoning",
+  "case": 18,
+  "response": "Let's work through this step-by-step:\n1.  First, recall that tadpoles are fully aquatic larvae that undergo metamorphosis to become semi-terrestrial juvenile frogs/toads. A shortened metamorphosis would let them transition to land faster.\n2.  **Option A**: Tadpoles already swim as larvae; a shortened metamorphosis would not help them swim immediately, so this is incorrect.\n3.  **Option B**: If water is limited (e.g., a drying pond), faster metamorphosis allows tadpoles to move to land before their aquatic habitat evaporates and they die. This makes this adaptation highly useful.\n4.  **Option C**: Fewer predators would remove pressure to rush metamorphosis; tadpoles could instead grow larger before transitioning, so this is incorrect.\n5.  **Option D**: Camouflage (blending in with surroundings) is unrelated to the duration of metamorphosis, so this is incorrect.\n\nB",
+  "score": 5,
+  "cost": 0.00020310000000000003,
+  "expected": "B",
+  "tokens": {
+    "input": 159,
+    "output": 468
+  }
+}

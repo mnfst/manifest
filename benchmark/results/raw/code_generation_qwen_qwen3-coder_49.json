@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "code_generation",
+  "case": 49,
+  "response": "```python\n    if not string:\n        return ''\n    \n    # Find the longest palindromic suffix\n    for i in range(len(string)):\n        if string[i:] == string[i:][::-1]:\n            # Found the longest palindromic suffix\n            # Append the reverse of the prefix to make it a palindrome\n            prefix = string[:i]\n            return string + prefix[::-1]\n    \n    # If no palindromic suffix found (shouldn't happen for non-empty strings)\n    return string + string[:-1][::-1]\n```",
+  "score": 0,
+  "cost": 0.00014146,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 117
+  }
+}

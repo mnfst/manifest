@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law of Motion",
+  "score": 0,
+  "cost": 2.52e-05,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 273,
+    "output": 7
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Northeast border",
+  "score": 0,
+  "cost": 0.0003082,
+  "expected": "northeast",
+  "tokens": {
+    "input": 361,
+    "output": 295
+  }
+}

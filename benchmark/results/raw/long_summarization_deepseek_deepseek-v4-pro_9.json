@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "long_summarization",
+  "case": 9,
+  "response": "Quantum computing uses qubits that can exist in superposition and entanglement to achieve exponential speedups on certain problems, as highlighted by Google's 2019 claim of performing a 200-second calculation that would take a classical supercomputer 10,000 years. Current devices hold only 100\u20131,000 qubits, yet fragile qubits demand near-absolute-zero cooling and suffer high error rates, requiring extensive error correction that pushes practical utility toward needing millions of qubits. Major players like IBM, Google, and startups are pursuing varied hardware technologies, but the field remains far from large-scale fault-tolerant machines while showing early potential in drug discovery, materials science, and optimization.",
+  "score": 0,
+  "cost": 0.001043565,
+  "expected": "",
+  "tokens": {
+    "input": 267,
+    "output": 533
+  }
+}

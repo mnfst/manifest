@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous, bounded producer-consumer queue that uses `asyncio` futures to suspend and resume coroutines when the queue is full or empty. It employs a deque-backed buffer with explicit waiter queues (`_getters` and `_putters`) to efficiently coordinate async producers and consumers, providing backpressure and event-driven signaling without busy-waiting.",
+  "score": 0,
+  "cost": 0.00100165,
+  "expected": "",
+  "tokens": {
+    "input": 234,
+    "output": 712
+  }
+}

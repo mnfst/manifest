@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "code_generation",
+  "case": 37,
+  "response": "return (a * h) / 2",
+  "score": 0,
+  "cost": 0.000179,
+  "expected": "",
+  "tokens": {
+    "input": 275,
+    "output": 155
+  }
+}

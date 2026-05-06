@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has attached a draft of the Q1 board deck, highlighting key metrics such as revenue, NRR, and CAC, and is seeking input on the document. The CEO needs the recipient's section on product roadmap by Wednesday in preparation for the board meeting next Tuesday.",
+  "score": 0,
+  "cost": 4.635e-05,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 55
+  }
+}

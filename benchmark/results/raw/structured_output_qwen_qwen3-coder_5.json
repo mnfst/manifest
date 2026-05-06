@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "structured_output",
+  "case": 5,
+  "response": "```json\n{\n  \"name\": \"Spaghetti Carbonara\",\n  \"servings\": 4,\n  \"prep_time_minutes\": 25,\n  \"ingredients\": [\n    {\"item\": \"spaghetti\", \"amount\": \"400g\"},\n    {\"item\": \"guanciale\", \"amount\": \"200g\"},\n    {\"item\": \"eggs\", \"amount\": \"4\"},\n    {\"item\": \"pecorino\", \"amount\": \"100g\"},\n    {\"item\": \"black pepper\", \"amount\": \"\"}\n  ]\n}\n```",
+  "score": 0,
+  "cost": 0.00013068000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 120
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "json_transform_v2",
+  "case": 3,
+  "response": "{\n  \"product\": \"Widget Pro\",\n  \"avg_rating\": 3.8,\n  \"review_count\": 5,\n  \"rating_distribution\": {\n    \"1\": 0,\n    \"2\": 1,\n    \"3\": 1,\n    \"4\": 1,\n    \"5\": 2\n  }\n}",
+  "score": 0,
+  "cost": 9.768000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 71
+  }
+}

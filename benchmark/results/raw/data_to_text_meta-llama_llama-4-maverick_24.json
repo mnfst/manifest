@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "data_to_text",
+  "case": 24,
+  "response": "The patient is a 45-year-old female with a BMI of 27.3, indicating she is overweight. Her blood pressure is elevated at 138/88, and she has a cholesterol level of 225 mg/dL and a fasting glucose level of 110 mg/dL, which are both borderline high. She is a non-smoker, exercises moderately (2 times a week), and has a family history of diabetes, with her mother being affected.",
+  "score": 0,
+  "cost": 8.190000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 95
+  }
+}

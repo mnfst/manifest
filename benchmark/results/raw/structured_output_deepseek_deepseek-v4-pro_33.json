@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "structured_output",
+  "case": 33,
+  "response": "{\"username\": \"techguru42\", \"joined_year\": 2020, \"followers\": \"1.2K\", \"following\": 890, \"posts\": 342, \"verified\": true, \"bio\": \"Building the future of AI\"}",
+  "score": 0,
+  "cost": 0.0007529849999999999,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 407
+  }
+}

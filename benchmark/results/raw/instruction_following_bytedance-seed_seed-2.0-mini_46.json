@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "It is with a mix of quiet sadness and bright excitement that I\u2019m reaching out to share that I will be leaving my role as Content Lead at BrightScribe Media at the end of this month to move abroad and launch my own freelance content strategy business.\nOver the past four years, I\u2019ve treasured every impromptu desk coffee breaks, our chaotic annual holiday potlucks, and the way we all rallied together to hit tight launch deadlines month after month.\nI will spend the next two weeks wrapping up my ongoing client projects, documenting all my standard workflows, and training my teammate Priya to take over my responsibilities so the team can shift smoothly without any disruptions.\nYou can stay in touch with me via my personal email: jamie.ryan@gmail.com, or connect with me on LinkedIn where I\u2019ll post updates about my new freelance work, and I\u2019d love to hear how the team grows in the coming months.\nThank you for everything you\u2019ve taught me and for making every workday feel like a joy\u2014moving on from this team will be the hardest part of this transition, and I will miss you all deeply.",
+  "score": 0,
+  "cost": 0.0005748000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 1422
+  }
+}

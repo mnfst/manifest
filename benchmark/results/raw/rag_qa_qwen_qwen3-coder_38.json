@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Along or near the Charles River.",
+  "score": 0,
+  "cost": 6.292e-05,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 258,
+    "output": 7
+  }
+}

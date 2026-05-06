@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_generation",
+  "case": 36,
+  "response": "for i in range(n // 2, 0, -1):\n        if n % i == 0:\n            return i",
+  "score": 0,
+  "cost": 0.004463875,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 3411
+  }
+}

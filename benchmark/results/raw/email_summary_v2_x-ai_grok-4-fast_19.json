@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4-fast",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "The Datadog vendor contract is set to expire on June 30, with the current annual cost at $180K, and the vendor has offered a 3-year renewal at $155K per year, representing a 14% discount. An alternative option is Grafana Cloud at $95K per year, though it would require a 3-month migration, and Finance requires a decision by May 15.",
+  "score": 0,
+  "cost": 0.00024280000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 246,
+    "output": 242
+  }
+}

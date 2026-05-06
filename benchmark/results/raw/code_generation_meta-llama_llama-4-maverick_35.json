@@ -1,0 +1,13 @@
+{
+  "model": "meta-llama/llama-4-maverick",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\nreturn (abs(a) % 10) * (abs(b) % 10)\n```",
+  "score": 0,
+  "cost": 4.395e-05,
+  "expected": "",
+  "tokens": {
+    "input": 201,
+    "output": 23
+  }
+}

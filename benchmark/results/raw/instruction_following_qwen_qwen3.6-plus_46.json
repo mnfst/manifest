@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "As I prepare to move on to my next chapter, I want to sincerely thank each of you for your support and collaboration during my time here. Working alongside such talented and dedicated professionals has been an absolute privilege, and I will always cherish the projects we tackled together. Your guidance and camaraderie have made a lasting impact on both my career and my personal growth. Please feel free to stay connected with me on LinkedIn or reach out via my personal email to keep in touch. I wish you all continued success, happiness, and many more achievements in the years ahead.",
+  "score": 0,
+  "cost": 0.0025265500000000002,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 1938
+  }
+}

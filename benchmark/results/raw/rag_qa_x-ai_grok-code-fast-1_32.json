@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-code-fast-1",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew significantly and became much more interconnected.",
+  "score": 0,
+  "cost": 0.00037860000000000004,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 417,
+    "output": 369
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-plus",
+  "task": "code_explanation",
+  "case": 5,
+  "response": "This code implements the **Singleton design pattern** by overriding the `__new__` method to guarantee that only one instance of the class is ever created. It checks a class-level `_instance` variable, creates the object via `super().__new__()` only on the first call, and returns that same cached instance for all subsequent instantiations.",
+  "score": 0,
+  "cost": 0.0007735,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 574
+  }
+}

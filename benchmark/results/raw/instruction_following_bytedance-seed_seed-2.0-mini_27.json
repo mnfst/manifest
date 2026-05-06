@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-mini",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "# Curated Animal Groupings\n---\n## Mammals\nAll members of this group give birth to live young and produce milk to nourish their offspring:\n1.  Bottlenose Dolphin (*Tursiops truncatus*): Highly intelligent marine mammal known for complex social behaviors and playful interactions with humans.\n2.  Red Panda (*Ailurus fulgens*): Small, arboreal Himalayan mammal recognizable by its rust-colored fur and bushy, tail used for balance in trees.\n3.  Eastern Gray Squirrel (*Sciurus carolinensis*): Common North American tree squirrel famous for hoarding nuts and seeds to survive winter months.\n\n---\n## Birds\nAll members of this group have feathers, lay hard-shelled eggs, and possess lightweight, hollow bones:\n1.  Bald Eagle (*Haliaeetus leucocephalus*): Large sea raptor and national bird of the United States, primarily piscivorous and often spotted near large freshwater bodies.\n2.  Domestic Chicken (*Gallus gallus domesticus*): The most globally widespread domesticated bird, raised commercially and privately for meat and eggs worldwide.\n3.  Atlantic Puffin (*Fratercula arctica*): Charismatic coastal seabird with a distinctive multi-colored beak, known for nesting in cliffside burrows across the North Atlantic.\n\n---\n## Fish\nAll members of this group are aquatic, gill-breathing vertebrates that live entirely underwater:\n1.  Ocellaris Clownfish (*Amphiprion ocellaris*): Tropical reef fish made famous by the *Finding Nemo* franchise, known for its symbiotic relationship with stinging sea anemones.\n2.  Atlantic Salmon (*Salmo salar*): Anadromous fish that hatches in freshwater rivers, matures in the open ocean, and returns to its birth river to spawn.\n3.  Great Barracuda (*Sphyraena barracuda*): Sleek, voracious predatory saltwater fish found in tropical and subtropical coastal waters globally.",
+  "score": 0,
+  "cost": 0.0006411000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 1586
+  }
+}

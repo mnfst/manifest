@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "the mass of the system",
+  "score": 0,
+  "cost": 1.53e-05,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 164,
+    "output": 6
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Infinitely many.",
+  "score": 0,
+  "cost": 0.000255345,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 243,
+    "output": 86
+  }
+}

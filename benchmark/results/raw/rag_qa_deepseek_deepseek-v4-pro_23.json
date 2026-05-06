@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "Mortgage banker",
+  "score": 0,
+  "cost": 0.00026317499999999993,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 197,
+    "output": 102
+  }
+}
