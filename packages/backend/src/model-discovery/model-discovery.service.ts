@@ -233,11 +233,17 @@ export class ModelDiscoveryService {
     if (!provider) {
       return { ok: false, model_count: 0, last_fetched_at: null, error: 'Provider not found' };
     }
+    // Snapshot the pre-refresh state so error/skip paths can report the count
+    // and timestamp the user already had on disk, even after `discoverModels`
+    // mutates the entity in-memory.
+    const previousCount = Array.isArray(provider.cached_models) ? provider.cached_models.length : 0;
+    const previousFetchedAt = provider.models_fetched_at;
+
     if (provider.provider.startsWith('custom:')) {
       return {
         ok: false,
-        model_count: Array.isArray(provider.cached_models) ? provider.cached_models.length : 0,
-        last_fetched_at: provider.models_fetched_at,
+        model_count: previousCount,
+        last_fetched_at: previousFetchedAt,
         error: 'Custom providers are managed manually — edit the provider to update its model list',
       };
     }
@@ -257,8 +263,8 @@ export class ModelDiscoveryService {
       );
       return {
         ok: false,
-        model_count: Array.isArray(provider.cached_models) ? provider.cached_models.length : 0,
-        last_fetched_at: provider.models_fetched_at,
+        model_count: previousCount,
+        last_fetched_at: previousFetchedAt,
         error: message,
       };
     }

@@ -477,13 +477,26 @@ describe('ModelDiscoveryService', () => {
           models_fetched_at: '2026-04-01T08:00:00.000Z',
         }),
       );
-      fetcher.fetch.mockRejectedValue(new Error('upstream timeout'));
+      // discoverModels itself swallows fetcher errors, so to land in the
+      // refreshProvider catch we make the cache-write throw instead.
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o' })]);
+      providerRepo.save.mockRejectedValueOnce(new Error('DB write failed'));
 
       const result = await service.refreshProvider('agent-1', 'openai');
       expect(result.ok).toBe(false);
       expect(result.model_count).toBe(2);
-      expect(result.error).toBe('upstream timeout');
+      expect(result.error).toBe('DB write failed');
       expect(result.last_fetched_at).toBe('2026-04-01T08:00:00.000Z');
+    });
+
+    it('reports a non-Error thrown value via String() in the error field', async () => {
+      providerRepo.findOne.mockResolvedValue(makeProvider({ provider: 'openai' }));
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o' })]);
+      providerRepo.save.mockRejectedValueOnce('plain-string-failure');
+
+      const result = await service.refreshProvider('agent-1', 'openai');
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe('plain-string-failure');
     });
   });
 
