@@ -1,0 +1,33 @@
+packages/frontend/src/pages/RoutingHeaderTiersSection.tsx
+  s_b970ffa4b91350::t_a375d9667830a9 29
+  s_b970ffa4b91350::t_3039ea094abda6 16
+  s_b970ffa4b91350::t_72e2d8a376e8cd 168-170
+  s_b970ffa4b91350::t_fd16dd077d80bc 36,50-52,55-58,63-66
+  s_b970ffa4b91350::t_dc3c29b4df4151 53-54,59-62
+packages/frontend/src/components/HeaderTierCard.tsx
+  s_b970ffa4b91350::t_905163ed2e6d1d 48
+  s_b970ffa4b91350::t_d96591ee9f73cb 128
+  s_b970ffa4b91350::t_ab44a2754cb95f 6
+  s_b970ffa4b91350::t_2e729f7c909e77 344
+packages/frontend/src/pages/Routing.tsx
+  s_b970ffa4b91350::t_fef6749988a7da 60
+  s_b970ffa4b91350::t_07575d42cfe7d1 460
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_b970ffa4b91350::t_2ea5939861de7f 557-563
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "4ddf1dc888fe661d12d9a268e542ae4cf2a48541",
+  "prompts": {},
+  "sessions": {
+    "s_b970ffa4b91350": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "08aba76f-94e6-4d75-86fc-c6884c5ba244",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
