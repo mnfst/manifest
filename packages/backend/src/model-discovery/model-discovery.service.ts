@@ -358,7 +358,33 @@ export class ModelDiscoveryService {
       return this.computeScore(this.applyCapabilities(model, providerId));
     }
 
-    // Priority 1: models.dev — uses native provider IDs, no normalization needed
+    // Priority 1: hardcoded known prices — hand-curated, per-provider intent.
+    // These have to win over models.dev / OpenRouter because the same model id
+    // (e.g. `qwen/qwen3-32b`) can exist on multiple inference providers at
+    // different prices, and a connection's pricing must reflect THAT
+    // connection's provider, not the cheapest place the model id happens to
+    // appear in upstream catalogs. For models we don't curate (the vast
+    // majority), this is a no-op and we fall through to models.dev / OR.
+    //
+    // Even when known-prices wins on pricing we still consult models.dev for
+    // capability flags (reasoning / tool-call) — those drive tier auto-
+    // assignment quality scoring and shouldn't be lost just because we
+    // overrode the price. Mirrors the price-already-set branch above.
+    const known = lookupKnownPrice(model.id);
+    if (known) {
+      return this.computeScore(
+        this.applyCapabilities(
+          {
+            ...model,
+            inputPricePerToken: known.input,
+            outputPricePerToken: known.output,
+          },
+          providerId,
+        ),
+      );
+    }
+
+    // Priority 2: models.dev — uses native provider IDs, no normalization needed
     if (this.modelsDevSync) {
       const mdEntry = this.modelsDevSync.lookupModel(providerId, model.id);
       if (mdEntry && mdEntry.inputPricePerToken !== null) {
@@ -374,7 +400,7 @@ export class ModelDiscoveryService {
       }
     }
 
-    // Priority 2: OpenRouter cache — broader coverage, needs prefix + variant matching
+    // Priority 3: OpenRouter cache — broader coverage, needs prefix + variant matching
     if (this.pricingSync) {
       const orPrefix = findOpenRouterPrefix(providerId);
       if (orPrefix) {
@@ -399,16 +425,6 @@ export class ModelDiscoveryService {
           displayName: exactPricing.displayName || model.displayName,
         });
       }
-    }
-
-    // Priority 3: hardcoded known prices — last resort for models no external source covers
-    const known = lookupKnownPrice(model.id);
-    if (known) {
-      return this.computeScore({
-        ...model,
-        inputPricePerToken: known.input,
-        outputPricePerToken: known.output,
-      });
     }
 
     return this.computeScore(model);

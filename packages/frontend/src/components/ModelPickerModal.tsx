@@ -145,13 +145,15 @@ const ModelPickerModal: Component<Props> = (props) => {
       if (freeOnly && !isFreeModel(m)) continue;
       const dbProvId = resolveProviderId(m.provider);
       const prefixProvId = inferProviderFromModel(m.model_name);
-      // Prefer prefix-inferred provider (e.g. "anthropic" from "anthropic/claude-sonnet-4")
-      // over the DB provider (e.g. "openrouter" when all models come from OpenRouter).
-      // Exception: Ollama providers keep their DB id because Ollama model names
-      // (e.g. "gemma4:31b") would otherwise be mis-inferred as local Ollama
-      // via the colon-suffix heuristic in inferProviderFromModel.
+      // OpenRouter is the one provider where the vendor prefix is genuinely
+      // the best attribution: an OR row for `anthropic/claude-…` should be
+      // grouped under Anthropic, not OpenRouter. For every other registered
+      // first-party provider the stored `m.provider` is the truth — Groq's
+      // `qwen/qwen3-32b` is being served BY Groq, so it must group under
+      // Groq (and use Groq's pricing) regardless of the model-id prefix.
+      // Mirrors the precedence rule in RoutingTierCard.providerIdForModel.
       const provId =
-        dbProvId === 'ollama' || dbProvId === 'ollama-cloud'
+        dbProvId && dbProvId !== 'openrouter' && PROVIDERS.find((p) => p.id === dbProvId)
           ? dbProvId
           : prefixProvId && PROVIDERS.find((p) => p.id === prefixProvId)
             ? prefixProvId

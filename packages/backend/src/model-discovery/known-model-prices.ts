@@ -1,8 +1,20 @@
 /**
- * Last-resort hardcoded pricing for models that no external pricing source covers.
+ * Hand-curated, per-provider authoritative pricing.
  *
- * This is used ONLY when both models.dev and OpenRouter have no data for a model.
- * Keep this list minimal — prefer upstream sources. Prices are per-token (not per-million).
+ * **Priority:** entries here win over models.dev and the OpenRouter cache
+ * during model discovery. The reason: the same model id can exist on
+ * multiple inference providers at different prices (e.g. `qwen/qwen3-32b`
+ * appears in Qwen's OR listing at one price and is also served by Groq at
+ * a different price), and a connection's reported pricing must reflect
+ * *that connection's provider*, not whatever is cheapest in upstream
+ * catalogs.
+ *
+ * Keep this list minimal. Add an entry only when:
+ *  1. The provider's native API does not return pricing, AND
+ *  2. The model id either isn't in upstream catalogs, OR is in them under
+ *     a different inference provider with different pricing.
+ *
+ * Prices are per-token (not per-million).
  *
  * Sources:
  *  - Moonshot v1: https://platform.moonshot.cn/docs/pricing (¥12/1M ≈ $1.66/1M at 2025 rates)

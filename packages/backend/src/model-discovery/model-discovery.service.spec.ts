@@ -2219,7 +2219,7 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].capabilityCode).toBe(true);
     });
 
-    it('should fall back to known-model-prices when models.dev and OpenRouter have no data', async () => {
+    it('uses known-model-prices when no upstream source has data', async () => {
       mockModelsDevSync.lookupModel.mockReturnValue(null);
       mockPricingSync.lookupPricing.mockReturnValue(null);
 
@@ -2236,6 +2236,121 @@ describe('ModelDiscoveryService', () => {
 
       expect(result[0].inputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
       expect(result[0].outputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+    });
+
+    it('known-model-prices wins over models.dev for curated models', async () => {
+      // Same model id can appear in models.dev under a different inference
+      // provider with different pricing. The hand-curated entry must win so
+      // a connection's reported pricing reflects THAT connection's provider.
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'moonshot-v1-8k',
+        name: 'Moonshot v1 8k (cheap-reseller pricing)',
+        inputPricePerToken: 0.000_000_1, // models.dev cheap reseller price
+        outputPricePerToken: 0.000_000_2,
+        contextWindow: 8192,
+      });
+
+      const models = [
+        makeModel({
+          id: 'moonshot-v1-8k',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // Known-prices ($1.66/1M) wins over models.dev ($0.0001/1M).
+      expect(result[0].inputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      expect(result[0].outputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+    });
+
+    it('known-model-prices wins over OpenRouter for curated models', async () => {
+      // Mirrors the Groq-served `qwen/qwen3-32b` scenario: OR has the model
+      // id at one provider's price; the connection's actual provider lists
+      // it at a different price in known-model-prices.
+      mockModelsDevSync.lookupModel.mockReturnValue(null);
+      mockPricingSync.lookupPricing.mockReturnValue({
+        input: 0.000_000_08, // OpenRouter's cheap-resale price
+        output: 0.000_000_24,
+        contextWindow: 32768,
+        displayName: 'Moonshot v1 8k via OR',
+      });
+
+      const models = [
+        makeModel({
+          id: 'moonshot-v1-8k',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      expect(result[0].outputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+    });
+
+    it('falls through to models.dev when no known-prices entry exists', async () => {
+      // Non-curated models keep the existing upstream-first behaviour.
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'totally-novel-model',
+        name: 'Novel Model',
+        inputPricePerToken: 0.001,
+        outputPricePerToken: 0.002,
+        contextWindow: 128_000,
+      });
+
+      const models = [
+        makeModel({
+          id: 'totally-novel-model',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputPricePerToken).toBe(0.001);
+      expect(result[0].outputPricePerToken).toBe(0.002);
+    });
+
+    it('still merges capability flags from models.dev when known-prices wins on pricing', async () => {
+      // Identified by cubic: when known-prices wins, we still want the
+      // reasoning / tool-call flags from models.dev applied — they drive
+      // tier auto-assignment scoring and shouldn't be silently dropped.
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'moonshot-v1-8k',
+        name: 'Moonshot v1 8k',
+        inputPricePerToken: 0.000_000_1, // ignored — known-prices wins
+        outputPricePerToken: 0.000_000_2,
+        contextWindow: 8192,
+        reasoning: true,
+        toolCall: true,
+      });
+
+      const models = [
+        makeModel({
+          id: 'moonshot-v1-8k',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+          capabilityReasoning: false,
+          capabilityCode: false,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // Pricing from known-prices.
+      expect(result[0].inputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      expect(result[0].outputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      // Capabilities still merged from models.dev.
+      expect(result[0].capabilityReasoning).toBe(true);
+      expect(result[0].capabilityCode).toBe(true);
     });
 
     it('should return model without pricing when no source has data', async () => {

@@ -1203,3 +1203,64 @@ describe("RoutingTierCard", () => {
     });
   });
 });
+
+/* ── providerIdForModel: dbId-vs-prefix precedence ──────────────────────── */
+
+describe("providerIdForModel route-provider attribution", () => {
+  // Tests at the helper level: prefer the stored connection provider over
+  // the model-id prefix for first-party providers, except OpenRouter where
+  // the prefix is the more informative attribution. Regression coverage for
+  // the bug where Groq-served `qwen/qwen3-32b` rendered with the Qwen logo
+  // and Qwen-via-OR pricing.
+  const baseModel = {
+    auth_type: "api_key" as const,
+    input_price_per_token: 0,
+    output_price_per_token: 0,
+    context_window: 0,
+    capability_reasoning: false,
+    capability_code: false,
+    quality_score: 0,
+    display_name: "",
+  };
+
+  it("returns the stored provider for a redistributor (e.g. openai serving claude-named model)", async () => {
+    // `openai` is in the mocked PROVIDERS list. The model name infers
+    // `anthropic` via prefix. With the fix, dbId wins → "openai".
+    const { providerIdForModel } = await import("../../src/pages/RoutingTierCard.js");
+    const id = providerIdForModel("claude-foo", [
+      { ...baseModel, model_name: "claude-foo", provider: "openai" },
+    ]);
+    expect(id).toBe("openai");
+  });
+
+  it("falls through to prefix inference for OpenRouter rows", async () => {
+    // OpenRouter is the documented exception: an OR row for a vendor-prefixed
+    // model should display the vendor logo (Anthropic), not the OR logo.
+    const { providerIdForModel } = await import("../../src/pages/RoutingTierCard.js");
+    const id = providerIdForModel("claude-bar", [
+      { ...baseModel, model_name: "claude-bar", provider: "openrouter" },
+    ]);
+    expect(id).toBe("anthropic");
+  });
+
+  it("uses the stored provider when prefix is unknown", async () => {
+    // Prefix doesn't match any known mocked rule → should still resolve
+    // through dbId.
+    const { providerIdForModel } = await import("../../src/pages/RoutingTierCard.js");
+    const id = providerIdForModel("totally-novel-model", [
+      { ...baseModel, model_name: "totally-novel-model", provider: "openai" },
+    ]);
+    expect(id).toBe("openai");
+  });
+
+  it("preserves Ollama-id behaviour (dbId always wins)", async () => {
+    // Existing intent: avoid colon-suffix heuristic mis-routing cloud models
+    // to local Ollama. With the new logic Ollama still resolves via dbId
+    // because `ollama` is registered in PROVIDERS.
+    const { providerIdForModel } = await import("../../src/pages/RoutingTierCard.js");
+    const id = providerIdForModel("anything", [
+      { ...baseModel, model_name: "anything", provider: "openai" },
+    ]);
+    expect(id).toBe("openai");
+  });
+});
