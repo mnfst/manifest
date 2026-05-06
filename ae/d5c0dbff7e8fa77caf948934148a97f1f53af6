@@ -1,0 +1,19 @@
+packages/frontend/src/pages/RoutingActions.tsx
+  s_97fc54a80bf173::t_17450e62d8a52a 219
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "aed5c0dbff7e8fa77caf948934148a97f1f53af6",
+  "prompts": {},
+  "sessions": {
+    "s_97fc54a80bf173": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce1ea4f7-3d3e-46a0-a3ca-e6effc678199",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
