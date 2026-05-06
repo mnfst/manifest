@@ -5,6 +5,7 @@ import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { TierService } from '../routing-core/tier.service';
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
+import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
 import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
@@ -96,6 +97,7 @@ export class ProxyService {
     private readonly tierService: TierService,
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
+    private readonly anthropicOauth: AnthropicOauthService,
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
     private readonly fallbackService: ProxyFallbackService,
@@ -338,6 +340,7 @@ export class ProxyService {
       userId,
       this.openaiOauth,
       this.minimaxOauth,
+      this.anthropicOauth,
     );
     const providerRegion = await this.providerKeyService.getProviderRegion(
       agentId,
