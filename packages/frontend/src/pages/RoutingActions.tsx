@@ -221,6 +221,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
         delete next[tierId];
         return next;
       });
+      toast.error('Could not add fallback');
     } finally {
       setAddingFallback(null);
       setFallbackOverrides((prev) => {

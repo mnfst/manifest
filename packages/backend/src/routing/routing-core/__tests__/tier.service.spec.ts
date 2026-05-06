@@ -487,7 +487,7 @@ describe('TierService', () => {
       expect(result).toEqual([]);
     });
 
-    it('returns [] when a model cannot be unambiguously resolved', async () => {
+    it('throws when a model cannot be unambiguously resolved', async () => {
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
         discovered('gpt-4o', 'openai', 'subscription'),
@@ -498,8 +498,45 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      const result = await svc.setFallbacks('agent-1', 'standard', ['gpt-4o']);
-      expect(result).toEqual([]);
+      await expect(svc.setFallbacks('agent-1', 'standard', ['gpt-4o'])).rejects.toThrow(
+        /Cannot resolve fallback model "gpt-4o"/,
+      );
+      expect(tierRepo.save).not.toHaveBeenCalled();
+    });
+
+    // Regression: issue #1790. Adding a new fallback whose (provider, authType,
+    // model) tuple isn't in the discovered list used to fall through to
+    // unambiguousRoute() for every model and return null on the first
+    // ambiguous one — wiping the previously-saved fallbacks. The fix throws
+    // before save, so the existing row is left untouched.
+    it('preserves existing fallbacks when an unresolvable model is added (issue #1790)', async () => {
+      const existing = [
+        route('openai', 'api_key', 'gpt-4o'),
+        route('anthropic', 'api_key', 'claude-3-5-sonnet'),
+      ];
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('gpt-4o', 'openai', 'api_key'),
+        discovered('gpt-4o', 'openai', 'subscription'),
+        discovered('claude-3-5-sonnet', 'anthropic', 'api_key'),
+      ]);
+      tierRepo.findOne.mockResolvedValue({
+        agent_id: 'agent-1',
+        tier: 'standard',
+        fallback_routes: existing,
+      } as TierAssignment);
+
+      // Caller sends the existing two routes plus a new one whose tuple
+      // doesn't match any discovered model — validation fails, then
+      // unambiguousRoute hits gpt-4o which has two entries.
+      await expect(
+        svc.setFallbacks(
+          'agent-1',
+          'standard',
+          ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
+          [...existing, route('minimax', 'api_key', 'minmax-27')],
+        ),
+      ).rejects.toThrow(/Cannot resolve fallback model/);
+      expect(tierRepo.save).not.toHaveBeenCalled();
     });
   });
 
