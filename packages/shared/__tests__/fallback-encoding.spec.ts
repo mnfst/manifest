@@ -10,6 +10,10 @@ describe('fallback-encoding', () => {
       expect(parseFallbackEntry('gemini-2.5-flash')).toEqual({ model: 'gemini-2.5-flash' });
     });
 
+    it('returns an empty model for an empty input', () => {
+      expect(parseFallbackEntry('')).toEqual({ model: '' });
+    });
+
     it('parses model + label when the delimiter is present', () => {
       expect(parseFallbackEntry('gemini-2.5-flash||Work')).toEqual({
         model: 'gemini-2.5-flash',

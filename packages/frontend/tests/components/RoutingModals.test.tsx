@@ -52,6 +52,8 @@ vi.mock("../../src/components/ProviderSelectModal.js", () => ({
       agentName: props.agentName,
       providersCount: (props.providers as { length: number })?.length ?? 0,
       customProvidersCount: (props.customProviders as { length: number })?.length ?? 0,
+      customProviderPrefill: props.customProviderPrefill,
+      providerDeepLink: props.providerDeepLink,
     });
     return (
       <div data-testid="provider-select-modal">
@@ -66,6 +68,39 @@ vi.mock("../../src/components/ProviderSelectModal.js", () => ({
           onClick={() => (props.onUpdate as () => Promise<void>)?.()}
         >
           update
+        </button>
+      </div>
+    );
+  },
+}));
+
+const kpmProps: Array<Record<string, unknown>> = [];
+vi.mock("../../src/components/KeyPickerModal.js", () => ({
+  default: (props: Record<string, unknown>) => {
+    kpmProps.push({
+      providerName: props.providerName,
+      modelName: props.modelName,
+      keysCount: (props.keys as { length: number })?.length ?? 0,
+    });
+    return (
+      <div data-testid="key-picker-modal">
+        <button
+          data-testid="kpm-pick-work"
+          onClick={() => (props.onPick as (label: string | null) => void)("Work")}
+        >
+          pick-work
+        </button>
+        <button
+          data-testid="kpm-pick-default"
+          onClick={() => (props.onPick as (label: string | null) => void)(null)}
+        >
+          pick-default
+        </button>
+        <button
+          data-testid="kpm-close"
+          onClick={() => (props.onClose as () => void)()}
+        >
+          close
         </button>
       </div>
     );
@@ -213,6 +248,7 @@ describe("RoutingModals", () => {
     pickerCalls.length = 0;
     psmProps.length = 0;
     riProps.length = 0;
+    kpmProps.length = 0;
     vi.clearAllMocks();
   });
 
@@ -455,5 +491,198 @@ describe("RoutingModals", () => {
     ));
     fireEvent.click(getByTestId("ri-close"));
     expect(onInstructionClose).toHaveBeenCalled();
+  });
+
+  describe("KeyPickerModal flow (multi-key override)", () => {
+    const multiKeyProviders: RoutingProvider[] = [
+      {
+        id: "p1",
+        provider: "openai",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        label: "Work",
+        priority: 0,
+        connected_at: "2025-01-01",
+      },
+      {
+        id: "p2",
+        provider: "openai",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        label: "Personal",
+        priority: 1,
+        connected_at: "2025-01-01",
+      },
+    ];
+
+    it("opens the key picker (instead of overriding) when 2+ keys match the selection", () => {
+      const onOverride = vi.fn();
+      const { getByTestId, queryByTestId } = render(() => (
+        <RoutingModals
+          {...makeProps({
+            dropdownTier: () => "simple",
+            connectedProviders: () => multiKeyProviders,
+            onOverride,
+          })}
+        />
+      ));
+      fireEvent.click(getByTestId("picker-simple"));
+      // onOverride is deferred — KeyPickerModal renders.
+      expect(onOverride).not.toHaveBeenCalled();
+      expect(queryByTestId("key-picker-modal")).not.toBeNull();
+      expect(kpmProps[kpmProps.length - 1].keysCount).toBe(2);
+    });
+
+    it("forwards the picked label to onOverride and closes the picker", () => {
+      const onOverride = vi.fn();
+      const { getByTestId, queryByTestId } = render(() => (
+        <RoutingModals
+          {...makeProps({
+            dropdownTier: () => "simple",
+            connectedProviders: () => multiKeyProviders,
+            onOverride,
+          })}
+        />
+      ));
+      fireEvent.click(getByTestId("picker-simple"));
+      fireEvent.click(getByTestId("kpm-pick-work"));
+      expect(onOverride).toHaveBeenCalledWith("simple", "gpt-4o", "openai", "api_key", "Work");
+      expect(queryByTestId("key-picker-modal")).toBeNull();
+    });
+
+    it("forwards null label as 'use default' to onOverride", () => {
+      const onOverride = vi.fn();
+      const { getByTestId } = render(() => (
+        <RoutingModals
+          {...makeProps({
+            dropdownTier: () => "simple",
+            connectedProviders: () => multiKeyProviders,
+            onOverride,
+          })}
+        />
+      ));
+      fireEvent.click(getByTestId("picker-simple"));
+      fireEvent.click(getByTestId("kpm-pick-default"));
+      expect(onOverride).toHaveBeenCalledWith("simple", "gpt-4o", "openai", "api_key", undefined);
+    });
+
+    it("opens the key picker via the fallback flow and forwards the label to onAddFallback", () => {
+      // Use a tier where the primary is a *different* model so neither key
+      // is "implicitly used" — both Work and Personal stay available, and
+      // handleFallbackSelect routes through the multi-key picker.
+      const tierWithDifferentPrimary: TierAssignment = {
+        ...tiers[0]!,
+        override_route: {
+          provider: "anthropic",
+          authType: "api_key",
+          model: "claude-opus",
+        },
+        fallback_routes: [],
+      };
+      const onAddFallback = vi.fn();
+      const onFallbackPickerClose = vi.fn();
+      const { getByTestId, queryByTestId } = render(() => (
+        <RoutingModals
+          {...makeProps({
+            fallbackPickerTier: () => "simple",
+            tiers: () => [tierWithDifferentPrimary],
+            getTier: (id: string) =>
+              [tierWithDifferentPrimary].find((t) => t.tier === id),
+            connectedProviders: () => multiKeyProviders,
+            onAddFallback,
+            onFallbackPickerClose,
+          })}
+        />
+      ));
+      // Fallback picker fires onSelect → multi-key path → KeyPickerModal opens.
+      fireEvent.click(getByTestId("picker-simple"));
+      expect(queryByTestId("key-picker-modal")).not.toBeNull();
+      // Pick a label — the fallback path closes the fallback picker first
+      // (so used-key filtering refreshes on next open) and forwards the label.
+      fireEvent.click(getByTestId("kpm-pick-work"));
+      expect(onFallbackPickerClose).toHaveBeenCalled();
+      expect(onAddFallback).toHaveBeenCalledWith(
+        "simple",
+        "gpt-4o",
+        "openai",
+        "api_key",
+        "Work",
+      );
+    });
+
+    it("auto-selects the only remaining key (no picker shown) when one is filtered out by usage", () => {
+      // The primary already pins "Work" — used-key filtering removes "Work"
+      // from the available list, leaving only "Personal" → auto-select.
+      const tierWithKeyPin: TierAssignment = {
+        ...tiers[0]!,
+        override_route: {
+          provider: "openai",
+          authType: "api_key",
+          model: "gpt-4o",
+          keyLabel: "Work",
+        },
+      };
+      const onAddFallback = vi.fn();
+      const onFallbackPickerClose = vi.fn();
+      const { getByTestId, queryByTestId } = render(() => (
+        <RoutingModals
+          {...makeProps({
+            fallbackPickerTier: () => "simple",
+            tiers: () => [tierWithKeyPin],
+            getTier: (id: string) => [tierWithKeyPin].find((t) => t.tier === id),
+            connectedProviders: () => multiKeyProviders,
+            onAddFallback,
+            onFallbackPickerClose,
+          })}
+        />
+      ));
+      fireEvent.click(getByTestId("picker-simple"));
+      expect(queryByTestId("key-picker-modal")).toBeNull();
+      expect(onFallbackPickerClose).toHaveBeenCalled();
+      expect(onAddFallback).toHaveBeenCalledWith(
+        "simple",
+        "gpt-4o",
+        "openai",
+        "api_key",
+        "Personal",
+      );
+    });
+
+    it("closes the picker without calling onOverride when the user cancels", () => {
+      const onOverride = vi.fn();
+      const { getByTestId, queryByTestId } = render(() => (
+        <RoutingModals
+          {...makeProps({
+            dropdownTier: () => "simple",
+            connectedProviders: () => multiKeyProviders,
+            onOverride,
+          })}
+        />
+      ));
+      fireEvent.click(getByTestId("picker-simple"));
+      fireEvent.click(getByTestId("kpm-close"));
+      expect(onOverride).not.toHaveBeenCalled();
+      expect(queryByTestId("key-picker-modal")).toBeNull();
+    });
+  });
+
+  it("forwards customProviderPrefill and providerDeepLink to ProviderSelectModal", () => {
+    const customProviderPrefill = () => ({ name: "MyProv", baseUrl: "https://x" });
+    const providerDeepLink = () => ({ providerId: "openai" });
+    render(() => (
+      <RoutingModals
+        {...makeProps({
+          showProviderModal: () => true,
+          customProviderPrefill,
+          providerDeepLink,
+        })}
+      />
+    ));
+    const last = psmProps[psmProps.length - 1];
+    // The component re-passes the accessor itself, not its current value.
+    expect(typeof last.customProviderPrefill).toBe("function");
+    expect(typeof last.providerDeepLink).toBe("function");
   });
 });

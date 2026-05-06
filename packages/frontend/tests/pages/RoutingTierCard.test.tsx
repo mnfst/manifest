@@ -47,6 +47,9 @@ vi.mock("../../src/services/routing-utils.js", () => ({
     if (m.startsWith("claude")) return "anthropic";
     return undefined;
   },
+  // No-op for test setups that don't depend on multi-key dedup behavior.
+  // The PrimaryKeyChip multi-key suite below overrides this when needed.
+  usedKeyLabelsForModelInTier: () => new Set<string>(),
 }));
 
 vi.mock("../../src/services/formatters.js", () => ({
@@ -1087,5 +1090,116 @@ describe("RoutingTierCard", () => {
       <RoutingTierCard {...makeProps({ tier: () => tier, customProviders: () => [] })} />
     ));
     expect(container.querySelector(".provider-card__logo-letter")?.textContent).toBe("C");
+  });
+
+  describe("PrimaryKeyChip (multi-key)", () => {
+    const multiKeyProviders: RoutingProvider[] = [
+      {
+        id: "p1",
+        provider: "openai",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        label: "Work",
+        priority: 0,
+        connected_at: "2025-01-01",
+      },
+      {
+        id: "p2",
+        provider: "openai",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        label: "Personal",
+        priority: 1,
+        connected_at: "2025-01-01",
+      },
+    ];
+
+    it("does NOT render the key chip when only one connected key matches the provider/auth", () => {
+      const { container } = render(() => <RoutingTierCard {...makeProps()} />);
+      expect(container.querySelector(".routing-card__key-chip")).toBeNull();
+    });
+
+    it("renders the key chip when 2+ keys are connected for the primary's provider", () => {
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            connectedProviders: () => multiKeyProviders,
+          })}
+        />
+      ));
+      const chip = container.querySelector(".routing-card__key-chip") as HTMLButtonElement | null;
+      expect(chip).not.toBeNull();
+      // displayLabel falls back to the first key's label when keyLabel is null
+      expect(chip?.textContent).toContain("Work");
+    });
+
+    it("shows the explicit keyLabel pin from the override route over the first connected key", () => {
+      const tier = {
+        ...baseTier,
+        override_route: {
+          provider: "openai",
+          authType: "api_key" as const,
+          model: "gpt-4o",
+          keyLabel: "Personal",
+        },
+      };
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => tier,
+            connectedProviders: () => multiKeyProviders,
+          })}
+        />
+      ));
+      const chip = container.querySelector(".routing-card__key-chip");
+      expect(chip?.textContent).toContain("Personal");
+    });
+
+    it("emits onPinKey with the chosen label when a list option is clicked", async () => {
+      const onPinKey = vi.fn();
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            connectedProviders: () => multiKeyProviders,
+            onPinKey,
+          })}
+        />
+      ));
+      const chip = container.querySelector(".routing-card__key-chip") as HTMLButtonElement;
+      fireEvent.click(chip);
+      await waitFor(() => {
+        // Expanded listbox renders one option per key.
+        const options = container.querySelectorAll('[role="option"]');
+        expect(options.length).toBeGreaterThan(0);
+      });
+      const personalOption = Array.from(container.querySelectorAll('[role="option"]')).find(
+        (o) => o.textContent?.includes("Personal"),
+      ) as HTMLElement | undefined;
+      expect(personalOption).toBeDefined();
+      fireEvent.click(personalOption!);
+      expect(onPinKey).toHaveBeenCalledWith("simple", "openai", "Personal", "api_key");
+    });
+
+    it("does not render the chip when the effective auth is 'local'", () => {
+      const tier = {
+        ...baseTier,
+        override_route: {
+          provider: "openai",
+          authType: "local" as const,
+          model: "gpt-4o",
+        },
+      };
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => tier,
+            connectedProviders: () => multiKeyProviders,
+          })}
+        />
+      ));
+      expect(container.querySelector(".routing-card__key-chip")).toBeNull();
+    });
   });
 });
