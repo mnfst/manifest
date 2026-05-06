@@ -210,6 +210,10 @@ export function recordFallbackFailures(
   const fallbackBaseTime = Date.now();
   const failures = failedFallbacks ?? [];
 
+  // The primary's auth_type is preserved separately on a fallback-success flow
+  // (see RoutingMeta.primaryAuthType / #1173). Older meta shapes only carry
+  // `auth_type`, so fall back to it when primaryAuthType is absent.
+  const primaryAuthType = meta.primaryAuthType ?? meta.auth_type;
   recordSafely(
     recorder.recordPrimaryFailure(
       ctx,
@@ -217,7 +221,7 @@ export function recordFallbackFailures(
       meta.fallbackFromModel,
       meta.primaryErrorBody ?? `Provider returned HTTP ${meta.primaryErrorStatus ?? 500}`,
       new Date(fallbackBaseTime).toISOString(),
-      meta.auth_type,
+      primaryAuthType,
       {
         // Use the primary provider explicitly — meta.provider holds the
         // succeeding fallback's provider in this flow, not the primary's.
@@ -238,7 +242,7 @@ export function recordFallbackFailures(
       recorder.recordFailedFallbacks(ctx, meta.tier, meta.fallbackFromModel, failures, {
         baseTimeMs: fallbackBaseTime,
         markHandled: true,
-        authType: meta.auth_type,
+        authType: primaryAuthType,
         reason: meta.reason,
         callerAttribution,
         requestHeaders,

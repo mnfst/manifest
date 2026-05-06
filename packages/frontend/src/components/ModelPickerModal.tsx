@@ -384,13 +384,13 @@ const ModelPickerModal: Component<Props> = (props) => {
               <path d="m21 21-4.3-4.3" />
             </svg>
             <input
+              ref={(el) => requestAnimationFrame(() => el.focus())}
               class="routing-modal__search"
               type="text"
               placeholder="Search models or providers..."
               aria-label="Search models or providers"
               value={search()}
               onInput={(e) => setSearch(e.currentTarget.value)}
-              autofocus
             />
           </div>
         </Show>

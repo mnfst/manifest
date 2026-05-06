@@ -123,6 +123,28 @@ describe('MinimaxOauthService', () => {
       await expect(svc.startAuthorization('a', 'u')).rejects.toThrow();
     });
 
+    it('rewrites the broken upstream verification_uri host to platform.minimax.io', async () => {
+      // Reproduces issue #1796: the MiniMax /oauth/code endpoint returns a
+      // verification_uri pointing at www.minimax.io/oauth-authorize, which
+      // 307-redirects to the homepage. The real authorize page lives on
+      // platform.minimax.io.
+      fetchMock.mockImplementationOnce(async (_url: string, init: RequestInit) => {
+        const body = new URLSearchParams(String(init.body));
+        return mockResponse(200, {
+          user_code: 'Y3CN-NY48',
+          verification_uri:
+            'https://www.minimax.io/oauth-authorize?user_code=Y3CN-NY48&client=OpenClaw',
+          expired_in: 600,
+          interval: 2,
+          state: body.get('state'),
+        });
+      });
+      const out = await svc.startAuthorization('agent-1', 'user-1', 'global');
+      expect(out.verificationUri).toBe(
+        'https://platform.minimax.io/oauth-authorize?user_code=Y3CN-NY48&client=OpenClaw',
+      );
+    });
+
     it('throws when the echoed state does not match the generated flow id', async () => {
       fetchMock.mockResolvedValueOnce(
         mockResponse(200, {

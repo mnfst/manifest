@@ -15,7 +15,6 @@ import {
   type MinimaxOAuthRegion,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
-import CopyButton from './CopyButton.js';
 
 interface Props {
   provDef: ProviderDef;
@@ -43,7 +42,6 @@ const DEFAULT_POLL_INTERVAL_MS = 2000;
 const DeviceCodeDetailView: Component<Props> = (props) => {
   const [flow, setFlow] = createSignal<DeviceCodeFlow | null>(null);
   const [statusMessage, setStatusMessage] = createSignal<string | null>(null);
-  const [flowError, setFlowError] = createSignal<string | null>(null);
   const [selectedRegion, setSelectedRegion] = createSignal<MinimaxOAuthRegion>('global');
   let pollTimer: number | undefined;
   let isDisposed = false;
@@ -63,12 +61,6 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
       if (isDisposed || flowGeneration !== activeFlowGeneration) return;
       void runPoll(flowGeneration);
     }, delayMs);
-  };
-
-  const openVerificationPage = () => {
-    const current = flow();
-    if (!current) return;
-    window.open(current.verificationUri, '_blank', 'noopener,noreferrer');
   };
 
   const handleDisconnect = async () => {
@@ -99,9 +91,10 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     if (!current) return;
 
     if (Date.now() >= current.expiresAt) {
-      setFlowError('This verification code expired. Start again to generate a new one.');
-      setStatusMessage(null);
       clearPollTimer();
+      setStatusMessage(null);
+      setFlow(null);
+      toast.error('This verification code expired. Start again to generate a new one.');
       return;
     }
 
@@ -123,12 +116,12 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
       if (result.status === 'error') {
         clearPollTimer();
-        setFlowError(result.message ?? 'MiniMax login failed. Start again to retry.');
         setStatusMessage(null);
+        setFlow(null);
+        toast.error(result.message ?? `${props.provDef.name} login failed. Start again to retry.`);
         return;
       }
 
-      setFlowError(null);
       setStatusMessage(result.message ?? 'Waiting for approval…');
       schedulePoll(
         result.pollIntervalMs ?? latest.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
@@ -136,28 +129,43 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
       );
     } catch {
       if (isDisposed || flowGeneration !== activeFlowGeneration) return;
-      if (flow()?.flowId !== current.flowId) {
-        return;
-      }
       clearPollTimer();
-      setFlowError('Failed to check approval status. Start again to retry.');
       setStatusMessage(null);
+      setFlow(null);
+      toast.error('Failed to check approval status. Start again to retry.');
     }
   };
 
   const handleStart = async () => {
+    // Open the popup synchronously inside the click handler to keep the
+    // user-gesture flag alive; without this, browsers block the post-await
+    // window.open as a "programmatic popup". noopener can't be used here
+    // because Chrome returns null with it set, and we need the popup ref
+    // to redirect it later — we null `popup.opener` ourselves instead.
+    const popup = window.open('about:blank', '_blank');
+    if (!popup) {
+      toast.error('Popup was blocked by your browser. Allow popups for this site, then try again.');
+      return;
+    }
+    // Defang the opener-attack vector that noopener would normally prevent;
+    // the popup is about:blank (same-origin) so this assignment can't throw.
+    popup.opener = null;
+
     props.setBusy(true);
     const flowGeneration = ++activeFlowGeneration;
     clearPollTimer();
-    setFlowError(null);
     setStatusMessage(null);
     try {
       const nextFlow = await startMinimaxOAuth(props.agentName, selectedRegion());
-      if (isDisposed || flowGeneration !== activeFlowGeneration) return;
+      if (isDisposed || flowGeneration !== activeFlowGeneration) {
+        popup.close();
+        return;
+      }
+      popup.location.replace(nextFlow.verificationUri);
       setFlow(nextFlow);
-      window.open(nextFlow.verificationUri, '_blank', 'noopener,noreferrer');
       schedulePoll(nextFlow.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS, flowGeneration);
     } catch {
+      popup.close();
       if (isDisposed || flowGeneration !== activeFlowGeneration) return;
       setFlow(null);
     } finally {
@@ -211,63 +219,17 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
             </>
           }
         >
-          {(activeFlow) => (
-            <>
-              <p class="provider-detail__hint">
-                Your browser should open to the MiniMax authorization page. If MiniMax asks for a
-                one-time code, enter the code shown below.
+          <>
+            <p class="provider-detail__hint">
+              A new tab opened with the {props.provDef.name} authorization page. Approve the request
+              there to finish connecting.
+            </p>
+            <Show when={statusMessage()}>
+              <p class="provider-detail__hint" style="margin-top: 12px;">
+                {statusMessage()}
               </p>
-              <div class="provider-detail__field" style="margin-top: 12px;">
-                <label class="provider-detail__label">Verification Code</label>
-                <div class="provider-detail__key-row">
-                  <input
-                    class="provider-detail__input provider-detail__input--disabled"
-                    type="text"
-                    value={activeFlow().userCode}
-                    readonly
-                    aria-label={`${props.provDef.name} verification code`}
-                  />
-                  <CopyButton text={activeFlow().userCode} />
-                </div>
-              </div>
-              <div class="provider-detail__field" style="margin-top: 12px;">
-                <label class="provider-detail__label">Verification Link</label>
-                <div class="provider-detail__key-row">
-                  <input
-                    class="provider-detail__input provider-detail__input--disabled"
-                    type="text"
-                    value={activeFlow().verificationUri}
-                    readonly
-                    aria-label={`${props.provDef.name} verification link`}
-                  />
-                  <CopyButton text={activeFlow().verificationUri} />
-                </div>
-              </div>
-              <div class="provider-detail__field" style="margin-top: 12px;">
-                <button class="btn btn--outline btn--sm" onClick={openVerificationPage}>
-                  Open verification page
-                </button>
-                <button
-                  class="btn btn--ghost btn--sm"
-                  style="margin-left: 8px;"
-                  disabled={props.busy()}
-                  onClick={handleStart}
-                >
-                  Start over
-                </button>
-              </div>
-              <Show when={statusMessage()}>
-                <p class="provider-detail__hint" style="margin-top: 12px;">
-                  {statusMessage()}
-                </p>
-              </Show>
-              <Show when={flowError()}>
-                <div class="provider-detail__error" style="margin-top: 12px;">
-                  {flowError()}
-                </div>
-              </Show>
-            </>
-          )}
+            </Show>
+          </>
         </Show>
       </Show>
       <Show when={props.connected()}>

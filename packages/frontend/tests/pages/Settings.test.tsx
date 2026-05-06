@@ -541,4 +541,22 @@ describe("Settings", () => {
     Object.defineProperty(window, "location", { value: originalLocation, writable: true, configurable: true });
   });
 
+  it("submits delete via Enter key on confirm input", async () => {
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Delete agent"));
+    const input = container.querySelector('.modal-overlay input[type="text"]') as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "test-agent" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    await vi.waitFor(() => { expect(mockDeleteAgent).toHaveBeenCalledWith("test-agent"); });
+  });
+
+  it("does not delete via Enter when name does not match", async () => {
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Delete agent"));
+    const input = container.querySelector('.modal-overlay input[type="text"]') as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "wrong-name" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(mockDeleteAgent).not.toHaveBeenCalled();
+  });
+
 });

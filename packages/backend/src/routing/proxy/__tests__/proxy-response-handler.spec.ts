@@ -422,6 +422,25 @@ describe('proxy-response-handler', () => {
       );
     });
 
+    it('passes meta.primaryAuthType (not meta.auth_type) to recordPrimaryFailure (#1173)', () => {
+      // In a fallback-success flow, meta.auth_type holds the FALLBACK's auth
+      // (used to cost the success row). The primary failure row must instead
+      // carry the PRIMARY's auth_type, which lives on meta.primaryAuthType.
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        fallbackFromModel: 'claude-sonnet-4',
+        primaryProvider: 'anthropic',
+        auth_type: 'subscription',
+        primaryAuthType: 'api_key',
+      });
+
+      recordFallbackFailures(testCtx, meta, undefined, recorder as any);
+
+      const call = recorder.recordPrimaryFailure.mock.calls[0];
+      // 6th positional arg is `authType` on recordPrimaryFailure.
+      expect(call[5]).toBe('api_key');
+    });
+
     it('leaves primary provider undefined when meta.primaryProvider is not set', () => {
       // Guard against regression: without primaryProvider we must NOT fall
       // back to meta.provider (which is the fallback's provider in this flow).

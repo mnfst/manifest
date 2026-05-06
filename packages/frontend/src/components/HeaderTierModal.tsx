@@ -172,6 +172,13 @@ const HeaderTierModal: Component<Props> = (props) => {
         aria-labelledby="header-tier-modal-title"
         style={{ position: 'relative' }}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.defaultPrevented && e.target instanceof HTMLInputElement) {
+            e.preventDefault();
+            submit();
+          }
+          if (e.key === 'Escape' && !e.defaultPrevented) props.onClose();
+        }}
       >
         <Show
           when={props.onBack}
@@ -217,6 +224,7 @@ const HeaderTierModal: Component<Props> = (props) => {
           Tier name
         </label>
         <input
+          ref={(el) => requestAnimationFrame(() => el.focus())}
           id="header-tier-name"
           class="modal-card__input"
           classList={{ 'modal-card__input--error': nameError() !== undefined }}

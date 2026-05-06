@@ -268,6 +268,58 @@ describe('ProviderClient', () => {
       expect(sentBody.system).toBeUndefined();
     });
 
+    it('strips Codex-unsupported params on the subscription Responses path', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5.4-mini',
+        body: {
+          input: 'Hello',
+          stream: false,
+          temperature: 0.3,
+          top_p: 0.5,
+          max_output_tokens: 50,
+          metadata: { x: '1' },
+          safety_identifier: 'probe',
+          prompt_cache_retention: '24h',
+          truncation: 'auto',
+          store: true,
+        },
+        stream: false,
+        authType: 'subscription',
+        apiMode: 'responses',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sent).not.toHaveProperty('temperature');
+      expect(sent).not.toHaveProperty('top_p');
+      expect(sent).not.toHaveProperty('max_output_tokens');
+      expect(sent).not.toHaveProperty('metadata');
+      expect(sent).not.toHaveProperty('safety_identifier');
+      expect(sent).not.toHaveProperty('prompt_cache_retention');
+      expect(sent).not.toHaveProperty('truncation');
+      expect(sent.store).toBe(false);
+    });
+
+    it('keeps Codex-unsupported params for the openai-responses (api-key) path', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'codex-mini-latest',
+        body: { input: 'Hello', temperature: 0.3, max_output_tokens: 50 },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sent.temperature).toBe(0.3);
+      expect(sent.max_output_tokens).toBe(50);
+    });
+
     it('uses normalized chat body for non-native Responses providers', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

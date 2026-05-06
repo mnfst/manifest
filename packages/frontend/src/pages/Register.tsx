@@ -140,6 +140,7 @@ const Register: Component = () => {
               <label class="auth-form__label" for={nameId}>
                 Name
                 <input
+                  ref={(el) => requestAnimationFrame(() => el.focus())}
                   id={nameId}
                   class="auth-form__input"
                   type="text"
