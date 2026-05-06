@@ -216,12 +216,12 @@ export function createRoutingActions(input: RoutingActionsInput) {
       );
       toast.success('Fallback added');
     } catch {
+      // error toast from fetchMutate
       setFallbackOverrides((prev) => {
         const next = { ...prev };
         delete next[tierId];
         return next;
       });
-      toast.error('Could not add fallback');
     } finally {
       setAddingFallback(null);
       setFallbackOverrides((prev) => {
