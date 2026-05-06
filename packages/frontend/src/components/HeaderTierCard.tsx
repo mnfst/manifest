@@ -3,6 +3,7 @@ import type {
   AuthType,
   AvailableModel,
   CustomProviderData,
+  ModelRoute,
   RoutingProvider,
 } from '../services/api.js';
 import {
@@ -44,7 +45,7 @@ interface Props {
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
   onOverride: (model: string, provider: string, authType?: AuthType) => void | Promise<void>;
-  onFallbacksUpdate: (fallbacks: string[]) => void;
+  onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onEdit?: () => void;
   onDisable?: () => void;
 }
@@ -124,7 +125,7 @@ const HeaderTierCard: Component<Props> = (props) => {
         authType !== undefined ? [...currentRoutes, { provider, authType, model }] : undefined;
       try {
         await setHeaderTierFallbacks(props.agentName, props.tier.id, next, nextRoutes);
-        props.onFallbacksUpdate(next);
+        props.onFallbacksUpdate(next, nextRoutes ?? null);
         toast.success('Fallback added');
       } catch {
         toast.error('Failed to add fallback');
@@ -340,7 +341,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             models={props.models}
             customProviders={props.customProviders}
             connectedProviders={props.connectedProviders}
-            onUpdate={(updated) => props.onFallbacksUpdate(updated)}
+            onUpdate={(updated, updatedRoutes) => props.onFallbacksUpdate(updated, updatedRoutes)}
             onAddFallback={() => setPickerMode('fallback')}
             persistFallbacks={(_agent, tierId, models, routes) =>
               setHeaderTierFallbacks(props.agentName, tierId, models, routes)

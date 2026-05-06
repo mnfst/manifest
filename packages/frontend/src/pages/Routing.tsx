@@ -57,7 +57,7 @@ const Routing: Component = () => {
     () => agentName(),
     getSpecificityAssignments,
   );
-  const [headerTiers, { refetch: refetchHeaderTiers }] = createResource(
+  const [headerTiers, { refetch: refetchHeaderTiers, mutate: mutateHeaderTiers }] = createResource(
     () => agentName(),
     (name) => listHeaderTiers(name).catch(() => [] as HeaderTier[]),
   );
@@ -457,6 +457,7 @@ const Routing: Component = () => {
                   connectedProviders={() => connectedProviders() ?? []}
                   externalTiers={() => headerTiers()}
                   externalRefetch={() => void refetchHeaderTiers()}
+                  externalMutate={mutateHeaderTiers}
                   embedded
                 />
               ),
