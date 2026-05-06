@@ -131,6 +131,7 @@ export async function pipeStream(
   source: ReadableStream<Uint8Array>,
   dest: ExpressResponse,
   transform?: (chunk: string) => string | null,
+  finalize?: () => string | null,
 ): Promise<StreamUsage | null> {
   const reader = source.getReader();
   const decoder = new TextDecoder();
@@ -233,11 +234,25 @@ export async function pipeStream(
       }
     }
 
-    // Ensure the stream ends with [DONE] for OpenAI-compatible clients.
-    // Non-transformed streams (OpenAI) already include it from the provider.
-    // Transformed streams (Google) need it added explicitly.
-    if (transform) {
-      dest.write('data: [DONE]\n\n');
+    // Stream tail. Anthropic Messages clients self-terminate after
+    // `message_stop` (emitted via `finalize`); OpenAI-compatible clients
+    // expect `data: [DONE]`. The presence of `finalize` signals the
+    // protocol-specific terminator was already written, so we skip the
+    // OpenAI sentinel — keeping the wire format clean for SDKs that may
+    // refuse to parse trailing unknown payloads.
+    // Guard tail writes with `!dest.writableEnded` so a client disconnect
+    // mid-stream doesn't trigger ERR_STREAM_WRITE_AFTER_END.
+    if (transform && !dest.writableEnded) {
+      if (finalize) {
+        const trailing = finalize();
+        if (trailing && !dest.writableEnded) {
+          dest.write(trailing);
+          const usage = extractUsageFromSse(trailing);
+          if (usage) capturedUsage = usage;
+        }
+      } else if (!dest.writableEnded) {
+        dest.write('data: [DONE]\n\n');
+      }
     }
   } finally {
     reader.releaseLock();

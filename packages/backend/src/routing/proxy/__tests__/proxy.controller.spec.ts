@@ -252,6 +252,54 @@ describe('ProxyController', () => {
     expect(json.usage.input_tokens).toBe(4);
   });
 
+  it('should expose /v1/messages and convert chat completions output to Anthropic Messages format', async () => {
+    const responseBody = {
+      id: 'cc_1',
+      model: 'claude-sonnet-4',
+      choices: [{ message: { content: 'hi there' }, finish_reason: 'stop' }],
+      usage: { prompt_tokens: 4, completion_tokens: 2, total_tokens: 6 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({
+      model: 'claude-sonnet-4',
+      max_tokens: 64,
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+    const { res } = mockResponse();
+
+    await controller.messages(req as never, res as never);
+
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ apiMode: 'messages' }),
+    );
+    const json = (res.json as jest.Mock).mock.calls[0][0];
+    expect(json.type).toBe('message');
+    expect(json.role).toBe('assistant');
+    expect(json.content).toEqual([{ type: 'text', text: 'hi there' }]);
+    expect(json.stop_reason).toBe('end_turn');
+    expect(json.usage).toMatchObject({ input_tokens: 4, output_tokens: 2 });
+  });
+
   it('should pass through native Responses JSON bodies', async () => {
     const responseBody = {
       id: 'resp_1',

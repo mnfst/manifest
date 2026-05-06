@@ -14,7 +14,9 @@ describe('agent-type', () => {
     expect(AGENT_PLATFORMS).toEqual([
       'openclaw',
       'hermes',
+      'claude-code',
       'openai-sdk',
+      'anthropic-sdk',
       'vercel-ai-sdk',
       'langchain',
       'curl',
@@ -63,6 +65,8 @@ describe('agent-type', () => {
       expect(platformIcon('hermes', 'personal')).toBe(PLATFORM_ICONS.hermes);
       expect(platformIcon('openai-sdk', 'app')).toBe(PLATFORM_ICONS['openai-sdk']);
       expect(platformIcon('vercel-ai-sdk', 'app')).toBe(PLATFORM_ICONS['vercel-ai-sdk']);
+      expect(platformIcon('anthropic-sdk', 'app')).toBe(PLATFORM_ICONS['anthropic-sdk']);
+      expect(platformIcon('claude-code', 'personal')).toBe(PLATFORM_ICONS['claude-code']);
       expect(platformIcon('langchain', 'app')).toBe(PLATFORM_ICONS.langchain);
     });
 

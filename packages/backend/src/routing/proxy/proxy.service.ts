@@ -31,6 +31,7 @@ import { formatManifestError } from '../../common/errors/error-codes';
 import { peekStream } from './stream-warmup';
 import type { AuthType } from 'manifest-shared';
 import { toChatCompletionsRequest } from './responses-adapter';
+import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 
 const STREAM_WARMUP_MS = 15_000;
 
@@ -115,7 +116,12 @@ export class ProxyService {
       headers,
     } = opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
-    const chatBody = apiMode === 'responses' ? toChatCompletionsRequest(body) : undefined;
+    const chatBody =
+      apiMode === 'responses'
+        ? toChatCompletionsRequest(body)
+        : apiMode === 'messages'
+          ? messagesToChatCompletionsRequest(body)
+          : undefined;
     const routingBody = chatBody ?? body;
     this.validatePayload(routingBody);
 

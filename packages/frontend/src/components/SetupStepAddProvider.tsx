@@ -2,10 +2,11 @@ import { createSignal, createMemo, Show, Switch, Match, type Component } from 's
 import FrameworkSnippets from './FrameworkSnippets.jsx';
 import OpenClawSetup from './OpenClawSetup.jsx';
 import HermesSetup from './HermesSetup.jsx';
+import ClaudeCodeSetup from './ClaudeCodeSetup.jsx';
 import type { ToolkitId } from '../services/framework-snippets.js';
 
 type SetupTab = 'toolkits' | 'agents';
-type AgentId = 'openclaw' | 'hermes';
+type AgentId = 'openclaw' | 'hermes' | 'claude-code';
 
 interface Props {
   apiKey: string | null;
@@ -17,6 +18,7 @@ interface Props {
 
 const PLATFORM_TO_TOOLKIT: Record<string, ToolkitId> = {
   'openai-sdk': 'openai-sdk',
+  'anthropic-sdk': 'anthropic-sdk',
   'vercel-ai-sdk': 'vercel-ai-sdk',
   langchain: 'langchain',
   curl: 'curl',
@@ -33,7 +35,6 @@ const SetupStepAddProvider: Component<Props> = (props) => {
   }));
 
   const isFiltered = () => !!props.platform;
-  const isPersonalAgent = () => props.platform === 'openclaw' || props.platform === 'hermes';
   const toolkitId = () => (props.platform ? PLATFORM_TO_TOOLKIT[props.platform] : undefined);
 
   return (
@@ -43,7 +44,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           ? 'Connect your Hermes agent to Manifest'
           : props.platform === 'openclaw'
             ? 'Connect your OpenClaw agent to Manifest'
-            : 'Connect your agent to Manifest'}
+            : props.platform === 'claude-code'
+              ? 'Connect Claude Code to Manifest'
+              : 'Connect your agent to Manifest'}
       </h3>
 
       {/* Platform-filtered mode: show only relevant content */}
@@ -54,6 +57,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           </Match>
           <Match when={props.platform === 'hermes'}>
             <HermesSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'claude-code'}>
+            <ClaudeCodeSetup {...snippetProps()} />
           </Match>
           <Match when={toolkitId()}>
             <FrameworkSnippets
@@ -139,6 +145,22 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                 />
                 Hermes Agent
               </button>
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'claude-code' }}
+                onClick={() => setActiveAgent('claude-code')}
+                role="tab"
+                aria-selected={activeAgent() === 'claude-code'}
+              >
+                <img
+                  src="/icons/providers/claude-code.svg"
+                  alt=""
+                  class="panel__tab-icon"
+                  width="16"
+                  height="16"
+                />
+                Claude Code
+              </button>
             </div>
           </div>
 
@@ -148,6 +170,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
             </Match>
             <Match when={activeAgent() === 'hermes'}>
               <HermesSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'claude-code'}>
+              <ClaudeCodeSetup {...snippetProps()} />
             </Match>
           </Switch>
         </Show>

@@ -71,6 +71,14 @@ export class ProxyController {
     await this.handleProxyRequest(req, res, 'responses');
   }
 
+  @Post('messages')
+  async messages(
+    @Req() req: Request & { ingestionContext: IngestionContext },
+    @Res() res: ExpressResponse,
+  ): Promise<void> {
+    await this.handleProxyRequest(req, res, 'messages');
+  }
+
   private async handleProxyRequest(
     req: Request & { ingestionContext: IngestionContext },
     res: ExpressResponse,
