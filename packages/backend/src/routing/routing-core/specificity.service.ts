@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
-import type { AuthType, ModelRoute } from 'manifest-shared';
+import type { AuthType, ModelRoute, RequestParamDefaults } from 'manifest-shared';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { RoutingCacheService } from './routing-cache.service';
@@ -141,6 +141,49 @@ export class SpecificityService {
     existing.updated_at = new Date().toISOString();
     await this.repo.save(existing);
     this.routingCache.invalidateAgent(agentId);
+  }
+
+  /**
+   * Set or clear the configured request body defaults for a category.
+   * Lazily creates the assignment row (inactive) if missing so the popup
+   * can be opened before the user activates the category. Pass `null` to
+   * clear. Same multi-key + fallback semantics as `TierService.setParamDefaults`.
+   */
+  async setParamDefaults(
+    agentId: string,
+    userId: string,
+    category: string,
+    paramDefaults: RequestParamDefaults | null,
+  ): Promise<SpecificityAssignment> {
+    const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
+    if (existing) {
+      existing.param_defaults = paramDefaults;
+      existing.updated_at = new Date().toISOString();
+      await this.repo.save(existing);
+      this.routingCache.invalidateAgent(agentId);
+      return existing;
+    }
+
+    const record = Object.assign(new SpecificityAssignment(), {
+      id: randomUUID(),
+      user_id: userId,
+      agent_id: agentId,
+      category,
+      is_active: false,
+      override_route: null,
+      auto_assigned_route: null,
+      fallback_routes: null,
+      param_defaults: paramDefaults,
+    });
+    try {
+      await this.repo.insert(record);
+    } catch (err) {
+      const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
+      if (retry) return this.setParamDefaults(agentId, userId, category, paramDefaults);
+      throw err;
+    }
+    this.routingCache.invalidateAgent(agentId);
+    return record;
   }
 
   async setFallbacks(

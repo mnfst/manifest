@@ -55,4 +55,77 @@ describe('specificity API client', () => {
     expect(url).toContain('/api/v1/routing/demo/specificity/coding');
     expect((init as RequestInit).method).toBe('DELETE');
   });
+
+  it('setSpecificityParamDefaults PATCHes /params with the payload', async () => {
+    const fetchMock = setupFetch({});
+    await specificity.setSpecificityParamDefaults('demo', 'coding', {
+      thinking: { type: 'disabled' },
+    });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/routing/demo/specificity/coding/params');
+    expect((init as RequestInit).method).toBe('PATCH');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      paramDefaults: { thinking: { type: 'disabled' } },
+    });
+  });
+
+  it('setSpecificityParamDefaults clears with null', async () => {
+    const fetchMock = setupFetch({});
+    await specificity.setSpecificityParamDefaults('demo', 'coding', null);
+    const [, init] = fetchMock.mock.calls[0];
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({ paramDefaults: null });
+  });
+
+  it('setSpecificityFallbacks attaches routes when length matches', async () => {
+    const fetchMock = setupFetch([]);
+    await specificity.setSpecificityFallbacks('demo', 'coding', ['m'], [
+      { provider: 'openai', authType: 'api_key', model: 'm' },
+    ]);
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body.models).toEqual(['m']);
+    expect(body.routes).toHaveLength(1);
+  });
+
+  it('setSpecificityFallbacks omits routes when length differs', async () => {
+    const fetchMock = setupFetch([]);
+    await specificity.setSpecificityFallbacks('demo', 'coding', ['m'], []);
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body.routes).toBeUndefined();
+  });
+
+  it('clearSpecificityFallbacks DELETEs the fallbacks endpoint', async () => {
+    const fetchMock = setupFetch({});
+    await specificity.clearSpecificityFallbacks('demo', 'coding');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/specificity/coding/fallbacks');
+    expect((init as RequestInit).method).toBe('DELETE');
+  });
+
+  it('resetAllSpecificity POSTs to the reset-all endpoint', async () => {
+    const fetchMock = setupFetch({});
+    await specificity.resetAllSpecificity('demo');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/specificity/reset-all');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('overrideSpecificity attaches the structured route when authType is provided', async () => {
+    const fetchMock = setupFetch({});
+    await specificity.overrideSpecificity('demo', 'coding', 'gpt-4o', 'openai', 'api_key');
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body.route).toEqual({ provider: 'openai', authType: 'api_key', model: 'gpt-4o' });
+    expect(body.authType).toBe('api_key');
+  });
+
+  it('overrideSpecificity omits authType/route when authType is undefined', async () => {
+    const fetchMock = setupFetch({});
+    await specificity.overrideSpecificity('demo', 'coding', 'gpt-4o', 'openai');
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body.authType).toBeUndefined();
+    expect(body.route).toBeUndefined();
+  });
 });
