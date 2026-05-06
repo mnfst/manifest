@@ -75,7 +75,7 @@ vi.mock("../../src/services/recent-agents.js", () => ({
 }));
 
 vi.mock("manifest-shared", () => ({
-  AGENT_CATEGORIES: ["personal", "app"],
+  AGENT_CATEGORIES: ["personal", "app", "coding"],
   platformIcon: (plat: string | null, cat: string | null) => {
     if (!plat) return undefined;
     if (plat === "other") return cat === "personal" ? "/icons/other-agent.svg" : "/icons/other.svg";
@@ -85,12 +85,14 @@ vi.mock("manifest-shared", () => ({
       "openai-sdk": "/icons/providers/openai.svg",
       "vercel-ai-sdk": "/icons/vercel.svg",
       langchain: "/icons/langchain.svg",
+      "claude-code": "/icons/providers/claude-code.svg",
     };
     return icons[plat];
   },
   CATEGORY_LABELS: {
     personal: "Personal AI Agent",
     app: "App AI SDK",
+    coding: "Coding Assistant",
   },
   PLATFORM_LABELS: {
     openclaw: "OpenClaw",
@@ -99,11 +101,13 @@ vi.mock("manifest-shared", () => ({
     "vercel-ai-sdk": "Vercel AI SDK",
     langchain: "LangChain",
     curl: "cURL",
+    "claude-code": "Claude Code",
     other: "Other",
   },
   PLATFORMS_BY_CATEGORY: {
     personal: ["openclaw", "hermes", "other"],
     app: ["openai-sdk", "vercel-ai-sdk", "langchain", "other"],
+    coding: ["claude-code", "other"],
   },
   PLATFORM_ICONS: {
     openclaw: "/icons/openclaw.png",
@@ -111,6 +115,7 @@ vi.mock("manifest-shared", () => ({
     "openai-sdk": "/icons/providers/openai.svg",
     "vercel-ai-sdk": "/icons/vercel.svg",
     langchain: "/icons/langchain.svg",
+    "claude-code": "/icons/providers/claude-code.svg",
   },
 }));
 
