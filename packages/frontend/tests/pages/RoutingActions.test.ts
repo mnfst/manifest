@@ -277,6 +277,52 @@ describe("createRoutingActions", () => {
       expect(mockToastSuccess).toHaveBeenCalledWith("Fallback added");
     });
 
+    it("sends explicit (provider, authType) route so backend can disambiguate same-provider models", async () => {
+      // Repros the user-reported bug: primary is OpenAI subscription gpt-4o;
+      // user adds OpenAI API key gpt-4o as the first fallback. The backend's
+      // unambiguousRoute() can't pick by model name alone because gpt-4o
+      // appears twice in the discovered model list (once per authType), so
+      // without an explicit route payload it returns null and silently drops
+      // the save. The frontend must therefore always send the route tuple.
+      const tier: TierAssignment = {
+        ...baseTier,
+        override_route: { provider: "openai", authType: "subscription", model: "gpt-4o" },
+        fallback_routes: null,
+      };
+      mockSetFallbacks.mockResolvedValue([
+        { provider: "openai", authType: "api_key", model: "gpt-4o" },
+      ]);
+      const { actions } = setupActions([tier]);
+      await actions.handleAddFallback("simple", "gpt-4o", "openai", "api_key");
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        ["gpt-4o"],
+        [{ provider: "openai", authType: "api_key", model: "gpt-4o" }],
+      );
+    });
+
+    it("defaults missing authType to 'api_key' on the new route so the backend can disambiguate", async () => {
+      // Multi-key support means we always need to send the full route tuple
+      // (the keyLabel pin rides along with it). When the caller passes no
+      // authType, fall back to 'api_key' rather than dropping the route — the
+      // alternative (sending undefined) made the backend silently drop saves
+      // when the same model name was offered under multiple auth_types.
+      mockSetFallbacks.mockResolvedValue([]);
+      const { actions } = setupActions();
+      await actions.handleAddFallback("simple", "fb-new", "openai");
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        ["fb-1", "fb-2", "fb-new"],
+        [
+          { provider: "openai", authType: "api_key", model: "fb-1" },
+          { provider: "anthropic", authType: "api_key", model: "fb-2" },
+          { provider: "openai", authType: "api_key", model: "fb-new" },
+        ],
+      );
+    });
+
     it("rolls back the optimistic state on failure", async () => {
       mockSetFallbacks.mockRejectedValue(new Error("boom"));
       const { actions } = setupActions();

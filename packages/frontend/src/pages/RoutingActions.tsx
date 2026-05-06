@@ -178,6 +178,13 @@ export function createRoutingActions(input: RoutingActionsInput) {
     // in the key picker — we do NOT inherit the primary's pin so the user
     // can keep adding the same model under different keys until all are
     // exhausted (SebConejo's first review point).
+    //
+    // The full (provider, authType, model[, keyLabel]) tuple goes onto the
+    // route alongside the model name. Without the tuple, the backend can't
+    // disambiguate when the same model id is offered by two of the user's
+    // connected providers (e.g. OpenAI subscription + OpenAI API key both
+    // expose gpt-4o), which causes unambiguousRoute() to return null and
+    // silently drop the save.
     const effectiveAuth = authType ?? 'api_key';
     const newRoute: ModelRoute = providerKeyLabel
       ? {

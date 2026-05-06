@@ -185,6 +185,18 @@ vi.mock("../../src/components/RoutingModals.js", () => ({
           add-spec-fallback
         </button>
         <button
+          data-testid="modal-trigger-add-spec-fallback-no-auth"
+          onClick={() =>
+            (props.onAddFallback as (id: string, m: string, p: string, a?: string) => void)(
+              "coding",
+              "spec-fb",
+              "openai",
+            )
+          }
+        >
+          add-spec-fallback-no-auth
+        </button>
+        <button
           data-testid="modal-trigger-spec-override"
           onClick={() =>
             (
@@ -770,7 +782,36 @@ describe("Routing page", () => {
     });
   });
 
-  it("calls setSpecificityFallbacks when modals add a fallback for a specificity tier", async () => {
+  it("omits the routes payload when the spec fallback caller has no authType", async () => {
+    mockGetSpecificityAssignments.mockResolvedValue([
+      {
+        id: "s1",
+        agent_id: "a",
+        category: "coding",
+        is_active: true,
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: [],
+        updated_at: "2025-01-01",
+      },
+    ]);
+    mockSetSpecificityFallbacks.mockResolvedValue(undefined);
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId("modal-trigger-add-spec-fallback-no-auth")).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId("modal-trigger-add-spec-fallback-no-auth"));
+    await waitFor(() => {
+      expect(mockSetSpecificityFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "coding",
+        ["spec-fb"],
+        undefined,
+      );
+    });
+  });
+
+  it("calls setSpecificityFallbacks with explicit routes when modals add a fallback for a specificity tier", async () => {
     mockGetSpecificityAssignments.mockResolvedValue([
       {
         id: "s1",
@@ -790,7 +831,12 @@ describe("Routing page", () => {
     });
     fireEvent.click(screen.getByTestId("modal-trigger-add-spec-fallback"));
     await waitFor(() => {
-      expect(mockSetSpecificityFallbacks).toHaveBeenCalledWith("demo", "coding", ["spec-fb"]);
+      expect(mockSetSpecificityFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "coding",
+        ["spec-fb"],
+        [{ provider: "openai", authType: "api_key", model: "spec-fb" }],
+      );
     });
   });
 
