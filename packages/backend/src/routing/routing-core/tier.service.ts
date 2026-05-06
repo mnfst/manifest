@@ -236,7 +236,18 @@ export class TierService {
   /**
    * Build the fallback_routes column from caller-provided routes when present,
    * otherwise resolve each model name via discovery. Order is preserved.
-   * Returns null when any model can't be resolved unambiguously.
+   *
+   * Throws BadRequestException when any model can't be resolved to a single
+   * (provider, authType, model) tuple — the caller's existing
+   * `fallback_routes` row is left untouched.
+   *
+   * Issue #1790: this used to `return null` on resolution failure, which
+   * `setFallbacks` then persisted, silently wiping the user's existing
+   * fallback list while the UI toasted "Fallback added". PR #1825 plugged
+   * the most common trigger (same model offered by two authTypes) by making
+   * the frontend send routes; throwing here removes the underlying wipe path
+   * for every other trigger (e.g. disconnected providers, discovery drift,
+   * malformed payloads). It does not narrow which inputs reach this path.
    *
    * `keyLabel` on each route is preserved as-is — the caller decides which
    * provider key each fallback pins to.
@@ -273,7 +284,12 @@ export class TierService {
     const resolved: ModelRoute[] = [];
     for (const m of models) {
       const route = unambiguousRoute(m, available);
-      if (!route) return null;
+      if (!route) {
+        throw new BadRequestException(
+          `Cannot resolve fallback model "${m}" to a single connected provider. ` +
+            `Pass an explicit (provider, authType, model) route, or connect exactly one provider that offers this model.`,
+        );
+      }
       resolved.push(route);
     }
     return resolved;

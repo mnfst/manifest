@@ -216,6 +216,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
       );
       toast.success('Fallback added');
     } catch {
+      // error toast from fetchMutate
       setFallbackOverrides((prev) => {
         const next = { ...prev };
         delete next[tierId];

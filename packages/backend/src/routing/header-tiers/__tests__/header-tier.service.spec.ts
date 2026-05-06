@@ -429,14 +429,43 @@ describe('HeaderTierService', () => {
       expect(result).toEqual([]);
     });
 
-    it('returns [] when discovery cannot disambiguate', async () => {
+    it('throws when discovery cannot disambiguate', async () => {
       repo.findOne.mockResolvedValue({ id: 'h1', agent_id: 'agent-1' } as HeaderTier);
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
         discovered('gpt-4o', 'openai', 'subscription'),
       ]);
-      const result = await svc.setFallbacks('agent-1', 'h1', ['gpt-4o']);
-      expect(result).toEqual([]);
+      await expect(svc.setFallbacks('agent-1', 'h1', ['gpt-4o'])).rejects.toThrow(
+        /Cannot resolve fallback model "gpt-4o"/,
+      );
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    // Regression: issue #1790. See tier.service.spec for the full rationale.
+    it('preserves existing fallbacks when an unresolvable model is added (issue #1790)', async () => {
+      const existing = [
+        route('openai', 'api_key', 'gpt-4o'),
+        route('anthropic', 'api_key', 'claude-3-5-sonnet'),
+      ];
+      repo.findOne.mockResolvedValue({
+        id: 'h1',
+        agent_id: 'agent-1',
+        fallback_routes: existing,
+      } as HeaderTier);
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('gpt-4o', 'openai', 'api_key'),
+        discovered('gpt-4o', 'openai', 'subscription'),
+        discovered('claude-3-5-sonnet', 'anthropic', 'api_key'),
+      ]);
+      await expect(
+        svc.setFallbacks(
+          'agent-1',
+          'h1',
+          ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
+          [...existing, route('minimax', 'api_key', 'minmax-27')],
+        ),
+      ).rejects.toThrow(/Cannot resolve fallback model/);
+      expect(repo.save).not.toHaveBeenCalled();
     });
 
     it('falls back to discovery when provided routes do not align', async () => {
