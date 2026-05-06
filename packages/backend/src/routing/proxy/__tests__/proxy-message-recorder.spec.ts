@@ -1197,6 +1197,95 @@ describe('ProxyMessageRecorder', () => {
       }
     });
   });
+
+  // Persistence proof for the per-message Model Parameters telemetry. Each
+  // record* path must thread `requestParams` to the inserted row so the
+  // dashboard's expanded message detail can show what the request actually
+  // had — and crucially, **omitting** the field must keep the column NULL
+  // (the back-compat property: existing call sites that don't know about
+  // this feature don't accidentally write garbage).
+  describe('request_params persistence', () => {
+    const params = { thinking: { type: 'disabled' as const } };
+
+    it('recordProviderError persists requestParams when supplied', async () => {
+      await recorder.recordProviderError(ctx, 500, 'oops', { requestParams: params });
+      expect(insertMock.mock.calls[0][0]).toMatchObject({ request_params: params });
+    });
+
+    it('recordProviderError leaves request_params null when omitted (back-compat)', async () => {
+      await recorder.recordProviderError(ctx, 500, 'oops');
+      expect(insertMock.mock.calls[0][0]).toMatchObject({ request_params: null });
+    });
+
+    it('recordPrimaryFailure persists requestParams when supplied', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gpt-4o',
+        'err',
+        new Date().toISOString(),
+        'api_key',
+        { requestParams: params },
+      );
+      expect(insertMock.mock.calls[0][0]).toMatchObject({ request_params: params });
+    });
+
+    it('recordPrimaryFailure leaves request_params null when omitted (back-compat)', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gpt-4o',
+        'err',
+        new Date().toISOString(),
+        'api_key',
+      );
+      expect(insertMock.mock.calls[0][0]).toMatchObject({ request_params: null });
+    });
+
+    it('recordFailedFallbacks persists requestParams on every row in the batch', async () => {
+      const failures = [
+        { model: 'a', provider: 'p', fallbackIndex: 0, status: 500, errorBody: 'e1' },
+        { model: 'b', provider: 'p', fallbackIndex: 1, status: 502, errorBody: 'e2' },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'gpt-4o', failures, {
+        requestParams: params,
+      });
+      // The recorder calls `insert` once with a row[] payload. Both rows
+      // need to carry the snapshot — when one fallback succeeds and the
+      // others fail, the dashboard should still show what was requested
+      // for each attempt.
+      const rows = insertMock.mock.calls[0][0] as Array<{ request_params: unknown }>;
+      expect(rows).toHaveLength(2);
+      expect(rows[0].request_params).toEqual(params);
+      expect(rows[1].request_params).toEqual(params);
+    });
+
+    it('recordFallbackSuccess persists requestParams when supplied', async () => {
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        fallbackFromModel: 'claude-opus',
+        fallbackIndex: 0,
+        requestParams: params,
+      });
+      expect(insertMock.mock.calls[0][0]).toMatchObject({ request_params: params });
+    });
+
+    it('arbitrary param shapes round-trip — forward-compat for future provider knobs and user-defined custom params', async () => {
+      // The persistence layer never inspects the JSONB content. Today's
+      // typed `RequestParamDefaults` shape carries `thinking`; tomorrow's
+      // shapes might include `reasoning_effort: 'high'`, a user-defined
+      // `custom_safety: { mode: 'permissive' }` from a custom provider, or
+      // anything else. Storing them all without code changes is the whole
+      // point of the JSONB column. Test that with a multi-key fixture the
+      // field round-trips byte-identically.
+      const future = {
+        thinking: { type: 'enabled' },
+        reasoning_effort: 'high',
+        custom_safety: { mode: 'permissive', threshold: 0.8 },
+      } as never;
+      await recorder.recordProviderError(ctx, 500, 'oops', { requestParams: future });
+      expect(insertMock.mock.calls[0][0]).toMatchObject({ request_params: future });
+    });
+  });
 });
 
 /**

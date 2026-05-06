@@ -769,6 +769,22 @@
   border-radius: var(--radius-sm);
 }
 
+/*
+ * When a section title sits inline with a sibling element (today: the
+ * Model Parameters InfoTooltip), the row's wrapper owns the
+ * margin-bottom so the button + tooltip share a single spacing rhythm.
+ */
+.msg-detail__section-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.msg-detail__section-title--inline {
+  margin-bottom: 0;
+}
+
 .msg-detail__chevron {
   display: inline-block;
   font-size: 0.75em;
@@ -830,6 +846,20 @@
 }
 
 .msg-detail__log-body {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 500px;
+}
+
+/*
+ * Dedicated style hook for Model Parameter values. Mirrors `__log-body`
+ * today (multi-line JSON.stringify output needs whitespace preservation
+ * and word-break for unbreakable tokens), but lives separately so when we
+ * add a "source: user override / manifest default / client request"
+ * column or badge, we can adjust without touching shared log/header
+ * cells.
+ */
+.msg-detail__param-value {
   white-space: pre-wrap;
   word-break: break-word;
   max-width: 500px;

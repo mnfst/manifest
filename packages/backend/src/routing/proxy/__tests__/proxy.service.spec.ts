@@ -286,6 +286,140 @@ describe('ProxyService — orchestration', () => {
       expect(momentum.recordCategory).not.toHaveBeenCalled();
     });
 
+    it('threads stored param_defaults through paramMergeContext (merge runs per-attempt downstream)', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+        param_defaults: { thinking: { type: 'disabled' } },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      const call = fallbackService.tryForwardToProvider.mock.calls[0][0];
+      // Body stays raw — the merge happens per-attempt inside the fallback
+      // service so each fallback iteration uses its own provider.
+      expect(call.body).toEqual({ messages: [{ role: 'user', content: 'hi' }] });
+      expect(call.paramMergeContext).toEqual({
+        userDefaults: { thinking: { type: 'disabled' } },
+        tier: 'standard',
+        isSpecificity: false,
+      });
+    });
+
+    it('hands the fallback service a paramMergeContext flagged for the resolved tier', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      // The actual merge happens inside the fallback service so it can be
+      // recomputed per-attempt against each iteration's provider; the
+      // proxy is responsible only for forwarding the right context bag.
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].paramMergeContext).toEqual({
+        userDefaults: undefined,
+        tier: 'standard',
+        isSpecificity: false,
+      });
+    });
+
+    it('forwards user param_defaults verbatim through paramMergeContext', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+        param_defaults: { thinking: { type: 'enabled' } },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      expect(
+        fallbackService.tryForwardToProvider.mock.calls[0][0].paramMergeContext?.userDefaults,
+      ).toEqual({ thinking: { type: 'enabled' } });
+    });
+
+    it('marks paramMergeContext.isSpecificity for specificity matches', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 0,
+        reason: 'specificity',
+        specificity_category: 'coding',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      expect(
+        fallbackService.tryForwardToProvider.mock.calls[0][0].paramMergeContext?.isSpecificity,
+      ).toBe(true);
+    });
+
+    it('passes the inbound body through unchanged so the per-attempt merge can re-merge each fallback', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+        param_defaults: { thinking: { type: 'disabled' } },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: {
+            messages: [{ role: 'user', content: 'hi' }],
+            thinking: { type: 'enabled' },
+          } as never,
+        }),
+      );
+      // The body still carries the client-supplied thinking field — the
+      // fallback service's merge respects that by presence.
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toEqual({
+        type: 'enabled',
+      });
+    });
+
     it('does not record momentum for non-scoring tiers (e.g. "default")', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'default',
@@ -303,6 +437,81 @@ describe('ProxyService — orchestration', () => {
       });
       await svc.proxyRequest(baseOpts());
       expect(momentum.recordTier).not.toHaveBeenCalled();
+    });
+
+    // Telemetry snapshot proofs. The `RoutingMeta.request_params` field
+    // drives the per-row Model Parameters accordion in the dashboard; these
+    // tests pin (a) it gets populated for the primary provider on success,
+    // (b) the snapshot is re-derived per provider so a fallback record
+    // never carries another vendor's knob, and (c) providers without a
+    // known param key (today: anything that isn't DeepSeek for `thinking`)
+    // produce a null snapshot so existing rows stay clean.
+    it("populates meta.request_params with the provider's effective default for known keys (DeepSeek thinking enabled)", async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const result = await svc.proxyRequest(baseOpts());
+      // DeepSeek's silent default is `enabled`; on the `standard` tier
+      // Manifest's tier-aware opinion is `disabled` (the cost-saving fix
+      // from #1729). User defaults trump the tier opinion if set, but
+      // here nothing was configured, so the snapshot reflects Manifest's
+      // contribution which lands on `disabled`.
+      expect(result.meta.request_params).toEqual({ thinking: { type: 'disabled' } });
+    });
+
+    it("snapshot reflects the user's stored override when present", async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+        param_defaults: { thinking: { type: 'enabled' } },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const result = await svc.proxyRequest(baseOpts());
+      expect(result.meta.request_params).toEqual({ thinking: { type: 'enabled' } });
+    });
+
+    it('snapshot is null when the provider has no known param keys (today: any non-DeepSeek provider)', async () => {
+      // Forward-compat property: providers that never appear in the
+      // `PROVIDER_THINKING_DEFAULTS` registry produce a null snapshot,
+      // so the existing experience for OpenAI/Anthropic/Gemini/etc. rows
+      // stays unchanged. New providers light up by adding an entry to
+      // the registry — no proxy code needed.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const result = await svc.proxyRequest(baseOpts());
+      expect(result.meta.request_params).toBeNull();
     });
   });
 

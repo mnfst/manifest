@@ -120,6 +120,107 @@ describe('ProxyFallbackService', () => {
       ).rejects.toThrow('boom');
     });
 
+    it("merges Manifest's tier-aware default into the body before calling providerClient (DeepSeek + standard tier)", async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-v4-flash',
+        body: { messages: [{ role: 'user', content: 'hi' }] },
+        stream: false,
+        sessionKey: 'sess-1',
+        paramMergeContext: { userDefaults: null, tier: 'standard', isSpecificity: false },
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: expect.objectContaining({ thinking: { type: 'disabled' } }),
+        }),
+      );
+    });
+
+    it("re-merges per attempt — does not leak DeepSeek's thinking onto an Anthropic fallback", async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+      // Same context (originally resolved against DeepSeek) but the iteration
+      // is firing against Anthropic. The filter must drop `thinking` because
+      // Anthropic doesn't consume that field shape.
+      await service.tryForwardToProvider({
+        provider: 'anthropic',
+        apiKey: 'sk-anthropic',
+        model: 'claude-sonnet-4',
+        body: { messages: [{ role: 'user', content: 'hi' }] },
+        stream: false,
+        sessionKey: 'sess-1',
+        paramMergeContext: {
+          userDefaults: { thinking: { type: 'disabled' } },
+          tier: 'standard',
+          isSpecificity: false,
+        },
+      });
+
+      const forwarded = providerClient.forward.mock.calls[0][0];
+      expect(forwarded.body.thinking).toBeUndefined();
+    });
+
+    it('respects the inbound body field by presence (client wins over Manifest default)', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-v4-flash',
+        body: {
+          messages: [{ role: 'user', content: 'hi' }],
+          thinking: { type: 'enabled' },
+        },
+        stream: false,
+        sessionKey: 'sess-1',
+        paramMergeContext: { userDefaults: null, tier: 'standard', isSpecificity: false },
+      });
+
+      const forwarded = providerClient.forward.mock.calls[0][0];
+      expect(forwarded.body.thinking).toEqual({ type: 'enabled' });
+    });
+
+    it('skips the tier-aware Manifest default for specificity contexts', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-v4-flash',
+        body: { messages: [{ role: 'user', content: 'hi' }] },
+        stream: false,
+        sessionKey: 'sess-1',
+        paramMergeContext: { userDefaults: null, tier: 'standard', isSpecificity: true },
+      });
+
+      const forwarded = providerClient.forward.mock.calls[0][0];
+      expect(forwarded.body.thinking).toBeUndefined();
+    });
+
     it('rethrows when signal is aborted', async () => {
       const ac = new AbortController();
       ac.abort();

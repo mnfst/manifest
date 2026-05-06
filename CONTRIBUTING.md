@@ -93,14 +93,17 @@ docker rm -f manifest-postgres   # remove the container
 4. Start the development servers (in separate terminals):
 
 ```bash
-# Backend (must preload dotenv)
+# Backend (must preload dotenv — needs to start separately because nest's
+# CLI watcher doesn't compose with turbo's parallel runner)
 cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
 
-# Frontend
-cd packages/frontend && npx vite
+# Frontend + Wingman (turbo runs both in parallel)
+npm run dev
 ```
 
-The frontend runs on `http://localhost:3000` and proxies API requests to the backend on `http://localhost:3001`.
+The frontend runs on `http://localhost:3000` and proxies API requests to the backend on `http://localhost:3001`. Wingman runs on `http://localhost:3002` and is embedded as an iframe in the dashboard's bottom drawer (FAB at bottom-right, or `⌘/Ctrl+Shift+W`).
+
+`npm run dev` is filtered to exactly `manifest-frontend` + `manifest-wingman` — adding a new workspace with a `dev` script will not silently join the dev set. **Wingman is excluded from every production path** (Dockerfile filter, `.dockerignore`, changeset config, and the `__DEV_MODE__` build constant in `packages/frontend/vite.config.ts` which dead-code-eliminates the drawer when `VITE_MANIFEST_SELFHOSTED=true`).
 
 5. With `SEED_DATA=true`, you can log in with `admin@manifest.build` / `manifest`.
 
@@ -153,7 +156,7 @@ The backend runs standalone and OpenClaw talks to it as a regular OpenAI-compati
 
 ### Running it
 
-The dashboard auto-discovers Wingman at `backend port + 1`. Start three things:
+The dashboard auto-discovers Wingman at `backend port + 1`. Start two things:
 
 ```bash
 # Terminal 1 — Postgres (skip if already running)
@@ -162,16 +165,21 @@ docker start manifest-postgres
 # Terminal 2 — backend on :3001
 cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
 
-# Terminal 3 — frontend on :3000
-cd packages/frontend && npx vite
-
-# Terminal 4 — Wingman on :3002
-npm run dev --workspace=manifest-wingman
+# Terminal 3 — frontend (:3000) + Wingman (:3002), both started by turbo
+npm run dev
 ```
 
-Open `http://localhost:3000`, sign in, then look at the **bottom-right corner**: a pink **🪶 Wingman** floating action button toggles the drawer. The drawer slides up over half the viewport, embeds Wingman in an iframe with `?baseUrl=` pre-filled, and you can drag its top edge to resize. Keyboard: `⌘/Ctrl + Shift + W` toggles, `Esc` closes.
+Open `http://localhost:3000`, sign in, then look at the **bottom-right corner**: a pink **🪶 Wingman** floating action button toggles the drawer. The drawer slides up over half the viewport, embeds Wingman in an iframe at `http://localhost:3002` with `?baseUrl=http://localhost:3000` pre-filled, and you can drag its top edge to resize. Keyboard: `⌘/Ctrl + Shift + W` toggles, `Esc` closes.
 
-To use Wingman with `/serve` or any single-service backend on a custom port, set `WINGMAN_PORT=$((PORT+1))` when starting the backend (the `frame-src` CSP and CORS allowlist read this env var) and run Wingman with `WINGMAN_PORT=$((PORT+1)) npm run dev --workspace=manifest-wingman`.
+To use Wingman with a single-service backend on a custom port (e.g. you're running `node packages/backend/dist/main.js` directly with `PORT=38238`), set the matching env vars on both processes — the backend's `frame-src` CSP and CORS allowlist read `WINGMAN_PORT`, and Wingman's Vite reads `WINGMAN_PORT` + `WINGMAN_BACKEND_PORT`:
+
+```bash
+# Backend
+WINGMAN_PORT=38239 PORT=38238 node -r dotenv/config packages/backend/dist/main.js
+
+# Wingman
+WINGMAN_PORT=38239 WINGMAN_BACKEND_PORT=38238 npm run dev --workspace=manifest-wingman
+```
 
 ### Where Wingman is excluded
 

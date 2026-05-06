@@ -558,6 +558,53 @@
   cursor: not-allowed;
 }
 
+.routing-card__chip-action--active {
+  color: hsl(var(--primary));
+}
+
+.model-params__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.model-params__label-title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.model-params__label-hint {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+}
+
+.model-params__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  transition: color var(--transition-fast);
+}
+
+.model-params__toggle:hover:not(:disabled) {
+  color: hsl(var(--foreground));
+}
+
+.model-params__toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .routing-card__chip-action {
   position: relative;
 }

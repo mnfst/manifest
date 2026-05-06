@@ -1,5 +1,6 @@
 import type { Tier } from './tiers';
 import type { ModelRoute } from './model-route';
+import type { RequestParamDefaults } from './request-params';
 import type { SpecificityCategory } from './specificity';
 
 export interface ResolveResponse {
@@ -17,4 +18,10 @@ export interface ResolveResponse {
   /** Ordered fallback routes for the resolved tier. */
   fallback_routes: ModelRoute[] | null;
   specificity_category?: SpecificityCategory;
+  /**
+   * Configured per-assignment request body defaults. Merged into the
+   * outbound provider request before forwarding; client-supplied fields in
+   * the request body take precedence by presence.
+   */
+  param_defaults?: RequestParamDefaults | null;
 }

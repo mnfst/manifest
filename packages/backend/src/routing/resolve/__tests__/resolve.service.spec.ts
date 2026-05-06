@@ -805,5 +805,19 @@ describe('ResolveService', () => {
       const result = await svc.resolveForTier('agent-1', 'default', 'default');
       expect(result.reason).toBe('default');
     });
+
+    it('surfaces param_defaults from the tier assignment', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_route: null,
+          auto_assigned_route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+          fallback_routes: null,
+          param_defaults: { thinking: { type: 'disabled' } },
+        } as unknown as TierAssignment,
+      ]);
+      const result = await svc.resolveForTier('agent-1', 'simple');
+      expect(result.param_defaults).toEqual({ thinking: { type: 'disabled' } });
+    });
   });
 });

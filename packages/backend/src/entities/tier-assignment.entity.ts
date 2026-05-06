@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
-import type { ModelRoute } from 'manifest-shared';
+import type { ModelRoute, RequestParamDefaults } from 'manifest-shared';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 @Entity('tier_assignments')
@@ -25,6 +25,9 @@ export class TierAssignment {
 
   @Column('jsonb', { nullable: true })
   fallback_routes!: ModelRoute[] | null;
+
+  @Column('jsonb', { nullable: true })
+  param_defaults!: RequestParamDefaults | null;
 
   @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;

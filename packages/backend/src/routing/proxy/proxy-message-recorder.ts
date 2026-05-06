@@ -2,6 +2,7 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
+import type { RequestParamDefaults } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
@@ -43,6 +44,11 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   providerKeyLabel?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
+  /**
+   * Snapshot of effective request body parameters merged into the outbound
+   * provider request. Persisted to `agent_messages.request_params`.
+   */
+  requestParams?: RequestParamDefaults | null;
 }
 
 export interface FallbackSuccessOpts extends HeaderTierRef {
@@ -62,6 +68,12 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   usage?: StreamUsage;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
+  /**
+   * Snapshot of effective request body parameters (today: DeepSeek
+   * `thinking`) merged into the outbound provider request. `null` when no
+   * known params apply. Persisted to `agent_messages.request_params`.
+   */
+  requestParams?: RequestParamDefaults | null;
 }
 
 export interface SuccessMessageOpts extends HeaderTierRef {
@@ -74,6 +86,12 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   providerKeyLabel?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
+  /**
+   * Snapshot of effective request body parameters (today: DeepSeek
+   * `thinking`) merged into the outbound provider request. `null` when no
+   * known params apply. Persisted to `agent_messages.request_params`.
+   */
+  requestParams?: RequestParamDefaults | null;
 }
 
 /**
@@ -156,6 +174,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       providerKeyLabel,
       callerAttribution,
       requestHeaders,
+      requestParams,
       headerTierId,
       headerTierName,
       headerTierColor,
@@ -201,6 +220,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         provider_key_label: providerKeyLabel ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
+        request_params: requestParams ?? null,
         header_tier_id: headerTierId ?? null,
         header_tier_name: headerTierName ?? null,
         header_tier_color: headerTierColor ?? null,
@@ -223,6 +243,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       reason?: string;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
+      requestParams?: RequestParamDefaults | null;
       headerTierId?: string | null;
       headerTierName?: string | null;
       headerTierColor?: string | null;
@@ -237,6 +258,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       reason,
       callerAttribution,
       requestHeaders,
+      requestParams,
       headerTierId,
       headerTierName,
       headerTierColor,
@@ -289,6 +311,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           auth_type: recordedAuth,
           caller_attribution: callerAttribution ?? null,
           request_headers: requestHeaders ?? null,
+          request_params: requestParams ?? null,
           header_tier_id: headerTierId ?? null,
           header_tier_name: headerTierName ?? null,
           header_tier_color: headerTierColor ?? null,
@@ -311,6 +334,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       reason?: string;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
+      requestParams?: RequestParamDefaults | null;
       headerTierId?: string | null;
       headerTierName?: string | null;
       headerTierColor?: string | null;
@@ -335,6 +359,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         auth_type: authType ?? null,
         caller_attribution: opts?.callerAttribution ?? null,
         request_headers: opts?.requestHeaders ?? null,
+        request_params: opts?.requestParams ?? null,
         header_tier_id: opts?.headerTierId ?? null,
         header_tier_name: opts?.headerTierName ?? null,
         header_tier_color: opts?.headerTierColor ?? null,
@@ -361,6 +386,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       usage,
       callerAttribution,
       requestHeaders,
+      requestParams,
       headerTierId,
       headerTierName,
       headerTierColor,
@@ -410,6 +436,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         provider_key_label: providerKeyLabel ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
+        request_params: requestParams ?? null,
         header_tier_id: headerTierId ?? null,
         header_tier_name: headerTierName ?? null,
         header_tier_color: headerTierColor ?? null,
@@ -438,6 +465,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       providerKeyLabel,
       callerAttribution,
       requestHeaders,
+      requestParams,
       headerTierId,
       headerTierName,
       headerTierColor,
@@ -511,6 +539,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               provider_key_label: providerKeyLabel ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
+              request_params: requestParams ?? null,
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
@@ -548,6 +577,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               provider_key_label: providerKeyLabel ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
+              request_params: requestParams ?? null,
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
