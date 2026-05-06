@@ -1,0 +1,21 @@
+packages/frontend/src/pages/RoutingSpecificitySection.tsx
+  s_b970ffa4b91350::t_79770d4383c505 246-247
+packages/frontend/tests/pages/RoutingSpecificitySection.test.tsx
+  s_b970ffa4b91350::t_91784c956fce21 270,272-274
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "4e1d315754be6f4a110e84317dd0d2ad009ab4f6",
+  "prompts": {},
+  "sessions": {
+    "s_b970ffa4b91350": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "08aba76f-94e6-4d75-86fc-c6884c5ba244",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
