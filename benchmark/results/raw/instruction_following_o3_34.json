@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is an auxiliary data structure that stores a sorted subset of column values paired with pointers to the corresponding rows, similar to a book\u2019s back-of-the-book index. By letting the engine locate relevant rows with logarithmic or constant-time lookups instead of scanning the whole table, it speeds up queries at the expense of extra storage and slightly slower writes.",
+  "score": 2,
+  "cost": 0.002324,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 286
+  }
+}

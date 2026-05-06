@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "The South African Schools Act of 1996",
+  "score": 5,
+  "cost": 0.001014,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 143,
+    "output": 91
+  }
+}

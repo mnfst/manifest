@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law of Motion",
+  "score": 5,
+  "cost": 0.001244,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 270,
+    "output": 88
+  }
+}

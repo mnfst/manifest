@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "```python\n# test_title_case.py\nimport pytest\n\nfrom your_module import title_case      # replace `your_module` with the actual module name\n\n\n@pytest.mark.parametrize(\n    (\"input_s\", \"expected\"),\n    [\n        (\"hello world\", \"Hello World\"),                       # all-lowercase, 2 words\n        (\"hElLo WoRLD\", \"Hello World\"),                       # mixed casing\n        (\"Hello\", \"Hello\"),                                   # single word\n        (\"  hello   world  \", \"Hello World\"),                 # leading / trailing / multiple spaces\n        (\"hello\\tworld\\nagain\", \"Hello World Again\"),         # tabs and newlines as whitespace\n        (\"123abc test-case\", \"123abc Test-case\"),             # non-alphabetic first char and hyphen\n        (\"ma\u00f1ana \u00fcnicode\", \"Ma\u00f1ana \u00dcnicode\"),                 # basic Unicode support\n        (\"HELLO WORLD \" * 1000, (\"Hello World \" * 1000).strip())  # large input (performance / no crash)\n    ],\n)\ndef test_title_case_happy_paths(input_s, expected):\n    \"\"\"\n    General \u2018happy path\u2019 expectations for a variety of normal inputs.\n    \"\"\"\n    assert title_case(input_s) == expected\n\n\ndef test_title_case_empty_string():\n    assert title_case(\"\") == \"\"\n\n\ndef test_title_case_whitespace_only():\n    # Function should strip all whitespace and return empty string.\n    assert title_case(\"   \\t  \\n \") == \"\"\n\n\n@pytest.mark.parametrize(\"bad_input\", [None, 123, 3.14, [\"not\", \"a\", \"string\"]])\ndef test_title_case_bad_types_raise_attribute_error(bad_input):\n    \"\"\"\n    Passing a non-string should raise AttributeError because the object\n    does not implement `.split()`.\n    \"\"\"\n    with pytest.raises(AttributeError):\n        title_case(bad_input)\n```",
+  "score": 5,
+  "cost": 0.008002,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 986
+  }
+}

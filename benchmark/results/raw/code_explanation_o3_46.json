@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 46,
+  "response": "This function is the classic \u201cinsert-fixup\u201d routine from the CLRS red-black tree algorithm: it repeatedly climbs up from the newly inserted node, using the three standard cases (uncle red \u21d2 recolor, uncle black with inner/outer child \u21d2 rotate + recolor) to restore the red-black properties, and finally ensures the root is black.",
+  "score": 5,
+  "cost": 0.001592,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 156
+  }
+}

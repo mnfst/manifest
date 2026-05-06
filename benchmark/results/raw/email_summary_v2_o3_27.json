@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The team celebrated shipping the auth redesign on schedule with excellent cross-functional collaboration but noted issues with frequent context switching and 25-minute stand-ups. To address this, they will limit each developer\u2019s WIP to two items and strictly time-box stand-ups to 15 minutes, using a parking lot for overflow topics.",
+  "score": 5,
+  "cost": 0.001432,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 153
+  }
+}

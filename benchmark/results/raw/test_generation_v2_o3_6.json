@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "```python\n# tests/test_reverse_words.py\nimport pytest\n\n# If `reverse_words` is in another module replace the next line with:\n# from your_module import reverse_words\nfrom reverse_words import reverse_words\n\n\n# ---------- Happy-path tests ----------\n@pytest.mark.parametrize(\n    \"original, expected\",\n    [\n        (\"hello world\", \"world hello\"),\n        (\"The quick brown fox\", \"fox brown quick The\"),\n        (\"one two three four five\", \"five four three two one\"),\n    ],\n)\ndef test_reverse_words_basic(original, expected):\n    assert reverse_words(original) == expected\n\n\n# ---------- Edge-case tests ----------\n@pytest.mark.parametrize(\n    \"original, expected\",\n    [\n        # Single word \u2013 nothing to reverse\n        (\"python\", \"python\"),\n        # Empty string\n        (\"\", \"\"),\n        # String that is only whitespace\n        (\"   \\t  \\n  \", \"\"),\n        # Leading / trailing / repeated internal whitespace is squeezed to one space\n        (\"  hello   world  \", \"world hello\"),\n        # Tabs and new lines are treated as whitespace by .split()\n        (\"hello\\tworld\\npytest\", \"pytest world hello\"),\n        # Unicode text\n        (\"\u3053\u3093\u306b\u3061\u306f \u4e16\u754c\", \"\u4e16\u754c \u3053\u3093\u306b\u3061\u306f\"),\n    ],\n)\ndef test_reverse_words_edge_cases(original, expected):\n    assert reverse_words(original) == expected\n\n\n# ---------- Error-case tests ----------\n@pytest.mark.parametrize(\"bad_input\", [None, 123, 3.14, [\"hello\", \"world\"], {\"text\": \"hi\"}])\ndef test_reverse_words_invalid_input_raises_attribute_error(bad_input):\n    # Objects that do not implement .split() should raise AttributeError\n    with pytest.raises(AttributeError):\n        reverse_words(bad_input)\n```",
+  "score": 5,
+  "cost": 0.009772,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 1208
+  }
+}

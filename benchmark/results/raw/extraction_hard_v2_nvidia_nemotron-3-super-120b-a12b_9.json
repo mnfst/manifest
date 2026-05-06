@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "extraction_hard_v2",
+  "case": 9,
+  "response": "{\n  \"restaurant\": \"Chez Marcel\",\n  \"reviewer\": \"@foodie_jane\",\n  \"date\": \"March 2024\",\n  \"wait_time_min\": 40,\n  \"dishes\": [\n    {\"name\": \"Duck confit\", \"rating\": \"5/5\"},\n    {\"name\": \"Creme brulee\", \"rating\": \"3/5\"}\n  ],\n  \"wine\": {\"name\": \"Chateau Margaux\", \"year\": 2019},\n  \"bill_total\": 247,\n  \"party_size\": 2",
+  "score": 4,
+  "cost": 9.981000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 800
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "SELECT COUNT(*) AS flight_count\nFROM flight f\nJOIN airport dep ON f.departure_airport = dep.airport_code\nJOIN airport arr ON f.arrival_airport = arr.airport_code\nWHERE dep.city = 'Aberdeen'\n  AND arr.city = 'Ashley';",
+  "score": 5,
+  "cost": 0.007922,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 971
+  }
+}

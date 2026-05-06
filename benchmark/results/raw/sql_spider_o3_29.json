@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "SELECT COUNT(DISTINCT language) AS unique_languages\nFROM countrylanguage;",
+  "score": 5,
+  "cost": 0.001426,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 161
+  }
+}

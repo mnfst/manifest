@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has circulated the Q1 board deck draft, highlighting 127 % of revenue target achieved, NRR at 115 %, and a 22 % rise in CAC. Please provide your product roadmap section by Wednesday so it can be incorporated before the board meeting next Tuesday.",
+  "score": 5,
+  "cost": 0.00129,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 140
+  }
+}

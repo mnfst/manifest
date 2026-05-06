@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "The v4.2 release is being rolled back because a data-corruption bug in the new sync engine has impacted 23 accounts. Action items: restore from the pre-release backup, re-run affected transactions, notify the affected customers, and work from the newly created hotfix branch.",
+  "score": 5,
+  "cost": 0.001354,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 144
+  }
+}

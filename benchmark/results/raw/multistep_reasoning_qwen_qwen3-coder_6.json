@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "I need to think about what actually happens when wood burns from a scientific perspective.\n\nWhen wood burns, it undergoes combustion, which is a chemical reaction with oxygen. Let me consider each option:\n\nA) It is completely destroyed - This is incorrect. Matter cannot be destroyed, only transformed according to the law of conservation of mass.\n\nB) It is completely changed into heat energy - This is also incorrect. While heat energy is produced, the matter itself doesn't completely convert to energy. Some matter remains as ash and other products.\n\nC) It changes into other types of matter and energy - This is correct. During combustion, the wood (primarily cellulose and lignin) reacts with oxygen to produce:\n- Carbon dioxide gas\n- Water vapor\n- Ash (solid residue)\n- Heat energy\n- Light energy\nThe original matter is transformed into different forms of matter and energy, but the total mass-energy is conserved.\n\nD) It physically changes into the gaseous phase - This is partially true but incomplete. While some of the wood does become gas (CO2 and water vapor), solid ash remains, and energy is also produced.\n\nThe most complete and accurate answer is C, as it accounts for both the transformation of matter into different forms and the production of energy.\n\nAnswer: C",
+  "score": 5,
+  "cost": 0.00025014000000000004,
+  "expected": "C",
+  "tokens": {
+    "input": 93,
+    "output": 261
+  }
+}

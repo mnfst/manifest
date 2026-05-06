@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT\n    p.first_name,\n    AVG(r.ranking) AS average_ranking\nFROM\n    players AS p\nJOIN\n    rankings AS r\n    ON p.player_id = r.player_id\nGROUP BY\n    p.player_id,\n    p.first_name;",
+  "score": 4,
+  "cost": 0.002268,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 265
+  }
+}

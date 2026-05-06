@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "Founded in 1861, the Massachusetts Institute of Technology (MIT) is currently ranked #1, educates roughly 11,500 students, and admits just 3.9 % of its applicants, all under the guidance of 1,069 faculty members. Annual tuition stands at $57,590, the endowment totals $24.6 billion, and the institute boasts an impressive 98 Nobel laureates.",
+  "score": 5,
+  "cost": 0.002596,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 300
+  }
+}

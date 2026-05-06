@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 46,
+  "response": "best_val = None\nbest_idx = None\nfor idx, val in enumerate(arr):\n    if val % 2 == 0:\n        if best_val is None or val < best_val:\n            best_val, best_idx = val, idx\n        # Since we scan left to right, first index for a given value is kept,\n        # but include explicit check for clarity\n        elif val == best_val and idx < best_idx:\n            best_idx = idx\nreturn [] if best_val is None else [best_val, best_idx]",
+  "score": 4,
+  "cost": 0.003254,
+  "expected": "",
+  "tokens": {
+    "input": 343,
+    "output": 321
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "SELECT e.title AS episode_title,\n       e.rating\nFROM episodes AS e\nORDER BY e.rating DESC\nFETCH FIRST 3 ROWS ONLY;",
+  "score": 4,
+  "cost": 0.002074,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 240
+  }
+}

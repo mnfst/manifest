@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Istanbul",
+  "score": 5,
+  "cost": 0.000508,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 174,
+    "output": 20
+  }
+}

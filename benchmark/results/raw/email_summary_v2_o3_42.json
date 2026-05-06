@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "Sales met with 15 enterprise customers who requested better bulk import (8) and SSO support (5) and praised the new analytics dashboard. Action items: prioritize bulk-import and SSO improvements, explore spinning off the internal tool for the three interested customers, and review the attached follow-up report for details.",
+  "score": 5,
+  "cost": 0.002928,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 339
+  }
+}

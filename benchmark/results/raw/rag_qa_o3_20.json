@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "They are funded entirely through the tuition fees paid by their students.",
+  "score": 5,
+  "cost": 0.000528,
+  "expected": "tuition",
+  "tokens": {
+    "input": 140,
+    "output": 31
+  }
+}

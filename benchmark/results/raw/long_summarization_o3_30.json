@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 30,
+  "response": "Feeding a projected 9.7 billion people by 2050 will require about 60 % more food, yet climate change, water scarcity, and soil degradation are already constraining yields. Agriculture both suffers from and contributes to this crisis, generating roughly 25 % of global greenhouse-gas emissions, depleting critical water sources like the Ogallala Aquifer, and leaving 33 % of arable land degraded, while one-third of all food produced is ultimately lost or wasted. Proposed responses range from high-tech fixes\u2014precision agriculture, vertical farms, GM drought-resistant crops, and alternative proteins\u2014to regenerative practices and policy reforms on subsidies, trade, and carbon pricing. The central challenge is scaling these solutions quickly enough to boost production and cut emissions without making food unaffordable for the world\u2019s poorest people.",
+  "score": 5,
+  "cost": 0.002112,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 191
+  }
+}

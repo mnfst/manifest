@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X launched AI-driven auto-categorization last week at twice our price, and the market reaction has been neutral, leaving our stronger API and integrations as differentiators. Product recommends we fast-track our own AI roadmap item.",
+  "score": 5,
+  "cost": 0.000714,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 66
+  }
+}

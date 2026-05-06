@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Along (or near) the Charles River.",
+  "score": 5,
+  "cost": 0.001232,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 252,
+    "output": 91
+  }
+}

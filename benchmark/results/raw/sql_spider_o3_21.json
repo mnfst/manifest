@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "SELECT DISTINCT f.flight_number\nFROM flights AS f\nJOIN airlines AS a ON f.airline_id = a.airline_id\nWHERE a.airline_name = 'United Airlines';",
+  "score": 5,
+  "cost": 0.003128,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 374
+  }
+}

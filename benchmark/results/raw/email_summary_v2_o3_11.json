@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The SOC 2 Type II audit concluded with no critical findings but highlighted three issues: insufficient access-review frequency, an untested incident-response plan for six months, and incomplete vendor risk assessments for two vendors. All observations must be remediated within 30 days.",
+  "score": 5,
+  "cost": 0.002324,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 266
+  }
+}

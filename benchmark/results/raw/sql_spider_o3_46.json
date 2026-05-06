@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "SELECT\n    GovernmentForm,\n    SUM(Population) AS total_population\nFROM\n    Country\nGROUP BY\n    GovernmentForm\nHAVING\n    AVG(LifeExpectancy) > 72;",
+  "score": 3,
+  "cost": 0.00219,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 252
+  }
+}

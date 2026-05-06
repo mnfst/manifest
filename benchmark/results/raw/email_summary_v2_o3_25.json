@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The founders report passing 10K MAU, growing MRR to $85K (+12% MoM), hiring a VP of Sales, and securing an $8M Series A at a $40M pre-money valuation that will extend runway to 11 months with a $120K monthly burn. Investors are asked to finalize paperwork or commitments before the raise closes on May 10.",
+  "score": 5,
+  "cost": 0.00409,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 485
+  }
+}

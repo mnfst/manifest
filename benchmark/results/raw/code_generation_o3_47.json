@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 47,
+  "response": "if n >= 0:\n        return ' '.join(str(i) for i in range(n + 1))\n    return ' '.join(str(i) for i in range(0, n - 1, -1))",
+  "score": 4,
+  "cost": 0.004302,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 513
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 15,
+  "response": "```python\n# test_rotate_list.py\nimport pytest\n\nfrom your_module import rotate_list     # replace `your_module` with the module name that holds the function\n\n\n# ---------------------------------------------------------------------------\n# Happy-path cases\n# ---------------------------------------------------------------------------\n\n@pytest.mark.parametrize(\n    \"lst,k,expected\",\n    [\n        ([1, 2, 3, 4, 5], 2, [4, 5, 1, 2, 3]),          # regular positive k\n        ([1, 2, 3, 4, 5], 0, [1, 2, 3, 4, 5]),          # k == 0  (full copy)\n        ([1, 2, 3, 4, 5], 5, [1, 2, 3, 4, 5]),          # k == len(lst)\n        ([1, 2, 3, 4, 5], 7, [4, 5, 1, 2, 3]),          # k  > len(lst)\n        ([1, 2, 3, 4, 5], -1, [2, 3, 4, 5, 1]),         # negative k  (left rotation)\n    ],\n)\ndef test_rotate_list_happy(lst, k, expected):\n    original = lst.copy()\n    result = rotate_list(lst, k)\n\n    # correct value returned\n    assert result == expected\n\n    # original list is not mutated\n    assert lst == original\n    # when k == 0 or k is a multiple of len(lst), a *new* list is returned\n    # (slice-concatenation always builds a new list)\n    assert result is not lst\n\n\n# ---------------------------------------------------------------------------\n# Edge-case inputs\n# ---------------------------------------------------------------------------\n\ndef test_rotate_empty_list():\n    empty = []\n    returned = rotate_list(empty, 3)\n\n    # should return the exact same empty list object, not a new one\n    assert returned is empty\n    assert returned == []\n\n\n# ---------------------------------------------------------------------------\n# Error cases\n# ---------------------------------------------------------------------------\n\n@pytest.mark.parametrize(\"bad_k\", [\"3\", 3.14, None, [1, 2]])\ndef test_rotate_list_bad_k_type_raises(bad_k):\n    \"\"\"Non-integer `k` should raise a TypeError (the `%` operator will fail).\"\"\"\n    with pytest.raises(TypeError):\n        rotate_list([1, 2, 3], bad_k)\n\n\n@pytest.mark.parametrize(\"bad_lst\", [None, 42, \"abc\", (1, 2, 3)])\ndef test_rotate_list_bad_list_type_raises(bad_lst):\n    \"\"\"Passing a non-list object as `lst` should raise a TypeError when len() is evaluated.\"\"\"\n    with pytest.raises(TypeError):\n        rotate_list(bad_lst, 1)\n```",
+  "score": 4,
+  "cost": 0.01075,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 1325
+  }
+}

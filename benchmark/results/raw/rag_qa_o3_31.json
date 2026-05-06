@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Muslim society could not be Islamic without Sharia.",
+  "score": 5,
+  "cost": 0.000582,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 175,
+    "output": 29
+  }
+}

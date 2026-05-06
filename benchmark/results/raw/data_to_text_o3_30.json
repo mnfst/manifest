@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 30,
+  "response": "Team Alpha completed Sprint #23 from January 15\u201326, planning 42 story points and finishing 38, for an average velocity of 36. Over the course of the sprint they delivered 8 stories, resolved 5 bugs, faced 2 blockers, and reported a team satisfaction score of 4.1 out of 5.",
+  "score": 5,
+  "cost": 0.001406,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 152
+  }
+}

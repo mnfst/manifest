@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 46,
+  "response": "The world must produce 60 % more food by 2050 to feed a projected 9.7 billion people, yet climate change, water shortages and soil degradation are already eroding output. Agriculture both suffers from and drives these pressures, generating about 25 % of global greenhouse-gas emissions, depleting key water sources like the Ogallala Aquifer, and leaving 33 % of arable land degraded while roughly one-third of food is lost or wasted. To square this circle, researchers and policymakers are testing precision agriculture, vertical farms, alternative proteins, drought-resistant GM crops and regenerative practices, alongside reforms to subsidies, trade rules and carbon pricing. The overriding challenge is to scale such innovations quickly enough to cut emissions and preserve resources while keeping food affordable for the world\u2019s poorest people.",
+  "score": 5,
+  "cost": 0.002584,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 250
+  }
+}

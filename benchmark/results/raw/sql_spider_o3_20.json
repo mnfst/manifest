@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "SELECT a.abbreviation,\n       a.country\nFROM   airlines AS a\nLEFT JOIN flights AS f\n       ON f.airline_id = a.airline_id\nGROUP  BY a.airline_id,\n          a.abbreviation,\n          a.country\nHAVING COUNT(f.flight_id) = (\n       SELECT MIN(flight_cnt)\n       FROM (\n            SELECT COUNT(f2.flight_id) AS flight_cnt\n            FROM   airlines AS a2\n            LEFT JOIN flights AS f2\n                   ON f2.airline_id = a2.airline_id\n            GROUP  BY a2.airline_id\n       ) AS sub );",
+  "score": 4,
+  "cost": 0.004374,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 528
+  }
+}

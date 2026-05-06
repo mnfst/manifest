@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 23,
+  "response": "The EU\u2019s General Data Protection Regulation (GDPR), in force since May 2018, applies to any organization handling EU residents\u2019 data and grants rights such as access, erasure, portability, and explicit-consent control, while mandating Data Protection Officers and 72-hour breach reporting. Non-compliance can trigger penalties of up to 4 % of worldwide turnover or \u20ac20 million, evidenced by headline fines of \u20ac1.2 billion for Meta, \u20ac746 million for Amazon, and more than \u20ac200 million for Google. GDPR\u2019s model has been echoed in California\u2019s CCPA, Brazil\u2019s LGPD, and India\u2019s Digital Personal Data Protection Act, positioning it as the global benchmark for privacy law. Critics, however, say its costs, cookie-banner proliferation, and uneven enforcement burden small firms and may hamper innovation, even as the regulation cements data privacy as a fundamental right.",
+  "score": 5,
+  "cost": 0.003292,
+  "expected": "",
+  "tokens": {
+    "input": 306,
+    "output": 335
+  }
+}

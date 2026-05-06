@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "SELECT DISTINCT m.name\nFROM makers AS m\nJOIN cars AS c ON c.maker_id = m.id\nWHERE c.year = 1970;",
+  "score": 5,
+  "cost": 0.005666,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 689
+  }
+}

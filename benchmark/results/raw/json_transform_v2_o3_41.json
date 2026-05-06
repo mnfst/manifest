@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "json_transform_v2",
+  "case": 41,
+  "response": "{\"sensors\":[{\"id\":\"temp_1\",\"avg\":22.42,\"min\":22.0,\"max\":23.5,\"anomalies\":0},{\"id\":\"temp_2\",\"avg\":22.56,\"min\":21.0,\"max\":28.5,\"anomalies\":1}]}",
+  "score": 4,
+  "cost": 0.007624,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 916
+  }
+}

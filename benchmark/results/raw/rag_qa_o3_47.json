@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "Another group is the Urarina.",
+  "score": 5,
+  "cost": 0.001532,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 154,
+    "output": 153
+  }
+}

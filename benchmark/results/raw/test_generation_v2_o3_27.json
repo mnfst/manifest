@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "```python\n# test_interleave.py\nimport pytest\n\n# Import the function from the file where it lives.\n# If the function is in `utils.py`, for instance, change the import accordingly:\n# from utils import interleave\nfrom your_module import interleave   # adjust to real module name\n\n\n# ---------------------------------------------------------------------------\n# Happy-path tests\n# ---------------------------------------------------------------------------\n\ndef test_interleave_same_length():\n    a = [1, 2, 3]\n    b = [\"a\", \"b\", \"c\"]\n\n    result = interleave(a, b)\n\n    assert result == [1, \"a\", 2, \"b\", 3, \"c\"]\n    # the function must not mutate its inputs\n    assert a == [1, 2, 3]\n    assert b == [\"a\", \"b\", \"c\"]\n\n\ndef test_interleave_a_longer_than_b():\n    a = [1, 2, 3, 4, 5]\n    b = [\"x\", \"y\"]\n\n    result = interleave(a, b)\n\n    assert result == [1, \"x\", 2, \"y\", 3, 4, 5]\n\n\ndef test_interleave_b_longer_than_a():\n    a = [10]\n    b = [\"p\", \"q\", \"r\"]\n\n    result = interleave(a, b)\n\n    assert result == [10, \"p\", \"q\", \"r\"]\n\n\n# ---------------------------------------------------------------------------\n# Edge-case tests\n# ---------------------------------------------------------------------------\n\ndef test_interleave_both_empty():\n    assert interleave([], []) == []\n\n\ndef test_interleave_a_empty():\n    assert interleave([], [1, 2, 3]) == [1, 2, 3]\n\n\ndef test_interleave_b_empty():\n    assert interleave([1, 2, 3], []) == [1, 2, 3]\n\n\ndef test_interleave_mixed_types_and_none():\n    a = [None, 99]\n    b = [\"x\"]\n\n    assert interleave(a, b) == [None, \"x\", 99]\n\n\n# ---------------------------------------------------------------------------\n# Error-case tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.parametrize(\n    \"a, b\",\n    [\n        (None, []),            # `a` is not iterable\n        ([], None),            # `b` is not iterable\n        (None, None),          # both wrong\n        (123, [\"ok\"]),         # integer is not iterable\n    ],\n)\ndef test_interleave_invalid_inputs_raise(a, b):\n    \"\"\"Passing a non-iterable (or non-sliceable) argument should raise TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        interleave(a, b)\n```",
+  "score": 4,
+  "cost": 0.01404,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 1733
+  }
+}

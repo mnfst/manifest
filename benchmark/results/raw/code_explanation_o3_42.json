@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "The snippet implements a bounded producer-consumer queue for asyncio: `put()` suspends producers with a Future when the queue is full, `get()` suspends consumers when it is empty, and each resumes the opposite side by completing a stored Future\u2014an asynchronous version of the classic blocking queue/back-pressure pattern.",
+  "score": 5,
+  "cost": 0.00159,
+  "expected": "",
+  "tokens": {
+    "input": 211,
+    "output": 146
+  }
+}

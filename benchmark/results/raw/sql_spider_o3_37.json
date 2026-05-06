@@ -2,12 +2,12 @@
   "model": "o3",
   "task": "sql_spider",
   "case": 37,
-  "response": "SELECT so.name AS song_name,\n       so.release_year\nFROM singer si\nJOIN song  so ON so.singer_id = si.singer_id\nWHERE si.age = (SELECT MIN(age) FROM singer);",
-  "score": 0,
-  "cost": 0.003708,
+  "response": "SELECT s.song_name,\n       s.release_year\nFROM song AS s\nJOIN singer AS si\n  ON s.singer_id = si.singer_id\nWHERE si.age = (SELECT MIN(age) FROM singer);",
+  "score": 4,
+  "cost": 0.005764,
   "expected": "",
   "tokens": {
     "input": 74,
-    "output": 445
+    "output": 702
   }
 }

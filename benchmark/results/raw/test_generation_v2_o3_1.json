@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "```python\n# test_palindrome.py\nimport pytest\n\nfrom your_module import is_palindrome   #  <-- replace with the real import path\n\n\n# ---------------------------------------------------------------------------\n# Happy-path tests\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"text\",\n    [\n        \"racecar\",\n        \"RaceCar\",                        # mixed case\n        \"A man a plan a canal panama\",    # internal spaces\n        \"Was it a rat I saw\",\n        \"12321\",                          # numeric characters in a string\n    ],\n)\ndef test_is_palindrome_true(text):\n    \"\"\"Known palindromes should return True.\"\"\"\n    assert is_palindrome(text) is True\n\n\n@pytest.mark.parametrize(\n    \"text\",\n    [\n        \"hello\",\n        \"palindrome\",\n        \"Madam, I'm Adam\",   # punctuation breaks the palindrome\n        \"A man a plan\",      # incomplete sentence\n    ],\n)\ndef test_is_palindrome_false(text):\n    \"\"\"Non-palindromes should return False.\"\"\"\n    assert is_palindrome(text) is False\n\n\n# ---------------------------------------------------------------------------\n# Edge-case tests\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"text, expected\",\n    [\n        (\"\", True),          # empty string\n        (\" \", True),         # string with only a space\n        (\"    \", True),      # multiple spaces\n        (\"x\", True),         # single character\n        (\"X\", True),         # single uppercase character\n        (\"\u00c5\u00e5\", True),        # unicode, case-insensitive\n    ],\n)\ndef test_is_palindrome_edge_cases(text, expected):\n    \"\"\"Edge cases: empty, single char, only spaces, unicode.\"\"\"\n    assert is_palindrome(text) is expected\n\n\n# ---------------------------------------------------------------------------\n# Error-case tests\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\"bad_input\", [123, 12.3, None, [\"r\", \"r\"], {\"text\": \"rr\"}])\ndef test_is_palindrome_type_error(bad_input):\n    \"\"\"\n    The function expects a string.  Non-string inputs should raise AttributeError\n    because they lack .lower() / .replace() methods.\n    \"\"\"\n    with pytest.raises(AttributeError):\n        is_palindrome(bad_input)\n```",
+  "score": 4,
+  "cost": 0.009012,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 1111
+  }
+}

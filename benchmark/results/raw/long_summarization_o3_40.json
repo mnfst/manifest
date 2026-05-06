@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 40,
+  "response": "The internet began as a U.S. Defense Department networking project in the 1960s and sent its first ARPANET message between UCLA and Stanford in 1969; key milestones followed with the 1983 shift to TCP/IP and Tim Berners-Lee\u2019s 1989 creation of the World Wide Web (HTML, URLs, HTTP). Public adoption accelerated after the Mosaic browser debuted in 1993, culminating in the late-1990s dot-com boom and 2001 bust, from which Amazon and Google emerged as dominant survivors. The mid-2000s rise of Facebook, Twitter, and YouTube, the 2007 iPhone\u2013driven mobile era, and the 2006 launch of AWS ushered in social media, ubiquitous connectivity, and cloud computing. Today the internet links more than 5 billion people and underpins global commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.002752,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 266
+  }
+}

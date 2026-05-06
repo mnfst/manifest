@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 7,
+  "response": "if n <= 0:\n        return 1\n    fact = 1\n    result = 1\n    for i in range(1, n + 1):\n        fact *= i\n        result *= fact\n    return result",
+  "score": 4,
+  "cost": 0.003356,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 388
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 44,
+  "response": "The internet traces its roots to 1960s U.S. Defense Department research, blossoming with ARPANET\u2019s first 1969 message and the 1983 adoption of TCP/IP that set modern standards. Tim Berners-Lee\u2019s 1989 creation of the World Wide Web\u2014built on HTML, URLs, and HTTP\u2014and the 1993 Mosaic browser opened online access to the public. A late-1990s dot-com boom poured billions into web start-ups, many collapsing in 2001, yet survivors such as Amazon and Google thrived; the mid-2000s rise of Facebook, Twitter, YouTube, smartphones (post-2007 iPhone), and AWS-driven cloud computing further reshaped communication and commerce. Today the internet links more than 5 billion people and underpins nearly every facet of global life.",
+  "score": 5,
+  "cost": 0.002696,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 259
+  }
+}

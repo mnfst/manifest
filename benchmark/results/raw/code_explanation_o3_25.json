@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "The snippet implements a minimal publish/subscribe (observer) pattern: it keeps a dictionary that maps event names to lists of listener callbacks, lets you register a callback with on(), invoke all callbacks for an event with emit(), and remove a callback with off().",
+  "score": 5,
+  "cost": 0.001296,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 133
+  }
+}

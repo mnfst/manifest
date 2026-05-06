@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Login failed: incorrect username or password. Please try again.",
+  "score": 4,
+  "cost": 0.000796,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 94
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA (deoxyribonucleic acid) is a double-helical molecule composed of nucleotide chains that encodes the genetic instructions guiding the development, functioning, and reproduction of all known living organisms and many viruses. Its specific sequence of four bases\u2014adenine, thymine, cytosine, and guanine\u2014acts like a biological blueprint, determining inherited traits by directing protein synthesis.",
+  "score": 1,
+  "cost": 0.000816,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 97
+  }
+}

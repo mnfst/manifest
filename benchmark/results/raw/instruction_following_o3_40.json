@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "1. Nairobi \u2013 Africa  \n2. Berlin \u2013 Europe  \n3. Tokyo \u2013 Asia  \n4. Ottawa \u2013 North America  \n5. Buenos Aires \u2013 South America",
+  "score": 5,
+  "cost": 0.00148,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 180
+  }
+}

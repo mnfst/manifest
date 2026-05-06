@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "```python\n# test_clamp.py\nimport math\nimport pytest\n\n# Replace the import below with the real module path if the function\n# lives somewhere else.\nfrom your_module import clamp\n\n\n# ------------------------------------------------------------------\n# Happy-path cases\n# ------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"value, min_val, max_val, expected\",\n    [\n        (5, 0, 10, 5),     # value is inside the range\n        (-1, 0, 10, 0),    # value is below the range\n        (11, 0, 10, 10),   # value is above the range\n        (-3, -5, -1, -3),  # negative numbers inside the range\n    ],\n)\ndef test_clamp_happy_path(value, min_val, max_val, expected):\n    assert clamp(value, min_val, max_val) == expected\n\n\n# ------------------------------------------------------------------\n# Edge cases\n# ------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"value, min_val, max_val, expected\",\n    [\n        (0, 0, 10, 0),             # value is exactly min\n        (10, 0, 10, 10),           # value is exactly max\n        (1, 1, 1, 1),              # min == max\n        (float(\"inf\"), 0, 10, 10), # +\u221e clamped to max\n        (float(\"-inf\"), 0, 10, 0), # -\u221e clamped to min\n    ],\n)\ndef test_clamp_edge_cases(value, min_val, max_val, expected):\n    assert clamp(value, min_val, max_val) == expected\n\n\ndef test_clamp_nan_edge_case():\n    \"\"\"NaN should propagate out of the clamp function.\"\"\"\n    result = clamp(float(\"nan\"), 0.0, 10.0)\n    assert math.isnan(result)\n\n\ndef test_clamp_bounds_order_reversed():\n    \"\"\"\n    If the caller supplies min_val > max_val, clamp does **not**\n    raise but returns `min_val` due to its implementation.\n    Although arguably a misuse, we document the current behavior.\n    \"\"\"\n    assert clamp(0, 5, -5) == 5\n\n\n# ------------------------------------------------------------------\n# Error cases\n# ------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"value, min_val, max_val\",\n    [\n        (\"5\", 0.0, 10.0),      # value is not numeric\n        (5.0, \"0\", 10.0),      # min_val is not numeric\n        (5.0, 0.0, None),      # max_val is not numeric\n    ],\n)\ndef test_clamp_type_errors(value, min_val, max_val):\n    with pytest.raises(TypeError):\n        clamp(value, min_val, max_val)\n```",
+  "score": 4,
+  "cost": 0.014744,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 1827
+  }
+}

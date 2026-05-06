@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Would you like me to respond solely with questions?  \nIs this the style of communication you had in mind?  \nShall we continue in this manner?  \nWhat would you like to ask next?",
+  "score": 5,
+  "cost": 0.001004,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 122
+  }
+}

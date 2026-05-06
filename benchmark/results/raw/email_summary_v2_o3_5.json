@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "Payment integration failed PCI compliance, so the team needs two more weeks and proposes either launching on schedule without payments (with updated T&Cs) or delaying the full launch to May 15. Be ready to decide between these options at the meeting tomorrow at 10 a.m.",
+  "score": 5,
+  "cost": 0.002334,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 267
+  }
+}

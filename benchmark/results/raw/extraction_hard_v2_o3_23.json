@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "extraction_hard_v2",
+  "case": 23,
+  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"Checkout Page (checkout.bundle.js)\",\n  \"summary\": \"Checkout page shows spinner then white screen when attempting to pay on Chrome 121/Windows 11.\",\n  \"steps_to_reproduce\": [\n    \"Open the site on Chrome 121 on Windows 11.\",\n    \"Add items to the cart.\",\n    \"Navigate to the checkout page.\",\n    \"Enter credit card information.\",\n    \"Click the \\\"Pay\\\" button.\"\n  ],\n  \"expected_behavior\": \"Payment should be processed and an order confirmation should be displayed.\",\n  \"actual_behavior\": \"A spinner appears for about 30 seconds, then the page turns white with no error message; console logs a CORS error and \\\"undefined is not a function\\\" at checkout.bundle.js:847.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 5,
+  "cost": 0.00251,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 273
+  }
+}

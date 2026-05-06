@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Golden crust, gooey mozzarella, tangy tomato sauce, fragrant basil leaves, spicy pepperoni, smoky sausage, sweet bell peppers, earthy mushrooms, briny olives, zesty oregano.",
+  "score": 5,
+  "cost": 0.002532,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 312
+  }
+}

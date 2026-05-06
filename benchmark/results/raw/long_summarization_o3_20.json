@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 20,
+  "response": "The internet traces its roots to 1960s U.S.-funded ARPANET research, first demonstrated in 1969, and was solidified in 1983 with the adoption of TCP/IP. Key milestones followed: Tim Berners-Lee\u2019s creation of the World Wide Web in 1989, Mosaic\u2019s 1993 browser, the late-1990s dot-com boom and 2001 crash (from which firms like Amazon and Google emerged), and the mid-2000s rise of social media platforms such as Facebook, Twitter, and YouTube. The 2007 iPhone popularized mobile internet, while 2006\u2019s AWS launch signaled the dawn of large-scale cloud computing. Today the internet links more than 5 billion people and underpins nearly all facets of global commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.002168,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 193
+  }
+}

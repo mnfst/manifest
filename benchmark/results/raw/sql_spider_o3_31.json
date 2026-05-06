@@ -2,12 +2,12 @@
   "model": "o3",
   "task": "sql_spider",
   "case": 31,
-  "response": "SELECT DISTINCT a.name\nFROM flights f\nJOIN airlines a ON a.id = f.airline_id\nWHERE f.departure_airport_code = 'AHD';",
-  "score": 0,
-  "cost": 0.003628,
+  "response": "SELECT DISTINCT al.name\nFROM flights AS f\nJOIN airlines AS al ON f.airline_id = al.airline_id\nJOIN airports AS ap ON f.departure_airport_id = ap.airport_id\nWHERE ap.code = 'AHD';",
+  "score": 5,
+  "cost": 0.0053,
   "expected": "",
   "tokens": {
     "input": 74,
-    "output": 435
+    "output": 644
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "D",
+  "score": 5,
+  "cost": 0.000308,
+  "expected": "D",
+  "tokens": {
+    "input": 78,
+    "output": 19
+  }
+}

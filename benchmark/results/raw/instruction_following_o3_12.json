@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Picture a restaurant.  \nYou sit at a table and look at a menu, then tell a waiter what you want. The waiter carries your request to the kitchen, the cooks prepare the food, and the waiter brings it back. You never step into the kitchen, and the cooks don\u2019t have to know who you are; everyone just follows the menu and the routine.\n\nAn API is the digital version of that waiter-and-menu system. It\u2019s a clear, agreed-upon way for one gadget or online service to ask another for something\u2014such as information or an action\u2014and to get a predictable reply. Because each side follows the same simple set of steps, they can work together smoothly without needing to see or understand each other\u2019s inner workings.",
+  "score": 5,
+  "cost": 0.003958,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 490
+  }
+}

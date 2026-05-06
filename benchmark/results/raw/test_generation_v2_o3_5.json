@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "```python\n# test_count_vowels.py\nimport pytest\n\nfrom your_module import count_vowels   # replace `your_module` with the real module name\n\n\n# ---------------------------------------------------------------------------\n# Happy-path & edge-case tests\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"text, expected\",\n    [\n        (\"Hello World\", 3),              # typical mixed-case string\n        (\"aeiouAEIOU\", 10),              # all vowels, both cases\n        (\"rhythm\", 0),                   # no vowels at all\n        (\"\", 0),                         # empty string\n        (\"PyTh0n 3.8!\", 1),              # numbers / punctuation ignored\n        (\"caf\u00e9\", 1),                     # accented char not counted\n        (\"a\" * 1_000, 1_000),            # very long input\n    ],\n)\ndef test_count_vowels_happy_and_edge_cases(text, expected):\n    assert count_vowels(text) == expected\n\n\n# ---------------------------------------------------------------------------\n# Error-case tests\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\"bad_input\", [None, 123, [\"a\", \"e\"]])\ndef test_count_vowels_invalid_type_raises_attribute_error(bad_input):\n    \"\"\"\n    The implementation calls `.lower()`, so any non-string argument that does\n    not implement `lower` should raise `AttributeError`.\n    \"\"\"\n    with pytest.raises(AttributeError):\n        count_vowels(bad_input)\n```",
+  "score": 5,
+  "cost": 0.008828,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 1088
+  }
+}

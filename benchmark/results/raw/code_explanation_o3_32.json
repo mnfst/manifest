@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "The function builds a disjoint-set (Union-Find) structure for n elements: `find` locates a node\u2019s set representative while applying path-compression, and `union` merges two sets using the union-by-rank heuristic to keep the trees shallow.",
+  "score": 5,
+  "cost": 0.001428,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 139
+  }
+}

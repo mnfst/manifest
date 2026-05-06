@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 15,
+  "response": "largest = None\n    # Remove factors of 2 first\n    while n % 2 == 0:\n        largest = 2\n        n //= 2\n    # Now n is odd. Check odd divisors starting from 3\n    factor = 3\n    while factor * factor <= n:\n        if n % factor == 0:\n            largest = factor\n            while n % factor == 0:\n                n //= factor\n        factor += 2  # only test odd numbers\n    # If n is greater than 1 here, it itself is prime and larger than any found\n    if n > 1:\n        largest = n\n    return largest",
+  "score": 4,
+  "cost": 0.00302,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 354
+  }
+}

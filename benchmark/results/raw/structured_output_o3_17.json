@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "structured_output",
+  "case": 17,
+  "response": "{\n  \"message\": \"resolve session timeout on mobile browsers\",\n  \"type\": \"fix\",\n  \"scope\": \"auth\",\n  \"author\": \"@jdoe\",\n  \"branch\": \"fix/session-timeout\",\n  \"files_changed\": 3,\n  \"insertions\": 47,\n  \"deletions\": 12,\n  \"pr_number\": 892\n}",
+  "score": 4,
+  "cost": 0.00257,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 290
+  }
+}

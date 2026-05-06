@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also called the hydrologic cycle, is Earth\u2019s self-renewing system for moving water through the atmosphere, across the land, and within the oceans. Because water constantly shifts among liquid, vapor, and ice, the cycle intertwines physical processes with solar energy, gravity, and the characteristics of Earth\u2019s surface. Although often drawn as a simple loop, the cycle is really a vast network of simultaneous pathways that together maintain the planet\u2019s water balance and climate.\n\nIt commonly begins with evaporation, the process in which solar radiation energizes liquid water at the surface\u2014oceans, lakes, rivers, and even puddles\u2014so that individual molecules gain enough kinetic energy to break free and rise as vapor. A related pathway, transpiration, moves water from the interiors of plants to the air through leaf pores, and when coupled with evaporation from soil it is collectively termed evapotranspiration. These steps transfer colossal volumes of water to the atmosphere every day, effectively cleansing surface water and loading the air with moisture.\n\nAs warm, moist air ascends\u2014whether through convection, orographic lifting over mountains, or frontal systems\u2014it cools. Cooler air can hold less water vapor, so the excess vapor condenses onto tiny aerosol particles to form microscopic droplets or ice crystals. Billions of these suspended droplets gather into visible clouds, and when they combine and grow heavy enough, gravity wins out, producing precipitation: rain, snow, sleet, or hail. During this phase change from vapor back to liquid or solid, latent heat is released, fueling weather systems from gentle drizzle to intense thunderstorms and hurricanes.\n\nPrecipitated water reaches Earth\u2019s surface and follows several fates that close the loop. Some infiltrates the ground, replenishing aquifers in a process called percolation; some becomes surface runoff, flowing into streams and rivers that eventually return water to lakes and oceans; and some is temporarily stored as ice in glaciers or snowpack, lingering for seasons or even millennia before rejoining circulation. Along the way, water shapes landscapes, transports nutrients, and supports all known life. Over time, solar energy again drives evaporation, and the cycle recommences, illustrating the continuous, dynamic redistribution of one of Earth\u2019s most vital resources.",
+  "score": 4,
+  "cost": 0.00429,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 532
+  }
+}

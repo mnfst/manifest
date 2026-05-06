@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "The class implements an O(1) Least-Recently-Used (LRU) cache with `collections.OrderedDict`: every `get` or `put` moves the touched key to the dictionary\u2019s end (marking it most-recent), and when the number of entries exceeds `cap`, it evicts the item at the front (the least-recently-used).",
+  "score": 5,
+  "cost": 0.002074,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 224
+  }
+}

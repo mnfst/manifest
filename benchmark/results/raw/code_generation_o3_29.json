@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 29,
+  "response": "",
+  "score": 0,
+  "cost": 0.016292,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 2000
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 40,
+  "response": "if a == 0:\n        return True\n    neg = a < 0\n    x = -a if neg else a  # absolute value without calling abs repeatedly\n    low, high = 0, x\n    while low <= high:\n        mid = (low + high) // 2\n        cube = mid * mid * mid\n        if cube == x:\n            return True  # mid is the cube root\n        elif cube < x:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return False",
+  "score": 4,
+  "cost": 0.003938,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 457
+  }
+}

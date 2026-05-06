@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test exceeded the 4-hour RTO, finishing in 6 hours 23 minutes because the database restore took 3 hours. SRE recommends increasing backup frequency and pre-provisioning a standby database, with results to be retested in October.",
+  "score": 5,
+  "cost": 0.00135,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 142
+  }
+}

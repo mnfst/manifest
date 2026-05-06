@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 3 eggs with pinch salt, splash milk. Melt 1 tbsp butter on low. Pour eggs; let sit 10 s. Gently stir, pushing curds inward. When softly set, remove heat; residual warmth finishes cooking. Season pepper, chives. Serve immediately.",
+  "score": 5,
+  "cost": 0.000684,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 80
+  }
+}

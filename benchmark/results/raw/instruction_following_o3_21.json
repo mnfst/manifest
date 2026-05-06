@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here\u2019s a simple left-and-right\u2013only route you can visualize on a generic grid of neighborhood streets:\n\n1. Begin at the park\u2019s front gate. Turn RIGHT onto Pine Street.  \n2. Stay on Pine Street until the second intersection, then turn LEFT onto Elm Avenue.  \n3. Continue on Elm Avenue to the first stop sign and turn RIGHT onto Birch Road.  \n4. Travel along Birch Road past two cross-streets, then turn LEFT onto Library Lane.  \n5. The library will appear on your immediate RIGHT just after you make that final turn.",
+  "score": 5,
+  "cost": 0.007302,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 907
+  }
+}

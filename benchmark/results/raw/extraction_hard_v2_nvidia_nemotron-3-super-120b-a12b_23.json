@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "extraction_hard_v2",
+  "case": 23,
+  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page fails with spinner then white screen after payment attempt, showing CORS and JavaScript errors.\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout page\",\n    \"Enter card information\",\n    \"Click the Pay button\"\n  ],\n  \"expected_behavior\": \"Payment processes successfully and order confirmation page is displayed.\",\n  \"actual_behavior\": \"Spinner shows for ~30 seconds, then a white screen appears with no error message; console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 5,
+  "cost": 2.916e-05,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 161
+  }
+}

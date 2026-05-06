@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "SELECT s.title\nFROM shows AS s\nJOIN show_directors AS sd ON sd.show_id = s.id\nJOIN directors AS d ON d.id = sd.director_id\nWHERE d.name = 'Ben Jones'\n  AND s.genre = 'Cartoon';",
+  "score": 5,
+  "cost": 0.00275,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 327
+  }
+}

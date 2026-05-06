@@ -2,12 +2,12 @@
   "model": "o3",
   "task": "sql_spider",
   "case": 35,
-  "response": "SELECT c.name\nFROM conductors AS c\nJOIN performances AS p ON p.conductor_id = c.conductor_id\nGROUP BY c.conductor_id, c.name\nORDER BY COUNT(DISTINCT p.orchestra_id) DESC\nFETCH FIRST 1 ROW ONLY;",
+  "response": "SELECT c.name\nFROM conductors AS c\nJOIN conductor_orchestra AS co ON co.conductor_id = c.id\nGROUP BY c.id, c.name\nORDER BY COUNT(DISTINCT co.orchestra_id) DESC\nLIMIT 1;",
   "score": 5,
-  "cost": 0.004314,
+  "cost": 0.003762,
   "expected": "",
   "tokens": {
     "input": 73,
-    "output": 521
+    "output": 452
   }
 }

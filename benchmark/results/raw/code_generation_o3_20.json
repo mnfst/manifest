@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 20,
+  "response": "# Mapping of integer values to their Roman numeral counterparts in descending order\n    val_to_roman = [\n        (1000, 'M'),\n        (900,  'CM'),\n        (500,  'D'),\n        (400,  'CD'),\n        (100,  'C'),\n        (90,   'XC'),\n        (50,   'L'),\n        (40,   'XL'),\n        (10,   'X'),\n        (9,    'IX'),\n        (5,    'V'),\n        (4,    'IV'),\n        (1,    'I')\n    ]\n\n    result = []\n    num = number  # Work on a copy to preserve original input\n\n    for value, roman in val_to_roman:\n        if num == 0:\n            break\n        count, num = divmod(num, value)\n        if count:\n            result.append(roman * count)\n\n    return ''.join(result).lower()",
+  "score": 4,
+  "cost": 0.00252,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 281
+  }
+}

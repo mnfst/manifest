@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "```python\n# test_gcd.py\nimport math\nimport pytest\n\n# If gcd is defined in another file, replace the import below with\n# from <that_module> import gcd\nfrom gcd import gcd\n\n\n# ---------------------------------------------------------------------------\n# Happy-path tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.parametrize(\n    \"a, b, expected\",\n    [\n        (48, 18, 6),   # classic textbook example\n        (17, 13, 1),   # coprime numbers\n        (0, 5, 5),     # one operand zero\n        (54, 24, 6),   # both composite, common divisor > 1\n    ],\n)\ndef test_gcd_happy_path(a, b, expected):\n    assert gcd(a, b) == expected\n    # gcd should be commutative\n    assert gcd(b, a) == expected\n\n\n# ---------------------------------------------------------------------------\n# Edge-case tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.parametrize(\n    \"a, b, expected\",\n    [\n        (-48, 18, 6),        # first negative\n        (48, -18, 6),        # second negative\n        (-48, -18, 6),       # both negative\n        (1, 0, 1),           # second argument zero\n        (0, 1, 1),           # first argument zero\n        (0, 0, 0),           # both zero \u2013 Euclidean algorithm convention\n        (\n            12_345_678_901_234_567_890,\n            9_876_543_210,\n            math.gcd(12_345_678_901_234_567_890, 9_876_543_210),\n        ),                   # very large integers\n    ],\n)\ndef test_gcd_edge_cases(a, b, expected):\n    assert gcd(a, b) == expected\n\n\n# ---------------------------------------------------------------------------\n# Error-case tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.parametrize(\n    \"a, b\",\n    [\n        (1.5, 2),        # float\n        (\"3\", 6),        # string\n        (None, 4),       # None\n        (3, 2.2),        # second operand not int\n    ],\n)\ndef test_gcd_type_errors(a, b):\n    with pytest.raises(TypeError):\n        gcd(a, b)\n```",
+  "score": 4,
+  "cost": 0.010436,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 1288
+  }
+}

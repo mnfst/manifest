@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "The class implements a stack that can return the current minimum element in O(1) time: every push stores the value on the main stack and simultaneously records the smaller of that value and the previous minimum on an auxiliary min_stack, so the top of min_stack always holds the running minimum, which is updated/removed in sync with pops.",
+  "score": 5,
+  "cost": 0.001958,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 215
+  }
+}

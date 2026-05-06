@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 25,
+  "response": "paren_string = ''.join(paren_string.split())  # remove all whitespace\n    groups = []\n    current = []\n    depth = 0\n\n    for ch in paren_string:\n        if ch not in '()':\n            continue  # ignore any non-parenthesis characters just in case\n        current.append(ch)\n        if ch == '(':\n            depth += 1\n        else:  # ch == ')'\n            depth -= 1\n            if depth < 0:\n                raise ValueError(\"Unbalanced parenthesis string.\")\n        if depth == 0 and current:\n            groups.append(''.join(current))\n            current = []\n\n    if depth != 0:\n        raise ValueError(\"Unbalanced parenthesis string.\")\n\n    return groups",
+  "score": 5,
+  "cost": 0.003716,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 428
+  }
+}

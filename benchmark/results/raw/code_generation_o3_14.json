@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 14,
+  "response": "if n <= 0:\n        raise ValueError(\"n must be a positive integer\")\n    # Base cases\n    if n == 1 or n == 2:\n        return 1\n    a, b = 1, 1  # Represents F(1) and F(2)\n    for _ in range(3, n + 1):\n        a, b = b, a + b\n    return b",
+  "score": 5,
+  "cost": 0.001542,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 172
+  }
+}

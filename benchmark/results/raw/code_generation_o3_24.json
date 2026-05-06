@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 24,
+  "response": "import math\n    # Validate sides are positive\n    if a <= 0 or b <= 0 or c <= 0:\n        return -1\n    # Check triangle inequality\n    if a + b <= c or a + c <= b or b + c <= a:\n        return -1\n    # Heron's formula\n    s = (a + b + c) / 2.0\n    area_sq = s * (s - a) * (s - b) * (s - c)\n    # Handle possible floating point inaccuracy\n    if area_sq < 0:\n        if area_sq > -1e-12:\n            area_sq = 0.0\n        else:\n            return -1\n    area = math.sqrt(area_sq)\n    return float(f\"{area:.2f}\")",
+  "score": 4,
+  "cost": 0.010616,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 1289
+  }
+}

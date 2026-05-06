@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 40,
+  "response": "```python\n# test_rgb_to_hex.py\nimport pytest\n\nfrom your_module import rgb_to_hex      # adjust the import to where the function lives\n\n\n# ---------------------------\n# Happy-path / core behaviour\n# ---------------------------\n@pytest.mark.parametrize(\n    \"r, g, b, expected\",\n    [\n        (255, 0, 255, \"#ff00ff\"),        # mixed max / min values\n        (0, 0, 0, \"#000000\"),            # absolute black\n        (173, 216, 230, \"#add8e6\"),      # an arbitrary colour (light-blue)\n        (1, 2, 3, \"#010203\"),            # leading-zero handling\n    ],\n)\ndef test_rgb_to_hex_happy_paths(r, g, b, expected):\n    assert rgb_to_hex(r, g, b) == expected\n\n\n# ------------\n# Edge cases\n# ------------\n@pytest.mark.parametrize(\n    \"r, g, b, expected\",\n    [\n        (0, 255, 0, \"#00ff00\"),          # two extremes in the same call\n        (255, 255, 255, \"#ffffff\"),      # absolute white (upper boundary)\n        (0, 0, 255, \"#0000ff\"),          # exactly on upper boundary for blue\n    ],\n)\ndef test_rgb_to_hex_boundaries(r, g, b, expected):\n    assert rgb_to_hex(r, g, b) == expected\n\n\n# ------------\n# Error cases\n# ------------\n@pytest.mark.parametrize(\n    \"r, g, b\",\n    [\n        (-1, 0, 0),                      # below lower boundary\n        (0, 256, 0),                     # above upper boundary\n        (300, 0, 0),                     # well above upper boundary\n    ],\n)\ndef test_rgb_to_hex_out_of_range_raises_value_error(r, g, b):\n    with pytest.raises(ValueError, match=\"RGB values must be 0-255\"):\n        rgb_to_hex(r, g, b)\n\n\n@pytest.mark.parametrize(\n    \"r, g, b, expected_exception\",\n    [\n        (\"255\", 0, 0, TypeError),        # non-int, still comparable, but formatting fails\n        (255.0, 0, 0, TypeError),        # float triggers TypeError in :02x formatting\n        (None, 0, 0, TypeError),         # None is not comparable with <=\n    ],\n)\ndef test_rgb_to_hex_invalid_types(r, g, b, expected_exception):\n    with pytest.raises(expected_exception):\n        rgb_to_hex(r, g, b)\n```\n\nExplanation of coverage\n\u2022 Happy paths: verifies typical and common RGB inputs, including leading-zero behaviour.  \n\u2022 Edge cases: ensures both lower and upper boundaries (`0` and `255`) are accepted and encoded correctly.  \n\u2022 Error cases:  \n  \u2013 Out-of-range integers raise the documented `ValueError`.  \n  \u2013 Non-integer types raise `TypeError`, which is the natural Python error the implementation emits (comparison or formatting failure).",
+  "score": 5,
+  "cost": 0.008166,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 994
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product team reports that the payment integration is not PCI-compliant and requests a two-week extension, offering two paths forward: launch without payments (which would require updated T&Cs) or postpone the full launch to May 15. Stakeholders should evaluate these options before the meeting tomorrow at 10 am.",
+  "score": 5,
+  "cost": 0.002414,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 277
+  }
+}

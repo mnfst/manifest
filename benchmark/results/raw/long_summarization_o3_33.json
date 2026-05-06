@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 33,
+  "response": "Quantum computers use qubits that can exist in superposition and become entangled, enabling certain calculations to run exponentially faster than on classical machines. Google illustrated this potential in 2019, announcing it completed a task in 200 seconds that it said would take a top classical supercomputer about 10,000 years, while IBM, IonQ, Rigetti and others pursue competing hardware platforms such as superconducting circuits, trapped ions, photonics and topological qubits. Today\u2019s prototypes have roughly 100\u20131,000 physical qubits, but millions\u2014and robust error-correction\u2014will be required before practical systems can tackle real-world problems. If those engineering hurdles are overcome, quantum computing could transform fields from cryptography and drug discovery to financial modeling and logistics.",
+  "score": 5,
+  "cost": 0.002464,
+  "expected": "",
+  "tokens": {
+    "input": 276,
+    "output": 239
+  }
+}

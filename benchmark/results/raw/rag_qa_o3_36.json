@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Gaseous oxygen (O\u2082).",
+  "score": 5,
+  "cost": 0.001554,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 161,
+    "output": 154
+  }
+}

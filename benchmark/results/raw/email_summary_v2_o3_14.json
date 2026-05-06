@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "AWS costs have risen 40% (~$45 K/month) because new ML training jobs are running on expensive p4d instances. DevOps needs a decision by Friday on whether to move them to spot instances (\u224870% savings, interruption risk) or commit to reserved instances (\u224830% savings).",
+  "score": 5,
+  "cost": 0.002398,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 273
+  }
+}

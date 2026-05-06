@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 32,
+  "response": "res = []\n    word_chars = []\n    for ch in s:\n        if ch == ' ':\n            if word_chars:\n                res.append(''.join(sorted(word_chars)))\n                word_chars.clear()\n            res.append(ch)  # keep the space as is\n        else:\n            word_chars.append(ch)\n    if word_chars:\n        res.append(''.join(sorted(word_chars)))\n    return ''.join(res)",
+  "score": 5,
+  "cost": 0.007286,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 871
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 36,
+  "response": "if n <= 1:\n        return 0  # no proper divisor exists\n    # Search for the smallest divisor (>1). Its complement will be the largest proper divisor.\n    limit = int(n ** 0.5) + 1\n    for i in range(2, limit):\n        if n % i == 0:\n            return n // i\n    # If no divisor found, n is prime, so the largest proper divisor is 1\n    return 1",
+  "score": 3,
+  "cost": 0.003166,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 375
+  }
+}

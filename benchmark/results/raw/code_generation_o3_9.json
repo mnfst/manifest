@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 9,
+  "response": "return sum(\n        n * n\n        for n in lst\n        if type(n) is int and n >= 0 and n % 2 == 1\n    )",
+  "score": 4,
+  "cost": 0.006928,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 824
+  }
+}

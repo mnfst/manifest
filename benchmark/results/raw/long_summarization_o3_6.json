@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Before COVID-19, fully remote jobs were a fringe benefit enjoyed by fewer than 5 % of U.S. workers, but the 2020 lockdowns forced a global work-from-home experiment powered by tools such as Zoom, Slack, and cloud platforms. Subsequent studies\u2014most prominently by Stanford economist Nick Bloom\u2014find that remote productivity can equal or exceed office work for many tasks, yet results vary by role, firm, and employee experience, fueling today\u2019s debate. As companies now try to pull staff back, many are settling on hybrid schedules, while side effects ripple outward: downtown office vacancies have soared, workers are relocating to cheaper cities or even using new \u201cdigital-nomad\u201d visas abroad, and managers worry about weakened culture and slower development for junior hires. The argument, therefore, is not whether remote work will persist but how organizations will balance flexibility with cohesion in this new, mainstream model.",
+  "score": 5,
+  "cost": 0.001912,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 203
+  }
+}

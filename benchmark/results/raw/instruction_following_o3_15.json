@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "bat  \nhat  \nmat  \nrat",
+  "score": 5,
+  "cost": 0.000236,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 25
+  }
+}

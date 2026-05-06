@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Romeo and Juliet, children of rival Verona families, meet at a Capulet party and instantly fall in love. They secretly marry with Friar Laurence\u2019s help, hoping to heal the feud. When Tybalt slays Romeo\u2019s friend Mercutio, Romeo kills Tybalt and is banished. The friar devises a potion ruse so Juliet can escape to Romeo, but the message fails. Romeo, believing her dead, drinks poison; Juliet awakens, finds him lifeless, and stabs herself. Their deaths finally unite the grieving families.",
+  "score": 5,
+  "cost": 0.00418,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 516
+  }
+}

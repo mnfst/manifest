@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "extraction_hard_v2",
+  "case": 10,
+  "response": "{\n  \"incident_id\": \"SI-2024-0089\",\n  \"detected\": \"2024-03-15 02:1",
+  "score": 3,
+  "cost": 0.00010242,
+  "expected": "",
+  "tokens": {
+    "input": 338,
+    "output": 800
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Formal:  \n\u201cGood day, and welcome. How may I assist you?\u201d\n\nCasual:  \n\u201cHey there! What\u2019s up? Need a hand with something?\u201d\n\nHumorous:  \n\u201cGreetings, earthling! I\u2019ve powered up my 1s and 0s\u2014what quest shall we embark on today?\u201d",
+  "score": 5,
+  "cost": 0.000712,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 83
+  }
+}

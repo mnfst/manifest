@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT\n    e.production_code,\n    c.name AS channel\nFROM\n    episodes  e\nJOIN\n    shows     s ON s.show_id   = e.show_id\nJOIN\n    channels  c ON c.channel_id = s.channel_id\nWHERE\n    LOWER(s.genre) = 'cartoon'\nORDER BY\n    e.air_date DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 5,
+  "cost": 0.005014,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 609
+  }
+}

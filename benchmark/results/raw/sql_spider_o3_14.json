@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT mk.full_name,\n       mk.id,\n       COUNT(md.id) AS model_count\nFROM makers AS mk\nLEFT JOIN models AS md ON md.maker_id = mk.id\nGROUP BY mk.id, mk.full_name;",
+  "score": 5,
+  "cost": 0.002716,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 320
+  }
+}

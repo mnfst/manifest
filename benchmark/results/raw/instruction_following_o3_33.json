@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon\u2019s rotation period and orbital period are both about 27.3 days, so the same side (the \u201cnear side\u201d) always faces Earth\u2014a phenomenon called synchronous rotation.  \n2. The lunar surface is covered by a fine, powdery dust called regolith, formed over billions of years by constant micrometeorite impacts.  \n3. The Moon is slowly moving away from Earth at an average rate of about 3.8 centimeters per year, measured precisely with laser ranging reflectors left by Apollo astronauts.",
+  "score": 5,
+  "cost": 0.001052,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 125
+  }
+}

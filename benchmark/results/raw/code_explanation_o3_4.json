@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "The function `memoize` is a decorator that applies the memoization pattern: it wraps another function with `wrapper`, which stores each set of input arguments in a dictionary cache so that subsequent calls with the same arguments return the pre-computed result instead of re-executing the original function.",
+  "score": 5,
+  "cost": 0.001278,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 141
+  }
+}

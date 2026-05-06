@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "SELECT\n    s.name,\n    s.capacity\nFROM\n    stadium AS s\n    JOIN concert AS c ON s.stadium_id = c.stadium_id\nWHERE\n    c.year > 2013\nGROUP BY\n    s.stadium_id, s.name, s.capacity\nORDER BY\n    COUNT(*) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.002906,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 344
+  }
+}

@@ -2,12 +2,12 @@
   "model": "o3",
   "task": "sql_spider",
   "case": 38,
-  "response": "SELECT \n    c.Name AS country_name,\n    COUNT(DISTINCT cl.Language) AS language_count\nFROM \n    country AS c\nJOIN \n    countrylanguage AS cl ON c.Code = cl.CountryCode\nGROUP BY \n    c.Name\nHAVING \n    COUNT(DISTINCT cl.Language) > 2;",
-  "score": 0,
-  "cost": 0.002876,
+  "response": "SELECT\n    c.Name AS country_name,\n    COUNT(cl.Language) AS language_count\nFROM\n    country AS c\nJOIN\n    countrylanguage AS cl\n    ON c.Code = cl.CountryCode\nGROUP BY\n    c.Name\nHAVING\n    COUNT(cl.Language) > 2;",
+  "score": 4,
+  "cost": 0.002844,
   "expected": "",
   "tokens": {
     "input": 82,
-    "output": 339
+    "output": 335
   }
 }

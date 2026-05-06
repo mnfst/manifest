@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 12,
+  "response": "Founded in 1861, the Massachusetts Institute of Technology (MIT) now stands as the nation\u2019s top-ranked university, claiming the #1 spot with an endowment of $24.6 billion. It educates about 11,500 students with the help of 1,069 faculty members, boasts an illustrious roster of 98 Nobel laureates, and\u2014despite a tuition of $57,590 per year\u2014admits only 3.9 percent of its applicants.",
+  "score": 5,
+  "cost": 0.001676,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 185
+  }
+}

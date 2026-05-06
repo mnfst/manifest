@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort(iterable, key=None, reverse=False):\n    \"\"\"Return a new list containing all items from *iterable* in ascending order.\n\n    If a `key` function is supplied, it is applied to each element prior to\n    comparison.  Set `reverse` to ``True`` to sort in descending order.\n\n    Args:\n        iterable (Iterable): A finite collection of orderable elements or of\n            elements that become orderable after applying `key`.\n        key (Callable, optional): A one-argument function that is applied to\n            each item to extract a comparison key. Defaults to ``None``, meaning\n            the elements themselves are compared.\n        reverse (bool, optional): When ``True``, the resulting list is sorted in\n            descending order. Defaults to ``False``.\n\n    Returns:\n        list: A new list containing the sorted items from *iterable*.\n\n    Raises:\n        TypeError: If the elements are not comparable, or if `key` is not\n            callable.\n\n    Examples:\n        >>> sort([3, 1, 4, 1, 5, 9])\n        [1, 1, 3, 4, 5, 9]\n\n        >>> sort(['Z', 'a', 'b'], key=str.lower)\n        ['a', 'b', 'Z']\n\n        >>> sort([10, 2, 30], reverse=True)\n        [30, 10, 2]\n    \"\"\"\n```",
+  "score": 5,
+  "cost": 0.005208,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 646
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "36%",
+  "score": 5,
+  "cost": 0.001016,
+  "expected": "36%",
+  "tokens": {
+    "input": 172,
+    "output": 84
+  }
+}

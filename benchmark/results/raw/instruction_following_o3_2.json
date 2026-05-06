@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Silent lines of code  \nLogic blooms in midnight light\u2014  \nBugs turn into stars",
+  "score": 5,
+  "cost": 0.000306,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 35
+  }
+}

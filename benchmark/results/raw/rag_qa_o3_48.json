@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "It is unknown whether L is strictly contained in P or if it is actually equal to P.",
+  "score": 5,
+  "cost": 0.00361,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 121,
+    "output": 421
+  }
+}

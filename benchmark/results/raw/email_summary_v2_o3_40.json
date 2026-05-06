@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "Engineering met its 0.7 OKR target, Product fell short at 0.6 due to a delayed AI feature, while Sales and Support exceeded targets at 0.9 and 0.8 respectively. Ops advises carrying the AI OKR forward with more resources, and next-quarter planning begins Monday.",
+  "score": 5,
+  "cost": 0.001924,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 210
+  }
+}

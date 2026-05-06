@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 22,
+  "response": "```python\n# test_group_by.py\nimport pytest\n\nfrom your_module import group_by   # replace `your_module` with the real module name\n\n\n# ---------------------------------------------------------------------------\n# Happy-path cases\n# ---------------------------------------------------------------------------\n\ndef test_group_by_parity():\n    \"\"\"Numbers are grouped by even/odd (mod 2).\"\"\"\n    items   = [1, 2, 3, 4, 5]\n    grouped = group_by(items, key_fn=lambda x: x % 2)\n\n    # Expected structure and order inside each bucket\n    assert grouped == {1: [1, 3, 5], 0: [2, 4]}\n\n\ndef test_group_by_first_letter():\n    \"\"\"Strings grouped by first character, input order preserved per bucket.\"\"\"\n    items = [\"ant\", \"apple\", \"bat\", \"ball\", \"cat\"]\n    grouped = group_by(items, key_fn=lambda s: s[0])\n\n    assert grouped == {\n        \"a\": [\"ant\", \"apple\"],\n        \"b\": [\"bat\", \"ball\"],\n        \"c\": [\"cat\"],\n    }\n\n\n# ---------------------------------------------------------------------------\n# Edge cases\n# ---------------------------------------------------------------------------\n\ndef test_group_by_empty_input():\n    \"\"\"Empty list should yield an empty dictionary.\"\"\"\n    assert group_by([], key_fn=lambda x: x) == {}\n\n\ndef test_group_by_single_element():\n    \"\"\"Single-element list should produce one key containing the original item.\"\"\"\n    items = [\"solo\"]\n    result = group_by(items, key_fn=len)\n    assert result == {4: [\"solo\"]}\n\n\ndef test_group_by_constant_key():\n    \"\"\"If key_fn returns the same value for every element, only one bucket appears.\"\"\"\n    items = [1, 2, 3]\n    result = group_by(items, key_fn=lambda _: \"all\")\n    assert result == {\"all\": [1, 2, 3]}\n\n\n# ---------------------------------------------------------------------------\n# Error / negative cases\n# ---------------------------------------------------------------------------\n\ndef test_group_by_unhashable_key_raises():\n    \"\"\"If key_fn returns an unhashable key (e.g. a list), Python should raise TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        group_by([1, 2], key_fn=lambda _: [])   # list is unhashable and cannot be a dict key\n\n\ndef test_group_by_keyfn_not_callable():\n    \"\"\"Passing a non-callable as key_fn should raise a TypeError when the function is used.\"\"\"\n    with pytest.raises(TypeError):\n        group_by([1], key_fn=42)   # trying to 'call' 42 will raise TypeError\n```",
+  "score": 4,
+  "cost": 0.007136,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 873
+  }
+}

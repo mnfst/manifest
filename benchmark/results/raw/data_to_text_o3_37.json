@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 37,
+  "response": "Christopher Nolan\u2019s 2023 drama-history epic \u201cOppenheimer\u201d clocks in at 180 minutes and was made for about $100 million. The film won the Oscar for Best Picture, grossed an impressive $952 million worldwide, and enjoys strong reviews with an 8.3 rating on IMDb and a 93 % score on Rotten Tomatoes.",
+  "score": 5,
+  "cost": 0.001976,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 223
+  }
+}

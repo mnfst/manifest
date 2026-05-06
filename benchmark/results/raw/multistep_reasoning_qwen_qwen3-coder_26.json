@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3-coder",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "I need to identify the process that occurs when liquid water changes into water vapor.\n\nLet me think through each option:\n\nA) Condensation - This is the process where water vapor (gas) changes into liquid water. This is the opposite of what's being described.\n\nB) Transportation - This refers to the movement of water from one place to another, not a change in state. This doesn't describe the transformation from liquid to gas.\n\nC) Evaporation - This is the process where liquid water changes into water vapor (gas). This matches exactly what the question is asking about.\n\nD) Accumulation - This refers to the gathering or buildup of water, such as water collecting in a reservoir or precipitation accumulating on the ground. This doesn't describe a state change.\n\nThe question specifically asks about liquid water changing into water vapor, which is the definition of evaporation.\n\nAnswer: C",
+  "score": 5,
+  "cost": 0.00017138,
+  "expected": "C",
+  "tokens": {
+    "input": 71,
+    "output": 177
+  }
+}

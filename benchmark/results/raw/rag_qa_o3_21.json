@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Oxygen is poisonous to the anaerobic bacteria that cause gas gangrene.",
+  "score": 5,
+  "cost": 0.002208,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 204,
+    "output": 225
+  }
+}

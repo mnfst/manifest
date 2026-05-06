@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "There would be infinitely many primes in such a progression.",
+  "score": 5,
+  "cost": 0.00175,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 247,
+    "output": 157
+  }
+}

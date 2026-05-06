@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 1,
+  "response": "groups = paren_string.split()\n    depths = []\n    for grp in groups:\n        depth = max_depth = 0\n        for ch in grp:\n            if ch == '(':\n                depth += 1\n                if depth > max_depth:\n                    max_depth = depth\n            elif ch == ')':\n                depth -= 1\n        depths.append(max_depth)\n    return depths",
+  "score": 5,
+  "cost": 0.002594,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 289
+  }
+}

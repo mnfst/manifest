@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "structured_output",
+  "case": 33,
+  "response": "{\n  \"username\": \"@techguru42\",\n  \"joined_year\": 2020,\n  \"followers\": \"1.2K\",\n  \"following\": 890,\n  \"posts\": 342,\n  \"verified\": true,\n  \"bio\": \"Building the future of AI\"\n}",
+  "score": 5,
+  "cost": 0.002884,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 335
+  }
+}

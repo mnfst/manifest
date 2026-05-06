@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit will begin on January 15. Before then, finance must finalize Q4 revenue recognition, reconcile all bank accounts, verify stock option records, and prepare the related-party transaction disclosure, with individual responsibilities to be assigned at next Tuesday\u2019s controller meeting.",
+  "score": 5,
+  "cost": 0.00231,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 265
+  }
+}

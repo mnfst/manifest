@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "Recruiting reports that of the four open engineering requisitions (2 backend, 1 frontend, 1 ML), 23 candidates are in process with 5 in final rounds, but the frontend role has been vacant for 60 days without strong prospects. They recommend expanding the search to remote candidates or increasing the compensation band to improve the frontend pipeline.",
+  "score": 5,
+  "cost": 0.00192,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 216
+  }
+}

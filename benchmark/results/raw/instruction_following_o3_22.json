@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are loyal companions cherished worldwide. Their loyal nature drives them to protect and comfort their human families. From guiding the visually impaired to detecting danger, these loyal animals perform countless roles with unwavering dedication. Even in moments of play, a dog's wagging tail and eager eyes reveal a heart that remains steadfastly loyal. Through every stage of life, the bond between people and their dogs endures because both sides recognize how profoundly loyal these remarkable creatures are.",
+  "score": 4,
+  "cost": 0.002436,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 299
+  }
+}

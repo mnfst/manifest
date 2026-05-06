@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave,  \nWhose keyboard he\u2019d tirelessly stave.  \nHe\u2019d compile through the night,  \nTill the bugs took their flight,  \nNow his code\u2019s sleek, robust, and quite brave.",
+  "score": 5,
+  "cost": 0.000546,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 64
+  }
+}

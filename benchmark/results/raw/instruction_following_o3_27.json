@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "Mammals  \n- Elephant  \n- Kangaroo  \n- Dolphin  \n\nBirds  \n- Eagle  \n- Penguin  \n- Parrot  \n\nFish  \n- Salmon  \n- Clownfish  \n- Shark",
+  "score": 4,
+  "cost": 0.000506,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 57
+  }
+}

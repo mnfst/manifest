@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun slips toward the horizon like a glowing coin sinking into the sea, spilling molten gold across rippling waves. Overhead, wisps of cloud catch fire, shifting from vivid tangerine to bruised violet, while the last rays outline distant hilltops in shimmering copper. A hush settles; gulls wheel silently through the warm apricot light, and shadows grow long and soft on the sand. For a few lingering moments, the world seems painted in liquid amber and deepening indigo, until the blazing disk finally dips away, leaving behind a tranquil, lilac-streaked sky and the first shy glimmer of evening stars.",
+  "score": 5,
+  "cost": 0.003784,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 468
+  }
+}

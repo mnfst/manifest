@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 23,
+  "response": "if not nums:\n        return 0  # or could raise an error; spec implies non-empty\n    min_ending = min_so_far = nums[0]\n    for x in nums[1:]:\n        min_ending = x if x < min_ending + x else min_ending + x\n        if min_ending < min_so_far:\n            min_so_far = min_ending\n    return min_so_far",
+  "score": 4,
+  "cost": 0.002126,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 236
+  }
+}

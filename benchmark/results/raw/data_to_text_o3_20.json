@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 20,
+  "response": "American Airlines flight AA 1234 is scheduled to depart JFK at 8:30 AM and arrive in Los Angeles (LAX) at 11:45 AM, completing the coast-to-coast journey in about 5 hours 15 minutes aboard a Boeing 787. An economy-class seat on this route costs $289, and the flight has an 82 percent on-time performance record.",
+  "score": 5,
+  "cost": 0.001546,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 170
+  }
+}

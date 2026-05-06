@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "P99 latency on /api/v2/search jumped from 200 ms to 800 ms after Thursday\u2019s deploy because the new full-text search query isn\u2019t using an index. The backend team will add a GIN index on the content column and deploy the fix tonight during the maintenance window.",
+  "score": 5,
+  "cost": 0.00238,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 274
+  }
+}

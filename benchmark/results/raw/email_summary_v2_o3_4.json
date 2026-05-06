@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 4,
+  "response": "Maria Chen, CEO of DataSync, proposes a revenue-sharing partnership in which DataSync provides its data-synchronization infrastructure and SDK for integration, projecting a 60% latency reduction and about $2 M in additional annual revenue for each company. She requests confirmation of your availability for a technical discussion next week to explore the collaboration.",
+  "score": 5,
+  "cost": 0.001916,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 217
+  }
+}

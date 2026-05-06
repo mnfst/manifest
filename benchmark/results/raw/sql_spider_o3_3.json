@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "SELECT name\nFROM country\nWHERE continent = 'Africa'\n  AND population < (\n        SELECT MIN(population)\n        FROM country\n        WHERE continent = 'Asia'\n  );",
+  "score": 5,
+  "cost": 0.002116,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 246
+  }
+}

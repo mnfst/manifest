@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 19,
+  "response": "return \"\".join(chr(((ord(ch) - 5 - ord('a')) % 26) + ord('a')) for ch in s)",
+  "score": 3,
+  "cost": 0.003194,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 369
+  }
+}

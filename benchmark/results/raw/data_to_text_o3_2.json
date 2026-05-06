@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 2,
+  "response": "Stockholm, the capital of Sweden, was founded in 1252 and today spans about 188 km\u00b2. Home to roughly 1.6 million residents, the city speaks predominantly Swedish, enjoys average temperatures of \u20133 \u00b0C in January and 18 \u00b0C in July, and boasts an impressive GDP per capita of about $62,000.",
+  "score": 5,
+  "cost": 0.000922,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 92
+  }
+}

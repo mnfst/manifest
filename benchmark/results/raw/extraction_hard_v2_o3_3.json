@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "{\"severity\":\"critical\",\"component\":\"Checkout Page\",\"summary\":\"Checkout fails on Chrome 121 with white screen and console errors\",\"steps_to_reproduce\":[\"Add any product to cart\",\"Navigate to checkout page\",\"Enter valid credit card information\",\"Click the Pay button\"],\"expected_behavior\":\"Payment should be processed and an order confirmation page should be displayed.\",\"actual_behavior\":\"After clicking Pay, a spinner shows for ~30 seconds, then the page turns white with no error message; browser console logs a CORS error and \u201cundefined is not a function\u201d at checkout.bundle.js:847.\",\"environment\":{\"os\":\"Windows 11\",\"browser\":\"Chrome 121\"}}",
+  "score": 5,
+  "cost": 0.003054,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 341
+  }
+}

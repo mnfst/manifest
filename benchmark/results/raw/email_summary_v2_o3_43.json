@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The audit of 234 open-source dependencies uncovered two licensing problems: the current charting library is AGPL (incompatible with our SaaS model) and another package has no license. Legal/Engineering advises switching to the Apache-licensed Chart.js and eliminating the unlicensed package before the next release.",
+  "score": 5,
+  "cost": 0.001356,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 143
+  }
+}

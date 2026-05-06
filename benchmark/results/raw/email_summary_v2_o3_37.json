@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo has offered $15 million to acqui-hire our five-person ML team, but the CEO believes this undervalues the group. We need to brief the board and decide whether to counter or politely decline before issuing any response.",
+  "score": 5,
+  "cost": 0.000742,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 68
+  }
+}

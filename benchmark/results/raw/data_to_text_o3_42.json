@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 42,
+  "response": "Whip up a delicious batch of Thai Pad Thai with just 15 minutes of prep and 10 minutes of cooking, and you\u2019ll have enough to serve four people. Each medium-difficulty portion delivers about 380 calories, packed with 22 g of protein, 45 g of carbohydrates, and 12 g of fat\u2014perfect for a balanced, flavorful meal.",
+  "score": 5,
+  "cost": 0.001466,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 160
+  }
+}

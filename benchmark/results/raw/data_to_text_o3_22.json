@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "The prod-web-01 server in the us-east-1 region has been up for 45 days, is running at 78 % CPU utilization, and is using 12.4 GB of its 16 GB of memory. Disk consumption stands at 234 GB out of 500 GB with 127 active connections, a P99 latency of 145 ms, and an error rate of roughly three per hour.",
+  "score": 5,
+  "cost": 0.002598,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 300
+  }
+}

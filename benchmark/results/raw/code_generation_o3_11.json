@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 11,
+  "response": "total = sum(numbers)\nproduct = 1\nfor num in numbers:\n    product *= num\nreturn total, product",
+  "score": 5,
+  "cost": 0.00113,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 106
+  }
+}

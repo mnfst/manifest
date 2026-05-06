@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Rise with purpose, embrace challenges, and craft the future your courage envisions.",
+  "score": 4,
+  "cost": 0.000828,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 98
+  }
+}

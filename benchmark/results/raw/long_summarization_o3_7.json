@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s are seeing an unprecedented blend of public and private initiatives in space: SpaceX is flight-testing its fully reusable Starship while also supplying NASA\u2019s Artemis program, which aims to land astronauts on the Moon again by 2025. Scientific exploration is surging, led by the $10 billion James Webb Space Telescope, China\u2019s Tiangong station and planned crewed lunar mission, and India\u2019s Chandrayaan probes that recently reached the Moon\u2019s south pole. Commercial activity is just as vigorous\u2014Starlink has already put more than 5,000 of a planned 42,000 internet satellites in orbit, OneWeb is deploying hundreds more, and Blue Origin and Virgin Galactic have begun flying paying tourists. Amid talk of asteroid mining, the 1967 Outer Space Treaty offers only vague guidance, and with over 34,000 tracked pieces of debris (plus millions of smaller fragments) clogging low-Earth orbit, space sustainability and updated regulation are becoming urgent issues.",
+  "score": 5,
+  "cost": 0.006158,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 737
+  }
+}

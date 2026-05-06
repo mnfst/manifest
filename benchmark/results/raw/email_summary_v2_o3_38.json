@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The first month of the bug bounty program yielded 47 reports, 12 valid (3 critical) with $15K paid out, and all critical issues\u2014IDOR on user profiles, SSRF via webhook URL, and a leaked JWT secret\u2014were patched within 24 hours. Security reports a strong ROI and recommends continuing the program.",
+  "score": 5,
+  "cost": 0.002452,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 279
+  }
+}

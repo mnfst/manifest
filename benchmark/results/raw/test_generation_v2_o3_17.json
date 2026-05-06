@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 17,
+  "response": "Here is a compact yet comprehensive pytest-style test-suite for `is_balanced_parens`.  \nSave it as `test_parens.py` (or any name that starts with `test_`) and run with `pytest`.\n\n```python\nimport pytest\n\nfrom your_module import is_balanced_parens      # adjust the import to where the function lives\n\n\n# ---------- Happy-path tests (correctly balanced) ---------- #\n\n@pytest.mark.parametrize(\n    \"text\",\n    [\n        \"\",                     # empty string\n        \"()\",                   # single pair\n        \"()[]{}\",               # sequential different pairs\n        \"([{}])\",               # nested pairs\n        \"a(b[c]{d}e)f\",         # mixed with other characters\n        \"((([[[{{{}}}]]])))\",   # deep nesting\n    ],\n)\ndef test_is_balanced_parens_returns_true(text):\n    assert is_balanced_parens(text) is True\n\n\n# ---------- Failure cases (unbalanced / mismatched) ---------- #\n\n@pytest.mark.parametrize(\n    \"text\",\n    [\n        \"(\",        # missing closing\n        \")\",        # stray closing\n        \"([)]\",     # wrong order\n        \"(((\",      # only openings\n        \"())(\",     # extra closing then opening\n        \"abc(def]\", # mixed characters with mismatch\n        \")(\",       # reversed order\n    ],\n)\ndef test_is_balanced_parens_returns_false(text):\n    assert is_balanced_parens(text) is False\n\n\n# ---------- Edge-case inputs without any parentheses ---------- #\n\n@pytest.mark.parametrize(\"text\", [\"abc123\", \"no parens here!\", \"   \"])\ndef test_is_balanced_parens_no_parentheses(text):\n    # Strings with no recognised parentheses are trivially balanced\n    assert is_balanced_parens(text) is True\n\n\n# ---------- Error cases: wrong data type ---------- #\n\n@pytest.mark.parametrize(\"bad_input\", [None, 123, 3.14, [\"(\", \")\"]])\ndef test_is_balanced_parens_non_string_raises(bad_input):\n    \"\"\"\n    The function expects an iterable str; giving a non-str value should raise TypeError\n    (or another iterable-related exception).  We assert a TypeError for clarity.\n    \"\"\"\n    with pytest.raises(TypeError):\n        is_balanced_parens(bad_input)\n```\n\nWhat is covered:\n\n\u2022 Happy path: typical balanced strings, nested mixes, and the empty string.  \n\u2022 Edge cases: strings without any parentheses, deep nesting.  \n\u2022 Error/unhappy path: every main way to become unbalanced\u2014missing opener/closer, wrong order, extra closers, etc.  \n\u2022 Type safety: non-string inputs raise `TypeError`.",
+  "score": 4,
+  "cost": 0.00844,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 1026
+  }
+}

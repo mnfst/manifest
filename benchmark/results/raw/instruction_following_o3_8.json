@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine you have a magic notebook that everyone can see, and every time someone writes something, it gets copied into everyone\u2019s notebook at the same time. Once a page is filled, it\u2019s glued shut so no one can erase or change it, and then you start a new page that\u2019s linked to the last one. That way, everyone always knows the truth, and no one can cheat.",
+  "score": 5,
+  "cost": 0.000818,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 97
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT s.name\nFROM students AS s\nJOIN posts AS p ON p.student_id = s.id\nJOIN likes AS l ON l.post_id = p.id\nGROUP BY s.id, s.name\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.004276,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 517
+  }
+}

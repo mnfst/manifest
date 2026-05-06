@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "It was done in response to American aid to Israel.",
+  "score": 5,
+  "cost": 0.001284,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 270,
+    "output": 93
+  }
+}

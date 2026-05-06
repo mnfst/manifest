@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 22,
+  "response": "Global agriculture must produce 60 % more food by 2050 to feed a projected 9.7 billion people even as climate change, water scarcity, and soil degradation erode its capacity. Farming already generates about 25 % of global greenhouse-gas emissions, depletes key water sources like the Ogallala Aquifer, and has degraded 33 % of arable land, while roughly one-third of all food is lost or wasted. Proposed fixes range from AI-driven precision agriculture, vertical and regenerative farming, and drought-resistant or alternative-protein crops to policy levers such as revised subsidies and carbon pricing. The central challenge is scaling these innovations quickly enough to cut emissions and safeguard resources without pricing the world\u2019s poorest populations out of an adequate food supply.",
+  "score": 5,
+  "cost": 0.002544,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 245
+  }
+}

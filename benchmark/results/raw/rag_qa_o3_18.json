@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom",
+  "score": 5,
+  "cost": 0.001534,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 171,
+    "output": 149
+  }
+}

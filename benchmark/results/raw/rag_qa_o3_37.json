@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "It bordered his territory on the northeast.",
+  "score": 5,
+  "cost": 0.001664,
+  "expected": "northeast",
+  "tokens": {
+    "input": 216,
+    "output": 154
+  }
+}

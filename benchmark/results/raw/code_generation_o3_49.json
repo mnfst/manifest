@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 49,
+  "response": "if not string:\n        return string\n    n = len(string)\n    for i in range(n):\n        suffix = string[i:]\n        if suffix == suffix[::-1]:\n            return string + string[:i][::-1]\n    # Fallback (should never be reached because the last character is always a palindrome)\n    return string + string[:-1][::-1]",
+  "score": 4,
+  "cost": 0.007238,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 862
+  }
+}

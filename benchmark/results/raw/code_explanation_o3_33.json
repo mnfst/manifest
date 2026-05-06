@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "The function implements the Reservoir Sampling algorithm: it scans an input stream once and returns a list of k items such that every element in the (potentially unknown-length) stream is kept in the reservoir with equal probability k/n, guaranteeing an unbiased random sample without needing to store the whole stream.",
+  "score": 5,
+  "cost": 0.001312,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 141
+  }
+}

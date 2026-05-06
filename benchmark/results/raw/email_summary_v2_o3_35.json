@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The Trust & Safety team has updated the content moderation policy to cover AI-generated material. Beginning June 1, AI images must be labeled, deepfakes are banned, AI-assisted text must disclose its origin, and training materials will be distributed.",
+  "score": 5,
+  "cost": 0.002282,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 261
+  }
+}

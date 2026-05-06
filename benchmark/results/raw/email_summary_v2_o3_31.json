@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The Revenue team recommends introducing a $29/month \u201cStarter\u201d tier\u20145 users, 10 K API calls, email support\u2014to sit between Free and Pro and tackle the 40 % of churn attributed to price. Please review and approve this tier, projected to win back 15 % of price-churned users and generate an additional $180 K in ARR.",
+  "score": 5,
+  "cost": 0.002522,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 288
+  }
+}

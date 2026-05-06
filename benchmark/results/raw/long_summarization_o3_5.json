@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Penicillin, first noticed by Alexander Fleming in 1928, launched an antibiotic revolution that made previously lethal infections treatable and enabled safe surgery, cancer chemotherapy, and organ transplants. A \u201cgolden age\u201d in the 1950s\u201360s produced most of the 20-plus antibiotic classes we still rely on, but pharmaceutical investment later dried up because short treatment courses yield lower profits than chronic-disease drugs, so only a handful of new classes have reached the market in the past three decades. Meanwhile, heavy hospital use and routine inclusion of antibiotics in livestock feed have driven a global surge of resistant pathogens such as MRSA, creating a public-health crisis the WHO ranks alongside climate change. To counter resistance, researchers are revisiting bacteriophage therapy, experimenting with CRISPR-based precision antimicrobials, and using AI to screen billions of compounds in hopes of jump-starting the stalled antibiotic pipeline.",
+  "score": 5,
+  "cost": 0.002968,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 337
+  }
+}

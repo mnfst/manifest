@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 47,
+  "response": "The function implements Dijkstra\u2019s shunting-yard algorithm: it scans a list of (type,value) tokens representing an arithmetic expression in infix notation and, using two stacks (one for output, one for operators with precedence handling and parenthesis management), converts that expression into a list in postfix (Reverse Polish) order. The returned list therefore contains the numbers and '+', '-', '*', '/' operators arranged so they can be evaluated left-to-right without parentheses.",
+  "score": 5,
+  "cost": 0.001808,
+  "expected": "",
+  "tokens": {
+    "input": 200,
+    "output": 176
+  }
+}

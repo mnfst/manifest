@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Taking physical control of another country or territory.",
+  "score": 5,
+  "cost": 0.002382,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 315,
+    "output": 219
+  }
+}

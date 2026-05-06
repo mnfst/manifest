@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 36,
+  "response": "Here is a small but comprehensive pytest suite that exercises the \u201chappy path\u201d, a few tricky edge cases, and obvious error cases for `validate_password`.\n\n```python\n# test_validate_password.py\nimport pytest\n\n# If validate_password lives in another module replace the next line with\n# from <your_module> import validate_password\nfrom validate_password_module import validate_password      # example path\n\n\n# ---------- Happy-path / edge-case tests ----------\n\ndef test_valid_password_basic():\n    \"\"\"Clearly valid: \u22658 chars, upper, lower, digit.\"\"\"\n    assert validate_password(\"Abcdef12\") is True\n\n\ndef test_valid_password_exactly_eight_chars():\n    \"\"\"Boundary length of 8 must still succeed when other rules are met.\"\"\"\n    assert validate_password(\"A1bcdefg\") is True  # len == 8\n\n\ndef test_valid_password_with_special_characters():\n    \"\"\"Special characters are allowed but not required.\"\"\"\n    assert validate_password(\"Abcde#12\") is True\n\n\n# ---------- Invalid passwords (function should return False) ----------\n\n@pytest.mark.parametrize(\n    \"pw\",\n    [\n        \"Ab1cde\",      # too short (<8)\n        \"abcdefg1\",    # no uppercase\n        \"ABCDEFG1\",    # no lowercase\n        \"Abcdefgh\",    # no digit\n        \"\",            # empty string\n        \"12345678\",    # digits only, no letters\n    ],\n)\ndef test_invalid_passwords(pw):\n    assert validate_password(pw) is False\n\n\n# ---------- Error / exceptional cases ----------\n\n@pytest.mark.parametrize(\"bad_input\", [None, 12345678])\ndef test_non_string_input_raises_type_error(bad_input):\n    \"\"\"\n    validate_password expects a str; other types should propagate a TypeError\n    coming from len().\n    \"\"\"\n    with pytest.raises(TypeError):\n        validate_password(bad_input)\n\n\n# ---------- Misc ----------\n\ndef test_return_type_is_bool():\n    \"\"\"\n    Function should always return a real bool, not a truthy/falsey object.\n    \"\"\"\n    assert isinstance(validate_password(\"Abcdef12\"), bool)\n    assert isinstance(validate_password(\"abcdef\"), bool)\n```",
+  "score": 5,
+  "cost": 0.010094,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 1234
+  }
+}

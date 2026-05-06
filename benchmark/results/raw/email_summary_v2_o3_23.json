@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The v1 API will be deprecated on June 30 and removed on September 30, yet 340 integrations\u2014including 12 enterprise customers\u2014still rely on it despite last month\u2019s migration guide. To accelerate adoption of the new version, the Platform team will personally contact the top 20 integrations and host a webinar for everyone else.",
+  "score": 5,
+  "cost": 0.002396,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 276
+  }
+}

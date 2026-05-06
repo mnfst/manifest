@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "Pros and Cons of Remote Work\n\n| Pros (Advantages)                         | Cons (Challenges)                       |\n|-------------------------------------------|-----------------------------------------|\n| 1. Greater flexibility in schedule and location | 1. Potential for isolation / reduced social interaction |\n| 2. Elimination or reduction of commuting time and costs | 2. Blurred boundaries between work and personal life |\n| 3. Access to a wider talent pool for employers and more job opportunities for workers | 3. Reliance on technology and possible communication or infrastructure issues |",
+  "score": 5,
+  "cost": 0.001052,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 126
+  }
+}

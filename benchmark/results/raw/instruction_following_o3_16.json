@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the natural force that pulls objects with mass toward one another. Every bit of matter in the universe attracts every other bit, but the pull is much stronger when at least one of the objects is very massive\u2014like Earth, the Sun, or a black hole. On Earth, this attraction keeps your feet on the ground, makes dropped objects fall downward at about 9.8 m/s\u00b2, and holds the atmosphere around the planet. In space, gravity guides the motions of moons, planets, stars, and galaxies, shaping everything from ocean tides to the orbits of satellites. The greater an object\u2019s mass and the closer you are to it, the stronger its gravitational pull on you. That is gravity.",
+  "score": 5,
+  "cost": 0.002412,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 295
+  }
+}

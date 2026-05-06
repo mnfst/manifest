@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Budget Review Meeting, Feb 3 at 11:00 AM",
+  "score": 4,
+  "cost": 0.00285,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 351
+  }
+}

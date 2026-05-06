@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "They escape by clapping their lobes, expelling water to jet-propel themselves rapidly backward.",
+  "score": 5,
+  "cost": 0.001358,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 267,
+    "output": 103
+  }
+}

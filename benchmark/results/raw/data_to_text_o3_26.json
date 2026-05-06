@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 26,
+  "response": "Whip up a classic Pad Thai with a prep time of just 15 minutes and a quick 10-minute cook, perfect for four servings of medium-difficulty Thai cuisine. Each serving comes in at 380 calories, supplying 22 g of protein, 45 g of carbs, and 12 g of fat.",
+  "score": 5,
+  "cost": 0.001394,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 151
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 2,
+  "response": "s = sorted(lst)\n    res = []\n    low, high = 0, len(s) - 1\n    take_low = True\n    while low <= high:\n        if take_low:\n            res.append(s[low])\n            low += 1\n        else:\n            res.append(s[high])\n            high -= 1\n        take_low = not take_low\n    return res",
+  "score": 5,
+  "cost": 0.002134,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 228
+  }
+}

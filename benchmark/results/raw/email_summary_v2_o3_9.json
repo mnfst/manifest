@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly ETL job failed at 3 AM due to a Salesforce schema change that broke the connector, leaving dashboards with stale data. Data Engineering has deployed a fix and begun a backfill, with full recovery expected by 4 PM today.",
+  "score": 5,
+  "cost": 0.002286,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 263
+  }
+}

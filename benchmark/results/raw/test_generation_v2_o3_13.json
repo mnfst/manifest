@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "```python\n# test_fizzbuzz.py\nimport pytest\n\nfrom your_module import fizzbuzz   # \u2190 adapt the import to wherever `fizzbuzz` lives\n\n\n# ---------------------------------------------------------------------------\n# Happy-path tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.parametrize(\n    \"n\",\n    [15, 30, 45, 60, 0, -15, 1_500_000]      # includes edge-case 0, a negative,\n)\ndef test_multiple_of_15_returns_fizzbuzz(n):\n    \"\"\"\n    Numbers divisible by both 3 and 5 (i.e. by 15) must return 'FizzBuzz'.\n    Edge-cases covered: 0, negative, large number.\n    \"\"\"\n    assert fizzbuzz(n) == \"FizzBuzz\"\n\n\n@pytest.mark.parametrize(\n    \"n\",\n    [3, 6, 9, 99, -3]\n)\ndef test_multiple_of_3_only_returns_fizz(n):\n    \"\"\"\n    Numbers divisible by 3, but NOT by 5, must return 'Fizz'.\n    \"\"\"\n    assert fizzbuzz(n) == \"Fizz\"\n\n\n@pytest.mark.parametrize(\n    \"n\",\n    [5, 10, 20, 95, -5]\n)\ndef test_multiple_of_5_only_returns_buzz(n):\n    \"\"\"\n    Numbers divisible by 5, but NOT by 3, must return 'Buzz'.\n    \"\"\"\n    assert fizzbuzz(n) == \"Buzz\"\n\n\n@pytest.mark.parametrize(\n    \"n, expected\",\n    [\n        (1, \"1\"),\n        (2, \"2\"),\n        (4, \"4\"),\n        (7, \"7\"),\n        (-1, \"-1\"),\n    ]\n)\ndef test_non_multiples_return_number_as_string(n, expected):\n    \"\"\"\n    Numbers that are multiples of neither 3 nor 5 should be returned verbatim\n    as strings.\n    \"\"\"\n    assert fizzbuzz(n) == expected\n\n\n# ---------------------------------------------------------------------------\n# Error-case tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.parametrize(\"bad_input\", [\"3\", [3], {3: \"three\"}, None])\ndef test_non_int_inputs_raise_type_error(bad_input):\n    \"\"\"\n    Passing a non-int object should raise TypeError because the '%' operator\n    is not defined for those types with an int.\n    \"\"\"\n    with pytest.raises(TypeError):\n        fizzbuzz(bad_input)\n```\n\nHow the suite is organized\n\u2022 The happy-path section checks each of the four distinct branches of the function.  \n\u2022 Edge-cases (0, negative numbers, large numbers) are included inside the first three parametrized tests.  \n\u2022 The error-case section verifies that unsupported types trigger a `TypeError`, exercising Python\u2019s modulo semantics rather than the function body itself.",
+  "score": 5,
+  "cost": 0.01202,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 1479
+  }
+}

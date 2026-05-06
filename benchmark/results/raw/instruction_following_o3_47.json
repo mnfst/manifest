@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. Start with adequate length  \n   \u2011 Aim for at least 12\u201316 characters; the longer the password, the harder it is to brute-force.\n\n2. Combine diverse character types  \n   \u2011 Include uppercase letters, lowercase letters, numbers, and special symbols to widen the search space attackers must cover.\n\n3. Avoid predictable words and patterns  \n   \u2011 Skip dictionary words, common substitutions (e.g., \u201cP@ssw0rd!\u201d), sequential keys (\u201c123456\u201d), or keyboard walks (\u201cqwerty\u201d).\n\n4. Exclude personal information  \n   \u2011 Don\u2019t use birthdays, pet names, addresses, or anything an acquaintance or public profile might reveal.\n\n5. Keep every password unique  \n   \u2011 Reusing a password means one breached site can compromise all your other accounts.\n\n6. Favor passphrases or random strings  \n   \u2011 A memorable but uncommon four-word phrase (\u201cMango-Drift-Lamp-Galaxy\u201d) or a manager-generated random string offers both length and entropy.\n\n7. Store and manage securely  \n   \u2011 Use a reputable password manager to create, save, and auto-fill unique, complex passwords so you don\u2019t have to remember them all.\n\n8. Refresh when at risk  \n   \u2011 Change passwords immediately after a suspected breach or exposure; otherwise, rely on strong, unique passwords plus two-factor authentication rather than frequent routine changes.\n\n9. Supplement with multifactor authentication (MFA)  \n   \u2011 Even the best password benefits from an extra verification step (e.g., authenticator app or hardware token).\n\nFollowing these steps yields passwords that are resistant to guessing, dictionary attacks, and credential-stuffing campaigns, greatly improving your overall security posture.",
+  "score": 5,
+  "cost": 0.004002,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 496
+  }
+}

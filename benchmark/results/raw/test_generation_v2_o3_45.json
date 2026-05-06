@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 45,
+  "response": "",
+  "score": 1,
+  "cost": 0.016196,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 2000
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The International team proposes launching in Japan with entity setup in May, localization done by June, a 10-customer beta in July, and full GA in August, requiring a $200K budget split across legal ($50K), localization ($80K), and a local hire ($70K). CEO approval is needed to proceed.",
+  "score": 5,
+  "cost": 0.002398,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 276
+  }
+}

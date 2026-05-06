@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "The function is an implementation of the Knuth-Morris-Pratt (KMP) substring-search algorithm: it first computes the pattern\u2019s LPS (longest proper prefix that is also a suffix) table, then uses that table to scan the text in linear time, returning the index of the first match or \u20131 if the pattern is not found.",
+  "score": 5,
+  "cost": 0.001638,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 159
+  }
+}

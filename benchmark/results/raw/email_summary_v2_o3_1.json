@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "A misconfigured load balancer at 2:14 PM caused a 47-minute service degradation that impacted roughly 12,000 users. To prevent recurrence, we will add load-balancer configuration validation to CI, update the runbook, and implement traffic-distribution alerts.",
+  "score": 5,
+  "cost": 0.00237,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 270
+  }
+}

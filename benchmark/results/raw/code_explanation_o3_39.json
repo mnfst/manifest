@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "The snippet sketches a classic producer-consumer pattern: each producer thread pushes its data items onto a shared queue and finally enqueues a sentinel value (None), while each consumer thread repeatedly dequeues items, processes them, and terminates when it encounters the sentinel, re-inserting that sentinel so any remaining consumers can also detect completion.",
+  "score": 5,
+  "cost": 0.001398,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 149
+  }
+}

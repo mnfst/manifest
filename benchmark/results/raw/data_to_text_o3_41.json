@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan, a nation of about 125 million people, posts a sizable $4.2 trillion economy that is growing modestly at 1.1 percent and supports exports worth roughly $756 billion. Despite a towering public-debt burden equal to 263 percent of GDP, the country maintains low unemployment of 2.6 percent, moderate inflation of 3.2 percent, and boasts an impressive average life expectancy of 84.6 years.",
+  "score": 5,
+  "cost": 0.00166,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 182
+  }
+}

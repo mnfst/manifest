@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "The class is a minimalist implementation of a Bloom filter: when add() is called it hashes the item num_hashes ways and sets the corresponding bits in a fixed-size bit array, and the __contains__ test returns True only if all those bits are already set. This yields a space-efficient, probabilistic membership structure that can produce false positives but never false negatives.",
+  "score": 5,
+  "cost": 0.002618,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 288
+  }
+}

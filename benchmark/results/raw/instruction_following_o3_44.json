@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Lettuce (e.g., romaine or mixed greens)  \n- [ ] Tomatoes (cherry or diced)  \n- [ ] Cucumber slices  \n- [ ] Red onion (thinly sliced)  \n- [ ] Shredded carrots  \n- [ ] Olive oil (for dressing)  \n- [ ] Lemon juice or vinegar  \n- [ ] Salt  \n- [ ] Black pepper",
+  "score": 5,
+  "cost": 0.00134,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 163
+  }
+}

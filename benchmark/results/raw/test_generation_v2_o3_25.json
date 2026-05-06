@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 25,
+  "response": "```python\n# test_deduplicate_sorted.py\nimport pytest\n\nfrom your_module import deduplicate_sorted   # replace `your_module` with the real module name\n\n\n# ---------------------------------------------------------------------------\n# Happy-path behaviour\n# ---------------------------------------------------------------------------\ndef test_deduplicate_happy_path():\n    source = [1, 1, 2, 2, 3, 3]\n    expected = [1, 2, 3]\n\n    result = deduplicate_sorted(source)\n\n    assert result == expected, \"Duplicates should be removed while preserving order\"\n    # The original list must stay intact\n    assert source == [1, 1, 2, 2, 3, 3]\n    # Returned object must be a *new* list, not the original one\n    assert result is not source\n\n\n# ---------------------------------------------------------------------------\n# Edge-case inputs\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"input_list, expected\",\n    [\n        ([], []),                        # empty list\n        ([42], [42]),                    # single element\n        ([7, 7, 7, 7], [7]),             # all elements identical\n        ([[1, 2], [1, 2], [3, 4]], [[1, 2], [3, 4]]),  # unhashable (lists) but comparable\n        ([0, 0, 1, 1, 2, 3, 3, 3], [0, 1, 2, 3]),       # mixed run lengths\n        (list(\"aaabbbcc\"), list(\"abc\")),                # works for any ordered sequence\n    ],\n)\ndef test_edge_cases(input_list, expected):\n    assert deduplicate_sorted(input_list) == expected\n\n\ndef test_none_behaves_like_empty():\n    # `None` is falsy, so the implementation currently returns an empty list.\n    assert deduplicate_sorted(None) == []\n\n\n# ---------------------------------------------------------------------------\n# Error handling / invalid input\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        123,                 # not iterable\n        3.14,\n        object(),\n    ],\n)\ndef test_invalid_input_raises_type_error(bad_input):\n    with pytest.raises(TypeError):\n        deduplicate_sorted(bad_input)\n```",
+  "score": 4,
+  "cost": 0.011788,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 1452
+  }
+}

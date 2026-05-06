@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government",
+  "score": 5,
+  "cost": 0.000482,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 157,
+    "output": 21
+  }
+}

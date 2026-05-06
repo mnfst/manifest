@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI isn\u2019t coming, it\u2019s here\u2014spotting disease before doctors, powering playlists that know your mood, drafting code while you sleep. Its job isn\u2019t to replace imagination but to magnify it. Shape it wisely, and the future might just feel like science *with* fiction. \ud83e\udd16\u2728",
+  "score": 5,
+  "cost": 0.000668,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 79
+  }
+}

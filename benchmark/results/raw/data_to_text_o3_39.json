@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 39,
+  "response": "Apple Inc. (AAPL) finished the session at $185.50, rising 2.3% on volume of roughly 45 million shares. The tech giant sports a $2.87 trillion market cap, a 28.4 P/E ratio, and a 0.55% dividend yield, positioning the stock between its 52-week high of $198 and low of $155.",
+  "score": 5,
+  "cost": 0.001576,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 171
+  }
+}

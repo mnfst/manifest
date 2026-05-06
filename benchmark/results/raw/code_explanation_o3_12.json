@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "The function performs a depth-first search on every vertex of a directed graph, placing each node on a stack only after all of its outgoing neighbors have been visited. Reversing this post-order stack produces and returns a topological ordering of the graph.",
+  "score": 5,
+  "cost": 0.001292,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 135
+  }
+}

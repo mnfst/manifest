@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The sky goes charcoal-gray in an instant, and a jagged ribbon of lightning splits the clouds, illuminating the world in a harsh white flash. A deep, rolling boom follows, so powerful you feel it thrum in your chest like a distant drum. Cool, rain-laden wind lashes your skin, carrying the earthy scent of wet soil and the sharp, metallic tang that often precedes a downpour. As the first heavy drops spatter the ground, you can almost taste the humidity in the air while the steady hiss of rain drowns out every other sound.",
+  "score": 5,
+  "cost": 0.001622,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 198
+  }
+}

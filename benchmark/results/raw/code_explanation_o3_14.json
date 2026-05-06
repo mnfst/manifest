@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "The function implements Dijkstra\u2019s single-source shortest-path algorithm: it repeatedly extracts the currently closest vertex from a min-heap priority queue, relaxes all outgoing edges, and returns a dictionary of the minimum distances from the start node to every reachable node in the weighted graph.",
+  "score": 5,
+  "cost": 0.001384,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 138
+  }
+}

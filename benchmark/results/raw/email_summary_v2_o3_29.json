@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "The Android app\u2019s crash rate spiked to 2.3% (above the 0.5% threshold) after yesterday\u2019s release due to a null pointer in the notification handler on Android 12+, with iOS unaffected. A fix has been merged to main, and an emergency release has been submitted to the Play Store.",
+  "score": 5,
+  "cost": 0.001896,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 213
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT a.airport_code\nFROM airports AS a\nLEFT JOIN (\n    SELECT origin_airport_code AS airport_code FROM flights\n    UNION ALL\n    SELECT destination_airport_code FROM flights\n) AS f\nON f.airport_code = a.airport_code\nGROUP BY a.airport_code\nORDER BY COUNT(f.airport_code) ASC\nLIMIT 1;",
+  "score": 3,
+  "cost": 0.00498,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 605
+  }
+}

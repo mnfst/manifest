@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "David reports a critical CVSS 9.8 SQL injection vulnerability in /api/v2/auth/login affecting versions 3.2.0\u20133.4.1, fixed by parameterizing the query in auth_controller.py line 142. A patch is ready; please review and deploy the hotfix within 24 hours.",
+  "score": 5,
+  "cost": 0.0019,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 213
+  }
+}

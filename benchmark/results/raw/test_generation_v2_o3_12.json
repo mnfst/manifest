@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "```python\n# test_chunk_list.py\nimport pytest\n\n# Replace the following import with the actual location of the function\n# e.g.  from my_package.utils import chunk_list\nfrom chunk_list import chunk_list   # assuming `chunk_list.py` contains the function\n\n\n# ---------------------------------------------------------------------------\n# Happy-path tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.parametrize(\n    \"lst, size, expected\",\n    [\n        # length is an exact multiple of size\n        ([1, 2, 3, 4], 2, [[1, 2], [3, 4]]),\n        # length is NOT an exact multiple of size\n        ([1, 2, 3, 4, 5], 2, [[1, 2], [3, 4], [5]]),\n        # size == 1  -> each element is its own chunk\n        ([\"a\", \"b\", \"c\"], 1, [[\"a\"], [\"b\"], [\"c\"]]),\n        # size == len(lst)\n        ([42, 43, 44], 3, [[42, 43, 44]]),\n        # size  >  len(lst)\n        ([\"x\", \"y\"], 10, [[\"x\", \"y\"]]),\n    ],\n)\ndef test_chunk_list_happy_paths(lst, size, expected):\n    assert chunk_list(lst, size) == expected\n\n\n# ---------------------------------------------------------------------------\n# Edge-case tests\n# ---------------------------------------------------------------------------\n\ndef test_chunk_list_empty_input():\n    \"\"\"\n    An empty list should always return an empty list of chunks,\n    regardless of the (positive) size.\n    \"\"\"\n    assert chunk_list([], 3) == []\n    assert chunk_list([], 1) == []\n\n\n# ---------------------------------------------------------------------------\n# Error-case tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.parametrize(\"bad_size\", [0, -1, -7])\ndef test_chunk_list_invalid_size_raises(bad_size):\n    with pytest.raises(ValueError, match=\"size must be positive\"):\n        chunk_list([1, 2, 3], bad_size)\n```",
+  "score": 5,
+  "cost": 0.011938,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 1471
+  }
+}

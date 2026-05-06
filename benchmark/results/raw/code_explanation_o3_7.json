@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "The function is a decorator that adds an LRU (Least Recently Used) memoization cache to any function: it stores results keyed by the call\u2019s argument tuple in an OrderedDict, moves a key to the end on a cache hit, and when the number of cached items exceeds maxsize it evicts the oldest (least-recently-used) entry.",
+  "score": 5,
+  "cost": 0.000982,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 93
+  }
+}

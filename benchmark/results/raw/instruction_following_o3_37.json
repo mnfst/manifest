@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes like a velvet night sky melting on the tongue\u2014deep, dark, and studded with tiny, sweet stars of comfort.",
+  "score": 5,
+  "cost": 0.000398,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 45
+  }
+}

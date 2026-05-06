@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "The ocean whispers softly.",
+  "score": 3,
+  "cost": 0.000728,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 87
+  }
+}

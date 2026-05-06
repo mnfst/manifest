@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "March cohort satisfaction dropped to 7.2/10 (from 8.1), with praise for the buddy system and timely IT support but complaints about unclear benefits deadlines, 3\u20135-day delays in tool access, and missing culture handbooks. Action: urgently shorten tool-access time to the one-day target and address benefits communication and handbook distribution.",
+  "score": 5,
+  "cost": 0.003016,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 349
+  }
+}

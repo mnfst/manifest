@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 31,
+  "response": "# Filter out strings with odd lengths\n    even_length_strings = [s for s in lst if len(s) % 2 == 0]\n    # Sort first by length, then alphabetically\n    return sorted(even_length_strings, key=lambda s: (len(s), s))",
+  "score": 5,
+  "cost": 0.002596,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 270
+  }
+}

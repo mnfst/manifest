@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 45,
+  "response": "Quantum computers use qubits that can exist in superposition, exploit entanglement and interference, and therefore can tackle certain problems exponentially faster than classical bit-based machines. IBM, Google, IonQ, Rigetti and others are pursuing various hardware platforms\u2014superconducting circuits, trapped ions, photonics, even topological qubits\u2014and in 2019 Google claimed \u201cquantum supremacy,\u201d completing a task in 200 seconds that it estimated would take a classical supercomputer 10,000 years. Today\u2019s processors contain roughly 100\u20131,000 physical qubits, yet reliable, large-scale applications may require millions because high error rates demand extensive error correction and operation at near-absolute-zero temperatures. Despite these hurdles, firms are already testing quantum algorithms for drug discovery, materials design, cryptography, finance, and logistics, underscoring the technology\u2019s long-term promise.",
+  "score": 5,
+  "cost": 0.003176,
+  "expected": "",
+  "tokens": {
+    "input": 276,
+    "output": 328
+  }
+}

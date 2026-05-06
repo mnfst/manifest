@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "The annual performance review cycle starts May 1 and will use the new competency framework. Employees must submit self-reviews by May 15, managers should attend training on April 30 and complete their reviews by May 22, with calibration on May 28 and final review delivery on June 5.",
+  "score": 5,
+  "cost": 0.00234,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 270
+  }
+}

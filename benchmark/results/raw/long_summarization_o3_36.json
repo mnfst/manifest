@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 36,
+  "response": "The internet originated in 1960s U.S. Defense Department networking research and went public in 1969 when ARPANET linked UCLA to Stanford; its modern architecture solidified with the 1983 adoption of TCP/IP. Key milestones followed: Tim Berners-Lee\u2019s 1989 creation of the World Wide Web (HTML, URLs, HTTP), the 1993 Mosaic browser that opened the web to mainstream users, the late-1990s dot-com boom and 2001 crash that still left giants like Amazon and Google standing, and the mid-2000s rise of social media platforms such as Facebook, Twitter, and YouTube. Mobile and cloud revolutions\u2014sparked by the 2007 iPhone and AWS\u2019s 2006 debut\u2014made internet access ubiquitous and computing on-demand. Today the network connects over 5 billion people and supports nearly every sphere of commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.002816,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 274
+  }
+}

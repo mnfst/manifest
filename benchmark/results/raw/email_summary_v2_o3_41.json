@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Ops reports that the 1 Gbps links are already 78% utilized at peak and recommends a $45K one-time plus $2K/month upgrade to 10 Gbps instead of a $15K traffic-shaping/CDN alternative. Action requested: approve the 10 Gbps upgrade now to handle projected growth and avoid revisiting capacity in six months.",
+  "score": 5,
+  "cost": 0.003624,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 426
+  }
+}

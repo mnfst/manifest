@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "The Moselle tributary contributes the most.",
+  "score": 2,
+  "cost": 0.00215,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 199,
+    "output": 219
+  }
+}

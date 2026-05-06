@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "Founded in 1861, the Massachusetts Institute of Technology (MIT) is ranked #1 and commands a $24.6 billion endowment. It enrolls roughly 11,500 students taught by 1,069 faculty members, has produced 98 Nobel laureates, and\u2014despite its 3.9 % acceptance rate\u2014charges $57,590 per year in tuition.",
+  "score": 5,
+  "cost": 0.002548,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 294
+  }
+}

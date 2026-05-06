@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay refreshed on every adventure with our double-wall, vacuum-insulated stainless-steel water bottle, engineered to keep drinks icy cold for 24 hours or soothingly hot for 12. The leak-proof, one-hand flip lid and grippy powder-coat finish make it effortless to hydrate whether you\u2019re at the gym, on the trail, or commuting. BPA-free, dishwasher safe, and available in vibrant, fade-resistant colors, it\u2019s the durable bottle that goes wherever life takes you.",
+  "score": 3,
+  "cost": 0.001024,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 123
+  }
+}

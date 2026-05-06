@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "SELECT DISTINCT\n       c.name AS conductor_name,\n       o.name AS orchestra_name\nFROM   conductors   c\nJOIN   performances p ON p.conductor_id = c.id\nJOIN   orchestras   o ON o.id = p.orchestra_id\nORDER BY\n       c.name,\n       o.name;",
+  "score": 5,
+  "cost": 0.006436,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 785
+  }
+}

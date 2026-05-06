@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "The function implements the classic 0/1 Knapsack dynamic-programming algorithm: it fills a (n + 1) \u00d7 (capacity + 1) table where dp[i][w] stores the maximum total value obtainable using the first i items with weight limit w. By iteratively choosing, for each item, the better of \u201cexclude it\u201d (dp[i-1][w]) or \u201cinclude it\u201d (dp[i-1][w-weight] + value), the routine ultimately returns the highest value achievable within the given capacity.",
+  "score": 5,
+  "cost": 0.00138,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 135
+  }
+}

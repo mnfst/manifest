@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 10,
+  "response": "count = 0\n    for n in arr:\n        if n == 0:\n            digit_sum = 0\n        elif n > 0:\n            digit_sum = sum(int(ch) for ch in str(n))\n        else:\n            s = str(n)\n            first_digit = -int(s[1])  # digit after the minus sign\n            digit_sum = first_digit + sum(int(ch) for ch in s[2:])\n        if digit_sum > 0:\n            count += 1\n    return count",
+  "score": 4,
+  "cost": 0.006446,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 767
+  }
+}

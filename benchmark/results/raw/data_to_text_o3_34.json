@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 34,
+  "response": "Founded in 1252, Stockholm is Sweden\u2019s capital, home to about 1.6 million people living within 188 km\u00b2, where Swedish is the dominant language and the GDP per capita reaches roughly $62,000. The city experiences crisp winters averaging \u22123 \u00b0C in January and pleasantly mild summers of about 18 \u00b0C in July.",
+  "score": 5,
+  "cost": 0.001954,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 221
+  }
+}

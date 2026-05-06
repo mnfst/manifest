@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world\u2019s economy grew.",
+  "score": 5,
+  "cost": 0.001152,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 224,
+    "output": 88
+  }
+}

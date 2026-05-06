@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It\u2019s a bleak, cautionary tale set in a near-future society where every action, word, and even private thought is monitored by an all-seeing political regime. The central character, a quiet clerk who rewrites historical records for a living, slowly realizes that truth itself is being annihilated\u2014facts are altered, language is simplified to make subversive ideas literally unthinkable, and citizens are kept in line through constant surveillance and manufactured enemies.  \n\nAs he secretly rebels\u2014first in his diary, then in a forbidden love affair\u2014he discovers how thoroughly the state can rewrite reality and break the human spirit. The book\u2019s invented slogans and terminology have slipped into everyday conversation because they capture the mechanics of modern propaganda so perfectly. Its closing pages are unforgettable, showing how a single individual\u2019s hope can be crushed when power controls not just the body but the mind and the past. It\u2019s the kind of story that leaves you staring at the last sentence for a long time, chilled yet galvanized to guard your own freedom of thought.",
+  "score": 5,
+  "cost": 0.005434,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 675
+  }
+}

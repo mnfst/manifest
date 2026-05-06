@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team reports 47 active feature flags, 23 of which are over six months old, and proposes a cleanup sprint. Action items: remove 15 flags that are 100% rolled out and archive 8 dead-code flags to simplify configuration and speed up the test suite by about 12%.",
+  "score": 5,
+  "cost": 0.001854,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 207
+  }
+}

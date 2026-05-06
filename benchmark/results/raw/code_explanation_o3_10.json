@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "The function implements the classic Sieve of Eratosthenes: starting with a boolean array that assumes every number \u2264 n is prime, it iteratively marks multiples of each found prime (beginning at i\u00b2 and stepping by i) as non-prime up to \u221an, then returns all indices still marked True, i.e., all primes \u2264 n.",
+  "score": 5,
+  "cost": 0.001522,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 157
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "User 45892 has submitted a GDPR data export request requiring a package of all personal data across services, the purposes for which it is processed, a log of any third-party sharing, and analytics data as additionally mandated by Legal. The Privacy Team must compile and deliver this information by the May 25 (30-day) deadline.",
+  "score": 5,
+  "cost": 0.001912,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 214
+  }
+}

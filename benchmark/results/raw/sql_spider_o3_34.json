@@ -2,12 +2,12 @@
   "model": "o3",
   "task": "sql_spider",
   "case": 34,
-  "response": "SELECT *\nFROM hires;",
-  "score": 0,
-  "cost": 0.003394,
+  "response": "SELECT *\nFROM hiring;",
+  "score": 3,
+  "cost": 0.001346,
   "expected": "",
   "tokens": {
     "input": 69,
-    "output": 407
+    "output": 151
   }
 }

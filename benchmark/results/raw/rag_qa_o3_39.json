@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Circuit switching",
+  "score": 5,
+  "cost": 0.000446,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 143,
+    "output": 20
+  }
+}

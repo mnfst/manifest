@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "The function lazily \u201cpartitions\u201d an iterable into two parallel streams: it first duplicates the input with itertools.tee, then returns one iterator that yields the items for which predicate(item) is true (via filter) and a second iterator that yields the items for which the predicate is false (via itertools.filterfalse).",
+  "score": 5,
+  "cost": 0.001304,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 146
+  }
+}

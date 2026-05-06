@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 14,
+  "response": "The global food system must somehow feed a projected 9.7 billion people by 2050, which will demand about 60 % more food even as climate change, water scarcity, and soil degradation are cutting yields. Agriculture both suffers from and causes environmental stress, accounting for roughly 25 % of greenhouse-gas emissions, draining aquifers like the Ogallala, and leaving 33 % of arable land degraded while one-third of all food produced is ultimately wasted. Emerging responses range from precision and vertical farming to drought-resistant GM crops, alternative proteins, and regenerative practices, complemented by policy tools such as subsidy reform and carbon pricing. The central challenge is to scale these innovations fast enough to meet future demand without pricing the world\u2019s poorest out of adequate nutrition.",
+  "score": 5,
+  "cost": 0.002016,
+  "expected": "",
+  "tokens": {
+    "input": 292,
+    "output": 179
+  }
+}

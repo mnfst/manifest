@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 31,
+  "response": "```python\n# test_camel_to_snake.py\nimport pytest\n\n# If camel_to_snake lives in another file, replace the next import accordingly\nfrom your_module import camel_to_snake\n\n\n# ---------------------------------------------------------------------------\n# Happy-path cases\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"camel, expected_snake\",\n    [\n        (\"camelCase\", \"camel_case\"),         # typical lowerCamel\n        (\"CamelCase\", \"camel_case\"),         # typical UpperCamel / Pascal\n        (\"already_snake\", \"already_snake\"),  # string that is already snake\n        (\"lowercase\", \"lowercase\"),          # all lowercase, no changes\n        (\"Camel2Snake\", \"camel2_snake\"),     # digits in the middle\n        (\"HTMLParser\", \"htmlparser\"),        # consecutive capitals not split\n    ],\n)\ndef test_camel_to_snake_happy_path(camel, expected_snake):\n    assert camel_to_snake(camel) == expected_snake\n\n\n# ---------------------------------------------------------------------------\n# Edge-case inputs\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"camel, expected_snake\",\n    [\n        (\"\", \"\"),          # empty string\n        (\"A\", \"a\"),        # single capital letter\n        (\"a\", \"a\"),        # single lowercase letter\n        (\"CamelCaseX\", \"camel_casex\"),  # capital letter at very end\n    ],\n)\ndef test_camel_to_snake_edge_cases(camel, expected_snake):\n    assert camel_to_snake(camel) == expected_snake\n\n\n# ---------------------------------------------------------------------------\n# Error / invalid-type cases\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\"bad_input\", [None, 123, 4.56, [\"CamelCase\"]])\ndef test_camel_to_snake_type_errors(bad_input):\n    \"\"\"\n    re.sub requires a string or bytes-like object; anything else must raise\n    TypeError.\n    \"\"\"\n    with pytest.raises(TypeError):\n        camel_to_snake(bad_input)\n```",
+  "score": 4,
+  "cost": 0.01125,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 1388
+  }
+}

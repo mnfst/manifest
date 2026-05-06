@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "```python\n# test_snake_to_camel.py\nimport pytest\n\nfrom your_module import snake_to_camel   # replace `your_module` with real module name\n\n\n# ---------------------------------------------------------------------------\n# Happy-path conversions\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"snake, expected\",\n    [\n        (\"snake_case\", \"snakeCase\"),\n        (\"multiple_words_snake\", \"multipleWordsSnake\"),\n        (\"alreadycamel\", \"alreadycamel\"),          # no underscores \u2192 unchanged\n    ],\n)\ndef test_snake_to_camel_happy_path(snake, expected):\n    assert snake_to_camel(snake) == expected\n\n\n# ---------------------------------------------------------------------------\n# Edge-case conversions\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"snake, expected\",\n    [\n        (\"_leading\", \"Leading\"),        # empty first part\n        (\"trailing_\", \"trailing\"),      # empty last part is dropped\n        (\"some__thing\", \"someThing\"),   # double underscore produces empty middle part\n        (\"\", \"\"),                       # completely empty string\n    ],\n)\ndef test_snake_to_camel_edge_cases(snake, expected):\n    assert snake_to_camel(snake) == expected\n\n\n# ---------------------------------------------------------------------------\n# Error cases \u2013 non-string inputs\n# ---------------------------------------------------------------------------\n@pytest.mark.parametrize(\"bad_input\", [None, 42, 3.14])\ndef test_snake_to_camel_non_string_raises_attribute_error(bad_input):\n    \"\"\"\n    Non-strings do not have `.split`, therefore an AttributeError is expected.\n    \"\"\"\n    with pytest.raises(AttributeError):\n        snake_to_camel(bad_input)\n\n\ndef test_snake_to_camel_bytes_input_raises_type_error():\n    \"\"\"\n    Bytes have `.split`, but the function ends up trying to join str and bytes,\n    which triggers a TypeError.\n    \"\"\"\n    with pytest.raises(TypeError):\n        snake_to_camel(b\"bytes_input\")\n```",
+  "score": 4,
+  "cost": 0.008494,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 1044
+  }
+}

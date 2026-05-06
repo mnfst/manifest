@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "Red, Orange, Yellow, Green, Blue, Indigo, Violet",
+  "score": 5,
+  "cost": 0.001306,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 159
+  }
+}

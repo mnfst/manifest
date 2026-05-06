@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "Q: What does VPN stand for?  \nA: VPN stands for Virtual Private Network.\n\nQ: In one sentence, what does a VPN do?  \nA: A VPN creates an encrypted tunnel between your device and a remote server, hiding your data and your real internet location from outside observers.\n\nQ: How does a VPN work under the hood?  \nA: When you connect to the internet through a VPN app, all traffic is first encrypted on your device, sent to the VPN provider\u2019s server, decrypted there, and then forwarded to the final destination site; the process happens in reverse for incoming data, keeping your ISP, Wi-Fi operator, or snoopers from seeing the original content or its true source.\n\nQ: What problems does a VPN solve for everyday users?  \nA: It prevents eavesdropping on public Wi-Fi, masks your IP address to enhance privacy, bypasses geographic restrictions or censorship, and can stop ISPs from throttling certain types of traffic.\n\nQ: Does a VPN make you completely anonymous online?  \nA: No; while it hides your IP address and encrypts traffic, the VPN provider itself can potentially see your activity, and websites can still track you through cookies, browser fingerprints, or account log-ins.\n\nQ: Will a VPN slow down my connection?  \nA: Often yes, because traffic must travel farther (to the VPN server) and be encrypted/decrypted, but the speed drop is usually modest with reputable, well-located servers.\n\nQ: Is using a VPN legal?  \nA: In most countries it is perfectly legal, but a handful restrict or ban VPN use, so local laws should be checked.\n\nQ: What should I look for in a good VPN service?  \nA: A clear no-logs policy, strong encryption (e.g., AES-256), modern protocols (WireGuard, OpenVPN), transparently audited software, ample server locations, reasonable speeds, multi-platform apps, and a trustworthy, privacy-respecting jurisdiction.",
+  "score": 5,
+  "cost": 0.003942,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 488
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Lake \u00dcberlingen",
+  "score": 5,
+  "cost": 0.001144,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 232,
+    "output": 85
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "data_to_text",
+  "case": 1,
+  "response": "At age 40 during the 2024-25 season, LeBron James suited up for the Lakers in 71 games and still put up elite numbers, averaging 28.4 points, 7.2 rebounds, and 8.1 assists. His excellence was duly recognized with yet another All-Star selection.",
+  "score": 5,
+  "cost": 0.00187,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 211
+  }
+}

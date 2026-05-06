@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "extraction_hard_v2",
+  "case": 20,
+  "response": "We need to extract data: invoice_number, date, vendor, items list with description, quantity, unit_price, total, currency.\n\nText:\n\nINVOICE #INV-2024-0847\nDate: March 15th, 2024\nFrom: Johnson & Sons LLC\n\nItems:\n- 5x USB-C Cables (premium) @ $12.99 each\n- Office Chair, ergonomic mesh -- qty 2 -- $349.99/ea\n- 1 box of printer paper (A4) $45.50\n\nSubtotal: $824.42\nTax (8.25%): $68.01\nTotal Due: $892.43 USD\n\nWe need date in YYYY-MM-DD: March 15th, 2024 => 2024-03-15.\n\nInvoice number: INV-2024-0847 (without #? The schema expects string; we can include the number as \"INV-2024-0847\").\n\nVendor: Johnson & Sons LLC.\n\nItems: need description, quantity, unit_price.\n\nFirst item: \"5x USB-C Cables (premium) @ $12.99 each\". Description: \"USB-C Cables (premium)\". Quantity: 5. Unit price: 12.99.\n\nSecond: \"Office Chair, ergonomic mesh -- qty 2 -- $349.99/ea\". Description: \"Office Chair, ergonomic mesh\". Quantity: 2. Unit price: 349.99.\n\nThird: \"1 box of printer paper (A4) $45.50\". Description: \"printer paper (A4)\"? Or \"box of printer paper (A4)\". We'll parse description: \"printer paper (A4)\". Quantity: 1. Unit price: 45.50.\n\nTotal: 892.43 (as number). Currency: USD.\n\nCheck if total matches sum: 5*12.99 = 64.95; 2*349.99 = 699.98; 1*45.50 = 45.50; sum = 810.43? Wait compute: 64.95+699.98=764.93; +45.50=810.43. Subtotal given is $824.42, which is higher. Something off: maybe unit prices include tax? Actually subtotal is 824.42, tax 68.01, total 892.43. Our computed sum 810.43 is less than subtotal by 13.99. Possibly misinterpretation: maybe the unit prices are per item but there are extra charges? Let's recalc: maybe the first item: 5x USB-C Cables (premium) @ $12.99 each => 5*12.99 = 64.95 correct. Second: Office Chair, ergonomic mesh -- qty 2 -- $349.99/ea => 2*349.99 = 699.98 correct. Third: 1 box of printer paper (A4) $45.50 => 45.50. Sum = 810.43. Subtotal given 824.42 difference 13.99. Could be that there is an extra item not listed",
+  "score": 4,
+  "cost": 9.252e-05,
+  "expected": "",
+  "tokens": {
+    "input": 228,
+    "output": 800
+  }
+}

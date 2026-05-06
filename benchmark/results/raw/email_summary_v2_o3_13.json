@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Q1 Customer Success metrics improved (NPS 62, support CSAT 4.3/5) while churn dropped to 1.2%. Action items: prioritize the top feature requests\u2014SSO, custom dashboards, and higher API rate limits\u2014and push forward the three enterprise expansion opportunities totaling $800 K.",
+  "score": 5,
+  "cost": 0.001918,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 211
+  }
+}

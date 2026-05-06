@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "The class implements the Circuit Breaker design pattern: it wraps a function call, counts consecutive failures, and after a configurable threshold trips to an \u201copen\u201d state that blocks further calls until a timeout elapses, after which it enters a \u201chalf-open\u201d test state. Successful calls reset the counter and close the circuit; additional failures while closed or half-open keep updating the failure count and can reopen the circuit.",
+  "score": 5,
+  "cost": 0.001722,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 166
+  }
+}

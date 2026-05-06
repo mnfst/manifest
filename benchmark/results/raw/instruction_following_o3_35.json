@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The town clock struck thirteen the night Elise decided to leave. She packed nothing but her grandmother\u2019s silver compass, which quivered whenever she lied. Outside, fog curled around cobblestones like hesitant fingers, muffling the market\u2019s usual clamor. A raven followed her through the gate, cawing in a language she half-remembered from childhood bedtime tales. At the riverbank, the water parted on its own, revealing a staircase of moonlit fish scales leading downward. With one last glance at the sleeping town, she stepped onto the first shimmering stair, and the compass needle spun wildly, suddenly pointing toward home.",
+  "score": 5,
+  "cost": 0.001184,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 144
+  }
+}

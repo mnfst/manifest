@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "The function finds all connected components of an undirected graph: for every unvisited vertex it launches a breadth-first search (using a queue), collects every vertex reached into a list, marks them visited, and finally returns the list of these per-search groups. Thus it partitions the graph into its connected components in O(V + E) time.",
+  "score": 5,
+  "cost": 0.002018,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 220
+  }
+}

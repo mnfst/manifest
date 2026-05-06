@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "Here is a complete pytest test-suite that exercises the \u201chappy-path\u201d, edge-cases and error-cases for the factorial function.\n\nSave it as e.g. `test_factorial.py` (adjust the import so it points to the module that contains `factorial`).\n\n```python\nimport pytest\n\n# Replace this import with the correct one for your project, e.g.\n# from my_pkg.math_utils import factorial\nfrom factorial import factorial\n\n\n# --------------------------\n# Happy-path / nominal cases\n# --------------------------\n@pytest.mark.parametrize(\n    \"n, expected\",\n    [\n        (2, 2),\n        (3, 6),\n        (5, 120),\n        (10, 3_628_800),\n    ],\n)\ndef test_factorial_nominal(n, expected):\n    assert factorial(n) == expected\n\n\n# ----------------\n# Edge-case inputs\n# ----------------\n@pytest.mark.parametrize(\"edge\", [0, 1])\ndef test_factorial_edge_returns_one(edge):\n    assert factorial(edge) == 1\n\n\ndef test_factorial_large_but_safe():\n    \"\"\"A value large enough to exercise deeper recursion but\n    still below the default recursion limit.\"\"\"\n    assert factorial(20) == 2_432_902_008_176_640_000\n\n\ndef test_return_type_is_int():\n    \"\"\"Result should always be an int, never float/str/etc.\"\"\"\n    assert isinstance(factorial(7), int)\n\n\n# ----------------\n# Error conditions\n# ----------------\ndef test_negative_input_raises_value_error():\n    with pytest.raises(ValueError, match=\"non-negative\"):\n        factorial(-1)\n\n\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        3.14,          # float\n        \"6\",           # str\n        None,          # NoneType\n        [5],           # list\n        (7,),          # tuple\n    ],\n)\ndef test_non_integer_input_raises_type_error(bad_input):\n    \"\"\"Python will raise TypeError when '<' is used with incompatible\n    types (e.g. str < int).  We expect that here for non-ints.\"\"\"\n    with pytest.raises(TypeError):\n        factorial(bad_input)\n```\n\nExplanation of coverage:\n\n\u2022 Happy path: typical positive integers (2, 3, 5, 10).  \n\u2022 Edge cases: 0 and 1 (both must return 1), plus a \u201clarge but safe\u201d value 20.  \n\u2022 Type/return-value check ensures the function keeps returning an `int`.  \n\u2022 Error cases:  \n  \u2013 Negative integer must raise `ValueError`.  \n  \u2013 Non-integer inputs (float, str, None, list, tuple) must raise `TypeError`, which is what Python raises when the comparison `bad_input < 0` is attempted.",
+  "score": 5,
+  "cost": 0.009548,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 1173
+  }
+}

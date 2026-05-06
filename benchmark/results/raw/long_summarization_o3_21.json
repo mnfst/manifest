@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "long_summarization",
+  "case": 21,
+  "response": "Quantum computers process information with qubits that can occupy superpositions and become entangled, enabling certain algorithms to run exponentially faster than on classical machines. Tech giants such as IBM and Google, along with startups like IonQ and Rigetti, are pursuing varied hardware platforms; Google notably claimed \u201cquantum supremacy\u201d in 2019 by finishing a task in 200 seconds that it said would take a classical supercomputer 10,000 years. Yet today\u2019s devices have only 100\u20131,000 fragile, error-prone qubits\u2014far short of the millions likely required for large-scale, fault-tolerant applications\u2014and must operate at near-absolute-zero temperatures with heavy error-correction overhead. Despite these hurdles, early experiments suggest quantum computing could eventually transform drug discovery, materials science, cryptography, finance, and logistics.",
+  "score": 5,
+  "cost": 0.00208,
+  "expected": "",
+  "tokens": {
+    "input": 276,
+    "output": 191
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "extraction_hard_v2",
+  "case": 42,
+  "response": "We need to extract meeting title, date, attendees, decisions, action_items.\n\nText: \"Product sync - April 10 2026\"\n\nSo meeting_title: \"Product sync\". Date: \"2026-04-10\". Attendees: list of names: Jamie (PM), Priya (eng lead), Marcus (design), Lin (data). Probably just names without roles: [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"].\n\nDecisions: sentences after \"Decided to ...\" and \"Agreed to allocate ...\" maybe also \"Decided to push the recommendation engine to Q3 since data pipeline won't be ready until June.\" and \"Agreed to allocate 20% of sprint capacity to tech debt.\" Also maybe \"Lin needs analytics dashboard before May board meeting.\" That's more of an action item? It says \"Lin needs analytics dashboard before May board meeting.\" That's a requirement, could be decision? Might be action item. We'll treat as decision? The schema: decisions: [string]. We'll include both decisions.\n\nAction_items: each with owner, task, deadline.\n\nFrom text:\n\n- \"Marcus will have onboarding mockups by April 18.\" => owner Marcus, task \"have onboarding mockups\", deadline \"2026-04-18\".\n\n- \"Jamie will send updated roadmap by Monday.\" Need date: Monday relative to April 10 2026. April 10 2026 is a Friday? Let's check: 2026-04-10 day of week? Quick mental: 2024-02-29 was Thursday (leap). 2024-03-01 Friday. 2025-03-01 Saturday? Actually 2025 not leap. 2026-03-01? Let's compute: 2024 is leap, 2025 not, 2026 not. Days from 2024-03-01 to 2026-04-10? Might be easier: Use known: 2026-04-10 is a Friday? I think 2026-04-10 is a Friday (I recall 2025-04-10 was Thursday, 2026-04-10 Friday). So Monday after that is 2026-04-13. So deadline \"2026-04-100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "score": 1,
+  "cost": 8.937e-05,
+  "expected": "",
+  "tokens": {
+    "input": 193,
+    "output": 800
+  }
+}

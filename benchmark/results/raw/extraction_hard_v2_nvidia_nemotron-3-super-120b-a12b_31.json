@@ -1,0 +1,13 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "task": "extraction_hard_v2",
+  "case": 31,
+  "response": "{\n  \"tenant\": {\n    \"company\": \"TechStart Inc.\",\n    \"ceo\": \"Alex Rivera\"\n  },\n  \"landlord\": \"Downtown Properties LLC\",\n  \"property\": {\n    \"suite\": \"Suite 400\",\n    \"address\": \"200 Innovation Drive, Austin TX 7",
+  "score": 4,
+  "cost": 0.00010025999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 314,
+    "output": 800
+  }
+}

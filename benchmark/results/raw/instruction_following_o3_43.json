@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that on Neptune, a single day (one full rotation) lasts about 16 hours, while a year (one full orbit around the Sun) takes 165 Earth years?",
+  "score": 5,
+  "cost": 0.000494,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 56
+  }
+}

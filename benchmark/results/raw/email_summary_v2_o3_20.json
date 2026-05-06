@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "Early Saturday, prod-db-01 ran out of disk space; an automated cleanup freed 40 GB but couldn\u2019t resize the volume, so on-call staff manually restored service at 8 AM with no customer impact. Action: fix the log-rotation misconfiguration introduced during the last migration (and verify automated resizing) to prevent future incidents.",
+  "score": 5,
+  "cost": 0.002972,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 348
+  }
+}

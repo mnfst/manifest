@@ -1,0 +1,13 @@
+{
+  "model": "o3",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n        return -1\n    avg = (n + m) / 2\n    return bin(int(round(avg)))",
+  "score": 4,
+  "cost": 0.007382,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 880
+  }
+}
