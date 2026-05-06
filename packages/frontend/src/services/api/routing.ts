@@ -19,6 +19,8 @@ export interface RoutingProvider {
   priority: number;
   region?: string | null;
   connected_at: string;
+  models_fetched_at?: string | null;
+  cached_model_count?: number;
 }
 
 /* -- Routing: Status -- */
@@ -270,6 +272,19 @@ export function refreshModels(agentName: string) {
   return fetchMutate<{ ok: boolean }>(routingPath(agentName, 'refresh-models'), {
     method: 'POST',
   });
+}
+
+export interface ProviderRefreshResult {
+  ok: boolean;
+  model_count: number;
+  last_fetched_at: string | null;
+  error: string | null;
+}
+
+export function refreshProviderModels(agentName: string, provider: string, authType?: AuthType) {
+  const base = routingPath(agentName, `providers/${encodeURIComponent(provider)}/refresh-models`);
+  const path = authType ? `${base}?authType=${authType}` : base;
+  return fetchMutate<ProviderRefreshResult>(path, { method: 'POST' });
 }
 
 /* -- Routing: Pricing cache health -- */

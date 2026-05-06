@@ -141,6 +141,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
         {(tierId) => (
           <ModelPickerModal
             tierId={tierId()}
+            agentName={props.agentName()}
             models={props.models()}
             tiers={props.tiers()}
             customProviders={props.customProviders()}
@@ -151,6 +152,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               props.onDropdownClose();
               props.onOpenProviderModal();
             }}
+            onProviderRefreshed={props.onProviderUpdate}
           />
         )}
       </Show>
@@ -164,6 +166,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
           return (
             <ModelPickerModal
               tierId={category()}
+              agentName={props.agentName()}
               models={props.models()}
               tiers={specificityTiers()}
               customProviders={props.customProviders()}
@@ -176,6 +179,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
                 props.onSpecificityDropdownClose?.();
                 props.onOpenProviderModal();
               }}
+              onProviderRefreshed={props.onProviderUpdate}
             />
           );
         }}
@@ -277,6 +281,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
           return (
             <ModelPickerModal
               tierId={tierId()}
+              agentName={props.agentName()}
               models={filteredModels()}
               tiers={props.tiers()}
               customProviders={props.customProviders()}
@@ -287,6 +292,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
                 props.onFallbackPickerClose();
                 props.onOpenProviderModal();
               }}
+              onProviderRefreshed={props.onProviderUpdate}
             />
           );
         }}

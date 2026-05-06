@@ -81,6 +81,8 @@ export class ProviderController {
       priority: p.priority,
       region: p.region ?? null,
       connected_at: p.connected_at,
+      models_fetched_at: p.models_fetched_at ?? null,
+      cached_model_count: Array.isArray(p.cached_models) ? p.cached_models.length : 0,
     }));
   }
 

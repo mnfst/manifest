@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { ProviderService } from './routing-core/provider.service';
@@ -7,7 +7,11 @@ import { CustomProviderService } from './custom-provider/custom-provider.service
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
-import { AgentNameParamDto } from './dto/routing.dto';
+import {
+  AgentNameParamDto,
+  AgentProviderParamDto,
+  RemoveProviderQueryDto,
+} from './dto/routing.dto';
 
 @Controller('api/v1/routing')
 export class ModelController {
@@ -44,6 +48,24 @@ export class ModelController {
     await this.discoveryService.discoverAllForAgent(agent.id);
     await this.providerService.recalculateTiers(agent.id);
     return { ok: true };
+  }
+
+  @Post(':agentName/providers/:provider/refresh-models')
+  async refreshProviderModels(
+    @CurrentUser() user: AuthUser,
+    @Param() params: AgentProviderParamDto,
+    @Query() query: RemoveProviderQueryDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const result = await this.discoveryService.refreshProvider(
+      agent.id,
+      params.provider,
+      query.authType,
+    );
+    if (result.ok) {
+      await this.providerService.recalculateTiers(agent.id);
+    }
+    return result;
   }
 
   @Post('ollama/sync')

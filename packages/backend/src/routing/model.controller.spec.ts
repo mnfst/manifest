@@ -44,6 +44,12 @@ describe('ModelController', () => {
     mockDiscoveryService = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
       discoverAllForAgent: jest.fn().mockResolvedValue(undefined),
+      refreshProvider: jest.fn().mockResolvedValue({
+        ok: true,
+        model_count: 0,
+        last_fetched_at: null,
+        error: null,
+      }),
     };
     mockOllamaSync = {
       sync: jest.fn().mockResolvedValue({ count: 0 }),
@@ -146,6 +152,60 @@ describe('ModelController', () => {
       expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
       expect(mockDiscoveryService.discoverAllForAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
       expect(result).toEqual({ ok: true });
+    });
+  });
+
+  /* ── refreshProviderModels ── */
+
+  describe('refreshProviderModels', () => {
+    const mockParams = { agentName: 'test-agent', provider: 'anthropic' } as never;
+
+    it('returns the discovery result and recalculates tiers when ok', async () => {
+      mockDiscoveryService.refreshProvider.mockResolvedValue({
+        ok: true,
+        model_count: 7,
+        last_fetched_at: '2026-04-12T12:00:00.000Z',
+        error: null,
+      });
+
+      const result = await controller.refreshProviderModels(mockUser, mockParams, {});
+
+      expect(mockDiscoveryService.refreshProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'anthropic',
+        undefined,
+      );
+      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(result).toEqual({
+        ok: true,
+        model_count: 7,
+        last_fetched_at: '2026-04-12T12:00:00.000Z',
+        error: null,
+      });
+    });
+
+    it('forwards the optional authType query param', async () => {
+      await controller.refreshProviderModels(mockUser, mockParams, { authType: 'subscription' });
+      expect(mockDiscoveryService.refreshProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'anthropic',
+        'subscription',
+      );
+    });
+
+    it('skips tier recalculation when refresh failed', async () => {
+      mockDiscoveryService.refreshProvider.mockResolvedValue({
+        ok: false,
+        model_count: 0,
+        last_fetched_at: null,
+        error: 'Provider returned no models',
+      });
+
+      const result = await controller.refreshProviderModels(mockUser, mockParams, {});
+
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe('Provider returned no models');
     });
   });
 

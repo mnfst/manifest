@@ -4,6 +4,7 @@ import { submitOpenaiOAuthCallback } from '../../src/services/api/oauth.js';
 import {
   probeCustomProvider,
   refreshModels,
+  refreshProviderModels,
   deleteCustomProvider,
   updateCustomProvider,
   createCustomProvider,
@@ -70,6 +71,29 @@ describe('api/routing', () => {
     const [url, init] = mockFetch.mock.calls[0];
     expect(url).toBe('/api/v1/routing/demo-agent/refresh-models');
     expect(init.method).toBe('POST');
+  });
+
+  it('refreshProviderModels POSTs to the per-provider refresh endpoint and forwards the result', async () => {
+    mockOk({ ok: true, model_count: 5, last_fetched_at: '2026-04-12T10:00:00Z', error: null });
+    const out = await refreshProviderModels('demo-agent', 'anthropic', 'subscription');
+    expect(out).toEqual({
+      ok: true,
+      model_count: 5,
+      last_fetched_at: '2026-04-12T10:00:00Z',
+      error: null,
+    });
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe(
+      '/api/v1/routing/demo-agent/providers/anthropic/refresh-models?authType=subscription',
+    );
+    expect(init.method).toBe('POST');
+  });
+
+  it('refreshProviderModels omits the authType query when not provided', async () => {
+    mockOk({ ok: true, model_count: 0, last_fetched_at: null, error: null });
+    await refreshProviderModels('demo-agent', 'openai');
+    const [url] = mockFetch.mock.calls[0];
+    expect(url).toBe('/api/v1/routing/demo-agent/providers/openai/refresh-models');
   });
 
   it('probeCustomProvider POSTs the base URL + optional key and returns the model list', async () => {

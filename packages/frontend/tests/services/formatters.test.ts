@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatNumber, formatCost, formatTrend, formatStatus, formatMetricType, formatErrorMessage, formatRelativeTime, formatTime, formatDuration } from "../../src/services/formatters";
+import { formatNumber, formatCost, formatTrend, formatStatus, formatMetricType, formatErrorMessage, formatRelativeTime, formatTime, formatDuration, formatTimeAgo } from "../../src/services/formatters";
 
 describe("formatNumber", () => {
   it("formats millions", () => {
@@ -146,5 +146,52 @@ describe("formatRelativeTime", () => {
     const ts = oldDate.toISOString();
     const result = formatRelativeTime(ts);
     expect(result).toMatch(/\w+ \d+/);
+  });
+});
+
+describe("formatTimeAgo", () => {
+  it("returns null for null/undefined/empty input", () => {
+    expect(formatTimeAgo(null)).toBeNull();
+    expect(formatTimeAgo(undefined)).toBeNull();
+    expect(formatTimeAgo("")).toBeNull();
+  });
+  it("returns null for future timestamps (clock skew)", () => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    expect(formatTimeAgo(future)).toBeNull();
+  });
+  it("returns null for unparseable timestamps", () => {
+    expect(formatTimeAgo("not-a-date")).toBeNull();
+  });
+  it('returns "Just now" for timestamps under 45 seconds', () => {
+    const ts = new Date(Date.now() - 5_000).toISOString();
+    expect(formatTimeAgo(ts)).toBe("Just now");
+  });
+  it("returns minutes for under-an-hour timestamps", () => {
+    const ts = new Date(Date.now() - 5 * 60_000).toISOString();
+    expect(formatTimeAgo(ts)).toBe("5m ago");
+  });
+  it("returns hours for under-a-day timestamps", () => {
+    const ts = new Date(Date.now() - 3 * 3_600_000).toISOString();
+    expect(formatTimeAgo(ts)).toBe("3h ago");
+  });
+  it('returns "Yesterday" for timestamps a day old', () => {
+    const ts = new Date(Date.now() - 25 * 3_600_000).toISOString();
+    expect(formatTimeAgo(ts)).toBe("Yesterday");
+  });
+  it("returns days ago for timestamps within the last week", () => {
+    const ts = new Date(Date.now() - 4 * 86_400_000).toISOString();
+    expect(formatTimeAgo(ts)).toBe("4d ago");
+  });
+  it("falls back to a localized date for older timestamps", () => {
+    const ts = new Date(Date.now() - 30 * 86_400_000).toISOString();
+    const result = formatTimeAgo(ts);
+    expect(result).toMatch(/\w+ \d+/);
+  });
+  it("accepts the legacy `2026-01-01 12:00:00` (no T, no Z) shape", () => {
+    const ts = new Date(Date.now() - 2 * 60_000)
+      .toISOString()
+      .replace("T", " ")
+      .replace(/\.\d+Z$/, "");
+    expect(formatTimeAgo(ts)).toBe("2m ago");
   });
 });

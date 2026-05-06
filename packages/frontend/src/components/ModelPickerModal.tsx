@@ -1,18 +1,21 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
-import type {
-  AuthType,
-  AvailableModel,
-  CustomProviderData,
-  RoutingProvider,
-  TierAssignment,
+import {
+  refreshProviderModels,
+  type AuthType,
+  type AvailableModel,
+  type CustomProviderData,
+  type RoutingProvider,
+  type TierAssignment,
 } from '../services/api.js';
-import { PROVIDERS, STAGES, SPECIFICITY_STAGES } from '../services/providers.js';
+import { PROVIDERS, STAGES, SPECIFICITY_STAGES, DEFAULT_STAGE } from '../services/providers.js';
 import { customProviderColor } from '../services/formatters.js';
 import { inferProviderFromModel, pricePerM, resolveProviderId } from '../services/routing-utils.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
+import { toast } from '../services/toast-store.js';
 
 interface Props {
   tierId: string;
+  agentName?: string;
   models: AvailableModel[];
   tiers: TierAssignment[];
   customProviders?: CustomProviderData[];
@@ -20,6 +23,7 @@ interface Props {
   onSelect: (tierId: string, modelName: string, providerId: string, authType?: AuthType) => void;
   onClose: () => void;
   onConnectProviders?: () => void;
+  onProviderRefreshed?: () => void | Promise<void>;
 }
 
 /** Resolve a display label for a model name, handling vendor-prefixed IDs. */
@@ -67,6 +71,28 @@ const ModelPickerModal: Component<Props> = (props) => {
   const [activeTab, setActiveTab] = createSignal<AuthType>(resolveInitialTab());
   const [search, setSearch] = createSignal('');
   const [showFreeOnly, setShowFreeOnly] = createSignal(false);
+  const [refreshingProvId, setRefreshingProvId] = createSignal<string | null>(null);
+
+  const handleRefreshGroup = async (provId: string, displayName: string) => {
+    if (!props.agentName) return;
+    if (provId.startsWith('custom:')) return;
+    setRefreshingProvId(provId);
+    try {
+      const result = await refreshProviderModels(props.agentName, provId, activeTab());
+      if (result.ok) {
+        toast.success(
+          `${displayName}: refreshed ${result.model_count} model${result.model_count === 1 ? '' : 's'}`,
+        );
+      } else {
+        toast.error(result.error ?? `Couldn't refresh ${displayName}`);
+      }
+      await props.onProviderRefreshed?.();
+    } catch {
+      // network/server error toast already raised by fetchMutate
+    } finally {
+      setRefreshingProvId(null);
+    }
+  };
 
   const providerLabelMap = (): Map<string, string> => {
     const map = new Map<string, string>();
@@ -252,10 +278,8 @@ const ModelPickerModal: Component<Props> = (props) => {
             </div>
             <div class="routing-modal__subtitle">
               {
-                (
-                  STAGES.find((s) => s.id === props.tierId) ??
-                  SPECIFICITY_STAGES.find((s) => s.id === props.tierId)
-                )?.label
+                [DEFAULT_STAGE, ...STAGES, ...SPECIFICITY_STAGES].find((s) => s.id === props.tierId)
+                  ?.label
               }{' '}
               tier
             </div>
@@ -467,6 +491,37 @@ const ModelPickerModal: Component<Props> = (props) => {
                       : providerIcon(group.provId, 16)}
                   </span>
                   <span class="routing-modal__group-name">{group.name}</span>
+                  <Show when={props.agentName && !group.provId.startsWith('custom:')}>
+                    <button
+                      class="routing-modal__group-refresh"
+                      disabled={refreshingProvId() !== null}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleRefreshGroup(group.provId, group.name);
+                      }}
+                      aria-label={`Refresh ${group.name} models`}
+                      title={`Refresh ${group.name} models`}
+                    >
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        classList={{
+                          'routing-modal__group-refresh-icon--spinning':
+                            refreshingProvId() === group.provId,
+                        }}
+                      >
+                        <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+                        <path d="M21 3v5h-5" />
+                      </svg>
+                    </button>
+                  </Show>
                 </div>
                 <For each={group.models}>
                   {(model) => (

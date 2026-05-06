@@ -4,10 +4,16 @@ import { createSignal, type Accessor, type Setter } from 'solid-js';
 
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
+const mockRefreshProviderModels = vi.fn();
 
 vi.mock('../../src/services/api.js', () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
+  refreshProviderModels: (...args: unknown[]) => mockRefreshProviderModels(...args),
+}));
+
+vi.mock('../../src/services/formatters.js', () => ({
+  formatTimeAgo: (ts: string | null | undefined) => (ts ? '5m ago' : null),
 }));
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -77,6 +83,12 @@ describe('ProviderDetailView', () => {
     vi.clearAllMocks();
     mockConnectProvider.mockResolvedValue({});
     mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+    mockRefreshProviderModels.mockResolvedValue({
+      ok: true,
+      model_count: 3,
+      last_fetched_at: '2026-04-12T10:00:00Z',
+      error: null,
+    });
   });
 
   describe('Ollama connect flow', () => {
@@ -228,5 +240,138 @@ describe('ProviderDetailView', () => {
     const props = createTestProps({ provId: 'anthropic' });
     render(() => <ProviderDetailView {...props} />);
     expect(screen.getByTestId('provider-key-form')).toBeDefined();
+  });
+
+  describe('per-provider refresh button', () => {
+    const connectedAnthropicSub: RoutingProvider[] = [
+      {
+        id: 'p1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: true,
+        has_api_key: true,
+        connected_at: '2025-01-01',
+        models_fetched_at: '2026-04-12T09:55:00Z',
+      },
+    ];
+
+    it('hides the refresh button when the provider is not connected', () => {
+      const props = createTestProps({ provId: 'anthropic', providers: [] });
+      render(() => <ProviderDetailView {...props} />);
+      expect(screen.queryByLabelText('Refresh models from Anthropic')).toBeNull();
+    });
+
+    it('shows the refresh button and last-refreshed indicator when connected', () => {
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+      expect(screen.getByLabelText('Refresh models from Anthropic')).toBeDefined();
+      expect(screen.getByText('Models last refreshed 5m ago')).toBeDefined();
+    });
+
+    it('calls refreshProviderModels with the provider and auth type and shows a success toast', async () => {
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+
+      fireEvent.click(screen.getByLabelText('Refresh models from Anthropic'));
+
+      await waitFor(() => {
+        expect(mockRefreshProviderModels).toHaveBeenCalledWith(
+          'test-agent',
+          'anthropic',
+          'subscription',
+        );
+        expect(toast.success).toHaveBeenCalledWith('Anthropic: refreshed 3 models');
+        expect(props.onUpdate).toHaveBeenCalled();
+      });
+    });
+
+    it('shows a singular model count in the success toast', async () => {
+      mockRefreshProviderModels.mockResolvedValueOnce({
+        ok: true,
+        model_count: 1,
+        last_fetched_at: '2026-04-12T10:00:00Z',
+        error: null,
+      });
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+
+      fireEvent.click(screen.getByLabelText('Refresh models from Anthropic'));
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith('Anthropic: refreshed 1 model');
+      });
+    });
+
+    it('shows the backend error message in the toast when refresh fails', async () => {
+      mockRefreshProviderModels.mockResolvedValueOnce({
+        ok: false,
+        model_count: 0,
+        last_fetched_at: null,
+        error: 'Provider returned no models',
+      });
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+
+      fireEvent.click(screen.getByLabelText('Refresh models from Anthropic'));
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Provider returned no models');
+        expect(props.onUpdate).toHaveBeenCalled();
+      });
+    });
+
+    it("falls back to a generic message when the backend doesn't supply one", async () => {
+      mockRefreshProviderModels.mockResolvedValueOnce({
+        ok: false,
+        model_count: 0,
+        last_fetched_at: null,
+        error: null,
+      });
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+
+      fireEvent.click(screen.getByLabelText('Refresh models from Anthropic'));
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith("Couldn't refresh Anthropic");
+      });
+    });
+
+    it('swallows network errors without throwing', async () => {
+      mockRefreshProviderModels.mockRejectedValueOnce(new Error('boom'));
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+
+      fireEvent.click(screen.getByLabelText('Refresh models from Anthropic'));
+
+      await waitFor(() => {
+        expect(mockRefreshProviderModels).toHaveBeenCalled();
+      });
+      expect(props.onUpdate).not.toHaveBeenCalled();
+    });
   });
 });

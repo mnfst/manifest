@@ -177,6 +177,17 @@ export class ModelDiscoveryService {
       return true;
     });
 
+    const previousCachedCount = Array.isArray(provider.cached_models)
+      ? provider.cached_models.length
+      : 0;
+
+    if (filtered.length === 0 && previousCachedCount > 0) {
+      this.logger.warn(
+        `Discovery returned 0 models for ${provider.provider} (agent ${provider.agent_id}); kept ${previousCachedCount} cached models`,
+      );
+      return provider.cached_models ?? [];
+    }
+
     provider.cached_models = filtered;
     provider.models_fetched_at = new Date().toISOString();
     await this.providerRepo.save(provider);
@@ -200,6 +211,63 @@ export class ModelDiscoveryService {
           }),
         ),
     );
+  }
+
+  async refreshProvider(
+    agentId: string,
+    providerId: string,
+    authType?: AuthType,
+  ): Promise<{
+    ok: boolean;
+    model_count: number;
+    last_fetched_at: string | null;
+    error: string | null;
+  }> {
+    const where: { agent_id: string; provider: string; is_active: true; auth_type?: AuthType } = {
+      agent_id: agentId,
+      provider: providerId,
+      is_active: true,
+    };
+    if (authType) where.auth_type = authType;
+    const provider = await this.providerRepo.findOne({ where });
+    if (!provider) {
+      return { ok: false, model_count: 0, last_fetched_at: null, error: 'Provider not found' };
+    }
+    // Snapshot the pre-refresh state so error/skip paths can report the count
+    // and timestamp the user already had on disk, even after `discoverModels`
+    // mutates the entity in-memory.
+    const previousCount = Array.isArray(provider.cached_models) ? provider.cached_models.length : 0;
+    const previousFetchedAt = provider.models_fetched_at;
+
+    if (provider.provider.startsWith('custom:')) {
+      return {
+        ok: false,
+        model_count: previousCount,
+        last_fetched_at: previousFetchedAt,
+        error: 'Custom providers are managed manually — edit the provider to update its model list',
+      };
+    }
+
+    try {
+      const models = await this.discoverModels(provider);
+      return {
+        ok: models.length > 0,
+        model_count: models.length,
+        last_fetched_at: provider.models_fetched_at,
+        error: models.length === 0 ? 'Provider returned no models' : null,
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(
+        `Per-provider refresh failed for ${provider.provider} (agent ${agentId}): ${message}`,
+      );
+      return {
+        ok: false,
+        model_count: previousCount,
+        last_fetched_at: previousFetchedAt,
+        error: message,
+      };
+    }
   }
 
   async getModelsForAgent(agentId: string): Promise<DiscoveredModel[]> {

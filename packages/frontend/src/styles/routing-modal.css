@@ -143,6 +143,47 @@
   color: hsl(var(--muted-foreground));
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  flex: 1;
+}
+
+.routing-modal__group-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.routing-modal__group-refresh:hover:not(:disabled) {
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+  background: hsl(var(--muted) / 0.6);
+}
+
+.routing-modal__group-refresh:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.routing-modal__group-refresh-icon--spinning {
+  animation: routing-modal-group-refresh-spin 0.9s linear infinite;
+}
+
+@keyframes routing-modal-group-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .routing-modal__model {

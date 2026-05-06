@@ -285,6 +285,36 @@
   color: hsl(var(--foreground));
 }
 
+.provider-detail__last-refreshed {
+  margin-top: 2px;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
+.provider-detail__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.provider-detail__refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.provider-detail__refresh-icon--spinning {
+  animation: provider-detail-refresh-spin 0.9s linear infinite;
+}
+
+@keyframes provider-detail-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .provider-detail__beta-badge {
   font-size: 10px;
   font-weight: 600;
