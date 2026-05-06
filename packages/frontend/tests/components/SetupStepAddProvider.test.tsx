@@ -277,6 +277,23 @@ describe("SetupStepAddProvider", () => {
       expect(screen.getByText("Connect your Hermes agent to Manifest")).toBeDefined();
     });
 
+    it("shows ClaudeCodeSetup directly when platform is claude-code", () => {
+      const { container } = render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="claude-code" />
+      ));
+      expect(container.textContent).toContain("~/.claude/settings.json");
+      expect(container.textContent).toContain("ANTHROPIC_BASE_URL");
+      // No top-level Agents/Toolkits tabs in filtered mode.
+      expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
+    });
+
+    it("shows correct heading for claude-code", () => {
+      render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="claude-code" />
+      ));
+      expect(screen.getByText("Connect Claude Code to Manifest")).toBeDefined();
+    });
+
     it("shows OpenAI SDK snippet when platform is openai-sdk", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="openai-sdk" />

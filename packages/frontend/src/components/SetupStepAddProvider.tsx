@@ -35,10 +35,6 @@ const SetupStepAddProvider: Component<Props> = (props) => {
   }));
 
   const isFiltered = () => !!props.platform;
-  const isPersonalAgent = () =>
-    props.platform === 'openclaw' ||
-    props.platform === 'hermes' ||
-    props.platform === 'claude-code';
   const toolkitId = () => (props.platform ? PLATFORM_TO_TOOLKIT[props.platform] : undefined);
 
   return (
