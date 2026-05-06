@@ -11,10 +11,12 @@ import { providerIcon } from './ProviderIcon.js';
 import {
   connectProvider,
   disconnectProvider,
+  refreshProviderModels,
   type RoutingProvider,
   type AuthType,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import { formatTimeAgo } from '../services/formatters.js';
 import CopyButton from './CopyButton.js';
 import ProviderKeyForm, { MAX_KEYS_PER_PROVIDER } from './ProviderKeyForm.js';
 import OAuthDetailView from './OAuthDetailView.js';
@@ -128,6 +130,34 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     }
   };
 
+  const [refreshing, setRefreshing] = createSignal(false);
+
+  const activeProviderRow = () => getProviderByAuth(props.selectedAuthType());
+  const lastFetchedAgo = () => formatTimeAgo(activeProviderRow()?.models_fetched_at ?? null);
+
+  const handleRefreshModels = async () => {
+    setRefreshing(true);
+    try {
+      const result = await refreshProviderModels(
+        props.agentName,
+        props.provId,
+        props.selectedAuthType(),
+      );
+      if (result.ok) {
+        toast.success(
+          `${provDef.name}: refreshed ${result.model_count} model${result.model_count === 1 ? '' : 's'}`,
+        );
+      } else {
+        toast.error(result.error ?? `Couldn't refresh ${provDef.name}`);
+      }
+      props.onUpdate();
+    } catch {
+      // network/server error toast already raised by fetchMutate
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
@@ -198,18 +228,51 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
                 <span class="provider-detail__beta-badge">beta</span>
               </Show>
             </div>
+            <Show when={connected() && lastFetchedAgo()}>
+              <div class="provider-detail__last-refreshed">
+                Models last refreshed {lastFetchedAgo()}
+              </div>
+            </Show>
           </div>
         </div>
-        <Show when={showAddKeyButton()}>
-          <button
-            type="button"
-            class="btn btn--sm"
-            style="background: hsl(var(--foreground)); color: hsl(var(--background)); border: none; font-size: var(--font-size-xs);"
-            onClick={() => setAddKeyOpen(true)}
-          >
-            Add another key
-          </button>
-        </Show>
+        <div class="provider-detail__header-actions">
+          <Show when={connected()}>
+            <button
+              class="btn btn--outline btn--sm provider-detail__refresh-btn"
+              disabled={refreshing() || props.busy()}
+              onClick={handleRefreshModels}
+              aria-label={`Refresh models from ${provDef.name}`}
+              title={`Refresh models from ${provDef.name}`}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                classList={{ 'provider-detail__refresh-icon--spinning': refreshing() }}
+              >
+                <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+                <path d="M21 3v5h-5" />
+              </svg>
+              {refreshing() ? 'Refreshing…' : 'Refresh models'}
+            </button>
+          </Show>
+          <Show when={showAddKeyButton()}>
+            <button
+              type="button"
+              class="btn btn--sm"
+              style="background: hsl(var(--foreground)); color: hsl(var(--background)); border: none; font-size: var(--font-size-xs);"
+              onClick={() => setAddKeyOpen(true)}
+            >
+              Add another key
+            </button>
+          </Show>
+        </div>
       </div>
 
       {/* Subscription sign-in URL instruction (token mode with external sign-in) */}

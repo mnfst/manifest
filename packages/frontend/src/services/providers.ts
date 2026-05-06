@@ -291,7 +291,7 @@ export interface StageDef {
 export const DEFAULT_STAGE: StageDef = {
   id: 'default',
   step: 0,
-  label: 'Regular',
+  label: 'Default',
   desc: 'Handles every request.',
 };
 

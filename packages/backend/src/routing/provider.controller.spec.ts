@@ -134,6 +134,8 @@ describe('ProviderController', () => {
           connected_at: '2025-01-01',
           api_key_encrypted: 'enc',
           key_prefix: 'sk-proj-',
+          models_fetched_at: '2026-04-01T10:00:00.000Z',
+          cached_models: [{ id: 'gpt-4o' }, { id: 'gpt-4o-mini' }],
         },
       ]);
 
@@ -150,8 +152,27 @@ describe('ProviderController', () => {
           key_prefix: 'sk-proj-',
           region: null,
           connected_at: '2025-01-01',
+          models_fetched_at: '2026-04-01T10:00:00.000Z',
+          cached_model_count: 2,
         },
       ]);
+    });
+
+    it('returns null models_fetched_at and zero cached_model_count when never discovered', async () => {
+      mockProviderService.getProviders.mockResolvedValue([
+        {
+          id: 'p1',
+          provider: 'anthropic',
+          is_active: true,
+          connected_at: '2025-01-01',
+          api_key_encrypted: 'enc',
+          key_prefix: 'sk-ant-',
+        },
+      ]);
+
+      const result = await controller.getProviders(mockUser, mockAgentName);
+      expect(result[0].models_fetched_at).toBeNull();
+      expect(result[0].cached_model_count).toBe(0);
     });
 
     it('should strip internal fields from response', async () => {

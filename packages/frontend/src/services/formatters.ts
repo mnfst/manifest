@@ -144,3 +144,26 @@ export function formatRelativeTime(ts: string): string {
   if (diffDays === 1) return 'Yesterday';
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
+
+/**
+ * Format a timestamp as a coarse "time ago" (e.g. "Just now", "5m ago",
+ * "3h ago", "Yesterday", "Mar 5"). Returns null when input is null/empty so
+ * callers can render a placeholder instead.
+ */
+export function formatTimeAgo(ts: string | null | undefined): string | null {
+  if (!ts) return null;
+  const normalized = ts.replace(' ', 'T');
+  const d = new Date(normalized.endsWith('Z') ? normalized : normalized + 'Z');
+  const diffMs = Date.now() - d.getTime();
+  if (!Number.isFinite(diffMs) || diffMs < 0) return null;
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 45) return 'Just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDays = Math.floor(diffHr / 24);
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, fireEvent } from "@solidjs/testing-library";
+import { render, fireEvent, screen, waitFor } from "@solidjs/testing-library";
 
 vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null,
@@ -27,6 +27,7 @@ vi.mock("../../src/services/providers.js", () => ({
     { id: "complex", label: "Complex" },
   ],
   SPECIFICITY_STAGES: [{ id: "coding", label: "Coding" }],
+  DEFAULT_STAGE: { id: "default", label: "Default" },
 }));
 
 vi.mock("../../src/services/routing-utils.js", () => ({
@@ -41,6 +42,24 @@ vi.mock("../../src/services/routing-utils.js", () => ({
 
 vi.mock("../../src/services/formatters.js", () => ({
   customProviderColor: () => "#000",
+}));
+
+const { mockRefreshProviderModels, mockToastSuccess, mockToastError } = vi.hoisted(() => ({
+  mockRefreshProviderModels: vi.fn(),
+  mockToastSuccess: vi.fn(),
+  mockToastError: vi.fn(),
+}));
+
+vi.mock("../../src/services/api.js", async (importOriginal) => {
+  const actual = (await importOriginal()) as Record<string, unknown>;
+  return {
+    ...actual,
+    refreshProviderModels: (...args: unknown[]) => mockRefreshProviderModels(...args),
+  };
+});
+
+vi.mock("../../src/services/toast-store.js", () => ({
+  toast: { success: mockToastSuccess, error: mockToastError, warning: vi.fn() },
 }));
 
 import ModelPickerModal from "../../src/components/ModelPickerModal";
@@ -130,6 +149,12 @@ const tiers: TierAssignment[] = [
 describe("ModelPickerModal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockRefreshProviderModels.mockResolvedValue({
+      ok: true,
+      model_count: 4,
+      last_fetched_at: "2026-04-12T10:00:00Z",
+      error: null,
+    });
   });
 
   it("renders the tier label as subtitle when the tier matches a STAGES entry", () => {
@@ -158,6 +183,131 @@ describe("ModelPickerModal", () => {
       />
     ));
     expect(container.querySelector(".routing-modal__subtitle")?.textContent).toContain("Coding");
+  });
+
+  it("renders the DEFAULT_STAGE label as subtitle for the default tier", () => {
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="default"
+        models={baseModels}
+        tiers={[]}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    expect(container.querySelector(".routing-modal__subtitle")?.textContent).toContain(
+      "Default tier",
+    );
+  });
+
+  describe("per-group refresh button", () => {
+    it("does not render group refresh buttons when agentName is missing", () => {
+      const { container } = render(() => (
+        <ModelPickerModal
+          tierId="default"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={apiKeyOnly}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+      expect(container.querySelector(".routing-modal__group-refresh")).toBeNull();
+    });
+
+    it("renders a refresh button next to each non-custom group when agentName is set", () => {
+      const { container } = render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={apiKeyOnly}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+      const buttons = container.querySelectorAll(".routing-modal__group-refresh");
+      expect(buttons.length).toBeGreaterThan(0);
+    });
+
+    it("calls refreshProviderModels with provider id and active tab on click", async () => {
+      const onProviderRefreshed = vi.fn();
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={apiKeyOnly}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+          onProviderRefreshed={onProviderRefreshed}
+        />
+      ));
+
+      const btn = screen.getByLabelText("Refresh OpenAI models");
+      fireEvent.click(btn);
+
+      await waitFor(() => {
+        expect(mockRefreshProviderModels).toHaveBeenCalledWith(
+          "demo-agent",
+          "openai",
+          "api_key",
+        );
+        expect(mockToastSuccess).toHaveBeenCalledWith("OpenAI: refreshed 4 models");
+        expect(onProviderRefreshed).toHaveBeenCalled();
+      });
+    });
+
+    it("shows the backend error message when refresh fails", async () => {
+      mockRefreshProviderModels.mockResolvedValueOnce({
+        ok: false,
+        model_count: 0,
+        last_fetched_at: null,
+        error: "Provider returned no models",
+      });
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={apiKeyOnly}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+
+      fireEvent.click(screen.getByLabelText("Refresh OpenAI models"));
+
+      await waitFor(() => {
+        expect(mockToastError).toHaveBeenCalledWith("Provider returned no models");
+      });
+    });
+
+    it("does not bubble click to the parent overlay", async () => {
+      const onClose = vi.fn();
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={apiKeyOnly}
+          onSelect={vi.fn()}
+          onClose={onClose}
+        />
+      ));
+
+      fireEvent.click(screen.getByLabelText("Refresh OpenAI models"));
+
+      await waitFor(() => {
+        expect(mockRefreshProviderModels).toHaveBeenCalled();
+      });
+      expect(onClose).not.toHaveBeenCalled();
+    });
   });
 
   it("hides tabs when only one auth category is connected", () => {
