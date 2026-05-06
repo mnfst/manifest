@@ -37,7 +37,10 @@ export function RequestHeadersSection(props: { headers: Record<string, string> }
         aria-expanded={open() ? 'true' : 'false'}
         aria-controls={tableId}
         onClick={() => setOpen((v) => !v)}
+        style="font-size: 12px;"
       >
+        Request Headers
+        <span class="msg-detail__count-badge">{entries().length}</span>
         <span
           class="msg-detail__chevron"
           classList={{ 'msg-detail__chevron--open': open() }}
@@ -45,8 +48,6 @@ export function RequestHeadersSection(props: { headers: Record<string, string> }
         >
           &#9656;
         </span>
-        Request Headers
-        <span class="msg-detail__count">{entries().length}</span>
       </button>
       <Show when={open()}>
         <div class="data-table-scroll" id={tableId}>
@@ -92,7 +93,10 @@ export function ModelParamsSection(props: { params: Record<string, unknown> }): 
           aria-expanded={open() ? 'true' : 'false'}
           aria-controls={tableId}
           onClick={() => setOpen((v) => !v)}
+          style="font-size: 12px;"
         >
+          Model Parameters
+          <span class="msg-detail__count-badge">{entries().length}</span>
           <span
             class="msg-detail__chevron"
             classList={{ 'msg-detail__chevron--open': open() }}
@@ -100,8 +104,6 @@ export function ModelParamsSection(props: { params: Record<string, unknown> }): 
           >
             &#9656;
           </span>
-          Model Parameters
-          <span class="msg-detail__count">{entries().length}</span>
         </button>
         <InfoTooltip text={MODEL_PARAMS_TOOLTIP} />
       </div>

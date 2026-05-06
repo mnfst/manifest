@@ -3,7 +3,6 @@ import type {
   AuthType,
   AvailableModel,
   CustomProviderData,
-  RequestParamDefaults,
   RoutingProvider,
   TierAssignment,
 } from '../services/api.js';
@@ -24,6 +23,12 @@ export interface RoutingDefaultTierSectionProps {
   addingFallback: () => string | null;
   onDropdownOpen: (tierId: string) => void;
   onOverride: (tierId: string, model: string, provider: string, authType?: AuthType) => void;
+  onPinKey: (
+    tierId: string,
+    providerId: string,
+    providerKeyLabel: string | null,
+    authType?: AuthType,
+  ) => void;
   onReset: (tierId: string) => void;
   onFallbackUpdate: (tierId: string, fallbacks: string[]) => void;
   onAddFallback: (tierId: string) => void;
@@ -33,12 +38,6 @@ export interface RoutingDefaultTierSectionProps {
   togglingComplexity: () => boolean;
   onToggleComplexity: () => void;
   embedded?: boolean;
-  persistParamDefaults?: (
-    agentName: string,
-    tier: string,
-    paramDefaults: RequestParamDefaults | null,
-  ) => Promise<unknown>;
-  onParamDefaultsSaved?: (tier: string, paramDefaults: RequestParamDefaults | null) => void;
 }
 
 const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (props) => {
@@ -64,13 +63,12 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
         agentName={props.agentName}
         onDropdownOpen={props.onDropdownOpen}
         onOverride={props.onOverride}
+        onPinKey={props.onPinKey}
         onReset={props.onReset}
         onFallbackUpdate={props.onFallbackUpdate}
         onAddFallback={props.onAddFallback}
         getFallbacksFor={props.getFallbacksFor}
         connectedProviders={props.connectedProviders}
-        persistParamDefaults={props.persistParamDefaults}
-        onParamDefaultsSaved={props.onParamDefaultsSaved}
       />
     </div>
   );
@@ -93,13 +91,12 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
             agentName={props.agentName}
             onDropdownOpen={props.onDropdownOpen}
             onOverride={props.onOverride}
+            onPinKey={props.onPinKey}
             onReset={props.onReset}
             onFallbackUpdate={props.onFallbackUpdate}
             onAddFallback={props.onAddFallback}
             getFallbacksFor={props.getFallbacksFor}
             connectedProviders={props.connectedProviders}
-            persistParamDefaults={props.persistParamDefaults}
-            onParamDefaultsSaved={props.onParamDefaultsSaved}
           />
         )}
       </For>

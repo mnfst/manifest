@@ -1,10 +1,9 @@
-import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 import type { DiscoveredModel } from '../model-discovery/model-fetcher';
 
 @Entity('user_providers')
-@Index(['agent_id', 'provider', 'auth_type'], { unique: true })
 export class UserProvider {
   @PrimaryColumn('varchar')
   id!: string;
@@ -26,6 +25,12 @@ export class UserProvider {
 
   @Column('varchar', { default: 'api_key' })
   auth_type!: AuthType;
+
+  @Column('varchar', { default: 'Default' })
+  label!: string;
+
+  @Column('integer', { default: 0 })
+  priority!: number;
 
   @Column('varchar', { nullable: true, default: null })
   region!: string | null;

@@ -16,7 +16,7 @@ export type SignatureLookup = (toolCallId: string) => string | null;
  * assistant turn; returns the ordered block sequence or null.
  */
 export type ThinkingBlockLookup = (firstToolUseId: string) => ThinkingBlock[] | null;
-export type ProxyApiMode = 'chat_completions' | 'responses';
+export type ProxyApiMode = 'chat_completions' | 'responses' | 'messages';
 
 export interface OpenAIMessage {
   role: string;

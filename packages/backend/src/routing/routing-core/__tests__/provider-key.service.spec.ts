@@ -34,6 +34,8 @@ describe('ProviderKeyService', () => {
   let routingCache: {
     getApiKey: jest.Mock;
     setApiKey: jest.Mock;
+    getProviderKeys: jest.Mock;
+    setProviderKeys: jest.Mock;
   };
   let providerService: jest.Mocked<Pick<ProviderService, 'getProviders'>>;
   let svc: ProviderKeyService;
@@ -49,6 +51,8 @@ describe('ProviderKeyService', () => {
     routingCache = {
       getApiKey: jest.fn().mockReturnValue(undefined),
       setApiKey: jest.fn(),
+      getProviderKeys: jest.fn().mockReturnValue(undefined),
+      setProviderKeys: jest.fn(),
     };
     providerService = { getProviders: jest.fn().mockResolvedValue([]) };
 
@@ -65,34 +69,39 @@ describe('ProviderKeyService', () => {
     it('returns empty string for ollama without consulting cache or repo', async () => {
       const result = await svc.getProviderApiKey('agent-1', 'ollama');
       expect(result).toBe('');
-      expect(routingCache.getApiKey).not.toHaveBeenCalled();
+      expect(routingCache.getProviderKeys).not.toHaveBeenCalled();
     });
 
     it('returns the cached value when present', async () => {
-      routingCache.getApiKey.mockReturnValue('cached-key');
+      routingCache.getProviderKeys.mockReturnValue([
+        { id: 'p1', label: 'Default', priority: 0, apiKey: 'cached-key', region: null },
+      ]);
       const result = await svc.getProviderApiKey('agent-1', 'openai');
       expect(result).toBe('cached-key');
       expect(providerRepo.find).not.toHaveBeenCalled();
     });
 
     it('caches the resolved key after lookup', async () => {
-      routingCache.getApiKey.mockReturnValue(undefined);
+      routingCache.getProviderKeys.mockReturnValue(undefined);
       providerRepo.find.mockResolvedValue([
         {
+          id: 'p1',
           provider: 'openai',
           auth_type: 'api_key',
           api_key_encrypted: 'enc',
           is_active: true,
+          label: 'Default',
+          priority: 0,
         },
       ]);
       mockedDecrypt.mockReturnValue('plaintext-key');
 
       const result = await svc.getProviderApiKey('agent-1', 'openai');
       expect(result).toBe('plaintext-key');
-      expect(routingCache.setApiKey).toHaveBeenCalledWith(
+      expect(routingCache.setProviderKeys).toHaveBeenCalledWith(
         'agent-1',
         'openai',
-        'plaintext-key',
+        expect.arrayContaining([expect.objectContaining({ apiKey: 'plaintext-key' })]),
         undefined,
       );
     });
@@ -100,35 +109,50 @@ describe('ProviderKeyService', () => {
 
   describe('resolveProviderApiKey via getProviderApiKey', () => {
     it('returns null for a missing custom provider', async () => {
-      providerRepo.findOne.mockResolvedValue(null);
+      providerRepo.find.mockResolvedValue([]);
       const result = await svc.getProviderApiKey('agent-1', 'custom:abc');
       expect(result).toBeNull();
     });
 
     it('returns empty string for a custom provider without an encrypted key', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        provider: 'custom:abc',
-        api_key_encrypted: null,
-      });
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p1',
+          provider: 'custom:abc',
+          api_key_encrypted: null,
+          label: 'Default',
+          priority: 0,
+        },
+      ]);
       const result = await svc.getProviderApiKey('agent-1', 'custom:abc');
       expect(result).toBe('');
     });
 
     it('decrypts a custom provider key', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        provider: 'custom:abc',
-        api_key_encrypted: 'enc',
-      });
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p1',
+          provider: 'custom:abc',
+          api_key_encrypted: 'enc',
+          label: 'Default',
+          priority: 0,
+        },
+      ]);
       mockedDecrypt.mockReturnValue('decrypted');
       const result = await svc.getProviderApiKey('agent-1', 'custom:abc');
       expect(result).toBe('decrypted');
     });
 
     it('returns null when custom provider key fails to decrypt', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        provider: 'custom:abc',
-        api_key_encrypted: 'enc',
-      });
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p1',
+          provider: 'custom:abc',
+          api_key_encrypted: 'enc',
+          label: 'Default',
+          priority: 0,
+        },
+      ]);
       mockedDecrypt.mockImplementation(() => {
         throw new Error('bad cipher');
       });
@@ -342,26 +366,41 @@ describe('ProviderKeyService', () => {
 
   describe('getProviderRegion', () => {
     it('returns the region of the matched record', async () => {
-      providerService.getProviders.mockResolvedValue([
+      providerRepo.find.mockResolvedValue([
         {
+          id: 'p1',
           provider: 'qwen',
           auth_type: 'api_key',
           is_active: true,
           region: 'singapore',
+          api_key_encrypted: 'enc',
+          label: 'Default',
+          priority: 0,
         } as UserProvider,
       ]);
+      mockedDecrypt.mockReturnValue('plaintext');
       expect(await svc.getProviderRegion('agent-1', 'qwen', 'api_key')).toBe('singapore');
     });
 
     it('returns the first record when no auth type filter is given', async () => {
-      providerService.getProviders.mockResolvedValue([
-        { provider: 'qwen', auth_type: 'api_key', is_active: true, region: 'us' } as UserProvider,
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p1',
+          provider: 'qwen',
+          auth_type: 'api_key',
+          is_active: true,
+          region: 'us',
+          api_key_encrypted: 'enc',
+          label: 'Default',
+          priority: 0,
+        } as UserProvider,
       ]);
+      mockedDecrypt.mockReturnValue('plaintext');
       expect(await svc.getProviderRegion('agent-1', 'qwen')).toBe('us');
     });
 
     it('returns null when no match', async () => {
-      providerService.getProviders.mockResolvedValue([]);
+      providerRepo.find.mockResolvedValue([]);
       expect(await svc.getProviderRegion('agent-1', 'qwen')).toBeNull();
     });
   });

@@ -89,6 +89,8 @@ import { AddAgentSoftDelete1782200000000 } from './migrations/1782200000000-AddA
 import { AddModelRouteColumns1783000000000 } from './migrations/1783000000000-AddModelRouteColumns';
 import { DropLegacyRoutingColumns1784000000000 } from './migrations/1784000000000-DropLegacyRoutingColumns';
 import { AddParamDefaultsColumns1785000000000 } from './migrations/1785000000000-AddParamDefaultsColumns';
+import { AddProviderKeyLabelAndPriority1785000000000 } from './migrations/1785000000000-AddProviderKeyLabelAndPriority';
+import { AddProviderKeyLabelToAgentMessages1785100000000 } from './migrations/1785100000000-AddProviderKeyLabelToAgentMessages';
 import { AddRequestParamsColumn1786000000000 } from './migrations/1786000000000-AddRequestParamsColumn';
 
 const entities = [
@@ -180,6 +182,8 @@ const migrations = [
   AddModelRouteColumns1783000000000,
   DropLegacyRoutingColumns1784000000000,
   AddParamDefaultsColumns1785000000000,
+  AddProviderKeyLabelAndPriority1785000000000,
+  AddProviderKeyLabelToAgentMessages1785100000000,
   AddRequestParamsColumn1786000000000,
 ];
 

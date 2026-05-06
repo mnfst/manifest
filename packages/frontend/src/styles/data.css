@@ -43,7 +43,10 @@
 /* Horizontal scroll wrapper for data tables */
 .data-table-scroll {
   overflow-x: auto;
+  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
+  padding-top: 60px;
+  margin-top: -60px;
 }
 
 .data-table tbody tr {
@@ -647,19 +650,34 @@
 }
 
 .msg-detail__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px 16px;
   margin-bottom: 12px;
   font-size: var(--font-size-xs);
 }
 
+@media (max-width: 900px) {
+  .msg-detail__meta {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .msg-detail__meta {
+    grid-template-columns: 1fr;
+  }
+}
+
 .msg-detail__meta-item {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 6px;
   color: hsl(var(--foreground));
   font-family: var(--font-mono);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .msg-detail__meta-label {
@@ -717,6 +735,17 @@
   color: hsl(var(--muted-foreground));
 }
 
+.msg-detail__count-badge {
+  font-weight: 500;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.5);
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  padding: 1px 6px;
+  line-height: 1.4;
+}
+
 .msg-detail__section-title--toggle {
   background: transparent;
   border: none;
@@ -769,6 +798,31 @@
   transform: rotate(90deg);
 }
 
+.msg-detail__table {
+  table-layout: fixed;
+}
+
+.msg-detail__table th:first-child,
+.msg-detail__table td:first-child {
+  width: 25%;
+}
+
+.msg-detail__table th:last-child,
+.msg-detail__table td:last-child {
+  width: 75%;
+}
+
+@media (max-width: 900px) {
+  .msg-detail__table th:first-child,
+  .msg-detail__table td:first-child {
+    width: 50%;
+  }
+  .msg-detail__table th:last-child,
+  .msg-detail__table td:last-child {
+    width: 50%;
+  }
+}
+
 .msg-detail__table th {
   font-size: 10px;
   padding: 6px var(--gap-sm);
@@ -778,6 +832,7 @@
 .msg-detail__table td {
   padding: 6px var(--gap-sm);
   font-size: var(--font-size-xs);
+  word-break: break-all;
 }
 
 .msg-detail__mono {

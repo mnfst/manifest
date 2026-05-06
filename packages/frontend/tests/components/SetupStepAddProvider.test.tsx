@@ -46,12 +46,21 @@ describe("SetupStepAddProvider", () => {
     expect(activeBtn!.textContent).toBe("Agents");
   });
 
-  it("shows OpenClaw and Hermes Agent tabs inside Agents", () => {
+  it("shows OpenClaw, Hermes, and Claude Code tabs inside Agents", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const agentTabs = container.querySelectorAll(".panel__tab");
-    expect(agentTabs).toHaveLength(2);
+    expect(agentTabs).toHaveLength(3);
     expect(agentTabs[0].textContent).toContain("OpenClaw");
     expect(agentTabs[1].textContent).toContain("Hermes Agent");
+    expect(agentTabs[2].textContent).toContain("Claude Code");
+  });
+
+  it("shows Claude Code setup when Claude Code tab clicked", () => {
+    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
+    const agentTabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(agentTabs[2]); // Claude Code
+    expect(container.textContent).toContain("ANTHROPIC_BASE_URL");
+    expect(container.textContent).toContain("ANTHROPIC_AUTH_TOKEN");
   });
 
   it("defaults to OpenClaw agent tab", () => {
@@ -188,8 +197,9 @@ describe("SetupStepAddProvider", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     fireEvent.click(container.querySelectorAll(".setup-segment__btn")[1]);
     const tabs = container.querySelectorAll(".panel__tab");
-    expect(tabs).toHaveLength(4);
+    expect(tabs).toHaveLength(5);
     expect(tabs[0].textContent).toContain("OpenAI SDK");
+    expect(tabs[1].textContent).toContain("Anthropic SDK");
   });
 
   it("shows full API key on Toolkits tab when provided", () => {
@@ -265,6 +275,23 @@ describe("SetupStepAddProvider", () => {
         <SetupStepAddProvider {...defaultProps} platform="hermes" />
       ));
       expect(screen.getByText("Connect your Hermes agent to Manifest")).toBeDefined();
+    });
+
+    it("shows ClaudeCodeSetup directly when platform is claude-code", () => {
+      const { container } = render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="claude-code" />
+      ));
+      expect(container.textContent).toContain("~/.claude/settings.json");
+      expect(container.textContent).toContain("ANTHROPIC_BASE_URL");
+      // No top-level Agents/Toolkits tabs in filtered mode.
+      expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
+    });
+
+    it("shows correct heading for claude-code", () => {
+      render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="claude-code" />
+      ));
+      expect(screen.getByText("Connect Claude Code to Manifest")).toBeDefined();
     });
 
     it("shows OpenAI SDK snippet when platform is openai-sdk", () => {

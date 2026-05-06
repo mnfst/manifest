@@ -98,13 +98,32 @@ export class PayloadBuilderService {
       .getRawMany<BucketRow>();
   }
 
+  /**
+   * `other` is a sentinel valid in every category (personal/app/coding), so a
+   * bare `agent_platform` bucket loses the category dimension peacock needs to
+   * tell "Other personal agent" from "Other coding tool". For the `other`
+   * platform we emit a composite `<category>:other` key (peacock's
+   * platform-classification.ts already handles this format); known platforms
+   * stay as bare keys so existing self-hosted reports don't change shape.
+   */
   private async agentsByPlatform(): Promise<BucketRow[]> {
-    return this.agents
+    interface CategoryPlatformRow {
+      category: string | null;
+      platform: string | null;
+      count: string;
+    }
+    const rows = await this.agents
       .createQueryBuilder('a')
-      .select('a.agent_platform', 'bucket')
+      .select('a.agent_category', 'category')
+      .addSelect('a.agent_platform', 'platform')
       .addSelect('COUNT(*)', 'count')
-      .groupBy('a.agent_platform')
-      .getRawMany<BucketRow>();
+      .groupBy('a.agent_category')
+      .addGroupBy('a.agent_platform')
+      .getRawMany<CategoryPlatformRow>();
+    return rows.map((r) => ({
+      bucket: r.platform === 'other' && r.category ? `${r.category}:${r.platform}` : r.platform,
+      count: r.count,
+    }));
   }
 
   private async totals(): Promise<TotalsRow> {

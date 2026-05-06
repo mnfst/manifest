@@ -12,6 +12,11 @@ interface BucketRow {
   bucket: string | null;
   count: string;
 }
+interface CategoryPlatformRow {
+  category: string | null;
+  platform: string | null;
+  count: string;
+}
 interface TotalsRow {
   total: string;
   input_tokens: string | null;
@@ -23,7 +28,7 @@ interface MockData {
   tiers: BucketRow[];
   authTypes: BucketRow[];
   totals: TotalsRow | undefined;
-  agentPlatforms: BucketRow[];
+  agentPlatforms: CategoryPlatformRow[];
   agentsCount: number;
 }
 
@@ -55,6 +60,7 @@ async function makeService(partial: Partial<MockData>): Promise<PayloadBuilderSe
       addSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       groupBy: jest.fn().mockReturnThis(),
+      addGroupBy: jest.fn().mockReturnThis(),
       getRawMany: jest.fn().mockResolvedValue(entry.rows ?? []),
       getRawOne: jest.fn().mockResolvedValue(entry.row),
     };
@@ -215,11 +221,26 @@ describe('PayloadBuilderService', () => {
     expect(payload.messages_by_tier).toEqual({ unknown: 5, simple: 10 });
   });
 
-  it('returns agents_by_platform grouped by agent_platform', async () => {
+  it('collapses unknown routing_tier strings to "other" so a future write path cannot leak verbatim values', async () => {
+    // Defense-in-depth: if some caller writes "warp-speed" into routing_tier,
+    // the whitelist clamps it to "other" before it leaves the install.
+    const service = await makeService({
+      tiers: [
+        { bucket: 'simple', count: '4' },
+        { bucket: 'warp-speed', count: '6' },
+      ],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.messages_by_tier).toEqual({ simple: 4, other: 6 });
+  });
+
+  it('returns agents_by_platform grouped by agent_platform with bare keys for known platforms', async () => {
     const service = await makeService({
       agentPlatforms: [
-        { bucket: 'openclaw', count: '3' },
-        { bucket: 'hermes', count: '1' },
+        { category: 'personal', platform: 'openclaw', count: '3' },
+        { category: 'personal', platform: 'hermes', count: '1' },
       ],
     });
 
@@ -228,9 +249,57 @@ describe('PayloadBuilderService', () => {
     expect(payload.agents_by_platform).toEqual({ openclaw: 3, hermes: 1 });
   });
 
+  it('emits composite "<category>:other" keys so peacock can tell the three Other variants apart', async () => {
+    const service = await makeService({
+      agentPlatforms: [
+        { category: 'personal', platform: 'other', count: '5' },
+        { category: 'app', platform: 'other', count: '2' },
+        { category: 'coding', platform: 'other', count: '1' },
+      ],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.agents_by_platform).toEqual({
+      'personal:other': 5,
+      'app:other': 2,
+      'coding:other': 1,
+    });
+  });
+
+  it('mixes bare and composite keys in the same payload (known platforms stay bare)', async () => {
+    const service = await makeService({
+      agentPlatforms: [
+        { category: 'personal', platform: 'openclaw', count: '4' },
+        { category: 'coding', platform: 'claude-code', count: '2' },
+        { category: 'personal', platform: 'other', count: '3' },
+        { category: 'coding', platform: 'other', count: '1' },
+      ],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.agents_by_platform).toEqual({
+      openclaw: 4,
+      'claude-code': 2,
+      'personal:other': 3,
+      'coding:other': 1,
+    });
+  });
+
+  it('falls back to bare "other" when the row has no category (legacy un-migrated rows)', async () => {
+    const service = await makeService({
+      agentPlatforms: [{ category: null, platform: 'other', count: '7' }],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.agents_by_platform).toEqual({ other: 7 });
+  });
+
   it('buckets NULL agent_platform rows under "unknown"', async () => {
     const service = await makeService({
-      agentPlatforms: [{ bucket: null, count: '2' }],
+      agentPlatforms: [{ category: 'personal', platform: null, count: '2' }],
     });
 
     const payload = await service.build('inst', '1.0.0');

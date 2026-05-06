@@ -1,9 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RoutingCacheService } from './routing-core/routing-cache.service';
+import { CachedProviderKey, RoutingCacheService } from './routing-core/routing-cache.service';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
+
+const providerKey = (label: string, apiKey: string | null = 'sk-test'): CachedProviderKey => ({
+  id: label,
+  label,
+  priority: 0,
+  apiKey,
+  region: null,
+});
 
 describe('RoutingCacheService', () => {
   let service: RoutingCacheService;
@@ -132,7 +140,7 @@ describe('RoutingCacheService', () => {
 
   describe('setWithEviction', () => {
     it('evicts oldest entry when cache reaches MAX_ENTRIES', () => {
-      const tiersMap = (service as any).tiers as Map<string, unknown>;
+      const tiersMap = (service as unknown as { tiers: Map<string, unknown> }).tiers;
       for (let i = 0; i < 5_000; i++) {
         tiersMap.set(`agent-${i}`, { data: [], expiresAt: Date.now() + 120_000 });
       }
@@ -145,7 +153,7 @@ describe('RoutingCacheService', () => {
     });
 
     it('does not evict when updating an existing key at capacity', () => {
-      const tiersMap = (service as any).tiers as Map<string, unknown>;
+      const tiersMap = (service as unknown as { tiers: Map<string, unknown> }).tiers;
       for (let i = 0; i < 5_000; i++) {
         tiersMap.set(`agent-${i}`, { data: [], expiresAt: Date.now() + 120_000 });
       }
@@ -158,43 +166,44 @@ describe('RoutingCacheService', () => {
     });
   });
 
-  describe('getApiKey', () => {
+  describe('getProviderKeys', () => {
     it('returns undefined when not cached', () => {
-      expect(service.getApiKey('agent-1', 'openai')).toBeUndefined();
+      expect(service.getProviderKeys('agent-1', 'openai')).toBeUndefined();
     });
 
-    it('returns cached key within TTL', () => {
-      service.setApiKey('agent-1', 'openai', 'sk-test-123');
+    it('returns cached chain within TTL', () => {
+      const chain = [providerKey('Default', 'sk-test-123')];
+      service.setProviderKeys('agent-1', 'openai', chain);
 
-      expect(service.getApiKey('agent-1', 'openai')).toBe('sk-test-123');
+      expect(service.getProviderKeys('agent-1', 'openai')).toBe(chain);
     });
 
-    it('returns cached null within TTL', () => {
-      service.setApiKey('agent-1', 'openai', null);
+    it('returns cached empty array within TTL', () => {
+      service.setProviderKeys('agent-1', 'openai', []);
 
-      expect(service.getApiKey('agent-1', 'openai')).toBeNull();
+      expect(service.getProviderKeys('agent-1', 'openai')).toEqual([]);
     });
 
     it('returns undefined after TTL expires', () => {
       jest.useFakeTimers();
-      service.setApiKey('agent-1', 'openai', 'sk-test-123');
+      service.setProviderKeys('agent-1', 'openai', [providerKey('Default', 'sk-test-123')]);
 
       jest.advanceTimersByTime(120_001);
 
-      expect(service.getApiKey('agent-1', 'openai')).toBeUndefined();
+      expect(service.getProviderKeys('agent-1', 'openai')).toBeUndefined();
     });
 
-    it('isolates keys by provider', () => {
-      service.setApiKey('agent-1', 'openai', 'sk-openai');
-      service.setApiKey('agent-1', 'anthropic', 'sk-ant');
+    it('isolates chains by provider', () => {
+      service.setProviderKeys('agent-1', 'openai', [providerKey('Default', 'sk-openai')]);
+      service.setProviderKeys('agent-1', 'anthropic', [providerKey('Default', 'sk-ant')]);
 
-      expect(service.getApiKey('agent-1', 'openai')).toBe('sk-openai');
-      expect(service.getApiKey('agent-1', 'anthropic')).toBe('sk-ant');
+      expect(service.getProviderKeys('agent-1', 'openai')?.[0].apiKey).toBe('sk-openai');
+      expect(service.getProviderKeys('agent-1', 'anthropic')?.[0].apiKey).toBe('sk-ant');
     });
   });
 
   describe('invalidateAgent', () => {
-    it('clears tiers, providers, custom providers, and api keys for agent', () => {
+    it('clears tiers, providers, custom providers, and provider key chains for agent', () => {
       const tiers = [{ id: 'ta-1', tier: 'fast' }] as TierAssignment[];
       const providers = [{ id: 'up-1', provider: 'openai' }] as UserProvider[];
       const cps = [{ id: 'cp-1', name: 'Groq' }] as CustomProvider[];
@@ -202,29 +211,29 @@ describe('RoutingCacheService', () => {
       service.setTiers('agent-1', tiers);
       service.setProviders('agent-1', providers);
       service.setCustomProviders('agent-1', cps);
-      service.setApiKey('agent-1', 'openai', 'sk-test');
+      service.setProviderKeys('agent-1', 'openai', [providerKey('Default', 'sk-test')]);
 
       expect(service.getTiers('agent-1')).toEqual(tiers);
       expect(service.getProviders('agent-1')).toEqual(providers);
       expect(service.getCustomProviders('agent-1')).toEqual(cps);
-      expect(service.getApiKey('agent-1', 'openai')).toBe('sk-test');
+      expect(service.getProviderKeys('agent-1', 'openai')?.[0].apiKey).toBe('sk-test');
 
       service.invalidateAgent('agent-1');
 
       expect(service.getTiers('agent-1')).toBeNull();
       expect(service.getProviders('agent-1')).toBeNull();
       expect(service.getCustomProviders('agent-1')).toBeNull();
-      expect(service.getApiKey('agent-1', 'openai')).toBeUndefined();
+      expect(service.getProviderKeys('agent-1', 'openai')).toBeUndefined();
     });
 
-    it('does not clear api keys for other agents', () => {
-      service.setApiKey('agent-1', 'openai', 'sk-1');
-      service.setApiKey('agent-2', 'openai', 'sk-2');
+    it('does not clear provider key chains for other agents', () => {
+      service.setProviderKeys('agent-1', 'openai', [providerKey('Default', 'sk-1')]);
+      service.setProviderKeys('agent-2', 'openai', [providerKey('Default', 'sk-2')]);
 
       service.invalidateAgent('agent-1');
 
-      expect(service.getApiKey('agent-1', 'openai')).toBeUndefined();
-      expect(service.getApiKey('agent-2', 'openai')).toBe('sk-2');
+      expect(service.getProviderKeys('agent-1', 'openai')).toBeUndefined();
+      expect(service.getProviderKeys('agent-2', 'openai')?.[0].apiKey).toBe('sk-2');
     });
 
     it('is a no-op for unknown agent', () => {

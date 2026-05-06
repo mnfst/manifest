@@ -362,82 +362,6 @@ describe('TierService', () => {
     });
   });
 
-  describe('setParamDefaults', () => {
-    it('updates the existing row when one is present', async () => {
-      const existing = {
-        agent_id: 'agent-1',
-        tier: 'standard',
-        param_defaults: null,
-      } as unknown as TierAssignment;
-      tierRepo.findOne.mockResolvedValue(existing);
-      const defaults = { thinking: { type: 'disabled' as const } };
-
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'standard', defaults);
-
-      expect(result.param_defaults).toEqual(defaults);
-      expect(tierRepo.save).toHaveBeenCalledWith(existing);
-      expect(tierRepo.insert).not.toHaveBeenCalled();
-      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-    });
-
-    it('clears defaults when null is passed', async () => {
-      const existing = {
-        agent_id: 'agent-1',
-        tier: 'standard',
-        param_defaults: { thinking: { type: 'disabled' } },
-      } as unknown as TierAssignment;
-      tierRepo.findOne.mockResolvedValue(existing);
-
-      await svc.setParamDefaults('agent-1', 'user-1', 'standard', null);
-
-      expect(existing.param_defaults).toBeNull();
-      expect(tierRepo.save).toHaveBeenCalledWith(existing);
-    });
-
-    it('inserts a new row when no assignment exists', async () => {
-      tierRepo.findOne.mockResolvedValue(null);
-      const defaults = { thinking: { type: 'enabled' as const } };
-
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'simple', defaults);
-
-      expect(tierRepo.insert).toHaveBeenCalledTimes(1);
-      expect(result.param_defaults).toEqual(defaults);
-      expect(result.override_route).toBeNull();
-      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-    });
-
-    it('retries on insert conflict when another row appears mid-flight', async () => {
-      tierRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({
-          agent_id: 'agent-1',
-          tier: 'standard',
-          param_defaults: null,
-        } as TierAssignment)
-        .mockResolvedValueOnce({
-          agent_id: 'agent-1',
-          tier: 'standard',
-          param_defaults: null,
-        } as TierAssignment);
-      tierRepo.insert.mockRejectedValueOnce(new Error('duplicate'));
-
-      const defaults = { thinking: { type: 'disabled' as const } };
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'standard', defaults);
-
-      expect(result.param_defaults).toEqual(defaults);
-    });
-
-    it('rethrows insert failures when no concurrent row exists (genuine DB error)', async () => {
-      tierRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-      tierRepo.insert.mockRejectedValueOnce(new Error('unrelated'));
-
-      const defaults = { thinking: { type: 'disabled' as const } };
-      await expect(svc.setParamDefaults('agent-1', 'user-1', 'standard', defaults)).rejects.toThrow(
-        'unrelated',
-      );
-    });
-  });
-
   describe('clearOverride', () => {
     it('no-ops when no row exists', async () => {
       tierRepo.findOne.mockResolvedValue(null);
@@ -563,7 +487,7 @@ describe('TierService', () => {
       expect(result).toEqual([]);
     });
 
-    it('returns [] when a model cannot be unambiguously resolved', async () => {
+    it('throws when a model cannot be unambiguously resolved', async () => {
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
         discovered('gpt-4o', 'openai', 'subscription'),
@@ -574,8 +498,45 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      const result = await svc.setFallbacks('agent-1', 'standard', ['gpt-4o']);
-      expect(result).toEqual([]);
+      await expect(svc.setFallbacks('agent-1', 'standard', ['gpt-4o'])).rejects.toThrow(
+        /Cannot resolve fallback model "gpt-4o"/,
+      );
+      expect(tierRepo.save).not.toHaveBeenCalled();
+    });
+
+    // Regression: issue #1790. Adding a new fallback whose (provider, authType,
+    // model) tuple isn't in the discovered list used to fall through to
+    // unambiguousRoute() for every model and return null on the first
+    // ambiguous one — wiping the previously-saved fallbacks. The fix throws
+    // before save, so the existing row is left untouched.
+    it('preserves existing fallbacks when an unresolvable model is added (issue #1790)', async () => {
+      const existing = [
+        route('openai', 'api_key', 'gpt-4o'),
+        route('anthropic', 'api_key', 'claude-3-5-sonnet'),
+      ];
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('gpt-4o', 'openai', 'api_key'),
+        discovered('gpt-4o', 'openai', 'subscription'),
+        discovered('claude-3-5-sonnet', 'anthropic', 'api_key'),
+      ]);
+      tierRepo.findOne.mockResolvedValue({
+        agent_id: 'agent-1',
+        tier: 'standard',
+        fallback_routes: existing,
+      } as TierAssignment);
+
+      // Caller sends the existing two routes plus a new one whose tuple
+      // doesn't match any discovered model — validation fails, then
+      // unambiguousRoute hits gpt-4o which has two entries.
+      await expect(
+        svc.setFallbacks(
+          'agent-1',
+          'standard',
+          ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
+          [...existing, route('minimax', 'api_key', 'minmax-27')],
+        ),
+      ).rejects.toThrow(/Cannot resolve fallback model/);
+      expect(tierRepo.save).not.toHaveBeenCalled();
     });
   });
 

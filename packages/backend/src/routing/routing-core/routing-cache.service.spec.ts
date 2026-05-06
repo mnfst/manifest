@@ -1,4 +1,4 @@
-import { RoutingCacheService } from './routing-cache.service';
+import { CachedProviderKey, RoutingCacheService } from './routing-cache.service';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
@@ -12,6 +12,13 @@ const customProvider = (name: string): CustomProvider =>
   ({ id: name }) as unknown as CustomProvider;
 const specificity = (name: string): SpecificityAssignment =>
   ({ id: name }) as unknown as SpecificityAssignment;
+const providerKey = (label: string, apiKey: string | null = 'sk-test'): CachedProviderKey => ({
+  id: label,
+  label,
+  priority: 0,
+  apiKey,
+  region: null,
+});
 
 describe('RoutingCacheService', () => {
   let svc: RoutingCacheService;
@@ -65,37 +72,39 @@ describe('RoutingCacheService', () => {
     });
   });
 
-  describe('api key cache', () => {
+  describe('provider key cache', () => {
     it('returns undefined when nothing is cached', () => {
-      expect(svc.getApiKey('a', 'openai')).toBeUndefined();
+      expect(svc.getProviderKeys('a', 'openai')).toBeUndefined();
     });
 
-    it('caches a null value (provider with no key) as a distinct hit', () => {
-      svc.setApiKey('a', 'openai', null);
-      // Null is a cached value — getApiKey should return null, not undefined.
-      expect(svc.getApiKey('a', 'openai')).toBeNull();
+    it('caches an empty list (provider with no keys) as a distinct hit', () => {
+      svc.setProviderKeys('a', 'openai', []);
+      expect(svc.getProviderKeys('a', 'openai')).toEqual([]);
     });
 
     it('keys by (agentId, provider, authType) — different authType is a separate slot', () => {
-      svc.setApiKey('a', 'openai', 'key-default');
-      svc.setApiKey('a', 'openai', 'key-sub', 'subscription');
-      expect(svc.getApiKey('a', 'openai')).toBe('key-default');
-      expect(svc.getApiKey('a', 'openai', 'subscription')).toBe('key-sub');
+      const def = [providerKey('Default', 'key-default')];
+      const sub = [providerKey('Default', 'key-sub')];
+      svc.setProviderKeys('a', 'openai', def);
+      svc.setProviderKeys('a', 'openai', sub, 'subscription');
+      expect(svc.getProviderKeys('a', 'openai')).toBe(def);
+      expect(svc.getProviderKeys('a', 'openai', 'subscription')).toBe(sub);
     });
   });
 
   describe('invalidateAgent', () => {
-    it('clears every cache slot for the agent, including all per-provider api keys', () => {
+    it('clears every cache slot for the agent, including all per-provider key chains', () => {
       svc.setTiers('a', [tier('t1')]);
       svc.setProviders('a', [provider('p1')]);
       svc.setCustomProviders('a', [customProvider('c1')]);
       svc.setSpecificity('a', [specificity('s1')]);
-      svc.setApiKey('a', 'openai', 'k');
-      svc.setApiKey('a', 'anthropic', 'k', 'subscription');
+      svc.setProviderKeys('a', 'openai', [providerKey('Default', 'k')]);
+      svc.setProviderKeys('a', 'anthropic', [providerKey('Default', 'k')], 'subscription');
 
       // Unrelated agent entries should survive.
       svc.setTiers('b', [tier('t-b')]);
-      svc.setApiKey('b', 'openai', 'k-b');
+      const bKeys = [providerKey('Default', 'k-b')];
+      svc.setProviderKeys('b', 'openai', bKeys);
 
       svc.invalidateAgent('a');
 
@@ -103,11 +112,11 @@ describe('RoutingCacheService', () => {
       expect(svc.getProviders('a')).toBeNull();
       expect(svc.getCustomProviders('a')).toBeNull();
       expect(svc.getSpecificity('a')).toBeNull();
-      expect(svc.getApiKey('a', 'openai')).toBeUndefined();
-      expect(svc.getApiKey('a', 'anthropic', 'subscription')).toBeUndefined();
+      expect(svc.getProviderKeys('a', 'openai')).toBeUndefined();
+      expect(svc.getProviderKeys('a', 'anthropic', 'subscription')).toBeUndefined();
 
       expect(svc.getTiers('b')).not.toBeNull();
-      expect(svc.getApiKey('b', 'openai')).toBe('k-b');
+      expect(svc.getProviderKeys('b', 'openai')).toBe(bKeys);
     });
   });
 

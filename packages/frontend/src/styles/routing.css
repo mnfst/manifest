@@ -67,6 +67,34 @@
   cursor: default;
 }
 
+.routing-providers-info__icon--has-tooltip {
+  cursor: pointer;
+}
+
+.routing-providers-info__tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  z-index: 20;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 4px 12px hsl(var(--foreground) / 0.08);
+}
+
+.routing-providers-info__icon--has-tooltip:hover .routing-providers-info__tooltip {
+  display: flex;
+}
+
 .routing-providers-info__label {
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -149,6 +177,24 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+}
+
+@media (max-width: 1200px) {
+  .routing-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .routing-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .routing-cards {
+    grid-template-columns: 1fr;
+  }
 }
 
 .routing-cards--wide {
@@ -234,7 +280,7 @@
 }
 
 .routing-switch--on .routing-switch__track {
-  background: hsl(var(--primary, 221 83% 53%));
+  background: #5bbcb4;
 }
 
 .routing-switch__thumb {
@@ -300,7 +346,7 @@
   border-radius: var(--radius);
   min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .dark .routing-card {
@@ -447,6 +493,7 @@
 .routing-card__chip-main {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   min-width: 0;
   gap: 6px;
   padding: 6px 8px;

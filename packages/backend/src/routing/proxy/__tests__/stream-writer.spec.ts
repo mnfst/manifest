@@ -190,6 +190,74 @@ describe('pipeStream', () => {
     expect(written).toContain('data: [DONE]\n\n');
   });
 
+  it('writes the finalize trailer in place of [DONE] and captures usage from it', async () => {
+    // Anthropic SSE self-terminates with message_stop, so we must NOT
+    // append the OpenAI [DONE] sentinel afterward — some Anthropic SDKs
+    // refuse to parse trailing unknown payloads.
+    const { res, written } = mockResponse();
+    const stream = createReadableStream(['data: chunk1\n\n']);
+    const transform = (chunk: string) => `out:${chunk}\n\n`;
+    const finalize = () =>
+      'event: message_delta\ndata: {"usage":{"input_tokens":7,"output_tokens":3}}\n\n' +
+      'event: message_stop\ndata: {"type":"message_stop"}\n\n';
+
+    const usage = await pipeStream(stream, res as never, transform, finalize);
+
+    const concatenated = written.join('');
+    expect(concatenated).toContain('event: message_stop');
+    expect(concatenated).not.toContain('data: [DONE]');
+    expect(usage).toMatchObject({ prompt_tokens: 7, completion_tokens: 3 });
+  });
+
+  it('skips the trailer write entirely when the response stream is already ended', async () => {
+    // Cubic flagged: client disconnect mid-stream sets writableEnded=true,
+    // and a trailing dest.write would throw ERR_STREAM_WRITE_AFTER_END.
+    const { res, written } = mockResponse();
+    const stream = createReadableStream(['data: chunk\n\n']);
+    const transform = (chunk: string) => `out:${chunk}\n\n`;
+    const finalize = jest.fn().mockReturnValue('event: message_stop\ndata: {}\n\n');
+
+    // Simulate a client disconnect *after* the body is consumed by closing
+    // the response immediately when the stream's first `read` resolves.
+    let firstRead = true;
+    const origReader = stream.getReader.bind(stream);
+    (stream as { getReader: () => ReadableStreamDefaultReader<Uint8Array> }).getReader = () => {
+      const reader = origReader();
+      const origRead = reader.read.bind(reader);
+      reader.read = async () => {
+        const r = await origRead();
+        if (firstRead) {
+          firstRead = false;
+          res.writableEnded = true;
+        }
+        return r;
+      };
+      return reader;
+    };
+
+    await pipeStream(stream, res as never, transform, finalize);
+
+    // Finalize was never invoked because the destination was already ended.
+    expect(finalize).not.toHaveBeenCalled();
+    expect(written.some((w) => w.includes('message_stop'))).toBe(false);
+    expect(written.some((w) => w.includes('[DONE]'))).toBe(false);
+  });
+
+  it('omits both trailer and [DONE] when finalize returns null (still no OpenAI sentinel)', async () => {
+    const { res, written } = mockResponse();
+    const stream = createReadableStream(['data: only\n\n']);
+    const transform = (chunk: string) => `out:${chunk}\n\n`;
+    const finalize = jest.fn().mockReturnValue(null);
+
+    await pipeStream(stream, res as never, transform, finalize);
+
+    expect(finalize).toHaveBeenCalledTimes(1);
+    // The `finalize` parameter signals the caller is on a non-OpenAI
+    // protocol — even if it returns null we should not fall back to [DONE].
+    expect(written.some((w) => w.includes('[DONE]'))).toBe(false);
+    expect(written.some((w) => w.startsWith('event: '))).toBe(false);
+  });
+
   it('should not write [DONE] for non-transformed streams', async () => {
     const { res, written } = mockResponse();
     const stream = createReadableStream(['data: test\n\n']);

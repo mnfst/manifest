@@ -25,11 +25,6 @@ import {
   refreshPricing,
   getComplexityStatus,
   toggleComplexity,
-  setTierParamDefaults,
-  setSpecificityParamDefaults,
-  type RequestParamDefaults,
-  type TierAssignment,
-  type SpecificityAssignment,
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
 
@@ -58,8 +53,10 @@ const Routing: Component = () => {
     () => agentName(),
     getCustomProviders,
   );
-  const [specificityAssignments, { refetch: refetchSpecificity, mutate: mutateSpecificity }] =
-    createResource(() => agentName(), getSpecificityAssignments);
+  const [specificityAssignments, { refetch: refetchSpecificity }] = createResource(
+    () => agentName(),
+    getSpecificityAssignments,
+  );
   const [headerTiers, { refetch: refetchHeaderTiers }] = createResource(
     () => agentName(),
     (name) => listHeaderTiers(name).catch(() => [] as HeaderTier[]),
@@ -135,16 +132,26 @@ const Routing: Component = () => {
     modelName,
     providerId,
     authType,
+    providerKeyLabel,
   ) => {
     setFallbackPickerTier(null);
     if (isSpecificityTier(tierId)) {
       const sa = specificityAssignments()?.find((a) => a.category === tierId);
-      const current = sa?.fallback_routes?.map((r) => r.model) ?? [];
+      const currentRoutes = sa?.fallback_routes ?? [];
+      const current = currentRoutes.map((r) => r.model);
       if (current.includes(modelName)) return;
       const updated = [...current, modelName];
+      // Pass explicit (provider, authType, model) routes so the backend can
+      // disambiguate when the same model id is offered by multiple connected
+      // providers (e.g. OpenAI subscription + OpenAI API key both expose
+      // gpt-4o). Without this the backend silently stores nothing.
+      const updatedRoutes =
+        authType !== undefined
+          ? [...currentRoutes, { provider: providerId, authType, model: modelName }]
+          : undefined;
       try {
         const { setSpecificityFallbacks } = await import('../services/api.js');
-        await setSpecificityFallbacks(agentName(), tierId, updated);
+        await setSpecificityFallbacks(agentName(), tierId, updated, updatedRoutes);
         await refetchSpecificity();
         toast.success('Fallback added');
       } catch {
@@ -152,7 +159,7 @@ const Routing: Component = () => {
       }
       return;
     }
-    return actions.handleAddFallback(tierId, modelName, providerId, authType);
+    return actions.handleAddFallback(tierId, modelName, providerId, authType, providerKeyLabel);
   };
 
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
@@ -191,13 +198,48 @@ const Routing: Component = () => {
     model: string,
     provider: string,
     authType?: 'api_key' | 'subscription' | 'local',
+    providerKeyLabel?: string,
   ) => {
     setChangingSpecificity(category);
     try {
-      await overrideSpecificity(agentName(), category, model, provider, authType);
+      await overrideSpecificity(agentName(), category, model, provider, authType, providerKeyLabel);
       await refetchSpecificity();
     } catch {
       toast.error('Failed to update specificity model');
+    } finally {
+      setChangingSpecificity(null);
+    }
+  };
+
+  /**
+   * Pin a task-specific (specificity) tier to a labeled provider key.
+   * Re-uses the same PUT endpoint as `handleSpecificityOverride` — the
+   * model/provider/auth_type stay the same, only the key label changes.
+   */
+  const handleSpecificityPinKey = async (
+    category: string,
+    provider: string,
+    providerKeyLabel: string | null,
+    authType?: 'api_key' | 'subscription' | 'local',
+  ) => {
+    const assignment = specificityAssignments()?.find((a) => a.category === category);
+    const effective = assignment?.override_route ?? assignment?.auto_assigned_route ?? null;
+    const model = effective?.model;
+    if (!assignment || !model || !provider) return;
+    setChangingSpecificity(category);
+    try {
+      await overrideSpecificity(
+        agentName(),
+        category,
+        model,
+        provider,
+        authType ?? effective?.authType,
+        providerKeyLabel ?? undefined,
+      );
+      await refetchSpecificity();
+      toast.success(providerKeyLabel ? `Pinned to "${providerKeyLabel}" key` : 'Key pin cleared');
+    } catch {
+      // toast handled upstream
     } finally {
       setChangingSpecificity(null);
     }
@@ -349,6 +391,7 @@ const Routing: Component = () => {
                   addingFallback={actions.addingFallback}
                   onDropdownOpen={(tierId) => setDropdownTier(tierId)}
                   onOverride={handleOverride}
+                  onPinKey={actions.handlePinKey}
                   onReset={actions.handleReset}
                   onFallbackUpdate={actions.handleFallbackUpdate}
                   onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
@@ -358,16 +401,6 @@ const Routing: Component = () => {
                   togglingComplexity={togglingComplexity}
                   onToggleComplexity={handleToggleComplexity}
                   embedded
-                  persistParamDefaults={(name, tier, paramDefaults) =>
-                    setTierParamDefaults(name, tier, paramDefaults)
-                  }
-                  onParamDefaultsSaved={(tier, paramDefaults) => {
-                    mutateTiers((rows: TierAssignment[] | undefined) =>
-                      rows?.map((row) =>
-                        row.tier === tier ? { ...row, param_defaults: paramDefaults } : row,
-                      ),
-                    );
-                  }}
                 />
               ),
               specificity: (
@@ -384,6 +417,7 @@ const Routing: Component = () => {
                   addingFallback={() => null}
                   onDropdownOpen={(category) => setSpecificityDropdown(category)}
                   onOverride={handleSpecificityOverride}
+                  onPinKey={handleSpecificityPinKey}
                   onReset={async (category) => {
                     setResettingSpecificity(category);
                     try {
@@ -413,16 +447,6 @@ const Routing: Component = () => {
                   refetchAll={refetchAll}
                   refetchSpecificity={() => refetchSpecificity() as unknown as Promise<void>}
                   embedded
-                  persistParamDefaults={(name, category, paramDefaults) =>
-                    setSpecificityParamDefaults(name, category, paramDefaults)
-                  }
-                  onParamDefaultsSaved={(category, paramDefaults) => {
-                    mutateSpecificity((rows: SpecificityAssignment[] | undefined) =>
-                      rows?.map((row) =>
-                        row.category === category ? { ...row, param_defaults: paramDefaults } : row,
-                      ),
-                    );
-                  }}
                 />
               ),
               custom: (

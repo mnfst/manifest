@@ -12,7 +12,6 @@ import type {
   TierAssignment,
   AvailableModel,
   AuthType,
-  RequestParamDefaults,
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
@@ -146,18 +145,18 @@ export interface RoutingSpecificitySectionProps {
   addingFallback: () => string | null;
   onDropdownOpen: (category: string) => void;
   onOverride: (category: string, model: string, provider: string, authType?: AuthType) => void;
+  onPinKey?: (
+    category: string,
+    providerId: string,
+    providerKeyLabel: string | null,
+    authType?: AuthType,
+  ) => void;
   onReset: (category: string) => void;
   onFallbackUpdate: (category: string, fallbacks: string[]) => void;
   onAddFallback: (category: string) => void;
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
   embedded?: boolean;
-  persistParamDefaults?: (
-    agentName: string,
-    category: string,
-    paramDefaults: RequestParamDefaults | null,
-  ) => Promise<unknown>;
-  onParamDefaultsSaved?: (category: string, paramDefaults: RequestParamDefaults | null) => void;
 }
 
 function toTierAssignment(a: SpecificityAssignment | undefined): TierAssignment | undefined {
@@ -236,6 +235,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 agentName={props.agentName}
                 onDropdownOpen={props.onDropdownOpen}
                 onOverride={props.onOverride}
+                onPinKey={props.onPinKey}
                 onReset={props.onReset}
                 onFallbackUpdate={props.onFallbackUpdate}
                 onAddFallback={props.onAddFallback}
@@ -249,8 +249,6 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 persistClearFallbacks={(_agentName, category) =>
                   clearSpecificityFallbacks(_agentName, category)
                 }
-                persistParamDefaults={props.persistParamDefaults}
-                onParamDefaultsSaved={props.onParamDefaultsSaved}
               />
             )}
           </For>

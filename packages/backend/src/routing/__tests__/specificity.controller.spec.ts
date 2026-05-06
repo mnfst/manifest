@@ -17,7 +17,6 @@ describe('SpecificityController', () => {
     resetAll: jest.Mock;
     setFallbacks: jest.Mock;
     clearFallbacks: jest.Mock;
-    setParamDefaults: jest.Mock;
   };
   let mockResolveAgentService: { resolve: jest.Mock };
 
@@ -31,7 +30,6 @@ describe('SpecificityController', () => {
       resetAll: jest.fn().mockResolvedValue(undefined),
       setFallbacks: jest.fn().mockResolvedValue([]),
       clearFallbacks: jest.fn().mockResolvedValue(undefined),
-      setParamDefaults: jest.fn(),
     };
     mockResolveAgentService = {
       resolve: jest.fn().mockResolvedValue(mockAgent),
@@ -71,6 +69,7 @@ describe('SpecificityController', () => {
         'gpt-4o',
         'openai',
         'api_key',
+        undefined,
       );
       expect(result).toBe(override);
     });
@@ -177,46 +176,6 @@ describe('SpecificityController', () => {
     it('should reject invalid category', async () => {
       await expect(
         controller.setFallbacks(mockUser, 'test-agent', 'invalid', { models: ['m'] }),
-      ).rejects.toThrow(BadRequestException);
-    });
-  });
-
-  describe('setParamDefaults', () => {
-    it('persists defaults via the service when paramDefaults is supplied', async () => {
-      const updated = {
-        id: 'sa-1',
-        category: 'coding',
-        param_defaults: { thinking: { type: 'disabled' } },
-      };
-      mockSpecificityService.setParamDefaults.mockResolvedValue(updated);
-
-      const result = await controller.setParamDefaults(mockUser, 'test-agent', 'coding', {
-        paramDefaults: { thinking: { type: 'disabled' } },
-      });
-
-      expect(mockSpecificityService.setParamDefaults).toHaveBeenCalledWith(
-        'agent-1',
-        'user-1',
-        'coding',
-        { thinking: { type: 'disabled' } },
-      );
-      expect(result).toBe(updated);
-    });
-
-    it('clears defaults when paramDefaults is omitted', async () => {
-      mockSpecificityService.setParamDefaults.mockResolvedValue({} as never);
-      await controller.setParamDefaults(mockUser, 'test-agent', 'coding', {});
-      expect(mockSpecificityService.setParamDefaults).toHaveBeenCalledWith(
-        'agent-1',
-        'user-1',
-        'coding',
-        null,
-      );
-    });
-
-    it('rejects invalid category', async () => {
-      await expect(
-        controller.setParamDefaults(mockUser, 'test-agent', 'invalid', { paramDefaults: null }),
       ).rejects.toThrow(BadRequestException);
     });
   });

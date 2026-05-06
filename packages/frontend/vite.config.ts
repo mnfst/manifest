@@ -18,13 +18,12 @@ const manifestVersion = (() => {
 export default defineConfig(({ command }) => ({
   define: {
     __MANIFEST_VERSION__: JSON.stringify(manifestVersion),
-    // Wingman is a dev-only tester. The Dockerfile sets
-    // VITE_MANIFEST_SELFHOSTED=true before running vite build, which flips
-    // __DEV_MODE__ to literal `false` so esbuild can dead-code-eliminate
-    // the button + dev badge from the self-hosted bundle. Local builds
-    // (npm run dev / npm run build / /serve) leave it unset, so the
-    // dashboard always shows the dev affordances during development.
-    __DEV_MODE__: JSON.stringify(command === 'serve' || !process.env.VITE_MANIFEST_SELFHOSTED),
+    // Wingman and the orange "Dev" header badge are dev-only affordances.
+    // They ship only when Vite runs in dev mode (`vite serve`). Any
+    // production build — Docker self-hosted, Railway cloud, anything else
+    // — gets `__DEV_MODE__ = false`, so esbuild dead-code-eliminates the
+    // FAB, drawer, and badge.
+    __DEV_MODE__: JSON.stringify(command === 'serve'),
     // Optional build-time override; otherwise the dashboard derives the URL
     // at runtime from the current port (`port + 1`, or `:3002` when the Vite
     // dev frontend is running on `:3000`).

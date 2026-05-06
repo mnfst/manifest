@@ -198,7 +198,12 @@ export class ProviderClient {
     thinkingLookup?: ForwardOptions['thinkingLookup'];
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
-    const requestSource = ctx.apiMode === 'responses' ? (chatBody ?? body) : body;
+    // For non-chat_completions inbound modes ('responses', 'messages'), the
+    // routing layer pre-translated the request into chat_completions form
+    // (`chatBody`). Provider adapters all consume chat_completions, so prefer
+    // `chatBody` when present.
+    const requestSource =
+      ctx.apiMode && ctx.apiMode !== 'chat_completions' ? (chatBody ?? body) : body;
 
     if (endpoint.format === 'google') {
       // Google accepts the API key via header (set by buildHeaders below) so
@@ -246,7 +251,7 @@ export class ProviderClient {
                 forceStream: endpointKey === 'openai-subscription',
                 stripCodexUnsupported: endpointKey === 'openai-subscription',
               })
-            : toResponsesRequest(body, bareModel),
+            : toResponsesRequest(requestSource, bareModel),
       };
     }
 

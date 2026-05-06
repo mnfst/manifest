@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, createHmac, randomBytes, scryptSync } from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
 import { Logger as NestLogger } from '@nestjs/common';
 
 const ALGORITHM = 'aes-256-gcm';
@@ -7,6 +7,10 @@ const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12;
 const SALT_LENGTH = 16;
 const KEY_LENGTH = 32;
+// Cheap scrypt fingerprint for cache indexing only — N=2 keeps it ~10µs while
+// remaining the same approved KDF family as the actual derivation below.
+const FINGERPRINT_LENGTH = 16;
+const FINGERPRINT_SCRYPT_OPTS = { N: 2, r: 1, p: 1 } as const;
 
 const logger = new NestLogger('crypto.util');
 let warnedAboutSecretReuse = false;
@@ -20,10 +24,15 @@ const keyCache = new Map<string, Buffer>();
 const KEY_CACHE_MAX = 1024;
 
 function deriveKey(secret: string, salt: Buffer): Buffer {
-  // Index the cache by HMAC(secret, salt) so the raw secret never lives as a
-  // Map key string. A heap dump of the Node.js process previously exposed
-  // the encryption secret directly via the cache key; HMAC removes that path.
-  const cacheKey = createHmac('sha256', secret).update(salt).digest('hex');
+  // Index the cache by a cheap scrypt-based fingerprint of (secret, salt) so
+  // the raw secret never lives as a Map key string. A heap dump of the Node.js
+  // process previously exposed the encryption secret directly via the cache
+  // key; the fingerprint removes that path. We deliberately use scrypt (the
+  // same approved KDF family as the actual key derivation below) at minimal
+  // cost — this is purely a cache index, not the security-critical KDF.
+  const cacheKey = scryptSync(secret, salt, FINGERPRINT_LENGTH, FINGERPRINT_SCRYPT_OPTS).toString(
+    'base64',
+  );
   const cached = keyCache.get(cacheKey);
   if (cached) return cached;
   const derived = scryptSync(secret, salt, KEY_LENGTH);

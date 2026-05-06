@@ -1,5 +1,47 @@
 import { PROVIDERS } from './providers.js';
 import { inferProviderFromModel, SHARED_PROVIDERS } from 'manifest-shared';
+import type { TierAssignment } from './api.js';
+
+/**
+ * Collect all key labels already used for a given model within a tier
+ * (primary + fallbacks). Used to prevent duplicate (model, key) combos.
+ *
+ * Reads through the structured `override_route`, `auto_assigned_route`,
+ * `fallback_routes` fields — `route.keyLabel` is the canonical pin location.
+ *
+ * @param excludeSlot - 'primary' to skip the primary slot (for the primary's
+ *   own dropdown), or a fallback index to skip that fallback (for its dropdown).
+ */
+export function usedKeyLabelsForModelInTier(
+  tier: TierAssignment | undefined,
+  modelName: string,
+  excludeSlot?: 'primary' | number,
+  /** When the primary has no explicit key pin, the proxy uses the first key
+   *  by priority. Pass that label here so it gets counted as "used". */
+  defaultKeyLabel?: string,
+): Set<string> {
+  const used = new Set<string>();
+  if (!tier) return used;
+  // Check primary
+  if (excludeSlot !== 'primary') {
+    const primary = tier.override_route ?? tier.auto_assigned_route ?? null;
+    if (primary && primary.model === modelName) {
+      const label = primary.keyLabel ?? defaultKeyLabel;
+      if (label) used.add(label.toLowerCase());
+    }
+  }
+  // Check fallbacks
+  const routes = tier.fallback_routes ?? [];
+  for (let i = 0; i < routes.length; i++) {
+    if (excludeSlot === i) continue;
+    const r = routes[i];
+    if (!r) continue;
+    if (r.model === modelName && r.keyLabel) {
+      used.add(r.keyLabel.toLowerCase());
+    }
+  }
+  return used;
+}
 
 /** Format per-million token price: $0.15 */
 export function pricePerM(perToken: number | null | undefined): string {

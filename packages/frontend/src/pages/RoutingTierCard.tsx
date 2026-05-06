@@ -1,18 +1,17 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
+import { createSignal, createEffect, onCleanup, For, Show, type Component } from 'solid-js';
 import { PROVIDERS } from '../services/providers.js';
 import type { StageDef } from '../services/providers.js';
 import { getModelLabel } from '../services/provider-utils.js';
 import { providerIcon, customProviderLogo } from '../components/ProviderIcon.js';
 import { authBadgeFor } from '../components/AuthBadge.js';
-import { pricePerM, resolveProviderId, inferProviderFromModel } from '../services/routing-utils.js';
-import { customProviderColor } from '../services/formatters.js';
 import {
-  SPECIFICITY_CATEGORIES,
-  manifestThinkingDefault,
-  providerThinkingDefault,
-} from 'manifest-shared';
+  pricePerM,
+  resolveProviderId,
+  inferProviderFromModel,
+  usedKeyLabelsForModelInTier,
+} from '../services/routing-utils.js';
+import { customProviderColor } from '../services/formatters.js';
 import FallbackList from '../components/FallbackList.js';
-import ModelParamsDialog from '../components/ModelParamsDialog.js';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import type {
@@ -20,7 +19,6 @@ import type {
   AvailableModel,
   AuthType,
   ModelRoute,
-  RequestParamDefaults,
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
@@ -68,7 +66,19 @@ export interface RoutingTierCardProps {
   addingFallback: () => string | null;
   agentName: () => string;
   onDropdownOpen: (tierId: string) => void;
-  onOverride: (tierId: string, model: string, providerId: string, authType?: AuthType) => void;
+  onOverride: (
+    tierId: string,
+    model: string,
+    providerId: string,
+    authType?: AuthType,
+    providerKeyLabel?: string,
+  ) => void;
+  onPinKey?: (
+    tierId: string,
+    providerId: string,
+    providerKeyLabel: string | null,
+    authType?: AuthType,
+  ) => void;
   onReset: (tierId: string) => void;
   onFallbackUpdate: (
     tierId: string,
@@ -85,17 +95,6 @@ export interface RoutingTierCardProps {
     routes?: ModelRoute[],
   ) => Promise<unknown>;
   persistClearFallbacks?: (agentName: string, tier: string) => Promise<unknown>;
-  /**
-   * Persist per-assignment request body defaults. When omitted the params
-   * affordance is hidden, so callers that don't yet have a backend route
-   * for the surface (e.g. header tiers) can drop in without changes.
-   */
-  persistParamDefaults?: (
-    agentName: string,
-    slot: string,
-    paramDefaults: RequestParamDefaults | null,
-  ) => Promise<unknown>;
-  onParamDefaultsSaved?: (slot: string, paramDefaults: RequestParamDefaults | null) => void;
 }
 
 const effectiveRoute = (
@@ -121,41 +120,6 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const [primaryDragging, setPrimaryDragging] = createSignal(false);
   const [fallbackDragging, setFallbackDragging] = createSignal<number | null>(null);
   const [primaryDropTarget, setPrimaryDropTarget] = createSignal(false);
-  const [paramsOpen, setParamsOpen] = createSignal(false);
-  const paramDefaults = () => props.tier()?.param_defaults ?? null;
-  const hasParamDefaults = () => paramDefaults() !== null;
-  // Resolve the effective provider for whichever model is currently routed
-  // (override or auto-assigned). The params popup only makes sense for
-  // providers whose API actually consumes the configurable knobs, so we
-  // gate the affordance on a known thinking default.
-  const effectiveProviderId = () => {
-    const model = eff();
-    if (!model) return undefined;
-    return manualProviderId() ?? providerIdForModel(model, props.models());
-  };
-  // Manifest's effective default for this slot. Tier slots (simple/standard/
-  // complex/reasoning/default) get the tier-aware opinion. Specificity slots
-  // (coding/web_browsing/etc.) skip that — they're user-curated for a task
-  // type, no tier semantics apply, so we just mirror the provider's actual
-  // default. Mirrors the proxy's compatibility branch.
-  const isSpecificitySlot = () =>
-    (SPECIFICITY_CATEGORIES as readonly string[]).includes(props.stage.id);
-  const thinkingDefault = () =>
-    isSpecificitySlot()
-      ? providerThinkingDefault(effectiveProviderId())
-      : manifestThinkingDefault(effectiveProviderId(), props.stage.id);
-
-  const saveParamDefaults = async (next: RequestParamDefaults | null) => {
-    const persist = props.persistParamDefaults;
-    if (!persist) return;
-    try {
-      await persist(props.agentName(), props.stage.id, next);
-      props.onParamDefaultsSaved?.(props.stage.id, next);
-      toast.success(next ? 'Model parameters updated' : 'Model parameters cleared');
-    } catch {
-      // fetchMutate already toasted the error
-    }
-  };
 
   const handlePrimaryDragStart = (e: DragEvent) => {
     setPrimaryDragging(true);
@@ -208,8 +172,11 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     newFallbacks.splice(slot, 0, currentModel);
     const newPrimary = newFallbacks.shift()!;
     if (newPrimary === currentModel && slot === 0) return; // no-op
-    // Build the parallel route list when we have full coverage. If any
-    // fallback predates the dual-write migration we drop to legacy persist.
+    // Build the parallel route list when we have full coverage. The route
+    // shape carries `keyLabel`, so multi-key pins ride along with the swap
+    // automatically — primary→fallback or fallback→primary keeps the same
+    // (provider, authType, model, keyLabel) tuple. If any fallback predates
+    // the dual-write migration we drop to the bare model-name persist.
     const buildRoutes = (): typeof fallbackRoutes => {
       if (!currentRoute || !fallbackRoutes || fallbackRoutes.length !== fallbacks.length) {
         return null;
@@ -240,7 +207,13 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
       return;
     }
     const provId = newPrimaryRoute?.provider ?? providerIdForModel(newPrimary, props.models());
-    props.onOverride(props.stage.id, newPrimary, provId ?? '', newPrimaryRoute?.authType);
+    props.onOverride(
+      props.stage.id,
+      newPrimary,
+      provId ?? '',
+      newPrimaryRoute?.authType,
+      newPrimaryRoute?.keyLabel ?? undefined,
+    );
   };
 
   const swapPrimaryWithFallback = async (fbIndex: number) => {
@@ -256,7 +229,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     const fbRoute = fallbackRoutes?.[fbIndex] ?? null;
     // Swap: fallback model goes to primary, current primary takes its place.
     // Carry routes alongside model names so same-name-different-auth swaps
-    // don't collapse to a single auth on persist.
+    // don't collapse to a single auth on persist. The route shape carries
+    // `keyLabel`, so the multi-key pin rides along with this swap too —
+    // SebConejo flagged that drag-drop should preserve the API key, and the
+    // ModelRoute structure makes this happen naturally.
     const newFallbacks = [...fallbacks];
     newFallbacks[fbIndex] = currentModel;
     const newRoutes =
@@ -273,7 +249,13 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
       return;
     }
     const provId = fbRoute?.provider ?? providerIdForModel(fbModel, props.models());
-    props.onOverride(props.stage.id, fbModel, provId ?? '', fbRoute?.authType);
+    props.onOverride(
+      props.stage.id,
+      fbModel,
+      provId ?? '',
+      fbRoute?.authType,
+      fbRoute?.keyLabel ?? undefined,
+    );
   };
 
   const modelInfo = (modelName: string): AvailableModel | undefined => {
@@ -397,81 +379,90 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                       onDrop={handlePrimaryDrop}
                     >
                       <div class="routing-card__chip-main">
-                        <span class="fallback-list__drag-handle" aria-hidden="true">
-                          <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor">
-                            <circle cx="2" cy="2" r="1.2" />
-                            <circle cx="6" cy="2" r="1.2" />
-                            <circle cx="2" cy="7" r="1.2" />
-                            <circle cx="6" cy="7" r="1.2" />
-                            <circle cx="2" cy="12" r="1.2" />
-                            <circle cx="6" cy="12" r="1.2" />
-                          </svg>
-                        </span>
-                        <div class="routing-card__override">
-                          <Show
-                            when={provId()?.startsWith('custom:')}
-                            fallback={
-                              <Show when={provId()}>
-                                {(p) => (
+                        <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+                          <div class="routing-card__override">
+                            <Show
+                              when={provId()?.startsWith('custom:')}
+                              fallback={
+                                <Show when={provId()}>
+                                  {(p) => (
+                                    <span class="routing-card__override-icon">
+                                      {providerIcon(p(), 14)}
+                                      {authBadgeFor(effectiveAuth(), 8)}
+                                    </span>
+                                  )}
+                                </Show>
+                              }
+                            >
+                              {(() => {
+                                const cp = () =>
+                                  props
+                                    .customProviders()
+                                    ?.find((c) => `custom:${c.id}` === provId());
+                                const logo = () => {
+                                  const c = cp();
+                                  return c
+                                    ? customProviderLogo(c.name, 14, c.base_url, modelName())
+                                    : null;
+                                };
+                                return (
                                   <span class="routing-card__override-icon">
-                                    {providerIcon(p(), 14)}
-                                    {authBadgeFor(effectiveAuth(), 8)}
+                                    <Show
+                                      when={logo()}
+                                      fallback={
+                                        <span
+                                          class="provider-card__logo-letter"
+                                          style={{
+                                            background: customProviderColor(cp()?.name ?? 'C'),
+                                            width: '14px',
+                                            height: '14px',
+                                            'font-size': '8px',
+                                            'border-radius': '50%',
+                                          }}
+                                        >
+                                          {(cp()?.name ?? 'C').charAt(0).toUpperCase()}
+                                        </span>
+                                      }
+                                    >
+                                      {logo()}
+                                    </Show>
                                   </span>
-                                )}
-                              </Show>
-                            }
-                          >
-                            {(() => {
-                              const cp = () =>
-                                props.customProviders()?.find((c) => `custom:${c.id}` === provId());
-                              const logo = () => {
-                                const c = cp();
-                                return c
-                                  ? customProviderLogo(c.name, 14, c.base_url, modelName())
-                                  : null;
-                              };
-                              return (
-                                <span class="routing-card__override-icon">
-                                  <Show
-                                    when={logo()}
-                                    fallback={
-                                      <span
-                                        class="provider-card__logo-letter"
-                                        style={{
-                                          background: customProviderColor(cp()?.name ?? 'C'),
-                                          width: '14px',
-                                          height: '14px',
-                                          'font-size': '8px',
-                                          'border-radius': '50%',
-                                        }}
-                                      >
-                                        {(cp()?.name ?? 'C').charAt(0).toUpperCase()}
-                                      </span>
-                                    }
-                                  >
-                                    {logo()}
-                                  </Show>
-                                </span>
-                              );
-                            })()}
-                          </Show>
-                          <span class="routing-card__main">{labelFor(modelName())}</span>
-                          <Show when={!isManual()}>
-                            <span class="routing-card__auto-tag">auto</span>
-                          </Show>
+                                );
+                              })()}
+                            </Show>
+                            <span class="routing-card__main">{labelFor(modelName())}</span>
+                            <Show when={!isManual()}>
+                              <span class="routing-card__auto-tag">auto</span>
+                            </Show>
+                          </div>
                         </div>
-                        <Show when={props.persistParamDefaults && thinkingDefault()}>
+                        <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                          <PrimaryKeyChip
+                            tier={props.tier}
+                            provId={provId}
+                            effectiveAuth={effectiveAuth}
+                            connectedProviders={props.connectedProviders}
+                            modelLabel={labelFor(modelName())}
+                            modelName={modelName}
+                            onPinKey={(label) => {
+                              const id = provId();
+                              if (!id) return;
+                              props.onPinKey?.(
+                                props.stage.id,
+                                id,
+                                label,
+                                effectiveAuth() ?? undefined,
+                              );
+                            }}
+                            disabled={() => props.changingTier() === props.stage.id}
+                          />
                           <button
                             class="routing-card__chip-action"
-                            onClick={() => setParamsOpen(true)}
-                            aria-label={`Configure parameters for ${props.stage.label}`}
-                            classList={{
-                              'routing-card__chip-action--active': hasParamDefaults(),
-                            }}
+                            onClick={() => props.onDropdownOpen(props.stage.id)}
+                            disabled={props.changingTier() === props.stage.id}
+                            aria-label={`Change model for ${props.stage.label}`}
                           >
-                            <span class="routing-tooltip">
-                              {hasParamDefaults() ? 'Parameters configured' : 'Parameters'}
-                            </span>
+                            <span class="routing-tooltip">Change</span>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="12"
@@ -480,28 +471,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                               viewBox="0 0 24 24"
                               aria-hidden="true"
                             >
-                              <path d="M3 6h7a3 3 0 0 1 6 0h2a1 1 0 1 1 0 2h-2a3 3 0 0 1-6 0H3a1 1 0 0 1 0-2zm0 10h11a3 3 0 0 1 6 0h1a1 1 0 1 1 0 2h-1a3 3 0 0 1-6 0H3a1 1 0 1 1 0-2zm10-9a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm5 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+                              <path d="M2.75 9h3.44c.67 0 1-.81.53-1.28l-.85-.85c.15-.18.31-.36.48-.52.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.74.73 1.31 1.59 1.71 2.54.3.72.5 1.46.58 2.23.05.5.48.88.99.88.6 0 1.07-.52 1-1.12-.11-.95-.35-1.88-.72-2.77-.5-1.19-1.23-2.26-2.14-3.18S17.09 3.3 15.9 2.8a10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14-.17.17-.32.35-.48.52L3.28 4.29C2.81 3.82 2 4.15 2 4.82v3.44c0 .41.34.75.75.75ZM21.25 15h-3.44c-.67 0-1 .81-.53 1.28l.85.85c-.15.18-.31.36-.48.52-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72a7.8 7.8 0 0 1-1.71-2.54c-.3-.72-.5-1.46-.58-2.23a.99.99 0 0 0-.99-.88c-.6 0-1.07.52-1 1.12.11.95.35 1.88.72 2.77.5 1.19 1.23 2.26 2.14 3.18S6.91 20.7 8.1 21.2c1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14.17-.17.32-.35.48-.52l1.17 1.17c.47.47 1.28.14 1.28-.53v-3.44c0-.41-.34-.75-.75-.75Z" />
                             </svg>
                           </button>
-                        </Show>
-                        <button
-                          class="routing-card__chip-action"
-                          onClick={() => props.onDropdownOpen(props.stage.id)}
-                          disabled={props.changingTier() === props.stage.id}
-                          aria-label={`Change model for ${props.stage.label}`}
-                        >
-                          <span class="routing-tooltip">Change</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="12"
-                            height="12"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                          >
-                            <path d="M2.75 9h3.44c.67 0 1-.81.53-1.28l-.85-.85c.15-.18.31-.36.48-.52.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.74.73 1.31 1.59 1.71 2.54.3.72.5 1.46.58 2.23.05.5.48.88.99.88.6 0 1.07-.52 1-1.12-.11-.95-.35-1.88-.72-2.77-.5-1.19-1.23-2.26-2.14-3.18S17.09 3.3 15.9 2.8a10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14-.17.17-.32.35-.48.52L3.28 4.29C2.81 3.82 2 4.15 2 4.82v3.44c0 .41.34.75.75.75ZM21.25 15h-3.44c-.67 0-1 .81-.53 1.28l.85.85c-.15.18-.31.36-.48.52-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72a7.8 7.8 0 0 1-1.71-2.54c-.3-.72-.5-1.46-.58-2.23a.99.99 0 0 0-.99-.88c-.6 0-1.07.52-1 1.12.11.95.35 1.88.72 2.77.5 1.19 1.23 2.26 2.14 3.18S6.91 20.7 8.1 21.2c1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14.17-.17.32-.35.48-.52l1.17 1.17c.47.47 1.28.14 1.28-.53v-3.44c0-.41-.34-.75-.75-.75Z" />
-                          </svg>
-                        </button>
+                        </div>
                       </div>
                       <div class="routing-card__chip-footer">
                         <Show
@@ -525,6 +498,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             <FallbackList
               agentName={props.agentName()}
               tier={props.stage.id}
+              tierData={props.tier}
               fallbacks={props.getFallbacksFor(props.stage.id)}
               fallbackRoutes={props.tier()?.fallback_routes ?? null}
               models={props.models()}
@@ -547,21 +521,6 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             />
           </div>
         </Show>
-      </Show>
-
-      <Show when={thinkingDefault()}>
-        {(providerDefault) => (
-          <ModelParamsDialog
-            open={paramsOpen()}
-            slotLabel={props.stage.label.toLowerCase()}
-            current={paramDefaults()}
-            providerDefault={providerDefault()}
-            onSave={async (next) => {
-              await saveParamDefaults(next);
-            }}
-            onClose={() => setParamsOpen(false)}
-          />
-        )}
       </Show>
 
       <Show when={confirmReset()}>
@@ -609,6 +568,135 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
         </div>
       </Show>
     </div>
+  );
+};
+
+/**
+ * Compact inline chip for the primary model row that shows the currently-
+ * pinned provider key and lets the user change it without leaving the card.
+ * Mirrors the pill on each fallback row so multi-key users see a consistent
+ * affordance across primary + fallbacks. Renders nothing when only one key
+ * exists for the provider — single-key users never see it.
+ */
+interface PrimaryKeyChipProps {
+  tier: () => TierAssignment | undefined;
+  provId: () => string | undefined;
+  effectiveAuth: () => AuthType | null;
+  connectedProviders: () => RoutingProvider[];
+  modelLabel: string;
+  modelName: () => string;
+  onPinKey: (label: string | null) => void;
+  disabled: () => boolean;
+}
+
+const PrimaryKeyChip: Component<PrimaryKeyChipProps> = (props) => {
+  const [open, setOpen] = createSignal(false);
+  let containerRef: HTMLSpanElement | undefined;
+  createEffect(() => {
+    if (open()) {
+      const handler = (e: MouseEvent) => {
+        if (containerRef && !containerRef.contains(e.target as Node)) setOpen(false);
+      };
+      document.addEventListener('mousedown', handler);
+      onCleanup(() => document.removeEventListener('mousedown', handler));
+    }
+  });
+
+  const keys = () => {
+    const id = props.provId();
+    const auth = props.effectiveAuth();
+    if (!id || !auth || auth === 'local') return [];
+    return props
+      .connectedProviders()
+      .filter(
+        (p) =>
+          p.provider.toLowerCase() === id.toLowerCase() &&
+          p.auth_type === auth &&
+          p.is_active &&
+          p.has_api_key,
+      )
+      .slice()
+      .sort((a, b) => a.priority - b.priority);
+  };
+
+  // The pinned key label now lives inside the route's `keyLabel` field,
+  // sitting on whichever route is effective (override > auto). When no
+  // pin is set, fall back to the first connected key.
+  const pinned = () => {
+    const t = props.tier();
+    const effective = t?.override_route ?? t?.auto_assigned_route ?? null;
+    return effective?.keyLabel ?? null;
+  };
+  const displayLabel = () => pinned() ?? keys()[0]?.label ?? '';
+
+  const usedByFallbacks = () =>
+    usedKeyLabelsForModelInTier(props.tier(), props.modelName(), 'primary');
+
+  return (
+    <Show when={keys().length > 1}>
+      <span ref={containerRef} style="position: relative; display: inline-flex; flex-shrink: 0;">
+        <button
+          type="button"
+          class="routing-card__key-chip"
+          aria-haspopup="listbox"
+          aria-expanded={open()}
+          aria-label={`API key for ${props.modelLabel}: currently ${displayLabel()}. Click to change.`}
+          title={displayLabel()}
+          disabled={props.disabled()}
+          onClick={() => setOpen(!open())}
+          style="background: hsl(var(--muted) / 0.5); border: 1px solid hsl(var(--border)); border-radius: 999px; padding: 2px 8px; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); cursor: pointer; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; margin-left: 4px;"
+        >
+          <span style="overflow: hidden; text-overflow: ellipsis;">{displayLabel()}</span>
+          <span aria-hidden="true">▾</span>
+        </button>
+        <Show when={open()}>
+          <ul
+            role="listbox"
+            aria-label="Choose API key"
+            style="position: absolute; top: 100%; right: 0; margin-top: 4px; list-style: none; padding: 4px; min-width: 140px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); box-shadow: 0 4px 12px hsl(var(--foreground) / 0.08); z-index: 10; display: flex; flex-direction: column; gap: 2px;"
+          >
+            <For each={keys()}>
+              {(k) => {
+                const isUsedElsewhere = () => usedByFallbacks().has(k.label.toLowerCase());
+                const isSelected = () =>
+                  pinned()
+                    ? pinned()!.toLowerCase() === k.label.toLowerCase()
+                    : displayLabel().toLowerCase() === k.label.toLowerCase();
+                return (
+                  <li>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected()}
+                      disabled={props.disabled() || isUsedElsewhere()}
+                      onClick={() => {
+                        setOpen(false);
+                        if (pinned()?.toLowerCase() !== k.label.toLowerCase()) {
+                          props.onPinKey(k.label);
+                        }
+                      }}
+                      style={`width: 100%; text-align: left; background: none; border: none; padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: var(--font-size-xs); color: hsl(var(--foreground)); display: flex; align-items: center; gap: 6px;${isUsedElsewhere() ? ' opacity: 0.4; cursor: not-allowed;' : ''}`}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="8"
+                        height="8"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                        style={`visibility: ${isSelected() ? 'visible' : 'hidden'}`}
+                      >
+                        <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
+                      </svg>
+                      {k.label}
+                    </button>
+                  </li>
+                );
+              }}
+            </For>
+          </ul>
+        </Show>
+      </span>
+    </Show>
   );
 };
 

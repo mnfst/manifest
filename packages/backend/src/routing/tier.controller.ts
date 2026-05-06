@@ -5,7 +5,6 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
   Put,
 } from '@nestjs/common';
@@ -16,12 +15,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { TierService } from './routing-core/tier.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
-import {
-  AgentNameParamDto,
-  SetOverrideDto,
-  SetFallbacksDto,
-  SetParamDefaultsDto,
-} from './dto/routing.dto';
+import { AgentNameParamDto, SetOverrideDto, SetFallbacksDto } from './dto/routing.dto';
 import { Agent } from '../entities/agent.entity';
 
 @Controller('api/v1/routing')
@@ -50,11 +44,21 @@ export class TierController {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     // Prefer the structured route when the client sent it, otherwise use the
     // flat fields. Either form is accepted — the service synthesizes the
-    // missing one before persisting.
+    // missing one before persisting. `route.keyLabel` and the legacy flat
+    // `providerKeyLabel` carry the same multi-key pin.
     const model = body.route?.model ?? body.model;
     const provider = body.route?.provider ?? body.provider;
     const authType = body.route?.authType ?? body.authType;
-    return this.tierService.setOverride(agent.id, user.id, tier, model, provider, authType);
+    const providerKeyLabel = body.route?.keyLabel ?? body.providerKeyLabel;
+    return this.tierService.setOverride(
+      agent.id,
+      user.id,
+      tier,
+      model,
+      provider,
+      authType,
+      providerKeyLabel,
+    );
   }
 
   @Delete(':agentName/tiers/:tier')
@@ -109,18 +113,6 @@ export class TierController {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.tierService.clearFallbacks(agent.id, tier);
     return { ok: true };
-  }
-
-  @Patch(':agentName/tiers/:tier/params')
-  async setParamDefaults(
-    @CurrentUser() user: AuthUser,
-    @Param('agentName') agentName: string,
-    @Param('tier') tier: string,
-    @Body() body: SetParamDefaultsDto,
-  ) {
-    this.validateTier(tier);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.tierService.setParamDefaults(agent.id, user.id, tier, body.paramDefaults ?? null);
   }
 
   @Get(':agentName/complexity/status')

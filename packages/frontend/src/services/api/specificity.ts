@@ -1,5 +1,5 @@
 import { fetchJson, fetchMutate, routingPath } from './core.js';
-import type { AuthType, ModelRoute, RequestParamDefaults } from './routing.js';
+import type { AuthType, ModelRoute } from './routing.js';
 
 export interface SpecificityAssignment {
   id: string;
@@ -9,7 +9,6 @@ export interface SpecificityAssignment {
   override_route: ModelRoute | null;
   auto_assigned_route: ModelRoute | null;
   fallback_routes: ModelRoute[] | null;
-  param_defaults: RequestParamDefaults | null;
   updated_at: string;
 }
 
@@ -34,33 +33,23 @@ export function overrideSpecificity(
   model: string,
   provider: string,
   authType?: AuthType,
+  providerKeyLabel?: string,
 ) {
   const body: Record<string, unknown> = { model, provider };
   if (authType) {
     body.authType = authType;
-    body.route = { provider, authType, model };
+    const route: ModelRoute = providerKeyLabel
+      ? { provider, authType, model, keyLabel: providerKeyLabel }
+      : { provider, authType, model };
+    body.route = route;
   }
+  if (providerKeyLabel) body.providerKeyLabel = providerKeyLabel;
   return fetchMutate<SpecificityAssignment>(
     routingPath(agentName, `specificity/${encodeURIComponent(category)}`),
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    },
-  );
-}
-
-export function setSpecificityParamDefaults(
-  agentName: string,
-  category: string,
-  paramDefaults: RequestParamDefaults | null,
-) {
-  return fetchMutate<SpecificityAssignment>(
-    routingPath(agentName, `specificity/${encodeURIComponent(category)}/params`),
-    {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paramDefaults }),
     },
   );
 }

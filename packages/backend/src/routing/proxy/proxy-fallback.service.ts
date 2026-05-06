@@ -138,6 +138,12 @@ export class ProxyFallbackService {
       const route = useStructuredRoutes ? fallbackRoutes![i] : null;
       let provider: string | undefined;
       let authType: AuthType;
+      // Pinned key label: prefer the structured route's keyLabel. Each
+      // fallback can be pinned to a specific provider key (e.g. "Work" vs
+      // "Personal" Anthropic Console). When no route is supplied (legacy
+      // string-only inputs), the pin is undefined and we fall back to the
+      // priority-0 default key inside getProviderApiKey().
+      const providerKeyLabel = route?.keyLabel ?? undefined;
 
       if (route) {
         provider = route.provider;
@@ -169,7 +175,12 @@ export class ProxyFallbackService {
       }
 
       const model = normalizeProviderModel(provider, requestedModel);
-      const apiKey = await this.providerKeyService.getProviderApiKey(agentId, provider, authType);
+      const apiKey = await this.providerKeyService.getProviderApiKey(
+        agentId,
+        provider,
+        authType,
+        providerKeyLabel,
+      );
       if (apiKey === null) {
         this.logger.debug(
           `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
@@ -190,6 +201,7 @@ export class ProxyFallbackService {
         agentId,
         provider,
         authType,
+        providerKeyLabel,
       );
 
       this.logger.log(

@@ -56,6 +56,10 @@ export interface MessageDetailResponse {
     specificity_category: string | null;
     specificity_miscategorized: boolean;
     auth_type: string | null;
+    /** Provider-key label that handled the request, when the user has 2+
+     *  keys configured for (provider, auth_type). `null` (or `'Default'` in
+     *  the legacy single-key case) means the priority-0 key was used. */
+    provider_key_label: string | null;
     skill_name: string | null;
     fallback_from_model: string | null;
     fallback_index: number | null;

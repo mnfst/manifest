@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { agentPath } from "../../src/services/routing";
 import {
+  connectProvider,
+  disconnectProvider,
   getComplexityStatus,
-  setTierParamDefaults,
+  renameProviderKey,
+  reorderProviderKeys,
   toggleComplexity,
 } from "../../src/services/api/routing";
 
@@ -70,7 +73,7 @@ describe("toggleComplexity", () => {
   });
 });
 
-describe("setTierParamDefaults", () => {
+describe("multi-key provider API helpers", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
   });
@@ -78,37 +81,87 @@ describe("setTierParamDefaults", () => {
     vi.unstubAllGlobals();
   });
 
-  it("PATCHes /params with the supplied defaults", async () => {
-    const payload = { tier: "standard", param_defaults: { thinking: { type: "disabled" } } };
+  it("connectProvider forwards label in the JSON body", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       status: 200,
-      text: () => Promise.resolve(JSON.stringify(payload)),
+      text: () => Promise.resolve(JSON.stringify({ id: "p1", provider: "openai", auth_type: "api_key", is_active: true, label: "Work", priority: 1 })),
     } as Response);
 
-    const result = await setTierParamDefaults("my-agent", "standard", {
-      thinking: { type: "disabled" },
+    await connectProvider("my-agent", {
+      provider: "openai",
+      apiKey: "sk-test",
+      authType: "api_key",
+      label: "Work",
     });
 
-    expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/routing/my-agent/tiers/standard/params"),
-      expect.objectContaining({
-        method: "PATCH",
-        body: JSON.stringify({ paramDefaults: { thinking: { type: "disabled" } } }),
-      }),
-    );
-    expect(result).toEqual(payload);
+    const call = vi.mocked(fetch).mock.calls[0]!;
+    expect(JSON.parse(call[1]!.body as string)).toEqual({
+      provider: "openai",
+      apiKey: "sk-test",
+      authType: "api_key",
+      label: "Work",
+    });
   });
 
-  it("sends paramDefaults: null to clear", async () => {
+  it("disconnectProvider appends label query param when provided", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       status: 200,
-      text: () => Promise.resolve(JSON.stringify({})),
+      text: () => Promise.resolve(JSON.stringify({ ok: true, notifications: [] })),
     } as Response);
 
-    await setTierParamDefaults("my-agent", "standard", null);
-    const call = vi.mocked(fetch).mock.calls[0];
-    expect(JSON.parse((call[1]!.body as string))).toEqual({ paramDefaults: null });
+    await disconnectProvider("my-agent", "openai", "api_key", "Work");
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/routing\/my-agent\/providers\/openai\?authType=api_key&label=Work/),
+      expect.objectContaining({ method: "DELETE" }),
+    );
+  });
+
+  it("disconnectProvider drops both query params when neither is given", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve(JSON.stringify({ ok: true, notifications: [] })),
+    } as Response);
+
+    await disconnectProvider("my-agent", "openai");
+
+    const url = vi.mocked(fetch).mock.calls[0]![0] as string;
+    expect(url).not.toContain("?");
+  });
+
+  it("renameProviderKey targets the labeled key endpoint with PATCH", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve(JSON.stringify({ id: "p1", label: "Home", priority: 0 })),
+    } as Response);
+
+    await renameProviderKey("my-agent", "openai", "Personal", "Home", "api_key");
+
+    const call = vi.mocked(fetch).mock.calls[0]!;
+    expect(call[0]).toMatch(/\/routing\/my-agent\/providers\/openai\/keys\/Personal/);
+    expect(call[1]!.method).toBe("PATCH");
+    expect(JSON.parse(call[1]!.body as string)).toEqual({ newLabel: "Home", authType: "api_key" });
+  });
+
+  it("reorderProviderKeys posts the labels array via PUT", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve(JSON.stringify([])),
+    } as Response);
+
+    await reorderProviderKeys("my-agent", "openai", ["Work", "Personal"], "api_key");
+
+    const call = vi.mocked(fetch).mock.calls[0]!;
+    expect(call[0]).toMatch(/\/routing\/my-agent\/providers\/openai\/keys\/order/);
+    expect(call[1]!.method).toBe("PUT");
+    expect(JSON.parse(call[1]!.body as string)).toEqual({
+      labels: ["Work", "Personal"],
+      authType: "api_key",
+    });
   });
 });

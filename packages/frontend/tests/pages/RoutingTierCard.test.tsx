@@ -47,6 +47,9 @@ vi.mock("../../src/services/routing-utils.js", () => ({
     if (m.startsWith("claude")) return "anthropic";
     return undefined;
   },
+  // No-op for test setups that don't depend on multi-key dedup behavior.
+  // The PrimaryKeyChip multi-key suite below overrides this when needed.
+  usedKeyLabelsForModelInTier: () => new Set<string>(),
 }));
 
 vi.mock("../../src/services/formatters.js", () => ({
@@ -143,7 +146,6 @@ const baseTier: TierAssignment = {
     { provider: "openai", authType: "api_key", model: "gpt-4o-mini" },
     { provider: "anthropic", authType: "api_key", model: "claude" },
   ],
-  param_defaults: null,
   updated_at: "2025-01-01",
 };
 
@@ -394,7 +396,13 @@ describe("RoutingTierCard", () => {
           { provider: "openai", authType: "api_key", model: "gpt-4o" },
         ],
       );
-      expect(onOverride).toHaveBeenCalledWith("simple", "gpt-4o-mini", "openai", "api_key");
+      expect(onOverride).toHaveBeenCalledWith(
+        "simple",
+        "gpt-4o-mini",
+        "openai",
+        "api_key",
+        undefined,
+      );
     });
   });
 
@@ -447,7 +455,13 @@ describe("RoutingTierCard", () => {
     );
     await waitFor(() => {
       // The promoted fallback is index 1 (gpt-4o-mini, openai/api_key).
-      expect(onOverride).toHaveBeenCalledWith("simple", "gpt-4o-mini", "openai", "api_key");
+      expect(onOverride).toHaveBeenCalledWith(
+        "simple",
+        "gpt-4o-mini",
+        "openai",
+        "api_key",
+        undefined,
+      );
     });
   });
 
@@ -1013,7 +1027,13 @@ describe("RoutingTierCard", () => {
         ["gpt-4o-mini", "gpt-4o"],
         null,
       );
-      expect(onOverride).toHaveBeenCalledWith("simple", "claude", expect.any(String), undefined);
+      expect(onOverride).toHaveBeenCalledWith(
+        "simple",
+        "claude",
+        expect.any(String),
+        undefined,
+        undefined,
+      );
     });
   });
 
@@ -1072,210 +1092,114 @@ describe("RoutingTierCard", () => {
     expect(container.querySelector(".provider-card__logo-letter")?.textContent).toBe("C");
   });
 
-  describe("param defaults", () => {
-    // The params button only renders for providers we know how to configure.
-    // DeepSeek is the only one in v1, so build a tier that resolves to it.
-    const deepseekModel = {
-      model_name: "deepseek-v4-flash",
-      provider: "deepseek",
-      auth_type: "api_key" as const,
-      input_price_per_token: 0,
-      output_price_per_token: 0,
-      context_window: 64000,
-      capability_reasoning: false,
-      capability_code: false,
-      quality_score: 7,
-      display_name: "DeepSeek V4 Flash",
-    };
-    const deepseekTier: TierAssignment = {
-      ...baseTier,
-      override_route: { provider: "deepseek", authType: "api_key", model: "deepseek-v4-flash" },
-      fallback_routes: null,
-    };
-    const propsForDeepseek = (
-      overrides: Partial<Parameters<typeof RoutingTierCard>[0]> = {},
-    ) =>
-      makeProps({
-        tier: () => deepseekTier,
-        models: () => [deepseekModel],
-        ...overrides,
-      });
+  describe("PrimaryKeyChip (multi-key)", () => {
+    const multiKeyProviders: RoutingProvider[] = [
+      {
+        id: "p1",
+        provider: "openai",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        label: "Work",
+        priority: 0,
+        connected_at: "2025-01-01",
+      },
+      {
+        id: "p2",
+        provider: "openai",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        label: "Personal",
+        priority: 1,
+        connected_at: "2025-01-01",
+      },
+    ];
 
-    it("hides the params button when persistParamDefaults is not provided", () => {
-      const { container } = render(() => <RoutingTierCard {...propsForDeepseek()} />);
-      const labels = Array.from(container.querySelectorAll("[aria-label]"))
-        .map((el) => el.getAttribute("aria-label") ?? "")
-        .filter((l) => l.startsWith("Configure parameters"));
-      expect(labels.length).toBe(0);
+    it("does NOT render the key chip when only one connected key matches the provider/auth", () => {
+      const { container } = render(() => <RoutingTierCard {...makeProps()} />);
+      expect(container.querySelector(".routing-card__key-chip")).toBeNull();
     });
 
-    it("uses the provider default (not Manifest's tier-aware override) on specificity slots", async () => {
-      const persist = vi.fn().mockResolvedValue(undefined);
-      const codingStage = { id: "coding", step: 1, label: "Coding", desc: "" };
+    it("renders the key chip when 2+ keys are connected for the primary's provider", () => {
       const { container } = render(() => (
         <RoutingTierCard
-          {...propsForDeepseek({
-            stage: codingStage,
-            persistParamDefaults: persist,
+          {...makeProps({
+            connectedProviders: () => multiKeyProviders,
           })}
         />
       ));
-
-      // Open the dialog and verify the toggle reflects the provider default
-      // (DeepSeek = enabled), not Manifest's "standard → disabled" rule.
-      fireEvent.click(
-        container.querySelector(
-          '[aria-label="Configure parameters for Coding"]',
-        ) as HTMLButtonElement,
-      );
-      const switchEl = document.querySelector(".provider-toggle__switch") as HTMLElement;
-      expect(switchEl.classList.contains("provider-toggle__switch--on")).toBe(true);
-
-      // Saving in the same state (provider default) collapses to null.
-      fireEvent.click(
-        Array.from(document.querySelectorAll("button")).find((b) => b.textContent === "Save")!,
-      );
-      await waitFor(() => expect(persist).toHaveBeenCalledWith("demo", "coding", null));
+      const chip = container.querySelector(".routing-card__key-chip") as HTMLButtonElement | null;
+      expect(chip).not.toBeNull();
+      // displayLabel falls back to the first key's label when keyLabel is null
+      expect(chip?.textContent).toContain("Work");
     });
 
-    it("hides the params button for providers without a known thinking default", () => {
-      const persist = vi.fn();
-      const { container } = render(() => (
-        <RoutingTierCard {...makeProps({ persistParamDefaults: persist })} />
-      ));
-      const labels = Array.from(container.querySelectorAll("[aria-label]"))
-        .map((el) => el.getAttribute("aria-label") ?? "")
-        .filter((l) => l.startsWith("Configure parameters"));
-      expect(labels.length).toBe(0);
-    });
-
-    it("shows the params button (without active class) when no defaults are configured", () => {
-      const persist = vi.fn().mockResolvedValue(undefined);
-      const { container } = render(() => (
-        <RoutingTierCard {...propsForDeepseek({ persistParamDefaults: persist })} />
-      ));
-      const btn = container.querySelector(
-        '[aria-label="Configure parameters for Simple"]',
-      ) as HTMLButtonElement;
-      expect(btn).not.toBeNull();
-      expect(btn.classList.contains("routing-card__chip-action--active")).toBe(false);
-    });
-
-    it("marks the params button as active when defaults are configured", () => {
-      const persist = vi.fn().mockResolvedValue(undefined);
+    it("shows the explicit keyLabel pin from the override route over the first connected key", () => {
       const tier = {
-        ...deepseekTier,
-        param_defaults: { thinking: { type: "disabled" as const } },
+        ...baseTier,
+        override_route: {
+          provider: "openai",
+          authType: "api_key" as const,
+          model: "gpt-4o",
+          keyLabel: "Personal",
+        },
       };
       const { container } = render(() => (
         <RoutingTierCard
-          {...propsForDeepseek({ tier: () => tier, persistParamDefaults: persist })}
-        />
-      ));
-      const btn = container.querySelector(
-        '[aria-label="Configure parameters for Simple"]',
-      ) as HTMLButtonElement;
-      expect(btn.classList.contains("routing-card__chip-action--active")).toBe(true);
-    });
-
-    it("opens the dialog and persists an explicit override when the user picks the non-default state", async () => {
-      const persist = vi.fn().mockResolvedValue(undefined);
-      const onSaved = vi.fn();
-      const { container } = render(() => (
-        <RoutingTierCard
-          {...propsForDeepseek({
-            persistParamDefaults: persist,
-            onParamDefaultsSaved: onSaved,
-          })}
-        />
-      ));
-
-      fireEvent.click(
-        container.querySelector(
-          '[aria-label="Configure parameters for Simple"]',
-        ) as HTMLButtonElement,
-      );
-      // Simple tier on DeepSeek: Manifest's effective default is "disabled".
-      // Flip the toggle to "enabled" → that's the non-default → save explicit
-      // override.
-      const toggle = document.querySelector(".model-params__toggle") as HTMLButtonElement;
-      fireEvent.click(toggle);
-      fireEvent.click(
-        Array.from(document.querySelectorAll("button")).find((b) => b.textContent === "Save")!,
-      );
-
-      await waitFor(() =>
-        expect(persist).toHaveBeenCalledWith("demo", "simple", {
-          thinking: { type: "enabled" },
-        }),
-      );
-      await waitFor(() =>
-        expect(onSaved).toHaveBeenCalledWith("simple", { thinking: { type: "enabled" } }),
-      );
-    });
-
-    it("clears the override (saves null) when the user lands back on Manifest's effective default", async () => {
-      const persist = vi.fn().mockResolvedValue(undefined);
-      const onSaved = vi.fn();
-      const tier = {
-        ...deepseekTier,
-        // Stored override of Manifest's "disabled" default for the simple tier.
-        param_defaults: { thinking: { type: "enabled" as const } },
-      };
-      const { container } = render(() => (
-        <RoutingTierCard
-          {...propsForDeepseek({
+          {...makeProps({
             tier: () => tier,
-            persistParamDefaults: persist,
-            onParamDefaultsSaved: onSaved,
+            connectedProviders: () => multiKeyProviders,
           })}
         />
       ));
-
-      fireEvent.click(
-        container.querySelector(
-          '[aria-label="Configure parameters for Simple"]',
-        ) as HTMLButtonElement,
-      );
-      // Currently enabled (override). Flip back to disabled (= Manifest's
-      // effective default for simple+DeepSeek) → save null, no override.
-      const toggle = document.querySelector(".model-params__toggle") as HTMLButtonElement;
-      fireEvent.click(toggle);
-      fireEvent.click(
-        Array.from(document.querySelectorAll("button")).find((b) => b.textContent === "Save")!,
-      );
-
-      await waitFor(() => expect(persist).toHaveBeenCalledWith("demo", "simple", null));
-      await waitFor(() => expect(onSaved).toHaveBeenCalledWith("simple", null));
+      const chip = container.querySelector(".routing-card__key-chip");
+      expect(chip?.textContent).toContain("Personal");
     });
 
-    it("swallows the persistence error so the toast handler can show it once", async () => {
-      const persist = vi.fn().mockRejectedValue(new Error('boom'));
-      const onSaved = vi.fn();
+    it("emits onPinKey with the chosen label when a list option is clicked", async () => {
+      const onPinKey = vi.fn();
       const { container } = render(() => (
         <RoutingTierCard
-          {...propsForDeepseek({
-            persistParamDefaults: persist,
-            onParamDefaultsSaved: onSaved,
+          {...makeProps({
+            connectedProviders: () => multiKeyProviders,
+            onPinKey,
           })}
         />
       ));
+      const chip = container.querySelector(".routing-card__key-chip") as HTMLButtonElement;
+      fireEvent.click(chip);
+      await waitFor(() => {
+        // Expanded listbox renders one option per key.
+        const options = container.querySelectorAll('[role="option"]');
+        expect(options.length).toBeGreaterThan(0);
+      });
+      const personalOption = Array.from(container.querySelectorAll('[role="option"]')).find(
+        (o) => o.textContent?.includes("Personal"),
+      ) as HTMLElement | undefined;
+      expect(personalOption).toBeDefined();
+      fireEvent.click(personalOption!);
+      expect(onPinKey).toHaveBeenCalledWith("simple", "openai", "Personal", "api_key");
+    });
 
-      fireEvent.click(
-        container.querySelector(
-          '[aria-label="Configure parameters for Simple"]',
-        ) as HTMLButtonElement,
-      );
-      // Flip to disabled so save actually has a value to send.
-      fireEvent.click(document.querySelector(".model-params__toggle") as HTMLButtonElement);
-      fireEvent.click(
-        Array.from(document.querySelectorAll("button")).find((b) => b.textContent === "Save")!,
-      );
-
-      await waitFor(() => expect(persist).toHaveBeenCalled());
-      // onSaved must not run when persist rejected — the local cache stays
-      // consistent with whatever the server actually has.
-      expect(onSaved).not.toHaveBeenCalled();
+    it("does not render the chip when the effective auth is 'local'", () => {
+      const tier = {
+        ...baseTier,
+        override_route: {
+          provider: "openai",
+          authType: "local" as const,
+          model: "gpt-4o",
+        },
+      };
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => tier,
+            connectedProviders: () => multiKeyProviders,
+          })}
+        />
+      ));
+      expect(container.querySelector(".routing-card__key-chip")).toBeNull();
     });
   });
 });

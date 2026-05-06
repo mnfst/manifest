@@ -333,6 +333,8 @@ All analytics queries filter by user via `addTenantFilter(qb, userId)` from `que
 | POST | `/api/v1/routing/:agentName/ollama/sync` | Session/API Key | Sync Ollama models |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
+| POST | `/v1/responses` | Bearer (mnfst_*) | LLM proxy (OpenAI Responses API) |
+| POST | `/v1/messages` | Bearer (mnfst_*) | LLM proxy (Anthropic Messages API) |
 | GET | `/api/v1/events` | Session | SSE real-time events |
 | GET | `/api/v1/github/stars` | Public | GitHub star count |
 

@@ -229,82 +229,6 @@ describe('SpecificityService', () => {
     });
   });
 
-  describe('setParamDefaults', () => {
-    it('updates the existing row when one is present', async () => {
-      const existing = {
-        agent_id: 'agent-1',
-        category: 'coding',
-        param_defaults: null,
-      } as unknown as SpecificityAssignment;
-      repo.findOne.mockResolvedValue(existing);
-      const defaults = { thinking: { type: 'disabled' as const } };
-
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults);
-
-      expect(result.param_defaults).toEqual(defaults);
-      expect(repo.save).toHaveBeenCalledWith(existing);
-      expect(repo.insert).not.toHaveBeenCalled();
-      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-    });
-
-    it('clears defaults when null is passed', async () => {
-      const existing = {
-        agent_id: 'agent-1',
-        category: 'coding',
-        param_defaults: { thinking: { type: 'disabled' } },
-      } as unknown as SpecificityAssignment;
-      repo.findOne.mockResolvedValue(existing);
-
-      await svc.setParamDefaults('agent-1', 'user-1', 'coding', null);
-
-      expect(existing.param_defaults).toBeNull();
-      expect(repo.save).toHaveBeenCalledWith(existing);
-    });
-
-    it('inserts a new (inactive) row when none exists', async () => {
-      repo.findOne.mockResolvedValue(null);
-      const defaults = { thinking: { type: 'enabled' as const } };
-
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults);
-
-      expect(repo.insert).toHaveBeenCalledTimes(1);
-      expect(result.param_defaults).toEqual(defaults);
-      expect(result.is_active).toBe(false);
-      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-    });
-
-    it('retries on insert conflict when another row appears mid-flight', async () => {
-      repo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({
-          agent_id: 'agent-1',
-          category: 'coding',
-          param_defaults: null,
-        } as SpecificityAssignment)
-        .mockResolvedValueOnce({
-          agent_id: 'agent-1',
-          category: 'coding',
-          param_defaults: null,
-        } as SpecificityAssignment);
-      repo.insert.mockRejectedValueOnce(new Error('duplicate'));
-
-      const defaults = { thinking: { type: 'disabled' as const } };
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults);
-
-      expect(result.param_defaults).toEqual(defaults);
-    });
-
-    it('rethrows insert failures when no concurrent row exists (genuine DB error)', async () => {
-      repo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-      repo.insert.mockRejectedValueOnce(new Error('unrelated'));
-
-      const defaults = { thinking: { type: 'disabled' as const } };
-      await expect(svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults)).rejects.toThrow(
-        'unrelated',
-      );
-    });
-  });
-
   describe('clearOverride', () => {
     it('no-ops when no row exists', async () => {
       repo.findOne.mockResolvedValue(null);
@@ -373,7 +297,7 @@ describe('SpecificityService', () => {
       expect(await svc.setFallbacks('agent-1', 'coding', [])).toEqual([]);
     });
 
-    it('returns [] when any model cannot be unambiguously resolved', async () => {
+    it('throws when any model cannot be unambiguously resolved', async () => {
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
         discovered('gpt-4o', 'openai', 'subscription'),
@@ -381,8 +305,35 @@ describe('SpecificityService', () => {
       repo.findOne.mockResolvedValue({
         fallback_routes: null,
       } as SpecificityAssignment);
-      const result = await svc.setFallbacks('agent-1', 'coding', ['gpt-4o']);
-      expect(result).toEqual([]);
+      await expect(svc.setFallbacks('agent-1', 'coding', ['gpt-4o'])).rejects.toThrow(
+        /Cannot resolve fallback model "gpt-4o"/,
+      );
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    // Regression: issue #1790. See tier.service.spec for the full rationale.
+    it('preserves existing fallbacks when an unresolvable model is added (issue #1790)', async () => {
+      const existing = [
+        route('openai', 'api_key', 'gpt-4o'),
+        route('anthropic', 'api_key', 'claude-3-5-sonnet'),
+      ];
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('gpt-4o', 'openai', 'api_key'),
+        discovered('gpt-4o', 'openai', 'subscription'),
+        discovered('claude-3-5-sonnet', 'anthropic', 'api_key'),
+      ]);
+      repo.findOne.mockResolvedValue({
+        fallback_routes: existing,
+      } as SpecificityAssignment);
+      await expect(
+        svc.setFallbacks(
+          'agent-1',
+          'coding',
+          ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
+          [...existing, route('minimax', 'api_key', 'minmax-27')],
+        ),
+      ).rejects.toThrow(/Cannot resolve fallback model/);
+      expect(repo.save).not.toHaveBeenCalled();
     });
   });
 

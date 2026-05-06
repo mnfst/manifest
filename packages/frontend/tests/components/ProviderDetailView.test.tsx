@@ -25,6 +25,7 @@ vi.mock('../../src/components/CopyButton.js', () => ({
 
 vi.mock('../../src/components/ProviderKeyForm.js', () => ({
   default: () => <div data-testid="provider-key-form" />,
+  MAX_KEYS_PER_PROVIDER: 5,
 }));
 
 vi.mock('../../src/components/OAuthDetailView.js', () => ({

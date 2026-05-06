@@ -16,8 +16,6 @@ const mockGetPricingHealth = vi.fn();
 const mockRefreshPricing = vi.fn();
 const mockGetComplexityStatus = vi.fn();
 const mockToggleComplexity = vi.fn();
-const mockSetTierParamDefaults = vi.fn();
-const mockSetSpecificityParamDefaults = vi.fn();
 
 vi.mock("../../src/services/api.js", () => ({
   getTierAssignments: (...args: unknown[]) => mockGetTierAssignments(...args),
@@ -34,8 +32,6 @@ vi.mock("../../src/services/api.js", () => ({
   toggleComplexity: (...args: unknown[]) => mockToggleComplexity(...args),
   setSpecificityFallbacks: (...args: unknown[]) => mockSetSpecificityFallbacks(...args),
   clearSpecificityFallbacks: (...args: unknown[]) => mockClearSpecificityFallbacks(...args),
-  setTierParamDefaults: (...args: unknown[]) => mockSetTierParamDefaults(...args),
-  setSpecificityParamDefaults: (...args: unknown[]) => mockSetSpecificityParamDefaults(...args),
   // Re-export types only — no runtime impact
 }));
 
@@ -189,6 +185,18 @@ vi.mock("../../src/components/RoutingModals.js", () => ({
           add-spec-fallback
         </button>
         <button
+          data-testid="modal-trigger-add-spec-fallback-no-auth"
+          onClick={() =>
+            (props.onAddFallback as (id: string, m: string, p: string, a?: string) => void)(
+              "coding",
+              "spec-fb",
+              "openai",
+            )
+          }
+        >
+          add-spec-fallback-no-auth
+        </button>
+        <button
           data-testid="modal-trigger-spec-override"
           onClick={() =>
             (
@@ -255,8 +263,6 @@ vi.mock("../../src/pages/RoutingDefaultTierSection.js", () => ({
       props.getTier,
       props.complexityEnabled,
       props.togglingComplexity,
-      props.persistParamDefaults,
-      props.onParamDefaultsSaved,
     ];
     void _read;
     return (
@@ -273,33 +279,6 @@ vi.mock("../../src/pages/RoutingDefaultTierSection.js", () => ({
         >
           open
         </button>
-        <button
-          data-testid="default-persist-params"
-          onClick={() =>
-            (
-              props.persistParamDefaults as (
-                name: string,
-                tier: string,
-                paramDefaults: { thinking: { type: 'enabled' | 'disabled' } } | null,
-              ) => Promise<unknown>
-            )("demo", "simple", { thinking: { type: "disabled" } })
-          }
-        >
-          default-persist
-        </button>
-        <button
-          data-testid="default-saved-params"
-          onClick={() =>
-            (
-              props.onParamDefaultsSaved as (
-                tier: string,
-                paramDefaults: { thinking: { type: 'enabled' | 'disabled' } } | null,
-              ) => void
-            )("simple", { thinking: { type: "disabled" } })
-          }
-        >
-          default-saved
-        </button>
       </div>
     );
   },
@@ -311,69 +290,64 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
     onReset: (cat: string) => void;
     onFallbackUpdate: (cat: string, fbs: string[]) => void;
     onAddFallback: (cat: string) => void;
-    persistParamDefaults?: (
-      name: string,
-      category: string,
-      paramDefaults: { thinking: { type: 'enabled' | 'disabled' } } | null,
-    ) => Promise<unknown>;
-    onParamDefaultsSaved?: (
-      category: string,
-      paramDefaults: { thinking: { type: 'enabled' | 'disabled' } } | null,
+    onPinKey?: (
+      cat: string,
+      provider: string,
+      label: string | null,
+      authType?: string,
     ) => void;
-  }) => {
-    // Read the param-default props so the JSX-attribute getters in Routing.tsx
-    // (lines 416-418, 419-424) count as covered statements.
-    const _read = [props.persistParamDefaults, props.onParamDefaultsSaved];
-    void _read;
-    return (
-      <div data-testid="spec-section">
-        <button data-testid="spec-open" onClick={() => props.onDropdownOpen("coding")}>
-          spec-open
-        </button>
-        <button data-testid="spec-reset" onClick={() => props.onReset("coding")}>
-          spec-reset
-        </button>
-        <button
-          data-testid="spec-fb-update-add"
-          onClick={() => props.onFallbackUpdate("coding", ["fb1"])}
-        >
-          spec-fb-add
-        </button>
-        <button
-          data-testid="spec-fb-update-clear"
-          onClick={() => props.onFallbackUpdate("coding", [])}
-        >
-          spec-fb-clear
-        </button>
-        <button
-          data-testid="spec-add-fallback"
-          onClick={() => props.onAddFallback("coding")}
-        >
-          spec-add-fallback
-        </button>
-        <button
-          data-testid="spec-persist-params"
-          onClick={() =>
-            props.persistParamDefaults?.("demo", "coding", {
-              thinking: { type: "disabled" },
-            })
-          }
-        >
-          spec-persist
-        </button>
-        <button
-          data-testid="spec-saved-params"
-          onClick={() =>
-            props.onParamDefaultsSaved?.("coding", {
-              thinking: { type: "disabled" },
-            })
-          }
-        >
-          spec-saved
-        </button>
-      </div>
-    );
-  },
+  }) => (
+    <div data-testid="spec-section">
+      <button data-testid="spec-open" onClick={() => props.onDropdownOpen("coding")}>
+        spec-open
+      </button>
+      <button data-testid="spec-reset" onClick={() => props.onReset("coding")}>
+        spec-reset
+      </button>
+      <button
+        data-testid="spec-fb-update-add"
+        onClick={() => props.onFallbackUpdate("coding", ["fb1"])}
+      >
+        spec-fb-add
+      </button>
+      <button
+        data-testid="spec-fb-update-clear"
+        onClick={() => props.onFallbackUpdate("coding", [])}
+      >
+        spec-fb-clear
+      </button>
+      <button
+        data-testid="spec-add-fallback"
+        onClick={() => props.onAddFallback("coding")}
+      >
+        spec-add-fallback
+      </button>
+      <button
+        data-testid="spec-pin-key"
+        onClick={() => props.onPinKey?.("coding", "anthropic", "Work", "api_key")}
+      >
+        spec-pin-key
+      </button>
+      <button
+        data-testid="spec-pin-key-clear"
+        onClick={() => props.onPinKey?.("coding", "anthropic", null)}
+      >
+        spec-pin-key-clear
+      </button>
+      <button
+        data-testid="spec-pin-key-missing-cat"
+        onClick={() => props.onPinKey?.("unknown-category", "anthropic", "Work")}
+      >
+        spec-pin-key-missing-cat
+      </button>
+      <button
+        data-testid="spec-pin-key-missing-provider"
+        onClick={() => props.onPinKey?.("coding", "", "Work")}
+      >
+        spec-pin-key-missing-provider
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock("../../src/pages/RoutingHeaderTiersSection.js", () => ({
@@ -560,98 +534,6 @@ describe("Routing page", () => {
     });
   });
 
-  it("forwards default-tier param defaults to setTierParamDefaults via the section", async () => {
-    mockSetTierParamDefaults.mockResolvedValue(undefined);
-    render(() => <Routing />);
-    await waitFor(() => {
-      expect(screen.getByTestId("default-persist-params")).toBeDefined();
-    });
-    fireEvent.click(screen.getByTestId("default-persist-params"));
-    await waitFor(() => {
-      expect(mockSetTierParamDefaults).toHaveBeenCalledWith("demo", "simple", {
-        thinking: { type: "disabled" },
-      });
-    });
-  });
-
-  it("mutates the local tiers cache when the default-tier section reports a save", async () => {
-    mockGetTierAssignments.mockResolvedValue([
-      {
-        id: "t1",
-        agent_id: "a1",
-        tier: "simple",
-        override_route: null,
-        auto_assigned_route: null,
-        fallback_routes: null,
-        param_defaults: null,
-        updated_at: "2025-01-01",
-      },
-      {
-        id: "t2",
-        agent_id: "a1",
-        tier: "complex",
-        override_route: null,
-        auto_assigned_route: null,
-        fallback_routes: null,
-        param_defaults: null,
-        updated_at: "2025-01-01",
-      },
-    ]);
-    render(() => <Routing />);
-    await waitFor(() => {
-      expect(screen.getByTestId("default-saved-params")).toBeDefined();
-    });
-    // No assertion needed beyond the mutator running without throwing — the
-    // inline arrow's body is what we're covering.
-    fireEvent.click(screen.getByTestId("default-saved-params"));
-  });
-
-  it("forwards specificity param defaults to setSpecificityParamDefaults via the section", async () => {
-    mockSetSpecificityParamDefaults.mockResolvedValue(undefined);
-    render(() => <Routing />);
-    await waitFor(() => {
-      expect(screen.getByTestId("spec-persist-params")).toBeDefined();
-    });
-    fireEvent.click(screen.getByTestId("spec-persist-params"));
-    await waitFor(() => {
-      expect(mockSetSpecificityParamDefaults).toHaveBeenCalledWith("demo", "coding", {
-        thinking: { type: "disabled" },
-      });
-    });
-  });
-
-  it("mutates the local specificity cache when the section reports a save", async () => {
-    mockGetSpecificityAssignments.mockResolvedValue([
-      {
-        id: "s1",
-        agent_id: "a1",
-        category: "coding",
-        is_active: true,
-        override_route: null,
-        auto_assigned_route: null,
-        fallback_routes: null,
-        param_defaults: null,
-        updated_at: "2025-01-01",
-      },
-      {
-        id: "s2",
-        agent_id: "a1",
-        category: "trading",
-        is_active: false,
-        override_route: null,
-        auto_assigned_route: null,
-        fallback_routes: null,
-        param_defaults: null,
-        updated_at: "2025-01-01",
-      },
-    ]);
-    render(() => <Routing />);
-    await waitFor(() => {
-      expect(screen.getByTestId("spec-saved-params")).toBeDefined();
-    });
-    fireEvent.click(screen.getByTestId("spec-saved-params"));
-  });
-
   it("toggles complexity and updates the resource on success", async () => {
     render(() => <Routing />);
     await waitFor(() => {
@@ -701,6 +583,7 @@ describe("Routing page", () => {
         "claude",
         "anthropic",
         "api_key",
+        undefined,
       );
     });
   });
@@ -777,7 +660,158 @@ describe("Routing page", () => {
     });
   });
 
-  it("calls setSpecificityFallbacks when modals add a fallback for a specificity tier", async () => {
+  describe("handleSpecificityPinKey", () => {
+    const codingAssignment = {
+      id: "s1",
+      agent_id: "a",
+      category: "coding",
+      is_active: true,
+      override_route: { provider: "anthropic", authType: "api_key" as const, model: "claude-opus" },
+      auto_assigned_route: null,
+      fallback_routes: [],
+      updated_at: "2025-01-01",
+    };
+
+    it("calls overrideSpecificity with the new keyLabel and re-uses the existing model", async () => {
+      mockGetSpecificityAssignments.mockResolvedValue([codingAssignment]);
+      mockOverrideSpecificity.mockResolvedValue(undefined);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key"));
+      await waitFor(() => {
+        expect(mockOverrideSpecificity).toHaveBeenCalledWith(
+          "demo",
+          "coding",
+          "claude-opus",
+          "anthropic",
+          "api_key",
+          "Work",
+        );
+        expect(mockToastSuccess).toHaveBeenCalledWith('Pinned to "Work" key');
+      });
+    });
+
+    it("emits 'Key pin cleared' when the label is null", async () => {
+      mockGetSpecificityAssignments.mockResolvedValue([codingAssignment]);
+      mockOverrideSpecificity.mockResolvedValue(undefined);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key-clear")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key-clear"));
+      await waitFor(() => {
+        expect(mockOverrideSpecificity).toHaveBeenCalledWith(
+          "demo",
+          "coding",
+          "claude-opus",
+          "anthropic",
+          "api_key",
+          undefined,
+        );
+        expect(mockToastSuccess).toHaveBeenCalledWith("Key pin cleared");
+      });
+    });
+
+    it("falls back to auto_assigned_route's model when override is null", async () => {
+      const autoAssignment = {
+        ...codingAssignment,
+        override_route: null,
+        auto_assigned_route: {
+          provider: "anthropic",
+          authType: "api_key" as const,
+          model: "claude-haiku",
+        },
+      };
+      mockGetSpecificityAssignments.mockResolvedValue([autoAssignment]);
+      mockOverrideSpecificity.mockResolvedValue(undefined);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key"));
+      await waitFor(() => {
+        expect(mockOverrideSpecificity).toHaveBeenCalledWith(
+          "demo",
+          "coding",
+          "claude-haiku",
+          "anthropic",
+          "api_key",
+          "Work",
+        );
+      });
+    });
+
+    it("does nothing when the category does not match an existing assignment", async () => {
+      mockGetSpecificityAssignments.mockResolvedValue([codingAssignment]);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key-missing-cat")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key-missing-cat"));
+      // Wait one tick to make sure no async overrideSpecificity call slips through
+      await new Promise((r) => setTimeout(r, 5));
+      expect(mockOverrideSpecificity).not.toHaveBeenCalled();
+    });
+
+    it("does nothing when the provider id is empty", async () => {
+      mockGetSpecificityAssignments.mockResolvedValue([codingAssignment]);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key-missing-provider")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key-missing-provider"));
+      await new Promise((r) => setTimeout(r, 5));
+      expect(mockOverrideSpecificity).not.toHaveBeenCalled();
+    });
+
+    it("swallows errors silently (toast handled upstream by fetchMutate)", async () => {
+      mockGetSpecificityAssignments.mockResolvedValue([codingAssignment]);
+      mockOverrideSpecificity.mockRejectedValue(new Error("boom"));
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId("spec-pin-key")).toBeDefined();
+      });
+      fireEvent.click(screen.getByTestId("spec-pin-key"));
+      await waitFor(() => {
+        expect(mockOverrideSpecificity).toHaveBeenCalled();
+      });
+      // No success toast on rejection
+      expect(mockToastSuccess).not.toHaveBeenCalledWith('Pinned to "Work" key');
+    });
+  });
+
+  it("omits the routes payload when the spec fallback caller has no authType", async () => {
+    mockGetSpecificityAssignments.mockResolvedValue([
+      {
+        id: "s1",
+        agent_id: "a",
+        category: "coding",
+        is_active: true,
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: [],
+        updated_at: "2025-01-01",
+      },
+    ]);
+    mockSetSpecificityFallbacks.mockResolvedValue(undefined);
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId("modal-trigger-add-spec-fallback-no-auth")).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId("modal-trigger-add-spec-fallback-no-auth"));
+    await waitFor(() => {
+      expect(mockSetSpecificityFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "coding",
+        ["spec-fb"],
+        undefined,
+      );
+    });
+  });
+
+  it("calls setSpecificityFallbacks with explicit routes when modals add a fallback for a specificity tier", async () => {
     mockGetSpecificityAssignments.mockResolvedValue([
       {
         id: "s1",
@@ -797,7 +831,12 @@ describe("Routing page", () => {
     });
     fireEvent.click(screen.getByTestId("modal-trigger-add-spec-fallback"));
     await waitFor(() => {
-      expect(mockSetSpecificityFallbacks).toHaveBeenCalledWith("demo", "coding", ["spec-fb"]);
+      expect(mockSetSpecificityFallbacks).toHaveBeenCalledWith(
+        "demo",
+        "coding",
+        ["spec-fb"],
+        [{ provider: "openai", authType: "api_key", model: "spec-fb" }],
+      );
     });
   });
 

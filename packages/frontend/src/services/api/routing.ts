@@ -10,6 +10,13 @@ export interface RoutingProvider {
   is_active: boolean;
   has_api_key: boolean;
   key_prefix?: string | null;
+  /**
+   * User-facing key label. Defaults to "Default" for legacy single-key
+   * providers; multi-key chains expose user-supplied names like "Personal"
+   * or "Work" and are ordered by `priority` (0 = primary).
+   */
+  label: string;
+  priority: number;
   region?: string | null;
   connected_at: string;
 }
@@ -39,13 +46,15 @@ export function getProviders(agentName: string) {
 
 export function connectProvider(
   agentName: string,
-  data: { provider: string; apiKey?: string; authType?: AuthType },
+  data: { provider: string; apiKey?: string; authType?: AuthType; label?: string },
 ) {
   return fetchMutate<{
     id: string;
     provider: string;
     auth_type: AuthType;
     is_active: boolean;
+    label: string;
+    priority: number;
     region?: string | null;
   }>(routingPath(agentName, 'providers'), {
     method: 'POST',
@@ -54,10 +63,55 @@ export function connectProvider(
   });
 }
 
-export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {
+export function disconnectProvider(
+  agentName: string,
+  provider: string,
+  authType?: AuthType,
+  label?: string,
+) {
   const base = routingPath(agentName, `providers/${encodeURIComponent(provider)}`);
-  const path = authType ? `${base}?authType=${authType}` : base;
+  const params = new URLSearchParams();
+  if (authType) params.set('authType', authType);
+  if (label) params.set('label', label);
+  const qs = params.toString();
+  const path = qs ? `${base}?${qs}` : base;
   return fetchMutate<{ ok: boolean; notifications: string[] }>(path, { method: 'DELETE' });
+}
+
+export function renameProviderKey(
+  agentName: string,
+  provider: string,
+  currentLabel: string,
+  newLabel: string,
+  authType?: AuthType,
+) {
+  return fetchMutate<{ id: string; label: string; priority: number }>(
+    routingPath(
+      agentName,
+      `providers/${encodeURIComponent(provider)}/keys/${encodeURIComponent(currentLabel)}`,
+    ),
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newLabel, ...(authType && { authType }) }),
+    },
+  );
+}
+
+export function reorderProviderKeys(
+  agentName: string,
+  provider: string,
+  labels: string[],
+  authType?: AuthType,
+) {
+  return fetchMutate<Array<{ id: string; label: string; priority: number }>>(
+    routingPath(agentName, `providers/${encodeURIComponent(provider)}/keys/order`),
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ labels, ...(authType && { authType }) }),
+    },
+  );
 }
 
 /* -- Routing: Copilot Device Login -- */
@@ -107,10 +161,6 @@ export function toggleComplexity(agentName: string) {
 
 /* -- Routing: Tier Assignments -- */
 
-export interface RequestParamDefaults {
-  thinking?: { type: 'enabled' | 'disabled' };
-}
-
 export interface TierAssignment {
   id: string;
   agent_id: string;
@@ -118,7 +168,6 @@ export interface TierAssignment {
   override_route: ModelRoute | null;
   auto_assigned_route: ModelRoute | null;
   fallback_routes: ModelRoute[] | null;
-  param_defaults: RequestParamDefaults | null;
   updated_at: string;
 }
 
@@ -132,6 +181,7 @@ export function overrideTier(
   model: string,
   provider: string,
   authType?: AuthType,
+  providerKeyLabel?: string,
 ) {
   // The backend requires the structured (provider, authType, model) tuple now
   // that legacy column persistence is gone. authType is optional only for
@@ -141,28 +191,17 @@ export function overrideTier(
   const body: Record<string, unknown> = { model, provider };
   if (authType) {
     body.authType = authType;
-    body.route = { provider, authType, model };
+    const route: ModelRoute = providerKeyLabel
+      ? { provider, authType, model, keyLabel: providerKeyLabel }
+      : { provider, authType, model };
+    body.route = route;
   }
+  if (providerKeyLabel) body.providerKeyLabel = providerKeyLabel;
   return fetchMutate<TierAssignment>(routingPath(agentName, `tiers/${encodeURIComponent(tier)}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-}
-
-export function setTierParamDefaults(
-  agentName: string,
-  tier: string,
-  paramDefaults: RequestParamDefaults | null,
-) {
-  return fetchMutate<TierAssignment>(
-    routingPath(agentName, `tiers/${encodeURIComponent(tier)}/params`),
-    {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paramDefaults }),
-    },
-  );
 }
 
 export function resetTier(agentName: string, tier: string) {

@@ -9,7 +9,11 @@ import type { RoutingProvider, CustomProviderData } from '../../src/services/api
 
 vi.mock('../../src/components/ProviderIcon.js', () => ({
   providerIcon: (id: string) => <span data-testid={`prov-icon-${id}`} />,
-  customProviderLogo: () => null,
+  // Custom provider logo only resolves when the name starts with "Logo:" — that
+  // gives tests an explicit handle on the "logo present" branch alongside the
+  // letter-fallback branch.
+  customProviderLogo: (name: string) =>
+    name?.startsWith('Logo:') ? <span data-testid="custom-logo" /> : null,
 }));
 
 vi.mock('../../src/components/AuthBadge.js', () => ({
@@ -232,5 +236,99 @@ describe('ActiveProviderIcons', () => {
       <ActiveProviderIcons activeProviders={() => providers} customProviders={() => []} />
     ));
     expect(container.querySelector('.provider-card__logo-letter')?.textContent).toBe('C');
+  });
+
+  it('renders the custom-provider logo (not the letter) when customProviderLogo returns markup', () => {
+    const providers: RoutingProvider[] = [
+      {
+        id: 'p1',
+        provider: 'custom:cp-2',
+        auth_type: 'api_key',
+        is_active: true,
+        has_api_key: true,
+        label: 'Default',
+        priority: 0,
+        connected_at: '2025-01-01',
+      },
+    ];
+    const customProviders: CustomProviderData[] = [
+      {
+        id: 'cp-2',
+        name: 'Logo:WithLogo',
+        base_url: 'https://example.com',
+        api_kind: 'openai',
+        has_api_key: true,
+        models: [],
+        created_at: '2025-01-01',
+      },
+    ];
+    const { container } = render(() => (
+      <ActiveProviderIcons activeProviders={() => providers} customProviders={() => customProviders} />
+    ));
+    expect(container.querySelector('[data-testid="custom-logo"]')).not.toBeNull();
+    expect(container.querySelector('.provider-card__logo-letter')).toBeNull();
+  });
+
+  it('renders the multi-key tooltip when 2+ keys share the same (provider, auth_type)', () => {
+    const providers: RoutingProvider[] = [
+      {
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+        has_api_key: true,
+        label: 'Work',
+        priority: 0,
+        connected_at: '2025-01-01',
+      },
+      {
+        id: 'p2',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+        has_api_key: true,
+        label: 'Personal',
+        priority: 1,
+        connected_at: '2025-01-01',
+      },
+    ];
+    const { container } = render(() => (
+      <ActiveProviderIcons activeProviders={() => providers} customProviders={() => []} />
+    ));
+    const tooltip = container.querySelector('.routing-providers-info__tooltip');
+    expect(tooltip).not.toBeNull();
+    expect(tooltip?.textContent).toContain('2 API Key keys');
+    expect(tooltip?.textContent).toContain('Work');
+    expect(tooltip?.textContent).toContain('Personal');
+  });
+
+  it('falls back to "Default" in the multi-key tooltip when a key has no label', () => {
+    const providers: RoutingProvider[] = [
+      {
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+        has_api_key: true,
+        label: '',
+        priority: 0,
+        connected_at: '2025-01-01',
+      },
+      {
+        id: 'p2',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+        has_api_key: true,
+        label: 'Personal',
+        priority: 1,
+        connected_at: '2025-01-01',
+      },
+    ];
+    const { container } = render(() => (
+      <ActiveProviderIcons activeProviders={() => providers} customProviders={() => []} />
+    ));
+    const tooltip = container.querySelector('.routing-providers-info__tooltip');
+    expect(tooltip?.textContent).toContain('Default');
   });
 });

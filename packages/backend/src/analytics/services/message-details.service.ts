@@ -32,6 +32,7 @@ export interface MessageDetailResponse {
     specificity_category: string | null;
     specificity_miscategorized: boolean;
     auth_type: string | null;
+    provider_key_label: string | null;
     skill_name: string | null;
     fallback_from_model: string | null;
     fallback_index: number | null;
@@ -158,6 +159,7 @@ export class MessageDetailsService {
         specificity_category: message.specificity_category,
         specificity_miscategorized: message.specificity_miscategorized,
         auth_type: message.auth_type,
+        provider_key_label: message.provider_key_label,
         skill_name: message.skill_name,
         fallback_from_model: message.fallback_from_model,
         fallback_index: message.fallback_index,

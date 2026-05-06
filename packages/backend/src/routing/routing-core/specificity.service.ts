@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
-import type { AuthType, ModelRoute, RequestParamDefaults } from 'manifest-shared';
+import type { AuthType, ModelRoute } from 'manifest-shared';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { RoutingCacheService } from './routing-cache.service';
@@ -75,10 +75,16 @@ export class SpecificityService {
     model: string,
     provider?: string,
     authType?: AuthType,
+    providerKeyLabel?: string,
   ): Promise<SpecificityAssignment> {
-    const explicit = explicitRoute(model, provider, authType);
+    const explicit = explicitRoute(model, provider, authType, providerKeyLabel);
     const route =
-      explicit ?? unambiguousRoute(model, await this.discoveryService.getModelsForAgent(agentId));
+      explicit ??
+      unambiguousRoute(
+        model,
+        await this.discoveryService.getModelsForAgent(agentId),
+        providerKeyLabel,
+      );
     if (!route) {
       throw new BadRequestException(
         `Model "${model}" is offered by multiple providers — pass an explicit ` +
@@ -111,54 +117,16 @@ export class SpecificityService {
       await this.repo.insert(record);
     } catch {
       const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
-      if (retry) return this.setOverride(agentId, userId, category, model, provider, authType);
-    }
-    this.routingCache.invalidateAgent(agentId);
-    return record;
-  }
-
-  /**
-   * Set or clear the configured request body defaults for a category.
-   * Lazily creates the assignment row (inactive) if missing so the popup
-   * can be opened before the user activates the category. Pass `null` to
-   * clear.
-   */
-  async setParamDefaults(
-    agentId: string,
-    userId: string,
-    category: string,
-    paramDefaults: RequestParamDefaults | null,
-  ): Promise<SpecificityAssignment> {
-    const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
-    if (existing) {
-      existing.param_defaults = paramDefaults;
-      existing.updated_at = new Date().toISOString();
-      await this.repo.save(existing);
-      this.routingCache.invalidateAgent(agentId);
-      return existing;
-    }
-
-    const record = Object.assign(new SpecificityAssignment(), {
-      id: randomUUID(),
-      user_id: userId,
-      agent_id: agentId,
-      category,
-      is_active: false,
-      override_route: null,
-      auto_assigned_route: null,
-      fallback_routes: null,
-      param_defaults: paramDefaults,
-    });
-    try {
-      await this.repo.insert(record);
-    } catch (err) {
-      // Retry handles the unique-index race: a concurrent caller created the
-      // row between our findOne and insert. If no row appeared, the insert
-      // failed for a real reason (DB down, constraint mismatch, etc.) and
-      // we must surface it instead of pretending the write succeeded.
-      const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
-      if (retry) return this.setParamDefaults(agentId, userId, category, paramDefaults);
-      throw err;
+      if (retry)
+        return this.setOverride(
+          agentId,
+          userId,
+          category,
+          model,
+          provider,
+          authType,
+          providerKeyLabel,
+        );
     }
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -212,6 +180,10 @@ export class SpecificityService {
     this.routingCache.invalidateAgent(agentId);
   }
 
+  /**
+   * Mirror of {@link TierService.buildFallbackRoutes} — see that docblock for
+   * the issue #1790 rationale on why this throws instead of returning null.
+   */
   private async buildFallbackRoutes(
     agentId: string,
     models: string[],
@@ -236,7 +208,12 @@ export class SpecificityService {
     const resolved: ModelRoute[] = [];
     for (const m of models) {
       const route = unambiguousRoute(m, available);
-      if (!route) return null;
+      if (!route) {
+        throw new BadRequestException(
+          `Cannot resolve fallback model "${m}" to a single connected provider. ` +
+            `Pass an explicit (provider, authType, model) route, or connect exactly one provider that offers this model.`,
+        );
+      }
       resolved.push(route);
     }
     return resolved;

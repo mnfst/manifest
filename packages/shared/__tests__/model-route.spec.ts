@@ -53,6 +53,26 @@ describe('routeEquals', () => {
     expect(routeEquals(null, undefined)).toBe(false);
     expect(routeEquals(undefined, null)).toBe(false);
   });
+
+  it('compares keyLabel case-insensitively and trims whitespace', () => {
+    expect(routeEquals({ ...base, keyLabel: 'Work' }, { ...base, keyLabel: 'work' })).toBe(true);
+    expect(routeEquals({ ...base, keyLabel: '  Work  ' }, { ...base, keyLabel: 'work' })).toBe(
+      true,
+    );
+  });
+
+  it('treats whitespace-only and empty keyLabel as equivalent to null/undefined', () => {
+    expect(routeEquals({ ...base, keyLabel: '' }, { ...base, keyLabel: null })).toBe(true);
+    expect(routeEquals({ ...base, keyLabel: '   ' }, base)).toBe(true);
+    expect(routeEquals({ ...base, keyLabel: undefined }, base)).toBe(true);
+  });
+
+  it('returns false when keyLabel pins differ', () => {
+    expect(routeEquals({ ...base, keyLabel: 'Work' }, { ...base, keyLabel: 'Personal' })).toBe(
+      false,
+    );
+    expect(routeEquals({ ...base, keyLabel: 'Work' }, base)).toBe(false);
+  });
 });
 
 describe('isModelRoute', () => {
@@ -97,6 +117,28 @@ describe('isModelRoute', () => {
     // value validity is enforced elsewhere in the read pipeline, so a
     // non-canonical string still passes the structural shape check.
     expect(isModelRoute({ provider: 'openai', authType: 'mystery', model: 'm' })).toBe(true);
+  });
+
+  it('accepts null/undefined/missing keyLabel', () => {
+    expect(isModelRoute({ provider: 'openai', authType: 'api_key', model: 'm', keyLabel: null }))
+      .toBe(true);
+    expect(
+      isModelRoute({ provider: 'openai', authType: 'api_key', model: 'm', keyLabel: undefined }),
+    ).toBe(true);
+    expect(isModelRoute({ provider: 'openai', authType: 'api_key', model: 'm', keyLabel: 'Work' }))
+      .toBe(true);
+  });
+
+  it('rejects a non-string keyLabel', () => {
+    expect(isModelRoute({ provider: 'openai', authType: 'api_key', model: 'm', keyLabel: 1 })).toBe(
+      false,
+    );
+    expect(
+      isModelRoute({ provider: 'openai', authType: 'api_key', model: 'm', keyLabel: ['Work'] }),
+    ).toBe(false);
+    expect(isModelRoute({ provider: 'openai', authType: 'api_key', model: 'm', keyLabel: {} })).toBe(
+      false,
+    );
   });
 });
 

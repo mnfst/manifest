@@ -190,6 +190,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   <MetaField label="ID" value={m.id} />
                   <MetaField label="Provider" value={provider} />
                   <MetaField label="Auth" value={m.auth_type} />
+                  <MetaField label="API Key" value={m.provider_key_label ?? 'Default'} />
                   <MetaField label="Model" value={m.model ? getModelDisplayName(m.model) : null} />
                   <MetaField label="Model ID" value={m.model} />
                   <MetaField label="Trace" value={m.trace_id?.slice(0, 16)} />

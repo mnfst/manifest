@@ -458,10 +458,15 @@ describe('MessageDetails', () => {
     expect(toggle!.tagName).toBe('BUTTON');
     expect(toggle!.getAttribute('aria-expanded')).toBe('false');
 
-    // Count badge stays visible when collapsed.
+    // Count badge stays visible when collapsed. Request Headers uses the
+    // distinct `msg-detail__count-badge` styling (border + bg) merged in from
+    // the header-tier work, while the table sections still use the plain
+    // `msg-detail__count`. Together they cover all four section counts.
+    const headerCount = container.querySelector('.msg-detail__count-badge');
+    expect(headerCount).not.toBeNull();
+    expect(headerCount!.textContent).toBe('3');
     const counts = container.querySelectorAll('.msg-detail__count');
-    expect(counts.length).toBe(4);
-    expect(counts[0]!.textContent).toBe('3');
+    expect(counts.length).toBe(3);
 
     // Table body is not rendered while collapsed.
     expect(container.textContent).not.toContain('curl/8.14.1');
