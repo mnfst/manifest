@@ -118,6 +118,14 @@ const Header: Component = () => {
             Self-hosted
           </span>
         </Show>
+        {__DEV_MODE__ && (
+          <span
+            class="header__mode-badge header__mode-badge--dev"
+            title="Vite dev server (npm run dev). Not a production build."
+          >
+            Dev
+          </span>
+        )}
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
           <A href="/" class="header__breadcrumb-link">

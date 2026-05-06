@@ -4,6 +4,7 @@ import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
 import VersionIndicator from './components/VersionIndicator.jsx';
+import WingmanDevTools from './components/WingmanDevTools.jsx';
 import { connectSse } from './services/sse.js';
 
 const SseConnector: ParentComponent = (props) => {
@@ -41,6 +42,7 @@ const App: ParentComponent = (props) => {
             </main>
           </div>
           <VersionIndicator />
+          {__DEV_MODE__ && <WingmanDevTools />}
         </div>
       </SseConnector>
     </AuthGuard>
