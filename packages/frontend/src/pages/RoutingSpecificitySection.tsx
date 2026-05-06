@@ -12,6 +12,7 @@ import type {
   TierAssignment,
   AvailableModel,
   AuthType,
+  RequestParamDefaults,
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
@@ -157,6 +158,12 @@ export interface RoutingSpecificitySectionProps {
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
   embedded?: boolean;
+  persistParamDefaults?: (
+    agentName: string,
+    category: string,
+    paramDefaults: RequestParamDefaults | null,
+  ) => Promise<unknown>;
+  onParamDefaultsSaved?: (category: string, paramDefaults: RequestParamDefaults | null) => void;
 }
 
 function toTierAssignment(a: SpecificityAssignment | undefined): TierAssignment | undefined {
@@ -249,6 +256,8 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 persistClearFallbacks={(_agentName, category) =>
                   clearSpecificityFallbacks(_agentName, category)
                 }
+                persistParamDefaults={props.persistParamDefaults}
+                onParamDefaultsSaved={props.onParamDefaultsSaved}
               />
             )}
           </For>
