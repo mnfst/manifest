@@ -288,7 +288,11 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
   default: (props: {
     onDropdownOpen: (cat: string) => void;
     onReset: (cat: string) => void;
-    onFallbackUpdate: (cat: string, fbs: string[]) => void;
+    onFallbackUpdate: (
+      cat: string,
+      fbs: string[],
+      routes?: { provider: string; authType: string; model: string }[] | null,
+    ) => void;
     onAddFallback: (cat: string) => void;
     onPinKey?: (
       cat: string,
@@ -306,13 +310,23 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
       </button>
       <button
         data-testid="spec-fb-update-add"
-        onClick={() => props.onFallbackUpdate("coding", ["fb1"])}
+        onClick={() =>
+          props.onFallbackUpdate("coding", ["fb1"], [
+            { provider: "openai", authType: "api_key", model: "fb1" },
+          ])
+        }
       >
         spec-fb-add
       </button>
       <button
+        data-testid="spec-fb-update-add-no-routes"
+        onClick={() => props.onFallbackUpdate("coding", ["fb1"])}
+      >
+        spec-fb-add-no-routes
+      </button>
+      <button
         data-testid="spec-fb-update-clear"
-        onClick={() => props.onFallbackUpdate("coding", [])}
+        onClick={() => props.onFallbackUpdate("coding", [], null)}
       >
         spec-fb-clear
       </button>
@@ -624,40 +638,31 @@ describe("Routing page", () => {
     });
   });
 
-  it("calls setSpecificityFallbacks for non-empty fallback updates from the spec section", async () => {
-    mockSetSpecificityFallbacks.mockResolvedValue(undefined);
+  it("does not fire a parallel persist call from spec onFallbackUpdate when routes are provided", async () => {
+    // The optimistic state mutation only updates local resource state.
+    // Persistence is handled by persistFallbacks; a second call here would
+    // race the first and could drop route metadata.
     render(() => <Routing />);
     await waitFor(() => {
       expect(screen.getByTestId("spec-fb-update-add")).toBeDefined();
     });
     fireEvent.click(screen.getByTestId("spec-fb-update-add"));
-    await waitFor(() => {
-      expect(mockSetSpecificityFallbacks).toHaveBeenCalledWith("demo", "coding", ["fb1"]);
-    });
-  });
-
-  it("calls clearSpecificityFallbacks for empty fallback updates from the spec section", async () => {
-    mockClearSpecificityFallbacks.mockResolvedValue(undefined);
-    render(() => <Routing />);
-    await waitFor(() => {
-      expect(screen.getByTestId("spec-fb-update-clear")).toBeDefined();
-    });
     fireEvent.click(screen.getByTestId("spec-fb-update-clear"));
-    await waitFor(() => {
-      expect(mockClearSpecificityFallbacks).toHaveBeenCalledWith("demo", "coding");
-    });
+    // Give the async handler a chance to fire if it were going to.
+    await new Promise((r) => setTimeout(r, 10));
+    expect(mockSetSpecificityFallbacks).not.toHaveBeenCalled();
+    expect(mockClearSpecificityFallbacks).not.toHaveBeenCalled();
   });
 
-  it("toasts when spec fallback update fails", async () => {
-    mockSetSpecificityFallbacks.mockRejectedValue(new Error("boom"));
+  it("returns early when spec onFallbackUpdate is called without routes", async () => {
     render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByTestId("spec-fb-update-add")).toBeDefined();
+      expect(screen.getByTestId("spec-fb-update-add-no-routes")).toBeDefined();
     });
-    fireEvent.click(screen.getByTestId("spec-fb-update-add"));
-    await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith("Failed to update fallbacks");
-    });
+    fireEvent.click(screen.getByTestId("spec-fb-update-add-no-routes"));
+    await new Promise((r) => setTimeout(r, 10));
+    expect(mockSetSpecificityFallbacks).not.toHaveBeenCalled();
+    expect(mockToastError).not.toHaveBeenCalled();
   });
 
   describe("handleSpecificityPinKey", () => {
