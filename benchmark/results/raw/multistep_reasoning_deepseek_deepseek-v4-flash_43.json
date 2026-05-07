@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "Coal is a fossil fuel that originates from ancient plant material. Over millions of years, layers of plant remains were buried, compacted, and subjected to heat and pressure, transforming into coal.  \n\nThe correct answer is D.  \n\nD",
+  "score": 5,
+  "cost": 3.7940000000000006e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 75,
+    "output": 49
+  }
+}

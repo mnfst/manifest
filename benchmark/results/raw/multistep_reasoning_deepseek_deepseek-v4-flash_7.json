@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "multistep_reasoning",
+  "case": 7,
+  "response": "A) car engine.",
+  "score": 5,
+  "cost": 7.937999999999999e-05,
+  "expected": "A",
+  "tokens": {
+    "input": 67,
+    "output": 125
+  }
+}

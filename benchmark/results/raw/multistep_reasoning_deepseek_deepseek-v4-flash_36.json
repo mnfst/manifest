@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "multistep_reasoning",
+  "case": 36,
+  "response": "The momentum is given by \\( p = m v \\).  \nHere, \\( m = 0.15 \\, \\text{kg} \\) and \\( v = 40 \\, \\text{m/s} \\).  \nSo, \\( p = 0.15 \\times 40 = 6.0 \\, \\text{kg} \\cdot \\text{m/s} \\).  \n\nThe correct answer is C.",
+  "score": 5,
+  "cost": 6.37e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 115,
+    "output": 85
+  }
+}

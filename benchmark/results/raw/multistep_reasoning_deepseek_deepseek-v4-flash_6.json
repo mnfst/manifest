@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "When a wooden log burns, it undergoes a chemical reaction (combustion). The wood combines with oxygen, producing ash, carbon dioxide, water vapor, and releasing heat and light energy. The matter is not destroyed; it is transformed into other forms of matter and energy.  \n\nThe correct answer is C.  \n\nAnswer: C",
+  "score": 5,
+  "cost": 4.914e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 87,
+    "output": 66
+  }
+}

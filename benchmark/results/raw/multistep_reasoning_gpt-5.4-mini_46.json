@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-mini",
+  "task": "multistep_reasoning",
+  "case": 46,
+  "response": "D",
+  "score": 0,
+  "cost": 4.59e-05,
+  "expected": "A",
+  "tokens": {
+    "input": 113,
+    "output": 10
+  }
+}

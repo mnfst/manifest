@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v4-flash",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "D",
+  "score": 5,
+  "cost": 7.812e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 94,
+    "output": 116
+  }
+}

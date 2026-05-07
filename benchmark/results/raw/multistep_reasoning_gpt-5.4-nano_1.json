@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4-nano",
+  "task": "multistep_reasoning",
+  "case": 1,
+  "response": "C",
+  "score": 5,
+  "cost": 1.19e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 103,
+    "output": 4
+  }
+}
