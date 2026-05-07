@@ -1,5 +1,45 @@
 # manifest
 
+## 6.2.0
+
+### Minor Changes
+
+- ef46fa0: Per-assignment request body defaults: each tier and specificity slot now carries an optional `param_defaults` JSONB column that the proxy merges into the outbound provider request before forwarding. Initial knob is DeepSeek's thinking-mode toggle (`{ thinking: { type: 'enabled' | 'disabled' } }`) — fixes empty-content responses on DeepSeek V4 Flash/Pro that consume the `max_tokens` budget on reasoning. Precedence is presence-based: client-supplied fields in the request body always win, so explicit per-call overrides keep working.
+
+  Configure from the routing UI via a new "Parameters" button on each model chip; persisted via `PATCH /api/v1/routing/:agent/tiers/:tier/params` and `…/specificity/:category/params`.
+
+- 085431c: Per-message model parameter telemetry. Each `agent_messages` row now carries a `request_params` JSONB snapshot of the effective request body parameters that hit the provider (today: DeepSeek's `thinking` toggle; future provider knobs and user-defined custom-provider params land here without a schema change). The dashboard's expanded message detail shows a new "Model Parameters" accordion next to Request Headers, with an info tooltip explaining the field. Existing rows stay NULL — back-compat is preserved.
+- d3b551f: Per-provider model refresh: a small refresh button next to each provider in the Connect Providers detail view and next to each section header in the model picker. Toasts now report the actual count or upstream error instead of a blanket "Models refreshed" lie. Empty discovery results no longer wipe a non-empty cache, so a transient API hiccup can't silently empty the model list. The model picker subtitle now shows "Default tier" instead of just "tier".
+
+### Patch Changes
+
+- ec7fc12: Restore the per-tier (and per-specificity) Model Parameters dialog that was inadvertently dropped during a stacked-PR merge. The sliders icon is back on every primary model chip in Routing for providers that consume known params (today: DeepSeek's `thinking` toggle). The dialog persists per-assignment, so a single configured value applies to the primary model AND every fallback the proxy tries — without per-route schema changes. Multi-key compatible: pinning a different key on the same route does not affect the stored params, and switching keys mid-flight keeps using whatever the proxy resolved for that iteration.
+
+  Adds back: `PATCH /api/v1/routing/:agent/tiers/:tier/params`, `…/specificity/:category/params`, `TierService.setParamDefaults`, `SpecificityService.setParamDefaults`, frontend `setTierParamDefaults` / `setSpecificityParamDefaults`, and `ModelParamsDialog`.
+
+- c446856: fix(routing): attribute models by their connection's provider, not by model-id prefix
+
+  The routing UI used to derive a model's logo from the prefix of its model id,
+  which broke for any provider that redistributes other vendors' models. Most
+  visibly, a Groq connection serving `qwen/qwen3-32b` rendered with the Qwen
+  logo and Qwen-on-OpenRouter pricing (≈$0.08/$0.24 per 1M) instead of Groq's
+  own pricing ($0.29/$0.59).
+
+  Two changes:
+  - **Frontend** (`RoutingTierCard.providerIdForModel`): when a model row has a
+    stored `provider` that resolves to a registered first-party provider, that
+    wins over prefix inference. OpenRouter remains the documented exception
+    because its rows really do represent vendor-prefixed models served on behalf
+    of those vendors.
+  - **Backend** (`ModelDiscoveryService.enrichModel`): `known-model-prices.ts`
+    is now consulted _before_ models.dev and the OpenRouter cache, so curated
+    per-provider prices win over upstream catalogs that may attribute the same
+    model id to a different (cheaper) inference provider. Behaviour change for
+    the existing entries (moonshot-v1, gemma-3-1b-it, gemini-pro-latest): they
+    become authoritative instead of last-resort, which matches their intent.
+
+  Builds on #1772, which introduced `route.provider` as the routing identity.
+
 ## 6.1.0
 
 ### Minor Changes
