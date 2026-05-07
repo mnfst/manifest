@@ -110,8 +110,12 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
     /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image|^gpt-image-|search-api)/i,
   'openai-subscription':
     /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio|^chatgpt-image|^gpt-image-)/i,
+  // `flash-lite-preview-MM-YYYY` matches deprecated dated snapshots
+  // (e.g. gemini-2.5-flash-lite-preview-09-2025). The unsuffixed
+  // `gemini-3.1-flash-lite-preview` is the canonical preview alias and
+  // must NOT be filtered.
   gemini:
-    /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview|robotics)/i,
+    /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview-\d{2}-\d{4}$|robotics)/i,
   mistral:
     /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-|^mistral-vibe-cli)/i,
   xai: /(?:imagine|multi-agent)/i,
