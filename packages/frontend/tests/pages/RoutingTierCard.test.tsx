@@ -1313,6 +1313,140 @@ describe("RoutingTierCard", () => {
       expect(btn!.classList.contains("routing-card__chip-action--configured")).toBe(true);
     });
 
+    it("renders the sliders icon when DeepSeek is only a fallback", () => {
+      // Primary is OpenAI (no thinking param), fallback is DeepSeek. The
+      // tier-level `param_defaults` is filtered per-attempt against each
+      // route's provider in the proxy, so the affordance must be reachable
+      // even when the user picked OpenAI as primary.
+      const openaiPrimaryDeepseekFallback: TierAssignment = {
+        id: "t-mixed",
+        agent_id: "a1",
+        tier: "simple",
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+        auto_assigned_route: null,
+        fallback_routes: [
+          { provider: "deepseek", authType: "api_key", model: "deepseek-v4-flash" },
+        ],
+        updated_at: "2025-01-01",
+      };
+      const mixedModels: AvailableModel[] = [
+        ...deepseekModels,
+        {
+          model_name: "gpt-4o",
+          provider: "OpenAI",
+          auth_type: "api_key",
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+          context_window: 128000,
+          capability_reasoning: false,
+          capability_code: false,
+          quality_score: 8,
+          display_name: "GPT-4o",
+        },
+      ];
+      const mixedProviders: RoutingProvider[] = [
+        ...deepseekProviders,
+        {
+          id: "p-oa",
+          provider: "openai",
+          auth_type: "api_key",
+          is_active: true,
+          has_api_key: true,
+          connected_at: "2025-01-01",
+        },
+      ];
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => openaiPrimaryDeepseekFallback,
+            models: () => mixedModels,
+            activeProviders: () => mixedProviders,
+            connectedProviders: () => mixedProviders,
+            persistParamDefaults: vi.fn(),
+            getFallbacksFor: () => ["deepseek-v4-flash"],
+          })}
+        />
+      ));
+      const btn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+      ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"));
+      expect(btn).toBeDefined();
+    });
+
+    it("does not render the sliders icon when neither primary nor any fallback is params-compatible", () => {
+      const openaiOnlyTier: TierAssignment = {
+        id: "t-oa",
+        agent_id: "a1",
+        tier: "simple",
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+        auto_assigned_route: null,
+        fallback_routes: [
+          { provider: "anthropic", authType: "api_key", model: "claude-sonnet-4-6" },
+        ],
+        updated_at: "2025-01-01",
+      };
+      const openaiAnthropicModels: AvailableModel[] = [
+        {
+          model_name: "gpt-4o",
+          provider: "OpenAI",
+          auth_type: "api_key",
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+          context_window: 128000,
+          capability_reasoning: false,
+          capability_code: false,
+          quality_score: 8,
+          display_name: "GPT-4o",
+        },
+        {
+          model_name: "claude-sonnet-4-6",
+          provider: "Anthropic",
+          auth_type: "api_key",
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+          context_window: 200000,
+          capability_reasoning: false,
+          capability_code: false,
+          quality_score: 9,
+          display_name: "Claude Sonnet 4.6",
+        },
+      ];
+      const openaiAnthropicProviders: RoutingProvider[] = [
+        {
+          id: "p-oa",
+          provider: "openai",
+          auth_type: "api_key",
+          is_active: true,
+          has_api_key: true,
+          connected_at: "2025-01-01",
+        },
+        {
+          id: "p-an",
+          provider: "anthropic",
+          auth_type: "api_key",
+          is_active: true,
+          has_api_key: true,
+          connected_at: "2025-01-01",
+        },
+      ];
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => openaiOnlyTier,
+            models: () => openaiAnthropicModels,
+            activeProviders: () => openaiAnthropicProviders,
+            connectedProviders: () => openaiAnthropicProviders,
+            persistParamDefaults: vi.fn(),
+            getFallbacksFor: () => ["claude-sonnet-4-6"],
+          })}
+        />
+      ));
+      const labels = Array.from(
+        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+      ).map((b) => b.getAttribute("aria-label"));
+      expect(labels.some((l) => l?.startsWith("Configure model parameters"))).toBe(false);
+    });
+
     it("clicking the icon opens the dialog and saving flows through persistParamDefaults + onParamDefaultsSaved", async () => {
       const persist = vi.fn().mockResolvedValue(undefined);
       const saved = vi.fn();

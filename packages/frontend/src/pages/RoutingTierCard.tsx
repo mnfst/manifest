@@ -149,20 +149,27 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const [primaryDropTarget, setPrimaryDropTarget] = createSignal(false);
   const [paramsDialogOpen, setParamsDialogOpen] = createSignal(false);
 
-  // The sliders icon only renders for providers whose API consumes a known
-  // param key (today: DeepSeek's `thinking`). Picking the resolved primary's
-  // provider here keeps the icon consistent with the chip the user is
-  // looking at — multi-key compat is implicit because params are stored at
-  // the tier level, independent of which key is currently pinned.
-  const paramSurfaceProvider = () => {
+  // The sliders icon renders when any route in the tier (primary or fallback)
+  // hits a provider whose API consumes a known param key — today only
+  // DeepSeek's `thinking`. Param defaults are stored at the tier level and
+  // filtered per-attempt against the actual provider in the proxy, so a tier
+  // with DeepSeek only as a fallback still benefits from the toggle. The
+  // dialog's provider-default hint follows the first compatible route in the
+  // ordered list, primary first.
+  const orderedRouteProviders = (): string[] => {
     const t = props.tier();
-    const route = t ? effectiveRoute(t) : null;
-    return route?.provider ?? null;
+    if (!t) return [];
+    const out: string[] = [];
+    const primary = effectiveRoute(t)?.provider;
+    if (primary) out.push(primary);
+    for (const r of t.fallback_routes ?? []) {
+      if (r.provider) out.push(r.provider);
+    }
+    return out;
   };
-  const supportsParams = () => {
-    const p = paramSurfaceProvider();
-    return p !== null && providerThinkingDefault(p) !== undefined;
-  };
+  const paramSurfaceProvider = () =>
+    orderedRouteProviders().find((p) => providerThinkingDefault(p) !== undefined) ?? null;
+  const supportsParams = () => paramSurfaceProvider() !== null;
   const paramsConfigured = () => (props.tier()?.param_defaults ?? null) !== null;
 
   const handlePrimaryDragStart = (e: DragEvent) => {
