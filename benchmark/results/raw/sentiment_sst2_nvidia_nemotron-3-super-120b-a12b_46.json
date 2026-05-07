@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "sentiment_sst2",
   "case": 46,
-  "response": "We need to classify sentiment of the given text as positive or negative. The text: \"the weight",
+  "response": "We need to classify sentiment as positive or negative. The text: \"the weight of the piece ,",
   "score": 5,
   "cost": 8.91e-06,
   "expected": "positive",

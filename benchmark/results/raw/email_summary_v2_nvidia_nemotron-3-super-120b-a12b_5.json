@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 5,
-  "response": "The payment integration failed PCI compliance, requiring an additional two weeks and presenting two",
+  "response": "The payment integration did not meet PCI compliance,",
   "score": 0,
   "cost": 2.808e-05,
   "expected": "",

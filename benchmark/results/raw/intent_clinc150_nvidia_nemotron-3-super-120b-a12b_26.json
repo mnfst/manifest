@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "intent_clinc150",
   "case": 26,
-  "response": "We need to map user message \"can you speak quieter\" to an intent from list. Lik",
+  "response": "",
   "score": 0,
   "cost": 5.283e-05,
   "expected": "change_volume",

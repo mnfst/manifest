@@ -2,8 +2,8 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "intent_clinc150",
   "case": 28,
-  "response": "We need to classify the user message \"could you repeat that\". The intents list includes \"repeat",
-  "score": 5,
+  "response": "",
+  "score": 0,
   "cost": 5.273999999999999e-05,
   "expected": "repeat",
   "tokens": {

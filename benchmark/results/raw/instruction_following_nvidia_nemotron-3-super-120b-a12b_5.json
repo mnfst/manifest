@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 5,
-  "response": "",
+  "response": "The sun dips low, pouring liquid gold across the horizon that slowly bleeds into soft apricot and then a deepening lav",
   "score": 0,
   "cost": 4.7969999999999996e-05,
   "expected": "",

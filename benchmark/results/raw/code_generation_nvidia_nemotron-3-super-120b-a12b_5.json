@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_generation",
   "case": 5,
-  "response": "return max(l)",
+  "response": "if not l:\n        raise ValueError(\"max_element() arg is an empty sequence\")\n    max_val = l[0]\n    for item in l[1:]:\n        if item > max_val:\n            max_val = item\n    return max_val",
   "score": 0,
-  "cost": 3.447e-05,
+  "cost": 3.006e-05,
   "expected": "",
   "tokens": {
     "input": 128,
-    "output": 255
+    "output": 206
   }
 }

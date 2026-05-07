@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "rag_qa",
   "case": 6,
-  "response": "TFEU article\u202f294 defines the ordinary legislative procedure that applies for most EU acts.",
+  "response": "TFEU article 294",
   "score": 0,
-  "cost": 4.428e-05,
+  "cost": 3.645e-05,
   "expected": "TFEU article 294",
   "tokens": {
-    "input": 408,
-    "output": 84
+    "input": 399,
+    "output": 6
   }
 }

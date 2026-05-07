@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 13,
-  "response": "",
+  "response": "The CS team reported Q1 improvements with NPS rising to 62, support CSAT at 4.3/5, and churn dropping",
   "score": 0,
   "cost": 2.9789999999999998e-05,
   "expected": "",

@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "intent_clinc150",
   "case": 10,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "pto_request",
+  "score": 5,
+  "cost": 0.004195,
   "expected": "pto_request",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 511,
+    "output": 82
   }
 }

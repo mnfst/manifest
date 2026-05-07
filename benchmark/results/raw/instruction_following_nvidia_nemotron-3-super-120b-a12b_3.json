@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 3,
-  "response": "FRANCE, GERMANY, ITALY, SPAIN, POLAND",
+  "response": "FRANCE\nGERMANY\nITALY\nSPAIN\nUNITED KINGDOM",
   "score": 0,
-  "cost": 3.33e-06,
+  "cost": 3.42e-06,
   "expected": "",
   "tokens": {
     "input": 20,
-    "output": 17
+    "output": 18
   }
 }

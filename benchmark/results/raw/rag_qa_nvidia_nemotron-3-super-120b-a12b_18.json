@@ -4,10 +4,10 @@
   "case": 18,
   "response": "Allan Bloom",
   "score": 0,
-  "cost": 2.52e-05,
+  "cost": 2.529e-05,
   "expected": "Allan Bloom",
   "tokens": {
     "input": 183,
-    "output": 97
+    "output": 98
   }
 }

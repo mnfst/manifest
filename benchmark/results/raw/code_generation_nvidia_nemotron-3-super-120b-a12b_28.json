@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_generation",
   "case": 28,
-  "response": "result = []\n    for i, row in enumerate(lst):\n        for j, val in enumerate(row):\n            if val == x:\n                result.append((i, j))\n    return sorted(result, key=lambda t: (t[0], -t[1]))",
+  "response": "coords = []\n    for i, row in enumerate(lst):\n        for j, val in enumerate(row):\n            if val == x:\n                coords.append((i, j))\n    coords.sort(key=lambda t: (t[0], -t[1]))\n    return coords",
   "score": 0,
-  "cost": 6.3e-05,
+  "cost": 3.132e-05,
   "expected": "",
   "tokens": {
-    "input": 303,
-    "output": 397
+    "input": 291,
+    "output": 57
   }
 }

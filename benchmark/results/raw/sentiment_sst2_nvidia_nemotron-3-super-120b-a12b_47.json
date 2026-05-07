@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "sentiment_sst2",
   "case": 47,
-  "response": "We need to output only the sentiment? Actually they want classification of the following text as exactly one of",
+  "response": "",
   "score": 0,
   "cost": 8.730000000000001e-06,
   "expected": "negative",

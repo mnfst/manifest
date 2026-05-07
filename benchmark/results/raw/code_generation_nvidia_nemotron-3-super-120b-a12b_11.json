@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_generation",
   "case": 11,
-  "response": "total = sum(numbers)\n    prod = 1\n    for n in numbers:\n        prod *= n\n    return total, prod",
+  "response": "total = sum(numbers)\n    prod = 1\n    for n in numbers:\n        prod *= n\n    return (total, prod)",
   "score": 0,
-  "cost": 3.4200000000000005e-05,
+  "cost": 3.519e-05,
   "expected": "",
   "tokens": {
     "input": 154,
-    "output": 226
+    "output": 237
   }
 }

@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 24,
-  "response": "Design System v",
+  "response": "The Design System v3 is now ready for adoption, introducing new dark\u2011mode color tokens, a revised 4\u202fpx base spacing scale, and updated Button and Modal components, along with a migration tool to assist the transition. Please roll out the update team by team, starting with the Settings page.",
   "score": 0,
-  "cost": 2.664e-05,
+  "cost": 2.601e-05,
   "expected": "",
   "tokens": {
     "input": 96,
-    "output": 200
+    "output": 193
   }
 }

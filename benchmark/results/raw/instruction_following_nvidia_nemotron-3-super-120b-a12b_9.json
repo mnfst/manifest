@@ -4,10 +4,10 @@
   "case": 9,
   "response": "April\nJune\nSeptember\nNovember",
   "score": 0,
-  "cost": 1.2329999999999999e-05,
+  "cost": 1.125e-05,
   "expected": "",
   "tokens": {
     "input": 33,
-    "output": 104
+    "output": 92
   }
 }

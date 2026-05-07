@@ -3,7 +3,7 @@
   "task": "reasoning_gsm8k",
   "case": 23,
   "response": "",
-  "score": 0,
+  "score": 1,
   "cost": 0.0,
   "expected": "11050",
   "tokens": {

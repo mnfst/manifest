@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "data_to_text",
   "case": 8,
-  "response": "The patient is a 45\u2011year\u2011old female with a BMI of 27.3 and a blood pressure of 138/88\u202fmm\u202fHg. Her total cholesterol is 225\u202fmg/dL, fasting glucose is 110",
+  "response": "The patient is a 45\u2011year\u2011old female with a BMI of 27.3, blood pressure of 138/88\u202fmm\u202fHg, total cholesterol of 225\u202fmg/dL, and fasting glucose of 110\u202fmg/dL. She does not smoke, exercises twice a week, and has a family history of diabetes in her mother.",
   "score": 0,
-  "cost": 3.735e-05,
+  "cost": 3.726e-05,
   "expected": "",
   "tokens": {
     "input": 115,
-    "output": 300
+    "output": 299
   }
 }

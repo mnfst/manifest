@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 37,
-  "response": "The taste of rich dark chocolate is like **unfolding a letter written in velvet ink**\u2014first, a quiet, almost solemn bitterness lingers on the tongue, like the faint scent of aged paper and dust motes in a sunlit library. Then, slowly, the sweetness emerges\u2014not as a shout, but as a warm revelation: the smooth, deep resonance of cocoa butter melting, revealing notes of dried cherry, toasted almond, and a whisper of earth, as if the words themselves were shifting from ink to honey as you read. It\u2019s not merely eaten; it\u2019s *discovered*, layer by quiet layer, leaving a quiet hum of satisfaction long after the last fragment dissolves\u2014like the quiet joy of understanding a poem you didn\u2019t know you were waiting to hear.  \n\n*(This metaphor leans into chocolate\u2019s complexity\u2014its initial bitterness giving way to layered sweetness and texture\u2014while evoking intimacy, patience, and sensory depth, avoiding clich\u00e9s like \"heavenly\" or \"sinful.\")*",
+  "response": "",
   "score": 0,
-  "cost": 4.617e-05,
+  "cost": 4.77e-05,
   "expected": "",
   "tokens": {
     "input": 30,
-    "output": 483
+    "output": 500
   }
 }

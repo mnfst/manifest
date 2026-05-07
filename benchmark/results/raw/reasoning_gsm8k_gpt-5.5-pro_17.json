@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 17,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "Ted buys 3 books for $16 each:\n\n3 \u00d7 16 = 48\n\nHe buys 3 pencils for $6 each:\n\n3 \u00d7 6 = 18\n\nTotal spent:\n\n48 + 18 = 66\n\nANSWER: 66",
+  "score": 5,
+  "cost": 0.00312,
   "expected": "66",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 76,
+    "output": 137
   }
 }

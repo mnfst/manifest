@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "intent_clinc150",
   "case": 1,
-  "response": "We need to map the user message to one of the intents. The message: \"can you",
+  "response": "",
   "score": 0,
   "cost": 5.327999999999999e-05,
   "expected": "find_phone",

@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 14,
-  "response": "The AWS bill has risen 40% month\u2011over\u2011month, driven by new ML training jobs on p4d instances costing about $45K per month. DevOps recommends deciding by Friday whether to switch to spot instances for ~70% savings (",
+  "response": "The AWS bill increased 40% month\u2011over\u2011month, driven by new ML training jobs on p4d instances costing an estimated $45K monthly. DevOps recommends deciding by Friday whether to use spot instances for ~70% savings (with interruption risk) or reserved instances for",
   "score": 0,
   "cost": 2.916e-05,
   "expected": "",

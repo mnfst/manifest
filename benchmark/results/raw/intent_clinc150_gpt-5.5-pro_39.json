@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "intent_clinc150",
   "case": 39,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "how_old_are_you",
+  "score": 5,
+  "cost": 0.00356,
   "expected": "how_old_are_you",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 512,
+    "output": 50
   }
 }

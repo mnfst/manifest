@@ -4,10 +4,10 @@
   "case": 13,
   "response": "{\"total_credits\":8000,\"total_debits\":4500,\"net\":3500,\"transaction_count\":5}",
   "score": 0,
-  "cost": 2.736e-05,
+  "cost": 1.404e-05,
   "expected": "",
   "tokens": {
-    "input": 154,
-    "output": 150
+    "input": 130,
+    "output": 26
   }
 }

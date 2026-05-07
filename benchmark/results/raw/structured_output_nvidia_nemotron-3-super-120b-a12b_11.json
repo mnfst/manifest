@@ -4,10 +4,10 @@
   "case": 11,
   "response": "{\n  \"name\": \"Maria Rodriguez\",\n  \"date_of_birth\": \"1985-03-22\",\n  \"blood_type\": \"O+\",\n  \"allergies\": [\n    \"penicillin\",\n    \"shellfish\"\n  ],\n  \"medications\": [\n    {\n      \"name\": \"lisinopril\",\n      \"dosage\": \"10mg\",\n      \"frequency\": \"daily\"\n    }\n  ]\n}",
   "score": 0,
-  "cost": 2.97e-05,
+  "cost": 2.961e-05,
   "expected": "",
   "tokens": {
     "input": 132,
-    "output": 198
+    "output": 197
   }
 }

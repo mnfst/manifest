@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "intent_clinc150",
   "case": 17,
-  "response": "We need to classify the user message \"what stuff am i trying to remember\" into one of the",
+  "response": "We need to classify the user message: \"what stuff am i trying to remember\". This is asking",
   "score": 0,
   "cost": 5.3009999999999996e-05,
   "expected": "reminder",

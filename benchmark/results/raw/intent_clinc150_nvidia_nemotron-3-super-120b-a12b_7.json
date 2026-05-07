@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "intent_clinc150",
   "case": 7,
-  "response": "",
+  "response": "We need to classify the user message: \"i'm changing your name to goliath\". This",
   "score": 0,
   "cost": 5.319e-05,
   "expected": "change_ai_name",

@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 16,
-  "response": "The April marketing campaign generated 45K impressions, 2.3K clicks (5.1% CTR), and 187 signups (8.1% conversion) at a cost of",
+  "response": "",
   "score": 0,
   "cost": 3.006e-05,
   "expected": "",

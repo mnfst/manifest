@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 19,
-  "response": "The Datadog contract expires June\u202f30, with a",
+  "response": "",
   "score": 0,
   "cost": 2.907e-05,
   "expected": "",

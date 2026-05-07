@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 44,
-  "response": "- [ ] Lettuce (e.g., romaine, iceberg, or mixed greens)  \n- [ ] Tomato (cherry or sliced)  \n- [ ] Cucumber (sliced)  \n- [ ] Carrot (shredded or thinly sliced)  \n- [ ] Red onion (thinly sliced)  \n- [ ] Bell pepper (any color, sliced)  \n- [ ] Avocado (optional, diced)  \n- [ ] Olive oil (for dressing)  \n- [ ] Lemon juice or vinegar (for dressing)  \n- [ ] Salt and pepper (to taste)",
+  "response": "Here's a list of ingredients for a basic, versatile green salad in checkbox format:\n\n- [ ] Lettuce base (e.g., romaine, iceberg, or mixed greens)\n- [ ] Tomatoes (cherry or regular, chopped)\n- [ ] Cucumber (sliced or diced)\n- [ ] Red onion (thinly sliced, optional for milder flavor)\n- [ ] Carrot (shredded or julienned)\n- [ ] Simple vinaigrette (olive oil, vinegar/lemon juice, salt, pepper) *or* your preferred dressing\n- [ ]",
   "score": 0,
-  "cost": 1.26e-05,
+  "cost": 4.7520000000000006e-05,
   "expected": "",
   "tokens": {
-    "input": 18,
-    "output": 122
+    "input": 28,
+    "output": 500
   }
 }

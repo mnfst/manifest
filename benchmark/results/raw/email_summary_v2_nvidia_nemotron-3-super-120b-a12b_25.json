@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 25,
-  "response": "The company crossed the 10\u202fK MAU milestone, closed a Series\u202fA term sheet for $8\u202fM at a $40\u202fM pre\u2011money",
+  "response": "",
   "score": 0,
   "cost": 2.934e-05,
   "expected": "",

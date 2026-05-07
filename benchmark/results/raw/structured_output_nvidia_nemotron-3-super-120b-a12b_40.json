@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "structured_output",
   "case": 40,
-  "response": "{\n  \"ticket_id\": 8472,\n  \"priority\": \"High\",\n  \"created\": \"opened 2h ago\",\n  \"user\": \"premium_user@corp.com\",\n  \"category\": \"billing\",\n  \"subject\": \"Double charged for March subscription\",\n  \"assigned_to\": \"Agent Mike\",\n  \"status\": \"in progress\"\n}",
+  "response": "{\n  \"ticket_id\": 8472,\n  \"priority\": \"High\",\n  \"created\": \"2h ago\",\n  \"user\": \"premium_user@corp.com\",\n  \"category\": \"billing\",\n  \"subject\": \"Double charged for March subscription.\",\n  \"assigned_to\": \"Agent Mike\",\n  \"status\": \"in progress\"\n}",
   "score": 0,
-  "cost": 3.366e-05,
+  "cost": 1.7009999999999998e-05,
   "expected": "",
   "tokens": {
-    "input": 128,
-    "output": 246
+    "input": 115,
+    "output": 74
   }
 }

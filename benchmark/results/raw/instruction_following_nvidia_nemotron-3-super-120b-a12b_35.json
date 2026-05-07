@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 35,
-  "response": "Mara found an old key tucked inside the hollow of her grandmother's oak desk.  \nShe turned it over, feeling the cold metal whisper promises of forgotten rooms.  \nWhen she slipped the key into the lock of the attic door, the wood sighed and swung open to reveal a staircase descending into darkness.  \nAt the bottom, a lantern flickered to life, casting light on a wall covered in maps of places she had never seen.  \nOne map showed a route to the sea, marked with a red X that matched the birthmark on her wrist.  \nWith the key still warm in her palm, Mara followed the map, knowing the journey would finally answer the",
+  "response": "When the old lighthouse keeper retired, the sea whispered a promise to the cliffs.  \nHe left behind a rusted key and a map drawn in salt on a torn parchment.  \nCurious villagers followed the inked trail, hoping it led to buried treasure.  \nInstead, they found a hidden cavern where bioluminescent algae painted the walls with shifting blues.  \nIn the center stood a glass bottle containing a single, glowing pearl that hummed with forgotten songs.  \nWhen they lifted it, the cavern sighed, and the lighthouse beam flickered back to life, guiding lost ships home once more.",
   "score": 0,
-  "cost": 4.7340000000000004e-05,
+  "cost": 1.2689999999999999e-05,
   "expected": "",
   "tokens": {
-    "input": 26,
-    "output": 500
+    "input": 17,
+    "output": 124
   }
 }

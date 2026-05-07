@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "intent_clinc150",
   "case": 34,
-  "response": "",
+  "response": "We need to classify the user message into exactly one intent from the list.\n\nMessage: \"what is",
   "score": 0,
   "cost": 5.391e-05,
   "expected": "replacement_card_duration",

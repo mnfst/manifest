@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "rag_qa",
   "case": 28,
-  "response": "Whenever he encountered British merchants or fur\u2011traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "response": "Whenever he encountered British merchants or fur\u2011traders, C\u00e9loron informed them of the French claim to the territory and told them to leave.",
   "score": 0,
-  "cost": 2.2139999999999998e-05,
+  "cost": 3.0509999999999998e-05,
   "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
   "tokens": {
-    "input": 215,
-    "output": 31
+    "input": 230,
+    "output": 109
   }
 }

@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "json_transform_v2",
   "case": 5,
-  "response": "{\"departments\":{\"eng\":{\"headcount\":2,\"avg_salary\":115000,\"employees\":[\"Alice\",\"Bob\"]},\"sales\":{\"headcount\":2,\"avg_salary\":100000,\"employees\":[\"Carol\",\"Dave\"]}}}",
+  "response": "{\n  \"departments\": {\n    \"eng\": {\n      \"headcount\": 2,\n      \"avg_salary\": 115000,\n      \"employees\": [\"Alice\", \"Bob\"]\n    },\n    \"sales\": {\n      \"headcount\": 2,\n      \"avg_salary\": 100000,\n      \"employees\": [\"Carol\", \"Dave\"]\n    }\n  }\n}",
   "score": 0,
-  "cost": 1.683e-05,
+  "cost": 5.7239999999999994e-05,
   "expected": "",
   "tokens": {
-    "input": 143,
-    "output": 44
+    "input": 181,
+    "output": 455
   }
 }

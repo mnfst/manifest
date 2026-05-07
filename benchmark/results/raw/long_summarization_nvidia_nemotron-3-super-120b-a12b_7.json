@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "long_summarization",
   "case": 7,
-  "response": "The 2020s have witnessed a surge in both governmental and commercial space endeavors: SpaceX is advancing its Starship launch system toward orbital and lunar missions, NASA\u2019s Artemis",
+  "response": "The 2020s have ushered in a boom of space activity driven by both government programs and private companies: SpaceX is iterating its Starship launch system for deep\u2011space",
   "score": 0,
   "cost": 4.032e-05,
   "expected": "",

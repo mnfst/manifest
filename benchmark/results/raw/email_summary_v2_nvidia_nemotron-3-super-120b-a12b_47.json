@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 47,
-  "response": "",
+  "response": "We need to summarize email in exactly 2 sentences, capturing main point and any action items. Provide concise summary.\n\nEmail: March cohort satisfaction 7.2/10 down from 8.1. Positives: buddy system 9.1, IT on time. Issues: 5/8 confused about benefits deadline, tools access took 3-5 days (target 1 day), no culture handbook received. Priority: fix tools access. - Lisa\n\nThus main point: satisfaction dropped, positives and issues, priority fix tools access. Action items: fix tools access, maybe clarify benefits deadline, provide culture handbook. But priority is fix tools access. So two sentences: Sentence 1: March cohort satisfaction fell to 7.2/10, with strong ratings for the buddy system and timely IT setup but concerns about benefits deadline confusion, delayed tools access (3\u20115 days vs 1\u2011day target), and missing culture handbook. Sentence",
   "score": 0,
   "cost": 2.925e-05,
   "expected": "",

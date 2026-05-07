@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "data_to_text",
   "case": 41,
-  "response": "Japan, with a population of about 125\u202fmillion, has a GDP of $4.2\u202ftrillion, a modest growth rate of 1.1\u202f%, and an unemployment rate",
+  "response": "Japan, with a population of about 125\u202fmillion, has a GDP of $4.2\u202ftrillion and",
   "score": 0,
   "cost": 3.7980000000000006e-05,
   "expected": "",

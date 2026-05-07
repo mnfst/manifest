@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "intent_clinc150",
   "case": 23,
-  "response": "",
+  "response": "We need to map the user message to one of the intents. The message: \"why is",
   "score": 0,
   "cost": 5.319e-05,
   "expected": "account_blocked",

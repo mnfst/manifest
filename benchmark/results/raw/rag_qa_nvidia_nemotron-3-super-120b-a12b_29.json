@@ -4,10 +4,10 @@
   "case": 29,
   "response": "Istanbul",
   "score": 0,
-  "cost": 1.899e-05,
+  "cost": 2.4839999999999996e-05,
   "expected": "Istanbul",
   "tokens": {
     "input": 186,
-    "output": 25
+    "output": 90
   }
 }

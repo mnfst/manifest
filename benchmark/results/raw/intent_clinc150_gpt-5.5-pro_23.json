@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "intent_clinc150",
   "case": 23,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 0.00493,
   "expected": "account_blocked",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 514,
+    "output": 118
   }
 }

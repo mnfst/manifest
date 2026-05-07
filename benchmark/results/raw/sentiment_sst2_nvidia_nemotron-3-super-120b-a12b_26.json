@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "sentiment_sst2",
   "case": 26,
-  "response": "We need to output: positive",
+  "response": "We need to classify sentiment of the given text as either positive or negative. The text: \"what",
   "score": 5,
-  "cost": 8.01e-06,
+  "cost": 9.18e-06,
   "expected": "positive",
   "tokens": {
     "input": 82,
-    "output": 7
+    "output": 20
   }
 }

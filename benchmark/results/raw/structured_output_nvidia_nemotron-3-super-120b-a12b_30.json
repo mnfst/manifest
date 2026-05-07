@@ -4,10 +4,10 @@
   "case": 30,
   "response": "{\n  \"name\": \"Bitcoin\",\n  \"symbol\": \"BTC\",\n  \"price\": 43250.80,\n  \"change_24h_percent\": -1.2,\n  \"market_cap\": \"$847B\",\n  \"volume_24h\": \"$18.5B\",\n  \"circulating_supply\": \"19.6M BTC\"\n}",
   "score": 0,
-  "cost": 1.7460000000000002e-05,
+  "cost": 4.895999999999999e-05,
   "expected": "",
   "tokens": {
-    "input": 119,
-    "output": 75
+    "input": 143,
+    "output": 401
   }
 }

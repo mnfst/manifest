@@ -4,10 +4,10 @@
   "case": 31,
   "response": "{\n  \"from\": {\n    \"name\": \"Acme Inc\",\n    \"address\": \"100 Tech Drive\",\n    \"city\": \"Austin\",\n    \"state\": \"TX\",\n    \"zip\": \"78701\"\n  },\n  \"to\": {\n    \"name\": \"John Doe\",\n    \"address\": \"500 Market St\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"zip\": \"94105\"\n  },\n  \"weight_lbs\": 2.5,\n  \"dimensions\": \"12x8x4 inches\",\n  \"service\": \"Priority Mail\"\n}",
   "score": 0,
-  "cost": 2.583e-05,
+  "cost": 4.5719999999999996e-05,
   "expected": "",
   "tokens": {
-    "input": 159,
-    "output": 128
+    "input": 180,
+    "output": 328
   }
 }

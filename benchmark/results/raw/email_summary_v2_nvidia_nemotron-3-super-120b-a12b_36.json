@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 36,
-  "response": "The P99 latency for the /api/v2/search endpoint rose from 200\u202fms to 800\u202fms after Thursday's deploy because the new full\u2011text search query is not using an index. The fix is to add a GIN index on the content column, which will be deployed tonight during the maintenance window.",
+  "response": "",
   "score": 0,
-  "cost": 2.07e-05,
+  "cost": 2.799e-05,
   "expected": "",
   "tokens": {
     "input": 111,
-    "output": 119
+    "output": 200
   }
 }

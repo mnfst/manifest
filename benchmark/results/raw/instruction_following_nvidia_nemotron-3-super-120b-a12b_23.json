@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 23,
-  "response": "Apple; Banana; Cherry; Date; Elderberry",
+  "response": "apple; banana; cherry; date; elderberry",
   "score": 0,
   "cost": 2.88e-06,
   "expected": "",

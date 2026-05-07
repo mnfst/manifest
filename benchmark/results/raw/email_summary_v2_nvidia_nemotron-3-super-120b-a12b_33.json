@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 33,
-  "response": "The Q1 employee engagement survey shows an overall score of 7.8/10, above the industry average, with team collaboration as the strongest area (8.9/10) and career growth clarity as the weakest (6.1/10). To address the gap, the People Team proposes quarterly career conversations, an internal mobility program, ment",
+  "response": "The Q1 employee engagement survey shows an overall score of 7.8/10, above the industry average, with team collaboration highest at 8.9/10 and",
   "score": 0,
   "cost": 2.997e-05,
   "expected": "",

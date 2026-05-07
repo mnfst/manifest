@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "json_transform_v2",
   "case": 36,
-  "response": "{\n  \"order_id\": \"ORD-001\n\n{\n  \"order_id\": \"ORD-001\n{\n  \"order_id\": \"ORD-001\",\n  \"items\": [\n    {\n      \"sku\": \"A1\",\n      \"qty\": 2,\n      \"price\": 29.99\n    },\n    {\n      \"sku\": \"B2\",\n      \"qty\": 1,\n      \"price\": 49.99\n    }\n  ],\n  \"shipping\": 5.99,\n  \"discount_pct\": 10\n}",
+  "response": "{\"order_id\":\"ORD-001\",\"subtotal\":109.97,\"discount\":11.0,\"shipping\":5.99",
   "score": 0,
-  "cost": 2.781e-05,
+  "cost": 5.931e-05,
   "expected": "",
   "tokens": {
     "input": 159,
-    "output": 150
+    "output": 500
   }
 }

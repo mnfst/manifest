@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_generation",
   "case": 41,
-  "response": "result = l[:]\n    indices = [i for i in range(len(l)) if i % 3 == 0]\n    values = [l[i] for i in indices]\n    values.sort()\n    for idx, val in zip(indices, values):\n        result[idx] = val\n    return result",
+  "response": "result = l[:]\n    indices = [i for i in range(len(l)) if i % 3 == 0]\n    values = [l[i] for i in indices]\n    values.sort()\n    for i, v in zip(indices, values):\n        result[i] = v\n    return result",
   "score": 0,
   "cost": 2.214e-05,
   "expected": "",

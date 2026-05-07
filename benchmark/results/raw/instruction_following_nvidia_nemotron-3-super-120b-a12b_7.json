@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 7,
-  "response": "Crack 2 eggs into a bowl, whisk with pinch of salt and pepper. Heat butter in non\u2011stick pan over medium, pour eggs, stir gently until soft curds form, 2\u20113\u202fmin. Serve warm.",
+  "response": "Crack 2 eggs into a bowl, whisk with pinch of salt and pepper. Heat butter in non\u2011stick pan over medium heat, pour eggs, stir gently until soft curds form, about 2 minutes. Serve warm.",
   "score": 0,
-  "cost": 6.570000000000001e-06,
+  "cost": 6.390000000000001e-06,
   "expected": "",
   "tokens": {
     "input": 23,
-    "output": 50
+    "output": 48
   }
 }

@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 6,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "Ann is 9 years old.\n\nHer brother is twice her age:\n\n9 \u00d7 2 = 18\n\nIn 3 years, her brother will be:\n\n18 + 3 = 21\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.00248,
   "expected": "21",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 68,
+    "output": 107
   }
 }

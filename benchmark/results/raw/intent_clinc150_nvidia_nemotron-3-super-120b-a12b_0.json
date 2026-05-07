@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "intent_clinc150",
   "case": 0,
-  "response": "",
+  "response": "We need to classify the message: \"can you tell me how to transfer my 401",
   "score": 0,
   "cost": 5.3549999999999994e-05,
   "expected": "rollover_401k",

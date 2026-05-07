@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 44,
-  "response": "Marketing exceeded its Q3 budget by 15% due to the August campaign, while engineering is 8% under budget from delayed hiring. Sarah proposes reallocating $50\u202fK from engineering to cover marketing\u2019s overspend and asks to discuss the adjustment on Thursday.",
+  "response": "Marketing exceeded its Q3 budget by 15% while engineering was 8% under budget, prompting Sarah",
   "score": 0,
-  "cost": 1.35e-05,
+  "cost": 2.7629999999999998e-05,
   "expected": "",
   "tokens": {
-    "input": 95,
-    "output": 55
+    "input": 107,
+    "output": 200
   }
 }

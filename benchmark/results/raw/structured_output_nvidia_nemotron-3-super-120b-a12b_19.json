@@ -4,10 +4,10 @@
   "case": 19,
   "response": "{\n  \"type\": \"A\",\n  \"hostname\": \"api.example.com\",\n  \"value\": \"203.0.113.50\",\n  \"ttl_seconds\": 3600,\n  \"created\": \"2024-01-01\",\n  \"modified\": \"2024-06-15\"\n}",
   "score": 0,
-  "cost": 1.5209999999999998e-05,
+  "cost": 3.348e-05,
   "expected": "",
   "tokens": {
-    "input": 104,
-    "output": 65
+    "input": 130,
+    "output": 242
   }
 }

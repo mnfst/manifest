@@ -4,10 +4,10 @@
   "case": 12,
   "response": "{\"total_duration_min\":15.416666666666666,\"track_count\":4,\"artists\":{\"Band X\":2,\"Band Y\":1,\"Band Z\":1},\"longest_track\":\"Song C\"}",
   "score": 0,
-  "cost": 1.764e-05,
+  "cost": 5.777999999999999e-05,
   "expected": "",
   "tokens": {
-    "input": 153,
-    "output": 43
+    "input": 172,
+    "output": 470
   }
 }

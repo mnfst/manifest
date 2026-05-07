@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "data_to_text",
   "case": 31,
-  "response": "Taylor Swift's album *Midnights*, released in October\u202f2022, blends pop and synth\u2011pop across 13 tracks that run for a total of 44\u202fminutes. It sold 1.58\u202fmillion copies in its first week, garnered 3.4\u202fbillion streams on Spotify, and won the Grammy for",
+  "response": "Taylor Swift's album *Midnights*, released in October\u202f2022, is a pop/synth\u2011pop record that contains 13 tracks and runs for a total of 44\u202fminutes. It sold 1.58\u202fmillion copies in its first week, garnered 3.4\u202fbillion streams on Spotify, and went on to win the Grammy Award",
   "score": 0,
   "cost": 3.699e-05,
   "expected": "",

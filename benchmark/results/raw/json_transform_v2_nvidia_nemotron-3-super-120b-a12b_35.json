@@ -4,10 +4,10 @@
   "case": 35,
   "response": "{\n  \"departments\": {\n    \"eng\": {\n      \"headcount\": 2,\n      \"avg_salary\": 115000,\n      \"employees\": [\"Alice\", \"Bob\"]\n    },\n    \"sales\": {\n      \"headcount\": 2,\n      \"avg_salary\": 100000,\n      \"employees\": [\"Carol\", \"Dave\"]\n    }\n  }\n}",
   "score": 0,
-  "cost": 5.562e-05,
+  "cost": 1.989e-05,
   "expected": "",
   "tokens": {
-    "input": 181,
-    "output": 437
+    "input": 143,
+    "output": 78
   }
 }

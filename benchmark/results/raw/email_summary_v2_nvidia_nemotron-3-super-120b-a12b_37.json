@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 37,
-  "response": "",
+  "response": "We need to produce exactly 2 sentences summarizing email, capturing main point and any action items. The email: CEO says BigCo interested in acqui-hiring ML team (5 people) offered $15M. CEO thinks too low, team worth more, recommend counter or decline politely. Need to discuss before responding, board should be informed.\n\nThus summary: BigCo offered $15M to acqui-hire the ML team; the CEO believes the offer is insufficient and suggests either negotiating a higher price or politely declining, advising to discuss internally and inform the board before responding.\n\nMake exactly two sentences. Ensure no extra sentences. Let's craft:\n\nSentence 1: BigCo has expressed interest in acqui\u2011hiring the company\u2019s five\u2011person ML team for $15\u202fmillion. Sentence 2: The CEO considers the offer too low, recommends either counter\u2011offering or declining politely, and asks that the team discuss the response",
   "score": 0,
   "cost": 2.8259999999999997e-05,
   "expected": "",

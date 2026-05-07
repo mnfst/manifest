@@ -4,10 +4,10 @@
   "case": 14,
   "response": "The function implements Dijkstra\u2019s shortest\u2011path algorithm: it repeatedly extracts the node with the smallest tentative distance from a priority queue, relaxes its outgoing edges, and updates the queue whenever a shorter path to a neighbor is found, ultimately returning the minimum distance from `start` to every reachable vertex.",
   "score": 0,
-  "cost": 2.214e-05,
+  "cost": 1.818e-05,
   "expected": "",
   "tokens": {
-    "input": 158,
-    "output": 88
+    "input": 141,
+    "output": 61
   }
 }

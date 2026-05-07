@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "intent_clinc150",
   "case": 46,
-  "response": "",
+  "response": "We need to classify the user message: \"what is 25% of $54,",
   "score": 0,
   "cost": 5.3639999999999995e-05,
   "expected": "calculator",

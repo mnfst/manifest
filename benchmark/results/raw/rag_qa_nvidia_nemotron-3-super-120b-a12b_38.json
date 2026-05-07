@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "rag_qa",
   "case": 38,
-  "response": "the Charles River",
+  "response": "Charles River",
   "score": 0,
-  "cost": 2.3219999999999998e-05,
+  "cost": 3.0060000000000004e-05,
   "expected": "Charles River",
   "tokens": {
-    "input": 254,
-    "output": 4
+    "input": 271,
+    "output": 63
   }
 }

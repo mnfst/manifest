@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 39,
-  "response": "The year\u2011end audit begins January\u202f15 and requires completing a pre\u2011audit checklist that includes finalizing Q4 revenue recognition, reconciling all bank accounts, verifying stock option records, and preparing related\u2011party transaction disclosures. A controller meeting next Tuesday will",
+  "response": "The year\u2011end audit begins January\u202f15 and requires completing a pre\u2011audit checklist that includes finalizing Q4 revenue recognition, reconciling all bank accounts, verifying stock option records, and preparing related\u2011party transaction disclosures. A controller meeting next Tuesday will assign responsibilities for these tasks.",
   "score": 0,
-  "cost": 2.772e-05,
+  "cost": 2.745e-05,
   "expected": "",
   "tokens": {
     "input": 108,
-    "output": 200
+    "output": 197
   }
 }

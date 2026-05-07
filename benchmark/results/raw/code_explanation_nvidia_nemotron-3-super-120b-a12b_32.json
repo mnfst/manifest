@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_explanation",
   "case": 32,
-  "response": "The code implements a Disjoint Set Union (Union\u2011Find) data structure with path compression in `find` and union\u2011by\u2011rank in `union`, returning the two operations for managing\u202f`n` initially separate elements. It maintains a `parent` array where each element points to its set\u2019s representative and a `rank` array to keep tree heights shallow, ensuring near\u2011constant amortized time per operation.",
+  "response": "The code implements a Disjoint Set Union (Union\u2011Find) data structure: it maintains a `parent` array where each element initially points to itself, and a `rank` array to keep tree heights shallow. The `find` function uses path compression (making each visited node point directly to the root), and `union` merges two sets by attaching the lower\u2011rank tree under the higher\u2011rank one, incrementing the rank only when the two trees have equal rank. This yields near\u2011constant\u2011time amortized operations for connectivity queries.",
   "score": 0,
-  "cost": 2.2139999999999998e-05,
+  "cost": 2.4390000000000002e-05,
   "expected": "",
   "tokens": {
     "input": 160,
-    "output": 86
+    "output": 111
   }
 }

@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 13,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "Material cost: $500  \nJeweler cost: $800  \n\nCost before insurance: $500 + $800 = $1,300  \n\nInsurance is 10% of $1,300:  \n$1,300 \u00d7 0.10 = $130  \n\nTotal paid:  \n$1,300 + $130 = $1,430  \n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.00407,
   "expected": "1430",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 98,
+    "output": 179
   }
 }

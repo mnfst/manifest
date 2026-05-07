@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "json_transform_v2",
   "case": 15,
-  "response": "{\"full_name\": \"Jane Doe\", \"contact\": {\"email\": \"jane.doe@email.com\", \"phone\": \"+1-555-0123\"}, \"metadata\": {\"age\": 32}}",
+  "response": "{\"full_name\":\"Jane Doe\",\"contact\":{\"email\":\"jane.doe@email.com\",\"phone\":\"+1-555-0123\"},\"metadata\":{\"age\":32}}",
   "score": 0,
-  "cost": 1.3499999999999998e-05,
+  "cost": 3.168e-05,
   "expected": "",
   "tokens": {
-    "input": 107,
-    "output": 43
+    "input": 123,
+    "output": 229
   }
 }

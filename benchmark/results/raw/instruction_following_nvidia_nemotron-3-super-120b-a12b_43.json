@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 43,
-  "response": "Did you know there's a gigantic cloud of water vapor floating in space around a black hole 12 billion light-years away that holds **140 trillion times more water than all of Earth's oceans combined**? This cosmic reservoir, discovered near a quasar called APM 08279+5255, is the largest and oldest mass of water ever detected in the universe\u2014showing that water was abundant just 1.6 billion years after the Big Bang! \ud83d\udca7\ud83c\udf0c",
+  "response": "Did you know that a day on Venus (the time it takes to complete one full rotation) is longer than a year on Venus (the time it takes to orbit the Sun)?",
   "score": 0,
-  "cost": 3.798e-05,
+  "cost": 1.107e-05,
   "expected": "",
   "tokens": {
     "input": 33,
-    "output": 389
+    "output": 90
   }
 }

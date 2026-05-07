@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "intent_clinc150",
   "case": 32,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "shopping_list",
+  "score": 5,
+  "cost": 0.004095,
   "expected": "shopping_list",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 515,
+    "output": 76
   }
 }

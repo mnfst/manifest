@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 32,
-  "response": "## The Clockwork Sparrow: Where Time Slows Down (and the Scones Are Divine)\n\nTucked down a cobblestone alley behind a shuttered bookstore in the rain-kissed district of Oakhaven, *The Clockwork Sparrow* isn\u2019t easy to find\u2014but oh, it\u2019s worth the hunt. You won\u2019t see a neon sign; instead, a small, brass sp",
+  "response": "## Sakura & Sol: Where Lima Meets Kyoto in a Hidden Alley\n\nTucked beneath a flickering lantern in a rain-slicked backstreet of the city\u2019s arts district, Sakura & Sol doesn\u2019t announce itself\u2014it *whispers*. You almost miss the narrow, unmarked door beside the vintage vinyl shop, but step inside, and the world shifts. The air hums with quiet conversation, the scent of toasted sesame and citrusy *aj\u00ed amarillo* weaving through the warm, wood-paneled space. Minimalist Japanese aesthetics meet vibrant Peruvian textiles: indigo-dyed noren curtains",
   "score": 0,
   "cost": 4.7969999999999996e-05,
   "expected": "",

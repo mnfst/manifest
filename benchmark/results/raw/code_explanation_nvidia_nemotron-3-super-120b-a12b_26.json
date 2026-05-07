@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_explanation",
   "case": 26,
-  "response": "The function implements the classic 0/1 knapsack problem using a bottom\u2011up dynamic\u2011programming table: it builds a 2\u2011D array `dp[i][w]` that stores the maximum value achievable with the first `i` items and a weight limit `w`, updating each cell by either skipping the current item or taking it (if it fits) and choosing the larger of the two options. The final answer `dp[n][capacity]` is the optimal total value for all items within the given capacity.",
+  "response": "The function implements the classic 0/1 knapsack problem using a bottom\u2011up dynamic\u2011programming table: it builds a 2\u2011D array `dp[i][w]` that stores the maximum value achievable with the first `i` items and a weight limit `w`, updating each cell by either skipping the current item or taking it (if it fits). The final answer `dp[n][capacity]` is the optimal total value for all items within the given capacity.",
   "score": 0,
-  "cost": 2.97e-05,
+  "cost": 2.268e-05,
   "expected": "",
   "tokens": {
-    "input": 168,
-    "output": 162
+    "input": 153,
+    "output": 99
   }
 }

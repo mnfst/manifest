@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 16,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "Sarah bought:\n\n\\(300 \\div 15 = 20\\) books\n\nShe gave them equally to 4 kids:\n\n\\(20 \\div 4 = 5\\)\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00253,
   "expected": "5",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 86,
+    "output": 105
   }
 }

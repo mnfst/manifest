@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "rag_qa",
   "case": 17,
-  "response": "Tymnet was an international data communications network headquartered in San Jose, CA that used virtual call packet\u2011switched technology and X.25, SNA/SDLC, BSC, and ASCII interfaces to connect host computers (servers) at thousands of large companies, educational institutions, and government agencies.",
+  "response": "Tymnet was an international data communications network headquartered in San Jose, CA that utilized virtual call packet\u2011switched technology and X.25, SNA/SDLC, BSC, and ASCII interfaces to connect host computers (servers) at thousands of large companies, educational institutions, and government agencies.",
   "score": 0,
   "cost": 2.6189999999999998e-05,
   "expected": "an international data communications network headquartered in San Jose, CA",

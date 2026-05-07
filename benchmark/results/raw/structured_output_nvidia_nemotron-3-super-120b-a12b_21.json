@@ -4,10 +4,10 @@
   "case": 21,
   "response": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@email.com\",\n  \"phone\": \"555-0123\",\n  \"education\": [\n    {\n      \"degree\": \"BS Computer Science\",\n      \"school\": \"MIT\",\n      \"year\": 2018\n    }\n  ],\n  \"experience\": [\n    {\n      \"company\": \"Google\",\n      \"years\": \"2018-2021\",\n      \"role\": \"SWE\"\n    },\n    {\n      \"company\": \"Meta\",\n      \"years\": \"2021-present\",\n      \"role\": \"Senior SWE\"\n    }\n  ]\n}",
   "score": 0,
-  "cost": 4.7969999999999996e-05,
+  "cost": 4.8689999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 155,
-    "output": 378
+    "output": 386
   }
 }

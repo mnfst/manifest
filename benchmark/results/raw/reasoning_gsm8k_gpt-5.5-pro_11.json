@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 11,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "George ordered 600 burritos.\n\nStudents ate/received:\n50 \u00d7 10 = 500 burritos\n\nMr. George ate:\n20 burritos\n\nTotal burritos used:\n500 + 20 = 520 burritos\n\nLeftover burritos:\n600 - 520 = 80\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.00411,
   "expected": "80",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 102,
+    "output": 180
   }
 }

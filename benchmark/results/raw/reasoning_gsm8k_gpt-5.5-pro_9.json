@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 9,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "Bo has 40 crabs.\n\nMonic has 4 fewer than Bo:  \n40 - 4 = 36\n\nRani has 10 more than Monic:  \n36 + 10 = 46\n\nTotal crabs:  \n40 + 36 + 46 = 122\n\nANSWER: 122",
+  "score": 2,
+  "cost": 0.003395,
   "expected": "122",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 83,
+    "output": 149
   }
 }

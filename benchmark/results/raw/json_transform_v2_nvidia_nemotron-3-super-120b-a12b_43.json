@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "json_transform_v2",
   "case": 43,
-  "response": "We need to compute pattern? Let's think step by step by step by step by step by step by step by step by step by step by step by step by step by step by step by step by step by step by step by step by step by step by step by step by step",
+  "response": "{\"total_credits\":8000,\"total_debits\":4500,\"net\":3500,\"transaction_count\":5}",
   "score": 0,
-  "cost": 1.9169999999999998e-05,
+  "cost": 1.404e-05,
   "expected": "",
   "tokens": {
-    "input": 154,
-    "output": 59
+    "input": 130,
+    "output": 26
   }
 }

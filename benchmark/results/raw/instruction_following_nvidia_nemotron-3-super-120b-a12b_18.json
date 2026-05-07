@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 18,
-  "response": "My favorite book unfolds in a slow-burning Southern town where the air hangs thick with magnolia blossoms and unspoken tensions. It follows a young girl navigating the bewildering contradictions of adulthood\u2014watching her principled father defend a Black man falsely accused of a crime, while she and her brother grapple with local myths about a reclusive neighbor. The story aches with",
+  "response": "My favorite book is like holding a smooth, sea-worn stone in your palm\u2014cool, quiet, yet humming with depths you can\u2019t see. It doesn\u2019t shout; it whispers. You follow a character whose life feels utterly ordinary at first: morning routines, small disappointments, the weight of unsaid things between people. But as you read, the ordinary becomes luminous. The author finds profound meaning in the way light falls on a kitchen floor at 7 a.m., in the silence after a phone call ends, in how grief reshapes the space where love used to live.  \n\nIt taught me to notice the sacred in the overlooked\u2014the tide pulling back to reveal hidden shells, the courage in simply showing up when your heart feels like broken pottery. There\u2019s no grand adventure, no villain to defeat",
   "score": 0,
   "cost": 4.7520000000000006e-05,
   "expected": "",

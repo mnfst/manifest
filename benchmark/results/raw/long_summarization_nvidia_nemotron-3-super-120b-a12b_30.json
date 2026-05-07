@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "long_summarization",
   "case": 30,
-  "response": "The global food system faces mounting pressure as the world\u2019s population is expected to reach 9.7\u202fbillion by 2050, demanding a 60% rise in food production while climate change cuts yields through droughts, floods, and extreme heat. Agriculture accounts for about 25% of greenhouse\u2011gas emissions, and water scarcity is depleting critical resources such as the Ogallala Aquifer, with similar stresses in India, China, and the Middle East; soil degradation has already lowered productivity on 33% of arable land, and roughly one\u2011third of all food is lost or wasted. Potential remedies include precision agriculture, vertical farming, alternative proteins, drought\u2011resistant GM crops, regenerative practices, and policy shifts on subsidies, trade, and carbon pricing, but scaling these solutions while keeping food affordable for the poorest remains the central challenge.",
+  "response": "The global food system faces mounting pressure as the world\u2019s population is projected to reach 9.7\u202fbillion by 2050, demanding a 60\u202f% rise in food production while climate change, water scarcity, and soil degradation cut yields and deplete resources\u2014e.g., the Ogallala Aquifer is being drained faster than it refills and 33\u202f% of arable land is degraded. Agriculture contributes about 25\u202f% of greenhouse\u2011gas emissions, and roughly one\u2011third of all food produced is lost or wasted. To meet these challenges, experts advocate scaling precision agriculture, vertical farms, alternative proteins, drought\u2011resistant crops, regenerative practices, and supportive policies, but the key hurdle is deploying these solutions widely while keeping food affordable and accessible for the poorest.",
   "score": 0,
-  "cost": 4.689e-05,
+  "cost": 4.176e-05,
   "expected": "",
   "tokens": {
-    "input": 313,
-    "output": 208
+    "input": 298,
+    "output": 166
   }
 }

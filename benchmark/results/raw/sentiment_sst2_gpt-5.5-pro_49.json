@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "sentiment_sst2",
   "case": 49,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "positive",
+  "score": 5,
+  "cost": 0.00117,
   "expected": "positive",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 74,
+    "output": 40
   }
 }

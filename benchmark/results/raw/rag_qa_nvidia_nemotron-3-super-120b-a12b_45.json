@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "rag_qa",
   "case": 45,
-  "response": "The show globe was employed until the early 20th century.",
+  "response": "The show globe was employed until early in the 20th century.",
   "score": 0,
-  "cost": 2.142e-05,
+  "cost": 2.1510000000000002e-05,
   "expected": "The show globe",
   "tokens": {
     "input": 224,
-    "output": 14
+    "output": 15
   }
 }

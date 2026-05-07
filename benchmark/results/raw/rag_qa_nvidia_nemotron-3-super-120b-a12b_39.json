@@ -4,10 +4,10 @@
   "case": 39,
   "response": "circuit switching",
   "score": 0,
-  "cost": 1.9169999999999998e-05,
+  "cost": 1.3409999999999999e-05,
   "expected": "circuit switching",
   "tokens": {
-    "input": 155,
-    "output": 58
+    "input": 145,
+    "output": 4
   }
 }

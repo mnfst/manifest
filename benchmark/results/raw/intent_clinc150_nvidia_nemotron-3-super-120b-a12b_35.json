@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "intent_clinc150",
   "case": 35,
-  "response": "",
+  "response": "We need to classify the user message into exactly one intent from the list. The message: \"can",
   "score": 0,
   "cost": 5.345999999999999e-05,
   "expected": "change_language",

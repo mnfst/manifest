@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 4,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "Mariah used \\( \\frac{1}{4} \\) of a skein.\n\nHer grandma used \\( \\frac{1}{2} \\) of a skein.\n\nTogether, they used:\n\n\\[\n\\frac{1}{4} + \\frac{1}{2} = \\frac{1}{4} + \\frac{2}{4} = \\frac{3}{4}\n\\]\n\nA full skein has 364 yards, so:\n\n\\[\n\\frac{3}{4} \\times 364 = 273\n\\]\n\nThey used 273 yards of yarn altogether.\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.00457,
   "expected": "273",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 102,
+    "output": 203
   }
 }

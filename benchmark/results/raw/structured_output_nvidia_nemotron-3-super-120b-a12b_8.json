@@ -4,10 +4,10 @@
   "case": 8,
   "response": "{\n  \"unit\": \"Apartment 4B\",\n  \"street\": \"123 Main Street\",\n  \"city\": \"San Francisco\",\n  \"state\": \"CA\",\n  \"zip\": \"94105\",\n  \"country\": \"United States\"\n}",
   "score": 0,
-  "cost": 2.3310000000000002e-05,
+  "cost": 1.2149999999999999e-05,
   "expected": "",
   "tokens": {
-    "input": 96,
-    "output": 163
+    "input": 81,
+    "output": 54
   }
 }

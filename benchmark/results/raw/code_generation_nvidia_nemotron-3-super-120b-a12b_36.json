@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_generation",
   "case": 36,
-  "response": "if n <= 1:\n        return 0\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0:\n            return n // i\n    return 1",
+  "response": "if n <= 1:\n        return 0\n    for i in range(n // 2, 0, -1):\n        if n % i == 0:\n            return i\n    return 1",
   "score": 0,
-  "cost": 3.483e-05,
+  "cost": 2.754e-05,
   "expected": "",
   "tokens": {
     "input": 96,
-    "output": 291
+    "output": 210
   }
 }

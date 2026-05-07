@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 29,
-  "response": "",
+  "response": "Red cars = 12\n\nGreen cars = 12 \u2212 2 = 10\n\nBlue cars = 3 \u00d7 10 = 30\n\nCars that are not yellow = 12 + 10 + 30 = 52\n\nYellow cars = 75 \u2212 52 = 23\n\nANSWER: 23",
   "score": 0,
-  "cost": 0.0,
+  "cost": 0.00335,
   "expected": "23",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 106,
+    "output": 141
   }
 }

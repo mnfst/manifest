@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "data_to_text",
   "case": 45,
-  "response": "On March\u202f15,\u202f2024 at\u202f14:23\u202fUTC, a magnitude\u202f7.2 earthquake occurred at a depth of\u202f15\u202fkm near\u202f35.6\u00b0N\u202f139.7\u00b0E, close to Tokyo.",
+  "response": "On March\u202f15,\u202f2024 at\u202f14:23\u202fUTC, a magnitude\u202f7.2 earthquake struck near Tokyo at coordinates\u202f35.6\u00b0\u202fN,\u202f139.7\u00b0\u202fE, with a focal depth of\u202f15\u202fkm.",
   "score": 0,
   "cost": 3.942e-05,
   "expected": "",

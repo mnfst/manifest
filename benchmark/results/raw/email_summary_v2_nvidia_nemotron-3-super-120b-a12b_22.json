@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 22,
-  "response": "",
+  "response": "The",
   "score": 0,
   "cost": 2.799e-05,
   "expected": "",

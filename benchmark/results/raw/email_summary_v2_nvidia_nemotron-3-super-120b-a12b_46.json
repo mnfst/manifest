@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 46,
-  "response": "A critical SQL injection vulnerability (CVSS\u202f9.8) has been identified in the /api/v2/auth/login endpoint affecting versions\u202f3.2.0 through\u202f3.4.1. The fix requires parameterizing the query in auth_controller.py:142, a patch is ready for review, and a hotfix should be applied within 24\u202fhours.",
+  "response": "",
   "score": 0,
-  "cost": 2.736e-05,
+  "cost": 2.8170000000000003e-05,
   "expected": "",
   "tokens": {
     "input": 113,
-    "output": 191
+    "output": 200
   }
 }

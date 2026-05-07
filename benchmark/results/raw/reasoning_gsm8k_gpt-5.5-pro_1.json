@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 1,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "Kalinda places 4 pieces per minute.\n\nHer mom places half as many:\n\n4 \u00f7 2 = 2 pieces per minute\n\nTogether they place:\n\n4 + 2 = 6 pieces per minute\n\nFor a 360-piece puzzle:\n\n360 \u00f7 6 = 60 minutes\n\n60 minutes = 1 hour\n\nANSWER: 1",
+  "score": 5,
+  "cost": 0.003395,
   "expected": "1",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 95,
+    "output": 146
   }
 }

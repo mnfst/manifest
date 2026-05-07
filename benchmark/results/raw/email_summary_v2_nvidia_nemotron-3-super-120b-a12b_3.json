@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 3,
-  "response": "The March cohort\u2019s satisfaction fell to 7.2/10 (down from 8.",
+  "response": "",
   "score": 0,
   "cost": 2.925e-05,
   "expected": "",

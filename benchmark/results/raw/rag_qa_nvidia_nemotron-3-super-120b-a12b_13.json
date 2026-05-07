@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "rag_qa",
   "case": 13,
-  "response": "The Victorian Government owns V/Line.",
+  "response": "Victorian Government",
   "score": 0,
-  "cost": 1.512e-05,
+  "cost": 1.89e-05,
   "expected": "Victorian Government",
   "tokens": {
-    "input": 159,
-    "output": 9
+    "input": 169,
+    "output": 41
   }
 }

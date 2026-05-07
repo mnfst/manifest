@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_review_v2",
   "case": 49,
-  "response": "**What\u2019s wrong / risky**\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Unnecessary `async` wrapper** |",
+  "response": "**Summary**\n\nThe function works in the simplest case, but it has several correctness, reliability, and ergonomics problems:\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **`async` wrapper is unnecessary** | An `async` function always returns a *promise that resolves to the value you return*. Returning a plain `Promise` from an `async` function therefore yields a **promise\u2011of\u2011a\u2011promise**. Callers have to `await` twice (or unwrap manually) to get the actual result. | Remove the `async` keyword (or `await` the inner race). |\n| **Timeout rejection uses a plain string** | Throwing/rejecting with a string makes it harder for callers to distinguish a timeout from other errors (e.g., `instanceof Error` checks fail). It also prevents attaching useful properties (e.g., `code`, `timeout`). | Reject with an `Error` (or a custom `TimeoutError`). |\n| **Timer is never cleared** | If the input promise settles before the timeout, the `setTimeout` callback still fires later and calls `reject` on the ignored timeout promise. That creates an **unhandled rejection** (warning in Node, possible `unhandledrejection` event in browsers). | Store the timer ID and call `clearTimeout` in a `finally` block (or in both `then` and `catch` handlers). |\n| **No validation of `ms",
   "score": 0,
   "cost": 7.973999999999999e-05,
   "expected": "",

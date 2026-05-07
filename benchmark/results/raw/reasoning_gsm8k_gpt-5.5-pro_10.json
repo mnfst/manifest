@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 10,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "Low setting removes 1 liter per day.\n\nMedium setting removes twice as much:\n\n1 \u00d7 2 = 2 liters per day\n\nHigh setting removes twice as much as medium:\n\n2 \u00d7 2 = 4 liters per day\n\nNow calculate each time period:\n\n- 3 days on low: 3 \u00d7 1 = 3 liters\n- 3 days on medium: 3 \u00d7 2 = 6 liters\n- 5 days on high: 5 \u00d7 4 = 20 liters\n\nTotal water removed:\n\n3 + 6 + 20 = 29 liters\n\nANSWER: 29",
+  "score": 5,
+  "cost": 0.005425,
   "expected": "29",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 201,
+    "output": 221
   }
 }

@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 33,
-  "response": "1. The Moon is tidally locked to Earth, meaning it rotates on its axis in the same time it takes to orbit Earth (about 27.3 days), which is why we always see the same side (the near side) from our planet.  \n2. The Moon's distance from Earth varies due to its elliptical orbit, ranging from approximately 363,000 km at perigee (closest) to 405,000 km at apogee (farthest)\u2014a",
+  "response": "1. The Moon is Earth's only natural satellite and is about 1/4 the diameter of Earth, making it the fifth\u2011largest moon in the Solar System.  \n2. Its surface is covered with regolith (a layer of dust and rocky debris) and features large basaltic plains called maria, which were formed by ancient volcanic eruptions.  \n3. The Moon is tidally locked to Earth, meaning it rotates on its axis in the same time it takes to orbit Earth, so we always see the same side (the near side) from our planet.",
   "score": 0,
-  "cost": 4.824e-05,
+  "cost": 1.314e-05,
   "expected": "",
   "tokens": {
-    "input": 36,
-    "output": 500
+    "input": 27,
+    "output": 119
   }
 }

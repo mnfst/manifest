@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_generation",
   "case": 32,
-  "response": "return ' '.join(''.join(sorted(word)) for word in s.split(' '))",
+  "response": "",
   "score": 0,
-  "cost": 5.697e-05,
+  "cost": 6.084e-05,
   "expected": "",
   "tokens": {
     "input": 176,
-    "output": 457
+    "output": 500
   }
 }

@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "rag_qa",
   "case": 40,
-  "response": "Full citizenship rights (assimilation) were offered.",
+  "response": "Full citizenship rights \u2013 \u2018assimilation\u2019 \u2013 were offered.",
   "score": 0,
-  "cost": 2.4209999999999997e-05,
+  "cost": 2.6909999999999998e-05,
   "expected": "assimilation",
   "tokens": {
     "input": 183,
-    "output": 86
+    "output": 116
   }
 }

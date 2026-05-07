@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "rag_qa",
   "case": 5,
-  "response": "At Arnhem.",
+  "response": "Arnhem",
   "score": 0,
-  "cost": 2.2139999999999998e-05,
+  "cost": 2.1959999999999996e-05,
   "expected": "Arnhem",
   "tokens": {
     "input": 240,
-    "output": 6
+    "output": 4
   }
 }

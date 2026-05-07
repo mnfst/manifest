@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_generation",
   "case": 1,
-  "response": "",
+  "response": "result = []\n    for group in paren_string.split():\n        depth = 0\n        max_depth = 0\n        for ch in group:\n            if ch == '(':\n                depth += 1\n                if depth > max_depth:\n                    max_depth = depth\n            elif ch == ')':\n                depth -= 1\n        result.append(max_depth)\n    return result",
   "score": 0,
-  "cost": 5.922e-05,
+  "cost": 5.3009999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 158,
-    "output": 500
+    "output": 431
   }
 }

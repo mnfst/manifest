@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_explanation",
   "case": 45,
-  "response": "The `Middleware` class builds a list of handler functions (`use`) and then runs them in order (`execute`) by recursively invoking each handler with the shared `context` and a `next` callback that proceeds to the following handler. This implements the chain\u2011of\u2011responsibility (middleware) pattern, allowing each function to optionally delegate to the next one in the stack.",
+  "response": "The `Middleware` class implements a classic \u201cmiddleware chain\u201d (like Express.js): it stores functions in `_stack`, and `execute` walks through them recursively, giving each function the shared `context` and a `next` callback (`lambda: dispatch(i+1)`) that lets the function decide whether to pass control to the next middleware in the stack. If a middleware never calls its `next`, the chain stops early.",
   "score": 0,
-  "cost": 1.6559999999999997e-05,
+  "cost": 2.52e-05,
   "expected": "",
   "tokens": {
-    "input": 108,
-    "output": 76
+    "input": 118,
+    "output": 162
   }
 }

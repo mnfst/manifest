@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "sentiment_sst2",
   "case": 33,
-  "response": "We need to output only the sentiment label: positive\nuser\nClassify the sentiment of the following",
+  "response": "We need to classify sentiment: The sentence: \"instead of hiding pinocchio from critics , miram",
   "score": 0,
   "cost": 7.739999999999999e-06,
   "expected": "negative",

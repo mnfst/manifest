@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 4,
-  "response": "Maria Chen proposes a revenue\u2011share partnership in which DataSync supplies the data\u2011sync infrastructure while the partner integrates its SDK, aiming to cut customer latency by 60% and generate roughly $2\u202fM in additional annual revenue for each side. She requests a technical discussion next week to explore the proposal further.",
+  "response": "Maria Chen proposes a revenue\u2011share partnership in which DataSync supplies the data\u2011sync infrastructure while the partner integrates its SDK, aiming to cut customer latency by 60% and generate roughly $2\u202fM in additional annual",
   "score": 0,
-  "cost": 1.3949999999999999e-05,
+  "cost": 2.7269999999999998e-05,
   "expected": "",
   "tokens": {
-    "input": 91,
-    "output": 64
+    "input": 103,
+    "output": 200
   }
 }

@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_generation",
   "case": 3,
-  "response": "return [i * xs[i] for i in range(1, len(xs))]",
+  "response": "return [(i+1)*xs[i+1] for i in range(len(xs)-",
   "score": 0,
-  "cost": 1.4309999999999999e-05,
+  "cost": 5.868e-05,
   "expected": "",
   "tokens": {
-    "input": 140,
-    "output": 19
+    "input": 152,
+    "output": 500
   }
 }

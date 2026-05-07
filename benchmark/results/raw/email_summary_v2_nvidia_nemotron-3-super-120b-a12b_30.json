@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 30,
-  "response": "Competitor X recently released AI features that include auto\u2011categorization (which we lack) but at twice our price, eliciting a neutral market response, whereas our superior API and integrations remain a key advantage. The product team recommends fast\u2011tracking our AI roadmap item to close the feature gap and capitalize on our strengths.",
+  "response": "",
   "score": 0,
-  "cost": 2.718e-05,
+  "cost": 2.772e-05,
   "expected": "",
   "tokens": {
     "input": 108,
-    "output": 194
+    "output": 200
   }
 }

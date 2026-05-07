@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "data_to_text",
   "case": 43,
-  "response": "DataFlow AI, founded in 2022, is a Series\u202fA data\u2011infrastructure startup that has raised $8.5\u202fmillion and is valued at $42\u202fmillion. The company employs 18 people, generates $120\u202fK in monthly recurring revenue, and is growing at 25\u202f% month\u2011over\u2011month, with backing from investors such as Sequoia and Y\u202fCombinator.",
+  "response": "DataFlow AI, a data\u2011infrastructure startup founded in 2022, is currently in its Series\u202fA stage after raising $8.5\u202fmillion, which values the company at $42\u202fmillion. The 18\u2011person team generates $120\u202fK in monthly recurring revenue, growing at a 25\u202f% month\u2011over\u2011month pace, and is backed by prominent investors Sequoia and Y Combinator.",
   "score": 0,
-  "cost": 1.7549999999999996e-05,
+  "cost": 2.5560000000000003e-05,
   "expected": "",
   "tokens": {
-    "input": 103,
-    "output": 92
+    "input": 122,
+    "output": 162
   }
 }

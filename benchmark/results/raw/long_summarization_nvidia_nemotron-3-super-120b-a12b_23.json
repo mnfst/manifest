@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "long_summarization",
   "case": 23,
-  "response": "The EU\u2019s General Data Protection Regulation (GDPR), effective May\u202f2018, applies globally to any organization handling EU residents\u2019 personal data and mandates rights such as access, erasure, portability, and explicit consent, while requiring breach reporting within 72\u202fhours and appointing Data Protection Officers for large\u2011scale processing. Violations can incur fines up to 4\u202f% of global annual revenue or \u20ac20\u202fmillion (whichever is higher), exemplified by Meta\u2019s \u20ac1.2\u202fbillion penalty in 2023, Amazon\u2019s \u20ac746\u202fmillion fine, and Google\u2019s cumulative fines exceeding \u20ac200\u202fmillion. GDPR has inspired similar privacy laws worldwide (e.g., California\u2019s CCPA, Brazil\u2019s LGPD, India\u2019s DPDPA) but faces criticism for imposing heavy compliance costs on small firms, causing user fatigue with cookie banners, and showing uneven enforcement across member states. Despite these challenges, the regulation has cemented data privacy as a fundamental right and set the global benchmark for data\u2011protection legislation.",
+  "response": "The EU\u2019s General Data Protection Regulation (GDPR), effective May\u202f2018, applies globally to any organization processing EU residents\u2019 personal data and mandates rights such as access, erasure, portability, and explicit consent, while requiring breach reporting within 72\u202fhours and appointing Data Protection Officers for large\u2011scale processing. Violations can incur fines up to 4\u202f% of global annual revenue or \u20ac20\u202fmillion (whichever is higher), exemplified by Meta\u2019s \u20ac1.2\u202fbillion fine in 2023, Amazon\u2019s \u20ac746\u202fmillion penalty, and Google\u2019s cumulative fines exceeding \u20ac200\u202fmillion. GDPR has inspired similar laws worldwide (e.g., California\u2019s CCPA, Brazil\u2019s LGPD, India\u2019s DPDP Act) but faces criticism for imposing heavy compliance costs on small firms, generating user fatigue with cookie banners, and uneven enforcement across member states. Despite these challenges, the regulation has cemented data privacy as a fundamental right and set the global benchmark for data\u2011protection legislation.",
   "score": 0,
-  "cost": 4.743e-05,
+  "cost": 5.345999999999999e-05,
   "expected": "",
   "tokens": {
-    "input": 309,
-    "output": 218
+    "input": 339,
+    "output": 255
   }
 }

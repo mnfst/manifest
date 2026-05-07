@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 10,
-  "response": "The CEO shared the Q1 board deck draft, noting that revenue is at 127% of target and NRR is 115% while CAC has risen 22%. They request that you provide your product roadmap section by Wednesday in preparation for the board meeting next Tuesday.",
+  "response": "The Q1 board deck draft indicates the company exceeded its revenue target at 127% and achieved an NRR of 115%, though CAC rose by 22%. Please submit your product roadmap section by Wednesday to incorporate into the deck for the board meeting next Tuesday.",
   "score": 0,
-  "cost": 2.7269999999999998e-05,
+  "cost": 1.2780000000000001e-05,
   "expected": "",
   "tokens": {
-    "input": 103,
-    "output": 200
+    "input": 87,
+    "output": 55
   }
 }

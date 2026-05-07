@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 21,
-  "response": "I'd be happy to help with directions, but I need a bit more information to provide accurate, useful guidance. Since I don't know your specific starting park or destination library, I can't give real left/right turn instructions.\n\n**To get useful directions, please provide:**\n1. **The name or address of the park** you're starting from (e.g., \"Central Park, NYC\" or \"Grant Park, Chicago\")\n2. **The name or address of the library** you're trying to reach (e.g., \"New York Public Library Main Branch\" or \"Harold Washington Library Center\")\n\n**Once you share those details, I can:**\n- Use real map data to calculate a route\n- Break it down into a sequence of **only left and right turns** (as requested)\n- Note any important landmarks or street names for clarity\n- Ensure the directions are practical and safe to follow\n\n**Example of what I'll provide once you give locations:**\n> *\"From [Park Name]: Head south on [Street] for 2 blocks. Turn right onto [Avenue]. Go 3 blocks. Turn left onto [Street]. The library will be on your right after the intersection with [Cross Street].\"*\n\nPlease reply with your specific park and library, and",
+  "response": "I can't provide specific left/right turn directions without knowing the **exact starting point (the park)** and **destination (the library)**, as directions depend entirely on your specific location.  \n\nTo give accurate instructions using only left/right turns, I would need:  \n- The **name or address of the park** you're starting from.  \n- The **name or address of the library** you're trying to reach.  \n\n**Example of what I\u2019d need**:  \n> *\"Directions from Central Park (at 59th St & 5th Ave, NYC) to the New York Public Library Main Branch (476 5th Ave, NYC) using only left/right turns.\"*  \n\nOnce you provide those details, I\u2019ll give you a clear, step-by-step route using **only left and right turns** (no \"go straight,\" \"continue,\" or cardinal directions like north/south).  \n\nPlease reply with your specific park and library, and I\u2019ll help right away! \ud83d\ude0a",
   "score": 0,
-  "cost": 4.7969999999999996e-05,
+  "cost": 2.034e-05,
   "expected": "",
   "tokens": {
-    "input": 33,
-    "output": 500
+    "input": 24,
+    "output": 202
   }
 }

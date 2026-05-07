@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "test_generation_v2",
   "case": 39,
-  "response": "Here is a **pytest** test\u2011suite that exercises the `topological_sort` implementation from the happy path, through typical edge\u2011cases, to error conditions.  \nThe suite includes a small helper (`is_valid_topological_order`) that checks whether a returned ordering really respects all edges \u2013 this lets us accept *any* valid topological order for a DAG (the function is not required to return a unique identifier,",
+  "response": "Here is a **pytest** test suite that exercises the `topological_sort` implementation from the angles you asked for:\n\n* **Happy path** \u2013 typical DAGs with a known valid ordering.  \n* **Edge cases** \u2013 empty graph, single node, disconnected components, nodes that appear only as neighbours, self\u2011loops, multiple equally\u2011valid orderings.  \n* **Error cases** \u2013 wrong input types, missing/unsupported iterables, etc.  \n\n```python\n# test_topological_sort.py\nimport pytest\nfrom typing import Dict, List, Any\n\n# Import the function to test \u2013 adjust the import path as needed.\n# from mymodule import topological_sort\ndef topological_sort(graph: dict) -> list:   # <-- the function under test\n    visited = set()\n    result = []\n    def dfs(node):\n        if node in visited:\n            return\n        visited.add(node)\n        for neighbor in graph.get(node, []):\n            dfs(neighbor)\n        result.append(node)\n    for node in graph:\n        dfs(node)\n    return result[::-1]\n\n\n# ----------------------------------------------------------------------\n# Helper to verify that a returned ordering is a *valid* topological sort\n# ----------------------------------------------------------------------\ndef is_valid_topological_order(graph: Dict[Any, List[Any]], order: List[Any]) -> bool:\n    \"\"\"Return True iff `order` contains every node exactly once and respects all edges.\"\"\"\n    # All nodes that appear either as a key or only as a neighbour must be present.\n    nodes_in_graph = set(graph.keys())\n    for nbrs in graph.values():\n        nodes_in_graph.update(nbrs)\n\n    if set(order) != nodes_in_graph:\n        return False\n    if len(order) != len(nodes_in_graph):\n        return False  # duplicates or missing nodes\n\n    position = {node: idx for idx, node in enumerate(order)}\n    for u, nbrs in graph.items():\n        for v in nbrs:\n            if position[u] >= position[v]:   # u must come before v\n                return False\n    return True\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path tests\n# ----------------------------------------------------------------------\ndef test_happy_path_simple_chain():\n    \"\"\"A \u2192 B \u2192 C\"\"\"\n    graph = {\n        \"A\": [\"B\"],\n        \"B\": [\"C\"],\n        \"C\": [],\n    }\n    order = topological_sort(graph)\n    assert is_valid_topological_order(graph",
   "score": 0,
-  "cost": 9.135e-05,
+  "cost": 0.0001008,
   "expected": "",
   "tokens": {
     "input": 120,
-    "output": 895
+    "output": 1000
   }
 }

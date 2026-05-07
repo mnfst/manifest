@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 12,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "Jim watches TV for 2 hours.\n\nHe reads for half as long:\n\n2 \u00f7 2 = 1 hour\n\nTotal time each time:\n\n2 + 1 = 3 hours\n\nHe does this 3 times per week:\n\n3 \u00d7 3 = 9 hours per week\n\nOver 4 weeks:\n\n9 \u00d7 4 = 36 hours\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.004605,
   "expected": "36",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 89,
+    "output": 208
   }
 }

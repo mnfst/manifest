@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 32,
-  "response": "We need to produce exactly 2 sentences summarizing email: main point and action items. The email: SSL cert for api.company.com expires in 7 days (May 4). Auto-renewal failed due to DNS validation issue. The CNAME record was removed during last DNS migration. Fix: re-add CNAME _acme-challenge.api.company.com. I'll handle it today but flagging for visibility. - DevOps\n\nSo summary: The SSL certificate for api.company.com will expire in seven days because auto\u2011renewal failed after a DNS validation issue caused by a missing CNAME record; the required CNAME _acme-challenge.api.company.com must be re\u2011added. The DevOps engineer will fix it today and is flagging the issue for visibility.\n\nThat's two sentences. Ensure exactly two sentences. No extra punctuation that could be considered sentence? We need exactly two sentences, ending with periods. Let's craft:\n\n\"The SSL certificate for api.company.com is",
+  "response": "The SSL certificate for api.company.com expires in seven days (May\u202f4) because auto\u2011renewal failed after the required CNAME record _acme\u2011challenge.api.company.com was removed during a DNS migration. DevOps will re\u2011add the CNAME today to restore validation and is flagging the issue for visibility.",
   "score": 0,
-  "cost": 2.844e-05,
+  "cost": 2.268e-05,
   "expected": "",
   "tokens": {
     "input": 116,
-    "output": 200
+    "output": 136
   }
 }

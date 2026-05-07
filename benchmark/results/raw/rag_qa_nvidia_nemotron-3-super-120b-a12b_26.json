@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "rag_qa",
   "case": 26,
-  "response": "KMJ-TV (now known as NBC affiliate KSEE) was the very first television station to broadcast in Fresno.",
+  "response": "KMJ-TV (now known as NBC affiliate KSEE)",
   "score": 0,
-  "cost": 2.079e-05,
+  "cost": 2.871e-05,
   "expected": "KMJ-TV",
   "tokens": {
-    "input": 207,
-    "output": 24
+    "input": 219,
+    "output": 100
   }
 }

@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "sentiment_sst2",
   "case": 23,
-  "response": "We need to classify sentiment? The user wants classification of sentiment? The user wants just the sentiment?",
+  "response": "",
   "score": 0,
   "cost": 1.0259999999999998e-05,
   "expected": "negative",

@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 20,
-  "response": "",
+  "response": "We need to summarize email in exactly 2 sentences, capturing main point and any action items. The email: Subject: Weekend Incident Report. Saturday 2 AM: disk space alert on prod-db-01. Automated cleanup freed 40GB but failed to resize. Manual intervention at 8 AM restored service. Root cause: log rotation misconfigured after last migration. No customer impact (maintenance window). - On-Call\n\nMain point: Disk space alert due to misconfigured log rotation, resolved manually, no customer impact. Action items: likely need to fix log rotation configuration, maybe review automated cleanup, ensure proper resizing. So two sentences: first sentence summarizing incident and impact; second sentence stating action needed (fix log rotation, verify cleanup, prevent recurrence). Ensure exactly 2 sentences.\n\nLet's craft: \"At 2\u202fAM Saturday, prod-db-01 triggered a disk\u2011space alert; automated cleanup reclaimed 40\u202fGB but",
   "score": 0,
   "cost": 2.7810000000000003e-05,
   "expected": "",

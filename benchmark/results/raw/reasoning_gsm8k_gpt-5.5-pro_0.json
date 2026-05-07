@@ -2,12 +2,12 @@
   "model": "gpt-5.5-pro",
   "task": "reasoning_gsm8k",
   "case": 0,
-  "response": "",
-  "score": 0,
-  "cost": 0.0,
+  "response": "Alexandra raises $430.\n\nKim raises $320 more than Alexandra:\n\n$430 + $320 = $750\n\nSarah raises $300.\n\nMaryam raises $400 more than Sarah:\n\n$300 + $400 = $700\n\nTotal raised:\n\n$430 + $750 + $300 + $700 = $2,180\n\nANSWER: 2180",
+  "score": 4,
+  "cost": 0.003875,
   "expected": "2280",
   "tokens": {
-    "input": 0,
-    "output": 0
+    "input": 95,
+    "output": 170
   }
 }

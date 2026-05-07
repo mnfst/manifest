@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "structured_output",
   "case": 6,
-  "response": "{\n  \"type\": \"Bug report\",\n  \"summary\": \"App crashes on login when using Face ID on iPhone 14 with iOS 17.2\",\n  \"device\": \"iPhone 14\",\n  \"os_version\": \"iOS 17.2\",\n  \"reproducibility\": \"Reproducible every time\",\n  \"severity\": \"critical\"\n}",
+  "response": "{\n  \"type\": \"Bug report\",\n  \"summary\": \"App crashes on login when using Face ID\",\n  \"device\": \"iPhone 14\",\n  \"os_version\": \"iOS 17.2\",\n  \"reproducibility\": \"every time\",\n  \"severity\": \"critical\"\n}",
   "score": 0,
-  "cost": 4.464e-05,
+  "cost": 4.329e-05,
   "expected": "",
   "tokens": {
     "input": 109,
-    "output": 387
+    "output": 372
   }
 }

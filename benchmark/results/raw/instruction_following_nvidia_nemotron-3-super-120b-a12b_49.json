@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "instruction_following",
   "case": 49,
-  "response": "Here are three distinct chatbot greetings tailored to different tones, each clearly labeled for its intended use case:\n\n---\n\n**Formal**  \n\"Good day. I am your virtual assistant, ready to provide accurate and efficient support. How may I assist you today?\"  \n*Why it works:* Polite, professional, and service-oriented. Uses complete sentences, avoids contractions, and focuses on the user's needs\u2014ideal for banking",
+  "response": "- **Formal:** \"Good day. How may I assist you today?\"  \n- **Casual:** \"Hey there! What's up?\"  \n- **Humorous:** \"Greetings, human! I promise I won\u2019t take over the world\u2026 yet. How can I help?\"",
   "score": 0,
-  "cost": 4.824e-05,
+  "cost": 7.65e-06,
   "expected": "",
   "tokens": {
-    "input": 36,
-    "output": 500
+    "input": 26,
+    "output": 59
   }
 }

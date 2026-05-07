@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_explanation",
   "case": 12,
-  "response": "The function performs a depth\u2011first search on the directed graph, adding each node to `stack` only after all of its reachable neighbors have been visited (post\u2011order). Reversing the `stack` yields a topological ordering of the graph\u2019s nodes.",
+  "response": "The function performs a depth\u2011first search (DFS) on each unvisited node of a directed graph, pushing nodes onto a stack after all of their descendants have been explored, and finally returns the reversed stack, which yields a topological ordering of the graph\u2019s vertices. This implements the classic DFS\u2011based topological sort algorithm for a directed acyclic graph (DAG).",
   "score": 0,
-  "cost": 2.1419999999999998e-05,
+  "cost": 1.971e-05,
   "expected": "",
   "tokens": {
     "input": 120,
-    "output": 118
+    "output": 99
   }
 }

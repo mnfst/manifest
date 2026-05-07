@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "code_explanation",
   "case": 47,
-  "response": "The function implements the **Shunting\u2011Yard algorithm**: it scans a token stream of numbers and operators, pushes operators onto a stack while respecting precedence and parentheses, and emits numbers to the output list; when a higher\u2011or\u2011equal\u2011precedence operator is on the stack it is popped to the output first. After all tokens are processed, any remaining operators are popped, yielding the expression in **postfix (Reverse Polish Notation)** order.",
+  "response": "The function implements Dijkstra\u2019s shunting\u2011yard algorithm: it scans the input token list, pushes numbers directly to the output, and uses an operator stack (guided by the precedence table) to reorder operators so that the returned list is the expression in Reverse Polish Notation (postfix form). Parentheses are handled by pushing \u2018(\u2019 onto the stack and popping operators until a matching \u2018)\u2019 is found. After all tokens are processed, any remaining operators are popped to the output.",
   "score": 0,
-  "cost": 3.3209999999999995e-05,
+  "cost": 3.744e-05,
   "expected": "",
   "tokens": {
     "input": 216,
-    "output": 153
+    "output": 200
   }
 }

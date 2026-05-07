@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "long_summarization",
   "case": 15,
-  "response": "The EU\u2019s General Data Protection Regulation (GDPR), effective May\u202f2018, applies to any organization processing the personal data of EU residents and mandates rights such as access, erasure, data portability, and explicit consent, while requiring breach reporting within 72\u202fhours and appointing Data Protection Officers for large\u2011scale processing. Violations can incur fines of up to 4\u202f% of global annual revenue or \u20ac20\u202fmillion (whichever is higher), exemplified by Meta\u2019s \u20ac1.2\u202fbillion penalty in 2023, Amazon\u2019s \u20ac746\u202fmillion fine, and Google\u2019s cumulative fines exceeding \u20ac200\u202fmillion. GDPR has become a global model, inspiring laws like California\u2019s CCPA, Brazil\u2019s LGPD, and India\u2019s Digital Personal Data Protection Act, though critics note it imposes heavy compliance costs on small firms, fuels user frustration with cookie banners, and suffers uneven enforcement across member states. Despite these drawbacks, the regulation has cemented data privacy as a fundamental right and set the worldwide standard for data protection.",
+  "response": "The EU\u2019s General Data Protection Regulation (GDPR), effective May\u202f2018, applies globally to any organization handling EU residents\u2019 personal data and mandates rights such as access, erasure, portability, and explicit consent, while requiring breach reporting within 72\u202fhours and appointing Data Protection Officers for large\u2011scale processing. Violations can incur fines up to 4\u202f% of global annual revenue or \u20ac20\u202fmillion (whichever is higher), exemplified by Meta\u2019s \u20ac1.2\u202fbillion penalty in 2023, Amazon\u2019s \u20ac746\u202fmillion fine, and Google\u2019s cumulative fines exceeding \u20ac200\u202fmillion. GDPR has inspired similar laws worldwide (e.g., California\u2019s CCPA, Brazil\u2019s LGPD, India\u2019s DPDPA) but faces criticism for imposing heavy compliance costs on small businesses, causing user fatigue with cookie banners, and uneven enforcement across member states. Despite these challenges, the regulation has cemented data privacy as a fundamental right and set the global benchmark for data protection legislation.",
   "score": 0,
-  "cost": 4.752e-05,
+  "cost": 4.7069999999999995e-05,
   "expected": "",
   "tokens": {
     "input": 309,
-    "output": 219
+    "output": 214
   }
 }

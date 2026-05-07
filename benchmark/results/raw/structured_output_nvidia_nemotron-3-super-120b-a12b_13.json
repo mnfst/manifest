@@ -4,10 +4,10 @@
   "case": 13,
   "response": "{\n  \"city\": \"San Francisco\",\n  \"temperature_f\": 62,\n  \"condition\": \"partly cloudy\",\n  \"wind\": {\n    \"direction\": \"NW\",\n    \"speed_mph\": 12\n  },\n  \"humidity_percent\": 68,\n  \"uv_index\": 4,\n  \"sunset\": \"7:45pm\"\n}",
   "score": 0,
-  "cost": 1.728e-05,
+  "cost": 3.303e-05,
   "expected": "",
   "tokens": {
-    "input": 114,
-    "output": 78
+    "input": 129,
+    "output": 238
   }
 }

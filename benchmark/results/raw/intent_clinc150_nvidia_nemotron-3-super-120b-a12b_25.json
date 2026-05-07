@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "intent_clinc150",
   "case": 25,
-  "response": "",
+  "response": "We need to classify the user message: \"please put chips on my shopping list\". The intents",
   "score": 0,
   "cost": 5.3009999999999996e-05,
   "expected": "shopping_list_update",

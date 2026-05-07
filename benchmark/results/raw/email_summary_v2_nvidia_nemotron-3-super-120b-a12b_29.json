@@ -2,7 +2,7 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "email_summary_v2",
   "case": 29,
-  "response": "The crash rate",
+  "response": "We need to summarize in exactly 2 sentences. Capture main point and any action items. The email: crash rate spiked to 2.3% (threshold 0.5%) since yesterday's release. Primary crash: null pointer in notification handler on Android 12+. Fix merged to main, emergency release request submitted to Play Store. iOS unaffected. - Mobile Team\n\nSo main point: crash rate spike due to null pointer in Android notification handler. Action items: fix merged, emergency release request submitted; likely need to monitor release. So two sentences: first sentence summarizing issue, second sentence summarizing actions and status.\n\nMake sure exactly 2 sentences. No extra punctuation that could be considered sentence? We'll produce two sentences ending with periods.\n\nLet's craft: \"The crash rate rose to 2.3% after yesterday's release, exceeding the 0.5% threshold due to a null pointer exception in the notification handler on Android 12+ devices",
   "score": 0,
   "cost": 2.772e-05,
   "expected": "",

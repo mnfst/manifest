@@ -4,10 +4,10 @@
   "case": 0,
   "response": "{\n  \"name\": \"John Smith\",\n  \"age\": 32,\n  \"job_title\": \"software engineer\",\n  \"company\": \"Google\",\n  \"location\": {\n    \"city\": \"Mountain View\",\n    \"state\": \"CA\"\n  }\n}",
   "score": 0,
-  "cost": 2.943e-05,
+  "cost": 1.2239999999999998e-05,
   "expected": "",
   "tokens": {
-    "input": 90,
-    "output": 237
+    "input": 80,
+    "output": 56
   }
 }

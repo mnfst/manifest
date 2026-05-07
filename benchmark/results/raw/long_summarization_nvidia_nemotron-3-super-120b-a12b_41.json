@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "long_summarization",
   "case": 41,
-  "response": "Quantum computing uses qubits that can exist in superposition, become entangled, and interfere, enabling exponential speed\u2011ups for certain problems over classical bits. Major players\u2014IBM, Google, IonQ, and Rigetti\u2014are developing hardware via superconducting circuits, trapped ions, photonics, and topological qubits; Google\u2019s 2019 \u201cquantum supremacy\u201d claim showed a 200\u2011second task that would need a supercomputer ~10,000 years. However, qubits are fragile, require near\u2011absolute\u2011zero cooling, and suffer high error rates, so current 100\u20111,000\u2011qubit devices need error correction that may demand millions of physical qubits for useful logical qubits. Despite these hurdles, the technology holds promise for drug discovery, materials science, cryptography, optimization, and early experiments in finance and logistics.",
+  "response": "Quantum computing uses qubits that can be in superposition, entangled, and interfere, enabling exponential speed\u2011ups for certain problems over classical bits. Major players\u2014IBM, Google, IonQ, and Rigetti\u2014are developing hardware via superconducting circuits, trapped ions, photonics, and topological qubits, with Google\u2019s 2019 claim of quantum supremacy (200\u202fs vs. 10,000\u202fyears on a supercomputer). Current devices have 100\u20131,000 qubits but suffer from fragility, high error rates, and the need for extensive error correction, suggesting millions of qubits may be required for practical applications. Despite these hurdles, the technology holds promise for drug discovery, materials science, cryptography, optimization, and early experiments in finance and logistics.",
   "score": 0,
-  "cost": 4.059e-05,
+  "cost": 4.5090000000000004e-05,
   "expected": "",
   "tokens": {
-    "input": 277,
-    "output": 174
+    "input": 298,
+    "output": 203
   }
 }

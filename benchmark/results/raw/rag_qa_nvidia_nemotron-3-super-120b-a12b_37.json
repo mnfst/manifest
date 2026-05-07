@@ -2,12 +2,12 @@
   "model": "nvidia/nemotron-3-super-120b-a12b",
   "task": "rag_qa",
   "case": 37,
-  "response": "Korea bordered Kublai's territory on the northeast.",
+  "response": "Korea bordered Kublai's territory on the northeast border.",
   "score": 0,
-  "cost": 2.952e-05,
+  "cost": 3.3390000000000004e-05,
   "expected": "northeast",
   "tokens": {
     "input": 230,
-    "output": 98
+    "output": 141
   }
 }
