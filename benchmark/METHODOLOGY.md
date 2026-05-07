@@ -76,6 +76,8 @@ use cases in production:
 | Content moderation (ToxiGen) | Safety classification with adversarial inputs. Tests robustness. |
 | Function calling | Tool use / structured API calls. Core capability for AI agents. |
 
+*This was the initial selection. The benchmark grew to 21 v2 tasks during execution. See section 5 for the complete list.*
+
 Tasks we didn't include at 50 cases yet (code review, test generation, email summary,
 JSON transform, extraction hard) are available at 5 cases from the v1 exploratory run.
 They can be scaled up in a future iteration.
@@ -320,20 +322,42 @@ at `results/spend_tracker.json` persists across runs.
 | code_review | 5 | Needs PR diffs from OSS repos |
 | extraction_hard | 5 | Needs synthetic semi-structured documents |
 
+### Additional v2 datasets (added during benchmark expansion)
+
+These 14 tasks were scaled to 50 cases each during benchmark execution, bringing the total to 21 v2 tasks:
+
+| Task | Source | Cases |
+|------|--------|-------|
+| code_generation | HumanEval | 50 |
+| code_explanation | Hand-curated | 48 |
+| rag_qa | SQuAD v2 | 50 |
+| instruction_following | Hand-curated | 50 |
+| structured_output | Hand-curated | 50 |
+| json_transform_v2 | Hand-curated | 50 |
+| long_summarization | Hand-curated | 50 |
+| data_to_text | Hand-curated | 50 |
+| multistep_reasoning | ARC-Challenge | 50 |
+| extraction_hard_v2 | Hand-curated | 50 |
+| test_generation_v2 | Hand-curated | 50 |
+| code_review_v2 | Hand-curated | 50 |
+| email_summary_v2 | Hand-curated | 50 |
+| function_calling | Hand-curated | 50 |
+
 ## 6. Model Selection
 
 ### Provider integration
 
-| Provider | Endpoint | Auth | Models |
-|----------|----------|------|--------|
-| Anthropic | api.anthropic.com/v1 | x-api-key header | Opus 4.7, Sonnet 4, Haiku 4.5 |
-| OpenAI | api.openai.com/v1 | Bearer token | GPT-4o, GPT-4o-mini |
-| Google | generativelanguage.googleapis.com/v1beta/openai | Bearer token | Gemini 2.5 Pro/Flash, 2.0 Flash |
-| MiniMax | api.minimaxi.chat/v1 | Bearer token | MiniMax-M2.7 |
-| Mistral | api.mistral.ai/v1 | Bearer token | Large, Medium, Small, Ministral-3B |
-| Moonshot | api.moonshot.ai/v1 | Bearer token | Kimi-K2.6 |
-| OpenRouter | openrouter.ai/api/v1 | Bearer token | ByteDance Seed, Qwen, DeepSeek, Grok |
-| Azure AI | Custom endpoint | api-key header | DeepSeek, Grok, Kimi, Llama, GPT-5.x (currently down) |
+| API Provider | Endpoint | Models |
+|--------------|----------|--------|
+| Anthropic | api.anthropic.com | Opus 4.7, Sonnet 4, Haiku 4.5 |
+| OpenAI | api.openai.com (/v1 + /v1/responses for Pro models) | GPT-5.x, GPT-4o, GPT-4o-mini |
+| Google | generativelanguage.googleapis.com | Gemini 2.5 Pro/Flash, 2.0 Flash |
+| Mistral | api.mistral.ai | Large, Medium, Small, Ministral-3B |
+| MiniMax | api.minimaxi.chat | MiniMax-M2.7 |
+| Moonshot | api.moonshot.ai | Kimi-K2.6 |
+| BytePlus | ark.ap-southeast.bytepluses.com | Seed 2.0 Pro, Seed 2.0 Code |
+| OpenRouter | openrouter.ai | ByteDance Seed, Qwen, DeepSeek, xAI Grok, Meta Llama, NVIDIA Nemotron, Microsoft Phi, Google Gemma |
+| Azure | sebas-mo9p8fr3-eastus2.services.ai.azure.com | Legacy doublons (8 models at 2/21 tasks, not primary) |
 
 ### Price tiers
 
@@ -399,6 +423,8 @@ score, eval_type, response_preview
 
 ## 9. Known Limitations
 
+For the complete limitations analysis, see LIMITATIONS.md. Summary below:
+
 1. **LLM-as-judge bias**: GPT-4o-mini as judge may favor GPT-family outputs.
    Mitigation: dual metrics on 4 tasks show judge/accuracy correlation.
 2. **Judge-accuracy divergence on reasoning**: Opus scores 98% exact answer but
@@ -413,7 +439,7 @@ score, eval_type, response_preview
 6. **Reasoning model non-determinism**: temperature cannot be set to 0 for some
    reasoning models, introducing run-to-run variance.
 
-## 10. Key Findings (preliminary, as of lot 8)
+## 10. Key Findings (see FINDINGS.md for complete list)
 
 1. **Economy models match premium on most tasks**: GPT-4o-mini ($0.15/M) and
    Mistral Small ($0.10/M) achieve 90-100% of premium quality for 15-100x less cost.
@@ -489,8 +515,8 @@ anchors (1=fail, 2=poor, 3=acceptable, 4=good, 5=perfect) that the judge can
 distinguish reliably. Our question is "is $0.15/M good enough vs $15/M?" not "is
 model A 87.3 vs 87.1?" The coarse scale answers our question better.
 
-If rescoring is ever needed: all 14,000+ raw responses are saved in `results/raw/`.
-We can re-score with any scale without re-calling any API. The $36 of API calls is
+If rescoring is ever needed: all 50,000+ raw responses are saved in `results/raw/`.
+We can re-score with any scale without re-calling any API. The $98 of API calls is
 a one-time cost, the scoring is free to redo.
 
 ### Q: Why GPT-4o-mini as judge and not something stronger?
@@ -574,7 +600,7 @@ business functions."
 ### Q: Can we rescore everything if we change our mind?
 
 Yes. All raw model responses (the actual text each model returned) are saved as JSON
-files in `results/raw/`. The API call cost ($36) is sunk. Rescoring with a different
+files in `results/raw/`. The API call cost ($98) is sunk. Rescoring with a different
 judge, scale, or rubric costs only the judge calls (~$1-2) and can be done in minutes.
 
 ## 13. Glossary

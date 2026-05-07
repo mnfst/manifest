@@ -11,7 +11,7 @@ Findings marked [PRELIMINARY] are based on partial data and may shift.**
 
 - 50,949 unique data points
 - 49 models at 21/21 tasks (57 total, 8 Azure doublons at 2/21)
-- 13 providers: Anthropic, OpenAI, Google, Mistral, MiniMax, Moonshot, BytePlus, OpenRouter, Azure
+- 9 API providers (Anthropic, OpenAI, Google, Mistral, MiniMax, Moonshot, BytePlus, OpenRouter, Azure)
 - 21 v2 tasks (50 cases each), 13 v1 tasks (5-10 cases, exploratory only)
 - $98 spent of $250 budget (39%)
 - Commit: 14d8bdc38 on branch taskbench-data

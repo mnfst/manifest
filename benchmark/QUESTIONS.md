@@ -9,7 +9,7 @@ of scope. This document prevents drift and keeps the project focused.
 ## Core Questions (cost vs quality)
 
 **Q1. For a given production task, which model delivers acceptable quality at the lowest cost?**
-Status: ANSWERABLE. 55 models x 21 tasks. This is the main output of the benchmark.
+Status: ANSWERABLE. 49 models x 21 tasks (57 total including Azure legacy). This is the main output of the benchmark.
 Graph: Per-task Pareto frontier (cost on X, quality on Y, one dot per model).
 
 **Q2. Do economy models ($0.10-0.15/M) match premium models ($5-15/M) on simple tasks?**
@@ -75,6 +75,8 @@ Status: ANSWERABLE. Finding #12: high-discrimination tasks benefit most from rou
 Graph: Savings from routing per task (delta between cheapest adequate and most expensive adequate).
 
 ## Questions We Cannot Answer (limitations)
+
+See LIMITATIONS.md for detailed analysis of each limitation.
 
 - **Latency**: we do not measure response time.
 - **Vision tasks**: excluded because not all models support image input.
