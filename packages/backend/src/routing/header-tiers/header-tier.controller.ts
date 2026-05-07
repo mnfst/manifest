@@ -23,9 +23,9 @@ import { CurrentUser } from '../../auth/current-user.decorator';
 import type { AuthUser } from '../../auth/auth.instance';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
-import { ModelRouteDto } from '../dto/routing.dto';
+import { ModelRouteDto, SetParamDefaultsDto } from '../dto/routing.dto';
 import { HeaderTierService } from './header-tier.service';
-import { AUTH_TYPES, type TierColor } from 'manifest-shared';
+import { AUTH_TYPES, type RequestParamDefaults, type TierColor } from 'manifest-shared';
 
 interface CreateHeaderTierBody {
   name: string;
@@ -197,5 +197,20 @@ export class HeaderTierController {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.headerTierService.clearFallbacks(agent.id, id);
     return { ok: true };
+  }
+
+  @Patch(':agentName/header-tiers/:id/params')
+  async setParamDefaults(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('id') id: string,
+    @Body() body: SetParamDefaultsDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.headerTierService.setParamDefaults(
+      agent.id,
+      id,
+      (body.paramDefaults ?? null) as RequestParamDefaults | null,
+    );
   }
 }

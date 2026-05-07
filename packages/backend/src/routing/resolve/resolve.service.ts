@@ -199,6 +199,7 @@ export class ResolveService {
       header_tier_id: match.id,
       header_tier_name: match.name,
       header_tier_color: match.badge_color,
+      param_defaults: match.param_defaults,
     };
   }
 

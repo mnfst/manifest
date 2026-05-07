@@ -183,12 +183,12 @@ export class SetOverrideDto {
 }
 
 /**
- * Body for `PATCH …/tiers/:tier/params` and `…/specificity/:category/params`.
- * `paramDefaults: null` clears the configured defaults; an object replaces
- * them wholesale. Validation only checks the shape — not the field set —
- * because new provider knobs (`reasoning_effort`, `safety`, custom-provider
- * params, …) shouldn't require a backend release. The frontend curates the
- * surface; the column accepts any JSONB.
+ * Body for the `…/params` PATCH endpoints on tiers, specificity categories,
+ * and header tiers. `paramDefaults: null` clears the configured defaults;
+ * an object replaces them wholesale. Validation only checks the shape — not
+ * the field set — because new provider knobs (`reasoning_effort`, `safety`,
+ * custom-provider params, …) shouldn't require a backend release. The
+ * frontend curates the surface; the column accepts any JSONB.
  */
 export class SetParamDefaultsDto {
   @IsOptional()

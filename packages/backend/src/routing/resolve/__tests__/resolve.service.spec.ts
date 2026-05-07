@@ -144,6 +144,36 @@ describe('ResolveService', () => {
       expect(result.header_tier_color).toBe('red');
     });
 
+    it('threads param_defaults from the matched header tier', async () => {
+      const tier = {
+        id: 'h1',
+        name: 'Premium',
+        header_key: 'x-tier',
+        header_value: 'gold',
+        enabled: true,
+        badge_color: 'red',
+        override_route: route('deepseek', 'api_key', 'deepseek-chat'),
+        fallback_routes: null,
+        param_defaults: { thinking: { type: 'disabled' } },
+      } as unknown as HeaderTier;
+      headerTierService.list.mockResolvedValue([tier]);
+
+      const result = await svc.resolve(
+        'agent-1',
+        messages,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-tier': 'gold' },
+      );
+
+      expect(result.reason).toBe('header-match');
+      expect(result.param_defaults).toEqual({ thinking: { type: 'disabled' } });
+    });
+
     it('returns null when no header tiers exist', async () => {
       headerTierService.list.mockResolvedValue([]);
       const result = await svc.resolve(

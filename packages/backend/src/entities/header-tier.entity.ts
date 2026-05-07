@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
-import type { ModelRoute, TierColor } from 'manifest-shared';
+import type { ModelRoute, RequestParamDefaults, TierColor } from 'manifest-shared';
 
 @Entity('header_tiers')
 @Index(['agent_id', 'sort_order'])
@@ -44,6 +44,9 @@ export class HeaderTier {
 
   @Column('jsonb', { nullable: true })
   fallback_routes!: ModelRoute[] | null;
+
+  @Column('jsonb', { nullable: true })
+  param_defaults!: RequestParamDefaults | null;
 
   @Column(timestampType(), { default: timestampDefault() })
   created_at!: string;

@@ -513,4 +513,38 @@ describe('HeaderTierService', () => {
       await expect(svc.clearFallbacks('agent-1', 'h1')).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe('setParamDefaults', () => {
+    it('writes the configured defaults and invalidates the cache', async () => {
+      const row = {
+        id: 'h1',
+        agent_id: 'agent-1',
+        param_defaults: null,
+        updated_at: 'old',
+      } as unknown as HeaderTier;
+      repo.findOne.mockResolvedValue(row);
+      const defaults = { thinking: { type: 'disabled' as const } };
+      const result = await svc.setParamDefaults('agent-1', 'h1', defaults);
+      expect(result.param_defaults).toEqual(defaults);
+      expect(result.updated_at).not.toBe('old');
+      expect(repo.save).toHaveBeenCalledWith(row);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('clears the configured defaults when passed null', async () => {
+      const row = {
+        id: 'h1',
+        agent_id: 'agent-1',
+        param_defaults: { thinking: { type: 'enabled' as const } },
+      } as unknown as HeaderTier;
+      repo.findOne.mockResolvedValue(row);
+      const result = await svc.setParamDefaults('agent-1', 'h1', null);
+      expect(result.param_defaults).toBeNull();
+    });
+
+    it('throws NotFound when row missing', async () => {
+      repo.findOne.mockResolvedValue(null);
+      await expect(svc.setParamDefaults('agent-1', 'h1', null)).rejects.toThrow(NotFoundException);
+    });
+  });
 });

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
-import type { AuthType, ModelRoute } from 'manifest-shared';
+import type { AuthType, ModelRoute, RequestParamDefaults } from 'manifest-shared';
 import { TIER_COLORS, type TierColor } from 'manifest-shared';
 import { HeaderTier } from '../../entities/header-tier.entity';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
@@ -87,6 +87,7 @@ export class HeaderTierService {
       enabled: true,
       override_route: null,
       fallback_routes: null,
+      param_defaults: null,
       created_at: now,
       updated_at: now,
     });
@@ -217,6 +218,24 @@ export class HeaderTierService {
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);
+  }
+
+  /**
+   * Set or clear the configured request body defaults for a header tier.
+   * Pass `null` to clear. Storage is at the tier level, so the same defaults
+   * apply to the primary route AND every fallback in the tier.
+   */
+  async setParamDefaults(
+    agentId: string,
+    id: string,
+    paramDefaults: RequestParamDefaults | null,
+  ): Promise<HeaderTier> {
+    const row = await this.findOrThrow(agentId, id);
+    row.param_defaults = paramDefaults;
+    row.updated_at = new Date().toISOString();
+    await this.repo.save(row);
+    this.routingCache.invalidateAgent(agentId);
+    return row;
   }
 
   /**

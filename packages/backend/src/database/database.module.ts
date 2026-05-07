@@ -92,6 +92,7 @@ import { AddParamDefaultsColumns1785000000000 } from './migrations/1785000000000
 import { AddProviderKeyLabelAndPriority1785000000000 } from './migrations/1785000000000-AddProviderKeyLabelAndPriority';
 import { AddProviderKeyLabelToAgentMessages1785100000000 } from './migrations/1785100000000-AddProviderKeyLabelToAgentMessages';
 import { AddRequestParamsColumn1786000000000 } from './migrations/1786000000000-AddRequestParamsColumn';
+import { AddHeaderTierParamDefaults1787000000000 } from './migrations/1787000000000-AddHeaderTierParamDefaults';
 
 const entities = [
   AgentMessage,
@@ -185,6 +186,7 @@ const migrations = [
   AddProviderKeyLabelAndPriority1785000000000,
   AddProviderKeyLabelToAgentMessages1785100000000,
   AddRequestParamsColumn1786000000000,
+  AddHeaderTierParamDefaults1787000000000,
 ];
 
 @Module({

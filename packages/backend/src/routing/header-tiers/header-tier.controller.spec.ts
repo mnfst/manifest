@@ -15,6 +15,7 @@ function makeController(overrides?: { tenantId?: string | null }) {
     clearOverride: jest.fn().mockResolvedValue(undefined),
     setFallbacks: jest.fn().mockResolvedValue(['m']),
     clearFallbacks: jest.fn().mockResolvedValue(undefined),
+    setParamDefaults: jest.fn().mockResolvedValue({ id: 'ht-1', param_defaults: null }),
   } as unknown as jest.Mocked<HeaderTierService>;
 
   const resolveAgentService = {
@@ -136,5 +137,18 @@ describe('HeaderTierController', () => {
     const out = await controller.clearFallbacks(user, 'my-agent', 'ht-1');
     expect(service.clearFallbacks).toHaveBeenCalledWith('agent-1', 'ht-1');
     expect(out).toEqual({ ok: true });
+  });
+
+  it('setParamDefaults forwards the body to the service', async () => {
+    const { controller, service } = makeController();
+    const body = { paramDefaults: { thinking: { type: 'disabled' as const } } };
+    await controller.setParamDefaults(user, 'my-agent', 'ht-1', body);
+    expect(service.setParamDefaults).toHaveBeenCalledWith('agent-1', 'ht-1', body.paramDefaults);
+  });
+
+  it('setParamDefaults coerces a missing body to null', async () => {
+    const { controller, service } = makeController();
+    await controller.setParamDefaults(user, 'my-agent', 'ht-1', {});
+    expect(service.setParamDefaults).toHaveBeenCalledWith('agent-1', 'ht-1', null);
   });
 });
