@@ -1,0 +1,25 @@
+packages/backend/src/routing/oauth/openai-oauth.service.ts
+  s_706915655668dc::t_2d44fa954a1c8c 1,6,13,15-17,19-28
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_706915655668dc::t_0b4e142fbf9b8a 1-182,186-308,310-383
+  ai_agent 183-185,309
+.changeset/puny-stars-laugh.md
+  s_706915655668dc::t_0bf7cf14115d9a 1-2
+  s_706915655668dc::t_f97340e74a33ed 3-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "ad08550ad6efef62c69640122e91eb40bf02491c",
+  "prompts": {},
+  "sessions": {
+    "s_706915655668dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6270679-6fa5-4c36-aef1-ae57b393f96b",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
