@@ -1,0 +1,21 @@
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_706915655668dc::t_5c0ac3af01644a 224-228,230
+packages/backend/src/routing/oauth/openai-oauth.service.spec.ts
+  s_706915655668dc::t_d0a1547e6e6a53 233-247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "509e80541dff3ff9d6b752fe03e6939c7267b66f",
+  "prompts": {},
+  "sessions": {
+    "s_706915655668dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6270679-6fa5-4c36-aef1-ae57b393f96b",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
