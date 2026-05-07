@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 45,
   "response": "**What\u2019s wrong with the current implementation**\n\n| # | Issue | Why it\u2019s a problem | How to fix it |\n|---|-------|--------------------|---------------|\n| 1 | **Not thread\u2011safe** | Two (or more) threads can evaluate `if cls._instance is None` at the same time, each create a new object and assign it to `cls._instance`. The end result is more than one instance. | Guard the creation with a lock (`threading.Lock`) or use the \u201c",
-  "score": 0,
+  "score": 4,
   "cost": 7.983e-05,
   "expected": "",
   "tokens": {
     "input": 87,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

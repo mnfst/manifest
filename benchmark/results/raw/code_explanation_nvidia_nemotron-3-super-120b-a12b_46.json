@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 46,
   "response": "The function restores the red\u2011black tree invariants after a new node has been inserted: it repeatedly recolors the node\u2019s parent, uncle, and grand\u2011parent and performs left or right rotations (the classic \u201cinsert\u2011fixup\u201d case analysis) until no red\u2011red violation remains, then ensures the root is black. This is the standard red\u2011black insertion fix\u2011up algorithm.",
-  "score": 0,
+  "score": 5,
   "cost": 2.295e-05,
   "expected": "",
   "tokens": {
     "input": 174,
     "output": 81
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

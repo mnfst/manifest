@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 16,
   "response": "The school owns approximately fifty percent more land in Allston than in Cambridge.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00029016000000000003,
   "expected": "approximately fifty percent",
   "tokens": {
     "input": 219,
     "output": 15
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

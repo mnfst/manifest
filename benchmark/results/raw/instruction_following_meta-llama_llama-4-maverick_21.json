@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 21,
   "response": "To give you directions from a park to a library using only left and right turns, I'll need to create a hypothetical scenario since I don't have the actual locations. Let's assume the park is at the starting point, and the library is a few blocks away.\n\n1. **Start at the Park**: Begin at the main entrance of the park.\n2. **First Turn**: Turn **right** onto the street adjacent to the park. This will be your first turn.\n3. **Continue Straight**: Proceed straight on this street for two blocks.\n4. **Second Turn**: At the second intersection, turn **left** onto another street.\n5. **Continue Straight Again**: Go straight on this new street for one block.\n6. **Third Turn**: Turn **right** at the next intersection.\n7. **Fourth Turn**: Immediately turn **left** at the next street.\n8. **Final Approach**: The library will be on your **right** after this last turn.\n\nSo, the sequence of turns is: Right, Left, Right, Left. The library is on your right after the last turn.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00013785,
   "expected": "",
   "tokens": {
     "input": 27,
     "output": 223
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

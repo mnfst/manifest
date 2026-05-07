@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 8,
   "response": "This code defines a `debounce` function that acts as a decorator to delay the execution of a given function `fn` until a specified `wait` time has passed since the last time the function was attempted to be called. It uses a timer that gets reset every time the decorated function is called, effectively postponing the actual function execution and preventing rapid successive calls from triggering the function more than once within the wait period.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00046280000000000003,
   "expected": "",
   "tokens": {
     "input": 105,
     "output": 85
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

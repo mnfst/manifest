@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 12,
   "response": "The internet originated in the 1960s with US Department of Defense-funded research, leading to ARPANET's first demonstration in 1969 between UCLA and Stanford, and its growth in the 1970s connecting universities; by 1983, the adoption of TCP/IP protocols laid the groundwork for the modern internet. Key milestones include Tim Berners-Lee's invention of the World Wide Web in 1989 at CERN, introducing HTML, URLs, and HTTP, followed by the 1993 launch of the Mosaic browser, the late-1990s dot-com boom and 2001 crash (with survivors like Amazon and Google thriving), and the mid-2000s rise of social media platforms like Facebook, Twitter, and YouTube. The 2007 iPhone launch accelerated mobile internet ubiquity, while cloud computing, exemplified by AWS in 2006, became a major force, resulting in the internet today connecting over 5 billion people and underpinning global commerce, communication, and entertainment.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000521,
   "expected": "",
   "tokens": {
     "input": 509,
     "output": 524
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

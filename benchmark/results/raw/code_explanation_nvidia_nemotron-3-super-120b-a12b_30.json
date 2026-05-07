@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 30,
   "response": "This code implements a Bloom filter: it stores a fixed\u2011size bit array and, for each item, computes\u202f`num_hashes`\u202fdifferent hash values (by hashing the item\u2019s string representation concatenated with an index\u202f`i`\u202fand taking the result modulo the array size). The `add` method sets the bits at those positions to\u202f`True`, and the `__contains__` method reports an item as present only if **all** of its corresponding bits are set, giving the probabilistic set\u2011membership test characteristic of a Bloom filter.",
-  "score": 0,
+  "score": 5,
   "cost": 2.457e-05,
   "expected": "",
   "tokens": {
     "input": 155,
     "output": 118
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 16,
   "response": "```python\nimport pytest\n\ndef gcd(a: int, b: int) -> int:\n    while b:\n        a, b = b, a % b\n    return abs(a)\n\nclass TestGCD:\n    # Happy path tests\n    def test_positive_integers(self):\n        assert gcd(12, 8) == 4\n        assert gcd(48, 18) == 6\n        assert gcd(17, 13) == 1  # coprime numbers\n        assert gcd(100, 25) == 25\n        assert gcd(7, 7) == 7  # identical numbers\n\n    def test_gcd_is_commutative(self):\n        assert gcd(12, 8) == gcd(8, 12)\n        assert gcd(48, 18) == gcd(18, 48)\n        assert gcd(100, 25) == gcd(25, 100)\n\n    # Edge cases\n    def test_one_zero(self):\n        assert gcd(0, 5) == 5\n        assert gcd(5, 0) == 5\n\n    def test_both_zeros(self):\n        assert gcd(0, 0) == 0\n\n    def test_one_or_both_negative(self):\n        assert gcd(-12, 8) == 4\n        assert gcd(12, -8) == 4\n        assert gcd(-12, -8) == 4\n        assert gcd(-5, 0) == 5\n        assert gcd(0, -5) == 5\n        assert gcd(-7, -7) == 7\n\n    def test_one_is_one(self):\n        assert gcd(1, 5) == 1\n        assert gcd(5, 1) == 1\n        assert gcd(1, 1) == 1\n\n    def test_large_numbers(self):\n        assert gcd(1000000, 500000) == 500000\n        assert gcd(999999, 111111) == 111111\n\n    def test_prime_numbers(self):\n        assert gcd(17, 19) == 1  # two different primes\n        assert gcd(13, 13) == 13  # same prime\n\n    def test_consecutive_integers(self):\n        assert gcd(5, 6) == 1\n        assert gcd(100, 101) == 1\n\n    # Error cases\n    def test_non_integer_inputs(self):\n        with pytest.raises(TypeError):\n            gcd(3.5, 5)\n        \n        with pytest.raises(TypeError):\n            gcd(5, \"hello\")\n        \n        with pytest.raises(TypeError):\n            gcd(\"world\", 7)\n        \n        with pytest.raises(TypeError):\n            gcd(None, 5)\n        \n        with pytest.raises(TypeError):\n            gcd(5, [1, 2, 3])\n\n    def test_too_few_arguments(self):\n        with pytest.raises(TypeError):\n            gcd(5)  # missing second argument\n\n    def test_too_many_arguments(self):\n        with pytest.raises(TypeError):\n            gcd(5, 10, 15)  # extra argument\n\nif __name__ == \"__main__\":\n    pytest.main([__file__])\n```\n\nThis test suite covers:\n\n**Happy Path Tests:**\n- Basic positive integer pairs\n- Commutativity property\n- Various common cases\n\n**Edge Cases:**\n- Zero values (one or both)\n- Negative numbers\n- Cases involving 1\n- Large numbers\n- Prime numbers\n- Consecutive integers\n\n**Error Cases:**\n- Non-integer inputs (floats, strings, None, lists)\n- Incorrect number of arguments\n\nThe tests verify that the GCD function works correctly according to mathematical properties and handles edge cases appropriately, while also ensuring proper type checking.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00076384,
   "expected": "",
   "tokens": {
     "input": 68,
     "output": 851
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

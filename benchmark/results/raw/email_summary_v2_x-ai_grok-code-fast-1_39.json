@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 39,
   "response": "The email outlines preparations for the year-end audit starting January 15, including a pre-audit checklist to finalize Q4 revenue recognition, reconcile bank accounts, verify stock option records, and prepare related-party transaction disclosures. A controller meeting is scheduled for next Tuesday to assign responsibilities for these tasks.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00024880000000000003,
   "expected": "",
   "tokens": {
     "input": 292,
     "output": 238
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

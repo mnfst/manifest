@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 34,
   "response": "A database index is a data structure that improves the speed of data retrieval operations by creating a sorted reference to specific columns in a table, similar to how a book index helps you quickly find specific topics. Instead of scanning every row in a table to find matching records, the database can use the index to directly locate the relevant data pages, dramatically reducing query execution time.",
-  "score": 0,
+  "score": 5,
   "cost": 6.974e-05,
   "expected": "",
   "tokens": {
     "input": 21,
     "output": 74
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

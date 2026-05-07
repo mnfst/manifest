@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 24,
   "response": "import math\nif not (a + b > c and a + c > b and b + c > a):\n    return -1\ns = (a + b + c) / 2\nreturn round(math.sqrt(s * (s - a) * (s - b) * (s - c)), 2)",
-  "score": 0,
+  "score": 3,
   "cost": 0.0021394,
   "expected": "",
   "tokens": {
     "input": 202,
     "output": 5298
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 14,
   "response": "This code implements Dijkstra's algorithm to compute the shortest path distances from a starting node to all other nodes in a weighted graph with non-negative edge weights. It uses a priority queue (min-heap) to always process the node with the smallest current distance, updating distances for neighbors if a shorter path is found and avoiding redundant processing of outdated entries.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002928,
   "expected": "",
   "tokens": {
     "input": 340,
     "output": 281
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

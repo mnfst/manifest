@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 28,
   "response": "The annual disaster recovery test missed its four-hour recovery time target, taking over six hours due to a slower-than-expected database restore. To address this gap, the SRE team recommends increasing backup frequency and pre-provisioning a standby database before the next test in October.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0012135499999999999,
   "expected": "",
   "tokens": {
     "input": 114,
     "output": 905
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

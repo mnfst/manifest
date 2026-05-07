@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 46,
   "response": "This function resolves double-red color violations introduced when inserting a red node into a red-black tree by either recoloring the parent, uncle, and grandparent then ascending to the grandparent, or performing targeted left/right rotations and recoloring to fix the imbalance, then ensures the tree\u2019s root remains black to uphold core red-black tree invariants.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00025939999999999996,
   "expected": "",
   "tokens": {
     "input": 234,
     "output": 590
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

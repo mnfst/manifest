@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 25,
   "response": "Project X Brainstorming Session - Your Input Needed",
-  "score": 0,
+  "score": 3,
   "cost": 6.656e-05,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 10
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

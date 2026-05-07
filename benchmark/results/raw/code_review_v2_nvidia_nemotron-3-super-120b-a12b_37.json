@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 37,
   "response": "**Code review \u2013 `/api/reset-password`**\n\n```js\napp.post('/api/reset-password', async (req, res) => {\n  const { email } = req.body;\n  const user = await db.findUser(email);\n  const token = Math.random().toString(36).substr(2);\n  await sendResetEmail(email, token);\n  res.json({ success: true });\n});\n```\n\n---\n\n## 1. Security Issues\n\n| # | Issue | Why it\u2019s a problem | How to fix it |\n|---|-------|--------------------|---------------|\n| **1** | **Insecure token generation** \u2013 `Math.random()` | `Math.random()` is **not cryptographically secure**; its output can be predicted or brute\u2011forced, especially if the attacker can observe multiple tokens. | Use a cryptographically\u2011secure RNG: `crypto.randomBytes(32).toString('hex')` (or `base64url`). |\n| **2** | **Token never stored or validated** | The token is only emailed; the server has no way to verify that a later \u201creset\u2011password\u201d request uses the same token, nor to enforce expiration or one\u2011time use. | Store a **hashed** version of the token (e.g., bcrypt/scrypt) together with an expiry timestamp and a `used` flag. When the user submits the token, hash the supplied token and compare it to the stored hash. |\n| **3** | **Missing token expiration / replay protection** | Without an expiry, a leaked token remains valid forever. | Set an expiry (e.g., 15\u201130",
-  "score": 0,
+  "score": 5,
   "cost": 8.244e-05,
   "expected": "",
   "tokens": {
     "input": 116,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

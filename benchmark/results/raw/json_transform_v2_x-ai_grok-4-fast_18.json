@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 18,
   "response": "{\"product\":\"Widget Pro\",\"avg_rating\":3.8,\"review_count\":5,\"rating_distribution\":{\"1\":0,\"2\":1,\"3\":1,\"4\":1,\"5\":2}}",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003172,
   "expected": "",
   "tokens": {
     "input": 306,
     "output": 320
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

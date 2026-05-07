@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 30,
   "response": "The provided code implements a Bloom Filter, a space-efficient probabilistic data structure used to test whether an element is a member of a set. It uses multiple hash functions to set bits in a bit vector when adding elements, and checks these bits to determine, with a certain probability of false positives but no false negatives, if an element might be in the set.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00046175999999999997,
   "expected": "",
   "tokens": {
     "input": 156,
     "output": 72
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

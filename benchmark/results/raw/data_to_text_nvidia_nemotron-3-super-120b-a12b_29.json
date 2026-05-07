@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 29,
   "response": "On March\u202f15,\u202f2024 at\u202f14:23\u202fUTC, a magnitude\u202f7.2 earthquake struck near Tokyo at coordinates\u202f35.6\u00b0N\u202f139.7\u00b0E, with a focal depth of\u202f15\u202fkm. The event triggered",
-  "score": 0,
+  "score": 4,
   "cost": 3.942e-05,
   "expected": "",
   "tokens": {
     "input": 138,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

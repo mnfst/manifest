@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 41,
   "response": "Here is a **pytest** test suite that exercises the happy\u2011path, edge\u2011cases and error\u2011conditions of `hex_to_rgb`.\n\n```python\n# test_hex_to_rgb.py\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# from mymodule import hex_to_rgb\ndef hex_to_rgb(h: str) -> tuple:          # <-- the function under test (copy\u2011pasted for a self\u2011contained example)\n    h = h.lstrip('#')\n    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path tests\n# ----------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"input_hex, expected\",\n    [\n        (\"#000000\", (0, 0, 0)),          # black\n        (\"#FFFFFF\", (255, 255, 255)),    # white\n        (\"#ff00aa\", (255, 0, 170)),      # mixed case\n        (\"#FF00AA\", (255, 0, 170)),      # upper case\n        (\"00ff00\", (0, 255, 0)),         # no leading #\n        (\"0A1B2C\", (10, 27, 44)),        # lower/upper mix, no #\n        (\"#0a1b2c\", (10, 27, 44)),       # lower case with #\n    ],\n)\ndef test_hex_to_rgb_happy_path(input_hex, expected):\n    assert hex_to_rgb(input_hex) == expected\n\n\n# ----------------------------------------------------------------------\n# Edge\u2011case tests\n# ----------------------------------------------------------------------\ndef test_hex_to_rgb_empty_string():\n    \"\"\"Stripping '#' leaves an empty string \u2192 ValueError.\"\"\"\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"\")\n\n\ndef test_hex_to_rgb_only_hash():\n    \"\"\"Input is just '#', stripping leaves empty string.\"\"\"\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"#\")\n\n\ndef test_hex_to_rgb_too_short():\n    \"\"\"Less than 6 hex digits after stripping \u2192 incomplete slice.\"\"\"\n    with pytest.raises(ValueError):\n        hex_to_rgb(\"#abc\")   # becomes \"abc\" \u2192 slices: \"ab\", \"c\", \"\" \u2192 last int fails\n\n\ndef test_hex_to_rgb_extra_chars_are_ignored():\n    \"\"\"Only the first 6 hex digits are used; trailing characters are ignored.\"\"\"\n    assert hex_to_rgb(\"#",
-  "score": 0,
+  "score": 4,
   "cost": 9.801e-05,
   "expected": "",
   "tokens": {
     "input": 89,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

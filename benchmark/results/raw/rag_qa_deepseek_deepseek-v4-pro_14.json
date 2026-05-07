@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 14,
   "response": "Marine waters worldwide",
-  "score": 0,
+  "score": 2,
   "cost": 0.00022794,
   "expected": "marine waters",
   "tokens": {
     "input": 300,
     "output": 56
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

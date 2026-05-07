@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 2,
   "response": "Taking physical control of another country.",
-  "score": 0,
+  "score": 2,
   "cost": 0.00045979500000000004,
   "expected": "taking physical control of another",
   "tokens": {
     "input": 305,
     "output": 188
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 43,
   "response": "The EU's General Data Protection Regulation (GDPR), effective since May 2018, established comprehensive data protection requirements for any organization processing EU residents' data, including rights to access and erase personal data, data portability, and explicit consent requirements. Companies must appoint Data Protection Officers for large-scale processing and report data breaches within 72 hours, with violations carrying fines up to 4% of global revenue or 20 million euros. Major tech companies have faced significant penalties, including Meta's 1.2 billion euro fine in 2023, Amazon's 746 million euro fine, and Google's multiple fines totaling over 200 million euros. While critics argue GDPR creates compliance burdens and inconsistent enforcement, it has become the global standard for data protection, inspiring similar laws in California, Brazil, and India.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00022176000000000002,
   "expected": "",
   "tokens": {
     "input": 320,
     "output": 172
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

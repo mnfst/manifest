@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 18,
   "response": "Allan Bloom",
-  "score": 0,
+  "score": 1,
   "cost": 2.529e-05,
   "expected": "Allan Bloom",
   "tokens": {
     "input": 183,
     "output": 98
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

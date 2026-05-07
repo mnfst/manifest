@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 16,
   "response": "In simple terms, gravity is a fundamental force of nature that attracts objects with mass toward each other. It's what keeps your feet on the ground, pulls planets into orbits around the sun, and governs the motion of stars and galaxies. According to Newton's law of universal gravitation, the strength of this attraction depends on the masses of the objects and the distance between them\u2014larger masses or closer distances mean stronger pull. Einstein's theory of general relativity later refined this by describing gravity as the curvature of spacetime caused by mass and energy. That is gravity.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003304,
   "expected": "",
   "tokens": {
     "input": 224,
     "output": 357
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

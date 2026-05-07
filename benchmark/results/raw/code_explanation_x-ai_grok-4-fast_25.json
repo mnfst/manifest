@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 25,
   "response": "This class implements the Observer (or Publish-Subscribe) design pattern, using a dictionary to map event names to lists of callback functions for efficient registration and notification. The `on` method appends callbacks to an event's list (creating it if needed via `setdefault`), `emit` iterates over the list to invoke all callbacks with provided arguments, and `off` removes a specific callback from the list.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00034439999999999997,
   "expected": "",
   "tokens": {
     "input": 266,
     "output": 364
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

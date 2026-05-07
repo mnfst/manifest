@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 40,
   "response": "Based on the provided context, France offered **full citizenship rights (assimilation)**.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0018226000000000002,
   "expected": "assimilation",
   "tokens": {
     "input": 180,
     "output": 1357
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 6,
   "response": "TFEU article 294",
-  "score": 0,
+  "score": 1,
   "cost": 8.570000000000001e-05,
   "expected": "TFEU article 294",
   "tokens": {
     "input": 445,
     "output": 103
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

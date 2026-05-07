@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 2,
   "response": "Here are comprehensive pytest-style unit tests for the factorial function:\n\n```python\nimport pytest\nfrom your_module import factorial  # replace 'your_module' with the actual module name\n\n\nclass TestFactorialHappyPath:\n    \"\"\"Tests for typical, expected use cases.\"\"\"\n    \n    def test_factorial_of_small_positive_integer(self):\n        assert factorial(4) == 24\n    \n    def test_factorial_of_larger_positive_integer(self):\n        assert factorial(6) == 720\n    \n    def test_factorial_of_two(self):\n        assert factorial(2) == 2\n\n\nclass TestFactorialEdgeCases:\n    \"\"\"Tests for boundary and special cases.\"\"\"\n    \n    def test_factorial_of_zero(self):\n        assert factorial(0) == 1\n    \n    def test_factorial_of_one(self):\n        assert factorial(1) == 1\n    \n    def test_factorial_of_large_number(self):\n        # 10! = 3,628,800\n        assert factorial(10) == 3_628_800\n    \n\nclass TestFactorialErrorCases:\n    \"\"\"Tests for invalid inputs that should raise exceptions.\"\"\"\n    \n    def test_negative_small_raises_value_error(self):\n        with pytest.raises(ValueError, match='n must be non-negative'):\n            factorial(-1)\n    \n    def test_negative_large_raises_value_error(self):\n        with pytest.raises(ValueError, match='n must be non-negative'):\n            factorial(-100)\n    \n    @pytest.mark.parametrize(\"invalid_input\", [-5, -1, -10_000])\n    def test_various_negative_inputs_raise_value_error(self, invalid_input):\n        with pytest.raises(ValueError):\n            factorial(invalid_input)\n```\n\n### Explanation of test coverage:\n\n| Category | Tests | Rationale |\n|----------|-------|-----------|\n| **Happy path** | `4`, `6`, `2` | Typical small-to-medium inputs that exercise the recursive logic |\n| **Edge cases** | `0`, `1`, `10` | Base cases (`0`, `1`) verify the early return; `10` tests stack depth |\n| **Error cases** | `-1`, `-100` | Confirms `ValueError` is raised with the correct message |\n\nThe `@pytest.mark.parametrize` decorator in the last test demonstrates how to test multiple negative values concisely. Make sure to replace `'your_module'` with the actual name of the module containing your `factorial` function.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0010557449999999999,
   "expected": "",
   "tokens": {
     "input": 79,
     "output": 587
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

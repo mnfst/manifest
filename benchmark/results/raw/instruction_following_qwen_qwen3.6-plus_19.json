@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 19,
   "response": "AI isn\u2019t here to replace us\u2014it\u2019s here to amplify us. The real magic happens when human creativity meets machine speed. Let\u2019s build responsibly, stay curious, and keep the human at the center of every algorithm. \ud83e\udd16\u2728 #AI #FutureOfWork #Tech",
-  "score": 0,
+  "score": 5,
   "cost": 0.0029250000000000005,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 2244
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

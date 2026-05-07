@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 0,
   "response": "**Code review**\n\n```python\ndef login(username, password):\n    query = f\"SELECT * FROM users WHERE username='{username}' AND password='{password}'\"\n    result = db.execute(query)\n    if result:\n        session['user'] = username\n        return redirect('/dashboard')\n    return 'Invalid credentials', 401\n```\n\n| Category | Issue | Why it\u2019s a problem | How to fix it (concrete steps) |\n|----------|-------|--------------------|--------------------------------|\n| **SQL Injection** | The query is built by directly interpolating `username` and `password` into the SQL string. | An attacker can supply `'` or `1=1--` (or similar) to bypass authentication, extract data, or even modify the database. | Use **parameterised queries** (prepared statements) or an ORM that does this automatically. Example with most DB\u2011APIs: <br>`query = \"SELECT * FROM users WHERE username = %s AND password = %s\"` <br>`result = db.execute(query, (username, password))` |\n| **Plain\u2011text password storage & comparison** | The code compares the user\u2011supplied password directly with the column `password` in the DB. | If the DB stores passwords in clear text, a breach instantly reveals every user\u2019s password. Even if the DB is hashed, comparing the raw input to a hash will never match. | Store **only a salted hash** (e.g., bcrypt, Argon2, PBKDF2) of the password. When checking, retrieve the stored hash and verify with the appropriate library: <br>`hashed_pw = result[0]['password']` <br>`if bcrypt.checkpw(password.encode(), hashed_pw.encode()): \u2026` |\n| **Information leakage** | On failure the endpoint returns the exact string `'Invalid credentials'`. | While not a huge leak, it tells an attacker that the username exists (if you later differentiate between \u201cuser not found\u201d and \u201cwrong password\u201d). Better to give a generic message. | Return a **generic** message such as `\"Invalid username or password\"` with the same status code (401). |\n| **Missing input validation / sanitisation** | No checks on length, type, or character set of `username`/`password`. | Extremely long inputs can cause DoS (e.g., buffer\u2011overrun\u2011style attacks) or cause the DB to allocate huge amounts of memory. Very short passwords weaken security. | Validate: <br>\u2022 `username`: length 3\u201130, alphanumeric + allowed symbols. <br>\u2022 `password`: length \u22658 (or policy you enforce). Reject or truncate before using them in the query. |\n| **Session handling** | `session['user'] = username` is set",
-  "score": 0,
+  "score": 5,
   "cost": 8.190000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 110,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

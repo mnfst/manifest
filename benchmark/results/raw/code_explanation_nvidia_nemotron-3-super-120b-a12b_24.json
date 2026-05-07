@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 24,
   "response": "The function repeatedly pulls the next item from each input iterator, using `fillvalue` for any iterator that has already raised `StopIteration`; it yields a tuple of these collected values and stops only when every iterator is exhausted (i.e., all attempts raised `StopIteration`). This implements the same behavior as `itertools.zip_longest`.",
-  "score": 0,
+  "score": 5,
   "cost": 2.6280000000000002e-05,
   "expected": "",
   "tokens": {
     "input": 131,
     "output": 161
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

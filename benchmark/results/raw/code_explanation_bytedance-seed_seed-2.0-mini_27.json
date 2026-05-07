@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 27,
   "response": "This code implements an efficient O(n) sliding window maximum algorithm using a monotonic decreasing deque. For each element in the input `nums` array, it first removes indices that fall outside the current k-length window from the front of the deque, then prunes smaller elements from the deque\u2019s end to maintain a strictly decreasing value order, appends the current index, and once the window is fully sized (when the loop index is at least k-1), the front of the deque holds the index of the current window\u2019s maximum value, which is added to the result list.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005503999999999999,
   "expected": "",
   "tokens": {
     "input": 184,
     "output": 1330
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

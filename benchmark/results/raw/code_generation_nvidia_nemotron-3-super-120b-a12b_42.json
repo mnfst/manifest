@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 42,
   "response": "We need to implement function body only. The function signature is given: def rounded_avg(n, m):. We need to return the function body only (the code after the signature). So we need to write code that implements the described behavior.\n\nWe need to compute average of integers from n through m inclusive. If n > m, return -1. Else compute sum of range n..m inclusive: sum = (n + m) * (m - n + 1) // 2? Actually average = sum / count. Sum = (n + m) * count / 2. Count = m - n + 1. So average = (n + m) / 2. Wait average of consecutive integers from n to m inclusive is (n + m) / 2 (the arithmetic mean of first and last). Indeed average of an arithmetic progression is (first + last)/2. So we can compute avg = (n + m) / 2. Then round to nearest integer: round(avg). Python's round uses bankers rounding (ties to even). But typical expectation: round to nearest integer, .5 up? The examples: Let's test.\n\nExample 1: n=1,m=5. avg = (1+5)/2 = 3.0. round => 3. binary => \"0b11\". Works.\n\nExample 2: n=10,m=20. avg = (10+20)/2 = 15.0. round => 15. binary => \"0b1111\". Works.\n\nExample 3: n=20,m=33. avg = (20+33)/2 = 53/2 = 26.5. round =>? Python round(26.5) => 26 (since ties to even). But expected output: \"0b11010\". Let's see binary of 26 is 11010. Indeed 26 decimal = binary 11010. So they used round half to even (banker's rounding) giving 26. So they used Python's round behavior. Good.\n\nThus we can compute avg = (n + m) / 2. Use round(avg). Then convert to binary string using bin(). bin returns string like '0b1010'. So we return",
-  "score": 0,
+  "score": 5,
   "cost": 6.228000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 192,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

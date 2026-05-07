@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 40,
   "response": "```python\nimport pytest\n\ndef rgb_to_hex(r: int, g: int, b: int) -> str:\n    if not all(0 <= c <= 255 for c in (r, g, b)):\n        raise ValueError('RGB values must be 0-255')\n    return f'#{r:02x}{g:02x}{b:02x}'\n\n# Happy path tests: Valid RGB values within 0-255\n@pytest.mark.parametrize(\"r,g,b,expected\", [\n    (0, 0, 0, \"#000000\"),\n    (255, 255, 255, \"#ffffff\"),\n    (128, 64, 32, \"#804020\"),\n    (1, 2, 3, \"#010203\"),\n    (255, 0, 0, \"#ff0000\"),\n    (0, 255, 0, \"#00ff00\"),\n    (0, 0, 255, \"#0000ff\"),\n])\ndef test_rgb_to_hex_happy_path(r, g, b, expected):\n    assert rgb_to_hex(r, g, b) == expected\n\n# Edge cases: Boundary values (0 and 255)\n@pytest.mark.parametrize(\"r,g,b,expected\", [\n    (0, 0, 0, \"#000000\"),\n    (255, 255, 255, \"#ffffff\"),\n    (0, 255, 0, \"#00ff00\"),\n    (255, 0, 255, \"#ff00ff\"),\n])\ndef test_rgb_to_hex_edge_cases(r, g, b, expected):\n    assert rgb_to_hex(r, g, b) == expected\n\n# Error cases: Invalid RGB values (out of range)\n@pytest.mark.parametrize(\"r,g,b\", [\n    (-1, 0, 0),\n    (0, -1, 0),\n    (0, 0, -1),\n    (256, 0, 0),\n    (0, 256, 0),\n    (0, 0, 256),\n    (-1, -1, -1),\n    (256, 256, 256),\n])\ndef test_rgb_to_hex_error_cases_out_of_range(r, g, b):\n    with pytest.raises(ValueError, match=\"RGB values must be 0-255\"):\n        rgb_to_hex(r, g, b)\n\n# Error cases: Invalid types (non-integers)\n@pytest.mark.parametrize(\"r,g,b\", [\n    (0.5, 0, 0),\n    (0, 0.5, 0),\n    (0, 0, 0.5),\n    (\"0\", 0, 0),\n    (0, \"0\", 0),\n    (0, 0, \"0\"),\n    (None, 0, 0),\n    (0, None, 0),\n    (0, 0, None),\n])\ndef test_rgb_to_hex_error_cases_invalid_types(r, g, b):\n    with pytest.raises((TypeError, ValueError)):\n        rgb_to_hex(r, g, b)\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0009386,
   "expected": "",
   "tokens": {
     "input": 305,
     "output": 1097
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 30,
   "response": "The global food system faces mounting pressure as the world\u2019s population is projected to reach 9.7\u202fbillion by 2050, demanding a 60\u202f% rise in food production while climate change, water scarcity, and soil degradation cut yields and deplete resources\u2014e.g., the Ogallala Aquifer is being drained faster than it refills and 33\u202f% of arable land is degraded. Agriculture contributes about 25\u202f% of greenhouse\u2011gas emissions, and roughly one\u2011third of all food produced is lost or wasted. To meet these challenges, experts advocate scaling precision agriculture, vertical farms, alternative proteins, drought\u2011resistant crops, regenerative practices, and supportive policies, but the key hurdle is deploying these solutions widely while keeping food affordable and accessible for the poorest.",
-  "score": 0,
+  "score": 5,
   "cost": 4.176e-05,
   "expected": "",
   "tokens": {
     "input": 298,
     "output": 166
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

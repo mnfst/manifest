@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 34,
   "response": "Infinitely many primes.",
-  "score": 0,
+  "score": 5,
   "cost": 2.2859999999999998e-05,
   "expected": "infinitely many prime numbers",
   "tokens": {
     "input": 248,
     "output": 6
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

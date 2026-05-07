@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 34,
   "response": "### Unit Tests for Levenshtein Distance Function\n\nThe following tests cover the happy path, edge cases, and error cases for the `levenshtein` function.\n\n```python\nimport pytest\n\ndef test_levenshtein_happy_path():\n    \"\"\"Test the Levenshtein distance between two strings.\"\"\"\n    assert levenshtein(\"kitten\", \"sitting\") == 3\n    assert levenshtein(\"hello\", \"world\") == 4\n    assert levenshtein(\"abc\", \"abc\") == 0\n\ndef test_levenshtein_edge_cases():\n    \"\"\"Test the Levenshtein distance for edge cases.\"\"\"\n    assert levenshtein(\"\", \"\") == 0\n    assert levenshtein(\"a\", \"\") == 1\n    assert levenshtein(\"\", \"a\") == 1\n    assert levenshtein(\"abc\", \"\") == 3\n    assert levenshtein(\"\", \"abc\") == 3\n\ndef test_levenshtein_single_character():\n    \"\"\"Test the Levenshtein distance between single characters.\"\"\"\n    assert levenshtein(\"a\", \"a\") == 0\n    assert levenshtein(\"a\", \"b\") == 1\n\ndef test_levenshtein_input_validation():\n    \"\"\"Test the Levenshtein distance function with invalid inputs.\"\"\"\n    with pytest.raises(TypeError):\n        levenshtein(123, \"abc\")  # Input is not a string\n    with pytest.raises(TypeError):\n        levenshtein(\"abc\", 123)  # Input is not a string\n    with pytest.raises(TypeError):\n        levenshtein(None, \"abc\")  # Input is None\n    with pytest.raises(TypeError):\n        levenshtein(\"abc\", None)  # Input is None\n\ndef test_levenshtein_symmetric():\n    \"\"\"Test that the Levenshtein distance is symmetric.\"\"\"\n    s1 = \"kitten\"\n    s2 = \"sitting\"\n    assert levenshtein(s1, s2) == levenshtein(s2, s1)\n```\n\nTo run these tests, save them in a file (e.g., `test_levenshtein.py`) and execute them using `pytest`. Make sure the `levenshtein` function is available in the same scope or import it accordingly.\n\n### Notes\n\n* The `levenshtein` function does not perform explicit input validation. The tests cover the cases where the inputs are not strings or are `None`.\n* The function is designed to be symmetric, i.e., `levenshtein(s1, s2) == levenshtein(s2, s1)`. The test `test_levenshtein_symmetric` verifies this property.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000366,
   "expected": "",
   "tokens": {
     "input": 172,
     "output": 567
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

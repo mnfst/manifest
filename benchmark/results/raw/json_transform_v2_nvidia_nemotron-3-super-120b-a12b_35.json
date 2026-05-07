@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 35,
   "response": "{\n  \"departments\": {\n    \"eng\": {\n      \"headcount\": 2,\n      \"avg_salary\": 115000,\n      \"employees\": [\"Alice\", \"Bob\"]\n    },\n    \"sales\": {\n      \"headcount\": 2,\n      \"avg_salary\": 100000,\n      \"employees\": [\"Carol\", \"Dave\"]\n    }\n  }\n}",
-  "score": 0,
+  "score": 5,
   "cost": 1.989e-05,
   "expected": "",
   "tokens": {
     "input": 143,
     "output": 78
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

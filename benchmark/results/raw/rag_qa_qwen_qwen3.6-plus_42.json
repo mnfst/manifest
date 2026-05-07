@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 42,
   "response": "Not found in context.",
-  "score": 0,
+  "score": 1,
   "cost": 0.0012405250000000001,
   "expected": "Moselle",
   "tokens": {
     "input": 225,
     "output": 898
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

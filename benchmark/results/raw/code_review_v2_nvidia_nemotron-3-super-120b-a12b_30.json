@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 30,
   "response": "**Review of the `rate_limit` decorator**\n\n```python\ndef rate_limit(func):\n    last_call = [0]\n    def wrapper(*args):\n        now = time.time()\n        if now - last_call[0] < 1:\n            raise Exception('Rate limited')\n        last_call[0] = now\n        return func(*args)\n    return wrapper\n```\n\n---\n\n## 1. Bugs / Functional Problems\n\n| Issue | Why it\u2019s a problem | Fix |\n|-------|-------------------|-----|\n| **Missing `import time`** | The decorator references `time.time()` but the module is never imported, causing a `NameError` at runtime. | Add `import time` at the top of the file (or inside the decorator if you prefer lazy import). |\n| **Wrapper only accepts `*args`** | Functions that need keyword arguments (`**kwargs`) will raise a `TypeError` when decorated. | Change the signature to `def wrapper(*args, **kwargs):` and forward both to `func`. |\n| **Hard\u2011coded limit (1 second)** | The decorator cannot be reused for different rates without editing the source. | Make the interval a parameter: `def rate_limit(interval=1): \u2026`. |\n| **State stored in a list (`last_call = [0]`)** | This is a Python\u20112\u2011era workaround for mutable closure variables. In Python\u202f3 it works but is less readable and prevents using `nonlocal`. | Use a plain integer and declare it `nonlocal` inside `wrapper`: `last_call = 0; \u2026 nonlocal last_call`. |\n| **No preservation of function metadata** | The wrapped function loses its `__name__`, `__doc__`, annotations, etc., which hinders debugging, introspection, and tooling (e.g., `help()`, Sphinx). | Apply `@functools.wraps(func)` to `wrapper`. |\n| **Exception type is too generic** | Raising the base",
-  "score": 0,
+  "score": 4,
   "cost": 8.181e-05,
   "expected": "",
   "tokens": {
     "input": 109,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

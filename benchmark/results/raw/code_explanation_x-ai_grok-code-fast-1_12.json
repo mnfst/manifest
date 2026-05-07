@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 12,
   "response": "This code implements a topological sort on a directed acyclic graph (DAG) using a depth-first search (DFS) algorithm. It traverses the graph, marking nodes as visited, recursively exploring unvisited neighbors, and appending each node to a stack after its dependencies are processed; the stack is then reversed to produce the topological order where nodes with no incoming edges come first.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002494,
   "expected": "",
   "tokens": {
     "input": 303,
     "output": 236
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

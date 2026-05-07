@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 11,
   "response": "This code implements the Levenshtein (edit) distance algorithm using dynamic programming to compute the minimum number of single-character operations (insertions, deletions, or substitutions) needed to transform string `a` into string `b`. It builds a 2D DP table where `dp[i][j]` holds the edit distance for the prefixes `a[:i]` and `b[:j]`, initializing borders for deletions/insertions and filling inner cells by taking the minimum of moving up (delete), left (insert), or diagonal (substitute or match).",
-  "score": 0,
+  "score": 5,
   "cost": 0.00023660000000000003,
   "expected": "",
   "tokens": {
     "input": 331,
     "output": 213
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

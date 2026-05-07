@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 14,
   "response": "Introducing the EcoFlow Water Bottle, a sleek and durable companion designed to keep you hydrated on the go. Crafted from BPA-free, high-quality materials, this 500ml bottle features an ergonomic design for a comfortable grip and a secure, leak-proof lid to prevent spills. Whether you're hitting the gym, heading to the office, or exploring the great outdoors, the EcoFlow Water Bottle is the perfect choice for a refreshing sip anytime, anywhere.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00041392,
   "expected": "",
   "tokens": {
     "input": 22,
     "output": 94
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

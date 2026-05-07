@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 19,
   "response": "The iPhone 15 Pro is a premium smartphone featuring a 6.1-inch OLED display powered by the advanced A17 Pro chip, with a impressive 48MP main camera and 3274mAh battery capacity. Available in storage options ranging from 128GB to 1TB, this 187g device is priced at $999 and has earned an excellent rating of 4.6 out of 5 stars from users.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00011175999999999999,
   "expected": "",
   "tokens": {
     "input": 120,
     "output": 97
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

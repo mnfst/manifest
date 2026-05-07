@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 27,
   "response": "This function computes the maximum value for every contiguous subarray of size `k` using a **monotonic decreasing deque** pattern. By storing indices in descending order of their corresponding values and efficiently discarding out-of-window or smaller elements, it solves the sliding window maximum problem in optimal O(n) time.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0016545750000000001,
   "expected": "",
   "tokens": {
     "input": 135,
     "output": 1239
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

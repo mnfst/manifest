@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 10,
   "response": "The CEO has shared the Q1 board deck draft, highlighting strong revenue and retention performance alongside a 22% increase in customer acquisition costs. Please submit your product roadmap section by Wednesday to ensure it is ready for next Tuesday's board meeting.",
-  "score": 0,
+  "score": 5,
   "cost": 0.001403025,
   "expected": "",
   "tokens": {
     "input": 97,
     "output": 1055
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 17,
   "response": "import hashlib\n    if not text:\n        return None\n    return hashlib.md5(text.encode()).hexdigest()",
-  "score": 0,
+  "score": 4,
   "cost": 1.188e-05,
   "expected": "",
   "tokens": {
     "input": 108,
     "output": 24
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

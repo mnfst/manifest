@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 19,
   "response": "Here's a complete, production-ready `pytest` test suite for your `clamp` function. It uses parametrization for DRY code, covers all requested categories, and follows pytest best practices.\n\n```python\nimport pytest\n\n# Assuming the function is in a module named `utils`\n# from utils import clamp\n\n@pytest.mark.parametrize(\"value, min_val, max_val, expected\", [\n    # Happy path: value within range\n    (5.0, 0.0, 10.0, 5.0),\n    (0.0, -5.0, 5.0, 0.0),\n    (-3.5, -10.0, 10.0, -3.5),\n\n    # Happy path: value below min_val\n    (-5.0, 0.0, 10.0, 0.0),\n    (-100.0, 10.0, 20.0, 10.0),\n\n    # Happy path: value above max_val\n    (15.0, 0.0, 10.0, 10.0),\n    (100.0, -10.0, -5.0, -5.0),\n\n    # Edge case: value exactly at boundaries\n    (0.0, 0.0, 10.0, 0.0),\n    (10.0, 0.0, 10.0, 10.0),\n\n    # Edge case: min_val equals max_val\n    (5.0, 7.0, 7.0, 7.0),\n    (7.0, 7.0, 7.0, 7.0),\n    (10.0, 7.0, 7.0, 7.0),\n\n    # Edge case: negative ranges\n    (-5.0, -10.0, -2.0, -5.0),\n    (-15.0, -10.0, -2.0, -10.0),\n    (0.0, -10.0, -2.0, -2.0),\n])\ndef test_clamp_valid_inputs(value, min_val, max_val, expected):\n    \"\"\"Test normal and boundary conditions where inputs are valid floats.\"\"\"\n    assert clamp(value, min_val, max_val) == expected\n\n\ndef test_clamp_inverted_range():\n    \"\"\"Edge case: min_val > max_val.\n    The current implementation returns min_val for all inputs because:\n    max(min_val, min(value, max_val)) -> max(min_val, <=max_val) -> min_val\n    \"\"\"\n    assert clamp(5.0, 10.0, 0.0) == 10.0\n    assert clamp(-5.0, 10.0, 0.0) == 10.0\n    assert clamp(15.0, 10.0, 0.0) == 10.0\n\n\n@pytest.mark.parametrize(\"args\", [\n    (\"5\", 0.0, 10.0),\n    (5.0, \"0\", 10.0),\n    (5.0, 0.0, \"10\"),\n    (None, 0.0, 10.0),\n    (5.0, None, 10.0),\n    (5.0, 0.0, None),\n])\ndef test_clamp_type_errors(args):\n    \"\"\"Error case: passing non-numeric types should raise TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        clamp(*args)\n```\n\n### \ud83d\udd0d Test Coverage Breakdown\n| Category | What's Tested | Why |\n|----------|---------------|-----|\n| **Happy Path** | Values inside, below, and above the range | Verifies core functionality works as expected |\n| **Edge Cases** | Exact boundaries (`value == min/max`), `min == max`, negative ranges, inverted range (`min > max`) | Ensures mathematical correctness at limits and documents behavior for invalid ranges |\n| **Error Cases** | Strings, `None`, mixed types | Confirms Python's built-in `TypeError` is raised for unsupported types |\n\n### \ud83d\udca1 Notes & Best Practices\n1. **Parametrization**: `@pytest.mark.parametrize` keeps the test suite DRY and makes it easy to add new cases without duplicating code.\n2. **Inverted Range Behavior**: The function doesn't validate `min_val",
-  "score": 0,
+  "score": 5,
   "cost": 0.008922875000000002,
   "expected": "",
   "tokens": {
     "input": 71,
     "output": 6846
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

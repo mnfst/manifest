@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 11,
   "response": "The function computes the Levenshtein edit distance between strings\u202f`a` and\u202f`b` using a classic dynamic\u2011programming table: it fills a\u202f`(m+1)\u202f\u00d7\u202f(n+1)` matrix where each cell\u202f`dp[i][j]` stores the minimum number of insertions, deletions, or substitutions needed to transform the first\u202f`i` characters of\u202f`a` into the first\u202f`j` characters of\u202f`b`, and finally returns\u202f`dp[m][n]`.",
-  "score": 0,
+  "score": 5,
   "cost": 3.06e-05,
   "expected": "",
   "tokens": {
     "input": 196,
     "output": 144
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

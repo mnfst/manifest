@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 47,
   "response": "This code implements the Shunting Yard algorithm to convert an infix mathematical expression (represented as a list of tokens, where each token is a tuple like ('NUM', value) for numbers or ('OP', operator) for operators and parentheses) into postfix notation (Reverse Polish Notation). It uses two stacks\u2014one for the output postfix expression and one for operators\u2014while respecting operator precedence (addition/subtraction at level 1, multiplication/division at level 2) and handling parentheses by popping operators to output when encountering a closing parenthesis or when a higher-precedence operator is found.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003348,
   "expected": "",
   "tokens": {
     "input": 398,
     "output": 319
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

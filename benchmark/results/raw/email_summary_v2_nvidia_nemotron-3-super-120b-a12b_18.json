@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 18,
   "response": "The VP of Engineering proposes splitting the Platform team into separate Infrastructure and Developer Experience teams to eliminate the bottleneck where DX work is consistently overridden by infra incidents. Please review the attached draft org chart and provide feedback or approval on the restructuring.",
-  "score": 0,
+  "score": 5,
   "cost": 2.709e-05,
   "expected": "",
   "tokens": {
     "input": 103,
     "output": 198
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

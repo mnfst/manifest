@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 22,
   "response": "stack = []\nfor char in brackets:\n    if char == \"<\":\n        stack.append(char)\n    elif char == \">\":\n        if not stack:\n            return False\n        stack.pop()\nreturn not stack",
-  "score": 0,
+  "score": 4,
   "cost": 0.0002682,
   "expected": "",
   "tokens": {
     "input": 321,
     "output": 255
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

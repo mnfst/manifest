@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 2,
   "response": "sorted_lst = sorted(lst)\n    res = []\n    left, right = 0, len(sorted_lst) - 1\n    while left <= right:\n        res.append(sorted_lst[left])\n        left += 1\n        if left <= right:\n            res.append(sorted_lst[right])\n            right -= 1\n    return res",
-  "score": 0,
+  "score": 4,
   "cost": 0.005737225,
   "expected": "",
   "tokens": {
     "input": 169,
     "output": 4371
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

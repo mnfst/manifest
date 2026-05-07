@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 2,
   "response": "{\n  \"product\": \"iPhone 15 Pro\",\n  \"price\": 999.0,\n  \"colors\": [\"black titanium\", \"white titanium\", \"blue titanium\"],\n  \"storage_options\": [\"128GB\", \"256GB\", \"512GB\", \"1TB\"]\n}",
-  "score": 0,
+  "score": 5,
   "cost": 0.00037322999999999995,
   "expected": "",
   "tokens": {
     "input": 90,
     "output": 192
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

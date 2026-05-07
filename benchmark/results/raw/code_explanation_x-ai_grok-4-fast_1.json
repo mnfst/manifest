@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 1,
   "response": "This function implements the binary search algorithm to find the index of a target value in a sorted array by repeatedly dividing the search interval in half. It starts with the full range (low at 0, high at the last index), computes the midpoint, compares the middle element to the target to decide whether to search the left or right half, and continues until the target is found (returning its index) or the range is exhausted (returning -1).",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003132,
   "expected": "",
   "tokens": {
     "input": 258,
     "output": 327
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

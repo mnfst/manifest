@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 48,
   "response": "It is unknown whether L (the set of all problems that can be solved in logarithmic space) is strictly contained in P or equal to P, with those two being the possible relational attributes of L in relation to P.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0005077,
   "expected": "strictly contained in P or equal to P",
   "tokens": {
     "input": 165,
     "output": 1228
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

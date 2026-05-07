@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 25,
   "response": "```python\n    groups = []\n    current_group = []\n    balance = 0\n    for char in paren_string:\n        if char == ' ':\n            continue\n        if char == '(':\n            balance += 1\n            current_group.append(char)\n        elif char == ')':\n            balance -= 1\n            current_group.append(char)\n            if balance == 0:\n                groups.append(''.join(current_group))\n                current_group = []\n    return groups\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.00072819,
   "expected": "",
   "tokens": {
     "input": 150,
     "output": 381
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

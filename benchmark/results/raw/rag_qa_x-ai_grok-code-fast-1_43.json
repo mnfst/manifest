@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 43,
   "response": "The book that discussed the theory about low populations in the Amazon rainforest is **Amazonia: Man and Culture in a Counterfeit Paradise**, written by archaeologist Betty Meggers. The context states that she was a prominent proponent of the idea that the Amazon was sparsely populated due to poor soil limiting agriculture, and this is described in her book.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0004694,
   "expected": "Amazonia: Man and Culture in a Counterfeit Paradise",
   "tokens": {
     "input": 439,
     "output": 477
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 14,
   "response": "a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a",
-  "score": 0,
+  "score": 3,
   "cost": 0.0024725999999999997,
   "expected": "",
   "tokens": {
     "input": 96,
     "output": 1878
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 8,
   "response": "return [x for x in values if type(x) is int]",
-  "score": 0,
+  "score": 4,
   "cost": 0.00045320000000000007,
   "expected": "",
   "tokens": {
     "input": 176,
     "output": 1089
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

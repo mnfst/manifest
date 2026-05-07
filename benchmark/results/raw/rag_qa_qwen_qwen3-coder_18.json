@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 18,
   "response": "Allan Bloom wrote \"The Closing of the American Mind\".",
-  "score": 0,
+  "score": 5,
   "cost": 4.994e-05,
   "expected": "Allan Bloom",
   "tokens": {
     "input": 175,
     "output": 13
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

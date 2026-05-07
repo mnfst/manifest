@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 9,
   "response": "The high end of the temperature range in winter is 70's.",
-  "score": 0,
+  "score": 3,
   "cost": 0.00021632000000000002,
   "expected": "70",
   "tokens": {
     "input": 148,
     "output": 15
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

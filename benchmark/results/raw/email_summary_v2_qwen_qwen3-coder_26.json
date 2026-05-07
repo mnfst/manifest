@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 26,
   "response": "The Privacy Team has received a GDPR data export request from user ID 45892 that must be fulfilled by May 25th. The request requires providing all personal data across services, documentation of processing purposes, third-party data sharing logs, and analytics data.",
-  "score": 0,
+  "score": 5,
   "cost": 7.282e-05,
   "expected": "",
   "tokens": {
     "input": 107,
     "output": 56
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

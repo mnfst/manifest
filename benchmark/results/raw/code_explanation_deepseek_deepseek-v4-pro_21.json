@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 21,
   "response": "This code implements a **function composition pipeline** (left-to-right composition). It takes multiple functions and returns a new function that, when called with an initial value, passes that value through each function in sequence, using the output of one as the input to the next.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000369315,
   "expected": "",
   "tokens": {
     "input": 65,
     "output": 196
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

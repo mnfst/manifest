@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 42,
   "response": "The sky bruised from charcoal to a deep, churning violet as the thunderstorm shouldered its way across the horizon. A sudden, sharp crack of cool air swept through the open window, carrying the metallic tang of ozone mixed with the sweet, dusty perfume of rain hitting parched earth. Then came the sound\u2014a guttural, bone-rattling boom that rolled through the clouds and seemed to vibrate deep in your chest, followed by the frantic drumming of raindrops against the glass. In the electric stillness between flashes, I watched a jagged, silver-white vein of lightning fork across the sky, illuminating the world in a fleeting, stark brilliance before plunging it back into a deeper shadow.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00036235499999999997,
   "expected": "",
   "tokens": {
     "input": 17,
     "output": 204
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

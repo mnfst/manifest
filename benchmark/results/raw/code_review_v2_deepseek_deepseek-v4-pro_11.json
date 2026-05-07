@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 11,
   "response": "The provided function has critical security flaws, lacks transactional integrity, and omits essential error handling and authorization. Below is",
-  "score": 0,
+  "score": 3,
   "cost": 0.001433325,
   "expected": "",
   "tokens": {
     "input": 95,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 47,
   "response": "The function implements Dijkstra\u2019s shunting\u2011yard algorithm: it scans the input token list, pushes numbers directly to the output, and uses an operator stack (guided by the precedence table) to reorder operators so that the returned list is the expression in Reverse Polish Notation (postfix form). Parentheses are handled by pushing \u2018(\u2019 onto the stack and popping operators until a matching \u2018)\u2019 is found. After all tokens are processed, any remaining operators are popped to the output.",
-  "score": 0,
+  "score": 4,
   "cost": 3.744e-05,
   "expected": "",
   "tokens": {
     "input": 216,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 0,
   "response": "- **Improves Physical Health:** Regular exercise helps in maintaining a healthy weight, strengthening the heart, and reducing the risk of chronic diseases such as diabetes, hypertension, and cardiovascular diseases.\n- **Enhances Mental Well-being:** Physical activity stimulates brain chemicals that may leave you feeling happier, more relaxed, and less anxious. It can also boost your mood and help with symptoms of depression and anxiety.\n- **Increases Energy Levels:** Engaging in regular physical activity can boost your energy levels by improving heart health, increasing muscle strength, and enhancing the efficiency of your cardiovascular system, which can make daily tasks feel easier.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005283200000000001,
   "expected": "",
   "tokens": {
     "input": 20,
     "output": 122
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 9,
   "response": "A Salesforce schema change caused the nightly ETL job to fail, leaving dashboards with stale data since yesterday. The engineering team has deployed a fix and initiated a backfill, so stakeholders should verify dashboard accuracy after the expected 4 PM recovery.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00259155,
   "expected": "",
   "tokens": {
     "input": 98,
     "output": 1969
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

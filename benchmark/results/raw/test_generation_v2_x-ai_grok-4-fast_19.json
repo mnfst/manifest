@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 19,
   "response": "```python\nimport pytest\n\nfrom your_module import clamp  # Replace 'your_module' with the actual module name containing the function\n\n\ndef test_clamp_within_range():\n    \"\"\"Happy path: Value is within the min and max bounds.\"\"\"\n    assert clamp(5.0, 0.0, 10.0) == 5.0\n    assert clamp(2.5, 1.0, 3.0) == 2.5\n\n\ndef test_clamp_below_min():\n    \"\"\"Happy path: Value is below min_val, should return min_val.\"\"\"\n    assert clamp(-1.0, 0.0, 10.0) == 0.0\n    assert clamp(-10.5, -5.0, 0.0) == -5.0\n\n\ndef test_clamp_above_max():\n    \"\"\"Happy path: Value is above max_val, should return max_val.\"\"\"\n    assert clamp(11.0, 0.0, 10.0) == 10.0\n    assert clamp(100.0, 50.0, 75.0) == 75.0\n\n\ndef test_clamp_at_bounds():\n    \"\"\"Edge case: Value exactly at min_val or max_val.\"\"\"\n    assert clamp(0.0, 0.0, 10.0) == 0.0\n    assert clamp(10.0, 0.0, 10.0) == 10.0\n    assert clamp(-5.0, -5.0, 0.0) == -5.0\n\n\ndef test_clamp_with_floats():\n    \"\"\"Edge case: Non-integer float values.\"\"\"\n    assert clamp(1.234, 0.0, 2.0) == 1.234\n    assert clamp(3.14159, 0.0, 3.0) == 3.0\n    assert clamp(-0.5, -1.0, 0.0) == -0.5\n\n\ndef test_clamp_min_greater_than_max():\n    \"\"\"Edge case: min_val > max_val (invalid bounds, but function does not validate).\"\"\"\n    # Behavior: Returns min_val, as max(min_val, min(value, max_val)) will favor min_val\n    assert clamp(4.0, 5.0, 3.0) == 5.0  # min(4,3)=3, max(5,3)=5\n    assert clamp(2.0, 5.0, 3.0) == 5.0  # min(2,3)=2, max(5,2)=5\n    assert clamp(6.0, 5.0, 3.0) == 5.0  # min(6,3)=3, max(5,3)=5\n\n\ndef test_clamp_zero_values():\n    \"\"\"Edge case: Zero values for min, max, or value.\"\"\"\n    assert clamp(0.0, -1.0, 1.0) == 0.0\n    assert clamp(0.0, 0.0, 0.0) == 0.0\n    assert clamp(-0.0, 0.0, 1.0) == 0.0  # -0.0 should behave as 0.0\n\n\ndef test_clamp_extreme_values():\n    \"\"\"Edge case: Very large or small float values (within float precision).\"\"\"\n    assert clamp(1e10, 0.0, 1e10) == 1e10\n    assert clamp(1e10, 1e10, 2e10) == 1e10\n    assert clamp(-1e10, -2e10, -1e10) == -1e10\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0011868,
   "expected": "",
   "tokens": {
     "input": 214,
     "output": 1430
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 34,
   "response": "Stockholm, the capital of Sweden, is a vibrant city founded in 1252, with a population of 1.6 million people spread over an area of 188 square kilometers. The city boasts a high GDP per capita of $62,000 and is primarily Swedish-speaking, experiencing an average temperature of -3\u00b0C in January and 18\u00b0C in July.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00044824000000000003,
   "expected": "",
   "tokens": {
     "input": 103,
     "output": 82
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

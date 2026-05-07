@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 5,
   "response": "Antibiotics, beginning with Fleming's discovery of penicillin in 1928, revolutionized medicine by making surgery and disease treatment far safer, with a golden age of discovery occurring in the 1950s and 60s. However, the development of new antibiotics has since declined due to poor financial returns, while resistance has surged through the rise of superbugs like MRSA and the widespread agricultural use of antibiotics in livestock. This has led to a global antimicrobial resistance crisis, prompting current research into alternative solutions such as phage therapy, CRISPR-based approaches, and AI-driven drug discovery.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000786915,
   "expected": "",
   "tokens": {
     "input": 129,
     "output": 420
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

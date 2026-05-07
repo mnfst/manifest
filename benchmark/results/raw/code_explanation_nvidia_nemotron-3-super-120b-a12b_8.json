@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 8,
   "response": "The `debounce` function returns a decorator that, when applied to a function `fn`, creates a wrapper (`debounced`) which, on each call, cancels any pending `threading.Timer` and starts a new one that will invoke `fn` after `wait` seconds; thus `fn` executes only after the caller has stopped invoking the wrapped function for at least `wait` seconds. This implements the debounce pattern using a closure\u2011held timer object.",
-  "score": 0,
+  "score": 5,
   "cost": 1.7909999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 104,
     "output": 95
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

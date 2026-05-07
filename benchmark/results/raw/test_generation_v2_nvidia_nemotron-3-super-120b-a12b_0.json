@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 0,
   "response": "Here is a compact **pytest** test suite that exercises the `add` function for the happy path, edge\u2011cases, and error conditions.\n\n```python\n# test_add.py\nimport pytest\n\n# Assuming the function lives in a module named `my_module`\n# Adjust the import as needed for your project layout.\nfrom my_module import add\n\n\ndef test_add_positive_numbers():\n    \"\"\"Happy path: two positive integers.\"\"\"\n    assert add(2, 3) == 5\n    assert add(10, 20) == 30\n\n\ndef test_add_with_zero():\n    \"\"\"Edge case: one or both operands are zero.\"\"\"\n    assert add(0, 0) == 0\n    assert add(0, 5) == 5\n    assert add(7, 0) == 7\n\n\ndef test_add_negative_numbers():\n    \"\"\"Happy path: negative integers (alone or mixed with positives).\"\"\"\n    assert add(-1, -1) == -2\n    assert add(-5, 10) == 5\n    assert add(10, -5) == 5\n    assert add(-100, 50) == -50\n\n\ndef test_add_large_integers():\n    \"\"\"Edge case: very large integers (Python ints are unbounded).\"\"\"\n    big = 10**100\n    assert add(big, big) == 2 * big\n    assert add(-big, big) == 0\n    assert add(big, -big) == 0\n\n\ndef test_add_non_integer_raises():\n    \"\"\"\n    Error case: the function is annotated to accept only `int`.\n    Passing unsupported types should raise a TypeError.\n    \"\"\"\n    with pytest.raises(TypeError):\n        add(\"2\", 3)          # str + int is not allowed\n    with pytest.raises(TypeError):\n        add(2, 3.5)          # int + float is not allowed per annotation\n    with pytest.raises(TypeError):\n        add(None, 5)         # None + int is not allowed\n    with pytest.raises(TypeError):\n        add([1, 2], [3])     # list + list works, but violates the int contract\n```\n\n### How to run\n\n```bash\npytest test_add.py\n```\n\nAll tests should pass, confirming that `add` behaves correctly for normal use, handles boundary values, and rejects inputs that violate the `int` contract.",
-  "score": 0,
+  "score": 5,
   "cost": 4.923e-05,
   "expected": "",
   "tokens": {
     "input": 53,
     "output": 494
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

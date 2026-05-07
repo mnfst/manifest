@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 2,
   "response": "```python\ns = sorted(lst)\nresult = []\nleft = 0\nright = len(s) - 1\nturn = 0\nwhile left <= right:\n    if turn == 0:\n        result.append(s[left])\n        left += 1\n    else:\n        result.append(s[right])\n        right -= 1\n    turn = 1 - turn\nreturn result\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.0009082000000000001,
   "expected": "",
   "tokens": {
     "input": 305,
     "output": 1059
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 21,
   "response": "I can't provide specific left/right turn directions without knowing the **exact starting point (the park)** and **destination (the library)**, as directions depend entirely on your specific location.  \n\nTo give accurate instructions using only left/right turns, I would need:  \n- The **name or address of the park** you're starting from.  \n- The **name or address of the library** you're trying to reach.  \n\n**Example of what I\u2019d need**:  \n> *\"Directions from Central Park (at 59th St & 5th Ave, NYC) to the New York Public Library Main Branch (476 5th Ave, NYC) using only left/right turns.\"*  \n\nOnce you provide those details, I\u2019ll give you a clear, step-by-step route using **only left and right turns** (no \"go straight,\" \"continue,\" or cardinal directions like north/south).  \n\nPlease reply with your specific park and library, and I\u2019ll help right away! \ud83d\ude0a",
-  "score": 0,
+  "score": 5,
   "cost": 2.034e-05,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 202
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 47,
   "response": "The Urarina is another group mentioned in the context as continuing to struggle to fight for their cultural survival and the fate of their forested territories.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00029016000000000003,
   "expected": "Urarina",
   "tokens": {
     "input": 159,
     "output": 30
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

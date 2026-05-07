@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 30,
   "response": "Golden crust, stretchy cheese, savory sauce, crispy edges, tender center, spicy pepperoni, fresh basil, pungent garlic, hot slices, bold flavor, buttery dough, dark spots, bubbly surface, earthy aroma, round disc, hearty feast.",
-  "score": 0,
+  "score": 5,
   "cost": 0.005425875000000001,
   "expected": "",
   "tokens": {
     "input": 23,
     "output": 4168
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

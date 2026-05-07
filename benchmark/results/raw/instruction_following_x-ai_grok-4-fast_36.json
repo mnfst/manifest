@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 36,
   "response": "1. Java  \n2. C++  \n3. Ruby  \n4. Go",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001308,
   "expected": "",
   "tokens": {
     "input": 170,
     "output": 121
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

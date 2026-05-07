@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 4,
   "response": "Electric vehicles have evolved from 1830s experiments to modern mass adoption, with Tesla leading the disruption of the traditional automotive industry. The sector faces significant technical challenges including battery technology limitations, charging infrastructure gaps, and environmental concerns over lithium and cobalt mining, while government incentives play a crucial role in adoption. Major legacy automakers like Ford, GM, and VW are transitioning their fleets to electric, with China serving as both the world's largest EV market and manufacturer. Key ongoing issues include range anxiety, lengthy charging times, grid capacity constraints, and the promising potential of solid-state battery technology to address many current limitations.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00014036000000000002,
   "expected": "",
   "tokens": {
     "input": 138,
     "output": 125
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

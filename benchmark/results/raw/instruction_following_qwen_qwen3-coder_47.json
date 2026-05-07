@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 47,
   "response": "Here are the key elements that make a good password:\n\n1. **Use at least 12-16 characters** - Longer passwords are significantly more secure than shorter ones\n\n2. **Include a mix of character types** - Use uppercase letters, lowercase letters, numbers, and special symbols (!@#$%^&*)\n\n3. **Avoid common words and patterns** - Don't use dictionary words, names, birthdays, or predictable sequences like \"123456\" or \"password\"\n\n4. **Make it unique** - Don't reuse passwords across multiple accounts; each account should have its own password\n\n5. **Use random combinations** - Create passwords using random character combinations rather than meaningful phrases\n\n6. **Consider passphrases** - Use random words strung together (like \"PurpleTiger$JumpedHigh\") which can be both secure and memorable\n\n7. **Enable two-factor authentication** - Add an extra layer of security beyond just the password\n\n8. **Use a password manager** - Store complex, unique passwords securely rather than trying to remember them all\n\n9. **Change passwords regularly** - Update passwords periodically, especially for sensitive accounts\n\n10. **Never share passwords** - Keep passwords confidential and don't write them in easily accessible places",
-  "score": 0,
+  "score": 5,
   "cost": 0.00023298,
   "expected": "",
   "tokens": {
     "input": 19,
     "output": 260
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 13,
   "response": "Based on the provided context, V/Line is owned by the Victorian Government.\n\nThe context states: \"V/Line which is now owned by the Victorian Government, operates a concentrated service to major regional centres, as well as long distance services on other lines.\"",
-  "score": 0,
+  "score": 5,
   "cost": 8.184e-05,
   "expected": "Victorian Government",
   "tokens": {
     "input": 160,
     "output": 53
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

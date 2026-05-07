@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 40,
   "response": "The patient is a 45\u2011year\u2011old female with a BMI of 27.3 and a blood pressure of 138/88\u202fmm\u202fHg. Her laboratory values show a total cholesterol of",
-  "score": 0,
+  "score": 3,
   "cost": 3.735e-05,
   "expected": "",
   "tokens": {
     "input": 115,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

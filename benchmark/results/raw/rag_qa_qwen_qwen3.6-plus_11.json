@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 11,
   "response": "Based on the provided context, the Amazon forest stores about 10% of the carbon stores in ecosystems, which is of the order of 1.1 \u00d7 1011 metric tonnes of carbon.",
-  "score": 0,
+  "score": 5,
   "cost": 0.002484625,
   "expected": "10% of the carbon stores",
   "tokens": {
     "input": 185,
     "output": 1865
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

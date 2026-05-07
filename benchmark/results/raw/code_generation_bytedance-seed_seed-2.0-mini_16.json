@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 16,
   "response": "```python\nn = len(grid)\nmin_val = float('inf')\nx = y = 0\nfor i in range(n):\n    for j in range(n):\n        if grid[i][j] < min_val:\n            min_val = grid[i][j]\n            x, y = i, j\n\ndirections = [(-1, 0), (1, 0), (0, -1), (0, 1)]\nneighbors = []\nfor dx, dy in directions:\n    nx, ny = x + dx, y + dy\n    if 0 <= nx < n and 0 <= ny < n:\n        neighbors.append(grid[nx][ny])\nsecond_min = min(neighbors)\n\nresult = []\nfor i in range(k):\n    result.append(min_val if i % 2 == 0 else second_min)\nreturn result\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.0016862000000000001,
   "expected": "",
   "tokens": {
     "input": 486,
     "output": 4094
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

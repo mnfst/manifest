@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 12,
   "response": "Here is a self\u2011contained pytest test suite that exercises the happy path, edge cases, and error conditions for `chunk_list`.\n\n```python\n# test_chunk_list.py\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# from mymodule import chunk_list\ndef chunk_list(lst: list, size: int) -> list:\n    if size <= 0:\n        raise ValueError('size must be positive')\n    return [lst[i:i+size] for i in range(0, len(lst), size)]\n\n\n# ---------- Happy path ----------\ndef test_chunk_list_basic():\n    assert chunk_list([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n\n\ndef test_chunk_list_exact_division():\n    assert chunk_list([10, 20, 30, 40], 2) == [[10, 20], [30, 40]]\n\n\ndef test_chunk_list_size_one():\n    assert chunk_list(['a', 'b', 'c'], 1) == [['a'], ['b'], ['c']]\n\n\ndef test_chunk_list_size_greater_than_length():\n    assert chunk_list([1, 2, 3], 5) == [[1, 2, 3]]\n\n\ndef test_chunk_list_empty_input():\n    assert chunk_list([], 3) == []\n\n\n# ---------- Edge cases ----------\ndef test_chunk_list_preserves_original():\n    original = [1, 2, 3, 4]\n    chunk_list(original, 2)  # call the function\n    assert original == [1, 2, 3, 4]  # input list must not be mutated\n\n\n# ---------- Error cases ----------\n@pytest.mark.parametrize(\"invalid_size\", [0, -1, -10])\ndef test_chunk_list_non_positive_size_raises(invalid_size):\n    with pytest.raises(ValueError, match=\"size must be positive\"):\n        chunk_list([1, 2, 3], invalid_size)\n\n\n# Optional: ensure the function raises a TypeError for non\u2011int size\ndef test_chunk_list_wrong_type_size():\n    with pytest.raises(TypeError):\n        # The function expects an int; passing a string will cause a TypeError\n        chunk_list([1, 2, 3], \"2\")\n```\n\n**Explanation of the test groups**\n\n| Group | What it verifies |\n|-------|------------------|\n| **Happy path** | Typical usage with various list lengths and chunk sizes, including cases where the size evenly divides the list, leaves a remainder, is larger than the list, or equals\u202f1. |\n| **Edge cases** | Empty input list, verification that the original list is not mutated. |\n| **Error cases** | Non\u2011positive `size` values (`0` and negative numbers) raise a `ValueError` with the expected message. An additional test shows that supplying a non\u2011int (e.g., a string) triggers a `TypeError`. |\n\nRun the tests with:\n\n```bash\npytest test_chunk_list.py\n```\n\nAll tests should pass for the provided implementation.",
-  "score": 0,
+  "score": 5,
   "cost": 6.552e-05,
   "expected": "",
   "tokens": {
     "input": 85,
     "output": 643
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

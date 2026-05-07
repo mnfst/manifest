@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 13,
   "response": "Here are 7 colors of the rainbow in order:\n\n1. Red\n2. Orange\n3. Yellow\n4. Green\n5. Blue\n6. Indigo\n7. Violet",
-  "score": 0,
+  "score": 5,
   "cost": 2.715e-05,
   "expected": "",
   "tokens": {
     "input": 21,
     "output": 40
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

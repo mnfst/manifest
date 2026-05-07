@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 33,
   "response": "This code implements the Reservoir Sampling algorithm, which selects a random sample of size `k` from a stream of items of unknown length. It maintains a reservoir list of `k` items initially filled with the first `k` elements, then for each subsequent item, it randomly decides whether to replace an existing reservoir item with the new one, ensuring each item in the stream has an equal probability of being selected.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002452,
   "expected": "",
   "tokens": {
     "input": 290,
     "output": 234
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

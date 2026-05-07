@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 2,
   "response": "The function implements the quicksort algorithm: it selects a pivot (the middle element), partitions the input list into elements less than, equal to, and greater than the pivot, then recursively sorts the left and right partitions and concatenates the results. This divide\u2011and\u2011conquer pattern yields a sorted list.",
-  "score": 0,
+  "score": 4,
   "cost": 1.611e-05,
   "expected": "",
   "tokens": {
     "input": 116,
     "output": 63
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

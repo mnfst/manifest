@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 36,
   "response": "The history of the internet traces back to the 1960s when the US Department of Defense funded ARPANET, which was first demonstrated in 1969 with a message sent from UCLA to Stanford Research Institute, and evolved through the 1970s by connecting universities before adopting TCP/IP protocols in 1983. Key innovations included Tim Berners-Lee's invention of the World Wide Web in 1989 at CERN, featuring HTML, URLs, and HTTP, followed by the 1993 launch of the Mosaic browser, the late-1990s dot-com boom that crashed in 2001, and the rise of social media platforms like Facebook and Twitter in the mid-2000s. The 2007 introduction of the iPhone spurred mobile internet ubiquity, while cloud computing, exemplified by AWS in 2006, became a major force, leading to today's internet connecting over 5 billion people and underpinning modern commerce, communication, and entertainment.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005137999999999999,
   "expected": "",
   "tokens": {
     "input": 509,
     "output": 515
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

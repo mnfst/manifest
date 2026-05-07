@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 19,
   "response": "This code implements a **sliding window rate limiter** that permits up to `calls` requests within any rolling `period`-second interval by maintaining a list of recent request timestamps and filtering out expired ones on each invocation. It returns a closure that checks the filtered count, appending the current time and returning `True` if the limit isn't exceeded, or returning `False` to block the request otherwise.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000949,
   "expected": "",
   "tokens": {
     "input": 112,
     "output": 702
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

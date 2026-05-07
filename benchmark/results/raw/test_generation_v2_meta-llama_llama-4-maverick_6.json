@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 6,
   "response": "### Unit Tests for `reverse_words` Function\n\n```python\nimport pytest\n\ndef test_reverse_words_happy_path():\n    \"\"\"Test the function with a simple string.\"\"\"\n    input_str = \"Hello World\"\n    expected_output = \"World Hello\"\n    assert reverse_words(input_str) == expected_output\n\ndef test_reverse_words_empty_string():\n    \"\"\"Test the function with an empty string.\"\"\"\n    input_str = \"\"\n    expected_output = \"\"\n    assert reverse_words(input_str) == expected_output\n\ndef test_reverse_words_single_word():\n    \"\"\"Test the function with a single word.\"\"\"\n    input_str = \"Hello\"\n    expected_output = \"Hello\"\n    assert reverse_words(input_str) == expected_output\n\ndef test_reverse_words_multiple_spaces():\n    \"\"\"Test the function with multiple spaces between words.\"\"\"\n    input_str = \"Hello   World\"\n    expected_output = \"World Hello\"\n    assert reverse_words(input_str) == expected_output\n\ndef test_reverse_words_leading_trailing_spaces():\n    \"\"\"Test the function with leading and trailing spaces.\"\"\"\n    input_str = \"   Hello World   \"\n    expected_output = \"World Hello\"\n    assert reverse_words(input_str) == expected_output\n\ndef test_reverse_words_non_string_input():\n    \"\"\"Test the function with a non-string input.\"\"\"\n    input_value = 123\n    with pytest.raises(TypeError):\n        reverse_words(input_value)\n\ndef test_reverse_words_none_input():\n    \"\"\"Test the function with a None input.\"\"\"\n    input_value = None\n    with pytest.raises(TypeError):\n        reverse_words(input_value)\n```\n\n### Explanation\n\nThe tests cover the following cases:\n\n*   Happy path: `test_reverse_words_happy_path` tests the function with a simple string.\n*   Edge cases:\n    *   `test_reverse_words_empty_string` tests the function with an empty string.\n    *   `test_reverse_words_single_word` tests the function with a single word.\n    *   `test_reverse_words_multiple_spaces` tests the function with multiple spaces between words.\n    *   `test_reverse_words_leading_trailing_spaces` tests the function with leading and trailing spaces.\n*   Error cases:\n    *   `test_reverse_words_non_string_input` tests the function with a non-string input.\n    *   `test_reverse_words_none_input` tests the function with a None input.\n\nTo make the function pass these tests, you can modify it to include input type checking:\n\n```python\ndef reverse_words(s: str) -> str:\n    if not isinstance(s, str):\n        raise TypeError(\"Input must be a string\")\n    return ' '.join(s.split()[::-1])\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003279,
   "expected": "",
   "tokens": {
     "input": 58,
     "output": 532
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

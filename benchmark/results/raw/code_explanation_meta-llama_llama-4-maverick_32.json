@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 32,
   "response": "The given code implements the Union-Find algorithm, also known as disjoint-set data structure, using path compression and union by rank optimizations. It returns two functions, `find` and `union`, which can be used to manage a set of disjoint sets and merge them together.",
-  "score": 0,
+  "score": 5,
   "cost": 5.7900000000000005e-05,
   "expected": "",
   "tokens": {
     "input": 162,
     "output": 56
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

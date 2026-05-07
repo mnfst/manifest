@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 48,
   "response": "Romeo and Juliet, two young lovers from feuding families\u2014the Montagues and the Capulets\u2014fall in love at first sight. Despite the enmity between their clans, they secretly marry. A series of tragic events, including a fatal duel where Romeo kills Juliet's cousin, lead to Romeo's banishment. In a desperate attempt to be together, Juliet fakes her death with a potion. Romeo, unaware of the plan, believes her truly dead and poisons himself. Upon waking to find Romeo dead, Juliet stabs herself. The lovers' deaths ultimately reconcile the two families.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005345600000000001,
   "expected": "",
   "tokens": {
     "input": 30,
     "output": 121
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

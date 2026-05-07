@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 42,
   "response": "The provided Python code implements an asynchronous queue using a producer-consumer pattern, where `put` and `get` operations are asynchronous and block until the queue has available space or an item is available, respectively. The algorithm utilizes two deques to manage waiting putters and getters, leveraging asyncio's event loop to create and resolve futures that facilitate the asynchronous waiting mechanism.",
-  "score": 0,
+  "score": 5,
   "cost": 7.619999999999998e-05,
   "expected": "",
   "tokens": {
     "input": 216,
     "output": 73
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

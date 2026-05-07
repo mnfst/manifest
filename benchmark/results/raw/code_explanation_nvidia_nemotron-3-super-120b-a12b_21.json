@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 21,
   "response": "The `pipe` function takes any number of callables (`*fns`) and returns a new function `piped` that, when given an argument `x`, applies each supplied function in order \u2014 updating `x` with the result of each call \u2014 and finally returns the transformed value. This implements left\u2011to\u2011right function composition by iteratively chaining the functions together.",
-  "score": 0,
+  "score": 5,
   "cost": 2.079e-05,
   "expected": "",
   "tokens": {
     "input": 78,
     "output": 153
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 19,
   "response": "The given code implements a rate limiter using a sliding window algorithm, allowing a specified number of function calls (`calls`) within a certain time period (`period`). The `allow` function returned by `rate_limiter` checks if a new call is permitted by maintaining a list of recent timestamps and removing those that are older than the specified period.",
-  "score": 0,
+  "score": 4,
   "cost": 5.684999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 103,
     "output": 69
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

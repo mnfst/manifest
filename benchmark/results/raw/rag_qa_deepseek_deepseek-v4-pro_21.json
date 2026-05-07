@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 21,
   "response": "Not found in context.",
-  "score": 0,
+  "score": 1,
   "cost": 0.000306675,
   "expected": "anaerobic bacteria",
   "tokens": {
     "input": 201,
     "output": 126
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

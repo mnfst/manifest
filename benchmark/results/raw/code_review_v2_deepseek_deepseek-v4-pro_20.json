@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 20,
   "response": "**Bugs**\n1. **",
-  "score": 0,
+  "score": 1,
   "cost": 0.001422885,
   "expected": "",
   "tokens": {
     "input": 71,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

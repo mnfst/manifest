@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 8,
   "response": "This code implements a **trailing-edge debounce** decorator that ensures a wrapped function only executes after a specified period of inactivity. It uses a closure with a mutable list to track a `threading.Timer`, canceling any pending timer on each new invocation and scheduling a fresh one, which effectively coalesces rapid successive calls into a single delayed execution.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0008979750000000001,
   "expected": "",
   "tokens": {
     "input": 115,
     "output": 662
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

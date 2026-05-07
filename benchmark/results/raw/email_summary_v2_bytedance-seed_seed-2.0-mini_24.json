@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 24,
   "response": "The Design Team has announced that Design System version 3 is ready for adoption, bringing updates including new dark mode color tokens, a revised 4px-base spacing scale, updated Button and Modal components, and an available migration tool.\nThe recommended rollout strategy is to implement the update on a team-by-team basis, with the Settings page as the starting point.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000241,
   "expected": "",
   "tokens": {
     "input": 130,
     "output": 570
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 42,
   "response": "Yesterday's workshop with 15 enterprise customers revealed that better bulk import and SSO are critical blockers, while the new analytics dashboard was well-received. Review the attached follow-up report and note that 3 customers expressed interest in the internal tool as a standalone product.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00049503,
   "expected": "",
   "tokens": {
     "input": 106,
     "output": 258
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 28,
   "response": "Whenever he encountered British merchants or fur\u2011traders, C\u00e9loron informed them of the French claim to the territory and told them to leave.",
-  "score": 0,
+  "score": 5,
   "cost": 3.0509999999999998e-05,
   "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
   "tokens": {
     "input": 230,
     "output": 109
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

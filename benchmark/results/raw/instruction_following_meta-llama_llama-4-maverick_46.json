@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 46,
   "response": "Here is a goodbye email to coworkers:\n\nDear Team,\n\nI wanted to let everyone know that my last day is approaching and I will be leaving [Company Name] on [Date]. I have truly enjoyed my time working with all of you and appreciate the support and opportunities I've had during my tenure. I am grateful for the experience and knowledge gained while working here. I will miss working alongside such a talented and dedicated team. I wish the company continued success in the future.\n\nBest regards,\n[Your Name]",
-  "score": 0,
+  "score": 5,
   "cost": 7.469999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 90,
     "output": 102
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

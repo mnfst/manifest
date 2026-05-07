@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 10,
   "response": "The CEO has shared a Q1 board deck draft highlighting key metrics such as surpassing the revenue target by 127%, a Net Revenue Retention (NRR) of 115%, and a 22% increase in Customer Acquisition Cost (CAC). The CEO requires the product roadmap section to be submitted by Wednesday for the board meeting scheduled for the following Tuesday.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00041704,
   "expected": "",
   "tokens": {
     "input": 93,
     "output": 77
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

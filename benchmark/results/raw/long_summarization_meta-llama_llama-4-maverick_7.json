@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 7,
   "response": "The 2020s are witnessing significant advancements in space exploration, driven by both government programs and private companies. Key developments include SpaceX's Starship, NASA's Artemis program, and China's lunar ambitions, as well as growing satellite internet constellations like Starlink and OneWeb. Notable achievements include India's successful Chandrayaan missions and the James Webb Space Telescope's discoveries. The decade is also marked by emerging trends like space tourism and asteroid mining, raising concerns about the Outer Space Treaty's limitations and the growing problem of space debris.",
-  "score": 0,
+  "score": 5,
   "cost": 8.549999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 134,
     "output": 109
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

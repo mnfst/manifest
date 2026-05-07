@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 11,
   "response": "{\"name\": \"Maria Rodriguez\", \"date_of_birth\": \"1985-03-22\", \"blood_type\": \"O+\", \"allergies\": [\"penicillin\", \"shellfish\"], \"medications\": [{\"name\": \"lisinopril\", \"dosage\": \"10mg\", \"frequency\": \"daily\"}]}",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001604,
   "expected": "",
   "tokens": {
     "input": 164,
     "output": 360
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

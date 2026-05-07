@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 41,
   "response": "500",
-  "score": 0,
+  "score": 1,
   "cost": 0.000194,
   "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
   "tokens": {
     "input": 334,
     "output": 159
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

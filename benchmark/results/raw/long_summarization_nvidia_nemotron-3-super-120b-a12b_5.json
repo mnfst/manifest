@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 5,
   "response": "Antibiotics, beginning with Alexander Fleming\u2019s 1928 discovery of penicillin, revolutionized medicine by making surgery safer and curing previously fatal infections, ushering in a \u201cgolden age\u201d of drug discovery in the 1950s\u201160s that yielded dozens of new classes. Since then, the pipeline has dried up because developing antibiotics offers low financial returns, while overuse in medicine and agriculture has driven resistance\u2014exemplified by the spread of MRSA and other multidrug\u2011resistant pathogens. Today, the antimicrobial resistance crisis threatens to undo these gains, prompting researchers to explore alternatives such as phage therapy, CRISPR\u2011based antimicrobials, and AI\u2011driven drug discovery to replenish the dwindling antibiotic arsenal.",
-  "score": 0,
+  "score": 5,
   "cost": 2.943e-05,
   "expected": "",
   "tokens": {
     "input": 147,
     "output": 180
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

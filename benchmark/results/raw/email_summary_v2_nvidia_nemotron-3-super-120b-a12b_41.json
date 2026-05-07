@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 41,
   "response": "We need to summarize in exactly 2 sentences, capturing main point and any action items. The email: current 1Gbps links at 78% capacity during peak. Proposal: upgrade to 10Gbps for $45K one-time + $2K/month. Alternative: traffic shaping + CDN optimization for $15K. Given growth projections, recommend 10Gbps to avoid revisiting in 6 months. - Network Ops.\n\nThus summary: The network is nearing capacity, and the recommendation is to upgrade to 10Gbps for $45K upfront and $2K/month rather than a cheaper traffic shaping alternative, to accommodate growth and avoid another upgrade soon. Action item: approve and implement the 10Gbps upgrade.\n\nWe need exactly 2 sentences. Let's craft: \"Current 1Gbps links are operating at 78% capacity during peak, prompting",
-  "score": 0,
+  "score": 4,
   "cost": 2.988e-05,
   "expected": "",
   "tokens": {
     "input": 132,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

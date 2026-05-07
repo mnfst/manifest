@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 48,
   "response": "```python\n    # Remove non-alphanumeric characters and convert to lowercase\n    cleaned = ''.join(char.lower() for char in text if char.isalnum())\n    \n    # Check if the cleaned string equals its reverse\n    return cleaned == cleaned[::-1]\n```",
-  "score": 0,
+  "score": 5,
   "cost": 7.04e-05,
   "expected": "",
   "tokens": {
     "input": 104,
     "output": 54
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 10,
   "response": "The Saxon Garden. \n\nAccording to the context, \"The Saxon Garden... was formally a royal garden.\" This indicates that it was previously reserved for royalty.",
-  "score": 0,
+  "score": 5,
   "cost": 8.475e-05,
   "expected": "The Saxon Garden",
   "tokens": {
     "input": 429,
     "output": 34
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

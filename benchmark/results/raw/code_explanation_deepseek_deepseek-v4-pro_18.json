@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 18,
   "response": "This code implements a **Trie (prefix tree)** data structure for storing and retrieving strings. The `insert` method builds the trie by adding nodes for each character of a word and marking the final node as an end-of-word, while `search` traverses the trie character by character to determine if a complete word exists.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000375405,
   "expected": "",
   "tokens": {
     "input": 163,
     "output": 175
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

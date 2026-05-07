@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 39,
   "response": "This code implements the producer-consumer pattern using a shared queue for synchronization: multiple producer threads (specified by `num_producers`) add items from their respective lists to the queue, followed by a `None` sentinel to signal completion, while multiple consumer threads (specified by `num_consumers`) continuously retrieve and process items from the queue until they encounter the `None` sentinel, at which point they re-add it to propagate the end signal to other consumers. The `process(item)` function (assumed to be defined elsewhere) handles the actual item processing.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003378,
   "expected": "",
   "tokens": {
     "input": 301,
     "output": 347
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

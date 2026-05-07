@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 13,
   "response": "The CS Team\u2019s Customer Success Quarterly update shares Q1 performance metrics, including an improved NPS of 62 (up from 58), a 4.3/5 support CSAT score, a lowered 1.2% churn rate (down from 1.8%), the top three customer feature requests (SSO, custom dashboards, and increased API rate limits), and $800K in three pending enterprise expansion opportunities.\nThe primary action areas tied to this update include prioritizing the requested feature enhancements to boost customer satisfaction and pursuing the pipeline of high-value enterprise expansions to drive additional revenue.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005888,
   "expected": "",
   "tokens": {
     "input": 164,
     "output": 1431
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

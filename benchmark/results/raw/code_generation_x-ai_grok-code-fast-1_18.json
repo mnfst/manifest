@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 18,
   "response": "words = sentence.split()\nresult = []\nfor word in words:\n    if is_prime(len(word)):\n        result.append(word)\nreturn ' '.join(result)\n\ndef is_prime(n):\n    if n <= 1:\n        return False\n    if n <= 3:\n        return True\n    if n % 2 == 0 or n % 3 == 0:\n        return False\n    i = 5\n    while i * i <= n:\n        if n % i == 0 or n % (i + 2) == 0:\n            return False\n        i += 6\n    return True",
-  "score": 0,
+  "score": 4,
   "cost": 0.00047840000000000003,
   "expected": "",
   "tokens": {
     "input": 376,
     "output": 504
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

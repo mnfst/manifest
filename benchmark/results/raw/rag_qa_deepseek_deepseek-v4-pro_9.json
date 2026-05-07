@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 9,
   "response": "70 degrees",
-  "score": 0,
+  "score": 5,
   "cost": 0.00018618,
   "expected": "70",
   "tokens": {
     "input": 140,
     "output": 72
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

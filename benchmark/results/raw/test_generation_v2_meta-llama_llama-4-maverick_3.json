@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 3,
   "response": "### Unit Tests for the `flatten` Function\n\nThe following tests cover the happy path, edge cases, and error cases for the `flatten` function.\n\n```python\nimport pytest\n\ndef test_flatten_happy_path():\n    \"\"\"Test flattening a nested list.\"\"\"\n    assert flatten([1, [2, 3], [4, [5, 6]]]) == [1, 2, 3, 4, 5, 6]\n\ndef test_flatten_empty_list():\n    \"\"\"Test flattening an empty list.\"\"\"\n    assert flatten([]) == []\n\ndef test_flatten_non_nested_list():\n    \"\"\"Test flattening a non-nested list.\"\"\"\n    assert flatten([1, 2, 3]) == [1, 2, 3]\n\ndef test_flatten_deeply_nested_list():\n    \"\"\"Test flattening a deeply nested list.\"\"\"\n    assert flatten([1, [2, [3, [4, [5]]]]]) == [1, 2, 3, 4, 5]\n\ndef test_flatten_list_with_mixed_types():\n    \"\"\"Test flattening a list with mixed types.\"\"\"\n    assert flatten([1, 'a', [2, 'b'], [3, [4, 'c']]]) == [1, 'a', 2, 'b', 3, 4, 'c']\n\ndef test_flatten_non_list_input():\n    \"\"\"Test that a TypeError is raised when the input is not a list.\"\"\"\n    with pytest.raises(TypeError):\n        flatten('not a list')\n\ndef test_flatten_list_with_non_list_nested_items():\n    \"\"\"Test that non-list nested items are handled correctly.\"\"\"\n    assert flatten([1, 'a', 2.5, None, True]) == [1, 'a', 2.5, None, True]\n\ndef test_flatten_list_with_cyclic_reference():\n    \"\"\"Test that a RecursionError is raised when the input list has a cyclic reference.\"\"\"\n    lst = [1, 2]\n    lst.append(lst)\n    with pytest.raises(RecursionError):\n        flatten(lst)\n```\n\nTo run these tests, save them in a file (e.g., `test_flatten.py`) and execute the file using `pytest`. Make sure the `flatten` function is defined in a module that can be imported by the test file.\n\n### Notes\n\n* The `flatten` function does not check if the input is a list. Therefore, we test that a `TypeError` is raised when the input is not a list.\n* The `flatten` function uses recursion, which can lead to a `RecursionError` if the input list has a cyclic reference. We test that this error is raised correctly.\n* The tests cover a variety of cases, including happy paths, edge cases, and error cases. They ensure that the `flatten` function behaves as expected in different scenarios.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003717,
   "expected": "",
   "tokens": {
     "input": 82,
     "output": 599
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

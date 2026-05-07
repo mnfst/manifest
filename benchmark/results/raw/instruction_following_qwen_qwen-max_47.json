@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 47,
   "response": "Creating a strong password is essential for protecting your online security. Here\u2019s a step-by-step guide on what makes a good password:\n\n1. **Length**: Aim for a minimum of 12 to 16 characters. The longer the password, the more difficult it is to crack.\n\n2. **Complexity**: Include a mix of character types:\n   - Uppercase letters (A-Z)\n   - Lowercase letters (a-z)\n   - Numbers (0-9)\n   - Special characters (e.g., !@#$%^&*())\n\n3. **Avoid Common Words**: Do not use words that can be found in the dictionary, as they are susceptible to dictionary attacks. Similarly, avoid using common phrases and easily guessable sequences like \"123456\" or \"qwerty\".\n\n4. **Unpredictability**: Avoid using personal information that someone might easily guess, such as your name, birthdate, or your pet's name.\n\n5. **Unique for Each Site**: Use different passwords for different accounts. This way, if one password is compromised, your other accounts remain secure.\n\n6. **Regular Updates**: Change your passwords periodically, but not so often that it becomes a burden. A good rule of thumb is to update your passwords every 3 to 6 months.\n\n7. **Use a Passphrase**: Consider using a passphrase instead of a password. A passphrase is a longer sequence of words (e.g., \"CorrectHorseBatteryStaple\") that can be easier to remember and harder to crack.\n\n8. **Password Managers**: Utilize a password manager to generate and store complex passwords securely. This tool can help you maintain unique and strong passwords across all your accounts without the need to remember each one.\n\n9. **Test Your Password**: Use online tools to test the strength of your password. These tools can give you an idea of how resistant your password is to hacking.\n\n10. **Multi-Factor Authentication (MFA)**: Where possible, enable multi-factor authentication. This adds an extra layer of security by requiring a second form of verification (e.g., a code sent to your phone) in addition to your password.\n\nBy following these steps, you can create and manage strong, secure passwords that significantly reduce the risk of your accounts being compromised.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00196248,
   "expected": "",
   "tokens": {
     "input": 19,
     "output": 467
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

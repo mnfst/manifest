@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 23,
   "response": "The presence of the mortgage banker is highly likely, even in relatively small projects. \n\nSo, the answer is: Mortgage banker.",
-  "score": 0,
+  "score": 3,
   "cost": 4.6349999999999995e-05,
   "expected": "the mortgage banker",
   "tokens": {
     "input": 201,
     "output": 27
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

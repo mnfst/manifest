@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 26,
   "response": "The water cycle, also known as the hydrologic cycle, describes the continuous movement of water within the Earth and its atmosphere. It is a closed system, meaning the total amount of water on the planet remains relatively constant over time, cycling through various states\u2014liquid, solid, and vapor\u2014as it travels. Driven primarily by solar energy and gravity, this global mechanism links the oceans, land, atmosphere, and living organisms in a perpetual exchange that sustains life and shapes climate patterns.\n\nThe cycle gains momentum through evaporation, where heat from the sun transforms liquid water from oceans, lakes, and rivers into water vapor, which rises into the atmosphere. A smaller but significant contribution comes from transpiration, the process by which plants release water vapor from their leaves after absorbing moisture from the soil. Additionally, sublimation directly converts ice and snow into vapor in cold, dry conditions. Together, these processes collectively referred to as evapotranspiration, inject vast quantities of invisible moisture into the air.\n\nAs the warm, moist air ascends and encounters cooler temperatures at higher altitudes, it undergoes condensation, turning vapor back into tiny liquid droplets that cluster around microscopic dust or salt particles to form clouds. When these droplets combine and grow heavy enough, gravity overrides the updrafts, and water falls to the surface as precipitation\u2014rain, snow, sleet, or hail. The type and intensity depend on atmospheric conditions, and this stage returns water to the land and oceans, replenishing the terrestrial reservoirs essential for ecosystems and human use",
-  "score": 0,
+  "score": 5,
   "cost": 0.000876525,
   "expected": "",
   "tokens": {
     "input": 15,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 49,
   "response": "n = len(string)\nfor i in range(n, -1, -1):\n    suffix = string[-i:]\n    if is_palindrome(suffix):\n        prefix = string[:-i]\n        return string + prefix[::-1]",
-  "score": 0,
+  "score": 3,
   "cost": 0.001696,
   "expected": "",
   "tokens": {
     "input": 320,
     "output": 2040
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

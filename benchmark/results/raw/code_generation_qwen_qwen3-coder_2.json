@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 2,
   "response": "```python\nif not lst:\n        return []\n    \n    sorted_lst = sorted(lst)\n    result = []\n    left, right = 0, len(sorted_lst) - 1\n    \n    while left <= right:\n        result.append(sorted_lst[left])\n        left += 1\n        if left <= right:\n            result.append(sorted_lst[right])\n            right -= 1\n    \n    return result\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.00010669999999999999,
   "expected": "",
   "tokens": {
     "input": 157,
     "output": 82
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

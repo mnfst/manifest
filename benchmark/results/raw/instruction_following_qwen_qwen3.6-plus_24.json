@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 24,
   "response": "\u2022 Documents the incident\u2019s date, time, precise location, and prevailing road and weather conditions.\n\u2022 Catalogs identifying details for all involved drivers, passengers, vehicles, insurance policies, and witness accounts.\n\u2022 Provides an official narrative detailing the collision sequence, contributing factors, property damage, injuries, and preliminary fault determination.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0015242500000000002,
   "expected": "",
   "tokens": {
     "input": 22,
     "output": 1167
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 46,
   "response": "if not arr:\n        return []\n    \n    min_even_value = float('inf')\n    min_index = -1\n    \n    for i, value in enumerate(arr):\n        if value % 2 == 0 and (value < min_even_value or (value == min_even_value and i < min_index)):\n            min_even_value = value\n            min_index = i\n    \n    if min_index == -1:\n        return []\n    \n    return [min_even_value, min_index]",
-  "score": 0,
+  "score": 4,
   "cost": 0.0007696000000000001,
   "expected": "",
   "tokens": {
     "input": 348,
     "output": 98
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

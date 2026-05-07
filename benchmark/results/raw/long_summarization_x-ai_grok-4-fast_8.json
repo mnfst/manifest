@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 8,
   "response": "The history of artificial intelligence traces back to Alan Turing's foundational question in the mid-20th century, enduring AI winters in the 1970s and 1980s due to funding cuts and unmet expectations, before resurging in the 2010s through advancements in deep learning. A pivotal moment came with the 2017 publication of the transformer architecture paper, which enabled models like GPT and fueled the scaling hypothesis that larger datasets and compute would drive superior performance, sparking an intense race among companies such as OpenAI, Google, Anthropic, and Meta. This competition has intensified debates over open-source versus closed-source AI development, alongside growing safety concerns including alignment with human values, potential misuse, and job displacement in knowledge work. Regulatory efforts, such as the EU AI Act and US executive orders, aim to address these risks, while AI's economic impact threatens to transform sectors reliant on cognitive labor.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005078,
   "expected": "",
   "tokens": {
     "input": 295,
     "output": 561
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

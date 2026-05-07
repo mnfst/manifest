@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 22,
   "response": "This code implements an LRU (Least Recently Used) Cache data structure using Python's OrderedDict to track insertion and access order, ensuring efficient O(1) operations for get and put. The get method retrieves a value for a key if present (returning -1 otherwise) and moves it to the end of the OrderedDict to mark it as most recently used; the put method updates or inserts a key-value pair, moves existing keys to the end, and evicts the least recently used item (the first in the OrderedDict) via popitem(last=False) if the cache exceeds its capacity.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000375,
   "expected": "",
   "tokens": {
     "input": 291,
     "output": 396
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

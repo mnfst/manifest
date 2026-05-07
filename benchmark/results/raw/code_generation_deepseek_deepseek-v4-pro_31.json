@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 31,
   "response": "return sorted([s for s in lst if len(s) % 2 == 0], key=lambda s: (len(s), s))",
-  "score": 0,
+  "score": 4,
   "cost": 0.000905235,
   "expected": "",
   "tokens": {
     "input": 217,
     "output": 466
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

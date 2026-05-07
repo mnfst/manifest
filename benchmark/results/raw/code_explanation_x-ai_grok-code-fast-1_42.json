@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 42,
   "response": "This code implements an asynchronous bounded queue (AsyncQueue) that allows producers to add items and consumers to retrieve them concurrently, blocking (via asyncio futures) when the queue is full (during put) or empty (during get) until space or an item becomes available. It uses a deque for FIFO storage and separate deques to manage waiting putters and getters, ensuring efficient producer-consumer synchronization without busy-waiting.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000341,
   "expected": "",
   "tokens": {
     "input": 409,
     "output": 324
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

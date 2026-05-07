@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 26,
   "response": "n = len(l)\n    if n < 3:\n        return False\n    l_sorted = sorted(l)\n    for i in range(n - 2):\n        left, right = i + 1, n - 1\n        while left < right:\n            s = l_sorted[i] + l_sorted[left] +",
-  "score": 0,
+  "score": 3,
   "cost": 6.363e-05,
   "expected": "",
   "tokens": {
     "input": 207,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

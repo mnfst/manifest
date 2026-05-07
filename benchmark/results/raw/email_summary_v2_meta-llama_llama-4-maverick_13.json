@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 13,
   "response": "The Customer Success Team reported positive Q1 metrics, including a rise in NPS to 62 and a decrease in churn rate to 1.2%, while also identifying top customer feature requests. The team has identified potential enterprise expansions worth $800K in the pipeline, indicating potential future growth opportunities.",
-  "score": 0,
+  "score": 5,
   "cost": 5.34e-05,
   "expected": "",
   "tokens": {
     "input": 116,
     "output": 60
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

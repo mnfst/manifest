@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 13,
   "response": "**Issues found**\n\n| Category | Problem | Why it\u2019s bad | How to fix it |\n|----------|---------|--------------|---------------|\n| **Security** | **Direct insertion of unsanitized user\u2011provided string into `innerHTML`** | This opens a classic **Cross\u2011Site Scripting (XSS)** vector. An attacker can supply `<script>alert('xss')</script>` or any HTML with event handlers (`<img onerror=\u2026>`, `<svg onload=\u2026>`, etc.) and the browser will execute it. | \u2022 If the intent is to display **plain text**, use `textContent` (or `innerText`) instead of `innerHTML`.<br>\u2022 If you really need to allow a subset of HTML, run the string through a trusted sanitizer (e.g., **DOMPurify**) before assigning it to `innerHTML`. |\n| **Robustness / Runtime errors** | **Assuming the element with id `output` always exists** | If the element is missing (e.g., the script runs before the DOM is ready, or the id is typo\u2011ed), `document.getElementById('output')` returns `null` and accessing `.innerHTML` throws a `TypeError: Cannot read property 'innerHTML' of null`. | \u2022 Guard the lookup: `const el = document.getElementById('output'); if (el) { \u2026 } else { console.warn('Output element not found'); }`<br>\u2022 Or ensure the function is called after DOMContentLoaded / place the script at the bottom of `<body>`. |\n| **Input type safety** | **No validation / coercion of `userInput`** | If a non\u2011string (e.g., `null`, `undefined`, an object, or a number) is passed, JavaScript will coerce it via `ToString`, which may produce unexpected results (`\"[object Object]\"`, `\"null\"`). While not a security issue, it can lead to confusing UI output. | \u2022 Explicitly convert to string: `const safeInput = String(userInput);`<br>\u2022 Optionally reject non\u2011string types with a guard: `if (typeof userInput !== 'string') throw new TypeError('userInput must be a string');` |\n| **Performance** | **Repeated direct DOM writes** | If `renderHTML` is called many times in a tight loop (e.g., on every keystroke), each assignment triggers a reflow/repaint, which can degrade performance. | \u2022 Batch updates using `requestAnimationFrame` or a debounce/throttle mechanism.<br>\u2022 Build a DocumentFragment or a temporary element, set its content once, then append/replace the target node. |\n| **Main",
-  "score": 0,
+  "score": 5,
   "cost": 7.821e-05,
   "expected": "",
   "tokens": {
     "input": 69,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

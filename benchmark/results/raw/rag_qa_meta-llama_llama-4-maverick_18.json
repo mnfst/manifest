@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 18,
   "response": "Allan Bloom. According to the context, Allan Bloom is the author of the New York Times bestseller \"The Closing of the American Mind\" and is a notable alumnus.",
-  "score": 0,
+  "score": 4,
   "cost": 4.905e-05,
   "expected": "Allan Bloom",
   "tokens": {
     "input": 179,
     "output": 37
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

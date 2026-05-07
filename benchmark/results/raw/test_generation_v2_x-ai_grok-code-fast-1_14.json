@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 14,
   "response": "```python\nimport pytest\n\n# Assuming the function is in a module named 'your_module'\nfrom your_module import deep_get\n\nclass TestDeepGet:\n    def test_happy_path_single_level(self):\n        d = {'a': 1}\n        assert deep_get(d, 'a') == 1\n\n    def test_happy_path_nested(self):\n        d = {'a': {'b': {'c': 42}}}\n        assert deep_get(d, 'a.b.c') == 42\n\n    def test_happy_path_with_default_ignored(self):\n        d = {'a': {'b': 2}}\n        assert deep_get(d, 'a.b', 'default') == 2\n\n    def test_key_not_found_single_level(self):\n        d = {'a': 1}\n        assert deep_get(d, 'b') is None\n        assert deep_get(d, 'b', 'default') == 'default'\n\n    def test_key_not_found_nested(self):\n        d = {'a': {'b': 1}}\n        assert deep_get(d, 'a.c') is None\n        assert deep_get(d, 'a.c.d', 'default') == 'default'\n\n    def test_empty_keys(self):\n        d = {'a': 1}\n        # Empty keys should return the dict itself, but since it's not a key, maybe default?\n        # Wait, split('.') on '' gives [''], so d.get('', default), which for dict is default.\n        assert deep_get(d, '') is None\n        assert deep_get(d, '', 'default') == 'default'\n\n    def test_keys_with_empty_parts(self):\n        d = {'a': {'': {'b': 3}}}\n        assert deep_get(d, 'a..b') == 3\n        # But if empty key not present, it should fail at that point.\n        d2 = {'a': {'b': 2}}\n        assert deep_get(d2, 'a..b') is None  # Because d2['a'] is dict, but get('', default) fails.\n\n    def test_non_dict_initial(self):\n        # If d is not a dict, should return default immediately.\n        assert deep_get('not a dict', 'a.b') is None\n        assert deep_get(42, 'a', 'default') == 'default'\n\n    def test_non_dict_intermediate(self):\n        d = {'a': {'b': 'not a dict'}}\n        assert deep_get(d, 'a.b.c') is None  # Because 'not a dict' is not a dict, so return default.\n\n    def test_deep_nesting(self):\n        d = {'a': {'b': {'c': {'d': {'e': 100}}}}}\n        assert deep_get(d, 'a.b.c.d.e') == 100\n\n    def test_default_none_explicit(self):\n        d = {}\n        assert deep_get(d, 'missing', None) is None\n\n    def test_keys_with_multiple_dots(self):\n        d = {'a.b': {'c': 5}}  # Key contains dot\n        assert deep_get(d, 'a.b.c') == 5  # This should work since 'a.b' is a key.\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.0007838000000000001,
   "expected": "",
   "tokens": {
     "input": 291,
     "output": 907
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

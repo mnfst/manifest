@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 5,
   "response": "The text traces the full history and impact of antibiotics, opening with Alexander Fleming\u2019s 1928 discovery of penicillin, the 1950s\u20131960s golden age of antibiotic discovery that revolutionized surgical practices and routine disease treatment, and culminating in the modern global antimicrobial resistance crisis.\nIt explains that new antibiotic development has slowed dramatically due to poor financial returns for pharmaceutical firms, while widespread overuse\u2014including excessive agricultural antibiotic use in livestock\u2014has driven the emergence of dangerous drug-resistant bacteria such as MRSA.\nFinally, the text highlights ongoing promising research efforts to address this crisis, including explorations of phage therapy, CRISPR-based treatments, and AI-driven drug discovery to develop new antimicrobial solutions.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00036700000000000003,
   "expected": "",
   "tokens": {
     "input": 186,
     "output": 871
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

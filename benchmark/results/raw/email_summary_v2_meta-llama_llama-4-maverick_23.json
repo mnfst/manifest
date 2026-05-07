@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 23,
   "response": "The v1 API will be deprecated on June 30 and removed on September 30, and a migration guide has already been published to help with the transition. The platform team plans to conduct personal outreach to the top 20 enterprise customers still using v1 and host a webinar for the remaining customers to facilitate their migration.",
-  "score": 0,
+  "score": 5,
   "cost": 5.3549999999999994e-05,
   "expected": "",
   "tokens": {
     "input": 97,
     "output": 65
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

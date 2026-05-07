@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 18,
   "response": "def is_prime(n):\n        if n <= 1:\n            return False\n        for i in range(2, int(n**0.5) + 1):\n            if n % i == 0:\n                return False\n        return True\n\n    words = sentence.split()\n    prime_length_words = [word for word in words if is_prime(len(word))]\n    return ' '.join(prime_length_words)",
-  "score": 0,
+  "score": 3,
   "cost": 0.0005470399999999999,
   "expected": "",
   "tokens": {
     "input": 182,
     "output": 86
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

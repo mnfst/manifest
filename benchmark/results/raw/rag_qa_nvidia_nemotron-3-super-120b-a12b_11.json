@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 11,
   "response": "The Amazonian evergreen forests store about\u202f10\u202f% of the world\u2019s carbon stores, which corresponds to roughly\u202f1.1\u202f\u00d7\u202f10\u00b9\u00b9\u202fmetric\u202ftonnes\u202fof\u202fcarbon.",
-  "score": 0,
+  "score": 5,
   "cost": 1.998e-05,
   "expected": "10% of the carbon stores",
   "tokens": {
     "input": 169,
     "output": 53
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 18,
   "response": "Allan Bloom wrote \"The Closing of the American Mind,\" as stated in the context: \"political philosopher, literary critic and author of the New York Times bestseller 'The Closing of the American Mind' Allan Bloom.\"",
-  "score": 0,
+  "score": 5,
   "cost": 0.00029160000000000004,
   "expected": "Allan Bloom",
   "tokens": {
     "input": 366,
     "output": 273
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

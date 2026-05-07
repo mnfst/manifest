@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 17,
   "response": "### Unit Tests for `is_balanced_parens` Function\n\n```python\nimport pytest\n\ndef test_is_balanced_parens_happy_path():\n    \"\"\"Test with balanced parentheses.\"\"\"\n    assert is_balanced_parens(\"()\") == True\n    assert is_balanced_parens(\"[]\") == True\n    assert is_balanced_parens(\"{}\") == True\n    assert is_balanced_parens(\"(())\") == True\n    assert is_balanced_parens(\"({[]})\") == True\n\ndef test_is_balanced_parens_unbalanced():\n    \"\"\"Test with unbalanced parentheses.\"\"\"\n    assert is_balanced_parens(\"(\") == False\n    assert is_balanced_parens(\")\") == False\n    assert is_balanced_parens(\"([)]\") == False\n    assert is_balanced_parens(\"({[})\") == False\n\ndef test_is_balanced_parens_edge_cases():\n    \"\"\"Test edge cases.\"\"\"\n    assert is_balanced_parens(\"\") == True  # empty string\n    assert is_balanced_parens(\"hello world\") == True  # no parentheses\n    assert is_balanced_parens(\"((()))\") == True  # multiple nested parentheses\n\ndef test_is_balanced_parens_error_cases():\n    \"\"\"Test error cases.\"\"\"\n    with pytest.raises(TypeError):\n        is_balanced_parens(123)  # non-string input\n    with pytest.raises(TypeError):\n        is_balanced_parens(None)  # None input\n\ndef test_is_balanced_parens_mixed_characters():\n    \"\"\"Test with mixed characters.\"\"\"\n    assert is_balanced_parens(\"hello (world)\") == True\n    assert is_balanced_parens(\"(hello world)\") == True\n    assert is_balanced_parens(\"hello world ()\") == True\n```\n\nTo make the function more robust, you can add input validation to check if the input is a string. Here's an updated version of the function:\n\n```python\ndef is_balanced_parens(s: str) -> bool:\n    if not isinstance(s, str):\n        raise TypeError(\"Input must be a string\")\n    stack = []\n    pairs = {'(': ')', '[': ']', '{': '}'}\n    for c in s:\n        if c in pairs:\n            stack.append(pairs[c])\n        elif c in pairs.values():\n            if not stack or stack.pop() != c:\n                return False\n    return len(stack) == 0\n```\n\nWith this update, the `test_is_balanced_parens_error_cases` test will pass, as the function will now raise a `TypeError` when given non-string input.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000339,
   "expected": "",
   "tokens": {
     "input": 120,
     "output": 535
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

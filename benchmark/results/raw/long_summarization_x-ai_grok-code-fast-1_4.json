@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 4,
   "response": "The evolution of electric vehicles (EVs) began with early experiments in the 1830s and gained momentum through Tesla's disruptive innovations in the automotive industry, though it faces significant technical challenges in battery technology, charging infrastructure, and environmental concerns over lithium and cobalt mining. Legacy automakers like Ford, GM, and VW are transitioning their fleets to EVs, supported by government incentives, while China leads as the world's largest EV market and manufacturer. Despite issues like range anxiety, long charging times, and grid capacity strains, advancements such as solid-state batteries hold promise for overcoming these hurdles.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00035620000000000004,
   "expected": "",
   "tokens": {
     "input": 329,
     "output": 363
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 34,
   "response": "A database index is a specialized auxiliary data structure that creates a sorted, fast-access map of selected column values from a database table, allowing the database engine to quickly locate and retrieve matching rows without scanning every entry in the full table. This optimization drastically speeds up read-heavy workloads like targeted SELECT queries, though it adds storage overhead and slows down write operations since the index must be synchronized with any changes made to the source table.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001549,
   "expected": "",
   "tokens": {
     "input": 61,
     "output": 372
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 36,
   "response": "Sure, here are four programming languages, excluding Python and JavaScript:\n\n1. C++\n2. Java\n3. Ruby\n4. Go",
-  "score": 0,
+  "score": 2,
   "cost": 0.00013832,
   "expected": "",
   "tokens": {
     "input": 21,
     "output": 28
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

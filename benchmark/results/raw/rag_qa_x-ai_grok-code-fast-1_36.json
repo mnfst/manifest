@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 36,
   "response": "Oxygen.",
-  "score": 0,
+  "score": 2,
   "cost": 0.0003212,
   "expected": "gaseous oxygen.",
   "tokens": {
     "input": 354,
     "output": 313
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

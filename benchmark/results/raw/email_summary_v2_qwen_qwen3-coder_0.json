@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 0,
   "response": "Sarah reports that marketing exceeded their Q3 budget by 15% due to the August campaign while engineering is 8% under budget from delayed hiring. She proposes reallocating $50K from engineering to cover marketing's overspend and requests a discussion on Thursday.",
-  "score": 0,
+  "score": 5,
   "cost": 6.995999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 98,
     "output": 55
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

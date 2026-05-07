@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 28,
   "response": "The annual disaster recovery (DR) test exceeded the targeted recovery time objective (RTO) of 4 hours, taking 6 hours and 23 minutes, primarily due to the database restore taking longer than expected. The recommendations are to increase backup frequency and pre-provision a standby database, with the next test scheduled for October.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00039312,
   "expected": "",
   "tokens": {
     "input": 110,
     "output": 67
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

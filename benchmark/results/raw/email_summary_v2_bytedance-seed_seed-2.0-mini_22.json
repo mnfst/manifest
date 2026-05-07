@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 22,
   "response": "The international team has outlined a Japan launch timeline for the company\u2019s international expansion plan, spanning May\u2019s legal entity setup, June\u2019s full localization, July\u2019s beta test with 10 customers, and August\u2019s general availability, alongside a total $200K budget split across legal costs, localization work, and local hires. The team is formally requesting CEO approval to proceed with this planned Japan expansion launch.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00023490000000000002,
   "expected": "",
   "tokens": {
     "input": 145,
     "output": 551
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 0,
   "response": "```python",
-  "score": 0,
+  "score": 1,
   "cost": 0.00176175,
   "expected": "",
   "tokens": {
     "input": 50,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

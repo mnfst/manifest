@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 7,
   "response": "The 2020s represent a transformative era in space exploration, characterized by rapid advancements from both government agencies and private companies. Major initiatives like NASA\u2019s Artemis lunar program, SpaceX\u2019s Starship, and the James Webb Space Telescope are complemented by growing international efforts from China and India, alongside commercial expansions in satellite internet, space tourism, and asteroid mining. However, this accelerated activity is increasingly constrained by the outdated Outer Space Treaty and the mounting crisis of orbital space debris. Ultimately, the decade highlights a shift toward a highly competitive, commercially driven space industry that must urgently address legal and environmental sustainability challenges.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00244465,
   "expected": "",
   "tokens": {
     "input": 142,
     "output": 1845
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 2,
   "response": "Colonialism often means a country taking physical control of another, specifically conquering and ruling over areas, and exploiting the valuable assets and supplies of the nation that was conquered. Colonialism can also completely change the existing social structure, physical structure, and economics of the conquered area.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00055952,
   "expected": "taking physical control of another",
   "tokens": {
     "input": 314,
     "output": 56
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

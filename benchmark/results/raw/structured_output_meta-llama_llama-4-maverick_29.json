@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 29,
   "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"bedrooms\": 2,\n  \"bathrooms\": 1,\n  \"sqft\": 850,\n  \"rent_monthly\": 2400,\n  \"address\": \"789 Pine St #3\",\n  \"city\": \"Brooklyn\",\n  \"state\": \"NY\",\n  \"zip\": \"11201\",\n  \"available_date\": \"April 1\",\n  \"pets_allowed\": true,\n  \"amenities\": [\"Laundry in-unit\"],\n  \"broker_fee\": false\n}\n```",
-  "score": 0,
+  "score": 5,
   "cost": 9.69e-05,
   "expected": "",
   "tokens": {
     "input": 154,
     "output": 123
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

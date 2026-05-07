@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 10,
   "response": "This function implements the **Sieve of Eratosthenes** algorithm to efficiently find all prime numbers up to a given limit `n`. It works by iteratively marking the multiples of each discovered prime (starting from 2 and stopping at \u221an) as composite, then returning the remaining unmarked indices as the prime numbers.",
-  "score": 0,
+  "score": 5,
   "cost": 0.001669525,
   "expected": "",
   "tokens": {
     "input": 145,
     "output": 1248
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

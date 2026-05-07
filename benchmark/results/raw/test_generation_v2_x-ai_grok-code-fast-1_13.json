@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 13,
   "response": "```python\nimport pytest\n\ndef fizzbuzz(n: int) -> str:\n    if n % 15 == 0:\n        return 'FizzBuzz'\n    elif n % 3 == 0:\n        return 'Fizz'\n    elif n % 5 == 0:\n        return 'Buzz'\n    return str(n)\n\n# Happy path tests\n@pytest.mark.parametrize(\"n, expected\", [\n    (1, \"1\"),\n    (2, \"2\"),\n    (3, \"Fizz\"),\n    (4, \"4\"),\n    (5, \"Buzz\"),\n    (6, \"Fizz\"),\n    (10, \"Buzz\"),\n    (15, \"FizzBuzz\"),\n    (30, \"FizzBuzz\"),\n    (45, \"FizzBuzz\"),\n])\ndef test_fizzbuzz_happy_path(n, expected):\n    assert fizzbuzz(n) == expected\n\n# Edge cases\n@pytest.mark.parametrize(\"n, expected\", [\n    (0, \"FizzBuzz\"),  # 0 is divisible by 15\n    (-1, \"-1\"),       # Negative non-multiple\n    (-3, \"Fizz\"),     # Negative multiple of 3\n    (-5, \"Buzz\"),     # Negative multiple of 5\n    (-15, \"FizzBuzz\"), # Negative multiple of 15\n])\ndef test_fizzbuzz_edge_cases(n, expected):\n    assert fizzbuzz(n) == expected\n\n# Error cases\n@pytest.mark.parametrize(\"n\", [\n    \"string\",  # Non-integer type\n    3.5,       # Float\n    None,      # None type\n    [1, 2, 3], # List\n])\ndef test_fizzbuzz_error_cases(n):\n    with pytest.raises(TypeError):\n        fizzbuzz(n)\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0006443999999999999,
   "expected": "",
   "tokens": {
     "input": 294,
     "output": 732
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

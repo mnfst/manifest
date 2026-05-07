@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 2,
   "response": "The email reports a critical SQL injection vulnerability (CVSS 9.8) in the /api/v2/auth/login endpoint, affecting versions v3.2.0 to v3.4.1, with a recommendation to parameterize the query in auth_controller.py:142 and apply the hotfix within 24 hours. A patch is ready for review.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00042328000000000005,
   "expected": "",
   "tokens": {
     "input": 103,
     "output": 76
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

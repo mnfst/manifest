@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 30,
   "response": "Here is a **pytest** test suite that exercises the happy\u2011path, edge\u2011cases, and error conditions of `snake_to_camel`.\n\n```python\n# test_snake_to_camel.py\nimport pytest\n\n# Assuming the function lives in a module named `utils`\n# Adjust the import as needed for your project layout.\nfrom utils import snake_to_camel\n\n\n# ---------- Happy path ----------\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        (\"snake_case\", \"snakeCase\"),\n        (\"simple\", \"simple\"),                     # no underscore\n        (\"alreadyCamel\", \"alreadyCamel\"),         # no underscore, mixed case\n        (\"multiple_parts_here\", \"multiplePartsHere\"),\n        (\"leading_underscore\", \"leadingUnderscore\"),\n        (\"trailing_underscore_\", \"trailingUnderscore\"),\n        (\"__double_leading__\", \"doubleLeading\"),  # leading/trailing empties are ignored\n        (\"mixed_CASE_Example\", \"mixedCaseExample\"),  # .capitalize() normalises each part\n        (\"\", \"\"),                                 # empty string\n        (\"_\", \"\"),                                # only underscore(s)\n        (\"__\", \"\"),                               # multiple underscores only\n    ],\n)\ndef test_snake_to_camel_happy_path(input_str, expected):\n    assert snake_to_camel(input_str) == expected\n\n\n# ---------- Edge cases ----------\ndef test_snake_to_camel_preserves_numbers_and_symbols():\n    # Numbers and symbols are left untouched by .capitalize()\n    assert snake_to_camel(\"user_id_2fa\") == \"userId2fa\"\n    assert snake_to_camel(\"price_usd_$\") == \"priceUsd$\"\n\n\ndef test_snake_to_camel_unicode():\n    assert snake_to_camel(\"caf\u00e9_m\u00fcnchen\") == \"caf\u00e9M\u00fcnchen\"\n\n\n# ---------- Error cases ----------\ndef test_snake_to_camel_non_string_raises():\n    # The function expects a string; passing anything else will raise AttributeError\n    for bad_input in [None, 123, [], {}, object()]:\n        with pytest.raises(AttributeError):\n            snake_to_camel(bad_input)\n\n\ndef test_snake_to_camel_returns_str():\n    # Ensure the return type is always a string (even for weird inputs that don't raise)\n    result = snake_to_camel(\"valid_input\")\n    assert isinstance(result, str)\n```\n\n### What the suite covers\n\n| Category | What is tested |\n|----------|----------------|\n| **Happy path** | Typical snake_case strings, strings without underscores, strings with leading/trailing/multiple underscores, empty string, strings that contain mixed case (to show `.capitalize()` normalisation). |\n| **Edge cases** | Presence of numbers/symbols, Unicode characters, strings consisting only of underscores. |\n| **Error cases** | Passing non\u2011string types (which cause `AttributeError` from `split`). Also a sanity check that the function always returns",
-  "score": 0,
+  "score": 4,
   "cost": 9.765e-05,
   "expected": "",
   "tokens": {
     "input": 85,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

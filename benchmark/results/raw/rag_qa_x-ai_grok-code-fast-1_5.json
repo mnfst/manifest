@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 5,
   "response": "Arnhem, Netherlands.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005234,
   "expected": "Arnhem",
   "tokens": {
     "input": 425,
     "output": 548
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 6,
   "response": "```python\n    seen = set()\n    duplicates = set()\n    result = []\n    \n    # First pass: identify duplicates\n    for num in numbers:\n        if num in seen:\n            duplicates.add(num)\n        else:\n            seen.add(num)\n    \n    # Second pass: keep only non-duplicates\n    for num in numbers:\n        if num not in duplicates:\n            result.append(num)\n    \n    return result\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.00010318,
   "expected": "",
   "tokens": {
     "input": 117,
     "output": 88
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

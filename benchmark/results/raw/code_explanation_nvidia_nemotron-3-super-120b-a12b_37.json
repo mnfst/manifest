@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 37,
   "response": "The code implements a trie (prefix tree) where each node is a dictionary mapping characters to child nodes, and a special `'#'` key marks the end of a stored word. `insert` builds the trie by walking through each character of a word, creating missing nodes, and then marks termination; `starts_with` follows the given prefix, then depth\u2011first\u2011searches the subtree to collect and return all complete words that share that prefix.",
-  "score": 0,
+  "score": 5,
   "cost": 2.385e-05,
   "expected": "",
   "tokens": {
     "input": 173,
     "output": 92
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

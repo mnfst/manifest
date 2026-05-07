@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 14,
   "response": "This code implements Dijkstra's shortest path algorithm using a min-heap priority queue to compute the shortest path distances from a provided start node to all reachable nodes in a weighted graph represented as an adjacency list, with the requirement that all edge weights are non-negative (required for Dijkstra's correctness). It works by repeatedly popping the closest known node from the heap, skipping outdated queue entries where the stored distance is worse than the current known shortest distance for that node, then updating neighboring nodes' shortest known distances and pushing any improved path distances into the priority queue as needed.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002921,
   "expected": "",
   "tokens": {
     "input": 197,
     "output": 681
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

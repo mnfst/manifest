@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 43,
   "response": "The book that discussed the theory about low populations in the Amazon rainforest is \"Amazonia: Man and Culture in a Counterfeit Paradise\" by Archeologist Betty Meggers.",
-  "score": 0,
+  "score": 5,
   "cost": 8.976e-05,
   "expected": "Amazonia: Man and Culture in a Counterfeit Paradise",
   "tokens": {
     "input": 264,
     "output": 36
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

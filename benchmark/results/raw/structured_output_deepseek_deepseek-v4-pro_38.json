@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 38,
   "response": "{\"version\": 42, \"name\": \"AddUserPreferences\", \"created\": \"2024-03-15\", \"status\": \"applied\", \"duration_ms\": 340, \"sql\": \"ALTER TABLE users ADD COLUMN preferences JSONB DEFAULT '{}'\"}",
-  "score": 0,
+  "score": 5,
   "cost": 0.000558105,
   "expected": "",
   "tokens": {
     "input": 99,
     "output": 296
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 25,
   "response": "The company has achieved significant milestones in April, including crossing 10,000 monthly active users, closing a Series A term sheet for $8M, and hiring a VP of Sales. The fundraising process is nearing its close on May 10, and the company's current metrics include $85K in monthly recurring revenue and 11 months of runway post-raise.",
-  "score": 0,
+  "score": 5,
   "cost": 6.0599999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 108,
     "output": 74
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

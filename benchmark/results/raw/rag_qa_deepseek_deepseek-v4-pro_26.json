@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 26,
   "response": "KMJ-TV",
-  "score": 0,
+  "score": 1,
   "cost": 0.00019836000000000002,
   "expected": "KMJ-TV",
   "tokens": {
     "input": 208,
     "output": 62
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

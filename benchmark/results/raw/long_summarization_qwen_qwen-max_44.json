@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 44,
   "response": "The internet's history began in the 1960s with U.S. Department of Defense-funded research, leading to the creation of ARPANET, which sent its first message in 1969. Key milestones include the adoption of TCP/IP in 1983, the invention of the World Wide Web by Tim Berners-Lee in 1989, and the launch of the Mosaic web browser in 1993, which made the web more accessible. The dot-com boom and subsequent crash in the late 1990s and early 2000s saw the rise of companies like Amazon and Google, while the emergence of social media and mobile internet further transformed communication and connectivity. Today, the internet connects over 5 billion people and is integral to modern life.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00104832,
   "expected": "",
   "tokens": {
     "input": 336,
     "output": 168
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

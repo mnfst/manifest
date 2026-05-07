@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 18,
   "response": "My favorite book is a thought-provoking novel that explores the complexities of human nature, morality, and the consequences of one's actions. The story is set in a dystopian society where the government exercises total control over its citizens, suppressing individual freedom and creativity.\n\nThe narrative follows a young protagonist who begins to question the official ideology and eventually becomes embroiled in a rebellion against the oppressive regime. As the protagonist navigates the treacherous landscape of resistance and conformity, they grapple with the moral ambiguities of their actions and the true cost of their newfound awareness.\n\nThe writing is lyrical and evocative, with vivid descriptions of a world that is both hauntingly familiar and unsettlingly alien. The author's use of language is masterful, conveying the protagonist's emotional state and the atmosphere of the world they inhabit.\n\nThroughout the book, the author raises important questions about the nature of truth, the power of propaganda, and the human capacity for both good and evil. The novel's exploration of these themes is both timely and timeless, making it a deeply resonant and thought-provoking read.\n\nThe book has stayed with me long after I finished reading it, and its themes and imagery continue to haunt me to this day. It's a novel that challenges readers to think critically about the world around them and to consider the consequences of their own actions.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00016875,
   "expected": "",
   "tokens": {
     "input": 21,
     "output": 276
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

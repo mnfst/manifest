@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 38,
   "response": "```python\nnegatives = [x for x in lst if x < 0]\npositives = [x for x in lst if x > 0]\na = max(negatives) if negatives else None\nb = min(positives) if positives else None\nreturn (a, b)\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.00044408,
   "expected": "",
   "tokens": {
     "input": 171,
     "output": 64
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

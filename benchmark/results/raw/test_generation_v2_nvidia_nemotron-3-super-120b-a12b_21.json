@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 21,
   "response": "Here is a **pytest** test suite that exercises the `truncate` function from the happy path, through edge\u2011cases, to error conditions.\n\n```python\n# test_truncate.py\nimport pytest\n\n# Assuming the function lives in a module named `string_utils`\n# Adjust the import as needed for your project layout.\nfrom string_utils import truncate\n\n\n# --------------------------\n# Happy\u2011path / normal cases\n# --------------------------\ndef test_truncate_returns_original_when_short():\n    \"\"\"If the string is shorter than max_len, it is returned unchanged.\"\"\"\n    assert truncate(\"hello\", 10) == \"hello\"\n    assert truncate(\"hi\", 5, suffix=\"!!\") == \"hi\"\n\n\ndef test_truncate_returns_original_when_exact():\n    \"\"\"If the string length equals max_len, it is returned unchanged.\"\"\"\n    assert truncate(\"world\", 5) == \"world\"\n    assert truncate(\"abcd\", 4, suffix=\"...\") == \"abcd\"\n\n\ndef test_truncate_with_default_suffix():\n    \"\"\"Normal truncation using the default '...' suffix.\"\"\"\n    assert truncate(\"abcdefghij\", 5) == \"ab...\"\n    assert truncate(\"1234567890\", 3) == \"123\"\n\n\ndef test_truncate_with_custom_suffix():\n    \"\"\"Normal truncation with a user\u2011provided suffix.\"\"\"\n    assert truncate(\"abcdefghij\", 6, suffix=\"[\u2026]\") == \"abc[\u2026]\"\n    assert truncate(\"the quick brown fox\", 10, suffix=\" <>\") == \"the quic <>\"\n\n\n# --------------------------\n# Edge cases\n# --------------------------\ndef test_truncate_empty_string():\n    \"\"\"An empty input should always return an empty string (regardless of max_len).\"\"\"\n    assert truncate(\"\", 0) == \"\"\n    assert truncate(\"\", 5) == \"\"\n    assert truncate(\"\", 5, suffix=\"XYZ\") == \"\"\n\n\ndef test_truncate_max_len_zero():\n    \"\"\"When max_len is 0 the function still tries to slice; we verify the actual result.\"\"\"\n    # With default suffix '...' (len=3) we get s[: -3] + '...'\n    assert truncate(\"anything\", 0) == \"\" + \"...\"  # -> \"...\"\n    # With a longer suffix the slice may be non\u2011empty; we",
-  "score": 0,
+  "score": 4,
   "cost": 9.828e-05,
   "expected": "",
   "tokens": {
     "input": 92,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

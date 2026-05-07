@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 5,
   "response": "The product launch is delayed due to failed PCI compliance for payment integration, requiring either a partial launch without payments or a full delay until May 15. The team needs to decide between these options and update terms and conditions if choosing the partial launch approach.",
-  "score": 0,
+  "score": 5,
   "cost": 6.776e-05,
   "expected": "",
   "tokens": {
     "input": 104,
     "output": 51
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

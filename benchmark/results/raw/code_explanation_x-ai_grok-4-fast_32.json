@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 32,
   "response": "This code implements the Union-Find (Disjoint Set Union) data structure for managing disjoint sets of n elements, returning two functions: `find(x)` which returns the root representative of the set containing x (using path compression for efficiency) and `union(x, y)` which merges the sets containing x and y (using union by rank to minimize tree height).\n\nThe algorithm employs path compression in `find` to flatten the tree during root traversal and union by rank to attach the shorter tree to the taller one, achieving amortized O(\u03b1(n)) time complexity per operation, where \u03b1 is the inverse Ackermann function (nearly constant).",
-  "score": 0,
+  "score": 5,
   "cost": 0.000232,
   "expected": "",
   "tokens": {
     "input": 308,
     "output": 213
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 28,
   "response": "The annual disaster recovery test missed the 4\u2011hour RTO, taking 6 hours 23 minutes primarily because the database restore required 3 hours instead of the expected 1 hour due to a larger dataset. To close the gap, the SRE",
-  "score": 0,
+  "score": 4,
   "cost": 2.871e-05,
   "expected": "",
   "tokens": {
     "input": 119,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

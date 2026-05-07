@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 34,
   "response": "if n <= 1:\n    return y\nif n == 2:\n    return x\nif n % 2 == 0:\n    return y\nfor i in range(3, int(n**0.5) + 1, 2):\n    if n % i == 0:\n        return y\nreturn x",
-  "score": 0,
+  "score": 3,
   "cost": 0.0006828,
   "expected": "",
   "tokens": {
     "input": 168,
     "output": 1665
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

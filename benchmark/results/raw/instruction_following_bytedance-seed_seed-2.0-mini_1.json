@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 1,
   "response": "The Central Processing Unit (CPU) serves as the primary computational and control hub of a computer system, constantly fetching instructions from system memory, decoding them to interpret their intended operations, executing those instructions to perform arithmetic, logical, and input/output tasks, and relaying processed data back to memory or connected hardware components to drive overall system functionality.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001319,
   "expected": "",
   "tokens": {
     "input": 59,
     "output": 315
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

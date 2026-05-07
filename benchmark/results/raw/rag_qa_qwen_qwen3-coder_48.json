@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 48,
   "response": "Based on the provided context, the most commonly ascribed attributes of L in relation to P are:\n\n1. L is the set of all problems that can be solved in logarithmic space\n2. It is unknown whether L is strictly contained in P or equal to P\n3. There are many complexity classes between L and P, such as NL and NC\n\nThe context indicates that the primary attribute ascribed to L is that it represents problems solvable in logarithmic space, and the main open question is its relationship to P (whether L \u2286 P or L = P).",
-  "score": 0,
+  "score": 5,
   "cost": 0.00013001999999999998,
   "expected": "strictly contained in P or equal to P",
   "tokens": {
     "input": 123,
     "output": 117
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

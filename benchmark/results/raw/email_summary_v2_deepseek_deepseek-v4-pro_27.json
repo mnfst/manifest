@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 27,
   "response": "The sprint retrospective",
-  "score": 0,
+  "score": 1,
   "cost": 0.00039237,
   "expected": "",
   "tokens": {
     "input": 102,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

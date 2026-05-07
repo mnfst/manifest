@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 20,
   "response": "Peculiar plants produce precious sugars, processing pure photons painstakingly. Sophisticated systems, specifically structured, surround sensitive surfaces, superbly suited, supporting photosynthesis. Pure pigments, precisely positioned, perceive plentiful photons, prompting precise photochemical processes. Subsequently, plants produce plentiful sugars, providing precious sustenance, perpetuating spectacular survival. Purely phototropic, plants pursue photons, perpetually producing precious products, powering planetary processes.",
-  "score": 0,
+  "score": 5,
   "cost": 5.88e-05,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 92
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

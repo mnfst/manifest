@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 36,
   "response": "**Code review**\n\n```python\ndef calculate_discount(price, code):\n    discounts = {'SAVE10': 0.10, 'SAVE20': 0.20, 'HALF': 0.50}\n    return price * (1 - discounts[code])\n```\n\n| Category | Issue | Why it\u2019s a problem | How to fix it |\n|----------|-------|--------------------|---------------|\n| **Correctness / Robustness** | **KeyError on unknown coupon code** | If `code` is not one of the three keys, the function raises a `KeyError`. In a web\u2011service or CLI this will bubble up as an unhandled exception, exposing a stack trace to the user. | Use `dict.get()` with a sentinel value and raise a clear, domain\u2011specific exception (or return a default). Example: `discount = discounts.get(code); if discount is None: raise ValueError(f\"Invalid discount code: {code!r}\")`. |\n| **Input validation** | **No validation of `price`** | The function assumes `price` is a numeric type \u2265\u202f0. Supplying a string, `None`, or a negative number will produce a `TypeError` or nonsensical result (e.g., a negative discounted price). | Verify that `price` is a real number (int/float/Decimal) and that it is non\u2011negative. Raise `ValueError` otherwise. |\n| **Logical validation** | **Discount value not checked** | The dict currently holds only safe values (0.10, 0.20, 0.50), but if the dict is later extended or sourced from configuration, a value outside `[0, 1]` could produce a price increase or a negative price. | After retrieving the discount, assert `0 <= discount <= 1` (or raise `ValueError`). |\n| **Floating\u2011point precision** | **Using binary float for money** | Multiplying a float price by a float discount can introduce rounding errors (e.g., `0.1` is not exact). For financial calculations this can lead to off\u2011by\u2011a\u2011cent discrepancies. | Use `decimal.Decimal` for price and discount values, or at least round the result to the smallest currency unit (`round(price * (1 - discount), 2)`). |\n| **API clarity** | **Function name vs. return value** | The function is named `calculate_discount` but returns the *price after* the discount, not the discount amount itself. This can confuse callers. | Either rename to `apply_discount` (or `calculate_final_price`) and keep the current return, **or** change the implementation",
-  "score": 0,
+  "score": 4,
   "cost": 8.118e-05,
   "expected": "",
   "tokens": {
     "input": 102,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

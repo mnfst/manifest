@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 49,
   "response": "Here are three different greetings for a chatbot:\n\n**Formal:** \"Hello! Welcome to our support service. I'm here to assist you with any questions or concerns you may have. How can I help you today?\"\n\n**Casual:** \"Hey there! I'm here to help. What's on your mind?\"\n\n**Humorous:** \"Greetings human! I'm here to save you from the drudgery of searching for answers. Or at least, that's the plan. What brings you to this neck of the woods?\"",
-  "score": 0,
+  "score": 5,
   "cost": 6.855e-05,
   "expected": "",
   "tokens": {
     "input": 29,
     "output": 107
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

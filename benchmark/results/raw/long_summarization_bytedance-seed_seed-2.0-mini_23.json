@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 23,
   "response": "The EU\u2019s General Data Protection Regulation (GDPR), which took effect in May 2018, overhauled global personal data handling by applying to any company processing EU residents\u2019 data regardless of its location, with core rules including explicit pre-processing consent, data access and erasure rights, data portability, mandatory Data Protection Officer roles for large-scale data work, 72-hour data breach reporting, and fines of up to 4% of global annual revenue or 20 million euros (whichever was higher); major penalties have included a 1.2 billion euro fine against Meta in 2023, a 746 million euro penalty against Amazon, and over 200 million euros in total fines against Google.\n\nThe GDPR established data privacy as a fundamental right and set a global standard for data protection legislation, inspiring similar laws worldwide including California\u2019s CCPA, Brazil\u2019s LGPD, and India\u2019s Digital Personal Data Protection Act.\n\nDespite this far-reaching impact, the regulation faces significant criticism: it creates compliance burdens that disproportionately affect small businesses and may stifle innovation, has led to widespread user frustration from mandatory cookie consent banners, and suffers from inconsistent enforcement across EU member states.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0007143,
   "expected": "",
   "tokens": {
     "input": 363,
     "output": 1695
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

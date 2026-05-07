@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 7,
   "response": "result = 1\n    fact = 1\n    for i in range(1, n + 1):\n        fact *= i\n        result *= fact\n    return result",
-  "score": 0,
+  "score": 2,
   "cost": 1.494e-05,
   "expected": "",
   "tokens": {
     "input": 127,
     "output": 39
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

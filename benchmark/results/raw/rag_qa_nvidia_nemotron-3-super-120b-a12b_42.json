@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 42,
   "response": "Moselle",
-  "score": 0,
+  "score": 1,
   "cost": 1.9079999999999997e-05,
   "expected": "Moselle",
   "tokens": {
     "input": 209,
     "output": 3
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

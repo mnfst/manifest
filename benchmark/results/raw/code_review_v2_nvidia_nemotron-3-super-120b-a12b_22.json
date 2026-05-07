@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 22,
   "response": "**Code review \u2013\u202fwhat\u2019s wrong and how to fix it**\n\n| Issue | Why it\u2019s a problem | How to fix it (with example) |\n|-------|-------------------|------------------------------|\n| **Missing import** | `smtplib` is used but never imported \u2192 `NameError` at runtime. | Add `import smtplib` (and, if you\u2019ll build a proper MIME message, `from email.message import EmailMessage`). |\n| **No error handling** | Network failures, authentication errors, or malformed addresses will raise uncaught exceptions, crashing the caller and leaking stack traces. | Wrap the SMTP interaction in a `try/except/finally` (or use a context manager) and log or re\u2011raise a domain\u2011specific exception. |\n| **Header injection vulnerability** | The `To:` and `Subject:` lines are built with raw `f\u2011string` interpolation. If `to` or `subject` contain newline (`\\n` or `\\r`) characters, an attacker can inject additional SMTP headers (e.g., `Bcc:`, `X\u2011Header:`) or even change the message body. | \u2022 Never concatenate raw user input into header lines.<br>\u2022 Use the `email` package to construct a proper `EmailMessage` object \u2013 it handles quoting and encoding automatically.<br>\u2022 If you must build headers manually, validate/sanitize `to` and `subject` (reject newlines, carriage returns, and control characters). |\n| **Incorrect MIME formatting** | The constructed string is just a flat block of text. It lacks proper MIME headers (`Content-Type`, `Content-Transfer-Encoding`, date, etc.) and will not handle non\u2011ASCII characters, attachments, or multipart bodies correctly. | Build an `EmailMessage` (or `MIMEText`/`MIMEMultipart`) and let the library generate the correct RFC\u202f5322/MIME output. |\n| **Hard\u2011coded SMTP host & no TLS** | Assuming a local SMTP server on port\u202f25 limits deployment flexibility and sends credentials (if any) in clear text. | Accept host, port, and TLS options as parameters or read them from configuration. Use `SMTP(host, port)`, call `starttls()` (or `SMTP_SSL`) when the server advertises TLS, and optionally authenticate with `login(user, password)`. |\n| **Resource leak on error** | If an exception occurs before `smtp.quit()`, the socket stays open. | Use a `with` statement (`with",
-  "score": 0,
+  "score": 5,
   "cost": 8.262e-05,
   "expected": "",
   "tokens": {
     "input": 118,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

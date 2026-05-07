@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 5,
   "response": "Christopher Nolan's 2023 biographical drama \"Oppenheimer\" chronicles the life of J. Robert Oppenheimer, the theoretical physicist who led the development of the atomic bomb during World War II. The film boasts an impressive 180-minute runtime and features a star-studded cast including Cillian Murphy, Emily Blunt, and Robert Downey Jr., with a substantial $100 million budget that helped create its visually stunning and historically accurate portrayal of this pivotal figure in modern history. With critical acclaim reflected in its 8.3 IMDB rating and 93% Rotten Tomatoes score, the film went on to earn $952 million at the box office and ultimately won the Academy Award for Best Picture.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00015906,
   "expected": "",
   "tokens": {
     "input": 107,
     "output": 154
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

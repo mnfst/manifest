@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 23,
   "response": "Apple; Banana; Cherry; Date; Elderberry",
-  "score": 0,
+  "score": 5,
   "cost": 0.00017240000000000002,
   "expected": "",
   "tokens": {
     "input": 64,
     "output": 415
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

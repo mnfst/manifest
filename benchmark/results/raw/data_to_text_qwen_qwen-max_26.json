@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 26,
   "response": "This Pad Thai recipe, originating from Thai cuisine, is a delightful option that serves four people with each serving containing 380 calories. It boasts a balanced nutritional profile, providing 22g of protein, 45g of carbs, and 12g of fat per serving, and is considered to have a medium level of difficulty, requiring just 15 minutes of preparation and 10 minutes of cooking time.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00047112000000000006,
   "expected": "",
   "tokens": {
     "input": 101,
     "output": 88
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

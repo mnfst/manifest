@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 33,
   "response": "OPEC raised the price of oil to $5.11 in response to American aid to Israel.",
-  "score": 0,
+  "score": 3,
   "cost": 0.00037856,
   "expected": "In response to American aid to Israel",
   "tokens": {
     "input": 280,
     "output": 21
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

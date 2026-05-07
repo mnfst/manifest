@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 20,
   "response": "### Unit Tests for `zip_dicts` Function\n\n```python\nimport pytest\n\ndef test_zip_dicts_happy_path():\n    \"\"\"Test with multiple dictionaries having common and unique keys.\"\"\"\n    dict1 = {'a': 1, 'b': 2, 'c': 3}\n    dict2 = {'b': 20, 'c': 30, 'd': 40}\n    dict3 = {'c': 300, 'd': 400, 'e': 500}\n    expected = {\n        'a': [1, None, None],\n        'b': [2, 20, None],\n        'c': [3, 30, 300],\n        'd': [None, 40, 400],\n        'e': [None, None, 500]\n    }\n    assert zip_dicts(dict1, dict2, dict3) == expected\n\ndef test_zip_dicts_empty_dicts():\n    \"\"\"Test with empty dictionaries.\"\"\"\n    assert zip_dicts({}, {}) == {}\n    assert zip_dicts() == {}\n\ndef test_zip_dicts_single_dict():\n    \"\"\"Test with a single dictionary.\"\"\"\n    dict1 = {'a': 1, 'b': 2}\n    expected = {'a': [1], 'b': [2]}\n    assert zip_dicts(dict1) == expected\n\ndef test_zip_dicts_none_dict():\n    \"\"\"Test with None as a dictionary.\"\"\"\n    with pytest.raises(TypeError):\n        zip_dicts({'a': 1}, None)\n\ndef test_zip_dicts_non_dict_arg():\n    \"\"\"Test with a non-dictionary argument.\"\"\"\n    with pytest.raises(TypeError):\n        zip_dicts({'a': 1}, 'not a dict')\n\ndef test_zip_dicts_mixed_type_values():\n    \"\"\"Test with dictionaries having mixed type values.\"\"\"\n    dict1 = {'a': 'str', 'b': 2}\n    dict2 = {'a': 1.0, 'b': 'str'}\n    expected = {'a': ['str', 1.0], 'b': [2, 'str']}\n    assert zip_dicts(dict1, dict2) == expected\n```\n\n### Explanation\n\nThe provided tests cover various scenarios:\n\n1.  **Happy Path**: `test_zip_dicts_happy_path` checks the function with multiple dictionaries having common and unique keys.\n2.  **Edge Cases**:\n\n    *   `test_zip_dicts_empty_dicts` tests the function with empty dictionaries.\n    *   `test_zip_dicts_single_dict` tests the function with a single dictionary.\n3.  **Error Cases**:\n\n    *   `test_zip_dicts_none_dict` checks that the function raises a `TypeError` when `None` is passed as a dictionary.\n    *   `test_zip_dicts_non_dict_arg` verifies that the function raises a `TypeError` when a non-dictionary argument is passed.\n4.  **Additional Test**: `test_zip_dicts_mixed_type_values` ensures that the function works correctly with dictionaries containing mixed-type values.\n\nThese tests provide comprehensive coverage of the `zip_dicts` function's behavior.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00039945,
   "expected": "",
   "tokens": {
     "input": 79,
     "output": 646
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

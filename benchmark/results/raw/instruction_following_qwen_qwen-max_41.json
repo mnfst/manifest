@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 41,
   "response": "Certainly! Below is an example of a Google-style docstring for a simple sort function:\n\n```python\ndef sort_list(arr, reverse=False):\n    \"\"\"\n    Sorts a list of elements in ascending or descending order.\n\n    Args:\n        arr (list): The list of elements to be sorted.\n        reverse (bool, optional): If True, sorts the list in descending order.\n                                  Defaults to False.\n\n    Returns:\n        list: The sorted list.\n\n    Raises:\n        TypeError: If the input is not a list or if the elements in the list\n                    are not comparable.\n\n    Examples:\n        >>> sort_list([3, 1, 4, 1, 5, 9, 2, 6])\n        [1, 1, 2, 3, 4, 5, 6, 9]\n\n        >>> sort_list([3, 1, 4, 1, 5, 9, 2, 6], reverse=True)\n        [9, 6, 5, 4, 3, 2, 1, 1]\n    \"\"\"\n    if not isinstance(arr, list):\n        raise TypeError(\"Input must be a list.\")\n    \n    try:\n        return sorted(arr, reverse=reverse)\n    except TypeError as e:\n        raise TypeError(\"Elements in the list are not comparable.\") from e\n```\n\nIn this docstring:\n- The `Args` section describes the parameters of the function.\n- The `Returns` section describes the return value.\n- The `Raises` section describes the exceptions that might be raised.\n- The `Examples` section provides usage examples.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0014331200000000002,
   "expected": "",
   "tokens": {
     "input": 22,
     "output": 339
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 40,
   "response": "The internet's origins trace back to the 1960s with US Department of Defense-funded research, leading to the creation of ARPANET in 1969, which expanded to connect universities and research institutions. Key developments include the adoption of TCP/IP in 1983, the invention of the World Wide Web by Tim Berners-Lee in 1989, and the launch of the Mosaic web browser in 1993, which made the internet accessible to the general public. The dot-com boom and subsequent rise of social media and mobile internet, along with the emergence of cloud computing, have transformed the internet into a ubiquitous and essential part of modern life, connecting over 5 billion people.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00097344,
   "expected": "",
   "tokens": {
     "input": 336,
     "output": 150
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

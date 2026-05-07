@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 33,
   "response": "sides = sorted([a, b, c])\n    return sides[0]**2 + sides[1]**2 == sides[2]**2",
-  "score": 0,
+  "score": 4,
   "cost": 0.00253435,
   "expected": "",
   "tokens": {
     "input": 150,
     "output": 1912
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

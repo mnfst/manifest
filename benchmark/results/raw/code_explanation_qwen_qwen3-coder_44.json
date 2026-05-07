@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 44,
   "response": "This code finds all connected components in an undirected graph using a breadth-first search (BFS) approach. It iterates through each node in the graph, and for unvisited nodes, it performs BFS to discover all reachable nodes (forming one connected component), which are then added to the results list.",
-  "score": 0,
+  "score": 4,
   "cost": 8.272e-05,
   "expected": "",
   "tokens": {
     "input": 132,
     "output": 61
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

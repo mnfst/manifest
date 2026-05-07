@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 27,
   "response": "```python\nimport pytest\n\ndef interleave(a: list, b: list) -> list:\n    result = []\n    for x, y in zip(a, b):\n        result.extend([x, y])\n    result.extend(a[len(b):] or b[len(a):])\n    return result\n\nclass TestInterleave:\n    # Happy path tests\n    def test_equal_length_lists(self):\n        assert interleave([1, 2, 3], ['a', 'b', 'c']) == [1, 'a', 2, 'b', 3, 'c']\n    \n    def test_first_list_longer(self):\n        assert interleave([1, 2, 3, 4], ['a', 'b']) == [1, 'a', 2, 'b', 3, 4]\n    \n    def test_second_list_longer(self):\n        assert interleave([1, 2], ['a', 'b', 'c', 'd']) == [1, 'a', 2, 'b', 'c', 'd']\n    \n    def test_empty_lists(self):\n        assert interleave([], []) == []\n    \n    def test_single_element_lists(self):\n        assert interleave([1], ['a']) == [1, 'a']\n    \n    def test_mixed_data_types(self):\n        assert interleave([1, 'hello', 3.14], [True, None]) == [1, True, 'hello', None, 3.14]\n    \n    # Edge cases\n    def test_first_list_empty(self):\n        assert interleave([], [1, 2, 3]) == [1, 2, 3]\n    \n    def test_second_list_empty(self):\n        assert interleave([1, 2, 3], []) == [1, 2, 3]\n    \n    def test_both_lists_empty(self):\n        assert interleave([], []) == []\n    \n    def test_large_difference_in_length(self):\n        a = list(range(1000))\n        b = [0]\n        result = interleave(a, b)\n        assert result == [0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132,",
-  "score": 0,
+  "score": 4,
   "cost": 0.0008998,
   "expected": "",
   "tokens": {
     "input": 90,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

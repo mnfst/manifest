@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 44,
   "response": "MIT,",
-  "score": 0,
+  "score": 1,
   "cost": 3.807e-05,
   "expected": "",
   "tokens": {
     "input": 123,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

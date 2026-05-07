@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 33,
   "response": "{\n  \"username\": \"@techguru42\",\n  \"joined_year\": 2020,\n  \"followers\": \"1.2K\",\n  \"following\": 890,\n  \"posts\": 342,\n  \"verified\": true,\n  \"bio\": \"Building the future of AI\"\n}",
-  "score": 0,
+  "score": 4,
   "cost": 3.879e-05,
   "expected": "",
   "tokens": {
     "input": 122,
     "output": 309
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

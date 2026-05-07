@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 31,
   "response": "```python\nimport pytest\n\nfrom your_module import camel_to_snake  # Replace 'your_module' with the actual module name\n\n\ndef test_happy_path_mixed_case():\n    \"\"\"Test conversion of standard camelCase to snake_case.\"\"\"\n    assert camel_to_snake(\"helloWorld\") == \"hello_world\"\n    assert camel_to_snake(\"helloWorldTest\") == \"hello_world_test\"\n    assert camel_to_snake(\"XMLHttpRequest\") == \"x_m_l_h_t_t_p_request\"\n    assert camel_to_snake(\"getUserInfo\") == \"get_user_info\"\n\n\ndef test_edge_case_all_lowercase():\n    \"\"\"Test input that is already all lowercase (no changes except potential lowering, but it's already lower).\"\"\"\n    assert camel_to_snake(\"hello\") == \"hello\"\n    assert camel_to_snake(\"alllowercase\") == \"alllowercase\"\n\n\ndef test_edge_case_all_uppercase():\n    \"\"\"Test all uppercase input (converts to lowercase, no underscores).\"\"\"\n    assert camel_to_snake(\"HELLO\") == \"hello\"\n    assert camel_to_snake(\"ALLUPPERCASE\") == \"alluppercase\"\n\n\ndef test_edge_case_single_character():\n    \"\"\"Test single character inputs.\"\"\"\n    assert camel_to_snake(\"a\") == \"a\"\n    assert camel_to_snake(\"A\") == \"a\"\n\n\ndef test_edge_case_empty_string():\n    \"\"\"Test empty string input.\"\"\"\n    assert camel_to_snake(\"\") == \"\"\n\n\ndef test_edge_case_starts_with_uppercase():\n    \"\"\"Test camelCase starting with uppercase.\"\"\"\n    assert camel_to_snake(\"HelloWorld\") == \"hello_world\"\n\n\ndef test_edge_case_multiple_consecutive_uppercase():\n    \"\"\"Test consecutive uppercase letters (inserts underscore before each after lowercase).\"\"\"\n    assert camel_to_snake(\"HTTPRequest\") == \"h_t_t_p_request\"\n    assert camel_to_snake(\"HTMLParser\") == \"h_t_m_l_parser\"\n\n\ndef test_edge_case_with_numbers():\n    \"\"\"Test camelCase with numbers (numbers don't trigger underscore insertion).\"\"\"\n    assert camel_to_snake(\"hello2World\") == \"hello2_world\"\n    assert camel_to_snake(\"userId42\") == \"user_id42\"\n\n\ndef test_error_case_non_string_input():\n    \"\"\"Test non-string inputs raise TypeError.\"\"\"\n    with pytest.raises(TypeError, match=\"expected string or bytes-like object\"):\n        camel_to_snake(123)  # int\n    with pytest.raises(TypeError, match=\"expected string or bytes-like object\"):\n        camel_to_snake(None)  # NoneType\n    with pytest.raises(TypeError, match=\"expected string or bytes-like object\"):\n        camel_to_snake([1, 2, 3])  # list\n    with pytest.raises(TypeError, match=\"expected string or bytes-like object\"):\n        camel_to_snake({\"key\": \"value\"})  # dict\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.0009388,
   "expected": "",
   "tokens": {
     "input": 222,
     "output": 1118
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

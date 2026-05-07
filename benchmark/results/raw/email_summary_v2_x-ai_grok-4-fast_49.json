@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 49,
   "response": "The product launch is delayed due to the payment integration failing PCI compliance, requiring an additional two weeks, with two options: (1) launch without payments and integrate them later, or (2) postpone the full launch until May 15. Legal advises that option 1 necessitates updated Terms & Conditions, and a meeting is scheduled for tomorrow at 10am to discuss.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002478,
   "expected": "",
   "tokens": {
     "input": 247,
     "output": 248
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

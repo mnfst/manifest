@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 6,
   "response": "Server prod-web-01 in the us-east-1 region is currently running at 78% CPU utilization with 12.4\u202fGB of memory used out of 16\u202fGB and 234\u202fGB of disk space used out of 500\u202fGB. It has been up for 45 days, handling 127 concurrent connections, with a 99th\u2011percentile latency of",
-  "score": 0,
+  "score": 3,
   "cost": 3.825e-05,
   "expected": "",
   "tokens": {
     "input": 125,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

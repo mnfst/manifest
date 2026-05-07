@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 27,
   "response": "Newton's First Law.",
-  "score": 0,
+  "score": 5,
   "cost": 4.35e-05,
   "expected": "Newton's First",
   "tokens": {
     "input": 266,
     "output": 6
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

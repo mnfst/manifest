@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 18,
   "response": "To write unit tests for the `title_case` function using `pytest`, we need to cover the following scenarios:\n\n1. **Happy Path**: The function should correctly convert a string to title case.\n2. **Edge Cases**: \n   - An empty string.\n   - A string with special characters.\n   - A string with numbers.\n   - A string with all uppercase or all lowercase letters.\n3. **Error Cases**: \n   - Passing a non-string type (e.g., integer, list).\n\nHere is the `pytest` style test suite for the `title_case` function:\n\n```python\nimport pytest\n\ndef title_case(s: str) -> str:\n    return ' '.join(word.capitalize() for word in s.split())\n\ndef test_title_case_happy_path():\n    assert title_case(\"hello world\") == \"Hello World\"\n    assert title_case(\"this is a test\") == \"This Is A Test\"\n\ndef test_title_case_edge_cases():\n    # Empty string\n    assert title_case(\"\") == \"\"\n    \n    # String with special characters\n    assert title_case(\"hello, world!\") == \"Hello, World!\"\n    \n    # String with numbers\n    assert title_case(\"this is a 123 test\") == \"This Is A 123 Test\"\n    \n    # String with all uppercase\n    assert title_case(\"HELLO WORLD\") == \"Hello World\"\n    \n    # String with all lowercase\n    assert title_case(\"hello world\") == \"Hello World\"\n\ndef test_title_case_error_cases():\n    # Passing a non-string type\n    with pytest.raises(TypeError):\n        title_case(123)\n    \n    with pytest.raises(TypeError):\n        title_case([1, 2, 3])\n\n# To run the tests, you can use the following command in your terminal:\n# pytest -v test_title_case.py\n```\n\n### Explanation:\n1. **Happy Path**:\n   - `test_title_case_happy_path`: Tests the function with typical input strings to ensure it converts them to title case.\n\n2. **Edge Cases**:\n   - `test_title_case_edge_cases`: Tests the function with edge cases such as an empty string, strings with special characters, strings with numbers, and strings with all uppercase or all lowercase letters.\n\n3. **Error Cases**:\n   - `test_title_case_error_cases`: Tests the function with non-string inputs to ensure it raises a `TypeError`.\n\nTo run these tests, save the code in a file (e.g., `test_title_case.py`) and execute the following command in your terminal:\n```sh\npytest -v test_title_case.py\n```\n\nThis will run the tests and provide verbose output, showing which tests passed and which failed.",
-  "score": 0,
+  "score": 5,
   "cost": 0.002366,
   "expected": "",
   "tokens": {
     "input": 59,
     "output": 554
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

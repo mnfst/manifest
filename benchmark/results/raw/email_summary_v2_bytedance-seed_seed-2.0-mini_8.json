@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 8,
   "response": "HR has announced that the annual performance review cycle will launch on May 1 and utilize a new competency framework this year, with a mandatory training session for managers scheduled for April 30.\nThe structured timeline for the cycle requires self-reviews to be submitted by May 15, manager reviews to be completed by May 22, calibration to take place on May 28, and final review delivery on June 5.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003018,
   "expected": "",
   "tokens": {
     "input": 138,
     "output": 720
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

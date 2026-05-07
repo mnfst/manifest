@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 12,
   "response": "{\"total_duration_min\": 15.416666666666666, \"track_count\": 4, \"artists\": {\"Band X\": 2, \"Band Y\": 1, \"Band Z\": 1}, \"longest_track\": \"Song C\"}",
-  "score": 0,
+  "score": 5,
   "cost": 0.00040480000000000003,
   "expected": "",
   "tokens": {
     "input": 208,
     "output": 960
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

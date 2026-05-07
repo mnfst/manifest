@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 30,
   "response": "```python\ndef is_prime(num):\n    if num < 2:\n        return False\n    if num == 2:\n        return True\n    if num % 2 == 0:\n        return False\n    for i in range(3, int(num**0.5) + 1, 2):\n        if num % i == 0:\n            return False\n    return True\n\na, b = 0, 1\nprime_fibs = []\nwhile True:\n    current = a + b\n    if is_prime(current):\n        prime_fibs.append(current)\n        if len(prime_fibs) == n:\n            return current\n    a, b = b, current\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.0010631,
   "expected": "",
   "tokens": {
     "input": 183,
     "output": 2612
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

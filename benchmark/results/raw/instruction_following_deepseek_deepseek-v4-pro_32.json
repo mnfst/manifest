@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 32,
   "response": "Nestled down a lantern-lit alley that smells faintly of rain and roasted corn, **The Gilded Alpaca** is the kind of place you stumble upon once and then spend the next three dinner parties pretending you discovered it. The concept is audaciously specific: a Peruvian-Japanese izakaya that worships at the altar of the potato. The walls are lined with hand-painted tiles of alpacas in samurai armor, and a massive, backlit mural of Machu Picchu merges seamlessly with a woodblock wave off Kanagawa. It shouldn\u2019t work, but it absolutely does.\n\nWe started with the *Nikkei Ceviche*, a shimmering pool of leche de tigre bright with yuzu and a whisper of rocoto heat, cradling cubes of sea bass so fresh they practically flinched. The real showstopper, however, was the *Lomo Saltado Maki*: a tight roll of soy-marinated beef tenderloin, caramelized red onion, and a crispy shoestring potato core that gave each bite a deeply satisfying crunch. It was a glorious, messy fusion that tasted like a late-night food market in Lima had a baby with a Tokyo sushi counter.\n\nThe service was warm and theatrically knowledgeable\u2014our server described the *Papa a la Huanca\u00edna* as \u201ca velvet blanket",
-  "score": 0,
+  "score": 4,
   "cost": 0.000879135,
   "expected": "",
   "tokens": {
     "input": 21,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

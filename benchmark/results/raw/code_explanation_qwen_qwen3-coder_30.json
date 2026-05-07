@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 30,
   "response": "This code implements a **Bloom filter**, a space-efficient probabilistic data structure that uses multiple hash functions to test whether an element is a member of a set. When adding an item, it hashes the item with `num_hashes` different hash functions and sets the corresponding bits in a bit array to `True`; when checking membership, it verifies that all bits at the hashed positions are `True`, returning `True` if all bits are set (indicating the item might be present) or `False` if any bit is unset (definitively proving the item is not present).",
-  "score": 0,
+  "score": 5,
   "cost": 0.00013816,
   "expected": "",
   "tokens": {
     "input": 156,
     "output": 118
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

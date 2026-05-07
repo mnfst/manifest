@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 30,
   "response": "Here is a 2-sentence summary of the email:\n\nCompetitor X recently launched AI features with auto-categorization, priced at twice the cost of the company's offering, but the market response has been neutral. The product team recommends fast-tracking the company's AI roadmap to stay competitive, leveraging the company's existing advantages in API and integrations.",
-  "score": 0,
+  "score": 5,
   "cost": 5.5049999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 95,
     "output": 68
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

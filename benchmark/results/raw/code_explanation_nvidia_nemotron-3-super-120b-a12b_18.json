@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 18,
   "response": "The code implements a **trie (prefix tree)** that stores a set of strings: each `TrieNode` holds a dictionary of child nodes keyed by characters and a flag `is_end` marking the end of a word. `insert` walks through the characters of a word, creating missing child nodes as needed and finally setting `is_end` to\u202fTrue, while `search` follows the same path and returns\u202fTrue only if the final node\u2019s `is_end` flag is set. This provides O(L)",
-  "score": 0,
+  "score": 4,
   "cost": 3.4200000000000005e-05,
   "expected": "",
   "tokens": {
     "input": 180,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

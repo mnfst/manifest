@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 29,
   "response": "Istanbul",
-  "score": 0,
+  "score": 1,
   "cost": 0.000363675,
   "expected": "Istanbul",
   "tokens": {
     "input": 183,
     "output": 234
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 31,
   "response": "Here is a pytest test suite that exercises the **happy path**, **edge cases**, and **error cases** for the `camel_to_snake` function.\n\n```python\n# test_camel_to_snake.py\nimport pytest\n\n# Assuming the function lives in a module named `utils.py`\n# Adjust the import as needed for your project structure.\nfrom utils import camel_to_snake\n\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        # Happy path \u2013 typical camelCase / PascalCase strings\n        (\"camelCase\", \"camel_case\"),\n        (\"PascalCase\", \"pascal_case\"),\n        (\"camelCaseExample\", \"camel_case_example\"),\n        (\"XMLHttpRequest\", \"xml_http_request\"),\n        (\"HTMLElement\", \"html_element\"),\n        (\"parseURL\", \"parse_url\"),\n        # Mixed with numbers\n        (\"myVar2Test\", \"myvar2_test\"),\n        (\"version2Alpha3\", \"version2_alpha3\"),\n        # Already snake_case (should stay the same, just lower\u2011cased)\n        (\"snake_case\", \"snake_case\"),\n        (\"Snake_Case\", \"snake_case\"),\n        (\"_leading_underscore\", \"_leading_underscore\"),\n        (\"trailing_underscore_\", \"trailing_underscore_\"),\n        # Single characters\n        (\"a\", \"a\"),\n        (\"A\", \"a\"),\n        # Empty string\n        (\"\", \"\"),\n        # No lowercase\u2011to\u2011uppercase boundary (all uppercase or all lowercase)\n        (\"ABC\", \"abc\"),\n        (\"abc\", \"abc\"),\n        # Alternating single letters\n        (\"aBcDeF\", \"a_b_c_d_e_f\"),\n        (\"AbCdEf\", \"ab_cd_ef\"),\n    ],\n)\ndef test",
-  "score": 0,
+  "score": 4,
   "cost": 9.747e-05,
   "expected": "",
   "tokens": {
     "input": 83,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

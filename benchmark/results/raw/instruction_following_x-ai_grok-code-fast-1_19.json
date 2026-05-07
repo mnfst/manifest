@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 19,
   "response": "AI is like a super-smart sidekick: it can predict the weather, write poetry, or even debate philosophy. But remember, it's us humans who decide how to use it. Let's build a future that's bright and ethical! #AI #xAI",
-  "score": 0,
+  "score": 4,
   "cost": 0.00022960000000000002,
   "expected": "",
   "tokens": {
     "input": 216,
     "output": 233
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

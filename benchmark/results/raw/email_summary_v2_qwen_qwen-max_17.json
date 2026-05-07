@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 17,
   "response": "The team is rolling back version 4.2 due to a data corruption bug in the new sync engine that affected 23 accounts. The recovery plan involves restoring from a pre-release backup, re-running the affected transactions, notifying the impacted customers, and a hotfix branch has been created.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00035464,
   "expected": "",
   "tokens": {
     "input": 105,
     "output": 59
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

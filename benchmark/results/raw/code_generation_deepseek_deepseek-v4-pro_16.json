@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 16,
   "response": "n = len(grid)\n    # Find the position of the global minimum value 1\n    one_r = one_c = -1\n    for r in range(n):\n        for c in range(n):\n            if grid[r][c] == 1:\n                one_r, one_c = r, c\n                break\n        if one_r != -1:\n            break\n    \n    # Find the minimum neighbor of 1\n    min_neighbor = float('inf')\n    for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:\n        nr, nc = one_r + dr, one_c + dc\n        if 0 <= nr < n and 0 <= nc < n:\n            if grid[nr][nc] < min_neighbor:\n                min_neighbor = grid[nr][nc]\n    \n    # Build the alternating minimum path of length k\n    path = []\n    for step in range(k):\n        if step % 2 == 0:\n            path.append(1)\n        else:\n            path.append(min_neighbor)\n    return path",
-  "score": 0,
+  "score": 3,
   "cost": 0.017463075,
   "expected": "",
   "tokens": {
     "input": 425,
     "output": 9930
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

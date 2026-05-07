@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 9,
   "response": "Japan is a country with a population of 125 million, posting a total GDP of $4.2 trillion and an annual GDP growth rate of 1.1%, while also seeing an unemployment rate of 2.6% and an inflation rate of 3.2%. The nation additionally carries a significant debt-to-GDP ratio of 263%, boasts an average life expectancy of 84.6 years, and recorded exports totaling $756 billion.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00041690000000000005,
   "expected": "",
   "tokens": {
     "input": 153,
     "output": 1004
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

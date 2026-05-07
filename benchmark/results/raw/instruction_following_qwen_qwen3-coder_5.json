@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 5,
   "response": "The sky transforms into a canvas of warm amber and golden hues as the sun dips toward the horizon. Wisps of cloud catch fire with brilliant orange flames, while deeper purples and pinks bleed across the heavens. The daylight gradually softens, casting long shadows across the landscape below. Silhouettes of trees and buildings stand stark against the glowing expanse, as the world holds its breath in this fleeting moment between day and night. The air grows cooler, carrying the gentle promise of evening's arrival.",
-  "score": 0,
+  "score": 5,
   "cost": 9.548e-05,
   "expected": "",
   "tokens": {
     "input": 22,
     "output": 103
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

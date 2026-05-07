@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 7,
   "response": "The 2020s have ushered in a boom of space activity driven by both government programs and private companies: SpaceX is iterating its Starship launch system for deep\u2011space",
-  "score": 0,
+  "score": 4,
   "cost": 4.032e-05,
   "expected": "",
   "tokens": {
     "input": 148,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

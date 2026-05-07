@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 20,
   "response": "The function splits an iterable into two lazy iterators: one containing the elements for which `predicate` returns true, and the other containing the elements for which it returns false. It does this by duplicating the original iterator with `itertools.tee` and then applying `filter` and `filterfalse` to the two copies.",
-  "score": 0,
+  "score": 5,
   "cost": 1.899e-05,
   "expected": "",
   "tokens": {
     "input": 83,
     "output": 128
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

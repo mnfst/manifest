@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 18,
   "response": "The given code implements a **Trie data structure**, a tree-like data structure used for storing a collection of strings, allowing for efficient retrieval of strings that match a given prefix. The `insert` and `search` methods utilize the Trie data structure to store and retrieve words, respectively, by traversing the tree node by node based on the characters in the input word.",
-  "score": 0,
+  "score": 4,
   "cost": 6.975e-05,
   "expected": "",
   "tokens": {
     "input": 169,
     "output": 74
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

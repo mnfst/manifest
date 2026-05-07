@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 25,
   "response": "The provided Python code implements an **Observer pattern** using an `EventEmitter` class, allowing objects to register callback functions (`fn`) for specific events and then notify them when those events occur. The class uses a dictionary (`self._events`) to store event names as keys and lists of associated callback functions as values.",
-  "score": 0,
+  "score": 5,
   "cost": 5.7e-05,
   "expected": "",
   "tokens": {
     "input": 120,
     "output": 65
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 8,
   "response": "Not found in context.",
-  "score": 0,
+  "score": 1,
   "cost": 4.532e-05,
   "expected": "36%",
   "tokens": {
     "input": 182,
     "output": 6
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

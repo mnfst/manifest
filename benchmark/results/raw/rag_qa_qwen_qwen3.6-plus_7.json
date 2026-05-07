@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 7,
   "response": "the mass of the system.",
-  "score": 0,
+  "score": 1,
   "cost": 0.0011823500000000002,
   "expected": "mass of the system",
   "tokens": {
     "input": 170,
     "output": 867
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

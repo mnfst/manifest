@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 48,
   "response": "Romeo Montague and Juliet Capulet, two young lovers from feuding families in Verona, meet at a masquerade ball and fall instantly in love. Despite their families' hatred, they secretly marry with the help of Friar Lawrence. After Romeo kills Juliet's cousin Tybalt in a duel, he is banished. Juliet's parents, unaware of her secret marriage, arrange for her to marry Count Paris. To avoid this, Juliet takes a potion that makes her appear dead. Romeo, believing she is truly dead, kills himself at her tomb. Juliet awakens to find Romeo dead and kills herself. Their deaths ultimately reconcile the feuding families.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00012539999999999999,
   "expected": "",
   "tokens": {
     "input": 30,
     "output": 135
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

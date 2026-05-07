@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 11,
   "response": "Is this the kind of response you were expecting?  \nHow many questions would be appropriate?  \nShould they all be related, or can I jump from topic to topic?  \nAre you testing my ability to follow instructions?  \nWould you prefer open-ended or yes/no questions?  \nCould this be considered a form of conversation?  \nWhat if I just kept asking questions indefinitely?  \nIs there a point where questions become exhausting?  \nDo rhetorical questions count?  \nAm I doing this correctly?",
-  "score": 0,
+  "score": 3,
   "cost": 0.00047502000000000004,
   "expected": "",
   "tokens": {
     "input": 12,
     "output": 270
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

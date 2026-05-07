@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 38,
   "response": "Charles River",
-  "score": 0,
+  "score": 1,
   "cost": 3.0060000000000004e-05,
   "expected": "Charles River",
   "tokens": {
     "input": 271,
     "output": 63
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

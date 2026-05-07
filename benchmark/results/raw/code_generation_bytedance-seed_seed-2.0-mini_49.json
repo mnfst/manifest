@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 49,
   "response": "n = len(string)\nfor i in range(n + 1):\n    if string[i:] == string[i:][::-1]:\n        break\nreturn string + string[:i][::-1]",
-  "score": 0,
+  "score": 3,
   "cost": 0.0010128,
   "expected": "",
   "tokens": {
     "input": 248,
     "output": 2470
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

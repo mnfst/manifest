@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 6,
   "response": "```python\nseen = set()\nduplicates = set()\nresult = []\nfor num in numbers:\n    if num not in seen:\n        seen.add(num)\n        result.append(num)\n    elif num in seen and num not in duplicates:\n        duplicates.add(num)\n        result.remove(num)\nreturn result\n```",
-  "score": 0,
+  "score": 3,
   "cost": 6.584999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 187,
     "output": 63
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

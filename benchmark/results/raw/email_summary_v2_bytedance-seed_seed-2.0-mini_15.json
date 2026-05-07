@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 15,
   "response": "The legal team has approved the updated service terms, which include two revisions: adding an arbitration clause for the enterprise tier and revising data retention from 180 days to 90 days, and these changes must go live before the May 1 EU launch. The legal team will prepare the final version of these approved terms today.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00044800000000000005,
   "expected": "",
   "tokens": {
     "input": 148,
     "output": 1083
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

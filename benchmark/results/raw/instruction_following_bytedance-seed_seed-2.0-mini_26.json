@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 26,
   "response": "The water cycle, also called the hydrologic cycle, is Earth\u2019s endless, self-sustaining circulation of all its water, powered almost entirely by incoming solar radiation. Over 96% of Earth\u2019s water resides in its global oceans, so the majority of the cycle starts with evaporation: solar heat breaks the hydrogen bonds holding liquid water molecules together, turning surface water into invisible water vapor that rises into the lower atmosphere. This evaporation also occurs from smaller freshwater sources like lakes, rivers, and wet soil, plus a process called transpiration, where land plants absorb groundwater through their roots and release excess water vapor through tiny leaf pores known as stomata. Together, evaporation and transpiration are referred to as evapotranspiration, the primary way water moves from Earth\u2019s surface into the air.\n\nOnce water vapor is in the atmosphere, it cools as it rises to higher altitudes where air pressure is lower, causing the vapor to condense into tiny liquid water droplets or delicate ice crystals. These particles cling to airborne microscopic particles like dust, sea salt, or pollen, forming the building blocks of clouds. On calm, clear nights, this condensation can also occur close to the ground, forming dew on grass and other surfaces or fog that hugs valleys and low-lying areas. Over time, these droplets and crystals collide and stick together, growing larger and heavier until they can no longer stay suspended in the atmosphere.\n\nWhen the condensed particles become too heavy to remain aloft, they fall back to Earth\u2019s surface as precipitation, with the exact form determined by atmospheric temperature and air movement. Rain falls when layers of air are consistently above freezing, while snow, sleet, freezing rain, and hail form in colder or turbulent atmospheric conditions\u2014hail, for example, forms only in powerful thunderstorms where strong updrafts toss ice particles back and forth through freezing layers until they grow large enough to fall. A smaller, less common form of atmospheric water transfer is deposition, where water vapor turns directly into solid ice, such as the hoar frost that forms on windowpanes or cold outdoor objects without passing through a liquid phase.\n\nPrecipitation that lands on land follows two key paths to complete the water cycle. Surface runoff carries excess water across the ground into streams, rivers, and wetlands, which eventually flow back to the global oceans, carrying sediment and nutrients that support aquatic ecosystems along the way. The remaining portion of land precipitation seeps into the soil and porous rock layers",
-  "score": 0,
+  "score": 4,
   "cost": 0.0011324,
   "expected": "",
   "tokens": {
     "input": 60,
     "output": 2816
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

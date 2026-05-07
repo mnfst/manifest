@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 43,
   "response": "The recent open-source dependency audit identified two licensing conflicts among 234 scanned packages that are incompatible with our SaaS model. To resolve this, the team must replace the AGPL-licensed charting library with Chart.js and remove the unlicensed package prior to the next release.",
-  "score": 0,
+  "score": 5,
   "cost": 0.001518075,
   "expected": "",
   "tokens": {
     "input": 115,
     "output": 1139
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

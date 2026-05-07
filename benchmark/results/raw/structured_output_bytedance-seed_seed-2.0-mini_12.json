@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 12,
   "response": "{\"title\": \"Senior DevOps Engineer\", \"company\": \"Stripe\", \"location\": \"US\", \"remote\": true, \"salary_range\": {\"min\": 180, \"max\": 220}, \"requirements\": {\"min_years\": 5, \"skills\": [\"Kubernetes\", \"AWS\", \"Terraform\"]}, \"benefits\": [\"unlimited PTO\", \"401k match\"]}",
-  "score": 0,
+  "score": 5,
   "cost": 0.00022459999999999998,
   "expected": "",
   "tokens": {
     "input": 182,
     "output": 516
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

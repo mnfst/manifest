@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 10,
   "response": "Here's a limerick about programmer Dave:\n\nThere once was a programmer named Dave,\nWhose code was both elegant and brave,\nHe debugged through the night,\nWith variables in sight,\nAnd emerged with a solution to save.",
-  "score": 0,
+  "score": 5,
   "cost": 4.642e-05,
   "expected": "",
   "tokens": {
     "input": 19,
     "output": 48
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

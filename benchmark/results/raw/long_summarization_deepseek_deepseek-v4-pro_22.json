@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 22,
   "response": "The global food system faces severe strain from converging pressures: a projected population of 9.7 billion by 2050 demands a 60% rise in food production, while",
-  "score": 0,
+  "score": 3,
   "cost": 0.00064815,
   "expected": "",
   "tokens": {
     "input": 290,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 49,
   "response": "The Product Team announced an urgent product launch delay, as the planned payment integration failed to pass PCI compliance, and shared two possible paths forward: launching without payments (which requires updated Terms and Conditions) or pushing the full product launch to May 15. A meeting to discuss these options will be held tomorrow at 10am.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002918,
   "expected": "",
   "tokens": {
     "input": 146,
     "output": 693
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

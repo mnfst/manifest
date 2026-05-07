@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 36,
   "response": "A recent deployment caused a significant latency increase on the /api/v2/search endpoint due to a missing database index. The backend team will resolve this by deploying a GIN index on the content column during tonight's maintenance window.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000681525,
   "expected": "",
   "tokens": {
     "input": 105,
     "output": 498
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

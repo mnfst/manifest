@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 35,
   "response": "The email announces an update to the Content Moderation Policy to address AI-generated content, introducing new rules that require labeling of AI-generated images, prohibit deepfakes, and allow AI-assisted text only with disclosure. Enforcement of these rules will begin on June 1, with training materials currently being prepared by the Trust & Safety team.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00023560000000000003,
   "expected": "",
   "tokens": {
     "input": 246,
     "output": 233
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

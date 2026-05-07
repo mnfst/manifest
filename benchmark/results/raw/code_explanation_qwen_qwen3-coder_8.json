@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 8,
   "response": "This code implements a **debouncing decorator** that delays function execution by `wait` seconds and cancels any pending execution if the function is called again within that timeframe. It uses Python's `threading.Timer` to schedule the function call and maintains a reference to the timer in a closure variable, allowing it to cancel and reschedule the execution on subsequent calls.",
-  "score": 0,
+  "score": 5,
   "cost": 8.821999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 105,
     "output": 74
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

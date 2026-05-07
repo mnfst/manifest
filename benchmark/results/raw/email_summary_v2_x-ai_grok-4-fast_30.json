@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 30,
   "response": "Competitor X recently launched new AI features, including auto-categorization which our product lacks, though their pricing is twice as high as ours, resulting in a neutral market response. Our strengths lie in superior API and integrations, and the recommendation is to fast-track the AI roadmap item to maintain competitiveness.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000221,
   "expected": "",
   "tokens": {
     "input": 241,
     "output": 216
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 48,
   "response": "DataSync proposes a revenue-sharing partnership that exchanges their data sync infrastructure for your SDK integration, projecting a 60% latency reduction and $2M in additional annual revenue for both companies. Please confirm your availability for a technical discussion next week to explore this opportunity.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0014576250000000002,
   "expected": "",
   "tokens": {
     "input": 97,
     "output": 1097
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

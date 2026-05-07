@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 36,
   "response": "The /api/v2/search endpoint experienced a significant latency increase from 200ms to 800ms after Thursday's deployment due to a new full-text search query not utilizing the proper index. A GIN index on the content column will be added tonight during the maintenance window to resolve the performance regression.",
-  "score": 0,
+  "score": 5,
   "cost": 7.942e-05,
   "expected": "",
   "tokens": {
     "input": 101,
     "output": 65
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

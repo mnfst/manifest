@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 37,
   "response": "Korea bordered the northeast frontier of Kublai Khan's territory.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00015470000000000002,
   "expected": "northeast",
   "tokens": {
     "input": 263,
     "output": 321
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

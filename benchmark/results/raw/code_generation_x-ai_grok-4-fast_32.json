@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 32,
   "response": "return ' '.join(''.join(sorted(word)) for word in s.split())",
-  "score": 0,
+  "score": 4,
   "cost": 0.0009696,
   "expected": "",
   "tokens": {
     "input": 308,
     "output": 1135
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 12,
   "response": "The provided Python code implements a topological sort on a directed acyclic graph (DAG) using Depth-First Search (DFS). It recursively visits each node, ensuring all its dependencies (neighbors) are processed before adding the node to a stack, and finally returns the sorted order of nodes by reversing the stack.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00037544,
   "expected": "",
   "tokens": {
     "input": 109,
     "output": 63
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

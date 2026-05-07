@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 44,
   "response": "This function identifies all connected components in an undirected graph (represented as an adjacency list) by iterating over all nodes and initiating a Breadth-First Search (BFS) from each unvisited node. The BFS uses a queue to explore and collect reachable nodes into a component list while marking them as visited, ultimately returning a list of these components.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00034060000000000004,
   "expected": "",
   "tokens": {
     "input": 279,
     "output": 356
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

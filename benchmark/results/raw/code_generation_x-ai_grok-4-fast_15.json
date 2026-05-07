@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 15,
   "response": "```python\n    largest = 1\n    while n % 2 == 0:\n        largest = 2\n        n //= 2\n    i = 3\n    while i * i <= n:\n        while n % i == 0:\n            largest = i\n            n //= i\n        i += 2\n    if n > 1:\n        largest = n\n    return largest\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.000704,
   "expected": "",
   "tokens": {
     "input": 244,
     "output": 819
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

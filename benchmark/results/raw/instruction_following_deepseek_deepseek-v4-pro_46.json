@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 46,
   "response": "As my time here comes to a close, I want to say a heartfelt goodbye and thank you for making this such a memorable chapter. Working alongside such a talented and supportive team has been the highlight of my career, and I will truly miss our daily collaborations. I\u2019ve learned so much from each of you and will carry these lessons and fond memories into my next adventure. Please don\u2019t hesitate to stay in touch\u2014you can always reach me at [personal email] or on LinkedIn. Wishing you all continued success and hoping our paths cross again in the future.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00069948,
   "expected": "",
   "tokens": {
     "input": 16,
     "output": 398
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

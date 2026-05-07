@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 29,
   "response": "```python\n    def digit_sum(n):\n        s = str(abs(n))\n        return sum(int(c) for c in s) - (2 * int(s[0]) if n < 0 else 0)\n    return sorted(nums, key=digit_sum)\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.009364225,
   "expected": "",
   "tokens": {
     "input": 165,
     "output": 7162
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

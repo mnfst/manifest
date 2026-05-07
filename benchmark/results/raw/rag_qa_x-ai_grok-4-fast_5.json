@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 5,
   "response": "Arnhem\n\n## Explanation\n\nThe reasoning process follows the instruction to base the answer solely on the provided context. The context explicitly mentions \"the Rhine bridge at Arnhem\" as a key feature in the discussion of World War II events, particularly Operation Market Garden. This direct reference identifies Arnhem as the location for the Rhine bridge described. Other bridges, such as those at Nijmegen and Remagen, are also noted in the context but are specified separately, so they do not override the primary phrasing for \"the Rhine bridge.\" Since the question seeks the location of \"the Rhine Bridge\" and the context provides a clear match at Arnhem, this forms the basis for the response without introducing external information.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0004634,
   "expected": "Arnhem",
   "tokens": {
     "input": 377,
     "output": 485
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 14,
   "response": "During the sprint from January 15-26, Team Alpha #23 planned to complete 42 points but managed to finish 38 points, maintaining an average velocity of 36. The team successfully completed 8 stories and fixed 5 bugs, despite facing 2 blockers, and achieved a satisfaction score of 4.1 out of 5.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00042328000000000005,
   "expected": "",
   "tokens": {
     "input": 103,
     "output": 76
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

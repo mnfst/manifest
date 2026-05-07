@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 22,
   "response": "The email outlines a timeline for expanding into Japan, with key milestones from May through August including legal entity setup, localization, beta testing, and general availability. The total budget is $200K and CEO approval is required to proceed with the plan.",
-  "score": 0,
+  "score": 5,
   "cost": 6.842e-05,
   "expected": "",
   "tokens": {
     "input": 103,
     "output": 52
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

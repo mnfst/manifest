@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 26,
   "response": "```python\nimport pytest\n\nfrom your_module import safe_divide  # Replace 'your_module' with the actual module name\n\n\ndef test_happy_path_normal_division():\n    \"\"\"Test successful division with non-zero denominator.\"\"\"\n    assert safe_divide(10.0, 2.0) == 5.0\n    assert safe_divide(5.0, 1.0) == 5.0\n    assert safe_divide(-4.0, 2.0) == -2.0\n    assert safe_divide(0.0, 5.0) == 0.0\n    assert safe_divide(3.14, 2.0) == 1.57  # Pi example with floats\n\n\ndef test_happy_path_edge_values():\n    \"\"\"Test division with edge float values (large, small, negative).\"\"\"\n    # Large numbers (no overflow in float division)\n    assert safe_divide(1e10, 2.0) == 5e9\n    assert safe_divide(-1e10, 2.0) == -5e9\n    \n    # Small numbers\n    assert safe_divide(1e-10, 2.0) == 5e-11\n    assert safe_divide(0.0, 1e-10) == 0.0\n    \n    # Exact zero numerator\n    assert safe_divide(0.0, 1.0) == 0.0\n\n\ndef test_division_by_zero_default():\n    \"\"\"Test division by zero using the default return value (0.0).\"\"\"\n    assert safe_divide(10.0, 0.0) == 0.0\n    assert safe_divide(0.0, 0.0) == 0.0\n    assert safe_divide(-5.0, 0.0) == 0.0\n    assert safe_divide(3.14, 0.0) == 0.0\n\n\ndef test_division_by_zero_custom_default():\n    \"\"\"Test division by zero with a custom default value.\"\"\"\n    assert safe_divide(10.0, 0.0, default=99.0) == 99.0\n    assert safe_divide(0.0, 0.0, default=-42.0) == -42.0\n    assert safe_divide(3.14, 0.0, default=1e6) == 1e6\n\n\ndef test_no_exception_raised_on_zero_division():\n    \"\"\"Verify that ZeroDivisionError is caught and no exception is raised.\"\"\"\n    # This test ensures the function handles the error gracefully\n    result = safe_divide(10.0, 0.0)\n    assert result == 0.0  # Implicitly tests no exception by reaching this line\n\n\n# Note: The function assumes valid float inputs as per type hints.\n# No tests for invalid types (e.g., str, None) since they would violate the contract\n# and are not handled by the function (would raise TypeError outside this scope).\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0010204,
   "expected": "",
   "tokens": {
     "input": 226,
     "output": 1219
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

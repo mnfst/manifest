@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 21,
   "response": "This code implements the **pipeline pattern** (left-to-right function composition) by returning a new function that sequentially applies each provided function to an input, passing the output of one directly into the next. It enables chaining multiple transformations into a single, reusable callable.",
-  "score": 0,
+  "score": 5,
   "cost": 0.001637025,
   "expected": "",
   "tokens": {
     "input": 77,
     "output": 1240
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

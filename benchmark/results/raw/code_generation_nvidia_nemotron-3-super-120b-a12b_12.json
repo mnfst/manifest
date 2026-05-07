@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 12,
   "response": "We need to output only the function body (the code after the function signature). The function signature is:\n\ndef filter_by_substring(strings: List[str], substring: str) -> List[str]:\n\nWe need to return only the function body, i.e., the indented code that goes after the signature. No explanation, no extra text.\n\nWe need to implement filter_by_substring: return list of strings that contain substring.\n\nImplementation: return [s for s in strings if substring in s]\n\nWe need to ensure correct indentation (4 spaces). Since we are only providing the body, we need to start with indentation (like 4 spaces). Usually the function body lines are indented relative to def. So we output:\n\n    return [s for s in strings if substring in s]\n\nBut we might also need docstring? The docstring is already in the signature? Actually the docstring is part of the function body, after the signature line. The given code includes a docstring inside triple quotes after the signature. The instruction: \"Complete the following Python function. Return ONLY the function body (the code that goes after the function signature). Do not include the function signature or any explanation.\"\n\nThus we need to output everything that would be inside the function, including the docstring? The function signature line is \"def filter_by_substring(strings: List[str], substring: str) -> List[str]:\" and then the docstring is part of the function body. Usually the docstring is the first statement after the def line. So we need to include the docstring as part of the body.\n\nThus the body should be:\n\n    \"\"\" Filter an input list of strings only for ones that contain given substring\n    >>> filter_by_substring([], 'a')\n    []\n    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')\n    ['abc', 'bacd', 'array']\n    \"\"\"\n    return [s for s in strings if substring in s]\n\nWe need to ensure proper indentation: each line indented by 4 spaces (or a tab). Usually 4 spaces.\n\nThus output exactly:\n\n    \"\"\" Filter an input list of strings only for ones that contain given substring\n    >>> filter_by_substring([], 'a')\n    []\n    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')\n    ['abc', 'bacd",
-  "score": 0,
+  "score": 1,
   "cost": 5.742e-05,
   "expected": "",
   "tokens": {
     "input": 138,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

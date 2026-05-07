@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 12,
   "response": "```python\nimport pytest\nfrom your_module import chunk_list  # Replace 'your_module' with the actual module name\n\nclass TestChunkList:\n    # --- Happy Path ---\n    def test_even_chunks(self):\n        assert chunk_list([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]\n\n    def test_uneven_chunks(self):\n        assert chunk_list([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n\n    def test_size_one(self):\n        assert chunk_list([1, 2, 3], 1) == [[1], [2], [3]]\n\n    def test_size_equals_length(self):\n        assert chunk_list([1, 2, 3], 3) == [[1, 2, 3]]\n\n    def test_size_larger_than_length(self):\n        assert chunk_list([1, 2], 5) == [[1, 2]]\n\n    # --- Edge Cases ---\n    def test_empty_list(self):\n        assert chunk_list([], 3) == []\n\n    def test_empty_list_size_one(self):\n        assert chunk_list([], 1) == []\n\n    def test_single_element(self):\n        assert chunk_list([42], 1) == [[42]]\n        assert chunk_list([42], 2) == [[42]]\n\n    def test_large_size(self):\n        large_list = list(range(1000))\n        result = chunk_list(large_list, 100)\n        assert len(result) == 10\n        assert result[0] == list(range(100))\n        assert result[-1] == list(range(900, 1000))\n\n    # --- Error Cases ---\n    def test_size_zero_raises_value_error(self):\n        with pytest.raises(ValueError, match=\"size must be positive\"):\n            chunk_list([1, 2, 3], 0)\n\n    def test_negative_size_raises_value_error(self):\n        with pytest.raises(ValueError, match=\"size must be positive\"):\n            chunk_list([1, 2, 3], -1)\n\n    def test_negative_size_empty_list_raises_value_error(self):\n        with pytest.raises(ValueError, match=\"size must be positive\"):\n            chunk_list([], -5)\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0013058700000000002,
   "expected": "",
   "tokens": {
     "input": 82,
     "output": 730
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

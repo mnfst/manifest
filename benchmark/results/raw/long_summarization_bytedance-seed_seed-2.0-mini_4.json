@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 4,
   "response": "Electric vehicles have a nearly 200-year history traced to 1830s experiments, with Tesla\u2019s emergence marking a seismic disruption of the long-dominant fossil-fuel focused global automotive industry. Widespread EV adoption faces substantial barriers, including technical hurdles such as limited battery performance, slow charging times, range anxiety, strained electrical grid capacity, gaps in public charging infrastructure, and ongoing environmental debate over the mining of critical minerals like lithium and cobalt for EV batteries. Major traditional automakers including Ford, GM, and Volkswagen are transitioning their vehicle fleets to electric models to stay competitive, while China holds the top spot as both the world\u2019s largest EV market and leading global manufacturer of electric vehicles. Governments have implemented incentives to encourage EV adoption, and solid-state batteries are being developed as a promising future technology to address remaining battery and charging pain points, shaping the long-term trajectory of the electric vehicle sector.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005742000000000001,
   "expected": "",
   "tokens": {
     "input": 182,
     "output": 1390
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

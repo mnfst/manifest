@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 45,
   "response": "The `Middleware` class implements a classic \u201cmiddleware chain\u201d (like Express.js): it stores functions in `_stack`, and `execute` walks through them recursively, giving each function the shared `context` and a `next` callback (`lambda: dispatch(i+1)`) that lets the function decide whether to pass control to the next middleware in the stack. If a middleware never calls its `next`, the chain stops early.",
-  "score": 0,
+  "score": 5,
   "cost": 2.52e-05,
   "expected": "",
   "tokens": {
     "input": 118,
     "output": 162
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

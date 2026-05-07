@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 40,
   "response": "```python\nimport pytest\n\nfrom your_module import rgb_to_hex  # Replace 'your_module' with the actual module name\n\n\ndef test_happy_path():\n    \"\"\"Test valid RGB inputs within 0-255 range.\"\"\"\n    assert rgb_to_hex(0, 0, 0) == '#000000'\n    assert rgb_to_hex(255, 255, 255) == '#ffffff'\n    assert rgb_to_hex(128, 64, 32) == '#804020'\n    assert rgb_to_hex(1, 1, 1) == '#010101'\n    assert rgb_to_hex(15, 240, 128) == '#0ff080'\n\n\ndef test_edge_cases():\n    \"\"\"Test boundary values and minimal non-zero inputs.\"\"\"\n    # All zeros (minimum)\n    assert rgb_to_hex(0, 0, 0) == '#000000'\n    \n    # All maximum\n    assert rgb_to_hex(255, 255, 255) == '#ffffff'\n    \n    # Mixed boundaries\n    assert rgb_to_hex(0, 0, 255) == '#0000ff'\n    assert rgb_to_hex(255, 0, 0) == '#ff0000'\n    assert rgb_to_hex(0, 255, 0) == '#00ff00'\n    \n    # Single digit hex values\n    assert rgb_to_hex(10, 15, 16) == '#0a0f10'\n\n\ndef test_invalid_below_zero():\n    \"\"\"Test inputs below 0, which should raise ValueError.\"\"\"\n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(-1, 0, 0)\n    \n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(0, -50, 100)\n    \n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(100, 200, -1)\n\n\ndef test_invalid_above_255():\n    \"\"\"Test inputs above 255, which should raise ValueError.\"\"\"\n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(256, 0, 0)\n    \n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(0, 300, 100)\n    \n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(100, 200, 1000)\n\n\ndef test_all_invalid():\n    \"\"\"Test when all values are invalid.\"\"\"\n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(-1, 256, 300)\n    \n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(300, -50, 1000)\n\n\ndef test_non_integer_inputs():\n    \"\"\"Test non-integer inputs, which may cause TypeError in formatting (not caught by value check).\"\"\"\n    # Floats that pass value check but fail formatting\n    with pytest.raises(TypeError):\n        rgb_to_hex(1.5, 2, 3)  # Value check passes, but :02x fails on float\n    \n    with pytest.raises(TypeError):\n        rgb_to_hex(255.0, 255, 255)\n    \n    # Strings\n    with pytest.raises(TypeError):  # Value check may pass if convertible, but formatting fails\n        rgb_to_hex('0', 0, 0)\n    \n    # Mixed\n    with pytest.raises(TypeError):\n        rgb_to_hex(0, 0, '255')\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0011730000000000002,
   "expected": "",
   "tokens": {
     "input": 257,
     "output": 1402
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

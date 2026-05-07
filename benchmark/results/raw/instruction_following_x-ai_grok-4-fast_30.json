@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 30,
   "response": "Round, golden crust. Melted mozzarella cheese. Tangy tomato sauce. Spicy pepperoni slices. Fresh basil leaves. Crispy edges. Savory flavors. Hot, steamy slices.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00019520000000000003,
   "expected": "",
   "tokens": {
     "input": 168,
     "output": 202
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

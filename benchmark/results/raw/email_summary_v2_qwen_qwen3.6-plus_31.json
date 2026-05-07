@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 31,
   "response": "The Revenue team proposes a new $29/month \"Starter\" tier to address price-related churn and potentially recover $180K in annual recurring revenue. Please review the proposal and provide approval or feedback to proceed.",
-  "score": 0,
+  "score": 5,
   "cost": 0.002580175,
   "expected": "",
   "tokens": {
     "input": 123,
     "output": 1954
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

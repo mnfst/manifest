@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 8,
   "response": "Here is a **pytest** test suite that exercises the `binary_search` implementation from the happy path, through edge\u2011cases, to error conditions.\n\n```python\n# test_binary_search.py\nimport pytest\n\n# Assuming the function lives in a module named `search.py`\n# Adjust the import if your file/module has a different name.\nfrom search import binary_search\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path tests\n# ----------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"arr, target, expected\",\n    [\n        # target found at the beginning, middle and end\n        ([1, 2, 3, 4, 5], 1, 0),\n        ([1, 2, 3, 4, 5], 3, 2),\n        ([1, 2, 3, 4, 5], 5, 4),\n        # list with a single element \u2013 found\n        ([42], 42, 0),\n        # list with duplicates \u2013 any correct index is acceptable\n        ([1, 2, 2, 2, 3], 2, 1),  # could also be 2 or 3; we accept the first found\n        # negative numbers and mixed sign list\n        ([-10, -5, 0, 5, 10], -5, 1),\n        ([-10, -5, 0, 5, 10], 0, 2),\n        ([-10, -5, 0, 5, 10], 10, 4),\n    ],\n)\ndef test_binary_search_happy_path(arr, target, expected):\n    assert binary_search(arr, target) == expected\n\n\n# ----------------------------------------------------------------------\n# Not\u2011found cases (should return -1)\n# ----------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"arr, target\",\n    [\n        ([], 1),                     # empty list\n        ([1, 2, 3], 0),              # smaller than smallest\n        ([1, 2, 3], 4),              # larger than largest\n        ([1, 2, 3, 4, 5], 6),        # just outside upper bound\n        ([-5, -1, 3, 7], -10),       # far below\n        ([-5, -1, 3, 7], 12),        # far above\n        ([2, 4, 6, 8], 5),           # gap in the middle\n        ([1, 1, 1, 1], 2),           # duplicates but target absent\n    ],\n)\ndef test_binary_search_not_found(arr, target):\n    assert binary_search(arr, target) == -1\n\n\n# ----------------------------------------------------------------------\n# Edge\u2011case: single\u2011element list (both found and not found)\n# ----------------------------------------------------------------------\ndef test_binary_search_single_element():\n    assert binary_search([7], 7) == 0      # found\n    assert binary_search([7], 3) == -1     # not found\n\n\n# ----------------------------------------------------------------------\n# Edge\u2011case",
-  "score": 0,
+  "score": 4,
   "cost": 0.00010206000000000001,
   "expected": "",
   "tokens": {
     "input": 134,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

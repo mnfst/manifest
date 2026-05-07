@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 1,
   "response": "The post\u2011mortem identified a misconfigured load balancer at 2:14\u202fPM that caused 47 minutes of degraded service affecting 12\u202fK users. The team will add LB config validation to CI, update the runbook, and implement traffic\u2011distribution alerts.",
-  "score": 0,
+  "score": 5,
   "cost": 2.6729999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 119,
     "output": 178
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 22,
   "response": "{\n  \"activity\": \"run\",\n  \"distance_km\": 5.0,\n  \"duration\": \"24:30\",\n  \"avg_pace\": \"4:",
-  "score": 0,
+  "score": 2,
   "cost": 0.000924375,
   "expected": "",
   "tokens": {
     "input": 125,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

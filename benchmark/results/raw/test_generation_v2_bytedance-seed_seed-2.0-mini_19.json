@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 19,
   "response": "Here's a complete pytest-style test suite for the `clamp` function, covering happy paths, edge cases, and error scenarios:\n\n```python\nimport pytest\nimport math\n# Replace with the actual module where your clamp function is defined\nfrom my_module import clamp\n\n\n@pytest.mark.parametrize(\n    \"value, min_val, max_val, expected\",\n    [\n        # -------------------------- Happy Path Tests --------------------------\n        # Value sits exactly within the min/max range\n        (5.0, 0.0, 10.0, 5.0),\n        # Value exactly matches the minimum bound\n        (2.5, 2.5, 10.0, 2.5),\n        # Value exactly matches the maximum bound\n        (7.3, 0.0, 7.3, 7.3),\n        # Negative value in a mixed sign range\n        (-2.0, -5.0, 3.0, -2.0),\n        # Value entirely within a negative range\n        (-4.0, -10.0, -1.0, -4.0),\n        # Zero as the clamped value\n        (0.0, -5.0, 5.0, 0.0),\n        # Mix of integer and float inputs\n        (4.5, 0, 9, 4.5),\n        # Negative zero edge case\n        (-0.0, -1.0, 1.0, -0.0),\n\n        # -------------------------- Edge Case Tests --------------------------\n        # Min and max bounds are identical (all inputs clamped to this single value)\n        (100.0, 5.0, 5.0, 5.0),\n        (3.0, 5.0, 5.0, 5.0),\n        (-2.0, 5.0, 5.0, 5.0),\n        # Positive infinity clamped to the max bound\n        (float('inf'), 0.0, 100.0, 100.0),\n        # Negative infinity clamped to the min bound\n        (float('-inf'), 0.0, 100.0, 0.0),\n        # Full unbounded range: value remains unchanged\n        (1000.0, float('-inf'), float('inf'), 1000.0),\n        # Float precision edge case (0.1 + 0.2 \u2248 0.30000000000000004)\n        (0.30000000000000004, 0.3, 0.3, 0.3),\n        # Swapped min/max bounds (function clamps to the original min_val)\n        (3.0, 5.0, 2.0, 5.0),\n        (1.0, 5.0, 2.0, 5.0),\n        (6.0, 5.0, 2.0, 5.0),\n        (-10.0, 5.0, 2.0, 5.0),\n        # NaN as input value returns NaN\n        (float('nan'), 0.0, 10.0, math.nan),\n        # NaN as min bound returns NaN\n        (5.0, float('nan'), 10.0, math.nan),\n        # NaN as max bound returns NaN\n        (5.0, 0.0, float('nan'), math.nan),\n    ],\n)\ndef test_clamp_valid_cases(value, min_val, max_val, expected):\n    \"\"\"Test that clamp returns correct results for all valid input combinations.\"\"\"\n    result = clamp(value, min_val, max_val)\n    \n    # Handle NaN specially since NaN != NaN in Python\n    if math.isnan(expected):\n        assert math.isnan(result), f\"Expected NaN but got {result} for inputs: value={value}, min={min_val}, max={max_val}\"\n    else:\n        assert result == expected, f\"Expected {expected} but got {result} for inputs: value={value}, min={min_val}, max={max_val}\"\n\n\n@pytest.mark.parametrize(\n    \"value, min_val, max_val\",\n    [\n        # Non-numeric string",
-  "score": 0,
+  "score": 4,
   "cost": 0.0033353000000000002,
   "expected": "",
   "tokens": {
     "input": 109,
     "output": 8311
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

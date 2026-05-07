@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 33,
   "response": "1. The Moon is drifting away from Earth at a rate of roughly 3.8 centimeters (1.5 inches) per year\u2014about the same speed as human fingernails grow. Over vast geological timescales, this slow retreat will eventually lengthen Earth\u2019s day significantly, though that shift is billions of years in the future.\n2. The lunar far side (often incorrectly called the \"dark side\") has a much thicker crust than the near side: the far side crust averages about 40 kilometers thick, while the near side crust is only around 20 kilometers thick. This is why the near side features far more dark, flat maria (ancient solidified lava flows)\u2014the thinner crust allowed molten lunar magma to break through to the surface.\n3. Moonquakes, seismic tremors on the Moon, last drastically longer than earthquakes on Earth: many moonquakes can persist for up to an hour, even though their total seismic energy is typically weaker than most felt terrestrial quakes. This long duration happens because the Moon lacks plate tectonics and liquid water to dampen traveling seismic waves.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003436,
   "expected": "",
   "tokens": {
     "input": 68,
     "output": 842
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

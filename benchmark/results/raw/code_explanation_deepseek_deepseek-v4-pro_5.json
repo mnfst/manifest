@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 5,
   "response": "This code implements the **Singleton design pattern** by overriding `__new__` to lazily create and cache a single class instance; subsequent calls return the same cached object instead of allocating a new one.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003654,
   "expected": "",
   "tokens": {
     "input": 72,
     "output": 192
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

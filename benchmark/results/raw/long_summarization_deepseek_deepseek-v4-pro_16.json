@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 16,
   "response": "The internet originated from a 1960s U.S. defense project, with ARPANET's first message sent in 1969, and later evolved through key milestones like the 1983 adoption of TCP/IP and Tim Berners-Lee's 1989 invention of the World Wide Web. The 1993 Mosaic browser opened the web to the public, fueling the dot",
-  "score": 0,
+  "score": 4,
   "cost": 0.0006564149999999999,
   "expected": "",
   "tokens": {
     "input": 309,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

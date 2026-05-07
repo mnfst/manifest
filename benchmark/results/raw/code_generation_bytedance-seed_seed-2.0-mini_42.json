@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 42,
   "response": "if n > m:\n    return -1\nreturn bin(round((n + m) / 2))",
-  "score": 0,
+  "score": 3,
   "cost": 0.0009364000000000001,
   "expected": "",
   "tokens": {
     "input": 232,
     "output": 2283
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

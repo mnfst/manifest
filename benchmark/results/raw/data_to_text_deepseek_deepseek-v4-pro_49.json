@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 49,
   "response": "In the 2024-25 season, at age 40, LeBron James put together an All-Star campaign for the Lakers, averaging 28.4 points, 7.2 rebounds, and 8.1 assists over 71 games.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000378015,
   "expected": "",
   "tokens": {
     "input": 89,
     "output": 195
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

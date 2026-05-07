@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 32,
   "response": "The world's economy grew significantly and became much more interconnected.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00037860000000000004,
   "expected": "the world's economy",
   "tokens": {
     "input": 417,
     "output": 369
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

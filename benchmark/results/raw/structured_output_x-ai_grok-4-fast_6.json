@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 6,
   "response": "{\"type\": \"bug\", \"summary\": \"App crashes on login when using Face ID\", \"device\": \"iPhone 14\", \"os_version\": \"iOS 17.2\", \"reproducibility\": \"every time\", \"severity\": \"critical\"}",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003256,
   "expected": "",
   "tokens": {
     "input": 244,
     "output": 346
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

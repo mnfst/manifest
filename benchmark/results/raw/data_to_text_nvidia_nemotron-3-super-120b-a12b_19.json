@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 19,
   "response": "The iPhone\u202f15\u202fPro is priced at $999 and comes with a 6.1\u2011inch OLED screen driven by the A17\u202fPro chip. It includes a 48\u202fMP main camera, a 3274\u202fmAh battery, storage choices of 128\u202fGB, 256\u202fGB, 512\u202fGB, or 1\u202fTB, weighs 187\u202fg, and holds a 4.6/5 rating.",
-  "score": 0,
+  "score": 5,
   "cost": 1.854e-05,
   "expected": "",
   "tokens": {
     "input": 104,
     "output": 102
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 44,
   "response": "- [ ] Lettuce (or mixed greens)\n- [ ] Tomatoes\n- [ ] Cucumbers\n- [ ] Red onion\n- [ ] Carrots (shredded)\n- [ ] Salad dressing (e.g., vinaigrette or ranch)",
-  "score": 0,
+  "score": 5,
   "cost": 0.000183,
   "expected": "",
   "tokens": {
     "input": 167,
     "output": 187
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

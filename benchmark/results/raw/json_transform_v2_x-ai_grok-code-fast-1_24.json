@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 24,
   "response": "{\"summary\": {\"total\": 5, \"by_level\": {\"ERROR\": 3, \"WARN\": 1, \"INFO\": 1}}, \"errors\": [{\"msg\": \"timeout\", \"count\": 2, \"first_seen\": \"10:00\"}, {\"msg\": \"disk full\", \"count\": 1, \"first_seen\": \"10:05\"}]}",
-  "score": 0,
+  "score": 5,
   "cost": 0.0006176,
   "expected": "",
   "tokens": {
     "input": 388,
     "output": 675
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

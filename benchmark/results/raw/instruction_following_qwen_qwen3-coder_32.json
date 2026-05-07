@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 32,
   "response": "**The Velvet Truffle - \u2605\u2605\u2605\u2605\u2606 (4/5 stars)**\n\nNestled in the heart of downtown, The Velvet Truffle promises an \"elevated dining experience\" \u2013 and for the most part, it delivers. This intimate bistro has transformed what was once a cramped coffee shop into a surprisingly elegant space with exposed brick walls, warm Edison lighting, and just the right amount of ambient noise.\n\nThe menu reads like a love letter to modern European cuisine, though it occasionally tries to do too much. My pan-seared duck breast was cooked to perfection with a cherry-port reduction that sang, but the accompanying truffle mashed potatoes tasted more like expensive filler than the star attraction they were meant to be. \n\nService struck the perfect balance between attentive and unobtrusive. Our server knew the wine list intimately and offered excellent pairing suggestions without being pushy. The sommelier's passion for natural wines was infectious, though the markups felt a bit steep for what we received.\n\nDessert was where they truly shined \u2013 a deconstructed tiramisu that was as beautiful as it was delicious. The coffee gelato paired with espresso-soaked ladyfingers and cocoa dust provided the perfect finale to an evening that, while not flawless, left me wanting to return.\n\nThe prices lean toward the upper end of moderate, and while most dishes justify their cost, a few fall short of the premium you're paying. Still, The Velvet Truffle has found its voice in a crowded dining scene, and I'll certainly be making a reservation for their seasonal menu next month.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00028798,
   "expected": "",
   "tokens": {
     "input": 25,
     "output": 321
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

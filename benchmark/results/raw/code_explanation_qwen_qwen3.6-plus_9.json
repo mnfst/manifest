@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 9,
   "response": "This code implements a **decorator** that applies the **retry pattern with exponential backoff**, automatically re-executing a wrapped function up to `max_attempts` times when an exception occurs, with the wait time between retries doubling each iteration. If all attempts fail, it re-raises the final exception.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0008527999999999999,
   "expected": "",
   "tokens": {
     "input": 124,
     "output": 625
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 15,
   "response": "Prussia",
-  "score": 0,
+  "score": 1,
   "cost": 1.9709999999999996e-05,
   "expected": "Prussia",
   "tokens": {
     "input": 216,
     "output": 3
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

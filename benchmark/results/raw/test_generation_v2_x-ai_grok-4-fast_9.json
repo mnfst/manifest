@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 9,
   "response": "```python\nimport pytest\n\n\ndef max_subarray_sum(arr: list) -> int:\n    if not arr:\n        return 0\n    max_sum = current = arr[0]\n    for num in arr[1:]:\n        current = max(num, current + num)\n        max_sum = max(max_sum, current)\n    return max_sum\n\n\n# Happy path tests\ndef test_max_subarray_sum_all_positive():\n    assert max_subarray_sum([1, 2, 3]) == 6\n\n\ndef test_max_subarray_sum_mixed_with_max_in_middle():\n    # Example: [-2, 1, -3, 4, -1, 2, 1, -5, 4]\n    # Max subarray: [4, -1, 2, 1] sum=6\n    assert max_subarray_sum([-2, 1, -3, 4, -1, 2, 1, -5, 4]) == 6\n\n\ndef test_max_subarray_sum_single_positive():\n    assert max_subarray_sum([5]) == 5\n\n\ndef test_max_subarray_sum_all_positive_with_negatives():\n    # Max subarray: entire [1, -1, 2] sum=2\n    assert max_subarray_sum([1, -1, 2]) == 2\n\n\n# Edge cases\ndef test_max_subarray_sum_empty_list():\n    assert max_subarray_sum([]) == 0\n\n\ndef test_max_subarray_sum_single_negative():\n    assert max_subarray_sum([-1]) == -1\n\n\ndef test_max_subarray_sum_all_negative():\n    # Max is the largest single negative: -1\n    assert max_subarray_sum([-2, -3, -1]) == -1\n\n\ndef test_max_subarray_sum_all_negative_with_zero():\n    # Zero is not negative, but max should be 0\n    assert max_subarray_sum([-2, 0, -1]) == 0\n\n\ndef test_max_subarray_sum_large_numbers():\n    # Test with larger values to ensure no overflow (Python ints are arbitrary precision)\n    assert max_subarray_sum([1000000, -500000, 600000]) == 1100000\n\n\n# Error cases (assuming input validation isn't strict, but testing invalid inputs)\ndef test_max_subarray_sum_non_numeric_list():\n    # This will raise TypeError when trying to compare/add non-numbers\n    with pytest.raises(TypeError):\n        max_subarray_sum([1, \"a\", 3])\n\n\ndef test_max_subarray_sum_empty_with_none():\n    # None in list will cause TypeError\n    with pytest.raises(TypeError):\n        max_subarray_sum([1, None, 3])\n\n\ndef test_max_subarray_sum_not_list():\n    # TypeError if not iterable/list\n    with pytest.raises(TypeError):\n        max_subarray_sum(\"not a list\")\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.000813,
   "expected": "",
   "tokens": {
     "input": 249,
     "output": 954
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

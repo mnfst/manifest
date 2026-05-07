@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 17,
   "response": "Release v4.2 is being rolled back due to a data corruption bug that impacted 23 customer accounts. The team will restore data from pre-release backups, re-run affected transactions, notify impacted users, and finalize a hotfix to resolve the issue.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0006919249999999999,
   "expected": "",
   "tokens": {
     "input": 109,
     "output": 505
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

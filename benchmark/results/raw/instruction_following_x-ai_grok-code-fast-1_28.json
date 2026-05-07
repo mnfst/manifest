@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 28,
   "response": "Believe in yourself, embrace challenges, and let perseverance fuel your journey to greatness.",
-  "score": 0,
+  "score": 3,
   "cost": 0.0002344,
   "expected": "",
   "tokens": {
     "input": 220,
     "output": 238
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

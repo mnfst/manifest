@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 47,
   "response": "This function implements Dijkstra's **Shunting-yard algorithm** to convert an infix mathematical expression (provided as a list of typed tokens) into **postfix notation (Reverse Polish Notation)**, using a stack to reorder operators based on precedence and parentheses.",
-  "score": 0,
+  "score": 2,
   "cost": 0.000453705,
   "expected": "",
   "tokens": {
     "input": 203,
     "output": 210
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

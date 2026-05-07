@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 10,
   "response": "{\n  \"invoice_number\": \"2024-0847\",\n  \"vendor\": \"Acme Corp\",\n  \"date\": \"Jan 15 2024\",\n  \"items\": [\n    {\"name\": \"Widget A\", \"quantity\": 3, \"unit_price\": 29.99},\n    {\"name\": \"Widget B\", \"quantity\": 1, \"unit_price\": 149.99}\n  ],\n  \"subtotal\": 239.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0009322050000000001,
   "expected": "",
   "tokens": {
     "input": 143,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 1,
   "response": "The given code implements a binary search algorithm to find the index of a target element in a sorted array. It repeatedly divides the search interval in half until the target is found or the interval is empty, returning the index of the target if found, or -1 otherwise.",
-  "score": 0,
+  "score": 5,
   "cost": 4.98e-05,
   "expected": "",
   "tokens": {
     "input": 112,
     "output": 55
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

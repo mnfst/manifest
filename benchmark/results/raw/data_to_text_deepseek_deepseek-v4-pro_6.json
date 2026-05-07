@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 6,
   "response": "Server prod-web-01, located in the us-east-1 region, has been running for 45 days with current resource usage at 78% CPU, 12.4 out of 16 GB of memory, and 234 out of 500 GB of disk. It is handling 127 connections, with a P99 latency of 145 milliseconds and averaging just 3",
-  "score": 0,
+  "score": 4,
   "cost": 0.00056463,
   "expected": "",
   "tokens": {
     "input": 98,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

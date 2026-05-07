@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 4,
   "response": "{\n  \"error_code\": 503,\n  \"message\": \"Service Unavailable\",\n  \"timestamp\": \"2024-01-15T14:30:00Z\",\n  \"endpoint\": \"/api/v2/users\",\n  \"server\": \"prod-west-2\",\n  \"retry_after_seconds\": 30\n}",
-  "score": 0,
+  "score": 5,
   "cost": 3.447e-05,
   "expected": "",
   "tokens": {
     "input": 124,
     "output": 259
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

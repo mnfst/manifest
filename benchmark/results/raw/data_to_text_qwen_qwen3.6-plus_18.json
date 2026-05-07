@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 18,
   "response": "Founded in 1252, Stockholm is a city in Sweden that spans 188 km\u00b2 and is home to 1.6 million residents who primarily speak Swedish. The city maintains a strong economy with a GDP per capita of $62,000 and experiences a temperate climate, averaging -3\u00b0C in January and 18\u00b0C in July.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00208845,
   "expected": "",
   "tokens": {
     "input": 106,
     "output": 1580
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

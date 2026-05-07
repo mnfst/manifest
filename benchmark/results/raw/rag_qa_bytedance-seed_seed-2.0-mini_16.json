@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 16,
   "response": "Approximately fifty percent more land in Allston than in Cambridge.",
-  "score": 0,
+  "score": 4,
   "cost": 9.25e-05,
   "expected": "approximately fifty percent",
   "tokens": {
     "input": 261,
     "output": 166
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

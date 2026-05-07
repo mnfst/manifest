@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 39,
   "response": "The provided code snippet is a classic example of a **SQL injection vulnerability**, but there are additional concerns around robustness and maintainability. Below is a detailed breakdown.\n\n---\n\n### 1. Critical Security Issue: SQL Injection\n\n**What\u2019s wrong**  \nThe user-supplied value `request.params.id` is concatenated directly into the SQL string. An attacker can craft a malicious `id` to alter the query\u2019s logic, extract sensitive data, or even destroy the database.\n\n**Example attacks**  \n- `id = \"1 OR 1=1\"` \u2192 `SELECT * FROM users WHERE id = 1 OR 1=1 LIMIT 1` \u2013 returns the first user regardless of ID.  \n- `id = \"1; DROP TABLE users; --\"` \u2192 executes a destructive statement (if the database driver allows multiple statements).  \n- `id = \"1 UNION SELECT username, password FROM users\"` \u2013 exfiltrates credentials.\n\n**How to fix**  \nUse **parameterized queries** (prepared statements) so the input is treated as data, never as executable code. The exact syntax depends on the language/database library.\n\n**Example (Node.js with `pg` or `mysql2`):**\n```javascript\n// Correct: parameterized query\nconst result = await db.query(\n  'SELECT * FROM users WHERE id = $1 LIMIT 1',\n  [request.params.id]\n);\n```\n\n**Example (Python with `psycopg2` or `sqlite3`):**\n```python\ncursor.execute(\"SELECT * FROM users WHERE id = %s LIMIT 1\", (request.params.id,))\n```\n\n**Example (Java JDBC PreparedStatement):**\n```java\nPreparedStatement stmt = conn.prepareStatement(\"SELECT * FROM users WHERE id = ? LIMIT 1\");\nstmt.setString(1, request.getParameter(\"id\"));\nResultSet rs = stmt.executeQuery();",
-  "score": 0,
+  "score": 5,
   "cost": 0.00141462,
   "expected": "",
   "tokens": {
     "input": 52,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

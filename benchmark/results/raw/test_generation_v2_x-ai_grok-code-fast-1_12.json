@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 12,
   "response": "```python\nimport pytest\nfrom your_module import chunk_list  # Replace 'your_module' with the actual module name\n\nclass TestChunkList:\n    def test_happy_path_even_chunks(self):\n        \"\"\"Test chunking a list into even-sized chunks.\"\"\"\n        assert chunk_list([1, 2, 3, 4], 2) == [[1, 2], [3, 4]]\n\n    def test_happy_path_uneven_chunks(self):\n        \"\"\"Test chunking a list where the last chunk is smaller.\"\"\"\n        assert chunk_list([1, 2, 3, 4, 5], 3) == [[1, 2, 3], [4, 5]]\n\n    def test_edge_case_empty_list(self):\n        \"\"\"Test chunking an empty list.\"\"\"\n        assert chunk_list([], 2) == []\n\n    def test_edge_case_size_one(self):\n        \"\"\"Test chunking with size=1.\"\"\"\n        assert chunk_list([1, 2, 3], 1) == [[1], [2], [3]]\n\n    def test_edge_case_size_larger_than_list(self):\n        \"\"\"Test chunking when size is larger than the list length.\"\"\"\n        assert chunk_list([1, 2], 5) == [[1, 2]]\n\n    def test_edge_case_size_equal_to_list_length(self):\n        \"\"\"Test chunking when size equals the list length.\"\"\"\n        assert chunk_list([1, 2, 3], 3) == [[1, 2, 3]]\n\n    def test_edge_case_mixed_types(self):\n        \"\"\"Test chunking a list with mixed types.\"\"\"\n        assert chunk_list([1, 'a', 2.5, True], 2) == [[1, 'a'], [2.5, True]]\n\n    def test_error_case_size_zero(self):\n        \"\"\"Test that ValueError is raised for size=0.\"\"\"\n        with pytest.raises(ValueError, match=\"size must be positive\"):\n            chunk_list([1, 2, 3], 0)\n\n    def test_error_case_negative_size(self):\n        \"\"\"Test that ValueError is raised for negative size.\"\"\"\n        with pytest.raises(ValueError, match=\"size must be positive\"):\n            chunk_list([1, 2, 3], -1)\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0007278,
   "expected": "",
   "tokens": {
     "input": 283,
     "output": 839
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

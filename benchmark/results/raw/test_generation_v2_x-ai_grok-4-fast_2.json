@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 2,
   "response": "```python\nimport pytest\n\nfrom your_module import factorial  # Replace 'your_module' with the actual module name where factorial is defined\n\n\ndef test_factorial_zero():\n    \"\"\"Happy path: Test factorial of 0.\"\"\"\n    assert factorial(0) == 1\n\n\ndef test_factorial_one():\n    \"\"\"Happy path: Test factorial of 1.\"\"\"\n    assert factorial(1) == 1\n\n\ndef test_factorial_five():\n    \"\"\"Happy path: Test factorial of a small positive integer (5).\"\"\"\n    assert factorial(5) == 120\n\n\ndef test_factorial_ten():\n    \"\"\"Happy path: Test factorial of a larger positive integer (10).\"\"\"\n    assert factorial(10) == 3628800\n\n\ndef test_factorial_negative():\n    \"\"\"Error case: Test negative input raises ValueError.\"\"\"\n    with pytest.raises(ValueError, match='n must be non-negative'):\n        factorial(-1)\n\n\ndef test_factorial_negative_zero():\n    \"\"\"Edge case: Test boundary negative value close to zero (-0 is same as 0, but explicit).\"\"\"\n    assert factorial(-0) == 1  # -0 is treated as 0 in Python\n\n\n# Note: Additional edge cases like very large n (e.g., 1000) would exceed Python's recursion limit,\n# so they are not included here to avoid test failures. If iterative version is used, add them.\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.0005664,
   "expected": "",
   "tokens": {
     "input": 232,
     "output": 650
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

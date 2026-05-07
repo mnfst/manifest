@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 33,
   "response": "1. The Moon is Earth's only natural satellite and is about 239,000 miles (384,000 kilometers) away from our planet on average.\n\n2. The Moon's surface is covered with craters, mountains, and large flat areas called maria (which means \"seas\" in Latin), though these areas contain no water.\n\n3. The Moon takes approximately 27.3 days to complete one orbit around Earth, which is why we see the same side of the Moon from Earth at all times due to tidal locking.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00011,
   "expected": "",
   "tokens": {
     "input": 28,
     "output": 118
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

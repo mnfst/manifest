@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 6,
   "response": "Acme Corp, a significant client with an annual recurring revenue of $450K, is considering leaving due to API latency issues and a lack of support response over the past five days. A dedicated engineer has been assigned, and an executive sponsor is needed for a call with the client this week.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00036504,
   "expected": "",
   "tokens": {
     "input": 107,
     "output": 61
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

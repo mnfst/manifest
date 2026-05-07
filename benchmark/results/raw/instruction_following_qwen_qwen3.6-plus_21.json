@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 21,
   "response": "1. Turn left.\n2. Turn right.\n3. Turn left.\n4. Turn right.\n5. Turn left.\n6. Turn right.\n7. Turn left.",
-  "score": 0,
+  "score": 5,
   "cost": 0.003638375,
   "expected": "",
   "tokens": {
     "input": 27,
     "output": 2792
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

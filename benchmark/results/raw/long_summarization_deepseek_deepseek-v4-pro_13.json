@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 13,
   "response": "Quantum computing harnesses qubits that can exist in superposition and become entangled, enabling exponential speedups for select problems over classical machines. In 2019, Google claimed quantum supremacy by performing a task in 200 seconds that would have taken a classical supercomputer 10,000 years. Today\u2019s devices hold only 100\u20131000 qubits, and scaling to millions is hindered by fragility, extreme cooling needs, and high error rates requiring massive error correction. Despite these obstacles, the technology promises breakthroughs in drug discovery, materials science, cryptography, and optimization, with active corporate experimentation in finance and logistics.",
-  "score": 0,
+  "score": 5,
   "cost": 0.001067925,
   "expected": "",
   "tokens": {
     "input": 267,
     "output": 547
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 47,
   "response": "Taylor Swift's album *Midnights*, released in October\u202f2022, is a pop/synth\u2011pop record that contains 13 tracks and runs for a total of 44\u202fminutes. It sold 1.58\u202fmillion copies in its first week, garnered 3.4\u202fbillion streams on Spotify, and went on to win the Grammy for Album of the Year.",
-  "score": 0,
+  "score": 5,
   "cost": 1.6289999999999998e-05,
   "expected": "",
   "tokens": {
     "input": 97,
     "output": 84
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

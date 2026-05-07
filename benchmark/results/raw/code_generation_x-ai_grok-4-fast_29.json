@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 29,
   "response": "def digit_sum(n):\n        return sum(int(d) for d in str(abs(n)))\n\n    indexed = [(digit_sum(num), i, num) for i, num in enumerate(nums)]\n    indexed.sort()\n    return [num for _, _, num in indexed]",
-  "score": 0,
+  "score": 3,
   "cost": 0.011140000000000002,
   "expected": "",
   "tokens": {
     "input": 296,
     "output": 13851
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

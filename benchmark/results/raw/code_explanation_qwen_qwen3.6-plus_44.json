@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 44,
   "response": "This function finds all connected components in a graph by iterating through each node and launching a Breadth-First Search (BFS) from every unvisited node to collect all mutually reachable vertices. It maintains a global visited set to ensure each node is processed exactly once, returning a list of lists where each inner list represents a distinct connected component.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0020972250000000003,
   "expected": "",
   "tokens": {
     "input": 149,
     "output": 1576
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

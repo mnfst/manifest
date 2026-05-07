@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 17,
   "response": "**Code under review**\n\n```js\napp.use(cors({ origin: '*' }));\napp.use(express.json({ limit: '50mb' }));\n```\n\nBelow is a systematic walk\u2011through of what is **wrong or risky**, why it matters, and concrete ways to **fix or improve** each line.\n\n---\n\n## 1. CORS middleware \u2013 `app.use(cors({ origin: '*' }))`\n\n| Issue | Why it\u2019s a problem | Recommended fix |\n|-------|-------------------|-----------------|\n| **Wildcard origin (`*`) is overly permissive** | Any website can make AJAX/fetch calls to your API. If your endpoints rely on cookies, HTTP\u2011only auth tokens, or any form of session state, a malicious site can trigger actions on behalf of a logged\u2011in user (CSRF\u2011style). Even for a \u201cpublic\u201d API, leaking internal endpoints or debug routes to the internet expands the attack surface. | \u2022 **Restrict to a list of trusted origins** (e.g., your front\u2011end domains). <br>\u2022 Use an environment variable so the list can differ per\u2011environment (dev, staging, prod). <br>\u2022 If you truly need a public, unauthenticated API, keep the wildcard **only** for those specific routes, not globally. |\n| **Missing `credentials` flag** | When `origin: '*'` is used together with `credentials: true` (the default is `false`), the CORS spec forbids the combination \u2013 browsers will block the request. If you later add `credentials: true",
-  "score": 0,
+  "score": 5,
   "cost": 7.821e-05,
   "expected": "",
   "tokens": {
     "input": 69,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

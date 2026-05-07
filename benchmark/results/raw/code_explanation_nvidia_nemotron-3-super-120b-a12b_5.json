@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 5,
   "response": "The code implements the classic **Singleton** design pattern by overriding `__new__` so that the first call creates an instance and stores it in the class variable `_instance`; subsequent calls return that same stored instance, ensuring only one object of the class is ever instantiated.",
-  "score": 0,
+  "score": 5,
   "cost": 1.1789999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 76,
     "output": 55
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

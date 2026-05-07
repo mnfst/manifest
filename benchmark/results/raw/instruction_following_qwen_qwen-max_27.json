@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 27,
   "response": "Sure, here are the categories with the requested examples:\n\n### Mammals\n1. Elephant\n2. Dolphin\n3. Kangaroo\n\n### Birds\n1. Eagle\n2. Penguin\n3. Parrot\n\n### Fish\n1. Clownfish\n2. Salmon\n3. Tuna",
-  "score": 0,
+  "score": 5,
   "cost": 0.00028184000000000005,
   "expected": "",
   "tokens": {
     "input": 27,
     "output": 61
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

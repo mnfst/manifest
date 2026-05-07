@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 12,
   "response": "Sure! An API, or Application Programming Interface, is like a middleman that allows different software or apps to talk to each other and share information. Think of it as a waiter in a restaurant. You, as the customer, tell the waiter (API) what you want (like getting data or performing a task). The waiter then goes to the kitchen (the software or app) and brings back your order (the data or the result of the task). This way, you don't need to go into the kitchen yourself, and the kitchen doesn't need to deal with all the customers directly. It makes things easier and more organized.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005564,
   "expected": "",
   "tokens": {
     "input": 23,
     "output": 128
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

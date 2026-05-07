@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 16,
   "response": "### Unit Tests for GCD Function\n\nThe following tests cover the happy path, edge cases, and error cases for the `gcd` function.\n\n```python\nimport pytest\nfrom your_module import gcd  # Replace 'your_module' with the actual module name\n\ndef test_gcd_happy_path():\n    \"\"\"Test GCD with positive numbers.\"\"\"\n    assert gcd(48, 18) == 6\n    assert gcd(54, 24) == 6\n\ndef test_gcd_edge_cases():\n    \"\"\"Test GCD with edge cases.\"\"\"\n    assert gcd(0, 5) == 5\n    assert gcd(5, 0) == 5\n    assert gcd(0, 0) == 0\n    assert gcd(1, 1) == 1\n\ndef test_gcd_negative_numbers():\n    \"\"\"Test GCD with negative numbers.\"\"\"\n    assert gcd(-48, 18) == 6\n    assert gcd(48, -18) == 6\n    assert gcd(-48, -18) == 6\n\ndef test_gcd_type_error():\n    \"\"\"Test GCD with non-integer inputs.\"\"\"\n    with pytest.raises(TypeError):\n        gcd(48, '18')\n    with pytest.raises(TypeError):\n        gcd('48', 18)\n\ndef test_gcd_input_validation():\n    \"\"\"Test GCD with non-numeric inputs.\"\"\"\n    with pytest.raises(TypeError):\n        gcd(48, None)\n    with pytest.raises(TypeError):\n        gcd(None, 18)\n```\n\n### Notes\n\n*   The `gcd` function is assumed to be in a module named `your_module`. You should replace this with the actual module name.\n*   The tests cover various cases, including:\n    *   Happy path: Positive numbers with a common divisor.\n    *   Edge cases: Zero, one, and identical inputs.\n    *   Negative numbers: GCD is defined for negative numbers, and the function should return a positive result.\n    *   Error cases: Non-integer and non-numeric inputs, which should raise a `TypeError`.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002631,
   "expected": "",
   "tokens": {
     "input": 70,
     "output": 421
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

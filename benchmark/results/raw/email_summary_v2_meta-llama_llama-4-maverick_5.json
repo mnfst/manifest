@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 5,
   "response": "The product launch is facing a delay due to payment integration not passing PCI compliance, and the team is considering two options: launching without payments or delaying the full launch to May 15. A meeting is scheduled for tomorrow at 10am to discuss the options, with the team noting that launching without payments will require updated Terms and Conditions.",
-  "score": 0,
+  "score": 5,
   "cost": 5.6699999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 102,
     "output": 69
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

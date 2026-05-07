@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 42,
   "response": "This code implements a bounded asynchronous first-in-first-out (FIFO) queue following the producer-consumer synchronization pattern for asyncio. It uses a deque for the queued items, plus two separate deques of asyncio futures to track producers blocked on a full queue and consumers blocked on an empty queue, suspending and resuming tasks as the queue's available space or item count changes.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0007311,
   "expected": "",
   "tokens": {
     "input": 279,
     "output": 1758
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

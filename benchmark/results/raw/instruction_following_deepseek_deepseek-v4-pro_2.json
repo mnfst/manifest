@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 2,
   "response": "Lines of code unfold,  \nSilent logic speaks in light,  \nBugs hide in the dark.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000474585,
   "expected": "",
   "tokens": {
     "input": 11,
     "output": 270
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

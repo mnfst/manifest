@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 32,
   "response": "Originating in the 1960s as a US Department of Defense initiative, the internet evolved from the 1969 ARPANET demonstration and the 1983 adoption of TCP/IP protocols into a foundational global network. The 1989 invention of the World Wide Web and the 1993 launch of the Mosaic browser democratized access, triggering the dot-com era, the mid-2000s social media boom, and the mobile revolution following the 2007 iPhone release. Today, the internet connects over 5 billion people worldwide, serving as an indispensable infrastructure that fundamentally drives modern commerce, communication, and daily life.",
-  "score": 0,
+  "score": 5,
   "cost": 0.002491125,
   "expected": "",
   "tokens": {
     "input": 341,
     "output": 1831
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

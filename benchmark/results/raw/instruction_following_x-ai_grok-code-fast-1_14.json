@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 14,
   "response": "Stay hydrated on the go with our premium insulated water bottle, crafted from BPA-free stainless steel to keep your drinks cold for up to 24 hours or hot for 12. Featuring a leak-proof lid and ergonomic design, it's perfect for workouts, hikes, or daily commutes. Eco-friendly and durable, this bottle is your reliable companion for an active lifestyle.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002364,
   "expected": "",
   "tokens": {
     "input": 218,
     "output": 241
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

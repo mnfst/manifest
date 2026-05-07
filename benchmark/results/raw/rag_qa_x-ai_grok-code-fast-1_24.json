@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 24,
   "response": "The Amazon basin encompasses 7,000,000 square kilometers, of which 5,500,000 square kilometers are covered by the rainforest. Therefore, 5,500,000 square kilometers of rainforest are covered in the basin.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00033620000000000004,
   "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
   "tokens": {
     "input": 485,
     "output": 299
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

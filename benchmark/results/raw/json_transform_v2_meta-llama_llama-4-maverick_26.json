@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 26,
   "response": "{\"sensors\": [{\"id\": \"temp_1\", \"avg\": 22.42, \"min\": 22.0, \"max\": 23.5, \"anomalies\": 1}, {\"id\": \"temp_2\", \"avg\": 20.56, \"min\": 21.0, \"max\": 28.5, \"anomalies\": 1}]}",
-  "score": 0,
+  "score": 4,
   "cost": 8.4e-05,
   "expected": "",
   "tokens": {
     "input": 220,
     "output": 85
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 12,
   "response": "The given code performs a **topological sort** on a directed acyclic graph (DAG) using a **Depth-First Search (DFS)** algorithm, ordering the nodes such that for every edge (u, v), node u comes before node v in the resulting list. The algorithm achieves this by traversing the graph using DFS and appending nodes to a stack as they are finished being visited, then reversing the stack to obtain the sorted order.",
-  "score": 0,
+  "score": 5,
   "cost": 6.914999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 109,
     "output": 88
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

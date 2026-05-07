@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 43,
   "response": "The European Union's General Data Protection Regulation (GDPR), effective since May 2018, mandates strict data protection and privacy rules for any organization handling EU residents' data, regardless of location. It includes key rights such as data access, erasure, and portability, and requires companies to report data breaches within 72 hours, with potential fines up to 4% of global annual revenue or 20 million euros. Major tech companies like Meta, Amazon, and Google have faced significant fines, and GDPR has inspired similar laws globally, though critics argue it imposes heavy compliance burdens and stifles innovation.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0008527999999999999,
   "expected": "",
   "tokens": {
     "input": 320,
     "output": 125
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

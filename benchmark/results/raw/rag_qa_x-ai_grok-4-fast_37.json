@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 37,
   "response": "Northeast border",
-  "score": 0,
+  "score": 2,
   "cost": 0.0003082,
   "expected": "northeast",
   "tokens": {
     "input": 361,
     "output": 295
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

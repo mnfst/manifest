@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 41,
   "response": "### Unit Tests for `hex_to_rgb` Function\n\n```python\nimport pytest\n\ndef test_hex_to_rgb_happy_path():\n    \"\"\"Test hex_to_rgb with valid hex color codes.\"\"\"\n    assert hex_to_rgb('#ffffff') == (255, 255, 255)\n    assert hex_to_rgb('ffffff') == (255, 255, 255)\n    assert hex_to_rgb('#123456') == (18, 52, 86)\n\ndef test_hex_to_rgb_edge_cases():\n    \"\"\"Test hex_to_rgb with edge cases.\"\"\"\n    assert hex_to_rgb('#000000') == (0, 0, 0)\n    assert hex_to_rgb('#ffffff') == (255, 255, 255)\n\ndef test_hex_to_rgb_invalid_length():\n    \"\"\"Test hex_to_rgb with invalid hex color code length.\"\"\"\n    with pytest.raises(ValueError):\n        hex_to_rgb('#12345')\n    with pytest.raises(ValueError):\n        hex_to_rgb('#1234567')\n\ndef test_hex_to_rgb_invalid_characters():\n    \"\"\"Test hex_to_rgb with invalid characters in hex color code.\"\"\"\n    with pytest.raises(ValueError):\n        hex_to_rgb('#1234gg')\n    with pytest.raises(ValueError):\n        hex_to_rgb('#123g56')\n\ndef test_hex_to_rgb_non_string_input():\n    \"\"\"Test hex_to_rgb with non-string input.\"\"\"\n    with pytest.raises(TypeError):\n        hex_to_rgb(123456)\n    with pytest.raises(TypeError):\n        hex_to_rgb(None)\n\ndef test_hex_to_rgb_empty_string():\n    \"\"\"Test hex_to_rgb with an empty string.\"\"\"\n    with pytest.raises(ValueError):\n        hex_to_rgb('')\n```\n\n### Explanation\n\nThe tests cover the following cases:\n\n*   Happy path: Valid hex color codes with and without the `#` prefix.\n*   Edge cases: Black (`#000000`) and white (`#ffffff`) color codes.\n*   Error cases:\n    *   Invalid length: Hex color codes with less or more than 6 characters.\n    *   Invalid characters: Hex color codes containing non-hexadecimal characters.\n    *   Non-string input: Passing non-string values to the function.\n    *   Empty string: Passing an empty string to the function.\n\nThese tests ensure that the `hex_to_rgb` function behaves as expected under various input conditions.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002931,
   "expected": "",
   "tokens": {
     "input": 82,
     "output": 468
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

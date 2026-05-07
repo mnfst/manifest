@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 25,
   "response": "```python\n    # Remove all spaces from the input string\n    paren_string = paren_string.replace(' ', '')\n    \n    result = []\n    current_group = \"\"\n    balance = 0\n    \n    for char in paren_string:\n        if char == '(':\n            current_group += char\n            balance += 1\n        elif char == ')':\n            current_group += char\n            balance -= 1\n            \n            # When balance reaches 0, we have a complete group\n            if balance == 0:\n                result.append(current_group)\n                current_group = \"\"\n    \n    return result\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.00013816,
   "expected": "",
   "tokens": {
     "input": 148,
     "output": 120
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

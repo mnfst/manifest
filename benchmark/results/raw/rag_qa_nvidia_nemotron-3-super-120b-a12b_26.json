@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 26,
   "response": "KMJ-TV (now known as NBC affiliate KSEE)",
-  "score": 0,
+  "score": 2,
   "cost": 2.871e-05,
   "expected": "KMJ-TV",
   "tokens": {
     "input": 219,
     "output": 100
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

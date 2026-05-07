@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 13,
   "response": "The Customer Success team reported strong Q1 performance with improved NPS (62), high support satisfaction (4.3/5), and reduced churn (1.2%), while identifying top customer requests including SSO, custom dashboards, and API rate limit increases. The team has three enterprise expansions worth $800K in the pipeline and will likely prioritize addressing the top feature requests to maintain customer satisfaction.",
-  "score": 0,
+  "score": 5,
   "cost": 9.988000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 122,
     "output": 83
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

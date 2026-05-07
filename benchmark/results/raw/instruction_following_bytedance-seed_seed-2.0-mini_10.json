@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 10,
   "response": "# Limerick for Dave the Programmer\nThere once was a coder named Dave,\nWho cranked out code late in his cave.\nHe hunted that off-by-one bug,\nAnd drowned it in his chipped coffee mug!\nNow his code ships, and finally he\u2019s saved!\n\nThis follows the classic AABBA limerick rhyme scheme, leans into relatable programmer tropes (the infamous off-by-one error, late-night debugging, chipped office mugs) and wraps with a satisfying, career-specific punchline.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0016423000000000002,
   "expected": "",
   "tokens": {
     "input": 59,
     "output": 4091
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

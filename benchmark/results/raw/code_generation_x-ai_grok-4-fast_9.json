@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 9,
   "response": "total = 0\n    for num in lst:\n        if isinstance(num, int) and num > 0 and num % 2 == 1:\n            total += num ** 2\n    return total",
-  "score": 0,
+  "score": 3,
   "cost": 0.00048520000000000003,
   "expected": "",
   "tokens": {
     "input": 318,
     "output": 527
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

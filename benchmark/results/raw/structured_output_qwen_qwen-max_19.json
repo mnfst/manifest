@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 19,
   "response": "```json\n{\n  \"type\": \"A\",\n  \"hostname\": \"api.example.com\",\n  \"value\": \"203.0.113.50\",\n  \"ttl_seconds\": 3600,\n  \"created\": \"2024-01-01\",\n  \"modified\": \"2024-06-15\"\n}\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.00047008000000000005,
   "expected": "",
   "tokens": {
     "input": 120,
     "output": 83
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

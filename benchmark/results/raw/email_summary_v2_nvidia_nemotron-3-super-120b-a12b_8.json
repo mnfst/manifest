@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 8,
   "response": "We need to summarize in exactly 2 sentences, capturing main point and any action items. The email: Annual Performance Review Cycle starts May 1. Timeline: self-reviews due May 15, manager reviews May 22, calibration May 28, delivery June 5. Using new competency framework this year. Training session for managers on April 30. So main point: performance review cycle details and new competency framework. Action items: self-reviews due May 15, manager reviews May 22, calibration May 28, delivery June 5, training for managers April 30. Need exactly 2 sentences. Could combine: \"The annual performance review cycle begins May\u202f1, with self\u2011reviews due May\u202f15, manager reviews May\u202f22, calibration May\u202f28, and final delivery June\u202f5, using the new competency framework this year.\" Second sentence: \"Managers must attend a training session on",
-  "score": 0,
+  "score": 4,
   "cost": 2.745e-05,
   "expected": "",
   "tokens": {
     "input": 105,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 6,
   "response": "Remote work shifted from a niche benefit\u2014under\u202f5\u202f% of workers were fully remote before COVID\u201119\u2014to a mass experiment in 2020, enabled by tools like Zoom, Slack, and cloud infrastructure. Research, including Stanford\u2019s Nick\u202fBloom studies, shows mixed productivity outcomes, prompting a return\u2011to\u2011office push and the rise of hybrid arrangements that are reshaping commercial real estate, encouraging geographic arbitrage, and influencing company culture and junior\u2011staff development, while digital\u2011nomad visas formalize cross\u2011border remote work.",
-  "score": 0,
+  "score": 5,
   "cost": 2.34e-05,
   "expected": "",
   "tokens": {
     "input": 146,
     "output": 114
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 41,
   "response": "The given code calculates the CRC-32 checksum of the input `data` using a bitwise algorithm that iteratively processes each byte and applies a polynomial division. The algorithm uses a lookup-free approach, directly manipulating the CRC register using bitwise operations to implement the CRC-32 polynomial (`0xEDB88320`).",
-  "score": 0,
+  "score": 5,
   "cost": 5.37e-05,
   "expected": "",
   "tokens": {
     "input": 110,
     "output": 62
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

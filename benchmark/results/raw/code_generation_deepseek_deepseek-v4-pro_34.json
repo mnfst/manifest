@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 34,
   "response": "if n < 2:\n        return y\n    for i in range(2, int(n ** 0.5) + 1):\n        if n %",
-  "score": 0,
+  "score": 2,
   "cost": 0.000920025,
   "expected": "",
   "tokens": {
     "input": 115,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

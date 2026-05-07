@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 42,
   "response": "This `AsyncQueue` class implements a producer-consumer pattern for an asynchronous, optionally bounded queue using Python's `asyncio` and `collections.deque`, where the `put` method blocks (via a future) if the queue exceeds `maxsize` and wakes a waiting consumer upon adding an item, while the `get` method blocks if the queue is empty and returns the next item; however, it lacks symmetric logic in `get` to wake waiting producers after dequeuing, causing potential deadlocks in bounded scenarios.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0008234000000000001,
   "expected": "",
   "tokens": {
     "input": 361,
     "output": 939
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

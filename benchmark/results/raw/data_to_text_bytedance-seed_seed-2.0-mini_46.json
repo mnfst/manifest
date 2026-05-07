@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 46,
   "response": "Team Alpha #23 held their sprint running from January 15 to 26, with an initial planned target of 42 story points worth of work. By the end of the cycle, the team completed 38 total story points, finished 8 user stories, fixed 5 bugs, and navigated 2 total blockers, while boasting an average sprint velocity of 36 and earning a post-sprint team satisfaction rating of 4.1 out of 5.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0007262000000000001,
   "expected": "",
   "tokens": {
     "input": 146,
     "output": 1779
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

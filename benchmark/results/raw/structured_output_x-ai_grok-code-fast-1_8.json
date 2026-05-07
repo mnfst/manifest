@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 8,
   "response": "{\n  \"unit\": \"Apartment 4B\",\n  \"street\": \"123 Main Street\",\n  \"city\": \"San Francisco\",\n  \"state\": \"CA\",\n  \"zip\": \"94105\",\n  \"country\": \"United States\"\n}",
-  "score": 0,
+  "score": 5,
   "cost": 0.00026680000000000003,
   "expected": "",
   "tokens": {
     "input": 278,
     "output": 264
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

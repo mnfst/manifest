@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 21,
   "response": "# Directional Guide from Willowbrook Community Park to Downtown Public Library\n(All navigation uses only left and right turns; works for pedestrians and private vehicles)\n1.  Start at the park\u2019s northern main parking lot exit: walk or drive directly across the park\u2019s short access drive to connect to East 1st Street at the stop sign bordering the park.\n2.  Make a **LEFT turn** onto East 1st Street and travel 2 full blocks, passing the community raised garden bed on your right and the corner coffee shop on your left.\n3.  At the next stoplight/intersection with Main Street, make a **RIGHT turn** onto South Main Street.\n4.  Drive or walk exactly one block down South Main Street, then take the first available **LEFT turn** onto Library Lane.\n5.  Proceed 75 feet straight down Library Lane, and the Downtown Public Library\u2019s front entrance will be on your right.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0008213000000000001,
   "expected": "",
   "tokens": {
     "input": 65,
     "output": 2037
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 35,
   "response": "The EU's GDPR, enacted in May 2018, imposes strict data privacy rules on any organization handling EU residents' data, including mandatory breach reporting within 72 hours and fines up to 4% of global revenue or \u20ac20 million\u2014leading to penalties like a \u20ac1.2 billion fine for Meta. Key provisions grant users rights to access, erasure, and portability, and require explicit",
-  "score": 0,
+  "score": 4,
   "cost": 0.000654675,
   "expected": "",
   "tokens": {
     "input": 305,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

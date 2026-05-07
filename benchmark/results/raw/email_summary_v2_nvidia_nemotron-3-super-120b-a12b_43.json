@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 43,
   "response": "We need to produce exactly 2 sentences summarizing email, capturing main point and any action items. The email: Completed OSS dependency audit. Results: 234 packages scanned, 2 issues found. (1) charting library uses AGPL (viral license, incompatible with our SaaS model). Alternative: switch to Apache-licensed Chart.js. (2) One package has no license. Recommend removing both before next release. - Legal/Engineering\n\nSo main point: audit completed, found two licensing issues. Action items: replace AGPL charting library with Apache-licensed Chart.js, and remove the unlicensed package before next release.\n\nWe need exactly 2 sentences. Could be: \"An OSS dependency audit of 234 packages identified two licensing issues: a charting library under AGPL (incompatible with our SaaS model) and one package lacking a license.\" Then second sentence: \"The team recommends switching the",
-  "score": 0,
+  "score": 4,
   "cost": 2.907e-05,
   "expected": "",
   "tokens": {
     "input": 123,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 41,
   "response": "result = l[:]\n    thirds = sorted([l[i] for i in range(len(l)) if i % 3 == 0])\n    j = 0\n    for i in range(len(result)):\n        if i % 3 == 0:\n            result[i] = thirds[j]\n            j += 1\n    return result",
-  "score": 0,
+  "score": 3,
   "cost": 0.000542,
   "expected": "",
   "tokens": {
     "input": 334,
     "output": 594
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

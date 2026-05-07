@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 13,
   "response": "The provided code has a critical security vulnerability and a potential runtime error. Below is a detailed breakdown of the issues and how to fix them.\n\n---\n\n### 1. Cross\u2011Site Scripting (XSS) Vulnerability (Critical)\n**What\u2019s wrong:**  \n`innerHTML` parses and executes any HTML or JavaScript contained in the string. If `userInput` comes from an untrusted source (URL parameter, form field, API response, etc.), an attacker can inject malicious scripts.\n\n**Example attack:**\n```js\nrenderHTML('<img src=x onerror=\"alert(document.cookie)\">');\n```\nThis would steal cookies or perform actions in the user\u2019s context.\n\n**Fix:**  \n- **If you only need to display plain text**, replace `innerHTML` with `textContent` (or `innerText`). This automatically escapes HTML entities and prevents script execution.\n- **",
-  "score": 0,
+  "score": 5,
   "cost": 0.0014150550000000001,
   "expected": "",
   "tokens": {
     "input": 53,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

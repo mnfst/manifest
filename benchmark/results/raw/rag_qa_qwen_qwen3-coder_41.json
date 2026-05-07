@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 41,
   "response": "Based on the provided context, Governor Duquesne sent additional French forces under Claude-Pierre Pecaudy de Contrec\u0153ur to relieve Saint-Pierre. When these forces arrived at the fort on April 16, Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754.\n\nAnswer: 500 men.",
-  "score": 0,
+  "score": 2,
   "cost": 0.0001122,
   "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
   "tokens": {
     "input": 198,
     "output": 78
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

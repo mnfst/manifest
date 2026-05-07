@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 0,
   "response": "{\"full_name\": \"Jane Doe\", \"contact\": {\"email\": \"jane.doe@email.com\", \"phone\": \"+1-555-0123\"}, \"metadata\": {\"age\": 32}}",
-  "score": 0,
+  "score": 5,
   "cost": 0.000671775,
   "expected": "",
   "tokens": {
     "input": 119,
     "output": 487
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

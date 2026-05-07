@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 21,
   "response": "From the park, turn right. At the next intersection, turn left. Continue straight until you reach the next intersection, then turn right. The library will be on your left.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00017575999999999998,
   "expected": "",
   "tokens": {
     "input": 25,
     "output": 36
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

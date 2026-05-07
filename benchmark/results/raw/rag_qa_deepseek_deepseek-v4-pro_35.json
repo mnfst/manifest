@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 35,
   "response": "They clap their lobes to expel a jet of water that drives them backwards quickly.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00030928499999999996,
   "expected": "by clapping their lobes",
   "tokens": {
     "input": 267,
     "output": 111
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

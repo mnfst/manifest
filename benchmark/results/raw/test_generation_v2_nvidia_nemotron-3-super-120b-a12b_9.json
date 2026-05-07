@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 9,
   "response": "Here is a **pytest** test suite that exercises the `max_subarray_sum` function from all angles \u2013 normal usage, boundary/edge conditions, and error\u2011handling scenarios.\n\n```python\n# test_max_subarray_sum.py\nimport pytest\n\n# Adjust the import to match where the function lives.\n# For example, if the function is in `max_subarray.py`:\nfrom max_subarray import max_subarray_sum\n\n\n# --------------------------\n# Happy\u2011path / normal cases\n# --------------------------\ndef test_empty_list():\n    \"\"\"An empty input should return 0.\"\"\"\n    assert max_subarray_sum([]) == 0\n\n\ndef test_single_element():\n    \"\"\"A list with one element returns that element.\"\"\"\n    assert max_subarray_sum([5]) == 5\n    assert max_subarray_sum([-3]) == -3\n\n\ndef test_all_positive():\n    \"\"\"When all numbers are positive the whole array is the max sub\u2011array.\"\"\"\n    assert max_subarray_sum([1, 2, 3, 4]) == 10\n    assert max_subarray_sum([0, 0, 0]) == 0\n\n\ndef test_all_negative():\n    \"\"\"With all negatives the largest (least negative) element is the answer.\"\"\"\n    assert max_subarray_sum([-2, -3, -1, -4]) == -1\n    assert max_subarray_sum([-7, -5, -6]) == -5\n\n\ndef test_mixed_numbers():\n    \"\"\"Typical mixed case \u2013 the classic Kadane example.\"\"\"\n    arr = [-2, 1, -3, 4, -1, 2, 1, -5, 4]\n    assert max_subarray_sum(arr) == 6  # sub\u2011array [4, -1, 2, 1]\n\n\ndef test_with_zero_and_negatives():\n    \"\"\"Zero can be part of the optimal sub\u2011array.\"\"\"\n    assert max_subarray_sum([0, -1, 2, 3, -2, 0, 4]) == 7  # [2,3,-2,0,4]\n\n\ndef test_large_values():\n    \"\"\"Ensure the function works with large integers (no overflow concerns in Python).\"\"\"\n    big = 10**12\n    assert max_subarray_sum([big, -big, big, big]) == 2 * big  # [big, big]\n\n\n# --------------------------\n# Edge / boundary cases\n# --------------------------\ndef test_list_with_only_zeros():\n    \"\"\"All zeros should yield 0.\"\"\"\n    assert max_subarray_sum([0, 0, 0, 0]) == 0\n\n\ndef test_alternating_signs():\n    \"\"\"Alternating positive/negative numbers.\"\"\"\n    assert max_subarray_sum([5, -2, 5, -2, 5]) == 11  # whole array\n\n\ndef test_single_large_negative_then_positives():\n    \"\"\"A large negative at the start should be dropped.\"\"\"\n    assert max_subarray_sum([-100, 1, 2, 3, 4]) == 1",
-  "score": 0,
+  "score": 4,
   "cost": 9.981000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 109,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

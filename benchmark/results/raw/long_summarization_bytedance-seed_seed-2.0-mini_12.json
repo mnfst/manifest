@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 12,
   "response": "The modern internet traces its roots to 1960s U.S. Department of Defense-funded computer networking research, which spawned ARPANET, the precursor to today\u2019s online system; ARPANET\u2019s first public message was sent between UCLA and Stanford Research Institute in 1969, slowly expanded to connect academic and research institutions through the 1970s, and gained its foundational technical framework with the 1983 shift to TCP/IP protocols.\nIn 1989, CERN researcher Tim Berners-Lee invented the World Wide Web, introducing core tools HTML, URLs, and HTTP, while the 1993 launch of the first widely available web browser, Mosaic, made the web accessible to ordinary users; this was followed by the late-1990s dot-com boom, which brought massive investment to internet startups before the 2001 market crash, leaving survivors like Amazon and Google to become some of the world\u2019s most valuable companies.\nKey later milestones included the mid-2000s rise of social media platforms such as Facebook, Twitter, and YouTube, Amazon Web Services\u2019 2006 launch that cemented cloud computing as a major industry force, and the 2007 debut of the iPhone, which spurred the global spread of mobile internet.\nToday, the global internet connects over 5 billion people and underpins nearly every facet of modern daily life",
-  "score": 0,
+  "score": 5,
   "cost": 0.000986,
   "expected": "",
   "tokens": {
     "input": 380,
     "output": 2370
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

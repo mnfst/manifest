@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 29,
   "response": "{\n  \"services\": [\n    {\n      \"name\": \"database\",\n      \"host\": \"db.prod.internal\",\n      \"port\": 5432\n    },\n    {\n      \"name\": \"cache\",\n      \"host\": \"redis.prod.internal\",\n      \"port\": 6379\n    }\n  ],\n  \"app_settings\": {\n    \"debug\": false,\n    \"log_level\": \"warn\",\n    \"workers\": 4\n  }\n}",
-  "score": 0,
+  "score": 5,
   "cost": 0.00011968,
   "expected": "",
   "tokens": {
     "input": 148,
     "output": 99
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

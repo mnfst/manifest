@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 10,
   "response": "The Saxon Garden.",
-  "score": 0,
+  "score": 1,
   "cost": 0.00036520000000000004,
   "expected": "The Saxon Garden",
   "tokens": {
     "input": 610,
     "output": 304
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

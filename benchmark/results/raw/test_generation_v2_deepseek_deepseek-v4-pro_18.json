@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 18,
   "response": "```python\nimport pytest\n\nfrom your_module import title_case  # Replace with actual module name\n\n\nclass TestTitleCaseHappyPath:\n    \"\"\"Tests for typical, expected usage.\"\"\"\n\n    def test_simple_sentence(self):\n        assert title_case(\"hello world\") == \"Hello World\"\n\n    def test_mixed_case_words(self):\n        assert title_case(\"hELLO wORLD\") == \"Hello World\"\n\n    def test_single_word(self):\n        assert title_case(\"python\") == \"Python\"\n\n    def test_already_title_cased(self):\n        assert title_case(\"Hello World\") == \"Hello World\"\n\n    def test_with_punctuation(self):\n        # capitalize treats punctuation as part of the word; first letter is capitalized.\n        assert title_case(\"hello, world!\") == \"Hello, World!\"\n\n    def test_with_numbers(self):\n        assert title_case(\"123 testing\") == \"123 Testing\"\n\n    def test_with_apostrophe(self):\n        assert title_case(\"it's a test\") == \"It'S A Test\"  # Note: 's' becomes 'S' due to capitalize()\n\n\nclass TestTitleCaseEdgeCases:\n    \"\"\"Tests for boundary and unusual inputs.\"\"\"\n\n    def test_empty_string(self):\n        assert title_case(\"\") == \"\"\n\n    def test_only_spaces(self):\n        assert title_case(\"   \") == \"\"\n\n    def test_leading_and_trailing_spaces(self):\n        assert title_case(\"  hello world  \") == \"Hello World\"\n\n    def test_multiple_spaces_between_words(self):\n        assert title_case(\"hello   world\") == \"Hello World\"\n\n    def test_tabs_and_newlines(self):\n        assert title_case(\"\\thello\\nworld\") == \"Hello World\"\n\n    def test_mixed_whitespace(self):\n        assert title_case(\" \\t hello \\n world \\t \") == \"Hello World\"\n\n    def test_single_character(self):\n        assert title_case(\"a\") == \"A\"\n\n    def test_non_english_characters(self):\n        assert title_case(\"\u00fcber cool\") == \"\u00dcber Cool\"\n\n\nclass TestTitleCaseErrorCases:\n    \"\"\"Tests that verify proper error handling for invalid inputs.\"\"\"\n\n    def test_none_input(self):\n        with pytest.raises(AttributeError):\n            title_case(None)\n\n    def test_integer_input(self):\n        with pytest.raises(AttributeError):\n            title_case(123)\n\n    def test_list_input(self):\n        with pytest.raises(AttributeError):\n            title_case([\"hello\", \"world\"])\n\n    def test_bytes_input(self):\n        with pytest.raises(TypeError):\n            title_case(b\"hello world\")\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.001571655,
   "expected": "",
   "tokens": {
     "input": 57,
     "output": 889
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 0,
   "response": "This code calculates the nth Fibonacci number using a recursive algorithm that directly implements the Fibonacci sequence definition, with a time complexity of O(2^n) due to repeated computations. The function uses a top-down approach, breaking down the problem into smaller sub-problems until it reaches the base cases (n <= 1).",
-  "score": 0,
+  "score": 5,
   "cost": 5.8349999999999995e-05,
   "expected": "",
   "tokens": {
     "input": 133,
     "output": 64
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

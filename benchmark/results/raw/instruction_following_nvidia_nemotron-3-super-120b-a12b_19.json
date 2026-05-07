@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 19,
   "response": "We need to produce a tweet about AI, under 280 characters. No extra constraints. Just a tweet. Let's craft something concise, maybe with hashtags. Ensure less than 280 characters. Let's count. Example: \"AI is reshaping how we work, create, and connect \u2014 from generative art to smarter diagnostics. The future\u2019s here, and it\u2019s learning alongside us. #AI #Innovation\". Count characters.\n\nLet's count: \"AI is reshaping how we work, create, and connect \u2014 from generative art to smarter diagnostics. The future\u2019s here, and it\u2019s learning alongside us. #AI #Innovation\"\n\nCount characters including spaces. Let's count manually.\n\nString: \nA I (2) then space? Actually \"AI is\": characters: A(1) I(2) space(3) i(4) s(5) => \"AI is\" =5? Wait let's just count full.\n\nI'll copy and count using mental.\n\n\"AI is reshaping how we work, create, and connect \u2014 from generative art to smarter diagnostics. The future\u2019s here, and it\u2019s learning alongside us. #AI #Innovation\"\n\nLet's count:\n\nI'll number each character.\n\n1 A\n2 I\n3 space\n4 i\n5 s\n6 space\n7 r\n8 e\n9 s\n10 h\n11 a\n12 p\n13 i\n14 n\n15 g\n16 space\n17 h\n18 o\n19 w\n20 space\n21 w\n22 e\n23 space\n24 w\n25 o\n26 r\n27 k\n28 ,\n29 space\n30 c\n31 r\n32 e\n33 a\n34 t\n35 e\n36 ,\n37 space\n38 a\n39 n\n40 d\n41 space\n42 c\n43 o\n44 n\n45 n\n46 e\n47 c\n48 t\n49 \u2014 (em dash counts as one char)\n50 space\n51 f\n52 r\n53 o\n54 m\n55 space\n56 g\n57 e\n58 n\n59 e\n60 r",
-  "score": 0,
+  "score": 1,
   "cost": 4.77e-05,
   "expected": "",
   "tokens": {
     "input": 30,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

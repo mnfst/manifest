@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 10,
   "response": "This function implements the Sieve of Eratosthenes algorithm to find all prime numbers up to a given integer n. It initializes a boolean array marking all numbers as potentially prime (except 0 and 1), then iteratively eliminates multiples of each prime starting from 2 up to the square root of n, marking them as composite to efficiently produce a list of primes.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002966,
   "expected": "",
   "tokens": {
     "input": 283,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

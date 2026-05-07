@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 48,
   "response": "In Shakespeare's tragedy, Romeo Montague and Juliet Capulet fall deeply in love despite their families' bitter feud. They marry secretly with the help of Friar Laurence, but violence erupts when Juliet's cousin Tybalt kills Romeo's friend Mercutio, prompting Romeo to slay Tybalt and face banishment. Desperate, Juliet fakes her death with a potion, but a miscommunication leads Romeo to believe she's truly dead, causing him to poison himself at her tomb. Awakening to find him gone, Juliet stabs herself, leading the grieving families to reconcile. (78 words)",
-  "score": 0,
+  "score": 5,
   "cost": 0.00030620000000000007,
   "expected": "",
   "tokens": {
     "input": 223,
     "output": 327
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

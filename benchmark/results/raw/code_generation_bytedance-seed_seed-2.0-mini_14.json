@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 14,
   "response": "```python\nif n <= 0:\n    raise ValueError(\"n must be a positive integer\")\na, b = 1, 1\nfor _ in range(2, n):\n    a, b = b, a + b\nreturn b\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.0009288,
   "expected": "",
   "tokens": {
     "input": 136,
     "output": 2288
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

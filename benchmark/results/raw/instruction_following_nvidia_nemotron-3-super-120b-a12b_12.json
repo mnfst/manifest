@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 12,
   "response": "Think of it like this:  \nYou're at a restaurant, and you want to order food. You don\u2019t go into the kitchen yourself to grab ingredients or cook\u2014you\u2019d get in the way, and it\u2019s messy. Instead, you tell the waiter what you\u2019d like (like \"",
-  "score": 0,
+  "score": 4,
   "cost": 4.779e-05,
   "expected": "",
   "tokens": {
     "input": 31,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 6,
   "response": "The ocean whispers softly.",
-  "score": 0,
+  "score": 1,
   "cost": 9.27e-06,
   "expected": "",
   "tokens": {
     "input": 26,
     "output": 77
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

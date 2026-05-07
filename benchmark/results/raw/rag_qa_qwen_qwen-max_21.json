@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 21,
   "response": "The context states that oxygen gas is poisonous to the anaerobic bacteria that cause gas gangrene. The specific pathogen is not named, but it is described as anaerobic bacteria.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00037752,
   "expected": "anaerobic bacteria",
   "tokens": {
     "input": 211,
     "output": 38
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

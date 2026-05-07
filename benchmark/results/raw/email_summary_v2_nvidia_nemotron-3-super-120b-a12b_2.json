@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 2,
   "response": "We need to produce exactly 2 sentences summarizing email, capturing main point and any action items. The email: Critical SQL injection in /api/v2/auth/login (CVSS 9.8). Affects v3.2.0-v3.4.1. Fix: parameterize query in auth_controller.py:142. Patch ready for review. Recommend hotfix within 24h. - David\n\nSo summary: There's a critical SQL injection vulnerability affecting versions 3.2.0 to 3.4.1, with a fix ready (parameterize query in auth_controller.py line 142) and a recommendation to apply a hotfix within 24 hours. That's two sentences.\n\nMake sure exactly 2 sentences. No extra punctuation that could be considered sentence? We'll produce two sentences ending with periods.\n\nSentence 1: A critical SQL injection vulnerability (CVSS 9.8) in the /api/v",
-  "score": 0,
+  "score": 3,
   "cost": 2.8170000000000003e-05,
   "expected": "",
   "tokens": {
     "input": 113,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

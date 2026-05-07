@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 30,
   "response": "This code implements a Bloom Filter, a probabilistic data structure for efficient set membership queries using a fixed-size bit array and multiple hash functions to minimize space while allowing false positives (but no false negatives). It adds items by setting bits at indices computed from num_hashes simple hash values (derived by appending hash indices to the item string and taking modulo the array size), and checks membership by verifying if all those bits are set to true.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000351,
   "expected": "",
   "tokens": {
     "input": 307,
     "output": 362
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

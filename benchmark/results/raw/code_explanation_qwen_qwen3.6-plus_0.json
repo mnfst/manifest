@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 0,
   "response": "This function calculates the nth Fibonacci number using a naive recursive algorithm that directly implements the mathematical recurrence relation. It repeatedly branches into overlapping subproblems until reaching base cases, resulting in exponential time complexity due to extensive redundant calculations.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0013266500000000002,
   "expected": "",
   "tokens": {
     "input": 70,
     "output": 1003
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

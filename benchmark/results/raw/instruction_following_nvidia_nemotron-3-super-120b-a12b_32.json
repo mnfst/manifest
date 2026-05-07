@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 32,
   "response": "## Sakura & Sol: Where Lima Meets Kyoto in a Hidden Alley\n\nTucked beneath a flickering lantern in a rain-slicked backstreet of the city\u2019s arts district, Sakura & Sol doesn\u2019t announce itself\u2014it *whispers*. You almost miss the narrow, unmarked door beside the vintage vinyl shop, but step inside, and the world shifts. The air hums with quiet conversation, the scent of toasted sesame and citrusy *aj\u00ed amarillo* weaving through the warm, wood-paneled space. Minimalist Japanese aesthetics meet vibrant Peruvian textiles: indigo-dyed noren curtains",
-  "score": 0,
+  "score": 4,
   "cost": 4.7969999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 33,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

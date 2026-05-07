@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 40,
   "response": "Here are 5 capital cities, each from a unique continent:\n1.  **Tokyo, Japan** \u2013 Capital of Japan, located in Asia\n2.  **Berlin, Germany** \u2013 Capital of Germany, situated in Europe\n3.  **Mexico City, Mexico** \u2013 Federal capital of Mexico, part of North America\n4.  **Bras\u00edlia, Brazil** \u2013 National capital of Brazil, in South America\n5.  **Nairobi, Kenya** \u2013 Capital of Kenya, located in Africa",
-  "score": 0,
+  "score": 5,
   "cost": 0.0006898000000000001,
   "expected": "",
   "tokens": {
     "input": 62,
     "output": 1709
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

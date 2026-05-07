@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 42,
   "response": "if n > m:\n    return -1\navg = (n + m) / 2\nrounded = round(avg)\nreturn bin(rounded)",
-  "score": 0,
+  "score": 3,
   "cost": 0.0005482000000000001,
   "expected": "",
   "tokens": {
     "input": 321,
     "output": 605
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

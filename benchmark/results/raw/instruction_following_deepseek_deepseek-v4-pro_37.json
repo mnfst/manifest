@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 37,
   "response": "Chocolate tastes like a slow, velvet dusk settling over the tongue\u2014a deep, bittersweet darkness folding into creamy warmth, as if night itself melted into a whispered promise.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000271875,
   "expected": "",
   "tokens": {
     "input": 17,
     "output": 152
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

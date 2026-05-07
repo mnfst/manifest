@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 26,
   "response": "The global food system faces unprecedented strain as a projected population of 9.7 billion by 2050 demands a 60% increase in food production, while climate change, water scarcity, and soil degradation threaten agricultural viability. Compounding these pressures, agriculture accounts for roughly 25% of greenhouse gas emissions, intensive farming has degraded 33% of the world's arable land, and one-third of all food is lost or wasted. To address this crisis, stakeholders are exploring technological innovations like precision agriculture and alternative proteins alongside regenerative farming and policy reforms. The central challenge remains scaling these solutions effectively while keeping food affordable and accessible to the world's most vulnerable populations.",
-  "score": 0,
+  "score": 5,
   "cost": 0.002644525,
   "expected": "",
   "tokens": {
     "input": 309,
     "output": 1957
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 34,
   "response": "The Database Team is planning to migrate from MySQL 5.7 to PostgreSQL 16, with a timeline of May to July, and has identified a risk related to rewriting 3 stored procedures. The team has prepared a testing environment and plans to implement a blue-green deployment to avoid downtime, with key milestones including schema conversion and testing in May, dual-write period in June, and cutover in July.",
-  "score": 0,
+  "score": 5,
   "cost": 6.555e-05,
   "expected": "",
   "tokens": {
     "input": 101,
     "output": 84
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 32,
   "response": "**Code under review**\n\n```python\ndef get_env(key):\n    return os.environ[key]\n```\n\n---\n\n## 1. Bugs / Functional Problems\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Missing import** | `os` is never imported, so calling `get_env` raises `NameError: name 'os' is not defined`. | Add `import os` at the top of the module (or import only what you need: `from os import environ`). |\n| **KeyError on missing variable** | If `key` is not present in the environment, `os.environ[key]` raises a `KeyError`. Callers often expect a graceful fallback (e.g., `None` or a default value). | Use `os.getenv(key, default=None)` (or `os.environ.get(key, default)`) which returns the default instead of raising. |\n| **No type conversion** | Environment variables are always strings. If the caller expects an integer, boolean, list, etc., they must convert manually, leading to repetitive boilerplate and possible conversion errors. | Provide optional conversion helpers (e.g., `get_env_int`, `get_env_bool`) or accept a `cast` argument: `def get_env(key, default=None, cast=str): \u2026`. |\n| **No documentation / docstring** | Future maintainers (or even the original author) may not know the function\u2019s contract, what exceptions it may raise, or what the default behavior is. | Add a clear docstring describing parameters, return value, and possible exceptions. |\n| **No logging / diagnostics** | Silently returning a wrong value (or raising) can make debugging configuration issues hard. | Log a warning when a required variable is missing or when a fallback is used (especially in production). |\n| **Thread\u2011safety concerns (minor)** | `os.environ` is a process\u2011wide mapping; reading it is thread\u2011safe in CPython, but if the code later mutates it (e.g., via `os.environ[key] = value`) without locks, race conditions can appear. | Document that the function is read\u2011only; if you ever need to write, protect with a lock or use a configuration object instead of mutating `os.environ`. |\n\n---\n\n## 2. Security / Safety Concerns\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Accidental exposure of secrets** | Returning the raw value may be logged, printed, or returned in an API response unintentionally, leaking passwords, API keys, etc. | \u2022 Avoid printing or logging the raw value.<br>\u2022 Provide a wrapper that masks secrets (e.g., returns `*****` when the key name matches a pattern like `*PASS*`, `*TOKEN*`, `*SECRET*`).<br>\u2022 Encourage callers to use a dedicated secrets manager (AWS Secrets Manager, HashiCorp Vault, etc.) for highly sensitive data. |\n| **Injection via key name** | If `key` comes from an untrusted source (e.g., user input), an attacker could attempt to read arbitrary environment variables (including ones that affect program behavior, like `LD_PRELOAD",
-  "score": 0,
+  "score": 5,
   "cost": 7.713e-05,
   "expected": "",
   "tokens": {
     "input": 57,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 40,
   "response": "This code implements the Circuit Breaker design pattern, which prevents cascading failures in distributed systems by monitoring function calls: it starts in a \"closed\" state allowing calls, transitions to \"open\" after a threshold of failures (default 5) to block further calls and raise exceptions, and enters \"half-open\" after a timeout (default 30 seconds) to test if the service has recovered, resetting to \"closed\" on success or back to \"open\" on failure.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00034219999999999997,
   "expected": "",
   "tokens": {
     "input": 395,
     "output": 329
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 34,
   "response": "The database team will execute a zero-downtime migration from MySQL 5.7 to PostgreSQL 16 across a May-to-July timeline using a blue-green deployment strategy. To proceed, the team must rewrite three stored procedures and begin schema conversion and testing in the prepared environment this May.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0016860999999999998,
   "expected": "",
   "tokens": {
     "input": 104,
     "output": 1271
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

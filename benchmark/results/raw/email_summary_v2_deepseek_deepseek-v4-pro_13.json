@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 13,
   "response": "Customer satisfaction and retention improved in Q1, with NPS rising to 62 and churn dropping to 1.2%. The team should prioritize the top feature requests\u2014SSO, custom dashboards, and API rate limit increases\u2014while advancing three enterprise expansions worth $800K.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00050721,
   "expected": "",
   "tokens": {
     "input": 114,
     "output": 263
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

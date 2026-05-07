@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 28,
   "response": "**The given code calculates the length of the longest common subsequence (LCS) between two input sequences `a` and `b` using dynamic programming.** It builds a 2D table `dp` where `dp[i][j]` represents the length of the LCS between the first `i` elements of `a` and the first `j` elements of `b`.",
-  "score": 0,
+  "score": 5,
   "cost": 7.05e-05,
   "expected": "",
   "tokens": {
     "input": 162,
     "output": 77
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

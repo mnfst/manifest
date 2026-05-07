@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 31,
   "response": "### Unit Tests for `camel_to_snake` Function\n\n```python\nimport pytest\nfrom your_module import camel_to_snake  # Replace 'your_module' with the actual module name\n\ndef test_camel_to_snake_happy_path():\n    \"\"\"Test the function with camel case strings.\"\"\"\n    assert camel_to_snake(\"camelCaseString\") == \"camel_case_string\"\n    assert camel_to_snake(\"anotherCamelCase\") == \"another_camel_case\"\n\ndef test_camel_to_snake_edge_cases():\n    \"\"\"Test the function with edge cases.\"\"\"\n    assert camel_to_snake(\"\") == \"\"  # Empty string\n    assert camel_to_snake(\"single\") == \"single\"  # Single word\n    assert camel_to_snake(\"ALLCAPS\") == \"allcaps\"  # All caps\n    assert camel_to_snake(\"a\") == \"a\"  # Single character\n\ndef test_camel_to_snake_error_cases():\n    \"\"\"Test the function with non-string inputs.\"\"\"\n    with pytest.raises(TypeError):\n        camel_to_snake(123)  # Integer input\n    with pytest.raises(TypeError):\n        camel_to_snake(None)  # None input\n    with pytest.raises(TypeError):\n        camel_to_snake([1, 2, 3])  # List input\n\ndef test_camel_to_snake_special_cases():\n    \"\"\"Test the function with special cases.\"\"\"\n    assert camel_to_snake(\"CamelCaseWithNumbers123\") == \"camel_case_with_numbers123\"\n    assert camel_to_snake(\"camelCaseWithSpecialChars!@#\") == \"camel_case_with_special_chars!@#\"\n```\n\n### Explanation\n\nThe tests cover the following cases:\n\n*   **Happy Path**: Test the function with typical camel case strings.\n*   **Edge Cases**: Test the function with empty strings, single words, all caps, and single characters.\n*   **Error Cases**: Test the function with non-string inputs (integer, None, and list) to ensure it raises a `TypeError`.\n*   **Special Cases**: Test the function with camel case strings containing numbers and special characters.\n\nThese tests provide a comprehensive coverage of the `camel_to_snake` function's behavior. Make sure to replace `'your_module'` with the actual module name where the `camel_to_snake` function is defined.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002982,
   "expected": "",
   "tokens": {
     "input": 76,
     "output": 478
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

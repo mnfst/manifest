@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 4,
   "response": "Electric vehicles trace their origins to early experiments in the 1830s and have progressed to the point where Tesla\u2019s entry disrupted the automotive industry, spurring legacy makers such as Ford, GM, and Volkswagen to accelerate their own EV transitions. This growth hinges on overcoming battery\u2011technology limits, expanding charging infrastructure, and leveraging government incentives, while debates persist over the environmental impacts of lithium and cobalt mining. China now dominates as the world\u2019s largest EV market and producer, yet challenges like range anxiety, long charging",
-  "score": 0,
+  "score": 4,
   "cost": 4.05e-05,
   "expected": "",
   "tokens": {
     "input": 150,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 35,
   "response": "In the quiet village of Eldridge, young Aria discovered an ancient map hidden in her grandmother's attic, promising untold riches in the Whispering Woods. Eager for adventure, she set off at dawn, backpack slung over her shoulder, ignoring the warnings of creaking branches and shadowy figures. Deep in the forest, she stumbled upon a crumbling ruin where the map led, its stone walls etched with forgotten runes. As she pried open a rusted chest, a spectral guardian emerged, its eyes glowing like embers, demanding a riddle's answer for the treasure. With a deep breath, Aria recalled her grandmother's tales and whispered the solution: \"The greatest treasure is the journey itself.\" The spirit nodded, vanishing into mist, leaving behind not gold, but a single, glowing seed that promised eternal growth in her heart.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002692,
   "expected": "",
   "tokens": {
     "input": 166,
     "output": 295
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

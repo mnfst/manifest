@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 26,
   "response": "To write unit tests for the `safe_divide` function using `pytest`, we need to cover the following scenarios:\n\n1. **Happy Path**: When both `a` and `b` are non-zero, and the division is successful.\n2. **Edge Cases**:\n   - When `a` is zero and `b` is non-zero.\n   - When `a` is non-zero and `b` is zero (should return the default value).\n   - When both `a` and `b` are zero (should return the default value).\n3. **Error Cases**:\n   - When `b` is zero and `default` is provided (should return the provided default value).\n   - When `b` is zero and `default` is not provided (should return the default value of 0.0).\n\nHere is the `pytest` style unit test code for the `safe_divide` function:\n\n```python\nimport pytest\n\ndef safe_divide(a: float, b: float, default: float = 0.0) -> float:\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return default\n\ndef test_safe_divide_happy_path():\n    assert safe_divide(10.0, 2.0) == 5.0\n    assert safe_divide(10.0, 2.0, 0.0) == 5.0\n\ndef test_safe_divide_edge_cases():\n    # a is zero, b is non-zero\n    assert safe_divide(0.0, 2.0) == 0.0\n    assert safe_divide(0.0, 2.0, 0.0) == 0.0\n\n    # a is non-zero, b is zero\n    assert safe_divide(10.0, 0.0) == 0.0\n    assert safe_divide(10.0, 0.0, 0.0) == 0.0\n\n    # both a and b are zero\n    assert safe_divide(0.0, 0.0) == 0.0\n    assert safe_divide(0.0, 0.0, 0.0) == 0.0\n\ndef test_safe_divide_error_cases():\n    # b is zero and default is provided\n    assert safe_divide(10.0, 0.0, 1.0) == 1.0\n    assert safe_divide(10.0, 0.0, -1.0) == -1.0\n\n    # b is zero and default is not provided\n    assert safe_divide(10.0, 0.0) == 0.0\n\ndef test_safe_divide_with_negative_values():\n    # a is negative, b is positive\n    assert safe_divide(-10.0, 2.0) == -5.0\n    # a is positive, b is negative\n    assert safe_divide(10.0, -2.0) == -5.0\n    # both a and b are negative\n    assert safe_divide(-10.0, -2.0) == 5.0\n\ndef test_safe_divide_with_floats():\n    # a and b are floats\n    assert safe_divide(10.5, 2.1) == pytest.approx(5.0)\n    # a is float, b is int\n    assert safe_divide(10.5, 2) == 5.25\n    # a is int, b is float\n    assert safe_divide(10, 2.5) == 4.0\n\ndef test_safe_divide_with_large_numbers():\n    # large numbers\n    assert safe_divide(1e10, 1e5) == 1e5\n    # very small numbers\n    assert safe_divide(2e-10, 1e-5) == 2e-5\n\ndef test_safe_divide_with_zero_default():\n    # default is zero\n    assert safe_divide(10.0, 0.0, 0.0) == 0.0\n    # default is not zero\n    assert safe_divide(10.0, 0.0, 1.0) == 1.0\n\nif __name__ == \"__main__\":\n    pytest.main()\n```\n\n### Explanation:\n- **test_safe_divide_happy_path**: Tests the function with non-zero values for `a` and `b`.\n- **test_safe_divide_edge_cases**: Tests the function with edge cases such as `a` or `b` being",
-  "score": 0,
+  "score": 4,
   "cost": 0.00424112,
   "expected": "",
   "tokens": {
     "input": 78,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

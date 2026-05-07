@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 38,
   "response": "\"Invalid username or password. Please try again or reset your credentials if you've forgotten them.\"",
-  "score": 0,
+  "score": 5,
   "cost": 2.55e-05,
   "expected": "",
   "tokens": {
     "input": 94,
     "output": 19
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

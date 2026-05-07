@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 34,
   "response": "**What the code does**\n\n```python\ndef compare_passwords(stored, provided):\n    return stored == provided\n```\n\nIt simply checks whether two objects are equal using Python\u2019s `==` operator and returns the Boolean result.\n\n---\n\n## 1. Bugs / Logical Problems\n\n| Issue | Why it\u2019s a problem | Example | Fix |\n|-------|-------------------|---------|-----|\n| **No type validation** | If the arguments are not the same type (e.g., `stored` is `bytes` and `provided` is `str`) the comparison will always be `False`, hiding a programming error. | `compare_passwords(b'abc123', 'abc123') \u2192 False` | Explicitly convert both to the same type (usually `bytes` or `str`) or raise a clear `TypeError` if they differ. |\n| **`None` handling** | `None == None` evaluates to `True`. If a caller accidentally passes `None` for either argument, the function will incorrectly report a match. | `compare_passwords(None, None) \u2192 True` | Treat `None` as an invalid input and raise `ValueError` (or return `False` only after an explicit check). |\n| **Misleading name** | The function name suggests it *compares* passwords, but in a real system the \u201cstored\u201d value should be a hash, not the clear\u2011text password. Using it as\u2011is encourages storing passwords in plain text. | \u2014 | Rename to something like `verify_password_hash` and document that `stored` must be a hash. |\n| **Early\u2011exit timing leak (see security section)** | While not a functional bug, the use of `==` can leak timing information. | \u2014 | Replace with a constant\u2011time comparison primitive. |\n\n---\n\n## 2. Security Issues\n\n| Issue | Why it\u2019s dangerous | How to mitigate |\n|-------|-------------------|-----------------|\n| **Plain\u2011text password storage** | If an attacker gains access to the user table (e.g., via SQL injection, backup theft, or mis\u2011configured permissions), they obtain every user\u2019s password immediately. | Store only a **cryptographically strong, salt",
-  "score": 0,
+  "score": 5,
   "cost": 7.748999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 61,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 33,
   "response": "In the 2024\u201125 season, 40\u2011year\u2011old LeBron James suited up for the Los Angeles Lakers in 71 games, posting averages of 28.4 points, 7.2 rebounds, and 8.1 assists per contest. His all\u2011around performance earned him an All\u2011Star selection, underscoring his continued impact despite his age.",
-  "score": 0,
+  "score": 5,
   "cost": 1.512e-05,
   "expected": "",
   "tokens": {
     "input": 91,
     "output": 77
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

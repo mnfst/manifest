@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 33,
   "response": "The function implements reservoir sampling: it fills a reservoir with the first\u202fk\u202fitems from the stream, then for each subsequent item at position\u202fi\u202fit replaces a randomly chosen element in the reservoir with probability\u202fk/(i+1)\u202f(by picking a random index\u202fj\u202f\u2208\u202f[0,i] and swapping when\u202fj<k). This yields a uniform random sample of size\u202fk\u202ffrom the entire stream.",
-  "score": 0,
+  "score": 5,
   "cost": 1.7549999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 94,
     "output": 101
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

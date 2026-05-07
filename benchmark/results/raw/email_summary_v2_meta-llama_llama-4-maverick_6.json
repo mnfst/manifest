@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 6,
   "response": "Acme Corp, a $450K ARR customer, is threatening to churn due to API latency spikes and a lack of response from support, prompting the need for an executive sponsor to intervene. The CS Lead, James, has assigned a dedicated engineer to the issue and is requesting an exec sponsor to participate in a call with the customer this week.",
-  "score": 0,
+  "score": 5,
   "cost": 5.745e-05,
   "expected": "",
   "tokens": {
     "input": 103,
     "output": 70
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

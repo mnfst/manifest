@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 7,
   "response": "```python\nimport pytest\n\ndef remove_duplicates(lst: list) -> list:\n    seen = set()\n    result = []\n    for item in lst:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result\n\n# Happy path tests\n@pytest.mark.parametrize(\"input_list, expected\", [\n    ([1, 2, 3], [1, 2, 3]),  # No duplicates\n    ([1, 2, 2, 3, 1], [1, 2, 3]),  # Some duplicates\n    ([1, 1, 1], [1]),  # All duplicates\n    (['a', 'b', 'a'], ['a', 'b']),  # Strings\n    ([1, 'a', 1, 'a'], [1, 'a']),  # Mixed types\n    ([None, 1, None], [None, 1]),  # With None\n])\ndef test_remove_duplicates_happy_path(input_list, expected):\n    result = remove_duplicates(input_list)\n    assert result == expected\n    # Ensure original list is not modified\n    assert input_list == input_list.copy()  # Assuming input_list is a list, this checks it's unchanged\n\n# Edge case tests\n@pytest.mark.parametrize(\"input_list, expected\", [\n    ([], []),  # Empty list\n    ([1], [1]),  # Single element\n    ([0, 0, 0], [0]),  # All zeros\n    ([''], ['']),  # Empty strings\n    ([False, True, False], [False, True]),  # Booleans\n])\ndef test_remove_duplicates_edge_cases(input_list, expected):\n    result = remove_duplicates(input_list)\n    assert result == expected\n\n# Error case tests\n@pytest.mark.parametrize(\"invalid_input\", [\n    5,  # Integer\n    \"string\",  # String\n    None,  # None\n    3.14,  # Float\n])\ndef test_remove_duplicates_error_cases(invalid_input):\n    with pytest.raises(TypeError):\n        remove_duplicates(invalid_input)\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0007786000000000001,
   "expected": "",
   "tokens": {
     "input": 277,
     "output": 904
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

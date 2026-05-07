@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 24,
   "response": "**Code under review**\n\n```python\ndef download_file(url, dest):\n    response = requests.get(url)\n    with open(dest, 'wb') as f:\n        f.write(response.content)\n```\n\n---\n\n## 1. Bugs / Functional Problems\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Missing import** | `requests` is not imported \u2192 `NameError` at runtime. | Add `import requests` (or import inside the function if you prefer lazy import). |\n| **No HTTP error handling** | If the server returns 4xx/5xx, `response.content` will still contain an error page (or be empty) and the function will silently write garbage. | Call `response.raise_for_status()` (or check `status_code`) and raise/exit on non\u20112xx responses. |\n| **No timeout** | `requests.get(url)` can block forever if the remote host is unresponsive or slow. | Pass a `timeout` argument (e.g., `timeout=(connect, read)`). |\n| **Entire response loaded into memory** | `response.content` reads the whole body into RAM \u2192 OOM for large files. | Stream the response (`stream=True`) and write in chunks. |\n| **No guarantee that the destination directory exists** | If `dest` points to a non\u2011existent folder, `open()` raises `FileNotFoundError`. | Ensure parent directories exist (`os.makedirs(os.path.dirname(dest), exist_ok=True)`). |\n| **Silent overwriting of existing files** | May unintentionally clobber important data. | Optionally add a flag (`overwrite=False`) and raise if file exists, or write to a temporary file then rename atomically. |\n| **No validation of the `dest` path** | Allows path\u2011traversal (`../../etc/passwd`) if the caller supplies a malicious string. | Normalise and check that the resolved path lies inside an allowed base directory. |\n| **No cleanup on failure** | If an exception occurs after opening the file, a partially\u2011written file may be left behind. | Write to a temporary file (e.g., `tempfile.NamedTemporaryFile(delete=False)`) and only move/rename",
-  "score": 0,
+  "score": 5,
   "cost": 7.893e-05,
   "expected": "",
   "tokens": {
     "input": 77,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

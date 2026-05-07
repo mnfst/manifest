@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 16,
   "response": "n = len(grid)\n    for i in range(n):\n        for j in range(n):\n            if grid[i][j] == 1:\n                r, c = i, j\n                break\n        else:\n            continue\n        break\n    min_val = min(grid[r+dr][c+dc] for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)] if 0 <= r+dr < n and 0 <= c+dc < n)\n    return [1 if i % 2 == 0 else min_val for i in range(k)]",
-  "score": 0,
+  "score": 3,
   "cost": 0.011024975000000001,
   "expected": "",
   "tokens": {
     "input": 447,
     "output": 8369
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

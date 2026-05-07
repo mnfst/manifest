@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 6,
   "response": "Here is a summary of the text in 3-4 sentences:\n\nPrior to the pandemic, less than 5% of workers were fully remote, but the forced experiment of 2020 accelerated the adoption of remote work, enabled by tools like Zoom, Slack, and cloud infrastructure. Research on productivity has shown mixed results, with some studies, such as those by Stanford's Nick Bloom, indicating that remote work can be effective. The shift to remote work has led to a backlash against returning to the office, with many companies adopting hybrid models, and has also had significant impacts on commercial real estate and company culture. Additionally, remote work has enabled geographic arbitrage, with workers moving to lower-cost areas, and has given rise to digital nomad visas.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001227,
   "expected": "",
   "tokens": {
     "input": 214,
     "output": 151
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

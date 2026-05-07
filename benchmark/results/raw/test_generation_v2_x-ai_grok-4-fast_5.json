@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 5,
   "response": "```python\nimport pytest\n\nfrom your_module import count_vowels  # Replace 'your_module' with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        # Happy path: strings with mixed vowels and consonants\n        (\"hello\", 2),  # e, o\n        (\"aeiou\", 5),  # all vowels\n        (\"rhythm\", 0),  # no vowels\n        (\"Hello World\", 3),  # e, o, o (case-insensitive)\n        (\"A E I O U\", 5),  # all vowels with spaces and mixed case\n        # Edge cases\n        (\"\", 0),  # empty string\n        (\"a\", 1),  # single vowel\n        (\"b\", 0),  # single consonant\n        (\"!!!\", 0),  # non-letter characters\n        (\"aei ou\", 5),  # vowels with space\n    ],\n)\ndef test_count_vowels_happy_path_and_edges(input_str, expected):\n    assert count_vowels(input_str) == expected\n\n\n@pytest.mark.parametrize(\n    \"invalid_input, expected_exception\",\n    [\n        (None, TypeError),  # None is not iterable and has no lower()\n        (123, TypeError),  # int has no lower()\n        ([1, 2, 3], TypeError),  # list has no lower()\n        ({\"a\": 1}, TypeError),  # dict has no lower()\n    ],\n)\ndef test_count_vowels_invalid_input(invalid_input, expected_exception):\n    with pytest.raises(expected_exception):\n        count_vowels(invalid_input)\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0006392,
   "expected": "",
   "tokens": {
     "input": 212,
     "output": 746
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

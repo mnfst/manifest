@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 23,
   "response": "The v1 API will be deprecated on June\u202f30 and removed on September\u202f30, with 340 integrations still on v1 and 12 enterprise customers yet to begin",
-  "score": 0,
+  "score": 5,
   "cost": 2.8170000000000003e-05,
   "expected": "",
   "tokens": {
     "input": 113,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

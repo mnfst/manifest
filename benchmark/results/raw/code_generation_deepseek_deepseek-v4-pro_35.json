@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 35,
   "response": "return (abs(a) % 10) * (abs(b) % 10)",
-  "score": 0,
+  "score": 3,
   "cost": 0.0011792849999999998,
   "expected": "",
   "tokens": {
     "input": 127,
     "output": 646
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

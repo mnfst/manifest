@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 5,
   "response": "Here is a pytest test suite that exercises the happy path, edge cases, and error conditions for `count_vowels`.\n\n```python\n# test_count_vowels.py\nimport pytest\n\n# Assuming the function lives in a module named `my_module`\n# Adjust the import as needed for your project layout.\nfrom my_module import count_vowels\n\n\n# ---------- Happy path ----------\n@pytest.mark.parametrize(\n    \"input_str, expected\",\n    [\n        (\"hello\", 2),          # e, o\n        (\"AEIOU\", 5),          # all uppercase vowels\n        (\"aEiOu\", 5),          # mixed case\n        (\"Python\", 1),         # o\n        (\"\", 0),               # empty string\n        (\"bcdfg\", 0),          # no vowels\n        (\"aaaaa\", 5),          # repeated vowel\n        (\"abecidofug\", 5),     # a e i o u interleaved with consonants\n    ],\n)\ndef test_count_vowels_happy_path(input_str, expected):\n    assert count_vowels(input_str) == expected\n\n\n# ---------- Edge cases ----------\ndef test_count_vowels_whitespace_and_punctuation():\n    # Whitespace and punctuation are ignored; only letters matter.\n    assert count_vowels(\"Hello, World!\") == 3  # e, o, o\n    assert count_vowels(\"   \") == 0\n    assert count_vowels(\"\\n\\t\") == 0\n    assert count_vowels(\"A!E?I.O;U\") == 5\n\n\ndef test_count_vowels_unicode():\n    # The function only checks ASCII vowels; other characters should not affect the count.\n    assert count_vowels(\"caf\u00e9\") == 2   # a, e (\u00e9 is not counted)\n    assert count_vowels(\" na\u00efve\") == 2 # a, i (the leading space and \u00ef are ignored)\n    assert count_vowels(\"\ud83d\ude00\") == 0\n\n\n# ---------- Error cases ----------\n@pytest.mark.parametrize(\n    \"bad_input\",\n    [\n        None,\n        123,\n        [],\n        {},\n        object(),\n    ],\n)\ndef test_count_vowels_invalid_type(bad_input):\n    # Passing a non\u2011string should raise an AttributeError because .lower() is called.\n    with pytest.raises(AttributeError):\n        count_vowels(bad_input)\n```\n\n**Explanation**\n\n* **Happy path** \u2013 parametrized tests cover typical strings, mixed case, all\u2011vowel strings, no\u2011vowel strings, and the empty string.\n* **Edge cases** \u2013 whitespace, punctuation, newline/tab characters, and Unicode characters that are *not* in the ASCII vowel set are exercised to ensure they don\u2019t inadvertently affect the count.\n* **Error cases** \u2013 the function assumes its argument is a string; supplying any other type triggers an `AttributeError` when `.lower()` is invoked. The test verifies that the appropriate exception is raised.  \n\nRun the suite with:\n\n```bash\npytest test_count_vowels.py\n```\n\nAll tests should pass for the given implementation.",
-  "score": 0,
+  "score": 5,
   "cost": 7.902e-05,
   "expected": "",
   "tokens": {
     "input": 73,
     "output": 805
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

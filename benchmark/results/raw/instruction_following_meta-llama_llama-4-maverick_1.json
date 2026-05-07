@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 1,
   "response": "The CPU, or Central Processing Unit, executes instructions from a computer program by performing calculations, logical operations, and data transfers that enable the computer to perform various tasks and operations.",
-  "score": 0,
+  "score": 5,
   "cost": 2.4599999999999998e-05,
   "expected": "",
   "tokens": {
     "input": 20,
     "output": 36
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

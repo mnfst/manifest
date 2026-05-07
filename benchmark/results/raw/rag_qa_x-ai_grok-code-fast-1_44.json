@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 44,
   "response": "The Ohio Company of Virginia was given land by the British government in 1749 for the purpose of developing trade and settlements in the Ohio Country, as directly stated in the provided context.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00027739999999999997,
   "expected": "Ohio Company of Virginia",
   "tokens": {
     "input": 455,
     "output": 233
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

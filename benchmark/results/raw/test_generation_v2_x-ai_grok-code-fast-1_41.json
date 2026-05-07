@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 41,
   "response": "```python\nimport pytest\n\ndef hex_to_rgb(h: str) -> tuple:\n    h = h.lstrip('#')\n    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))\n\n# Happy path tests: Valid hex strings with and without '#', various cases\n@pytest.mark.parametrize(\"hex_str, expected\", [\n    (\"#FF0000\", (255, 0, 0)),\n    (\"00FF00\", (0, 255, 0)),\n    (\"#0000FF\", (0, 0, 255)),\n    (\"ffffff\", (255, 255, 255)),\n    (\"000000\", (0, 0, 0)),\n    (\"#ff0000\", (255, 0, 0)),  # lowercase\n    (\"FF0000\", (255, 0, 0)),   # uppercase\n    (\"#AbCdEf\", (171, 205, 239)),  # mixed case\n    (\"123456\", (18, 52, 86)),  # valid 6-char without '#'\n])\ndef test_hex_to_rgb_valid(hex_str, expected):\n    assert hex_to_rgb(hex_str) == expected\n\n# Edge case tests: Strings longer than 6 chars (function ignores extra, but we test behavior)\n@pytest.mark.parametrize(\"hex_str, expected\", [\n    (\"1234567\", (18, 52, 86)),  # 7 chars, ignores last\n    (\"#12345678\", (18, 52, 86)),  # 8 chars after '#', ignores last\n    (\"abcdef12\", (171, 205, 239)),  # 8 chars, ignores last\n])\ndef test_hex_to_rgb_long_strings(hex_str, expected):\n    assert hex_to_rgb(hex_str) == expected\n\n# Error case tests: Invalid inputs that should raise ValueError\n@pytest.mark.parametrize(\"hex_str\", [\n    \"\",           # empty string\n    \"#\",          # only '#'\n    \"1\",          # too short\n    \"12\",         # too short\n    \"123\",        # too short (would fail on slicing)\n    \"1234\",       # too short\n    \"12345\",      # too short (would fail on slicing)\n    \"#GG0000\",    # invalid hex char\n    \"ZZZZZZ\",     # invalid hex chars\n    \"#12345\",     # 5 chars after '#'\n    \"gggggg\",     # invalid hex chars (lowercase g is invalid)\n    \"#123456789\", # 9 chars after '#', but would succeed partially (tested separately above)\n])\ndef test_hex_to_rgb_invalid(hex_str):\n    with pytest.raises(ValueError):\n        hex_to_rgb(hex_str)\n\n# Additional error case: Non-string input (though type hint is str, test robustness)\ndef test_hex_to_rgb_non_string():\n    with pytest.raises(AttributeError):  # lstrip on non-str\n        hex_to_rgb(123456)\n    with pytest.raises(AttributeError):\n        hex_to_rgb(None)\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.001495,
   "expected": "",
   "tokens": {
     "input": 275,
     "output": 1800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

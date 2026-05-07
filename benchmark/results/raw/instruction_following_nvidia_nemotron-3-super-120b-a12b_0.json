@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 0,
   "response": "- Improves cardiovascular health and reduces risk of heart disease  \n- Enhances mood and reduces symptoms of anxiety and depression  \n- Increases muscle strength, flexibility, and overall physical endurance",
-  "score": 0,
+  "score": 5,
   "cost": 4.949999999999999e-06,
   "expected": "",
   "tokens": {
     "input": 19,
     "output": 36
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

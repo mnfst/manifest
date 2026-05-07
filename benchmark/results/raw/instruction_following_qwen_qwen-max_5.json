@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 5,
   "response": "As the sun descends toward the horizon, the sky transforms into a canvas painted with streaks of orange and golden hues, blending softly into shades of lavender and deepening blue. The light, now warm and gentle, casts long shadows and bathes everything in a serene, almost ethereal glow. Clouds, if present, catch the last of the sun's light, turning into wisps of pink and gold, adding depth and texture to the celestial scene. The air cools, carrying with it a sense of calm and the promise of night, as the day's final moments give way to the gathering dusk.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00053872,
   "expected": "",
   "tokens": {
     "input": 22,
     "output": 124
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

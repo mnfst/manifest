@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 47,
   "response": "Here are the key steps for creating a strong, secure password, based on current cybersecurity best practices (like NIST guidelines):\n\n1.  **Prioritize Length Over Complexity:** Aim for **at least 12 characters**, but **16+ is significantly better**. Longer passwords are exponentially harder to crack via brute force attacks than shorter, complex ones. A long passphrase (see step 2) is often stronger and easier to remember than",
-  "score": 0,
+  "score": 4,
   "cost": 4.7520000000000006e-05,
   "expected": "",
   "tokens": {
     "input": 28,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

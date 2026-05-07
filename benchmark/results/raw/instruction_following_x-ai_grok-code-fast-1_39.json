@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 39,
   "response": "### What is a VPN?\nA VPN, or Virtual Private Network, is a technology that creates a secure, encrypted connection between your device and a server on the internet. It essentially acts like a private tunnel through the public internet, protecting your data from eavesdroppers, hackers, or surveillance.\n\n### How does a VPN work?\nWhen you connect to a VPN, your device establishes a secure link to a VPN server operated by a VPN provider. All your internet traffic is routed through this encrypted tunnel, which hides your real IP address and location. The VPN server then forwards your requests to the internet, making it appear as if you're browsing from the server's location instead of your own. This process uses protocols like OpenVPN, IKEv2, or WireGuard to ensure encryption and security.\n\n### What are the main benefits of using a VPN?\n- **Privacy and Security**: It encrypts your data, preventing ISPs, governments, or cybercriminals from monitoring your online activities.\n- **Anonymity**: By masking your IP address, it helps hide your identity and location from websites and trackers.\n- **Access to Restricted Content**: You can bypass geo-blocks, such as accessing streaming services or websites unavailable in your region by connecting to a server in another country.\n- **Safe Public Wi-Fi**: It protects against risks on unsecured networks, like those in cafes or airports, where data theft is common.\n\n### Are there any drawbacks to using a VPN?\nYes, potential downsides include:\n- **Slower Speeds**: Encryption and routing through a remote server can reduce internet speed due to added latency.\n- **Cost**: Free VPNs often have limitations, ads, or data caps, while reliable paid ones require a subscription (e.g., $5\u2013$10/month).\n- **Trust Issues**: Not all VPNs are trustworthy; some log your data or have weak security, so choose reputable providers.\n- **Legal Considerations**: VPNs are legal in most places but can be restricted in countries with strict internet controls.\n\n### How do I choose and use a VPN?\nSelect a VPN based on factors like speed, no-logs policy, server locations, and strong encryption. Popular options include ExpressVPN, NordVPN, or ProtonVPN. To use one, download the app, sign up, and connect to a server\u2014it's usually as simple as one click. Always enable it when on public Wi-Fi or accessing sensitive sites.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0006297999999999999,
   "expected": "",
   "tokens": {
     "input": 217,
     "output": 733
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 31,
   "response": "Sharia",
-  "score": 0,
+  "score": 1,
   "cost": 0.00033320999999999996,
   "expected": "Sharia",
   "tokens": {
     "input": 174,
     "output": 148
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 8,
   "response": "This code implements a **debouncing decorator** using a **timer-based approach**, which delays the execution of a function by a specified time (`wait` seconds) and cancels any pending execution if the function is called again within that time frame. The decorator utilizes a `threading.Timer` to achieve this functionality.",
-  "score": 0,
+  "score": 5,
   "cost": 5.37e-05,
   "expected": "",
   "tokens": {
     "input": 106,
     "output": 63
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

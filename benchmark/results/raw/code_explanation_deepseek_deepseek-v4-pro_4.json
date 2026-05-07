@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 4,
   "response": "This code implements a **memoization** pattern: it wraps a function `f` so that results are cached in a dictionary keyed by arguments, avoiding repeated",
-  "score": 0,
+  "score": 4,
   "cost": 0.000379755,
   "expected": "",
   "tokens": {
     "input": 73,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

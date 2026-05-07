@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 11,
   "response": "The SOC 2 Type II audit concluded with no critical findings, though three minor observations were noted regarding access reviews, incident response testing, and vendor risk assessments. All identified issues must be remediated within 30 days.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0012782250000000002,
   "expected": "",
   "tokens": {
     "input": 105,
     "output": 957
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

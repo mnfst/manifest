@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 10,
   "response": "**Code Review**\n\n### Bugs and Issues\n\n1. **Sequential Execution**: The `fetchAll` function fetches URLs sequentially, which can be slow if there are many URLs. This can be improved by using `Promise.all` to fetch URLs concurrently.\n2. **Lack of Error Handling**: The function does not handle errors that may occur during the fetching or parsing of the responses. If an error occurs, it will be propagated to the caller, but it may be helpful to provide more context about the error.\n3. **No Input Validation**: The function does not validate its input. If `urls` is not an array or contains non-string values, the function may behave unexpectedly.\n\n### Security Issues\n\n1. **No Check for Non-HTTP(S) URLs**: The function does not check if the URLs are HTTP or HTTPS. Fetching non-HTTP(S) URLs can lead to unexpected behavior or security vulnerabilities.\n\n### Improvements\n\n1. **Concurrent Fetching**: Use `Promise.all` to fetch URLs concurrently.\n2. **Error Handling**: Catch and handle errors that occur during fetching or parsing.\n3. **Input Validation**: Validate the input `urls` to ensure it is an array of strings.\n4. **Check for Non-HTTP(S) URLs**: Validate the URLs to ensure they are HTTP or HTTPS.\n\n### Refactored Code\n\n```javascript\n/**\n * Fetches a list of URLs concurrently and returns the JSON responses.\n * \n * @param {string[]} urls - An array of URLs to fetch.\n * @returns {Promise<any[]>} A promise that resolves to an array of JSON responses.\n */\nasync function fetchAll(urls) {\n  // Validate input\n  if (!Array.isArray(urls) || !urls.every(url => typeof url === 'string')) {\n    throw new Error('urls must be an array of strings');\n  }\n\n  // Validate URLs\n  if (!urls.every(url => /^https?:\\/\\//.test(url))) {\n    throw new Error('All URLs must be HTTP or HTTPS');\n  }\n\n  // Fetch URLs concurrently\n  const promises = urls.map(async (url) => {\n    try {\n      const res = await fetch(url);\n      if (!res.ok) {\n        throw new Error(`Failed to fetch ${url}: ${res.statusText}`);\n      }\n      return await res.json();\n    } catch (error) {\n      throw new Error(`Failed to fetch or parse ${url}: ${error.message}`);\n    }\n  });\n\n  // Wait for all promises to resolve or reject\n  return Promise.all(promises);\n}\n\n// Example usage:\nfetchAll(['https://example.com/api/data1', 'https://example.com/api/data2'])\n  .then(results => console.log(results))\n  .catch(error => console.error(error));\n```\n\n### Explanation\n\n1. The refactored code uses `Promise.all` to fetch URLs concurrently, improving performance.\n2. It validates the input `urls` to ensure it is an array of strings and checks that all URLs are HTTP or HTTPS.\n3. It catches and handles errors that occur during fetching or parsing, providing more context about the error.\n4. The code is more robust and maintainable, with clear error messages and input validation.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00040665,
   "expected": "",
   "tokens": {
     "input": 83,
     "output": 657
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

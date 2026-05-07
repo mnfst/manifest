@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 29,
   "response": "The `curry` function takes a callable `fn`, determines its number of parameters with `inspect.signature`, and returns a new function that collects arguments incrementally: each call either invokes `fn` once enough arguments have been supplied, or returns another lambda that continues to accept more arguments until the required arity is met. This implements the currying pattern by repeatedly wrapping the original function in closures that accumulate parameters.",
-  "score": 0,
+  "score": 5,
   "cost": 1.584e-05,
   "expected": "",
   "tokens": {
     "input": 93,
     "output": 83
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 47,
   "response": "Another group struggling in the Amazon, as mentioned in the context, is the Urarina people. They are described as continuing to struggle to fight for their cultural survival and the fate of their forested territories.",
-  "score": 0,
+  "score": 5,
   "cost": 7.282e-05,
   "expected": "Urarina",
   "tokens": {
     "input": 159,
     "output": 43
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

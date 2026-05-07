@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 18,
   "response": "To extract the required information and format it into valid JSON according to the given schema, we need to parse the provided text. Here's the step-by-step breakdown:\n\n1. **Plan**: The plan is mentioned as \"Pro Plan\".\n2. **Price Monthly**: The monthly price is $29.\n3. **Price Annual**: The annual price is $348.\n4. **Start Date**: The subscription started on \"Jan 1 2024\".\n5. **Renewal Date**: The subscription renews on \"Jan 1 2025\".\n6. **Payment Method**: The payment method is \"Visa\".\n7. **Card Last4**: The last 4 digits of the card are \"4242\".\n8. **Status**: The status of the subscription is \"active\".\n\nNow, let's format this information into the required JSON schema:\n\n```json\n{\n  \"plan\": \"Pro Plan\",\n  \"price_monthly\": 29.0,\n  \"price_annual\": 348.0,\n  \"start_date\": \"Jan 1 2024\",\n  \"renewal_date\": \"Jan 1 2025\",\n  \"payment_method\": \"Visa\",\n  \"card_last4\": \"4242\",\n  \"status\": \"active\"\n}\n```\n\nThis JSON object matches the provided schema and contains the extracted information from the given text.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001836,
   "expected": "",
   "tokens": {
     "input": 124,
     "output": 275
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

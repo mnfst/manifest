@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 10,
   "response": "There once was a programmer, Dave,  \nWhose code was exceedingly brave.  \nHis programs would crash,  \nAnd the users would bash,  \nYet he never his coding would save.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00361311,
   "expected": "",
   "tokens": {
     "input": 14,
     "output": 2073
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

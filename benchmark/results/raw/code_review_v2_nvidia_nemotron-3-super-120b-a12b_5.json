@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 5,
   "response": "**Code under review**\n\n```python\ndef process_items(items):\n    for item in items:\n        result = expensive_api_call(item)\n        db.save(result)\n    return 'Done'\n```\n\n---\n\n## 1. Bugs / Functional Problems\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **No error handling** | If `expensive_api_call` raises an exception (network timeout, HTTP\u202f5xx, malformed response, etc.) the loop aborts, leaving *no* items processed and no indication of what failed. | Wrap the call in a `try/except` block. Log the error, optionally continue with the next item, and/or collect failures to report at the end. |\n| **Silent failure of `db.save`** | Same as above \u2013 a DB error stops the whole batch and you lose visibility. | Add a `try/except` around `db.save` (or use a transaction that rolls back on error). |\n| **No feedback on progress / outcome** | Returning the literal string `'Done'` gives the caller no information about how many items succeeded, failed, or were skipped. | Return a summary object (e.g., `{'processed': n, 'failed': m, 'errors': [...]}`) or raise a custom exception containing the failures. |\n| **Potential for infinite loop / runaway consumption** | If `items` is an iterator that never terminates (e.g., a generator that yields forever) the function will run until the process is killed. | Document that `items` must be a finite iterable, or add a safety guard (e.g., `max_items` parameter) and break after that limit. |\n| **No rate\u2011limiting / throttling** | Calling an external API as fast as possible can get you blocked or incur extra cost. | Insert a sleep, use a token\u2011bucket/leaky\u2011bucket algorithm, or rely on the API client\u2019s built\u2011in rate\u2011limit handling. |\n| **No retry logic** | Transient network glitches cause permanent failure. | Implement exponential back\u2011off with a limited number of retries (e.g., using `tenacity` or a custom loop). |\n| **No batching of DB writes** | Calling `db.save` per item can be slow and may generate many small transactions. | Accumulate results in a list and call a bulk\u2011insert method (`db.save_many`) or wrap the loop in a single transaction. |\n| **No logging / observability** | Hard to debug production issues or",
-  "score": 0,
+  "score": 5,
   "cost": 7.875e-05,
   "expected": "",
   "tokens": {
     "input": 75,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

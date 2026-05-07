@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 7,
   "response": "Here is a pytest\u2011style test suite that exercises the happy path, edge cases, and error conditions for `remove_duplicates`.\n\n```python\n# test_remove_duplicates.py\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# from mymodule import remove_duplicates\ndef remove_duplicates(lst: list) -> list:  # local copy for self\u2011contained example\n    seen = set()\n    result = []\n    for item in lst:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result\n\n\n# ---------- Happy path ----------\ndef test_remove_duplicates_happy_path():\n    \"\"\"Basic case with a mix of duplicates and unique items.\"\"\"\n    src = [1, 2, 2, 3, 1, 4, 5, 3]\n    expected = [1, 2, 3, 4, 5]\n    assert remove_duplicates(src) == expected\n\n\ndef test_remove_duplicates_preserves_order():\n    \"\"\"Ensure the first occurrence order is kept.\"\"\"\n    src = ['a', 'b', 'a', 'c', 'b', 'd']\n    expected = ['a', 'b', 'c', 'd']\n    assert remove_duplicates(src) == expected\n\n\n# ---------- Edge cases ----------\ndef test_remove_duplicates_empty_list():\n    \"\"\"An empty input should return an empty list.\"\"\"\n    assert remove_duplicates([]) == []\n\n\ndef test_remove_duplicates_no_duplicates():\n    \"\"\"When there are no duplicates, the list is returned unchanged.\"\"\"\n    src = [10, 20, 30, 40]\n    assert remove_duplicates(src) == src  # same object is fine; values match\n\n\ndef test_remove_duplicates_all_duplicates():\n    \"\"\"All elements identical \u2192 result contains a single element.\"\"\"\n    src = [7, 7, 7, 7]\n    assert remove_duplicates(src) == [7]\n\n\ndef test_remove_duplicates_mixed_hashable_types():\n    \"\"\"Function works with any hashable types (ints, strings, tuples).\"\"\"\n    src = [1, 'a', (1, 2), 1, 'a', (1, 2), None]\n    expected = [1, 'a', (1, 2), None]\n    assert remove_duplicates(src) == expected\n\n\n# ---------- Error cases ----------\ndef test_remove_duplicates_unhashable_items_raises():\n    \"\"\"Unhashable items (e.g., list, dict) cause a TypeError.\"\"\"\n    src = [1, [2, 3], 1]  # list inside list is unhashable\n    with pytest.raises(TypeError):\n        remove_duplicates(src)\n\n\ndef test_remove_duplicates_non_iterable_raises():\n    \"\"\"Passing a non\u2011iterable (e.g., None) should raise TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        remove_duplicates(None)  # type: ignore[arg-type]\n\n\ndef test_remove_duplicates_wrong_type_raises():\n    \"\"\"Passing something that isn\u2019t iterable (e.g., int) raises TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        remove_duplicates(42)  # type: ignore[arg-type]\n```\n\n### How to run\nSave the file (e.g., `test_remove_duplicates.py`) and execute:\n\n```bash\npytest -q test_remove_duplicates.py\n```\n\nAll tests should pass, confirming that `remove_duplicates` behaves",
-  "score": 0,
+  "score": 4,
   "cost": 9.828e-05,
   "expected": "",
   "tokens": {
     "input": 92,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

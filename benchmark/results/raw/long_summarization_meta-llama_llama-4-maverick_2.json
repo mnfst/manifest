@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 2,
   "response": "Here is a summary of the text in 3-4 sentences:\n\nThe global food system is under strain due to a projected 60% increase in food demand by 2050, driven by a growing population expected to reach 9.7 billion. Climate change, water scarcity, and soil degradation are major challenges, with agriculture contributing around 25% of greenhouse gas emissions and 33% of arable land being degraded. To address these issues, solutions such as precision agriculture, alternative proteins, and regenerative farming practices are being explored. Implementing these solutions at scale while keeping food affordable for the world's poorest populations will be a significant challenge.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001326,
   "expected": "",
   "tokens": {
     "input": 364,
     "output": 130
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

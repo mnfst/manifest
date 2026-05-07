@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 20,
   "response": "Flight AA\u202f1234 flies from JFK to LAX, departing at\u202f08:30 and arriving at\u202f11:45, which gives a travel time of\u202f5\u202fhours\u202f15\u202fminutes. The service is operated by a Boeing\u202f787 in Economy class, costs\u202f$289, and maintains an on\u2011time performance of\u202f82\u202f%.",
-  "score": 0,
+  "score": 5,
   "cost": 1.602e-05,
   "expected": "",
   "tokens": {
     "input": 95,
     "output": 83
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

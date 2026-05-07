@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 11,
   "response": "**Issues found**\n\n| # | Problem | Why it\u2019s bad | How to fix it |\n|---|---------|--------------|---------------|\n| 1 | **SQL\u2011Injection via string interpolation** (`f'DELETE \u2026 WHERE id = {user_id}'`) | The `user_id` value is inserted directly into the SQL text. If an attacker can influence `user_id` (e.g., via a request parameter that isn\u2019t strictly validated as an integer), they can inject arbitrary SQL and potentially delete or modify other rows, escalate privileges, or exfiltrate data. | Use **parameterised queries** (place\u2011holders) supplied by the DB\u2011API driver. Example: `db.execute(\"DELETE FROM users WHERE id = %s\", (user_id,))`. The exact placeholder syntax depends on the driver (`?`, `%s`, `$1`, etc.). |\n| 2 | **Missing transaction boundaries** | Each `DELETE` is executed independently. If the first succeeds and the second fails (e.g., a constraint violation or a transient DB error), the database ends up in an inconsistent state (user row gone but orders/sessions still present). | Wrap the three statements in a single transaction and commit only if all succeed; roll back on any exception. Most DB\u2011API connections have `begin()`, `commit()`, and `rollback()` methods, or you can use a context manager (`with db.connection:`). |\n| 3 | **No error handling / swallowing exceptions** | If any `execute` raises, the function will propagate the exception unchecked, possibly leaking stack traces to the caller or leaving the connection in an unusable state. | Catch DB\u2011specific exceptions, log them, roll back the transaction, and return a consistent error response (e.g., `{'status': 'error', 'message': 'Deletion failed'}`) or re\u2011raise a custom application\u2011level exception. |\n| 4 | **Assuming `user_id` is safe/int** | The function does not validate that `user_id` is an integer (or that it exists). Passing a non\u2011numeric string will cause a SQL syntax error; passing a huge integer may exceed column limits. | Validate input early: `if not isinstance(user_id, int) or user_id <= 0: raise ValueError(\"Invalid user_id\")`. If the ID comes from a web request, rely on route\u2011level validation (e.g., Flask\u2019s `<int:user_id>` or Pydantic models). |\n| 5 | **Hard\u2011coded table/column names** | While not a bug per se, it makes the function fragile to schema changes (e.g., if the primary key column is renamed). | Consider using an ORM or at least a data\u2011access layer that maps model names to tables/columns, or define constants (`USERS_TABLE = \"",
-  "score": 0,
+  "score": 5,
   "cost": 8.162999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 107,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 13,
   "response": "To write unit tests for the `fizzbuzz` function using `pytest`, you can follow the structure below. This will cover the happy path, edge cases, and error cases:\n\n```python\nimport pytest\n\ndef fizzbuzz(n: int) -> str:\n    if n % 15 == 0:\n        return 'FizzBuzz'\n    elif n % 3 == 0:\n        return 'Fizz'\n    elif n % 5 == 0:\n        return 'Buzz'\n    return str(n)\n\n# Happy path tests\ndef test_fizzbuzz_happy_path():\n    assert fizzbuzz(3) == 'Fizz'\n    assert fizzbuzz(5) == 'Buzz'\n    assert fizzbuzz(15) == 'FizzBuzz'\n    assert fizzbuzz(1) == '1'\n    assert fizzbuzz(2) == '2'\n\n# Edge case tests\ndef test_fizzbuzz_edge_cases():\n    # Test with 0\n    assert fizzbuzz(0) == 'FizzBuzz'\n    # Test with negative numbers\n    assert fizzbuzz(-3) == 'Fizz'\n    assert fizzbuzz(-5) == 'Buzz'\n    assert fizzbuzz(-15) == 'FizzBuzz'\n    # Test with very large numbers\n    assert fizzbuzz(1000000000) == '1000000000'\n    assert fizzbuzz(1000000005) == 'Buzz'\n    assert fizzbuzz(1000000003) == 'Fizz'\n    assert fizzbuzz(1000000000 * 15) == 'FizzBuzz'\n\n# Error case tests\ndef test_fizzbuzz_error_cases():\n    # Test with non-integer input\n    with pytest.raises(TypeError):\n        fizzbuzz('not an integer')\n    with pytest.raises(TypeError):\n        fizzbuzz(3.14)\n    with pytest.raises(TypeError):\n        fizzbuzz(None)\n```\n\n### Explanation:\n\n1. **Happy Path Tests**:\n   - `test_fizzbuzz_happy_path`: Tests the function with typical inputs that should return 'Fizz', 'Buzz', 'FizzBuzz', and the number itself as a string.\n\n2. **Edge Case Tests**:\n   - `test_fizzbuzz_edge_cases`: Tests the function with edge cases such as 0, negative numbers, and very large numbers. This ensures the function behaves as expected in these scenarios.\n\n3. **Error Case Tests**:\n   - `test_fizzbuzz_error_cases`: Tests the function with non-integer inputs to ensure it raises a `TypeError`. Since the function is defined to take an integer, passing other types should raise an error.\n\nTo run these tests, you can use the `pytest` command in your terminal:\n\n```sh\npytest test_fizzbuzz.py\n```\n\nMake sure you have `pytest` installed. If not, you can install it using pip:\n\n```sh\npip install pytest\n```\n\nThis setup will help you ensure that the `fizzbuzz` function works correctly for a variety of inputs.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00277992,
   "expected": "",
   "tokens": {
     "input": 97,
     "output": 644
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

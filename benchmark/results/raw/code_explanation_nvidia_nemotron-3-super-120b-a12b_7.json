@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 7,
   "response": "The `lru_cache` function returns a decorator that memoizes a function\u2019s results in an `OrderedDict`, treating the dictionary as a least\u2011recently\u2011used (LRU) cache: each call looks up the arguments, moves a hit to the end to mark it as recently used, stores new results, and removes the oldest entry when the cache exceeds `maxsize`. This implements the classic LRU caching pattern.",
-  "score": 0,
+  "score": 5,
   "cost": 2.6280000000000002e-05,
   "expected": "",
   "tokens": {
     "input": 130,
     "output": 162
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

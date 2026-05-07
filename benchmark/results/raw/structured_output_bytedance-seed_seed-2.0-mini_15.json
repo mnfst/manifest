@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 15,
   "response": "{\"cpu_percent\": 78, \"memory\": {\"used_gb\": 12.4, \"total_gb\": 16}, \"disk\": {\"used_gb\": 234, \"total_gb\": 500}, \"uptime_days\": 45, \"active_connections\": 127, \"p99_latency_ms\": 145}",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002135,
   "expected": "",
   "tokens": {
     "input": 195,
     "output": 485
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

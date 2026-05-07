@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 20,
   "response": "```python\nimport pytest\n\nfrom your_module import zip_dicts  # Replace 'your_module' with the actual module name\n\n\ndef test_happy_path_multiple_dicts_with_overlapping_keys():\n    \"\"\"Test the happy path with multiple dictionaries having overlapping and unique keys.\"\"\"\n    d1 = {'a': 1, 'b': 2}\n    d2 = {'b': 3, 'c': 4}\n    result = zip_dicts(d1, d2)\n    expected = {'a': [1, None], 'b': [2, 3], 'c': [None, 4]}\n    assert result == expected\n\n\ndef test_happy_path_all_unique_keys():\n    \"\"\"Test multiple dictionaries with completely unique keys.\"\"\"\n    d1 = {'x': 10}\n    d2 = {'y': 20}\n    d3 = {'z': 30}\n    result = zip_dicts(d1, d2, d3)\n    expected = {'x': [10, None, None], 'y': [None, 20, None], 'z': [None, None, 30]}\n    assert result == expected\n\n\ndef test_happy_path_dicts_with_none_values():\n    \"\"\"Test dictionaries containing None values.\"\"\"\n    d1 = {'a': None, 'b': 2}\n    d2 = {'b': None, 'c': 4}\n    result = zip_dicts(d1, d2)\n    expected = {'a': [None, None], 'b': [2, None], 'c': [None, 4]}\n    assert result == expected\n\n\ndef test_single_dictionary():\n    \"\"\"Test with exactly one dictionary.\"\"\"\n    d1 = {'a': 1, 'b': 2}\n    result = zip_dicts(d1)\n    expected = {'a': [1], 'b': [2]}\n    assert result == expected\n\n\ndef test_no_dictionaries():\n    \"\"\"Test with zero dictionaries (empty *args).\"\"\"\n    result = zip_dicts()\n    assert result == {}\n\n\ndef test_empty_dictionaries():\n    \"\"\"Test with multiple empty dictionaries.\"\"\"\n    result = zip_dicts({}, {}, {})\n    assert result == {}\n\n\ndef test_single_empty_dictionary():\n    \"\"\"Test with a single empty dictionary.\"\"\"\n    result = zip_dicts({})\n    assert result == {}\n\n\ndef test_mixed_empty_and_non_empty():\n    \"\"\"Test mixing empty and non-empty dictionaries.\"\"\"\n    d1 = {'a': 1}\n    d2 = {}\n    d3 = {'b': 2}\n    result = zip_dicts(d1, d2, d3)\n    expected = {'a': [1, None, None], 'b': [None, None, 2]}\n    assert result == expected\n\n\ndef test_error_non_dict_iterable_argument():\n    \"\"\"Test passing a non-dict iterable (e.g., list) which fails on .get().\"\"\"\n    d1 = {'a': 1}\n    with pytest.raises(AttributeError, match=\"'list' object has no attribute 'get'\"):\n        zip_dicts(d1, [1, 2])\n\n\ndef test_error_non_iterable_argument():\n    \"\"\"Test passing a non-iterable non-dict (e.g., int) which fails on union.\"\"\"\n    d1 = {'a': 1}\n    with pytest.raises(TypeError, match=\".* object is not iterable\"):\n        zip_dicts(d1, 42)\n\n\ndef test_error_all_non_dicts():\n    \"\"\"Test when all arguments are non-dicts, failing early on union.\"\"\"\n    with pytest.raises(TypeError, match=\".* object is not iterable\"):\n        zip_dicts(42, [1, 2])\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.001153,
   "expected": "",
   "tokens": {
     "input": 225,
     "output": 1385
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

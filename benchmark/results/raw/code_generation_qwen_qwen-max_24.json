@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 24,
   "response": "if a + b > c and a + c > b and b + c > a:\n        s = (a + b + c) / 2\n        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5\n        return round(area, 2)\n    else:\n        return -1",
-  "score": 0,
+  "score": 4,
   "cost": 0.00048672,
   "expected": "",
   "tokens": {
     "input": 156,
     "output": 78
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

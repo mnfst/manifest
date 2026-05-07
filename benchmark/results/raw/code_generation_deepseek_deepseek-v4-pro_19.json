@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 19,
   "response": "return \"\".join([chr(((ord(ch) - 5 - ord(\"a\")) % 26) + ord(\"a\")) for ch in s])",
-  "score": 0,
+  "score": 3,
   "cost": 0.00068208,
   "expected": "",
   "tokens": {
     "input": 124,
     "output": 361
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

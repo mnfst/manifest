@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 23,
   "response": "mortgage banker",
-  "score": 0,
+  "score": 5,
   "cost": 2.7089999999999996e-05,
   "expected": "the mortgage banker",
   "tokens": {
     "input": 215,
     "output": 86
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

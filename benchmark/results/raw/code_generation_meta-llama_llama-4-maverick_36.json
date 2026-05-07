@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 36,
   "response": "```python\nfor i in range(n - 1, 0, -1):\n    if n % i == 0:\n        return i\n```",
-  "score": 0,
+  "score": 3,
   "cost": 3.285e-05,
   "expected": "",
   "tokens": {
     "input": 87,
     "output": 33
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

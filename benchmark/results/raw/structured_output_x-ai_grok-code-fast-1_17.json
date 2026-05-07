@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 17,
   "response": "{\"message\": \"resolve session timeout on mobile browsers.\", \"type\": \"fix\", \"scope\": \"auth\", \"author\": \"@jdoe\", \"branch\": \"fix/session-timeout\", \"files_changed\": 3, \"insertions\": 47, \"deletions\": 12, \"pr_number\": 892}",
-  "score": 0,
+  "score": 5,
   "cost": 0.0004578,
   "expected": "",
   "tokens": {
     "input": 321,
     "output": 492
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

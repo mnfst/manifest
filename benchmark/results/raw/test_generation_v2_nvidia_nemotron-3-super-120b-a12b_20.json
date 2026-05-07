@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 20,
   "response": "```python\n# test_zip_dicts.py\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# from mymodule import zip_dicts\ndef zip_dicts(*dicts):\n    \"\"\"Reference implementation \u2013 kept here so the file can be run standalone.\"\"\"\n    keys = set().union(*dicts)\n    return {k: [d.get(k) for d in dicts] for k in keys}\n\n\n# -------------------------- Happy path -------------------------- #\n\ndef test_zip_dicts_no_input():\n    \"\"\"Calling zip_dicts with no arguments should return an empty dict.\"\"\"\n    assert zip_dicts() == {}\n\n\ndef test_zip_dicts_single_dict():\n    \"\"\"A single dictionary should be zipped into lists of length 1.\"\"\"\n    d = {\"a\": 1, \"b\": 2}\n    result = zip_dicts(d)\n    assert result == {\"a\": [1], \"b\": [2]}\n\n\ndef test_zip_dicts_multiple_dicts_no_overlap():\n    \"\"\"When dictionaries have disjoint keys, each key gets a list with one\n    actual value and None for the other positions.\"\"\"\n    d1 = {\"x\": 1, \"y\": 2}\n    d2 = {\"a\": 10, \"b\": 20}\n    result = zip_dicts(d1, d2)\n    expected = {\n        \"x\": [1, None],\n        \"y\": [2, None],\n        \"a\": [None, 10],\n        \"b\": [None, 20],\n    }\n    assert result == expected\n\n\ndef test_zip_dicts_multiple_dicts_with_overlap():\n    \"\"\"Overlapping keys should collect values from each dict in order.\"\"\"\n    d1 = {\"a\": 1, \"b\": 2, \"c\": 3}\n    d2 = {\"b\": 20, \"c\": 30, \"d\": 40}\n    d3 = {\"a\": 100, \"d\": 400, \"e\": 500}\n    result = zip_dicts(d1, d2, d3)\n    expected = {\n        \"a\": [1, None, 100],\n        \"b\": [2, 20, None],\n        \"c\": [3, 30, None],\n        \"d\": [None, 40, 400],\n        \"e\": [None, None, 500],\n    }\n    assert result == expected\n\n\ndef test_zip_dicts_preserves_none_values():\n    \"\"\"If a dict explicitly stores None, it should appear in the list.\"\"\"\n    d1 = {\"a\": None, \"b\": 1}\n    d2 = {\"a\": 2, \"b\": None}\n    result = zip_dicts(d1, d2)\n    assert result == {\"a\": [None, 2], \"b\": [1, None]}\n\n\n# -------------------------- Edge cases -------------------------- #\n\ndef test_zip_dicts_with_empty_dicts():\n    \"\"\"Empty dictionaries contribute no keys but still affect list length.\"\"\"\n    d1 = {\"x\": 1}\n    d2 = {}\n    d3 = {\"y\": 2}\n    result = zip_dicts(d1, d2, d3)\n    assert result == {\"x\": [1, None, None], \"y\": [None, None, 2]}\n\n\ndef test_zip_dicts_order_preserved():\n    \"\"\"The order of the input dicts determines the order of values in the list.\"\"\"\n    d_first =",
-  "score": 0,
+  "score": 4,
   "cost": 9.765e-05,
   "expected": "",
   "tokens": {
     "input": 85,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

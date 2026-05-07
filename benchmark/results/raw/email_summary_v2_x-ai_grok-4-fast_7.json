@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 7,
   "response": "The new office at 500 Market St will be ready on June 1, with IT requiring three days for network setup from June 4-6, and the actual move scheduled for the weekend of June 7-8. Each team must designate a move coordinator by Friday, and the budget has been approved for professional movers.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00021820000000000002,
   "expected": "",
   "tokens": {
     "input": 239,
     "output": 213
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

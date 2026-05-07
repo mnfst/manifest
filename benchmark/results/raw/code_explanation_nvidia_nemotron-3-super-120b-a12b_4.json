@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 4,
   "response": "The `memoize` function is a decorator that wraps another function\u202f`f` and stores the results of each call in a dictionary keyed by the argument tuple `*args`. When the wrapped function is invoked, it first checks the cache; if the arguments have been seen before it returns the cached value, otherwise it computes `f(*args)`, saves the result, and returns it \u2014 implementing the memoization (top\u2011down dynamic programming) pattern to avoid redundant computations.",
-  "score": 0,
+  "score": 5,
   "cost": 1.5570000000000002e-05,
   "expected": "",
   "tokens": {
     "input": 75,
     "output": 98
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

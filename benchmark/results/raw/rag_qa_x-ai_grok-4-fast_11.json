@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 11,
   "response": "10% of the carbon stores in ecosystems, of the order of 1.1 \u00d7 10^11 metric tonnes of carbon.\n\n## Explanation\n\nThe reasoning process begins by examining the question, which seeks the amount of the world's carbon stored in the Amazon forest, and requires an answer based solely on the provided context. The context explicitly states that \"Amazonian evergreen forests account for about 10% of the carbon stores in ecosystems\u2014of the order of 1.1 \u00d7 1011 metric tonnes of carbon.\" This directly addresses the query by specifying both the proportional share (10%) and the estimated total quantity (1.1 \u00d7 10^11 metric tonnes). The term \"carbon stores in ecosystems\" in the context is interpreted as equivalent to the world's carbon in this environmental discussion, as it refers to global ecosystem carbon. No additional information outside the context is used, ensuring the response aligns precisely with the given details.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0004916,
   "expected": "10% of the carbon stores",
   "tokens": {
     "input": 314,
     "output": 536
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 10,
   "response": "The Q1 board deck draft indicates the company exceeded its revenue target at 127% and achieved an NRR of 115%, though CAC rose by 22%. Please submit your product roadmap section by Wednesday to incorporate into the deck for the board meeting next Tuesday.",
-  "score": 0,
+  "score": 5,
   "cost": 1.2780000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 87,
     "output": 55
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

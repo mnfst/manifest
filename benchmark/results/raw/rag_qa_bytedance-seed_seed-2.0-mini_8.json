@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 8,
   "response": "36% of UK households.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0003509,
   "expected": "36%",
   "tokens": {
     "input": 225,
     "output": 821
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

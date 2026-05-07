@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 49,
   "response": "**Code Review**\n\n### Overview\n\nThe provided code defines an `async` function `withTimeout` that takes a `promise` and a timeout duration `ms` as input. It returns a new promise that resolves or rejects based on the original promise or a timeout condition.\n\n### Bugs and Issues\n\n1. **Uninformative Error Message**: The rejection message 'timeout' is not very informative. It would be better to include the timeout duration in the error message.\n2. **Lack of Input Validation**: The function does not validate its inputs. If `ms` is not a positive number, the timeout will not work as expected. If `promise` is not a promise, the function may not behave correctly.\n3. **Unnecessary `async` Keyword**: The function is declared as `async`, but it does not use `await`. The `async` keyword is unnecessary here.\n\n### Security Issues\n\n1. **Uncaught Rejection**: If the input `promise` rejects with an unhandled error, it will not be caught by this function. While this is not a security issue per se, it's worth noting that the caller should be aware of this behavior.\n\n### Improvements\n\n1. **Input Validation**: Add checks to ensure that `promise` is a promise and `ms` is a positive number.\n2. **Informative Error Message**: Include the timeout duration in the rejection message.\n3. **Remove Unnecessary `async` Keyword**: Remove the `async` keyword since it's not used.\n\n### Refactored Code\n\n```javascript\nfunction withTimeout(promise, ms) {\n  if (!(promise instanceof Promise)) {\n    throw new TypeError('Input is not a promise');\n  }\n  if (typeof ms !== 'number' || ms <= 0) {\n    throw new RangeError('Timeout duration must be a positive number');\n  }\n\n  return Promise.race([\n    promise,\n    new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms))\n  ]);\n}\n```\n\n### Example Usage\n\n```javascript\nwithTimeout(new Promise((resolve) => setTimeout(() => resolve('resolved'), 1000)), 500)\n  .then((result) => console.log(result))\n  .catch((error) => console.error(error)); // Output: Error: Timeout after 500ms\n\nwithTimeout(Promise.resolve('resolved'), 1000)\n  .then((result) => console.log(result))\n  .catch((error) => console.error(error)); // Output: resolved\n```\n\n### Additional Suggestions\n\n* Consider using a more specific error class (e.g., `TimeoutError`) instead of the generic `Error`.\n* If you're using a modern JavaScript environment, you can use `AbortController` and `AbortSignal` to implement timeouts, which can be more flexible and powerful. However, this would require a more significant refactor.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00036705,
   "expected": "",
   "tokens": {
     "input": 79,
     "output": 592
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 39,
   "response": "circuit switching",
-  "score": 0,
+  "score": 1,
   "cost": 4.28e-05,
   "expected": "circuit switching",
   "tokens": {
     "input": 188,
     "output": 60
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

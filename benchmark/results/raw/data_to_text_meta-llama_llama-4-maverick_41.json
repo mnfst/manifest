@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 41,
   "response": "Here is a natural language paragraph summarizing the data:\n\nJapan, a country with a population of 125 million, has a robust economy with a GDP of $4.2 trillion, although it has experienced slow growth of 1.1%. The country boasts a low unemployment rate of 2.6%, but faces challenges such as inflation at 3.2% and a high debt-to-GDP ratio of 263%. Japan's citizens enjoy a high life expectancy of 84.6 years, and the country is a significant player in global trade, exporting $756 billion worth of goods.",
-  "score": 0,
+  "score": 5,
   "cost": 9.779999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 172,
     "output": 120
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

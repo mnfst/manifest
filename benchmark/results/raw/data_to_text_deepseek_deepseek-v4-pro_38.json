@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 38,
   "response": "The production web server prod-web-01",
-  "score": 0,
+  "score": 1,
   "cost": 0.00056463,
   "expected": "",
   "tokens": {
     "input": 98,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

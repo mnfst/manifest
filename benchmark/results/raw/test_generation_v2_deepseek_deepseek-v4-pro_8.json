@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 8,
   "response": "```python\nimport pytest\nfrom your_module import binary_search  # Replace with the actual module name\n\nclass TestBinarySearch:\n    # ---------- Happy Path ----------\n    def test_target_found_at_beginning(self):\n        assert binary_search([1, 2, 3, 4, 5], 1) == 0\n\n    def test_target_found_at_end(self):\n        assert binary_search([1, 2, 3, 4, 5], 5) == 4\n\n    def test_target_found_in_middle(self):\n        assert binary_search([10, 20, 30, 40, 50], 30) == 2\n\n    def test_target_not_found_smaller_than_all(self):\n        assert binary_search([10, 20, 30], 5) == -1\n\n    def test_target_not_found_larger_than_all(self):\n        assert binary_search([10, 20, 30], 99) == -1\n\n    def test_target_not_found_in_between(self):\n        assert binary_search([10, 20, 30], 25) == -1\n\n    # ---------- Edge Cases ----------\n    def test_empty",
-  "score": 0,
+  "score": 3,
   "cost": 0.00179307,
   "expected": "",
   "tokens": {
     "input": 122,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

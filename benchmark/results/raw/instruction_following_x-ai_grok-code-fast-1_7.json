@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 7,
   "response": "### Ingredients\n- 2 eggs\n- 1 tbsp butter\n- Salt and pepper to taste\n\n### Instructions\n1. Whisk eggs in a bowl with a fork.\n2. Melt butter in a pan over medium heat.\n3. Add eggs; stir constantly for 2-3 minutes until set.\n4. Season and serve hot.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003864,
   "expected": "",
   "tokens": {
     "input": 220,
     "output": 428
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

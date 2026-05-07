@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 48,
   "response": "Strictly contained in P or equal to P.",
-  "score": 0,
+  "score": 5,
   "cost": 0.001360775,
   "expected": "strictly contained in P or equal to P",
   "tokens": {
     "input": 127,
     "output": 1015
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

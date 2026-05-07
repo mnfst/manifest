@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 41,
   "response": "```python\nthird_elements = sorted([l[i] for i in range(0, len(l), 3)])\nresult = l.copy()\nfor i, val in enumerate(third_elements):\n    result[i * 3] = val\nreturn result\n```",
-  "score": 0,
+  "score": 3,
   "cost": 6.0599999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 188,
     "output": 54
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

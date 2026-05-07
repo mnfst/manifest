@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 15,
   "response": "Based on the context, the central European country that had a Calvinist ruler is Prussia, whose ruler was referred to as the Calvinist Great Elector Frederick William.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00038063999999999996,
   "expected": "Prussia",
   "tokens": {
     "input": 230,
     "output": 34
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

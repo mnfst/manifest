@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 43,
   "response": "Did you know that a day on Venus (the time it takes to complete one full rotation) is longer than a year on Venus (the time it takes to orbit the Sun)?",
-  "score": 0,
+  "score": 5,
   "cost": 1.107e-05,
   "expected": "",
   "tokens": {
     "input": 33,
     "output": 90
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

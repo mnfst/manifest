@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 21,
   "response": "The Platform Team proposes a cleanup sprint for 47 active feature flags, aiming to remove 15 that are fully rolled out and archive 8 that are dead code, particularly targeting the 23 from releases older than 6 months. This initiative would reduce configuration complexity and accelerate the test suite by approximately 12%.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002528,
   "expected": "",
   "tokens": {
     "input": 296,
     "output": 242
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

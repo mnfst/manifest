@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 34,
   "response": "```python\nimport pytest\n# Assuming the function is in a module named `levenshtein_module`\n# from levenshtein_module import levenshtein\n\n# Happy path tests\ndef test_identical_strings():\n    \"\"\"Distance between identical strings is 0.\"\"\"\n    assert levenshtein(\"abc\", \"abc\") == 0\n    assert levenshtein(\"\", \"\") == 0",
-  "score": 0,
+  "score": 3,
   "cost": 0.0018126449999999999,
   "expected": "",
   "tokens": {
     "input": 167,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

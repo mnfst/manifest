@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 18,
   "response": "{\"plan\": \"Pro Plan\", \"price_monthly\": 29.0, \"price_annual\": 348.0, \"start_date\": \"Jan 1 2024\", \"renewal_date\": \"Jan 1 2025\", \"payment_method\": \"Visa\", \"card_last4\": \"4242\", \"status\": \"active\"}",
-  "score": 0,
+  "score": 5,
   "cost": 0.00032920000000000003,
   "expected": "",
   "tokens": {
     "input": 318,
     "output": 332
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

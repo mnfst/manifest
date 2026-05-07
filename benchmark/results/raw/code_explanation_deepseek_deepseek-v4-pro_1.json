@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 1,
   "response": "The code performs an iterative binary search on a sorted array, repeatedly dividing the search interval in half to locate the target value efficiently in O(log n) time, and returns its index or -1 if not found.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00028449000000000004,
   "expected": "",
   "tokens": {
     "input": 106,
     "output": 137
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

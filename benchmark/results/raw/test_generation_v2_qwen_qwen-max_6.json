@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 6,
   "response": "To write unit tests for the `reverse_words` function using the `pytest` style, we'll cover the following scenarios:\n\n1. **Happy Path**: A regular string with multiple words.\n2. **Edge Cases**: \n   - An empty string.\n   - A string with a single word.\n   - A string with multiple spaces between words.\n   - A string with leading and trailing spaces.\n   - A string with special characters and numbers.\n3. **Error Cases**: \n   - Passing a non-string type (e.g., integer, list).\n\nHere is the `pytest` style unit test code:\n\n```python\nimport pytest\n\ndef reverse_words(s: str) -> str:\n    return ' '.join(s.split()[::-1])\n\ndef test_reverse_words_happy_path():\n    assert reverse_words(\"hello world\") == \"world hello\"\n    assert reverse_words(\"the quick brown fox\") == \"fox brown quick the\"\n\ndef test_reverse_words_edge_cases():\n    # Empty string\n    assert reverse_words(\"\") == \"\"\n    \n    # Single word\n    assert reverse_words(\"hello\") == \"hello\"\n    \n    # Multiple spaces between words\n    assert reverse_words(\"hello   world\") == \"world hello\"\n    \n    # Leading and trailing spaces\n    assert reverse_words(\"   hello world   \") == \"world hello\"\n    \n    # Special characters and numbers\n    assert reverse_words(\"hello123 world!@#\") == \"world!@# hello123\"\n\ndef test_reverse_words_error_cases():\n    with pytest.raises(TypeError):\n        reverse_words(123)  # Non-string input\n    with pytest.raises(TypeError):\n        reverse_words([])  # Non-string input\n    with pytest.raises(TypeError):\n        reverse_words(None)  # Non-string input\n\n# Run the tests with: pytest -v test_reverse_words.py\n```\n\n### Explanation:\n1. **Happy Path**:\n   - `test_reverse_words_happy_path`: Tests the function with a regular string and a string with multiple words. The expected output is the words in reverse order.\n\n2. **Edge Cases**:\n   - `test_reverse_words_edge_cases`: \n     - An empty string should return an empty string.\n     - A single word should return the same word.\n     - A string with multiple spaces between words should still reverse the words correctly.\n     - A string with leading and trailing spaces should trim the spaces and reverse the words.\n     - A string with special characters and numbers should be handled correctly.\n\n3. **Error Cases**:\n   - `test_reverse_words_error_cases`: \n     - The function should raise a `TypeError` when non-string inputs (e.g., integer, list, `None`) are passed.\n\nTo run these tests, you can use the `pytest` command in your terminal:\n```sh\npytest -v test_reverse_words.py\n```\n\nThis will run the tests and provide verbose output, showing which tests passed and which (if any) failed.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00258336,
   "expected": "",
   "tokens": {
     "input": 56,
     "output": 607
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

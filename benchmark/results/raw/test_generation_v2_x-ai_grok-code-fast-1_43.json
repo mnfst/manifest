@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 43,
   "response": "```python\nimport pytest\n\n# Sample functions for testing\ndef add(a, b, c=0):\n    return a + b + c\n\ndef multiply(x, y, z=1):\n    return x * y * z\n\ndef greet(name, message=\"Hello\"):\n    return f\"{message}, {name}!\"\n\ndef test_partial_happy_path():\n    # Test basic partial application with args\n    partial_add = partial(add, 1)\n    assert partial_add(2, c=3) == 6  # 1 + 2 + 3\n    assert partial_add(4) == 5  # 1 + 4 + 0\n\n    # Test partial with multiple args\n    partial_add_more = partial(add, 1, 2)\n    assert partial_add_more(c=3) == 6  # 1 + 2 + 3\n    assert partial_add_more() == 3  # 1 + 2 + 0\n\n    # Test partial with kwargs\n    partial_greet = partial(greet, message=\"Hi\")\n    assert partial_greet(\"Alice\") == \"Hi, Alice!\"\n    assert partial_greet(\"Bob\", message=\"Hey\") == \"Hey, Bob!\"  # kwargs override\n\n    # Test partial with both args and kwargs\n    partial_multiply = partial(multiply, 2, z=3)\n    assert partial_multiply(4) == 24  # 2 * 4 * 3\n    assert partial_multiply(5, z=2) == 20  # 2 * 5 * 2 (override z)\n\ndef test_partial_edge_cases():\n    # Test no partial args or kwargs (should behave like the original function)\n    partial_add_none = partial(add)\n    assert partial_add_none(1, 2, c=3) == 6\n\n    # Test partial with only args, no kwargs\n    partial_add_args_only = partial(add, 1, 2)\n    assert partial_add_args_only() == 3\n\n    # Test partial with only kwargs, no args\n    partial_greet_kwargs_only = partial(greet, message=\"Goodbye\")\n    assert partial_greet_kwargs_only(\"Charlie\") == \"Goodbye, Charlie!\"\n\n    # Test calling partial with no additional args or kwargs\n    partial_add_simple = partial(add, 1, 2, c=3)\n    assert partial_add_simple() == 6\n\n    # Test overriding partial kwargs with call kwargs\n    partial_greet_override = partial(greet, message=\"Hi\")\n    assert partial_greet_override(\"Dave\", message=\"Bye\") == \"Bye, Dave!\"\n\ndef test_partial_error_cases():\n    # Test with non-callable fn (should raise TypeError when calling wrapper)\n    partial_invalid = partial(42)  # 42 is not callable\n    with pytest.raises(TypeError):\n        partial_invalid()\n\n    # Test with too few args for the function (should raise TypeError)\n    partial_add_insufficient = partial(add, 1)  # add needs at least a and b\n    with pytest.raises(TypeError):\n        partial_add_insufficient()  # Missing b\n\n    # Test with unexpected keyword arguments (should raise TypeError if function doesn't accept them)\n    def strict_func(a, b):\n        return a + b\n    partial_strict = partial(strict_func, 1)\n    with pytest.raises(TypeError):\n        partial_strict(2, c=3)  # strict_func doesn't accept c\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.0010112,
   "expected": "",
   "tokens": {
     "input": 280,
     "output": 1194
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

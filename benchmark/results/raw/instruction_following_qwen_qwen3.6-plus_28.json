@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 28,
   "response": "Every small victory today builds the extraordinary life you will live tomorrow.",
-  "score": 0,
+  "score": 3,
   "cost": 0.0030017,
   "expected": "",
   "tokens": {
     "input": 28,
     "output": 2302
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

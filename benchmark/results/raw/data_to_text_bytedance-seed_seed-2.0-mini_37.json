@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 37,
   "response": "Christopher Nolan\u2019s 2023 historical drama Oppenheimer has a runtime of 180 minutes, carried a $100 million production budget, and grossed over $952 million globally, earning critical acclaim with an 8.3 rating on IMDb and a 93% score on Rotten Tomatoes. The lauded film also took home the Academy Award for Best Picture, cementing its place as a standout award-winning entry in the drama and history genre.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000314,
   "expected": "",
   "tokens": {
     "input": 148,
     "output": 748
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

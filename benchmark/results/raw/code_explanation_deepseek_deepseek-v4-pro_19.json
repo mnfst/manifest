@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 19,
   "response": "This code implements a **sliding window rate limiter**: it returns a function that tracks recent call timestamps and allows a new call only if fewer than `calls` have occurred within the last `period` seconds.",
-  "score": 0,
+  "score": 4,
   "cost": 0.000480675,
   "expected": "",
   "tokens": {
     "input": 105,
     "output": 250
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

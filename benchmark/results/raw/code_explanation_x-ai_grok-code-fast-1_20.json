@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 20,
   "response": "This function partitions an iterable into two separate iterators based on a given predicate: one containing elements that satisfy the predicate (using `filter`), and the other containing elements that do not (using `itertools.filterfalse`). It achieves this by duplicating the iterable with `itertools.tee` to create two independent copies, allowing both filters to consume the data without interference.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000306,
   "expected": "",
   "tokens": {
     "input": 266,
     "output": 316
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

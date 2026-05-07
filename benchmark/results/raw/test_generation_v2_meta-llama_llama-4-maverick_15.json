@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 15,
   "response": "### Unit Tests for `rotate_list` Function\n\n```python\nimport pytest\n\ndef test_rotate_list_happy_path():\n    \"\"\"Test rotation with a positive k.\"\"\"\n    lst = [1, 2, 3, 4, 5]\n    k = 2\n    expected = [4, 5, 1, 2, 3]\n    assert rotate_list(lst, k) == expected\n\ndef test_rotate_list_zero_k():\n    \"\"\"Test rotation with k = 0.\"\"\"\n    lst = [1, 2, 3, 4, 5]\n    k = 0\n    expected = [1, 2, 3, 4, 5]\n    assert rotate_list(lst, k) == expected\n\ndef test_rotate_list_k_greater_than_len():\n    \"\"\"Test rotation with k greater than the length of the list.\"\"\"\n    lst = [1, 2, 3, 4, 5]\n    k = 7\n    expected = [4, 5, 1, 2, 3]\n    assert rotate_list(lst, k) == expected\n\ndef test_rotate_list_empty_list():\n    \"\"\"Test rotation with an empty list.\"\"\"\n    lst = []\n    k = 2\n    expected = []\n    assert rotate_list(lst, k) == expected\n\ndef test_rotate_list_k_negative():\n    \"\"\"Test rotation with a negative k.\"\"\"\n    lst = [1, 2, 3, 4, 5]\n    k = -2\n    expected = [3, 4, 5, 1, 2]\n    assert rotate_list(lst, k) == expected\n\ndef test_rotate_list_k_non_integer():\n    \"\"\"Test rotation with a non-integer k.\"\"\"\n    lst = [1, 2, 3, 4, 5]\n    k = 2.5\n    with pytest.raises(TypeError):\n        rotate_list(lst, k)\n\ndef test_rotate_list_lst_non_list():\n    \"\"\"Test rotation with a non-list input.\"\"\"\n    lst = \"hello\"\n    k = 2\n    with pytest.raises(TypeError):\n        rotate_list(lst, k)\n```\n\n### Explanation\n\nThe provided unit tests cover various scenarios:\n\n1.  **Happy Path**: `test_rotate_list_happy_path` checks the function with a positive `k` and a non-empty list.\n2.  **Edge Cases**:\n\n    *   `test_rotate_list_zero_k` tests the function with `k = 0`.\n    *   `test_rotate_list_k_greater_than_len` checks the function when `k` is greater than the length of the list.\n    *   `test_rotate_list_empty_list` tests the function with an empty list.\n    *   `test_rotate_list_k_negative` checks the function with a negative `k`.\n3.  **Error Cases**:\n\n    *   `test_rotate_list_k_non_integer` tests the function with a non-integer `k` and expects a `TypeError`.\n    *   `test_rotate_list_lst_non_list` checks the function with a non-list input and expects a `TypeError`.\n\nTo make the function pass these tests, you can modify it to include type checking:\n\n```python\ndef rotate_list(lst: list, k: int) -> list:\n    if not isinstance(lst, list):\n        raise TypeError(\"Input must be a list.\")\n    if not isinstance(k, int):\n        raise TypeError(\"k must be an integer.\")\n    if not lst:\n        return lst\n    k = k % len(lst)\n    return lst[-k:] + lst[:-k]\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.00045765000000000004,
   "expected": "",
   "tokens": {
     "input": 79,
     "output": 743
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

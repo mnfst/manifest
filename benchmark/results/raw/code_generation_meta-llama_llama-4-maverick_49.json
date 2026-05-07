@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 49,
   "response": "```python\nfor i in range(len(string), -1, -1):\n    if is_palindrome(string[:i]):\n        return string + string[:i][::-1]\n```",
-  "score": 0,
+  "score": 2,
   "cost": 4.8899999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 174,
     "output": 38
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

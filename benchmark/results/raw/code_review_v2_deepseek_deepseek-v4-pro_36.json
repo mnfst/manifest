@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 36,
   "response": "**Bugs**\n1. **Unhandled invalid discount code**  \n   - *What\u2019s wrong*: If `code` is not one of `'SAVE10'`, `'SAVE20'`, or `'HALF'`, the dictionary lookup `discounts[code]` raises a `KeyError`, crashing the program.  \n   - *Fix*: Check if the code exists and raise a meaningful exception or return an error value.  \n     ```python\n     if code not in discounts:\n         raise ValueError(f\"Unknown discount code: {code}\")\n     ```\n\n2. **No input validation for `price`**  \n   - *What\u2019s wrong*: The function silently accepts negative numbers, zero, or non-numeric types (e.g., strings). A",
-  "score": 0,
+  "score": 4,
   "cost": 0.00142941,
   "expected": "",
   "tokens": {
     "input": 86,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 9,
   "response": "```python\ntotal = 0\nfor num in lst:\n    if isinstance(num, bool):\n        continue\n    if num % 1 != 0:\n        continue\n    if num < 0:\n        continue\n    if num % 2 != 0:\n        total += num ** 2\nreturn total\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.0017480000000000002,
   "expected": "",
   "tokens": {
     "input": 224,
     "output": 4314
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

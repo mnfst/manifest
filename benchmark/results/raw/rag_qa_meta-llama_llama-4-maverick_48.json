@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 48,
   "response": "Not found in context. \n\nThe context only mentions that it is not known if L is strictly contained in P or equal to P, but does not provide any information about the most commonly ascribed attributes of L in relation to P.",
-  "score": 0,
+  "score": 2,
   "cost": 4.7399999999999993e-05,
   "expected": "strictly contained in P or equal to P",
   "tokens": {
     "input": 124,
     "output": 48
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

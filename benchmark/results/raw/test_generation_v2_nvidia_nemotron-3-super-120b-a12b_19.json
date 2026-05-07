@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 19,
   "response": "Here is a **pytest** test suite that exercises the `clamp` function from all angles: normal usage, boundary/edge conditions, and error\u2011handling scenarios.\n\n```python\n# test_clamp.py\nimport pytest\nfrom your_module import clamp  # replace `your_module` with the actual module name\n\n\n# -------------------------\n# Happy\u2011path / normal cases\n# -------------------------\ndef test_clamp_returns_value_when_within_bounds():\n    \"\"\"Value inside [min_val, max_val] should be returned unchanged.\"\"\"\n    assert clamp(5.0, 0.0, 10.0) == 5.0\n    assert clamp(-3.2, -10.0, 0.0) == -3.2\n    assert clamp(0.0, -5.0, 5.0) == 0.0\n\n\ndef test_clamp_returns_min_when_value_below_min():\n    \"\"\"Values smaller than min_val are clamped to min_val.\"\"\"\n    assert clamp(-2.0, 0.0, 10.0) == 0.0\n    assert clamp(-100.0, -50.0, 50.0) == -50.0\n\n\ndef test_clamp_returns_max_when_value_above_max():\n    \"\"\"Values larger than max_val are clamped to max_val.\"\"\"\n    assert clamp(15.0, 0.0, 10.0) == 10.0\n    assert clamp(1000.0, -5.0, 5.0) == 5.0\n\n\n# -------------------------\n# Edge / boundary cases\n# -------------------------\ndef test_clamp_at_min_boundary():\n    \"\"\"When value equals min_val the result is min_val.\"\"\"\n    assert clamp(0.0, 0.0, 10.0) == 0.0\n    assert clamp(-5.0, -5.0, 5.0) == -5.0\n\n\ndef test_clamp_at_max_boundary():\n    \"\"\"When value equals max_val the result is max_val.\"\"\"\n    assert clamp(10.0, 0.0, 10.0) == 10.0\n    assert clamp(5.0, -5.0, 5.0) == 5.0\n\n\ndef test_clamp_when_min_equals_max():\n    \"\"\"If min_val == max_val the function always returns that single value.\"\"\"\n    assert clamp(0.0, 7.0, 7.0) == 7.0\n    assert clamp(-3.0, 7.0, 7.0) == 7.0\n    assert clamp(100.0, 7.0, 7.0) == 7.0\n\n\ndef",
-  "score": 0,
+  "score": 4,
   "cost": 9.666e-05,
   "expected": "",
   "tokens": {
     "input": 74,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

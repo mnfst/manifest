@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 11,
   "response": "We need to transform each sensor: compute average, min, max, and anomalies count. Anomalies: likely readings that deviate from average beyond some threshold? Not specified. Probably anomalies defined as readings that are not equal to average? Or maybe anomalies are readings that differ from average by more than some tolerance? Not given. Could be count of readings that are not equal to the average? Or maybe anomalies are readings that are outside min-max? That doesn't make sense.\n\nGiven typical tasks: compute average, min, max, and number of anomalies defined as readings that differ from the average by more than 2 standard deviations? Not given.\n\nMaybe they define anomalies as readings that are not equal to the average? Let's examine data: sensor temp_1 readings: [22.1,22.3,22.0,23.5,22.2]. Average = (22.1+22.3+22.0+23.5+22.2)=112.1? Let's sum: 22.1+22.3=44.4; +22.0=66.4; +23.5=89.9; +22.2=112.1. Divide by5 =22.42. Min=22.0, max=23.5. Anomalies maybe count of readings that differ from average by >0.5? Let's see: differences: 22.1 diff -0.32; 22.3 diff +0.08; 22.0 diff -0.42; 23.5 diff +1.08; 22.2 diff -0.22. Only 23.5 is >0.5 diff. So anomalies=1.\n\nSensor temp_2: readings [21.0,21.2,28.5,21.1,21.0]. Sum=21.0+21.2=42.2; +28.5=70.7; +21.1=91.8; +21.0=112.8. Avg=112.8/5=22.56. Min=21.",
-  "score": 0,
+  "score": 1,
   "cost": 6.021e-05,
   "expected": "",
   "tokens": {
     "input": 169,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

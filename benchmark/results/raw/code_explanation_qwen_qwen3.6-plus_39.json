@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 39,
   "response": "This code implements the **producer-consumer concurrency pattern** using a shared queue, where producers enqueue data items and signal completion by inserting a `None` \"poison pill.\" Consumers continuously dequeue and process items until they encounter the poison pill, which they re-enqueue to propagate the termination signal to all other consumers before gracefully exiting.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0010461749999999999,
   "expected": "",
   "tokens": {
     "input": 119,
     "output": 775
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

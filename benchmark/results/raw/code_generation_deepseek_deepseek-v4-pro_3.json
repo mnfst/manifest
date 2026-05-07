@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 3,
   "response": "```python\nreturn [i * xs[i] for i in range(1, len(xs))]\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.00052983,
   "expected": "",
   "tokens": {
     "input": 138,
     "output": 270
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

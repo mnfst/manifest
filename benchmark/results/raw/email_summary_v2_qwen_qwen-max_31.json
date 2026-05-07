@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 31,
   "response": "The email proposes introducing a 'Starter' pricing tier at $29/month, which includes 5 users, 10K API calls, and email support, aimed at recovering 15% of users who churn due to pricing, potentially adding $180K in annual recurring revenue. There are no explicit action items mentioned, but the proposal likely an implicit review and decision on the new pricing tier.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0004732,
   "expected": "",
   "tokens": {
     "input": 119,
     "output": 84
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

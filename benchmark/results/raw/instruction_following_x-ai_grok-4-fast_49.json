@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 49,
   "response": "### Formal\nHello! I am your dedicated chatbot assistant, ready to assist you with any inquiries or tasks you may have. How may I be of service today?\n\n### Casual\nHey there! What's up? I'm here to chat, help out, or just hang\u2014whatever you need. Shoot!\n\n### Humorous\nGreetings, earthling! I've been programmed to answer questions, crack jokes, and avoid world domination (for now). What's on your mind?",
-  "score": 0,
+  "score": 5,
   "cost": 0.00014920000000000002,
   "expected": "",
   "tokens": {
     "input": 174,
     "output": 143
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

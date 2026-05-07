@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 0,
   "response": "The Q3 budget review revealed that marketing exceeded its budget by 15% due to the August campaign, while engineering was 8% under budget due to delayed hiring. Sarah proposes reallocating $50K from engineering to marketing to cover the overspend and requests a discussion on Thursday to review the proposal.",
-  "score": 0,
+  "score": 5,
   "cost": 5.174999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 97,
     "output": 62
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

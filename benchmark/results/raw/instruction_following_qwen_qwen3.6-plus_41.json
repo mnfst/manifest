@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 41,
   "response": "Here is a complete, Google-style docstring for a typical sort function:\n\n```python\n\"\"\"Sorts a list of elements in ascending or descending order.\n\nThis function returns a new sorted list from the items in `data`. The sorting\nis stable, meaning that when multiple records have the same key, their original\norder is preserved.\n\nArgs:\n    data (list): The list of elements to be sorted.\n    key (callable, optional): A function of one argument that is used to extract\n        a comparison key from each element in `data`. Defaults to None, which\n        means the elements are compared directly.\n    reverse (bool, optional): If True, the list elements are sorted as if each\n        comparison were reversed. Defaults to False.\n\nReturns:\n    list: A new list containing all elements from `data` in sorted order.\n\nRaises:\n    TypeError: If `data` is not iterable or if elements are not comparable.\n    ValueError: If `key` is provided but is not callable.\n\nExamples:\n    >>> sort_data([3, 1, 4, 1, 5])\n    [1, 1, 3, 4, 5]\n    >>> sort_data(['apple', 'banana', 'cherry'], key=len)\n    ['apple', 'cherry', 'banana']\n    >>> sort_data([3, 1, 4, 1, 5], reverse=True)\n    [5, 4, 3, 1, 1]\n\"\"\"\n```\n\n### Key Google Style Conventions Used:\n- **One-line summary** followed by a blank line and a more detailed description.\n- **`Args:`** section with `name (type): description` format. Multi-line descriptions are indented 4 spaces.\n- **`Returns:`** section with `type: description` format.\n- **`Raises:`** section documenting expected exceptions.\n- **`Examples:`** section using standard `>>>` doctest prompts.\n- Consistent 4-space indentation throughout, matching PEP 257 and Google's Python Style Guide.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0035685000000000005,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 2739
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

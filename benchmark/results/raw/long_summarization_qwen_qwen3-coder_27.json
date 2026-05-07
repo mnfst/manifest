@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 27,
   "response": "The EU's General Data Protection Regulation (GDPR), effective since May 2018, established comprehensive data protection requirements for any organization processing EU residents' data, including rights to access, erasure, and data portability, along with strict breach reporting deadlines and potential fines up to 4% of global revenue or 20 million euros. Major tech companies have faced significant penalties, including Meta's 1.2 billion euro fine in 2023, Amazon's 746 million euro fine, and Google's multiple fines totaling over 200 million euros. GDPR has influenced similar legislation globally, including California's CCPA, Brazil's LGPD, and India's data protection laws, though critics argue it creates compliance burdens that disproportionately affect small businesses and has inconsistent enforcement across EU member states. Despite these challenges, GDPR has established data privacy as a fundamental right and set the global standard for data protection legislation.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00023672,
   "expected": "",
   "tokens": {
     "input": 320,
     "output": 189
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

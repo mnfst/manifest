@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 31,
   "response": "The email proposes adding a new 'Starter' pricing tier at $29/month to reduce customer churn, targeting the 40% of lost users who cite price as their reason for leaving. The proposed tier would include 5 users, 10K API calls, and email support, with a projected recovery of 15% of price-churned users, generating $180K in annual recurring revenue.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00010362,
   "expected": "",
   "tokens": {
     "input": 119,
     "output": 88
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

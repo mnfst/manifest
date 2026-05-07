@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 29,
   "response": "DNA, or deoxyribonucleic acid, is a molecule that contains the genetic instructions used in the development and functioning of all known living organisms and many viruses. It is typically found in the nucleus of cells and consists of two long strands forming a double helix structure, with sequences of nucleotides encoding the information for proteins and traits.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00017720000000000002,
   "expected": "",
   "tokens": {
     "input": 170,
     "output": 179
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

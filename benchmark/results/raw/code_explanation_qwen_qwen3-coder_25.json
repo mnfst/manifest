@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 25,
   "response": "This code implements the **Observer design pattern** (also known as Publish-Subscribe) through an `EventEmitter` class that allows objects to subscribe to named events and be notified when those events are triggered. The algorithm maintains a dictionary mapping event names to lists of callback functions, where `on()` registers callbacks, `emit()` executes all callbacks for a given event with provided arguments, and `off()` removes specific callbacks from events.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00010164000000000001,
   "expected": "",
   "tokens": {
     "input": 118,
     "output": 86
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

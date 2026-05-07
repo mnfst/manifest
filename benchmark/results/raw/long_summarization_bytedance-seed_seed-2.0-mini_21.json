@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 21,
   "response": "Quantum computing is a fundamentally different computational model than classical systems, which rely on binary bits limited to either 0 or 1, by utilizing qubits that can exist in a superposition of both states; this trait, combined with quantum entanglement and interference, allows quantum computers to solve certain problems exponentially faster than classical machines, with industry leaders including IBM, Google, IonQ, and Rigetti developing quantum hardware using distinct approaches like superconducting circuits, trapped ions, photonics, and topological qubits.\nIn 2019, Google claimed a historic quantum supremacy milestone, completing a targeted calculation in just 200 seconds that would take a classical supercomputer 10,000 years to finish, though practical quantum computing faces significant barriers: qubits are extremely fragile and require cooling to near absolute zero, error rates remain high and demand extensive error correction that uses multiple physical qubits per single logical qubit, and current quantum systems only host 100 to 1000 qubits, though experts estimate millions may be needed for fully useful real-world applications.\nDespite these technical hurdles, quantum computing holds considerable promise for high-impact fields such as drug discovery, materials science, cryptography, and optimization, with major corporations already experimenting with early quantum algorithms for use cases like financial modeling and logistics.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0007647,
   "expected": "",
   "tokens": {
     "input": 323,
     "output": 1831
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

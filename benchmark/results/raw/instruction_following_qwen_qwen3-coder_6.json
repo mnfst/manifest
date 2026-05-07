@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 6,
   "response": "The ocean waves crashed thunderously.",
-  "score": 0,
+  "score": 3,
   "cost": 1.0120000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 18,
     "output": 7
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

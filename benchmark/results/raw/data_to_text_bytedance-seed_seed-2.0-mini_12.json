@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 12,
   "response": "Founded in 1861, the Massachusetts Institute of Technology (MIT) claims the #1 university ranking, with a student body of 11,500 and a faculty of 1,069 members. With an exceptionally low 3.9% acceptance rate, MIT charges an annual tuition of $57,590, holds a $24.6 billion endowment, and is associated with 98 Nobel laureates.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0008267000000000001,
   "expected": "",
   "tokens": {
     "input": 155,
     "output": 2028
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

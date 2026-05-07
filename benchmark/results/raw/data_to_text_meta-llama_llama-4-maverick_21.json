@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 21,
   "response": "Here is a natural language paragraph summarizing the data:\n\nChristopher Nolan's 2023 film \"Oppenheimer\" is a drama/history epic that ran for 180 minutes and was made on a budget of $100 million. The movie was a massive commercial success, grossing $952 million at the box office and earning widespread critical acclaim with an 8.3 IMDB rating and 93% Rotten Tomatoes score. \"Oppenheimer\" was also recognized at the Oscars, taking home the award for Best Picture.",
-  "score": 0,
+  "score": 5,
   "cost": 7.8e-05,
   "expected": "",
   "tokens": {
     "input": 100,
     "output": 105
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

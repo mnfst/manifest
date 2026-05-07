@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 27,
   "response": "Here is a **pytest** test suite that exercises the `interleave` function from all angles \u2013 normal usage, boundary/edge conditions, and error\u2011handling scenarios.\n\n```python\n# test_interleave.py\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# Example: from mymodule import interleave\nfrom mymodule import interleave  # <-- replace `mymodule` with the actual module name\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path / typical usage\n# ----------------------------------------------------------------------\ndef test_interleave_equal_length():\n    \"\"\"Both lists have the same length.\"\"\"\n    a = [1, 2, 3]\n    b = ['a', 'b', 'c']\n    assert interleave(a, b) == [1, 'a', 2, 'b', 3, 'c']\n\n\ndef test_interleave_a_longer():\n    \"\"\"First list is longer than the second.\"\"\"\n    a = [1, 2, 3, 4]\n    b = ['x', 'y']\n    assert interleave(a, b) == [1, 'x', 2, 'y', 3, 4]\n\n\ndef test_interleave_b_longer():\n    \"\"\"Second list is longer than the first.\"\"\"\n    a = [True, False]\n    b = [10, 20, 30, 40]\n    assert interleave(a, b) == [True, 10, False, 20, 30, 40]\n\n\ndef test_interleave_one_empty():\n    \"\"\"One of the lists is empty.\"\"\"\n    a = []\n    b = [1, 2, 3]\n    assert interleave(a, b) == [1, 2, 3]\n\n    a = ['a', 'b']\n    b = []\n    assert interleave(a, b) == ['a', 'b']\n\n\ndef test_interleave_both_empty():\n    \"\"\"Both lists are empty.\"\"\"\n    assert interleave([], []) == []\n\n\ndef test_interleave_preserves_input():\n    \"\"\"Original lists must not be mutated.\"\"\"\n    a = [1, 2, 3]\n    b = ['x', 'y']\n    a_copy = a.copy()\n    b_copy = b.copy()\n    _ = interleave(a, b)\n    assert a == a_copy\n    assert b == b_copy\n\n\ndef test_interleave_mixed_types():\n    \"\"\"Elements can be of any type \u2013 the function is agnostic to content.\"\"\"\n    a = [None, 0, False, \"\"]\n    b = [1, [], {}, set()]\n    expected = [None, 1, 0, [], False, {}, \"\", set()]\n    assert interleave(a, b) == expected\n\n\n# ----------------------------------------------------------------------\n# Edge cases\n# ----------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"a,b,expected\",\n    [\n        # Single\u2011element lists\n        ([1], [2], [1, 2]),\n        # Large lists (stress test \u2013 still cheap)\n        (list(range(1000)), list(range(1000, 2000)),\n         [x for pair in zip(range(1000), range(1000, 2000)) for x in pair]),\n    ],\n)\ndef test_interleave_parametrized(a, b, expected):\n    \"\"\"Parametrized checks for a few representative edge cases.\"\"\"\n    assert interleave(a, b) == expected\n\n\n# ----------------------------------------------------------------------\n# Error cases \u2013 the function expects sequences that support len",
-  "score": 0,
+  "score": 5,
   "cost": 9.881999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 98,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 0,
   "response": "Lake \u00dcberlingen",
-  "score": 0,
+  "score": 1,
   "cost": 5.97e-05,
   "expected": "Lake \u00dcberlingen",
   "tokens": {
     "input": 281,
     "output": 79
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

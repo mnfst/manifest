@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 6,
   "response": "This function recursively flattens arbitrarily nested lists into a single-level generator using a depth-first traversal pattern, leveraging `yield from` to delegate to recursive calls for sublists and `yield` to output individual non-list elements.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00070265,
   "expected": "",
   "tokens": {
     "input": 74,
     "output": 522
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

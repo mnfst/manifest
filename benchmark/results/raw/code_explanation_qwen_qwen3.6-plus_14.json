@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 14,
   "response": "This function implements **Dijkstra's algorithm** to compute the shortest path distances from a starting node to all other reachable nodes in a weighted graph. It uses a **min-heap priority queue** to greedily process the closest unvisited node first, applying **edge relaxation** and **lazy deletion** to efficiently update and track optimal distances.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00094185,
   "expected": "",
   "tokens": {
     "input": 154,
     "output": 686
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

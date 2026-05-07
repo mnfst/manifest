@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 46,
   "response": "Subject: Farewell and Thanks\n\nDear Team,\n\nAs I prepare to move on to new adventures, I want to express my heartfelt gratitude for the incredible support and camaraderie we've shared over the years. Working alongside each of you has been a true highlight of my career, filled with laughter, challenges, and countless successes. I'll cherish the memories of our team meetings, late-night brainstorming sessions, and the way we've grown together. Please keep in touch\u2014my personal email is [your email], and I'd love to hear about your future endeavors. Wishing you all continued prosperity and joy in everything you do.\n\nBest regards,  \n[Your Name]",
-  "score": 0,
+  "score": 5,
   "cost": 0.00026240000000000004,
   "expected": "",
   "tokens": {
     "input": 216,
     "output": 274
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

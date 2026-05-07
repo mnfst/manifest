@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 48,
   "response": "The internet's history began in the 1960s with U.S. Department of Defense-funded research, leading to the creation of ARPANET, which sent its first message in 1969. The adoption of TCP/IP protocols in 1983 and the invention of the World Wide Web by Tim Berners-Lee in 1989 laid the foundation for the modern internet, which became more accessible to the public with the launch of the Mosaic web browser in 1993. Despite the dot-com boom and crash in the late 1990s and early 2000s, the internet continued to evolve with the rise of social media, mobile internet, and cloud computing, connecting over 5 billion people and transforming various aspects of modern life.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00103584,
   "expected": "",
   "tokens": {
     "input": 336,
     "output": 165
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

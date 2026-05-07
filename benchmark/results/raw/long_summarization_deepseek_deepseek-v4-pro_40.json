@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 40,
   "response": "The internet originated in the 1960s as a U.S. Defense Department project, with ARPANET's first message in 1969, and evolved through key milestones like the 1983 adoption of TCP/IP, Tim Berners-Lee's 1989 creation of the World Wide Web, and the 1993 launch of the Mosaic browser. The dot-com era, rise of social media, mobile internet after the 2007 iPhone, and cloud computing expanded its reach, and today it connects over 5 billion people.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0006564149999999999,
   "expected": "",
   "tokens": {
     "input": 309,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

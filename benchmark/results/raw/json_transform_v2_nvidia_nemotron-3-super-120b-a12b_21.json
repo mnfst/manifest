@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 21,
   "response": "We need to compute subtotal = sum(qty * price). Items: A1: 2*29.99 = 59.98. B2: 1*49.99 = 49.99. Subtotal = 109.97.\n\nDiscount = subtotal * discount_pct / 100 = 109.97 * 0.10 = 10.997. Probably round? Not specified. Keep as number maybe with two decimals? Could keep as 10.997. But typical currency rounding to two decimals: 11.00? Not sure. We'll keep as 10.997.\n\nShipping = 5.99.\n\nTotal = subtotal - discount + shipping = 109.97 - 10.997 + 5.99 = 104.963? Let's compute: 109.97 - 10.997 = 98.973. +5.99 = 104.963.\n\nItem_count = sum of qty = 2+1 = 3.\n\nReturn JSON with fields: order_id string, subtotal number, discount number, shipping number, total number, item_count number.\n\nWe'll output numbers maybe with two decimal places? Could keep as computed. Might be better to round to two decimals for currency. Let's round subtotal to 2 decimals: 109.97 (already). Discount: 10.997 -> 11.00? If rounding to two decimals: 11.00. Shipping: 5.99. Total: subtotal - discount + shipping using rounded? If discount rounded to 11.00, then total = 109.97 - 11.00 + 5.99 = 104.96. That seems plausible.\n\nBut not specified rounding. Usually they'd expect two decimal places. I'll output with two decimal places.\n\nThus:\n\n{\n  \"order_id\": \"ORD-001\",\n  \"subtotal\": 109.97,\n  \"discount\": 11.0,\n  \"shipping\": 5",
-  "score": 0,
+  "score": 3,
   "cost": 5.931e-05,
   "expected": "",
   "tokens": {
     "input": 159,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

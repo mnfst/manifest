@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 0,
   "response": "**Lake \u00dcberlingen**\n\nThe context states: \"A small fraction of the flow is diverted off the island of Mainau into Lake \u00dcberlingen.\"",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002208,
   "expected": "Lake \u00dcberlingen",
   "tokens": {
     "input": 380,
     "output": 181
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 12,
   "response": "**Code review**\n\n```python\nclass UserService:\n    def __init__(self):\n        self.db = DatabaseConnection()\n    def get_user(self, id):\n        return self.db.query(f'SELECT * FROM users WHERE id = {id}')\n```\n\n---\n\n## 1. Security Issues  \n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **SQL Injection** \u2013 the `id` value is interpolated directly into the SQL string with an f\u2011string. | An attacker can supply a value like `1 OR 1=1; DROP TABLE users;--` and execute arbitrary SQL. | Use **parameterised queries** (prepared statements) so the driver treats the value as data, not SQL. Example: `self.db.query(\"SELECT * FROM users WHERE id = %s\", (id,))` (syntax depends on the DB\u2011API). |\n| **Over\u2011selection (`SELECT *`)** \u2013 returns every column, potentially exposing sensitive data (password hashes, tokens, PII). | If the table later gains new columns (e.g., `reset_token`, `ssn`) the service will unintentionally leak them. | Explicitly list the columns you need: `SELECT id, username, email, created_at FROM users WHERE id = %s`. |\n| **Missing authentication/authorization check** \u2013 the method does not verify that the caller is allowed to read the requested user record. | This can lead to **Insecure Direct Object Reference (IDOR)**: a user can enumerate IDs and view other users\u2019 data. | Add a check: ensure the requesting user\u2019s ID matches `id` (or that they have an appropriate role/permission) before executing the query. |\n| **No input validation / type safety** \u2013 the method accepts any object that can be placed in an f\u2011string. | Passing a non\u2011numeric string will cause a SQL error or, worse, be treated as SQL if the driver does not quote it. | Validate that `id` is an integer (or the expected type) and optionally that it is within a sensible range. |\n| **Potential resource leak** \u2013 the `DatabaseConnection` instance is created once per `UserService` but the code never shows closing the connection or handling errors. | Long\u2011running processes may exhaust DB connections or leave them in an inconsistent state. | Use a context manager or connection pool, and ensure connections are returned/closed after use (e.g., `with self.db.cursor() as cur:`). |\n| **No error handling** \u2013 exceptions from `self.db.query` will propagate unchecked, possibly exposing stack traces to users. | Leaks internal details and makes the service harder to debug in production. | Catch DB\u2011specific exceptions, log them internally, and raise a generic application\u2011level error (or return `None`/raise a custom `UserNotFound`). |\n\n---\n\n## 2. Correctness / Robustness Issues  \n\n| Issue | Impact | Fix",
-  "score": 0,
+  "score": 5,
   "cost": 8.001e-05,
   "expected": "",
   "tokens": {
     "input": 89,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

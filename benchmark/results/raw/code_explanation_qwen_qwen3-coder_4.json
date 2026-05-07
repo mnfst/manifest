@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 4,
   "response": "This code implements a **memoization decorator** that caches the results of function calls to avoid redundant computations. It uses a dictionary (`cache`) to store previously computed results keyed by the function's arguments, and the `wrapper` function checks if a result exists in the cache before calling the original function `f`.",
-  "score": 0,
+  "score": 5,
   "cost": 7.128e-05,
   "expected": "",
   "tokens": {
     "input": 76,
     "output": 62
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

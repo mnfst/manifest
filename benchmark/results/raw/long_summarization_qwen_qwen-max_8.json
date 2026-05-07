@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 8,
   "response": "The evolution of artificial intelligence (AI) has spanned from Alan Turing's foundational questions to the transformative impact of the 2017 transformer architecture, which spurred the development of advanced models like GPT. Despite facing setbacks during the AI winters of the 1970s and 1980s, AI has seen a significant resurgence with deep learning in the 2010s, leading to a competitive race among major tech companies such as OpenAI, Google, Anthropic, and Meta. The rapid advancement of AI has also raised critical concerns about safety, regulation, and economic impacts, including job displacement and the need for alignment, with regulatory efforts like the EU AI Act and US executive orders aiming to address these issues.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0007914399999999999,
   "expected": "",
   "tokens": {
     "input": 157,
     "output": 151
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

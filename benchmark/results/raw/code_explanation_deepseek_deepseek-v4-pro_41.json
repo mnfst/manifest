@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 41,
   "response": "This code calculates a",
-  "score": 0,
+  "score": 1,
   "cost": 0.00039758999999999997,
   "expected": "",
   "tokens": {
     "input": 114,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

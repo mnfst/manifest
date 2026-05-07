@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 7,
   "response": "This code implements a decorator that adds an **LRU (Least Recently Used) cache** to a function, storing results keyed by positional arguments in an `OrderedDict`. When the cache exceeds `maxsize`, the least recently accessed entry is evicted via `popitem(last=False)`, and each cache hit uses `move",
-  "score": 0,
+  "score": 4,
   "cost": 0.000400635,
   "expected": "",
   "tokens": {
     "input": 121,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

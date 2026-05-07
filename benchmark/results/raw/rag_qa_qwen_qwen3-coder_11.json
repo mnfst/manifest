@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 11,
   "response": "Based on the provided context, the Amazonian forests contain about 10% of the world's terrestrial carbon stores, which is estimated to be of the order of 1.1 \u00d7 10^11 metric tonnes of carbon.",
-  "score": 0,
+  "score": 5,
   "cost": 8.272e-05,
   "expected": "10% of the carbon stores",
   "tokens": {
     "input": 180,
     "output": 49
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

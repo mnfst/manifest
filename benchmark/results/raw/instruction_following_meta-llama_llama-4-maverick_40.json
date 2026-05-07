@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 40,
   "response": "Here are 5 capital cities, one from each of the 5 continents:\n\n1. Africa: Cairo (Egypt)\n2. Asia: Tokyo (Japan)\n3. Europe: Paris (France)\n4. North America: Washington, D.C. (United States)\n5. South America: Bras\u00edlia (Brazil)\n\nLet me know if you'd like me to name capitals from other continents, like Australia/Oceania (e.g., Canberra, Australia) or Antarctica (which has no permanent capital city, as it's not governed by a single country)!",
-  "score": 0,
+  "score": 5,
   "cost": 6.975e-05,
   "expected": "",
   "tokens": {
     "input": 25,
     "output": 110
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

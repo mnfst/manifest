@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 5,
   "response": "return max(l)",
-  "score": 0,
+  "score": 2,
   "cost": 9.340000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 166,
     "output": 192
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

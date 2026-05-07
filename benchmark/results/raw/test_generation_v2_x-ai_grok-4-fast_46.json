@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 46,
   "response": "```python\nimport pytest\n\nfrom your_module import unique_permutations  # Replace 'your_module' with the actual module name\n\n\ndef test_empty_list():\n    \"\"\"Happy path: Empty list should return a list containing an empty list.\"\"\"\n    assert unique_permutations([]) == [[]]\n\n\ndef test_single_element():\n    \"\"\"Happy path: Single element list should return itself wrapped in a list.\"\"\"\n    assert unique_permutations([1]) == [[1]]\n\n\ndef test_two_unique_elements():\n    \"\"\"Happy path: Two unique elements should return both permutations.\"\"\"\n    assert set(map(tuple, unique_permutations([1, 2]))) == {(1, 2), (2, 1)}\n\n\ndef test_two_identical_elements():\n    \"\"\"Happy path with duplicates: Two identical elements should return only one unique permutation.\"\"\"\n    assert unique_permutations([1, 1]) == [[1, 1]]\n\n\ndef test_three_unique_elements():\n    \"\"\"Happy path: Three unique elements should return all 6 permutations.\"\"\"\n    result = unique_permutations([1, 2, 3])\n    assert len(result) == 6\n    assert set(map(tuple, result)) == {\n        (1, 2, 3), (1, 3, 2), (2, 1, 3), (2, 3, 1), (3, 1, 2), (3, 2, 1)\n    }\n\n\ndef test_with_duplicates():\n    \"\"\"Happy path with duplicates: [1,1,2] should return 3 unique permutations.\"\"\"\n    result = unique_permutations([1, 1, 2])\n    assert len(result) == 3\n    assert set(map(tuple, result)) == {(1, 1, 2), (1, 2, 1), (2, 1, 1)}\n\n\ndef test_all_identical_elements():\n    \"\"\"Edge case: All identical elements should return only one permutation.\"\"\"\n    assert unique_permutations([5, 5, 5]) == [[5, 5, 5]]\n\n\ndef test_mixed_duplicates_longer_list():\n    \"\"\"Edge case: Longer list with mixed duplicates [1,2,2,3] should return unique permutations (4! / 2! = 12).\"\"\"\n    result = unique_permutations([1, 2, 2, 3])\n    assert len(result) == 12\n    # Verify no duplicates in result\n    assert len(set(map(tuple, result))) == 12\n\n\ndef test_non_list_input():\n    \"\"\"Error case: Non-list input should raise TypeError on len().\"\"\"\n    with pytest.raises(TypeError):\n        unique_permutations(42)\n\n\ndef test_empty_string_list():\n    \"\"\"Edge case: List with empty string (hashable).\"\"\"\n    assert unique_permutations([\"\", \"a\"]) == [[\"\", \"a\"], [\"a\", \"\"]]\n\n\ndef test_non_hashable_elements():\n    \"\"\"Error case: Elements that are not hashable (e.g., lists) should raise TypeError on set.add().\"\"\"\n    with pytest.raises(TypeError):\n        unique_permutations([1, [2, 3]])  # [2,3] is not hashable\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.0009518,
   "expected": "",
   "tokens": {
     "input": 271,
     "output": 1122
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

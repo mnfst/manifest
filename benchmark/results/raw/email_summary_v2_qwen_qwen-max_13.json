@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 13,
   "response": "The Q1 report shows positive trends with an NPS of 62, support CSAT at 4.3/5, and a reduced churn rate of 1.2%, along with top feature requests including SSO, custom dashboards, and an API rate limit increase. Additionally, there are three enterprise expansions in the pipeline, amounting to $800K.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00045136,
   "expected": "",
   "tokens": {
     "input": 122,
     "output": 78
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

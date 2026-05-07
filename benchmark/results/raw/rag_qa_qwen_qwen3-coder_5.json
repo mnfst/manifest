@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 5,
   "response": "Based on the context provided, the Rhine Bridge mentioned is located at Arnhem. The text specifically states that \"The Rhine bridge at Arnhem\" was \"a central focus of the battle for Arnhem, during the failed Operation Market Garden of September 1944.\"",
-  "score": 0,
+  "score": 5,
   "cost": 0.00010625999999999999,
   "expected": "Arnhem",
   "tokens": {
     "input": 243,
     "output": 60
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 8,
   "response": "36%\n\n## Explanation\n\nThe reasoning process begins by examining the question, which asks for the target percentage of households BSkyB aimed to reach. Next, the relevant part of the context is identified: the statement that BSkyB confirmed reaching its target, with its service available in 36% of UK households, representing over 25 million people. This directly links the 36% figure to the achievement of the target announced in 2004. The context does not mention any other percentage as the target, confirming that 36% is the specific value referenced. Thus, the answer is derived solely from this explicit connection in the provided text.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00035,
   "expected": "36%",
   "tokens": {
     "input": 322,
     "output": 357
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

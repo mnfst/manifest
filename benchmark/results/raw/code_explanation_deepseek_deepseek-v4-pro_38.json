@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 38,
   "response": "This code implements **consistent hashing with virtual nodes** (replicas) to distribute items across a set of nodes. It builds a hash ring by hashing each node replica, then provides a function that maps a given item to the nearest node on the ring using binary search (bisect) and wraps around using modulo.",
-  "score": 0,
+  "score": 4,
   "cost": 0.000434565,
   "expected": "",
   "tokens": {
     "input": 131,
     "output": 217
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

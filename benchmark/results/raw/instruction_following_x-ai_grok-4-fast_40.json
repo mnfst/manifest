@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 40,
   "response": "1. London (Europe)  \n2. Tokyo (Asia)  \n3. Cairo (Africa)  \n4. Washington, D.C. (North America)  \n5. Bras\u00edlia (South America)",
-  "score": 0,
+  "score": 5,
   "cost": 0.000198,
   "expected": "",
   "tokens": {
     "input": 170,
     "output": 205
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

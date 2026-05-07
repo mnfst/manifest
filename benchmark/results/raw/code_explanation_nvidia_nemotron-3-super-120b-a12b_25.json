@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 25,
   "response": "The code implements a classic **publish\u2011subscribe (event emitter) pattern**: it stores, in a dictionary (`_events`), a list of callback functions for each event name, allowing `on` to subscribe a function to an event, `emit` to invoke all subscribed functions for that event with the given arguments, and `off` to unsubscribe a specific function. The underlying algorithm is a simple map\u2011from\u2011event\u2011to\u2011list of handlers, iterating over that list when emitting.",
-  "score": 0,
+  "score": 5,
   "cost": 1.953e-05,
   "expected": "",
   "tokens": {
     "input": 117,
     "output": 100
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

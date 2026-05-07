@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 7,
   "response": "This code implements an LRU (Least Recently Used) cache decorator that limits the cache size to `maxsize`. It uses an `OrderedDict` to store function call arguments and results, moving accessed items to the end for recency tracking, evicting the oldest (least recently used) entry when the limit is exceeded to ensure efficient memory usage.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002506,
   "expected": "",
   "tokens": {
     "input": 317,
     "output": 234
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

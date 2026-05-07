@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 6,
   "response": "**Code under review**\n\n```javascript\nfunction updateUser(req, res) {\n  const { id, role } = req.body;\n  db.query('UPDATE users SET role = $1 WHERE id = $2', [role, id]);\n  res.json({ success: true });\n}\n```\n\n---\n\n## 1. Bugs / Logical Issues  \n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **No error handling** \u2013 the `db.query` call is fire\u2011and\u2011forgot. If the query fails (connection loss, constraint violation, syntax error, etc.) the client still receives `{ success: true }`. | Hide failures, make debugging impossible, and can leave the DB in an inconsistent state. | Wrap the query in a `try / catch` (or use `.catch` if the library returns a promise) and return an appropriate error response. |\n| **Assuming the query always affects a row** \u2013 no check whether the `UPDATE` actually modified anything (e.g., non\u2011existent `id`). | Client may think the update succeeded when it didn\u2019t. | Inspect the result (`result.rowCount` for `pg`) and respond with `404 Not Found` or a similar status if no rows were updated. |\n| **Synchronous\u2011looking function** \u2013 if `db.query` returns a Promise (most modern Node PG drivers do), the function is effectively asynchronous but is not declared `async`/`await`. | The `res.json` will run before the query finishes, causing a race condition. | Declare the handler as `async function updateUser(req, res) { \u2026 }` and `await db.query(...)`. |\n| **Missing validation of input types** \u2013 `id` is expected to be an integer, `role` a string from an allowed set. Passing a string for `id` or a malicious payload for `role` will still be sent to the DB. | Could cause unexpected DB behavior (e.g., casting errors) or allow privilege escalation if role values are not restricted. | Validate that `id` is a valid number (or UUID, depending on your schema) and that `role` belongs to a whitelist (`['user','moderator','admin']`). |\n| **No authentication / authorization check** \u2013 any caller can change any user\u2019s role. | Severe privilege\u2011escalation vulnerability. | Ensure the request is authenticated (e.g., via JWT, session) and that",
-  "score": 0,
+  "score": 4,
   "cost": 8.064e-05,
   "expected": "",
   "tokens": {
     "input": 96,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

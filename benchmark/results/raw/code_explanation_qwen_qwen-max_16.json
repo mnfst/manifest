@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 16,
   "response": "This code defines an asynchronous function `gather_with_limit` that runs a list of coroutines (`coros`) concurrently but limits the number of coroutines that can run simultaneously to `limit`. It uses a semaphore to control the concurrency, ensuring that no more than `limit` coroutines are active at any given time, and it leverages `asyncio.gather` to manage and await all the coroutines.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00043680000000000005,
   "expected": "",
   "tokens": {
     "input": 88,
     "output": 83
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

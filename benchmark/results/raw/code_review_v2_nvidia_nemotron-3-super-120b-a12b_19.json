@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 19,
   "response": "**Overview**\n\nThe function tries to return a cached price from `localStorage`, falling back to a network request if nothing is cached.  \nWhile the idea is sound, the current implementation has several **bugs**, **security\u2011related weaknesses**, and **missed opportunities for robustness and maintainability**.\n\nBelow is a detailed walk\u2011through of what is",
-  "score": 0,
+  "score": 4,
   "cost": 8.289e-05,
   "expected": "",
   "tokens": {
     "input": 121,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 13,
   "response": "### Unit Tests for FizzBuzz Function\n\nThe following tests cover the happy path, edge cases, and error cases for the `fizzbuzz` function.\n\n```python\nimport pytest\n\ndef test_fizzbuzz_happy_path():\n    \"\"\"Test fizzbuzz function with numbers that are multiples of 3, 5, and 15.\"\"\"\n    assert fizzbuzz(3) == 'Fizz'\n    assert fizzbuzz(5) == 'Buzz'\n    assert fizzbuzz(15) == 'FizzBuzz'\n    assert fizzbuzz(30) == 'FizzBuzz'\n\ndef test_fizzbuzz_non_multiples():\n    \"\"\"Test fizzbuzz function with numbers that are not multiples of 3 or 5.\"\"\"\n    assert fizzbuzz(1) == '1'\n    assert fizzbuzz(2) == '2'\n    assert fizzbuzz(4) == '4'\n\ndef test_fizzbuzz_edge_cases():\n    \"\"\"Test fizzbuzz function with edge cases (0, negative numbers).\"\"\"\n    assert fizzbuzz(0) == 'FizzBuzz'\n    assert fizzbuzz(-3) == 'Fizz'\n    assert fizzbuzz(-5) == 'Buzz'\n    assert fizzbuzz(-15) == 'FizzBuzz'\n\ndef test_fizzbuzz_type_error():\n    \"\"\"Test fizzbuzz function with non-integer input.\"\"\"\n    with pytest.raises(TypeError):\n        fizzbuzz('a')\n    with pytest.raises(TypeError):\n        fizzbuzz(3.5)\n\ndef test_fizzbuzz_input_validation():\n    \"\"\"Test fizzbuzz function with valid and invalid inputs.\"\"\"\n    # Test with valid integer input\n    assert fizzbuzz(10) == 'Buzz'\n    \n    # Test with invalid input type\n    with pytest.raises(TypeError):\n        fizzbuzz(None)\n    with pytest.raises(TypeError):\n        fizzbuzz([1, 2, 3])\n    with pytest.raises(TypeError):\n        fizzbuzz({'a': 1})\n```\n\nTo make the `fizzbuzz` function more robust and testable, consider adding input validation to raise a `TypeError` when the input is not an integer.\n\n```python\ndef fizzbuzz(n: int) -> str:\n    if not isinstance(n, int):\n        raise TypeError(\"Input must be an integer.\")\n    if n % 15 == 0:\n        return 'FizzBuzz'\n    elif n % 3 == 0:\n        return 'Fizz'\n    elif n % 5 == 0:\n        return 'Buzz'\n    return str(n)\n```\n\nWith this modification, the `fizzbuzz` function will raise a `TypeError` when given non-integer input, making the tests more comprehensive.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00035654999999999997,
   "expected": "",
   "tokens": {
     "input": 101,
     "output": 569
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

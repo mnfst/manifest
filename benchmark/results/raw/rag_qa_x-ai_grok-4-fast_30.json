@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 30,
   "response": "Melbourne\n\n## Explanation\n\nThe reasoning process begins by examining the question: \"What city in Victoria is called the sporting capital of Australia?\" Next, the provided context is reviewed for relevant information. The context states: \"Culturally, Melbourne is home to a number of museums, art galleries and theatres and is also described as the 'sporting capital of Australia'.\" This directly identifies Melbourne as the city in question. The answer is derived solely from this explicit reference, confirming it is present in the context without needing external information.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000236,
   "expected": "Melbourne",
   "tokens": {
     "input": 396,
     "output": 196
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

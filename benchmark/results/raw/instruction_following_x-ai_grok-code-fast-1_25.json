@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 25,
   "response": "Invitation to Quarterly Team Strategy Meeting",
-  "score": 0,
+  "score": 1,
   "cost": 0.00024700000000000004,
   "expected": "",
   "tokens": {
     "input": 219,
     "output": 254
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

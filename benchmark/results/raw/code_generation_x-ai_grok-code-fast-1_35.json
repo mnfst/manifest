@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 35,
   "response": "unit_a = a % 10\nunit_b = b % 10\nreturn unit_a * unit_b",
-  "score": 0,
+  "score": 3,
   "cost": 0.000607,
   "expected": "",
   "tokens": {
     "input": 327,
     "output": 677
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 27,
   "response": "strongest = max(extensions, key=lambda s: sum(c.isupper() for c in s) - sum(c.islower() for c in s))\n    return f\"{class_name}.{strongest}\"",
-  "score": 0,
+  "score": 4,
   "cost": 0.00139896,
   "expected": "",
   "tokens": {
     "input": 304,
     "output": 728
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

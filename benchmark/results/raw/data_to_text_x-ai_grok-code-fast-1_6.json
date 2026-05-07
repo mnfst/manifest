@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 6,
   "response": "The server prod-web-01, located in the us-east-1 region, is currently utilizing 78% of its CPU capacity, with memory at 12.4 GB out of 16 GB and disk space at 234 GB out of 500 GB. It has maintained an uptime of 45 days, handling 127 active connections and exhibiting a P99 latency of 145ms. Additionally, the server is experiencing 3 errors per hour.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00032580000000000006,
   "expected": "",
   "tokens": {
     "input": 297,
     "output": 333
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

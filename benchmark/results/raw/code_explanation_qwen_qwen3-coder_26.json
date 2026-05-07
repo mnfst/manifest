@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 26,
   "response": "This code implements the **0/1 Knapsack problem** using **dynamic programming with a 2D table approach**. It builds up a solution by considering each item one by one and deciding whether to include it or not based on which choice (include or exclude) gives the maximum value while staying within the weight capacity.\n\nThe algorithm uses a bottom-up approach where `dp[i][w]` represents the maximum value achievable using the first `i` items with a weight capacity of `w`, filling the table iteratively until it finds the optimal solution for all items with the given capacity.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00014036000000000002,
   "expected": "",
   "tokens": {
     "input": 154,
     "output": 121
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

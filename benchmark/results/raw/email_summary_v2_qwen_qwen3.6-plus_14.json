@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 14,
   "response": "The AWS infrastructure bill has surged by 40% ($45K monthly) due to new ML training jobs running on expensive p4d instances. To control these costs, a decision is required by Friday on whether to switch to spot instances for higher savings with interruption risk or reserved instances for moderate savings with a long-term commitment.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00139555,
   "expected": "",
   "tokens": {
     "input": 118,
     "output": 1044
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

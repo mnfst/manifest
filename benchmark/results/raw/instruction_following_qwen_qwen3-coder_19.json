@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 19,
   "response": "AI is transforming how we work, create, and connect\u2014but the real magic happens when humans and machines collaborate. Let's build a future where AI amplifies our potential rather than replacing it. #AI #FutureTech #HumanPotential",
-  "score": 0,
+  "score": 4,
   "cost": 4.531999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 22,
     "output": 46
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

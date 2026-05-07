@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 41,
   "response": "```python\ndef sort_list(lst):\n    \"\"\"Sorts the input list in ascending order.\n\n    This function sorts the list in place using a stable sorting algorithm.\n\n    Args:\n        lst (list): The list of comparable elements to be sorted.\n\n    Returns:\n        None: The list is sorted in place.\n\n    Raises:\n        TypeError: If the elements in the list are not comparable.\n    \"\"\"\n    # Implementation here\n    pass\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.00033240000000000006,
   "expected": "",
   "tokens": {
     "input": 170,
     "output": 373
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 39,
   "response": "**Code snippet**\n\n```sql\nSELECT * FROM users WHERE id = \" + request.params.id + \" LIMIT 1\n```\n\n*(Assumed context: a Node/Express route that builds the query by string\u2011concatenating `request.params.id`.)*\n\n---\n\n## 1. What\u2019s wrong \u2013 bugs & correctness issues\n\n| Issue | Why it\u2019s a problem | Example of failure |\n|-------|-------------------|--------------------|\n| **String concatenation instead of parameterisation** | The query is built by literally inserting the raw value from the request into the SQL text. If the value contains SQL meta\u2011characters (`'`, `;`, `--`, `/* */`, etc.) they become part of the statement and can change its meaning. | `id = \"1 OR 1=1--\"` \u2192 `SELECT * FROM users WHERE id = 1 OR 1=1-- LIMIT 1` returns every row. |\n| **No type validation / coercion** | `request.params.id` is always a **string**. If the column `id` is numeric, the DB will implicitly cast the string, but a non\u2011numeric string (`\"abc\"`) will cause a syntax error or unexpected results. | `id = \"abc\"` \u2192 `SELECT * FROM users WHERE id = abc LIMIT 1` \u2192 column `abc` does not exist \u2192 SQL error. |\n| **`SELECT *`** | Returns every column, including ones you may not intend to expose (e.g., password hashes, tokens, PII). It also makes the query fragile to schema changes (new columns automatically appear in the result). | If a future migration adds a `",
-  "score": 0,
+  "score": 4,
   "cost": 7.776e-05,
   "expected": "",
   "tokens": {
     "input": 64,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

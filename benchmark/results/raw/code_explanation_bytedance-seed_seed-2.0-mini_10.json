@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 10,
   "response": "This code implements the optimized Sieve of Eratosthenes algorithm to generate all prime numbers between 0 and a given input integer n: it initializes a boolean array to track primality, marks 0 and 1 as non-prime, then for each candidate prime from 2 up to the square root of n, marks all multiples of that candidate starting at i\u00b2 (skipping already processed smaller multiples) as non-prime, before returning the full filtered list of primes up to n.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002542,
   "expected": "",
   "tokens": {
     "input": 190,
     "output": 588
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

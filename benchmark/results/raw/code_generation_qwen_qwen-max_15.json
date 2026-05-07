@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 15,
   "response": "i = 2\n    while i * i <= n:\n        if n % i:\n            i += 1\n        else:\n            n //= i\n    return n",
-  "score": 0,
+  "score": 3,
   "cost": 0.00026,
   "expected": "",
   "tokens": {
     "input": 102,
     "output": 37
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

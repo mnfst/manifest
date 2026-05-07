@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 24,
   "response": "The internet originated in the 1960s as a US-funded research network, with ARPANET's first message sent in 1969, and transitioned to modern TCP/IP protocols in 1983. Tim Berners-Lee's invention of the World Wide Web in 198",
-  "score": 0,
+  "score": 4,
   "cost": 0.0006564149999999999,
   "expected": "",
   "tokens": {
     "input": 309,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

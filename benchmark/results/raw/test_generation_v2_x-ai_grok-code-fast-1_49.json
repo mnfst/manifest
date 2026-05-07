@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 49,
   "response": "```python\nimport pytest\n\ndef intersection(lst1: list, lst2: list) -> list:\n    set2 = set(lst2)\n    seen = set()\n    result = []\n    for item in lst1:\n        if item in set2 and item not in seen:\n            result.append(item)\n            seen.add(item)\n    return result\n\n# Happy path tests\n@pytest.mark.parametrize(\"lst1, lst2, expected\", [\n    ([1, 2, 3, 4], [3, 4, 5, 6], [3, 4]),  # Basic intersection\n    ([1, 3, 2, 3], [3, 2], [3, 2]),  # Order preservation and duplicates in lst1\n    ([1, 2], [2, 2, 3], [2]),  # Duplicates in lst2\n    ([1, 2, 3], [1, 2, 3], [1, 2, 3]),  # All elements intersect\n    ([1], [1], [1]),  # Single element\n    (['a', 'b', 'c'], ['b', 'c', 'd'], ['b', 'c']),  # String elements\n])\ndef test_intersection_happy_path(lst1, lst2, expected):\n    assert intersection(lst1, lst2) == expected\n\n# Edge cases\n@pytest.mark.parametrize(\"lst1, lst2, expected\", [\n    ([], [1, 2], []),  # lst1 empty\n    ([1, 2], [], []),  # lst2 empty\n    ([], [], []),  # Both empty\n    ([1, 2], [3, 4], []),  # No intersection\n    ([1, 2, 2, 3], [2, 3], [2, 3]),  # Duplicates in lst1, intersection present\n    ([1, 1, 1], [1], [1]),  # Multiple duplicates in lst1\n])\ndef test_intersection_edge_cases(lst1, lst2, expected):\n    assert intersection(lst1, lst2) == expected\n\n# Error cases\n@pytest.mark.parametrize(\"lst1, lst2\", [\n    (None, [1, 2]),  # lst1 is None\n    ([1, 2], None),  # lst2 is None\n    (None, None),  # Both None\n    (\"not a list\", [1, 2]),  # lst1 is string\n    ([1, 2], \"not a list\"),  # lst2 is string\n    (123, [1, 2]),  # lst1 is int\n    ([1, 2], 123),  # lst2 is int\n])\ndef test_intersection_error_cases(lst1, lst2):\n    with pytest.raises(TypeError):\n        intersection(lst1, lst2)\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0010272,
   "expected": "",
   "tokens": {
     "input": 296,
     "output": 1210
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

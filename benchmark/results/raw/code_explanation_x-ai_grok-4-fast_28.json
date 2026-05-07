@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 28,
   "response": "This function computes the length of the longest common subsequence (LCS) between two input strings `a` and `b` using the standard dynamic programming algorithm for LCS. It constructs a 2D DP table where `dp[i][j]` stores the LCS length for the prefixes `a[0..i-1]` and `b[0..j-1]`, filling it by adding 1 to the diagonal value if characters match, or taking the maximum from the top or left cell otherwise, and returns the bottom-right cell value.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003576,
   "expected": "",
   "tokens": {
     "input": 308,
     "output": 370
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

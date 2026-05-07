@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 35,
   "response": "The function implements the Knuth\u2011Morris\u2011Pratt (KMP) string\u2011matching algorithm: it first builds the LPS (longest\u2011proper\u2011prefix\u2011which\u2011is\u2011also\u2011suffix) table for the pattern, then scans the text using that table to skip unnecessary comparisons and returns the starting index of the first occurrence of the pattern in the text (or \u20131 if not found).",
-  "score": 0,
+  "score": 5,
   "cost": 2.4119999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 185,
     "output": 83
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

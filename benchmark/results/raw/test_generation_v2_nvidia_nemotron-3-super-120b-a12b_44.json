@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 44,
   "response": "Here is a **pytest** test suite that exercises the `compose` helper from all angles \u2013 happy\u2011path usage, edge\u2011cases, and error conditions.  \nSave it as `test_compose.py` (or any name that starts with `test_`) next to the module that defines `compose`, or adjust the import accordingly.\n\n```python\n# test_compose.py\nimport pytest\n\n# Assuming the function lives in a module named `myutils.py`\n# from myutils import compose\n# For the sake of a self\u2011contained example we define it here.\ndef compose(*fns):\n    def composed(x):\n        for fn in reversed(fns):\n            x = fn(x)\n        return x\n    return composed\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path tests\n# ----------------------------------------------------------------------\ndef test_compose_with_no_functions_is_identity():\n    \"\"\"Calling compose with zero arguments should return the input unchanged.\"\"\"\n    id_func = compose()\n    assert id_func(42) == 42\n    assert id_func(\"hello\") == \"hello\"\n    assert id_func([1, 2, 3]) == [1, 2, 3]\n\n\ndef test_compose_with_single_function():\n    \"\"\"A single function should be applied directly.\"\"\"\n    def add_five(x): return x + 5\n    composed = compose(add_five)\n    assert composed(0) == 5\n    assert composed(-3) == 2\n    assert composed(3.14) == 8.14\n\n\ndef test_compose_multiple_functions_right_to_left():\n    \"\"\"Functions are applied from right\u2011most to left\u2011most.\"\"\"\n    def double(x): return x * 2\n    def increment(x): return x + 1\n    def square(x): return x * x\n\n    # compose(double, increment, square)  =>  square(increment(double(x)))\n    composed = compose(double, increment, square)\n\n    # Example 1\n    # double(2) -> 4\n    # increment(4) -> 5\n    # square(5) -> 25\n    assert composed(2) == 25\n\n    # Example 2\n    # double(0) -> 0\n    # increment(0) -> 1\n    # square(1) -> 1\n    assert composed(0) == 1\n\n    # Example 3 (negative numbers)\n    # double(-3) -> -6\n    # increment(-6) -> -5\n    #",
-  "score": 0,
+  "score": 4,
   "cost": 9.684e-05,
   "expected": "",
   "tokens": {
     "input": 76,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

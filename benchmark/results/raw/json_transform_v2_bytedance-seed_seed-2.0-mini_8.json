@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 8,
   "response": "{\"rankings\": [{\"name\": \"Ali\", \"average\": 85, \"rank\": 2}, {\"name\": \"Ben\", \"average\": 91, \"rank\": 1}, {\"name\": \"Cat\", \"average\": 73.33333333333333, \"rank\": 3}], \"class_average\": 83.11111111111111}",
-  "score": 0,
+  "score": 5,
   "cost": 0.0009915,
   "expected": "",
   "tokens": {
     "input": 179,
     "output": 2434
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

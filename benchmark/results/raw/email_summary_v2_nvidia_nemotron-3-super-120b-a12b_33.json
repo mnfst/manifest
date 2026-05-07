@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 33,
   "response": "The Q1 employee engagement survey shows an overall score of 7.8/10, above the industry average, with team collaboration highest at 8.9/10 and",
-  "score": 0,
+  "score": 4,
   "cost": 2.997e-05,
   "expected": "",
   "tokens": {
     "input": 133,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

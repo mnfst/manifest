@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 19,
   "response": "This code creates a sliding-window rate limiter factory: the outer `rate_limiter` function configures a rate limit with a maximum number of allowed calls `calls` within a time window `period`, then returns a closure `allow()` that maintains a persistent list of recent valid call timestamps. Each time `allow()` is invoked, it first prunes any stale timestamps older than the current active window (calculated as current time minus `period`), approves and logs the current call only if fewer than `calls` have been recorded in the active window, and rejects the call otherwise.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005945000000000001,
   "expected": "",
   "tokens": {
     "input": 157,
     "output": 1447
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

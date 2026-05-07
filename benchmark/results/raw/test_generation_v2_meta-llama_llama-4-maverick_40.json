@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 40,
   "response": "### Unit Tests for `rgb_to_hex` Function\n\n```python\nimport pytest\n\ndef test_rgb_to_hex_happy_path():\n    \"\"\"Test rgb_to_hex with valid RGB values.\"\"\"\n    assert rgb_to_hex(255, 255, 255) == '#ffffff'\n    assert rgb_to_hex(0, 0, 0) == '#000000'\n    assert rgb_to_hex(128, 128, 128) == '#808080'\n\ndef test_rgb_to_hex_edge_cases():\n    \"\"\"Test rgb_to_hex with edge case RGB values.\"\"\"\n    assert rgb_to_hex(0, 255, 0) == '#00ff00'\n    assert rgb_to_hex(255, 0, 0) == '#ff0000'\n    assert rgb_to_hex(0, 0, 255) == '#0000ff'\n\ndef test_rgb_to_hex_invalid_values():\n    \"\"\"Test rgb_to_hex with invalid RGB values.\"\"\"\n    with pytest.raises(ValueError):\n        rgb_to_hex(-1, 0, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(256, 0, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(0, -1, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(0, 256, 0)\n    with pytest.raises(ValueError):\n        rgb_to_hex(0, 0, -1)\n    with pytest.raises(ValueError):\n        rgb_to_hex(0, 0, 256)\n\ndef test_rgb_to_hex_non_integer_values():\n    \"\"\"Test rgb_to_hex with non-integer RGB values.\"\"\"\n    with pytest.raises(TypeError):\n        rgb_to_hex(0.5, 0, 0)\n    with pytest.raises(TypeError):\n        rgb_to_hex('0', 0, 0)\n\ndef test_rgb_to_hex_input_type():\n    \"\"\"Test rgb_to_hex with incorrect input type.\"\"\"\n    with pytest.raises(TypeError):\n        rgb_to_hex('a', 'b', 'c')\n```\n\n### Explanation\n\nThe tests cover the following cases:\n\n*   **Happy Path**: Test the function with valid RGB values.\n*   **Edge Cases**: Test the function with edge case RGB values (e.g., pure red, green, and blue).\n*   **Error Cases**:\n    *   **Invalid RGB Values**: Test the function with RGB values outside the valid range (0-255).\n    *   **Non-Integer RGB Values**: Test the function with non-integer RGB values.\n    *   **Incorrect Input Type**: Test the function with incorrect input types (e.g., strings instead of integers).\n\nThese tests ensure that the `rgb_to_hex` function behaves as expected under various scenarios.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003502499999999999,
   "expected": "",
   "tokens": {
     "input": 111,
     "output": 556
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

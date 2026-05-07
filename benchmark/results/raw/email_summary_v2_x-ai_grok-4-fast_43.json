@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 43,
   "response": "The open source license audit of 234 packages has been completed, identifying two issues: a charting library under the incompatible AGPL license and one package without any license. Legal and Engineering recommend switching the charting library to the Apache-licensed Chart.js and removing both problematic packages before the next release.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00022920000000000001,
   "expected": "",
   "tokens": {
     "input": 254,
     "output": 223
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 20,
   "response": "This function implements the **partition pattern** by splitting an iterable into two lazy iterators: one yielding elements that satisfy the predicate, and another yielding those that do not. It uses `itertools.tee` to safely duplicate the input iterator, allowing `filter` and `filterfalse` to independently traverse the data without premature consumption or requiring the original iterable to be re-iterable.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000961025,
   "expected": "",
   "tokens": {
     "input": 77,
     "output": 720
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

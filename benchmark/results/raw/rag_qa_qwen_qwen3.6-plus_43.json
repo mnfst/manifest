@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 43,
   "response": "Amazonia: Man and Culture in a Counterfeit Paradise",
-  "score": 0,
+  "score": 1,
   "cost": 0.0005434,
   "expected": "Amazonia: Man and Culture in a Counterfeit Paradise",
   "tokens": {
     "input": 268,
     "output": 351
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

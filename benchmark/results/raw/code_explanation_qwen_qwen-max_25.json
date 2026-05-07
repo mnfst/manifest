@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 25,
   "response": "The provided code defines a simple `EventEmitter` class that implements the publish-subscribe pattern. It allows registering (with `on`), unregistering (with `off`), and triggering (with `emit`) event handler functions, where each event can have multiple handlers that are called when the event is emitted.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003848,
   "expected": "",
   "tokens": {
     "input": 118,
     "output": 63
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

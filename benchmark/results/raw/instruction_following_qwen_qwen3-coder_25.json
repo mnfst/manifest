@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 25,
   "response": "Team Meeting - Project Update & Next Steps",
-  "score": 0,
+  "score": 5,
   "cost": 1.232e-05,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 8
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

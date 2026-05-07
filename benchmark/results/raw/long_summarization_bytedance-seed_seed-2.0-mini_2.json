@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 2,
   "response": "The global food system is facing unprecedented pressure, fueled by the projected 9.7 billion global population by 2050, which will require a 60% increase in total food production to meet demand. This growing need collides with multiple overlapping crises: agriculture contributes roughly 25% of global greenhouse gas emissions via deforestation, livestock methane, and fertilizer-based nitrous oxide; climate change is cutting crop yields via extreme weather; 33% of the world\u2019s arable land has lost productivity from intensive farming; key agricultural regions like the American Great Plains\u2019 Ogallala Aquifer, along with parts of India, China, and the Middle East, face critical water scarcity; and one-third of all food produced is lost or wasted between farm and fork.\n\nResearchers and policymakers are exploring a range of solutions, including precision agriculture with AI and sensors, urban vertical farming, alternative proteins like insect and cultured meat, drought-resistant genetically modified crops, regenerative farming practices, and policy reforms around subsidies, trade, and carbon pricing. The core remaining challenge is scaling these sustainable solutions at a global level while keeping food affordable and accessible for the world\u2019s poorest populations.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005587999999999999,
   "expected": "",
   "tokens": {
     "input": 348,
     "output": 1310
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 6,
   "response": "seen = {}\n    for num in numbers:\n        if num in seen:\n            seen[num] += 1\n        else:\n            seen[num] = 1\n    result = [num for num in numbers if seen[num] == 1]\n    return result",
-  "score": 0,
+  "score": 4,
   "cost": 0.0008138,
   "expected": "",
   "tokens": {
     "input": 265,
     "output": 951
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

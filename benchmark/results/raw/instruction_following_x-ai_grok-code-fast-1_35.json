@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 35,
   "response": "In the quiet town of Eldridge, where the autumn leaves whispered secrets to the wind, lived a young inventor named Lila who dreamed of building a machine that could capture dreams. One foggy morning, she stumbled upon an ancient blueprint in her grandmother's attic, detailing a device powered by moonlight and forgotten memories. Excited, Lila gathered scraps of metal and wires, working tirelessly through the night as the full moon bathed her workshop in silver light. But as she activated the contraption, a swirling vortex of colors erupted, pulling her into a realm of floating islands and talking animals. There, she met a wise old owl who revealed that her invention had unlocked a parallel world, one where dreams were currency and nightmares were banished. Returning home with a newfound wisdom, Lila vowed to use her creation to help others, forever bridging the gap between reality and imagination.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00031,
   "expected": "",
   "tokens": {
     "input": 214,
     "output": 334
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

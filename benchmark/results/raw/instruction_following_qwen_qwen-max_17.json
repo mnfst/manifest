@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 17,
   "response": "Certainly! Here's a table summarizing 3 pros and 3 cons of remote work:\n\n| Category | Pros of Remote Work | Cons of Remote Work |\n|----------|---------------------|---------------------|\n| 1.       | Flexibility         | Isolation           |\n| 2.       | Reduced Commuting   | Communication Issues|\n| 3.       | Wider Talent Pool   | Distractions at Home|\n\nThis table provides a clear and concise view of some key advantages and disadvantages associated with remote work.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00046592000000000004,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 106
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 29,
   "response": "DNA, or deoxyribonucleic acid, is a long, double-helical nucleic acid that encodes the genetic instructions guiding the development, growth, functioning, and reproduction of nearly all living organisms. It is constructed from nucleotide subunits, each featuring a sugar-phosphate backbone and one of four nitrogenous bases, with specific base pairing (adenine to thymine, cytosine to guanine) enabling reliable replication and transfer of genetic information.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00014670000000000002,
   "expected": "",
   "tokens": {
     "input": 63,
     "output": 351
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

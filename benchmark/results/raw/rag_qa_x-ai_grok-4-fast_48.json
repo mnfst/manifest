@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 48,
   "response": "L is contained in P (possibly strictly or equally).",
-  "score": 0,
+  "score": 4,
   "cost": 0.0004706,
   "expected": "strictly contained in P or equal to P",
   "tokens": {
     "input": 269,
     "output": 521
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

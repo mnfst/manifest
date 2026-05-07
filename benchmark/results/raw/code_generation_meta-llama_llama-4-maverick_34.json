@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 34,
   "response": "```python\ndef is_prime(num):\n    if num < 2:\n        return False\n    for i in range(2, int(num**0.5) + 1):\n        if num % i == 0:\n            return False\n    return True\n\nreturn x if is_prime(n) else y\n```",
-  "score": 0,
+  "score": 3,
   "cost": 6.855e-05,
   "expected": "",
   "tokens": {
     "input": 189,
     "output": 67
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

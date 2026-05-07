@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 46,
   "response": "evens = [(num, idx) for idx, num in enumerate(arr) if num % 2 == 0]\nreturn list(min(evens)) if evens else []",
-  "score": 0,
+  "score": 3,
   "cost": 0.0011375,
   "expected": "",
   "tokens": {
     "input": 415,
     "output": 2740
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

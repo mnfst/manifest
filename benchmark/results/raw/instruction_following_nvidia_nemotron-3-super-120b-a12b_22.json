@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 22,
   "response": "Dogs are loyal animals that form deep bonds with their humans. Their loyal nature makes them eager to protect and please their families. Even in difficult times, a loyal dog will stay by your side, offering comfort and affection. Training a loyal dog reinforces trust, turning obedience into a shared language of love. Ultimately, the loyal spirit of a dog reminds us that true friendship is unwavering and selfless.",
-  "score": 0,
+  "score": 5,
   "cost": 9.539999999999998e-06,
   "expected": "",
   "tokens": {
     "input": 23,
     "output": 83
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

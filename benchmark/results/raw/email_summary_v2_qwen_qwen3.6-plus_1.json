@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 1,
   "response": "A misconfigured load balancer caused a 47-minute server outage that degraded service for 12,000 users. To prevent recurrence, the team will add load balancer configuration validation to the CI pipeline, update the operational runbook, and implement traffic distribution alerts.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0010159499999999998,
   "expected": "",
   "tokens": {
     "input": 114,
     "output": 753
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

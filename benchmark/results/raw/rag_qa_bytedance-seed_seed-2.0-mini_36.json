@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 36,
   "response": "Oxygen (O\u2082) from the air.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0005531999999999999,
   "expected": "gaseous oxygen.",
   "tokens": {
     "input": 208,
     "output": 1331
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

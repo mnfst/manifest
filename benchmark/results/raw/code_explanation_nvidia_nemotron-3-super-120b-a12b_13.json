@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 13,
   "response": "The `Observable` class implements the **observer (publish\u2011subscribe) pattern**: it maintains a list of callback functions (`_observers`), lets callers add callbacks with `subscribe`, and when `notify` is invoked it iterates over that list and calls each stored function with the supplied arguments. This provides a simple way for multiple listeners to react to events emitted by an observable object.",
-  "score": 0,
+  "score": 5,
   "cost": 1.503e-05,
   "expected": "",
   "tokens": {
     "input": 88,
     "output": 79
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 27,
   "response": "Newton's First Law of Motion connects relative velocities with inertia. The text explicitly states that \"Newton's First Law directly connects inertia with the concept of relative velocities\" and explains how this connection works through the principle that the laws of physics are the same in every inertial frame of reference.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00011132,
   "expected": "Newton's First",
   "tokens": {
     "input": 274,
     "output": 58
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

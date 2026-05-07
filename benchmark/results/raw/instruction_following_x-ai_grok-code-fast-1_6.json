@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 6,
   "response": "The ocean waves crash endlessly.",
-  "score": 0,
+  "score": 1,
   "cost": 0.00016760000000000004,
   "expected": "",
   "tokens": {
     "input": 214,
     "output": 156
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

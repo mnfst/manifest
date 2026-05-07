@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 44,
   "response": "**Code under review**\n\n```python\ndef cleanup_old_files(directory, days=30):\n    import shutil\n    for f in os.listdir(directory):\n        path = os.path.join(directory, f)\n        if os.path.getmtime(path) < time.time() - days * 86400:\n            shutil.rmtree(path)\n```\n\n---\n\n## 1. Bugs / Logical Errors  \n\n| Issue | Why it\u2019s a problem | Fix |\n|-------|-------------------|-----|\n| **Missing imports** (`os`, `time`) | The function will raise `NameError` the first time it runs. | Add `import os, time, shutil` at the top of the module (or inside the function if you really want a local import). |\n| **`shutil.rmtree` used on every entry** | `shutil.rmtree` is meant for *directories* (and recursively removes their contents). If `f` is a regular file, the call will raise `NotADirectoryError` (or, on some platforms, silently delete the file but still treat it as a tree, which is confusing). | Distinguish files vs. directories: use `os.remove` (or `path.unlink()`) for files and `shutil.rmtree` only for directories. |\n| **No check for symlinks** | A symlink pointing to a directory will be treated as a directory by `os.path.getmtime` (it follows the link) and then `shutil.rmtree` will delete the *target* directory, not just the link. This can cause accidental data loss outside the intended tree. | Detect symlinks with `os.path.islink` and decide what to do (usually just `os.unlink` the link). |\n| **No error handling** | `os.listdir`, `os.path.getmtime`, `os.remove`, `shutil.rmtree` can all raise `OSError` (e.g., permission denied, file disappeared between listdir and stat). An unhandled exception will abort the whole cleanup. | Wrap the per\u2011item logic in a `try/except OSError` block, log the problem, and continue. |\n| **Potential to delete the directory itself or its parents** | If `directory` is a relative path like `\".\"` or `\"..\"` the loop will eventually try to remove it (or its parent) because `os.listdir` returns entries like `\".\"` and `\"..\"` on some platforms. | Skip entries that are `.` or `..`, or better yet, use `os.scandir` which does not return them. |\n| **Days argument not validated** | Passing a negative `days` will make the cutoff time *in the future*, causing *all* files to be considered \u201cold\u201d and deleted. | Validate `days >= 0` (or raise `ValueError`). |\n| **Timezone / leap\u2011second issues** | Using `time.time()` (seconds",
-  "score": 0,
+  "score": 5,
   "cost": 8.226e-05,
   "expected": "",
   "tokens": {
     "input": 114,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

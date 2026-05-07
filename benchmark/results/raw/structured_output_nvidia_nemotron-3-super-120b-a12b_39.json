@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 39,
   "response": "{\n  \"build_number\": 4521,\n  \"branch\": \"feature/auth-v2\",\n  \"status\": \"failed\",\n  \"failed_stage\": \"test stage\",\n  \"duration\": \"8",
-  "score": 0,
+  "score": 2,
   "cost": 5.841e-05,
   "expected": "",
   "tokens": {
     "input": 149,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

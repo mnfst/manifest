@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 27,
   "response": "The sprint retrospective highlights positives such as shipping the auth redesign on time and strong cross-team collaboration with design, while identifying improvements needed in reducing context switches from three projects and shortening standups from 25 minutes to the 15-minute target. Action items include limiting work-in-progress to two items per developer and implementing timeboxed standups with a parking lot for off-topic discussions.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002284,
   "expected": "",
   "tokens": {
     "input": 250,
     "output": 223
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

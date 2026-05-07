@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 35,
   "response": "{\"product\": \"Samsung 65-inch TV\", \"model\": \"QN65S95D\", \"serial_number\": \"SN-2024-XYZ789\", \"duration_years\": 2, \"purchase_date\": \"2024-03-01\", \"covers\": [\"manufacturer defects\"], \"excludes\": [\"accidental damage\"]}",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001905,
   "expected": "",
   "tokens": {
     "input": 177,
     "output": 432
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

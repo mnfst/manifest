@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 18,
   "response": "My favorite book feels like coming home the moment you open it, wrapped in the sharp, briny scent of a cliffside village where the sea gnaws at the stone shoreline with each high tide. It follows a quiet teen who\u2019s spent their whole life helping their grandmother tend a dusty, narrow apothecary shop crammed with dried chamomile, jarred sea glass, and tattered handwritten recipe books passed down through generations of local healers. The protagonist hoards discarded leather notebooks from the village\u2019s oldest residents, each filled with half-finished ghost stories, herbal remedies, and scribbled letters to loved ones they never sent.\n\nOne stormy night, a ragged stranger with hair streaked the color of sea foam arrives at the shop\u2019s back door, carrying a satchel full of the exact same notebooks the teen has been collecting\u2014including the one their parent left behind the day they died. The stranger reveals the village hides a secret cove where the veil between the living world and the realm of forgotten stories is frayed, and that the protagonist has a quiet, unspoken gift: they can hear the voices trapped in old, unread pages.\n\nTogether, they set out to track down a missing bound volume that holds the town\u2019s founding story, a tale that holds the only promise of slowing the sea\u2019s relentless advance. Along the way, they meet a lighthouse keeper who hasn\u2019t spoken to another person in 20 years but can recite every ocean-born poem ever written, a crew of feral children who build sandcastles that house tiny, living fables, and a wise old seagull that delivers messages between hidden coves when humans can\u2019t navigate the thick coastal fog.\n\nThere\u2019s a quiet, gut-punch moment halfway through when the grandmother passes away in her sleep, surrounded by jars of dried lavender and the faint sound of waves crashing outside, and the protagonist has to confront the fear that they\u2019ll lose all connection to their family and their home. But the stranger\u2014who turns out to be a long-lost cousin they never knew existed\u2014stays to help them pick up the pieces.\n\nThe climax unfolds at the hidden cove at midnight, as the full moon hangs low over the water: they read the restored founding story aloud to every villager who dares to cross the fog-shrouded cliffs, and as the final words leave their mouth, the waves recede just enough to reveal a",
-  "score": 0,
+  "score": 4,
   "cost": 0.0008903000000000001,
   "expected": "",
   "tokens": {
     "input": 59,
     "output": 2211
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

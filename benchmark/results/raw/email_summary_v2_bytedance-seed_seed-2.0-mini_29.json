@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 29,
   "response": "The Mobile Team alerted that the mobile app\u2019s crash rate jumped to 2.3%\u2014surpassing the 0.5% threshold\u2014after yesterday\u2019s release, with the primary crash stemming from a null pointer error in the notification handler for Android 12+ while iOS was not impacted. The team has already merged the fix for this crash and submitted an emergency release request to the Google Play Store.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001861,
   "expected": "",
   "tokens": {
     "input": 141,
     "output": 430
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

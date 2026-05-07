@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 16,
   "response": "```python\n    N = len(grid)\n    # find position of 1\n    r, c = next((i, j) for i in range(N) for j in range(N) if grid[i][j] == 1)\n    path = [1]\n    cr, cc = r, c\n    dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n    for _ in range(k - 1):\n        min_val = float('inf')\n        nr, nc = -1, -1\n        for dr, dc in dirs:\n            tr, tc = cr + dr, cc + dc\n            if 0 <= tr < N and 0 <= tc < N:\n                val = grid[tr][tc]\n                if val < min_val:\n                    min_val = val\n                    nr, nc = tr, tc\n        path.append(min_val)\n        cr, cc = nr, nc\n    return path\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.0026502,
   "expected": "",
   "tokens": {
     "input": 575,
     "output": 3169
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 7,
   "response": "Crack 2 eggs into a bowl, whisk with salt and pepper. Heat butter in a pan over medium heat. Pour in eggs and stir gently until set. Serve hot. Optional: add diced veggies or cheese for added flavor.",
-  "score": 0,
+  "score": 5,
   "cost": 4.29e-05,
   "expected": "",
   "tokens": {
     "input": 94,
     "output": 48
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 25,
   "response": "Infrastructure",
-  "score": 0,
+  "score": 1,
   "cost": 0.00016877999999999997,
   "expected": "infrastructure",
   "tokens": {
     "input": 160,
     "output": 57
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

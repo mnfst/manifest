@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 15,
   "response": "Here is a summary of the email in exactly 2 sentences:\n\nThe legal team has approved the updated terms with two changes: adding an arbitration clause for the enterprise tier and revising data retention to 90 days. The updated terms need to be finalized and go live before May 1, with the legal team preparing the final version today.",
-  "score": 0,
+  "score": 5,
   "cost": 5.684999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 103,
     "output": 69
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

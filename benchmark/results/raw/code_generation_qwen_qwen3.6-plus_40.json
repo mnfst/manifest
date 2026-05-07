@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 40,
   "response": "return round(abs(a) ** (1/3)) ** 3 == abs(a)",
-  "score": 0,
+  "score": 3,
   "cost": 0.007249450000000001,
   "expected": "",
   "tokens": {
     "input": 154,
     "output": 5538
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

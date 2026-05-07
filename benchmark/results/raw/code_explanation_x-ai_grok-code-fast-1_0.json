@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 0,
   "response": "This code defines a recursive function that computes the nth Fibonacci number, where each number in the sequence is the sum of the two preceding ones (starting from 0 and 1). It uses a recursive algorithm, breaking down the problem by calling itself for n-1 and n-2 until reaching the base cases of n \u2264 1.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00024060000000000002,
   "expected": "",
   "tokens": {
     "input": 259,
     "output": 236
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

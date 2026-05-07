@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 37,
   "response": "```json\n{\n  \"company\": \"Acme Corp\",\n  \"age_years\": 2024 - 2015,\n  \"size\": \"large\",\n  \"total_funding\": 25000000,\n  \"latest_round\": {\n    \"series\": \"B\",\n    \"amount\": 20000000\n  }\n}\n```",
-  "score": 0,
+  "score": 3,
   "cost": 7.65e-05,
   "expected": "",
   "tokens": {
     "input": 222,
     "output": 72
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

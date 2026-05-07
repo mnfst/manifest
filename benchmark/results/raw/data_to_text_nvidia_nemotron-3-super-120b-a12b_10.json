@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 10,
   "response": "Pad Thai is a Thai dish that requires 15\u202fminutes of prep time and 10\u202fminutes of cooking time, producing four servings. Each serving provides 380\u202fcalories, 22\u202fg of protein, 45\u202fg of carbohydrates, and 12\u202fg of fat, and the recipe is rated as medium difficulty.",
-  "score": 0,
+  "score": 5,
   "cost": 3.123e-05,
   "expected": "",
   "tokens": {
     "input": 114,
     "output": 233
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

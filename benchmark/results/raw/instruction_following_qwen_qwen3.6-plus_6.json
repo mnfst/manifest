@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 6,
   "response": "The ocean breathes deeply.",
-  "score": 0,
+  "score": 1,
   "cost": 0.0013676,
   "expected": "",
   "tokens": {
     "input": 20,
     "output": 1047
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

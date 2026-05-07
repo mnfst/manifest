@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 4,
   "response": "This is a Python memoization decorator that implements the caching design pattern to eliminate redundant function calculations. It creates a private cache dictionary via a closure, then returns a wrapper function that uses the tuple of positional arguments passed to the decorated function as a cache key, storing and reusing the original function\u2019s return value for identical argument sets instead of recalculating it each time.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00030490000000000004,
   "expected": "",
   "tokens": {
     "input": 125,
     "output": 731
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 13,
   "response": "This code implements the **Observer pattern**, where `subscribe` registers callback functions and `notify` invokes all registered callbacks with the provided arguments, enabling a one-to-many dependency between objects.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00021967499999999999,
   "expected": "",
   "tokens": {
     "input": 85,
     "output": 105
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 39,
   "response": "**Q: What is a VPN and what does it primarily do?**  \nA: A VPN (Virtual Private Network) creates an encrypted, secure connection (\"tunnel\") between your device and a remote server operated by the VPN service, masking your real IP address and encrypting all internet traffic passing through it.\n\n**Q: How does a VPN protect my online activity?**  \nA: By routing your traffic through its encrypted tunnel, a VPN prevents third parties (like hackers on public Wi-Fi, your ISP, or network administrators) from seeing the websites you visit, the data you send/receive, or your actual location\u2014it appears as if your traffic originates from the VPN server\u2019s location instead.\n\n**Q: Why would someone use a VPN?**  \nA: Common uses include enhancing privacy on unsecured networks (e.g., coffee shop Wi-Fi), bypassing geographic content restrictions, securing remote access to work networks, and reducing tracking by advertisers or surveillance based on your IP address. (Note: A VPN does *not* make you completely anonymous online or protect against malware/phishing.)",
-  "score": 0,
+  "score": 5,
   "cost": 4.7340000000000004e-05,
   "expected": "",
   "tokens": {
     "input": 30,
     "output": 496
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

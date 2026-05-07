@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 15,
   "response": "**Code review**\n\n```python\ndef retry_request(url, max_retries=3):\n    for i in range(max_retries):\n        try:\n            return requests.get(url, timeout=30)\n        except:\n            time.sleep(1)\n    return None\n```\n\n---\n\n## 1. Bugs / Functional Issues\n\n| # | Issue | Why it\u2019s a problem | Fix |\n|---|-------|--------------------|-----|\n| 1 | **Missing imports** (`requests`, `time`) | The function will raise `NameError` the first time it is called. | Add `import requests` and `import time` at the top of the module (or pass them in as dependencies). |\n| 2 | **Bare `except:`** | Catches *all* exceptions, including `KeyboardInterrupt`, `SystemExit`, and programming errors (e.g., `AttributeError` from a typo). This hides bugs and makes graceful shutdown impossible. | Catch only the exceptions that `requests.get` can raise that are transient: `requests.exceptions.RequestException` (or its subclasses like `ConnectionError`, `Timeout`, `HTTPError`). |\n| 3 | **No status\u2011code handling** | A successful HTTP connection that returns 4xx/5xx is still considered a success and the function returns the response object. Callers may treat a 500 as valid data. | After getting a response, call `response.raise_for_status()` (or explicitly check `response.status_code`) and treat non\u20112xx as retryable if desired. |\n| 4 | **Fixed sleep interval** | Sleeping exactly 1\u202fsecond each retry provides no back\u2011off; under load or flaky networks this can cause thundering\u2011herd behavior. | Use an exponential back\u2011off (e.g., `sleep = base * (2 ** attempt)`) with optional jitter. |\n| 5 | **Returning `None` on failure** | `None` is ambiguous \u2013 did the request succeed but return an empty body? Did all retries exhaust? Callers must remember to check for `None` and lose the underlying error information. | Either raise a custom exception after the last attempt (e.g., `RetryFailedError`) or return a tuple `(response, error)` that preserves the failure reason. |\n| 6 | **No logging /",
-  "score": 0,
+  "score": 5,
   "cost": 8.037e-05,
   "expected": "",
   "tokens": {
     "input": 93,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 46,
   "response": "The `format_currency` function has several issues ranging from bugs in formatting to potential security vulnerabilities. Below is a detailed review.\n\n---\n\n## 1. Missing Input Validation and Type Safety (Bug)\n\n**What\u2019s wrong:**  \nThe function blindly converts `amount` to a string via the f\u2011string placeholder. If `amount` is not a number, the output is nonsensical or",
-  "score": 0,
+  "score": 4,
   "cost": 0.00141288,
   "expected": "",
   "tokens": {
     "input": 48,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

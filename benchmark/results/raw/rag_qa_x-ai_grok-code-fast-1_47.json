@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 47,
   "response": "The Urarina are another group struggling in the Amazon, as they continue to fight for their cultural survival and the fate of their forested territories. This is directly stated in the context, which contrasts them with indigenous peoples in the Peruvian Amazon whose rainforest communities are disappearing due to deforestation and ecocide.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003978,
   "expected": "Urarina",
   "tokens": {
     "input": 345,
     "output": 411
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

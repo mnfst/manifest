@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 37,
   "response": "BigCo has offered $15M to acqui-hire our five-person ML team, but the CEO believes this valuation is too low. We must discuss whether to counter or politely decline the offer and notify the board before issuing a response.",
-  "score": 0,
+  "score": 5,
   "cost": 0.001163825,
   "expected": "",
   "tokens": {
     "input": 109,
     "output": 868
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

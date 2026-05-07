@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 43,
   "response": "result = []\n    for num in numbers:\n        if result:\n            result.append(delimeter)\n        result.append(num)\n    return result",
-  "score": 0,
+  "score": 3,
   "cost": 0.0004966,
   "expected": "",
   "tokens": {
     "input": 279,
     "output": 551
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

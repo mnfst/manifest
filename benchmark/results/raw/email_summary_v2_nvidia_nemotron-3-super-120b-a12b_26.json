@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 26,
   "response": "We need to summarize in exactly 2 sentences, capturing main point and any action items. The email: Received GDPR data export request from user ID 45892. Deadline: 30 days (May 25). Need: (1) all personal data across services, (2) processing purposes documentation, (3) third-party data sharing log. Legal says we must include analytics data too. - Privacy Team\n\nSo summary: A GDPR data export request from user 45892 requires providing all personal data, processing purpose docs, third-party sharing logs, and analytics data within 30 days by May 25. Action: gather and deliver the requested data by the deadline.\n\nMake exactly 2 sentences. Ensure no extra sentences. Let's craft:\n\nSentence 1: A GDPR data export request from user ID 45892 requires us to provide all personal data across services, documentation of processing purposes, a third",
-  "score": 0,
+  "score": 4,
   "cost": 2.8619999999999997e-05,
   "expected": "",
   "tokens": {
     "input": 118,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

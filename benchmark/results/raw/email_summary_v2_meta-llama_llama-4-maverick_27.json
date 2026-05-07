@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 27,
   "response": "The sprint retrospective highlighted successes such as shipping the auth redesign on time and areas for improvement including excessive context switching and lengthy standups. To address these issues, the team will implement two action items: limiting work-in-progress (WIP) to 2 items per developer and timeboxing standups with a parking lot to keep discussions on track.",
-  "score": 0,
+  "score": 5,
   "cost": 5.745e-05,
   "expected": "",
   "tokens": {
     "input": 107,
     "output": 69
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

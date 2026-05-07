@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 10,
   "response": "```python\ndef count_nums(arr):\n    count = 0\n    for num in arr:\n        digit_sum = 0\n        str_num = str(abs(num))\n        for i, digit in enumerate(str_num):\n            if num < 0 and i == 0:\n                digit_sum -= int(digit)\n            else:\n                digit_sum += int(digit)\n        if digit_sum > 0:\n            count += 1\n    return count\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.00011902,
   "expected": "",
   "tokens": {
     "input": 161,
     "output": 95
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

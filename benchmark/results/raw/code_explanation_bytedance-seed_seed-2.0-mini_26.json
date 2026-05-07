@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 26,
   "response": "This code implements the standard 2D dynamic programming solution for the 0-1 knapsack problem: it creates a DP table where `dp[i][w]` represents the maximum value attainable using the first `i` items with a total weight not exceeding `w`, fills the table by either skipping the current item or including it (if its weight fits within the current capacity), and returns the final maximum value for all items and the full given capacity.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002641,
   "expected": "",
   "tokens": {
     "input": 209,
     "output": 608
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

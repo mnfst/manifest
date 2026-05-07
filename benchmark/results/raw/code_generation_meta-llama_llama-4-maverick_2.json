@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 2,
   "response": "```python\nresult = []\nwhile lst:\n    min_val = min(lst)\n    result.append(min_val)\n    lst.remove(min_val)\n    if lst:\n        max_val = max(lst)\n        result.append(max_val)\n        lst.remove(max_val)\nreturn result\n```",
-  "score": 0,
+  "score": 4,
   "cost": 5.745e-05,
   "expected": "",
   "tokens": {
     "input": 159,
     "output": 56
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

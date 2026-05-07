@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 12,
   "response": "The email reports on the current hiring status with 4 open positions and 23 candidates in the pipeline, but expresses concern over the lack of strong candidates for the frontend role, which has been open for 60 days. The recommendation is to consider expanding the search to remote candidates or adjusting the compensation band for the frontend position.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00038376,
   "expected": "",
   "tokens": {
     "input": 101,
     "output": 67
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

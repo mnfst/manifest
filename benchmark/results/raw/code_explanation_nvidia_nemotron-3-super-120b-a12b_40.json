@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 40,
   "response": "The code implements a **circuit\u2011breaker** pattern: it tracks consecutive failures of a wrapped function (`fn`) and, after a configurable number of failures (`threshold`), switches to an \u201copen\u201d state that blocks further calls for a cooldown period (`timeout`). After the timeout elapses it moves to a \u201chalf\u2011open\u201d state, allowing a single test call; if that succeeds the breaker resets to \u201cclosed\u201d, otherwise it remains open. This prevents repeated attempts on a failing service while giving it a chance to recover.",
-  "score": 0,
+  "score": 5,
   "cost": 2.772e-05,
   "expected": "",
   "tokens": {
     "input": 201,
     "output": 107
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

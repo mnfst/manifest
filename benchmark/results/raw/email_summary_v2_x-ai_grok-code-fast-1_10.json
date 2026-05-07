@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 10,
   "response": "The CEO has attached a draft Q1 board deck highlighting strong performance with revenue at 127% of target and net revenue retention at 115%, though customer acquisition cost has risen 22%. They require the recipient's section on the product roadmap by Wednesday, ahead of the board meeting next Tuesday.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00024040000000000002,
   "expected": "",
   "tokens": {
     "input": 282,
     "output": 230
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

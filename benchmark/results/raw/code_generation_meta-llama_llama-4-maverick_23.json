@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 23,
   "response": "```python\nmin_sum = float('inf')\ncurrent_sum = 0\nfor num in nums:\n    current_sum = min(num, current_sum + num)\n    min_sum = min(min_sum, current_sum)\nreturn min_sum\n```",
-  "score": 0,
+  "score": 3,
   "cost": 4.8450000000000005e-05,
   "expected": "",
   "tokens": {
     "input": 123,
     "output": 50
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

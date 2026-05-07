@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 25,
   "response": "{\"items\": 4, \"subtotal\": 1136, \"discount_code\": \"SAVE20\", \"member_discount\": true, \"estimated_total\": 908.8}",
-  "score": 0,
+  "score": 5,
   "cost": 0.003557775,
   "expected": "",
   "tokens": {
     "input": 147,
     "output": 2700
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

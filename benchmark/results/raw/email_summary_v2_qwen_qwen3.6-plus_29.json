@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 29,
   "response": "Yesterday's release caused a significant crash rate spike on Android 12+ devices due to a null pointer error in the notification handler. The team has merged a fix and submitted an emergency release to the Play Store to resolve the issue.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0015203500000000002,
   "expected": "",
   "tokens": {
     "input": 102,
     "output": 1144
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

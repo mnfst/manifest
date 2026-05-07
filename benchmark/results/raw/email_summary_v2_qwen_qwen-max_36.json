@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 36,
   "response": "The P99 latency for the /api/v2/search endpoint increased from 200ms to 800ms due to a new full-text search query not using the index. The fix involves adding a GIN index on the content column, which is scheduled for deployment during tonight's maintenance window.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00036712,
   "expected": "",
   "tokens": {
     "input": 101,
     "output": 63
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

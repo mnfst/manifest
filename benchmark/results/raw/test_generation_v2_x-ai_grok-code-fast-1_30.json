@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 30,
   "response": "```python\nimport pytest\n\ndef test_basic_conversion():\n    \"\"\"Test happy path conversions from snake_case to camelCase.\"\"\"\n    assert snake_to_camel(\"hello_world\") == \"helloWorld\"\n    assert snake_to_camel(\"this_is_a_test\") == \"thisIsATest\"\n    assert snake_to_camel(\"a_b_c_d\") == \"aBCD\"\n\ndef test_single_word():\n    \"\"\"Test edge case with a single word (no underscores).\"\"\"\n    assert snake_to_camel(\"hello\") == \"hello\"\n    assert snake_to_camel(\"world\") == \"world\"\n\ndef test_empty_string():\n    \"\"\"Test edge case with an empty string.\"\"\"\n    assert snake_to_camel(\"\") == \"\"\n\ndef test_only_underscores():\n    \"\"\"Test edge case with a string consisting only of underscores.\"\"\"\n    assert snake_to_camel(\"___\") == \"\"\n    assert snake_to_camel(\"_\") == \"\"\n\ndef test_leading_underscore():\n    \"\"\"Test edge case with a leading underscore.\"\"\"\n    assert snake_to_camel(\"_hello\") == \"Hello\"\n    assert snake_to_camel(\"_hello_world\") == \"HelloWorld\"\n\ndef test_trailing_underscore():\n    \"\"\"Test edge case with a trailing underscore.\"\"\"\n    assert snake_to_camel(\"hello_\") == \"hello\"\n    assert snake_to_camel(\"hello_world_\") == \"helloWorld\"\n\ndef test_multiple_consecutive_underscores():\n    \"\"\"Test edge case with multiple consecutive underscores.\"\"\"\n    assert snake_to_camel(\"hello__world\") == \"helloWorld\"\n    assert snake_to_camel(\"a___b\") == \"aB\"\n\ndef test_no_underscores():\n    \"\"\"Test edge case with a string that has no underscores (already camelCase or single word).\"\"\"\n    assert snake_to_camel(\"helloWorld\") == \"helloWorld\"\n    assert snake_to_camel(\"camelCase\") == \"camelCase\"\n\ndef test_all_uppercase():\n    \"\"\"Test edge case with all uppercase letters.\"\"\"\n    assert snake_to_camel(\"HELLO_WORLD\") == \"HELLOWorld\"\n    assert snake_to_camel(\"A_B_C\") == \"ABC\"\n\ndef test_mixed_case():\n    \"\"\"Test edge case with mixed case in parts.\"\"\"\n    assert snake_to_camel(\"HeLLo_WoRLd\") == \"HeLLoWoRLd\"\n\ndef test_non_string_input():\n    \"\"\"Test error case with non-string input (raises AttributeError since split is a string method).\"\"\"\n    with pytest.raises(AttributeError):\n        snake_to_camel(123)\n    \n    with pytest.raises(AttributeError):\n        snake_to_camel(None)\n    \n    with pytest.raises(AttributeError):\n        snake_to_camel([\"hello\", \"world\"])\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.0011098,
   "expected": "",
   "tokens": {
     "input": 269,
     "output": 1320
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

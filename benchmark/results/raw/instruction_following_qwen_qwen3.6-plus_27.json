@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 27,
   "response": "### Mammals\n- Lion\n- Elephant\n- Dolphin\n\n### Birds\n- Bald Eagle\n- Emperor Penguin\n- House Sparrow\n\n### Fish\n- Atlantic Salmon\n- Clownfish\n- Bluefin Tuna",
-  "score": 0,
+  "score": 5,
   "cost": 0.000569725,
   "expected": "",
   "tokens": {
     "input": 29,
     "output": 431
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

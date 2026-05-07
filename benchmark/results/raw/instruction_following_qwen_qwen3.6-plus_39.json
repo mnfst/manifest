@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 39,
   "response": "**Q: What does VPN stand for?**  \nA: VPN stands for Virtual Private Network. It is a technology that creates a secure, encrypted connection between your device and a remote server over a public network like the internet.\n\n**Q: What is the main thing a VPN does?**  \nA: A VPN encrypts your internet traffic and routes it through a remote server, which hides your real IP address and prevents third parties (like ISPs, hackers, or advertisers) from easily monitoring or intercepting your online activity.\n\n**Q: How does a VPN work in simple terms?**  \nA: When you activate a VPN, your device creates an encrypted \"tunnel\" to a VPN server. All data you send or receive travels through this tunnel. The server then forwards your requests to the internet and returns the responses back to you, making it appear as though your traffic originates from the server's location rather than your own.\n\n**Q: Does a VPN make me completely anonymous online?**  \nA: No. A VPN hides your IP address and encrypts your connection, but it doesn't erase your digital footprint. Websites can still track you via cookies, account logins, or browser fingerprinting. Additionally, your VPN provider may log your activity unless they operate under a verified, strict no-logs policy.\n\n**Q: Can a VPN bypass geo-restrictions and censorship?**  \nA: Yes. By connecting to a server in another country, a VPN can make it look like you're browsing from that region. This allows access to location-locked streaming libraries, websites, or services. It can also help users in heavily censored regions reach the open internet, though some governments actively block VPN traffic.\n\n**Q: Will a VPN slow down my internet connection?**  \nA: It often does, but the impact varies. Encryption and routing data through a distant server add latency and can reduce bandwidth. Premium VPNs with optimized servers and modern protocols (like WireGuard) minimize slowdowns, and in some cases, a VPN can actually improve speeds by preventing ISP throttling.\n\n**Q: Is using a VPN legal?**  \nA: In most countries, yes. VPNs are legal and widely used for remote work, cybersecurity, and privacy. However, a few nations restrict or ban unauthorized VPN use, and using a VPN to facilitate illegal activities remains illegal everywhere. Always verify local regulations.\n\n**Q: Does a VPN replace antivirus or firewall software?**  \nA:",
-  "score": 0,
+  "score": 4,
   "cost": 0.0020813000000000003,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 1595
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

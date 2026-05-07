@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 34,
   "response": "{\n  \"student_id\": \"20240156\",\n  \"course_code\": \"CS301\",\n  \"course_name\": \"Algorithms\",\n  \"score\": 87,\n  \"max_score\": 100,\n  \"grade\": \"A-\",\n  \"semester\": \"Fall 2024\",\n  \"instructor\": \"Prof. Williams\"\n}",
-  "score": 0,
+  "score": 5,
   "cost": 0.00188955,
   "expected": "",
   "tokens": {
     "input": 130,
     "output": 1421
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

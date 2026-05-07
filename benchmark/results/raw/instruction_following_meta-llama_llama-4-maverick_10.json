@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 10,
   "response": "There once was a programmer named Dave,\nWhose code was always a labor to save.\nHe'd debug with great care,\nAnd refactor with flair,\nAnd his programs would run, and they'd wave.",
-  "score": 0,
+  "score": 5,
   "cost": 2.7749999999999997e-05,
   "expected": "",
   "tokens": {
     "input": 21,
     "output": 41
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 10,
   "response": "```python\nreturn sum(1 for num in arr if sum(int(digit) * (-1 if i == 0 and num < 0 else 1) for i, digit in enumerate(str(abs(num)))) != 0)\n```",
-  "score": 0,
+  "score": 3,
   "cost": 6.405e-05,
   "expected": "",
   "tokens": {
     "input": 227,
     "output": 50
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

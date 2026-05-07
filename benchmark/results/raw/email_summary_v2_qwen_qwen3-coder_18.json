@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 18,
   "response": "The VP Engineering proposes splitting the Platform team into two separate teams - Infrastructure (handling networking, compute, storage) and Developer Experience (managing CI/CD, tooling, onboarding) - to resolve the issue where developer experience work is consistently deprioritized due to infrastructure incident demands. A draft organizational chart is attached for review.",
-  "score": 0,
+  "score": 5,
   "cost": 7.986e-05,
   "expected": "",
   "tokens": {
     "input": 95,
     "output": 67
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

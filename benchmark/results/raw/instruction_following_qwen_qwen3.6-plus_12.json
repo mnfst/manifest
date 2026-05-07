@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 12,
   "response": "Think of an API like a waiter in a restaurant.\n\nWhen you sit down, you look at the menu and decide what you want. You don\u2019t walk into the kitchen to cook it yourself, and you don\u2019t need to know how the ovens work, where the ingredients are stored, or how the cooks organize their space. Instead, you simply tell the waiter your order. The waiter carries it to the kitchen, the kitchen prepares it, and the waiter brings it back to your table.\n\nAn API works exactly like that waiter. It\u2019s a simple go-between that lets one person or tool ask another for something, without needing to understand how the other side works behind the scenes. You say what you want, the go-between handles all the hidden steps, and you get back exactly what you asked for.",
-  "score": 0,
+  "score": 5,
   "cost": 0.001815125,
   "expected": "",
   "tokens": {
     "input": 25,
     "output": 1390
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

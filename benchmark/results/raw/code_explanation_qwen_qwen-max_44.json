@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 44,
   "response": "The provided Python code defines a function `connected_components` that identifies and returns all the connected components in a given graph, which is represented as a dictionary where keys are nodes and values are lists of adjacent nodes. It uses a Breadth-First Search (BFS) algorithm to explore each component of the graph, starting from unvisited nodes, and collects these components into a list. Each component is a list of nodes that are interconnected.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00050336,
   "expected": "",
   "tokens": {
     "input": 132,
     "output": 88
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

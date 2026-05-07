@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 14,
   "response": "Stay perfectly hydrated on the go with our double-walled, vacuum-insulated water bottle that keeps drinks icy cold for 24 hours or piping hot for 12. Crafted from premium, BPA-free stainless steel, it features a leak-proof lid and a sleek, ergonomic design that fits seamlessly into any bag or cup holder. Ditch single-use plastics and upgrade your daily routine with a durable, eco-friendly companion built for every adventure.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0009919,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 757
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

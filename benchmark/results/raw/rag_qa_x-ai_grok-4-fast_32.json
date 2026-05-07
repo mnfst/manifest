@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 32,
   "response": "the world's economy",
-  "score": 0,
+  "score": 1,
   "cost": 0.0003058,
   "expected": "the world's economy",
   "tokens": {
     "input": 369,
     "output": 290
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

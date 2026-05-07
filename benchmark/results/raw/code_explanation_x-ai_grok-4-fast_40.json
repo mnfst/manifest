@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 40,
   "response": "This code implements the Circuit Breaker design pattern for fault tolerance in distributed systems, which monitors consecutive failures in a wrapped function call and transitions through three states: \"closed\" (normal operation, allowing calls), \"open\" (blocking calls after exceeding a failure threshold to prevent cascading errors), and \"half-open\" (after a timeout, allowing a test call to check for recovery). On successful execution, it resets failures and returns to \"closed\"; on failure, it increments the counter and potentially opens the circuit, re-raising the exception.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00040620000000000006,
   "expected": "",
   "tokens": {
     "input": 347,
     "output": 421
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

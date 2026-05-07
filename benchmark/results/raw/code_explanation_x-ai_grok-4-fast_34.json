@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 34,
   "response": "This code implements a MinStack class that supports standard stack operations (push and pop) while enabling O(1) retrieval of the current minimum element via get_min. It employs a dual-stack pattern, where the primary stack stores all elements, and an auxiliary min_stack tracks the running minimum by pushing the min of the new value and the previous minimum (or the new value if empty) during each push, ensuring the top of min_stack always holds the current min.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00036100000000000005,
   "expected": "",
   "tokens": {
     "input": 269,
     "output": 384
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

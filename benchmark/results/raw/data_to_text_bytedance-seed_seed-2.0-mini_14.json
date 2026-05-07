@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 14,
   "response": "Team Alpha\u2019s 23rd project sprint ran from January 15 to January 26, with a planned workload of 42 story points. The team ultimately completed 38 of those planned points, finishing 8 total user stories, fixing 5 bugs, posting an average velocity of 36, encountering 2 total blockers over the sprint cycle, and earning an overall team satisfaction rating of 4.1 out of 5.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0008650000000000001,
   "expected": "",
   "tokens": {
     "input": 146,
     "output": 2126
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 4,
   "response": "{\"event_type\": \"signup\", \"date\": \"2024-03-15\", \"time\": \"14:30\", \"user_id\": \"u_123\", \"attribution\": {\"source\": \"google_ads\", \"platform\": \"mobile\"}}",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003438,
   "expected": "",
   "tokens": {
     "input": 283,
     "output": 359
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

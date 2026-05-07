@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 17,
   "response": "| Pros | Cons |\n|------|------|\n| Increased flexibility and work-life balance | Risk of social isolation and loneliness |\n| No commuting saves time and reduces stress | Blurred boundaries between work and personal life |\n| Potential for higher productivity in a personalized environment | Communication and collaboration challenges across remote teams |",
-  "score": 0,
+  "score": 5,
   "cost": 0.00020705999999999999,
   "expected": "",
   "tokens": {
     "input": 20,
     "output": 114
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

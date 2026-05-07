@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 30,
   "response": "**The provided code implements a Bloom Filter, a probabilistic data structure used for membership testing.** It utilizes multiple hash functions to map elements to a bit array, allowing for efficient and fast checks of whether an element is possibly present in the filter.",
-  "score": 0,
+  "score": 4,
   "cost": 5.3549999999999994e-05,
   "expected": "",
   "tokens": {
     "input": 161,
     "output": 49
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

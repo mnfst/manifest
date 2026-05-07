@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 39,
   "response": "```python\nif x == 0:\n    return '0'\ndigits = []\nwhile x > 0:\n    digits.append(str(x % base))\n    x = x // base\nreturn ''.join(reversed(digits))\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.0005168000000000001,
   "expected": "",
   "tokens": {
     "input": 272,
     "output": 578
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

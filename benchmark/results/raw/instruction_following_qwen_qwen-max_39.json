@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 39,
   "response": "Q: What does a VPN do?\nA: A VPN, or Virtual Private Network, creates a secure and encrypted connection over the internet, allowing users to send and receive data as if their devices were directly connected to a private network. This technology is used to protect online privacy, secure data transmission, and mask the user's IP address, making it difficult for others to track their online activities. Additionally, a VPN can help users bypass geographic restrictions, enabling access to content that might be blocked in their location.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0004472,
   "expected": "",
   "tokens": {
     "input": 22,
     "output": 102
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

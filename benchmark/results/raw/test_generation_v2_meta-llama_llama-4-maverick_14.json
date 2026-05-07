@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 14,
   "response": "### Unit Tests for `deep_get` Function\n\n```python\nimport pytest\n\ndef test_deep_get_happy_path():\n    \"\"\"Test happy path with existing keys.\"\"\"\n    d = {'a': {'b': {'c': 'value'}}}\n    assert deep_get(d, 'a.b.c') == 'value'\n\ndef test_deep_get_default_value():\n    \"\"\"Test default value when key is missing.\"\"\"\n    d = {'a': {'b': {}}}\n    assert deep_get(d, 'a.b.c', 'default') == 'default'\n\ndef test_deep_get_empty_dict():\n    \"\"\"Test empty dict.\"\"\"\n    d = {}\n    assert deep_get(d, 'a.b.c', 'default') == 'default'\n\ndef test_deep_get_empty_keys():\n    \"\"\"Test empty keys.\"\"\"\n    d = {'a': 'value'}\n    assert deep_get(d, '') == d\n\ndef test_deep_get_non_dict():\n    \"\"\"Test non-dict input.\"\"\"\n    d = 'not a dict'\n    assert deep_get(d, 'a.b.c', 'default') == 'default'\n\ndef test_deep_get_none_input():\n    \"\"\"Test None input.\"\"\"\n    d = None\n    assert deep_get(d, 'a.b.c', 'default') == 'default'\n\ndef test_deep_get_key_not_string():\n    \"\"\"Test non-string keys.\"\"\"\n    d = {'a': {'b': 'value'}}\n    with pytest.raises(AttributeError):\n        deep_get(d, 123)\n\ndef test_deep_get_key_not_dot_separated():\n    \"\"\"Test non-dot-separated keys.\"\"\"\n    d = {'a': {'b': 'value'}}\n    assert deep_get(d, 'a') == {'b': 'value'}  # This is expected behavior\n\ndef test_deep_get_nested_default():\n    \"\"\"Test default value with nested keys.\"\"\"\n    d = {'a': {}}\n    assert deep_get(d, 'a.b.c', 'default') == 'default'\n```\n\n### Notes\n\n* The `deep_get` function does not check if the `keys` argument is a string. We test this case and expect an `AttributeError` because the `split` method is called on a non-string object.\n* The function returns the default value when the input dictionary is not a dictionary or is `None`. This is tested in the `test_deep_get_non_dict` and `test_deep_get_none_input` tests.\n* The function returns the input dictionary when the `keys` argument is an empty string. This is tested in the `test_deep_get_empty_keys` test.\n* The function does not handle the case where the `keys` argument is not dot-separated. However, it still works as expected because it simply returns the value associated with the key. This is tested in the `test_deep_get_key_not_dot_separated` test. \n\nTo make the function more robust, you could add input validation to check the type of the `keys` argument and raise a `TypeError` if it's not a string. \n\n```python\ndef deep_get(d: dict, keys: str, default=None):\n    \"\"\"Get nested dict value by dot-separated keys.\"\"\"\n    if not isinstance(keys, str):\n        raise TypeError(\"keys must be a string\")\n    ...\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.00042794999999999997,
   "expected": "",
   "tokens": {
     "input": 165,
     "output": 672
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

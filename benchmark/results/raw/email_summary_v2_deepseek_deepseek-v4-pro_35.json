@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 35,
   "response": "The content moderation policy is being updated to address AI-generated content, requiring AI-generated images to be labeled, prohibiting deepfakes, and mandating disclosure for AI-assisted text.  \nEnforcement begins June 1, and training materials are being prepared.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000751245,
   "expected": "",
   "tokens": {
     "input": 95,
     "output": 408
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

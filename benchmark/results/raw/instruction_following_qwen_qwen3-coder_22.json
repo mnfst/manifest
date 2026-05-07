@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 22,
   "response": "Dogs are known for their loyal companionship, making them one of humanity's most cherished pets. Their loyal nature stems from thousands of years of domestication, where they have consistently proven themselves as faithful friends. A dog's loyal behavior is evident in how they greet their owners with excitement after even the shortest absence. Many dog breeds are specifically chosen for loyal service roles, such as police work, therapy, and search and rescue operations. The loyal bond between dogs and humans transcends mere obedience, creating deep emotional connections that last throughout the dog's lifetime. When properly trained and socialized, dogs demonstrate their loyal tendencies by protecting their families and remaining devoted through both good times and challenging circumstances. This loyal devotion is why dogs are often referred to as \"man's best friend\" across cultures worldwide.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00014608,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 160
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

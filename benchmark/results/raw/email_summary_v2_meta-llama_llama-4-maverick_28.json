@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 28,
   "response": "The annual disaster recovery test was completed, revealing a gap between the target recovery time of 4 hours and the actual time of 6 hours and 23 minutes, primarily due to a longer-than-expected database restore time. To address this gap, it is recommended to increase backup frequency and pre-provision a standby database, with the next disaster recovery test scheduled for October.",
-  "score": 0,
+  "score": 5,
   "cost": 6.15e-05,
   "expected": "",
   "tokens": {
     "input": 110,
     "output": 75
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

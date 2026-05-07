@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 2,
   "response": "```\nRed squiggles blink fast\nOne small tweak clears all the mess\nCode sings, clean and bright\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0011759000000000001,
   "expected": "",
   "tokens": {
     "input": 55,
     "output": 2926
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

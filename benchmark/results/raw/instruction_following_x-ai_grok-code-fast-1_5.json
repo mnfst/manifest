@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 5,
   "response": "As the sun dips toward the horizon, the sky transforms into a canvas of deepening oranges and purples, with the sun's edge glowing like molten gold against the fading blue. Streaks of pink and lavender stretch across the heavens, while the ocean below mirrors the hues in rippling waves. The air cools, carrying a whisper of twilight, as shadows lengthen and the world quiets in the day's final embrace.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002396,
   "expected": "",
   "tokens": {
     "input": 218,
     "output": 245
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

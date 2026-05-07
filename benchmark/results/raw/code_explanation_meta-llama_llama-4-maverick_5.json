@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 5,
   "response": "This code implements the Singleton design pattern, ensuring that only one instance of the `Singleton` class is created by overriding the `__new__` method to return the existing instance if it already exists. The algorithm used is a simple lazy initialization, where the instance is created only when the class is first instantiated.",
-  "score": 0,
+  "score": 5,
   "cost": 4.95e-05,
   "expected": "",
   "tokens": {
     "input": 78,
     "output": 63
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

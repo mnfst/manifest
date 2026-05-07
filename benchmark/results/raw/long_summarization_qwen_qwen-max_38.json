@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 38,
   "response": "The global food system faces significant challenges due to the projected increase in world population to 9.7 billion by 2050, which requires a 60% rise in food production, and the adverse effects of climate change, such as reduced crop yields and increased greenhouse gas emissions from agriculture (about 25%). Water scarcity and soil degradation further exacerbate the problem, with 33% of arable land already compromised. To address these issues, innovative solutions like precision agriculture, vertical farming, and alternative proteins are being explored, along with policy changes to support sustainable and equitable food production.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00082368,
   "expected": "",
   "tokens": {
     "input": 304,
     "output": 122
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

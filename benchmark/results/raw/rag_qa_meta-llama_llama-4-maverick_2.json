@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 2,
   "response": "Taking physical control of another country, beginning a conquest over an area, and eventually ruling over the areas the previous nation had controlled, and exploiting the valuable assets and supplies of the nation that was conquered.",
-  "score": 0,
+  "score": 4,
   "cost": 7.35e-05,
   "expected": "taking physical control of another",
   "tokens": {
     "input": 322,
     "output": 42
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

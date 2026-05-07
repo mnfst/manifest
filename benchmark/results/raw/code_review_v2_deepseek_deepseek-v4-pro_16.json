@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 16,
   "response": "The provided function has several critical flaws that make it unacceptable for any security\u2011sensitive purpose, especially password storage. Below is a detailed breakdown of what\u2019s wrong and how to fix it.\n\n---\n\n### 1. Misleading name (\u201cencrypt\u201d vs. \u201chash\u201d)\n**",
-  "score": 0,
+  "score": 5,
   "cost": 0.00141723,
   "expected": "",
   "tokens": {
     "input": 58,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

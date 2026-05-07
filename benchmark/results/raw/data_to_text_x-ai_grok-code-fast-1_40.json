@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 40,
   "response": "The 45-year-old female patient has a BMI of 27.3, blood pressure of 138/88, cholesterol level of 225 mg/dL, and fasting glucose of 110 mg/dL. She does not smoke and exercises twice a week. Additionally, she has a family history of diabetes through her mother.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003294,
   "expected": "",
   "tokens": {
     "input": 291,
     "output": 339
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

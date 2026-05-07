@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 17,
   "response": "```python\nimport pytest\nfrom your_module import is_balanced_parens  # Replace 'your_module' with the actual module name\n\nclass TestIsBalancedParens:\n    @pytest.mark.parametrize(\"s\", [\n        \"\",  # Empty string\n        \"()\",  # Simple balanced pair\n        \"[]\",  # Different type\n        \"{}\",  # Another type\n        \"(())\",  # Nested same type\n        \"[{()}]\",  # Nested mixed types\n        \"a(b)c\",  # Balanced with non-bracket characters\n        \"abc\",  # Only non-bracket characters\n        \"((a)b)\",  # Balanced with nested non-brackets\n        \"[](){}\",  # Multiple balanced pairs\n    ])\n    def test_balanced_cases(self, s):\n        assert is_balanced_parens(s) is True\n\n    @pytest.mark.parametrize(\"s\", [\n        \"(\",  # Single opening\n        \")\",  # Single closing\n        \"([\",  # Unmatched opening\n        \")]\",  # Unmatched closing\n        \"({)}\",  # Mismatched types\n        \"(()\",  # Extra opening\n        \"())\",  # Extra closing\n        \"(]\",  # Wrong closing for opening\n        \"[}\",  # Wrong closing for opening\n        \"{)\",  # Wrong closing for opening\n        \"((a)b\",  # Unbalanced with non-brackets\n        \"a(b)c)\",  # Extra closing with non-brackets\n    ])\n    def test_unbalanced_cases(self, s):\n        assert is_balanced_parens(s) is False\n\n    # Edge cases are covered in the parametrized tests above, but we can add specific ones if needed\n    def test_edge_empty_string(self):\n        assert is_balanced_parens(\"\") is True\n\n    def test_edge_single_opening(self):\n        assert is_balanced_parens(\"(\") is False\n\n    def test_edge_single_closing(self):\n        assert is_balanced_parens(\")\") is False\n\n    def test_edge_only_non_brackets(self):\n        assert is_balanced_parens(\"hello world\") is True\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0007364,
   "expected": "",
   "tokens": {
     "input": 314,
     "output": 842
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

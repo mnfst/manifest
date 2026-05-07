@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 10,
   "response": "**Code under review**\n\n```javascript\nasync function fetchAll(urls) {\n  const results = [];\n  for (const url of urls) {\n    const res = await fetch(url);\n    results.push(await res.json());\n  }\n  return results;\n}\n```\n\n---\n\n## 1. Functional / Correctness Issues  \n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **No error handling** \u2013 `fetch` rejects on network errors, and `res.json()` throws if the body isn\u2019t valid JSON. A single failure aborts the whole function and leaves `results` incomplete. | Callers get an uncaught promise rejection or a half\u2011filled array, making debugging hard. | Wrap each request in a `try / catch` (or use `Promise.allSettled`) and decide whether to propagate the error, return a sentinel value, or collect errors alongside successful responses. |\n| **Ignores HTTP status codes** \u2013 A 404, 500, or redirect that returns an error page will still be parsed as JSON (likely failing) or produce useless data. | The function treats all responses as successful JSON payloads. | Check `if (!res.ok) { \u2026 }` and handle non\u20112xx responses (throw, return an error object, or skip). |\n| **Sequential execution** \u2013 Each `await` waits for the previous request to finish before starting the next one. With many URLs this can be orders of magnitude slower than necessary. | Performance bottleneck, especially when latency dominates. | Launch all requests concurrently (e.g., `Promise.all` or `Promise.allSettled`) or use a controlled concurrency pattern (e.g., p\u2011limit, async\u2011pool). |\n| **No timeout / cancellation** \u2013 A stalled request can hang the function indefinitely. | Denial\u2011of\u2011service risk; resources tied up. | Attach an `AbortController` with a reasonable timeout (or use `fetch` with `signal`). |\n| **Assumes every response is JSON** \u2013 If an endpoint returns plain text, HTML, or binary data, `res.json()` throws. | Unexpected crashes. | Either validate `res.headers.get('content-type')` includes `application/json` or catch the JSON\u2011parse error and handle it gracefully. |\n| **No input validation** \u2013 Passing non\u2011string values, empty strings, or malformed URLs leads to cryptic fetch errors. | Hard\u2011to\u2011trace bugs; potential security issues (see below). | Validate each entry (`typeof url === 'string' && url.trim() !== ''`) and optionally use the URL constructor to ensure a well\u2011formed absolute URL.",
-  "score": 0,
+  "score": 5,
   "cost": 8.01e-05,
   "expected": "",
   "tokens": {
     "input": 90,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

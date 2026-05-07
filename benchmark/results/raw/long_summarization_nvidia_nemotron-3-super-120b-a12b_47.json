@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 47,
   "response": "The EU\u2019s General Data Protection Regulation (GDPR), effective May\u202f2018, applies globally to any organization handling EU residents\u2019 personal data and grants rights such as access, erasure, portability, and explicit consent, while mandating Data Protection Officers for large\u2011scale processing and 72\u2011hour breach notifications. Violations can incur fines up to 4\u202f% of global annual revenue or \u20ac20\u202fmillion (whichever is higher), exemplified by Meta\u2019s \u20ac1.2\u202fbillion fine in 2023, Amazon\u2019s \u20ac746\u202fmillion penalty, and Google\u2019s cumulative fines exceeding \u20ac200\u202fmillion. GDPR has spurred comparable privacy laws worldwide (e.g., California\u2019s CCPA, Brazil\u2019s LGPD, India\u2019s DPDPA) but faces criticism for imposing heavy compliance costs on small firms, generating user fatigue with cookie banners, and showing uneven enforcement across member states. Nonetheless, it has cemented data privacy as a fundamental right and set the global benchmark for data protection legislation.",
-  "score": 0,
+  "score": 5,
   "cost": 5.283e-05,
   "expected": "",
   "tokens": {
     "input": 339,
     "output": 248
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 42,
   "response": "The class implements a bounded asynchronous FIFO queue: `put` waits (by storing a future in `_putters`) until there is space, then appends the item and wakes the first waiting getter; `get` waits (by storing a future in `_getters`) until an item is available, then removes and returns it, waking the first waiting putter if the queue has a size limit. This pattern uses two deques of `asyncio.Future` objects to coordinate producers and consumers without busy\u2011waiting.",
-  "score": 0,
+  "score": 5,
   "cost": 2.8529999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 213,
     "output": 104
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 4,
   "response": "Here is a 2-sentence summary of the email:\n\nMaria Chen, CEO of DataSync, is proposing a revenue-share partnership where DataSync handles data sync infrastructure and the recipient integrates DataSync's SDK, potentially reducing customer latency by 60% and generating $2M in additional annual revenue. Maria is available for a technical discussion next week to explore the proposal further.",
-  "score": 0,
+  "score": 5,
   "cost": 5.955e-05,
   "expected": "",
   "tokens": {
     "input": 93,
     "output": 76
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

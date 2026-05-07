@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 19,
   "response": "This code implements a **sliding window rate limiter** that tracks request timestamps and allows up to `calls` requests within a specified `period` (in seconds). It works by maintaining a list of timestamps, filtering out expired ones (older than the period), and only allowing new requests when the count of recent requests is below the limit.",
-  "score": 0,
+  "score": 5,
   "cost": 8.404e-05,
   "expected": "",
   "tokens": {
     "input": 102,
     "output": 70
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

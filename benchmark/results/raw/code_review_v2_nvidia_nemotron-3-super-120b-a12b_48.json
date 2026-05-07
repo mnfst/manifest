@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 48,
   "response": "**What\u2019s wrong with the current implementation**\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Missing `json` import** | `json.loads` will raise a `NameError` the first time the function runs. | Import `json` at the module level (or inside the function if you really want to keep it local). |\n| **Base64\u2011URL vs. standard Base64** | JWT payloads are encoded with *Base64URL* (no `+`/`/` characters, `-` and `_` instead, and padding is omitted). `base64.b64decode` expects the standard alphabet and will raise a `binascii.Error` on a JWT payload. | Convert the URL\u2011safe alphabet to the standard one before decoding, or use `base64.urlsafe_b64decode` after adding the needed padding. |\n| **Missing padding handling** | Base64 strings must be a multiple of 4 characters; JWT often strips the `=` padding. Passing an unpadded string to `base64.b64decode` raises an error. | Compute the required padding (`len % 4`) and append `=` characters before decoding. |\n| **No validation of token structure** | If the token does not contain exactly three parts (`header.payload.signature`) the code will raise an `IndexError` or return garbage. | Split on `.` and verify that you got three parts; raise a clear `ValueError` if not. |\n| **Broad exception surface** | Any error (bad base64, invalid JSON, etc.) bubbles up as a raw exception, making debugging harder and potentially leaking internal details. | Catch specific exceptions (`binascii.Error`, `json.JSONDecodeError`, `IndexError`) and re\u2011raise a custom, informative exception (or return `None`/raise `InvalidTokenError`). |\n| **No type hints / documentation** | Makes the function harder to use correctly in larger code bases. | Add a docstring, type hints (`def parse_jwt(token: str) -> dict:`), and describe what is returned. |\n| **Import inside the function** | Importing `base64` on every call adds unnecessary overhead (though minor). | Move the import to the top of the module. |\n| **No signature verification** | The function only decodes the payload; it does **not** verify that the token was signed by a trusted party. Using the decoded payload as\u2011is can lead to accepting forged tokens. | Either rename the function to make it clear it only *decodes* (e",
-  "score": 0,
+  "score": 4,
   "cost": 7.92e-05,
   "expected": "",
   "tokens": {
     "input": 80,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

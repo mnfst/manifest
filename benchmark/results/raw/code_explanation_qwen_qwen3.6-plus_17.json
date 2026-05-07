@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 17,
   "response": "This function implements the **Chain of Responsibility** design pattern by returning a dispatcher that sequentially passes a request through a series of handler functions until one returns a non-`None` result, at which point it immediately short-circuits and returns that value. If no handler processes the request, it falls back to returning `None`.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000732875,
   "expected": "",
   "tokens": {
     "input": 87,
     "output": 542
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

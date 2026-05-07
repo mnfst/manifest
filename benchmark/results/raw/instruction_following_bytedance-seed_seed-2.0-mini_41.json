@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 41,
   "response": "```python\nfrom typing import Any, Callable, Iterable\n\ndef custom_stable_sort(arr: Iterable[Any], key: Callable[[Any], Any] | None = None, reverse: bool = False) -> list[Any]:\n    \"\"\"Sorts an input iterable and returns a new stable sorted list.\n\n    Uses a comparison-based stable sorting algorithm to order elements from the input iterable.\n    By default, elements are sorted in ascending order using their natural comparative ordering.\n    An optional key function can be provided to customize the value used for sorting comparisons,\n    and the reverse flag can be set to sort elements in descending order.\n\n    Args:\n        arr: Input iterable containing elements to be sorted. All elements must be mutually\n            comparable, or compatible with the provided `key` function if specified.\n        key: Single-argument callable used to extract a comparison key from each element in `arr`.\n            If None, each element is compared directly using its natural ordering. Defaults to None.\n        reverse: If True, sorts the elements in descending reverse order. Defaults to False.\n\n    Returns:\n        A new list containing all elements from the input `arr`, sorted according to the specified\n        criteria. The original input iterable remains completely unmodified.\n\n    Raises:\n        TypeError: If a provided `key` is not a callable object.\n        TypeError: If elements of `arr` cannot be compared with each other using the specified key\n            or natural comparative logic.\n\n    Examples:\n        Sort a list of integers in ascending order:\n        >>> custom_stable_sort([3, 1, 4, 1, 5, 9, 2, 6])\n        [1, 1, 2, 3, 4, 5, 6, 9]\n\n        Sort strings by their length in ascending order:\n        >>> custom_stable_sort([\"apple\", \"banana\", \"cherry\", \"date\"], key=len)\n        ['date', 'apple', 'banana', 'cherry']\n\n        Sort a list of inventory tuples by stock count in descending order:\n        >>> inventory = [(\"apple\", 5), (\"banana\", 3), (\"cherry\", 7)]\n        >>> custom_stable_sort(inventory, key=",
-  "score": 0,
+  "score": 4,
   "cost": 0.0010434,
   "expected": "",
   "tokens": {
     "input": 62,
     "output": 2593
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

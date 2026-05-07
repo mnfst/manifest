@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 9,
   "response": "```python\nimport pytest\n\ndef max_subarray_sum(arr: list) -> int:\n    if not arr:\n        return 0\n    max_sum = current = arr[0]\n    for num in arr[1:]:\n        current = max(num, current + num)\n        max_sum = max(max_sum, current)\n    return max_sum\n\n# Happy path tests\n@pytest.mark.parametrize(\"arr, expected\", [\n    ([1, 2, 3, 4], 10),  # All positive, sum of all\n    ([1, -2, 3, 4, -1], 9),  # Mix with negatives, max subarray is [3,4]\n    ([5], 5),  # Single positive\n    ([-1, -2, -3], -1),  # All negative, max is the largest (least negative)\n    ([0, 1, 2], 3),  # Includes zero\n    ([-2, 1, -3, 4, -1, 2, 1, -5, 4], 6),  # Standard Kadane example\n])\ndef test_max_subarray_sum_happy_path(arr, expected):\n    assert max_subarray_sum(arr) == expected\n\n# Edge cases\n@pytest.mark.parametrize(\"arr, expected\", [\n    ([], 0),  # Empty list\n    ([0], 0),  # Single zero\n    ([-5], -5),  # Single negative\n    ([1, 2, -10, 3], 3),  # Subarray at end\n    ([-1, 2, -1], 2),  # Subarray in middle\n])\ndef test_max_subarray_sum_edge_cases(arr, expected):\n    assert max_subarray_sum(arr) == expected\n\n# Error cases\ndef test_max_subarray_sum_non_list():\n    with pytest.raises(TypeError):\n        max_subarray_sum(\"not a list\")\n\ndef test_max_subarray_sum_non_numeric():\n    with pytest.raises(TypeError):\n        max_subarray_sum([1, \"a\", 3])\n\ndef test_max_subarray_sum_tuple():\n    # Tuples should work as they are iterable\n    assert max_subarray_sum((1, 2, 3)) == 6\n\ndef test_max_subarray_sum_floats():\n    # Floats should work, but since return is int, it might truncate, but test as is\n    assert max_subarray_sum([1.5, 2.5, -1.0]) == 4  # 1.5 + 2.5 = 4.0, but int(4.0) wait no, max returns float? Wait, actually the function uses int operations, but if arr has floats, it will work but return float? Wait, no, max_sum is assigned to arr[0], which could be float.\n    # To avoid issues, perhaps assume ints, but test shows it works with floats, returning float.\n    # But problem likely expects ints, so maybe skip or adjust.\n    # For simplicity, test with ints only for errors.\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0008954,
   "expected": "",
   "tokens": {
     "input": 297,
     "output": 1045
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

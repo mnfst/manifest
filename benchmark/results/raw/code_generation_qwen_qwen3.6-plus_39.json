@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 39,
   "response": "if x == 0:\n        return '0'\n    digits = []\n    while x > 0:\n        digits.append(str(x % base))\n        x //= base\n    return ''.join(digits[::-1])",
-  "score": 0,
+  "score": 4,
   "cost": 0.003616275,
   "expected": "",
   "tokens": {
     "input": 143,
     "output": 2746
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

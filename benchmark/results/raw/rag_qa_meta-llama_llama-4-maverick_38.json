@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 38,
   "response": "The Charles River. \n\nAccording to the context, \"nine of [the residential Houses] are south of Harvard Yard along or near the Charles River.\"",
-  "score": 0,
+  "score": 5,
   "cost": 6.735e-05,
   "expected": "Charles River",
   "tokens": {
     "input": 325,
     "output": 31
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

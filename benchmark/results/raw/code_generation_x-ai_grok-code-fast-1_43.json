@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 43,
   "response": "result = []\nfor i in range(len(numbers)):\n    result.append(numbers[i])\n    if i < len(numbers) - 1:\n        result.append(delimeter)\nreturn result",
-  "score": 0,
+  "score": 3,
   "cost": 0.00033339999999999997,
   "expected": "",
   "tokens": {
     "input": 327,
     "output": 335
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

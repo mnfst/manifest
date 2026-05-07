@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 44,
   "response": "# Basic Everyday Salad Ingredients\n## Core Base Greens\n- [ ] 4 cups chopped fresh leafy greens (mixed spring greens, baby spinach, or romaine lettuce)\n## Simple Add-Ins\n- [ ] \u00bd cup halved cherry tomatoes\n- [ ] \u00bd cup sliced fresh cucumber\n- [ ] \u00bc cup thinly sliced red onion (optional, soak in cold water first to muffle sharp flavor)\n## Classic Basic Toppings\n- [ ] 2 tbsp toasted seeds (pumpkin, sunflower, or sesame seeds)\n- [ ] \u00bc cup crumbled feta cheese (or shredded parmesan, optional)\n- [ ] \u00bc cup chopped fresh herbs (basil, flat-leaf parsley, or dill)\n## Basic Vinaigrette Dressing\n- [ ] 2 tbsp extra-virgin olive oil\n- [ ] 1 tbsp balsamic vinegar (or red wine vinegar)\n- [ ] \u00bc tsp sea salt (plus more to taste)\n- [ ] Freshly ground black pepper (to taste)\n- [ ] 1 tsp Dijon mustard (optional, for added creaminess and tang)\n- [ ] 1 tsp raw honey (optional, for a subtle sweet balance)",
-  "score": 0,
+  "score": 5,
   "cost": 0.0004924,
   "expected": "",
   "tokens": {
     "input": 60,
     "output": 1216
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

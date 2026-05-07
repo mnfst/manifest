@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 4,
   "response": "Here is a **pytest** test suite that exercises the happy\u2011path, edge\u2011cases, and error\u2011cases for `celsius_to_fahrenheit`.\n\n```python\n# test_celsius_to_fahrenheit.py\nimport math\nimport pytest\n\n# Import the function from the module where it lives.\n# Adjust the import path as needed for your project layout.\nfrom mymodule import celsius_to_fahrenheit  # <-- replace `mymodule` with the actual module name\n\n\n# --------------------------\n# Happy\u2011path tests\n# --------------------------\n@pytest.mark.parametrize(\n    \"celsius, expected_fahrenheit\",\n    [\n        (0.0, 32.0),          # freezing point of water\n        (100.0, 212.0),       # boiling point of water\n        (-40.0, -40.0),       # the point where C == F\n        (37.0, 98.6),         # typical human body temperature\n        (25.0, 77.0),         # room temperature\n    ],\n)\ndef test_celsius_to_fahrenheit_happy_path(celsius, expected_fahrenheit):\n    \"\"\"Verify correct conversion for typical values.\"\"\"\n    result = celsius_to_fahrenheit(celsius)\n    # Use approx to tolerate floating\u2011point rounding errors\n    assert result == pytest.approx(expected_fahrenheit, rel=1e-12)\n\n\n# --------------------------\n# Edge\u2011case tests\n# --------------------------\ndef test_celsius_to_fahrenheit_large_values():\n    \"\"\"Very large (positive and negative) numbers should still compute.\"\"\"\n    huge = 1e10\n    assert celsius_to_fahrenheit(huge) == pytest.approx(huge * 9 / 5 + 32)\n    assert celsius_to_fahrenheit(-huge) == pytest.approx(-huge * 9 / 5 + 32)\n\n\ndef test_celsius_to_fahrenheit_small_values():\n    \"\"\"Numbers close to zero (including sub\u2011normal) should work.\"\"\"\n    tiny = 1e-15\n    assert celsius_to_fahrenheit(tiny) == pytest.approx(tiny * 9 / 5 + 32)\n    assert celsius_to_fahrenheit(-tiny) == pytest.approx(-tiny * 9 / 5 + 32)\n\n\ndef test_celsius_to_fahrenheit_nan():\n    \"\"\"Feeding NaN should propagate NaN through the formula.\"\"\"\n    result = celsius_to_fahrenheit(float(\"nan\"))\n    assert math.isnan(result)\n\n\ndef test_celsius_to_fahrenheit_inf():\n    \"\"\"Positive and negative infinity should stay infinite (sign preserved).\"\"\"\n    pos_inf = float(\"inf\")\n    neg_inf = float(\"-inf\")\n    assert celsius_to_fahrenheit(pos_inf) == pos_inf  # inf * 9/5 + 32 == inf\n    assert celsius_to_fahrenheit(neg_inf) == neg_inf  # -inf * 9/5 + 32 == -inf\n\n\ndef test_celsius_to_fahrenheit_boolean_input():\n    \"\"\"bool is a subclass of int; True \u2192 1.0, False \u2192 0.0.\"\"\"\n    assert celsius_to_fahrenheit(True) == pytest.approx(1 *",
-  "score": 0,
+  "score": 4,
   "cost": 9.63e-05,
   "expected": "",
   "tokens": {
     "input": 70,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

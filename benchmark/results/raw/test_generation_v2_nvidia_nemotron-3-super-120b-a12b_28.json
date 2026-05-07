@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 28,
   "response": "Here is a **pytest** test suite that exercises the `memoize` decorator from all angles \u2013 happy\u2011path behavior, edge cases, and error conditions.  \nFeel free to drop this into a file named `test_memoize.py` (or any name that pytest discovers) and run `pytest` against it.\n\n```python\n# test_memoize.py\nimport pytest\n\n# Assuming the decorator lives in a module called `mymodule.py`\n# Adjust the import if your file has a different name or location.\nfrom mymodule import memoize\n\n\n# ----------------------------------------------------------------------\n# Helper functions used across multiple tests\n# ----------------------------------------------------------------------\ndef counter_fn():\n    \"\"\"A simple function that returns how many times it has been called.\"\"\"\n    counter_fn.calls += 1\n    return counter_fn.calls\n\ncounter_fn.calls = 0\n\n\ndef adder(a, b):\n    \"\"\"Returns the sum of two numbers.\"\"\"\n    return a + b\n\n\ndef raising_fn(x):\n    \"\"\"Raises ValueError for odd inputs, returns x for even inputs.\"\"\"\n    if x % 2:\n        raise ValueError(f\"odd number {x}\")\n    return x\n\n\ndef unhashable_arg_fn(seq):\n    \"\"\"Just returns the length of the sequence \u2013 used to test unhashable args.\"\"\"\n    return len(seq)\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path tests\n# ----------------------------------------------------------------------\ndef test_memoize_calls_original_only_once_for_same_args():\n    \"\"\"The wrapped function should be executed only once for identical arguments.\"\"\"\n    wrapped = memoize(counter_fn)\n\n    # First call\n    result1 = wrapped()\n    # Second call with the same (no) arguments\n    result2 = wrapped()\n\n    assert result1 == result2 == 1          # both calls return the cached value\n    assert counter_fn.calls == 1            # original function executed once\n\n\ndef test_memoize_different_args_produce_separate_calls():\n    \"\"\"Different argument tuples should lead to separate executions.\"\"\"\n    wrapped = memoize(adder)\n\n    # Call with (1, 2) and (2, 3) \u2013 different args\n    assert wrapped(1, 2) == 3\n    assert wrapped(2, 3) == 5\n\n    # The underlying function should have been called twice\n    # (we can\u2019t directly count calls on `adder`, so we use a spy)\n    calls = []\n\n    def spy_adder(a, b):\n        calls.append",
-  "score": 0,
+  "score": 4,
   "cost": 9.765e-05,
   "expected": "",
   "tokens": {
     "input": 85,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

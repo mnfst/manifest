@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 23,
   "response": "This code implements the classic binary search-based `bisect_left` algorithm for a non-decreasing sorted input list `a`. It returns the leftmost valid index to insert value `x` while preserving the list's sorted order, which is the first position where an element of `a` is \u2265 x, or the total length of `a` if `x` is larger than all existing elements in the list.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00026370000000000007,
   "expected": "",
   "tokens": {
     "input": 141,
     "output": 624
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

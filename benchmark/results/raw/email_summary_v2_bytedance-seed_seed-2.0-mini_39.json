@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 39,
   "response": "The finance department notified that the year-end audit will start on January 15, and outlined four required pre-audit tasks: finalizing Q4 revenue recognition, reconciling all bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A controller meeting will be held next Tuesday to assign responsibilities for completing these pre-audit preparation tasks.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000269,
   "expected": "",
   "tokens": {
     "input": 142,
     "output": 637
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 8,
   "response": "The annual performance review cycle begins on May 1, incorporating a new competency framework, with key deadlines including self-reviews due by May 15, manager reviews by May 22, calibration by May 28, and delivery by June 5. Managers are required to attend a training session on the new framework on April 30.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000267,
   "expected": "",
   "tokens": {
     "input": 287,
     "output": 262
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

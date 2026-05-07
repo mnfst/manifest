@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 33,
   "response": "The given code implements the Reservoir Sampling algorithm, a family of randomized algorithms for randomly choosing k samples from a list of n items, where n is either a very large or unknown number, to select a random subset of size k from the input stream. The algorithm ensures that each item in the stream has an equal probability of being included in the final sample.",
-  "score": 0,
+  "score": 5,
   "cost": 5.7749999999999994e-05,
   "expected": "",
   "tokens": {
     "input": 97,
     "output": 72
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

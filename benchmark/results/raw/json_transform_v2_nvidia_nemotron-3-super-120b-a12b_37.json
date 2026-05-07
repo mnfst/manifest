@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 37,
   "response": "We need to transform input JSON to target format.\n\nInput:\n{\n  \"name\": \"Acme Corp\",\n  \"founded\": 2015,\n  \"employees\": 150,\n  \"funding_rounds\": [\n    {\"series\": \"A\", \"amount\": 5000000, \"date\": \"2017-03\"},\n    {\"series\": \"B\", \"amount\": 20000000, \"date\": \"2019-06\"}\n  ]\n}\n\nTarget format:\n{\n  \"company\": string,\n  \"age_years\": number,\n  \"size\": string,\n  \"total_funding\": number,\n  \"latest_round\": {\"series\": string, \"amount\": number}\n}\n\nWe need to compute:\n- company: name\n- age_years: current year? Not given. Probably compute based on current year? Usually age = current year - founded. Since no date given, maybe assume current year is 2025? But we need to infer from context. Could be using today's date? The problem likely expects using current year 2025 (if the problem is from 2025). However we cannot assume. Could compute age as 2025 - 2015 = 10. But maybe they expect using the year 2023? Not sure.\n\nAlternatively maybe they want age_years = founded subtracted from 2023 (if the data is from 2023). The funding rounds dates: 2017-03, 2019-06. If we assume \"now\" is after 2019-06, maybe 2020? But we don't know.\n\nGiven typical tasks, they might compute age_years as 2023 - founded (if the problem set is from 2023). But we have no year.\n\nMaybe they expect to compute age_years as (current year - founded) using the year 2025 (since it's 2025 now). Let's assume current year is 2025.\n\nThus age_years = 2025 - 2015 = 10.\n\nsize: string derived from employees count. Probably categories: small (<50),",
-  "score": 0,
+  "score": 3,
   "cost": 6.146999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 183,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

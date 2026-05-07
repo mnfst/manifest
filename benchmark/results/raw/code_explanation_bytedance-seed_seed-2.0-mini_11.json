@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 11,
   "response": "This Python function uses dynamic programming to compute the Levenshtein edit distance between input strings `a` and `b`, which counts the minimum number of single-character insertions, deletions, and substitutions needed to transform `a` into `b`: it constructs a 2D DP table where `dp[i][j]` stores the edit distance between the first `i` characters of `a` and first `j` characters of `b`, fills the base cases for empty substrings, then populates the rest of the table before returning the final distance at the bottom-right corner of the table.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003793,
   "expected": "",
   "tokens": {
     "input": 237,
     "output": 889
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

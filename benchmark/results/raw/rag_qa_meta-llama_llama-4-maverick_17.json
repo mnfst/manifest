@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 17,
   "response": "An international data communications network.",
-  "score": 0,
+  "score": 4,
   "cost": 4.8450000000000005e-05,
   "expected": "an international data communications network headquartered in San Jose, CA",
   "tokens": {
     "input": 295,
     "output": 7
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

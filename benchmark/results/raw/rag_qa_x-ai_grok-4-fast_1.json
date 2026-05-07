@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 1,
   "response": "1665\n\n## Explanation\n\nThe reasoning process begins by examining the provided context for information directly addressing the question about the timing of the Great Plague of London. The relevant sentence in the context states: \"The most general outbreaks in Tudor and Stuart England seem to have begun in 1498, 1535, 1543, 1563, 1589, 1603, 1625, and 1636, and ended with the Great Plague of London in 1665.\" This explicitly identifies 1665 as the year of the event. Since this detail is present in the context, the answer is derived solely from it, confirming the date without needing external sources.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002728,
   "expected": "1665",
   "tokens": {
     "input": 416,
     "output": 237
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 44,
   "response": "Marketing exceeded its Q3 budget by 15% while engineering came in 8% under, prompting Sarah to propose a $50,000 reallocation between the two departments. Please join a meeting this Thursday to discuss and finalize this budget adjustment.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0019246500000000002,
   "expected": "",
   "tokens": {
     "input": 102,
     "output": 1455
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

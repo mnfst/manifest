@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 21,
   "response": "Christopher Nolan's 2023 biographical drama \"Oppenheimer\" chronicles the life of J. Robert Oppenheimer, the theoretical physicist who played a crucial role in developing the atomic bomb during World War II. The film had a substantial budget of $100 million and ran for an intense 180 minutes, ultimately becoming a critical and commercial success with a stellar 8.3 IMDB rating, 93% Rotten Tomatoes score, and grossing an impressive $952 million at the box office. This historical drama went on to win the Academy Award for Best Picture, cementing its place as one of the most acclaimed films of the year.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00014762,
   "expected": "",
   "tokens": {
     "input": 107,
     "output": 141
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

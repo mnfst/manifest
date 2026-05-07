@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 25,
   "response": "The company achieved significant April progress, including surpassing 10K MAU, securing an $8M Series A term sheet, and hiring a VP of Sales, while reporting $85K MRR and an 11-month post-raise runway. Investors should finalize their commitments before the fundraising round officially closes on May 10.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0022278750000000003,
   "expected": "",
   "tokens": {
     "input": 119,
     "output": 1684
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

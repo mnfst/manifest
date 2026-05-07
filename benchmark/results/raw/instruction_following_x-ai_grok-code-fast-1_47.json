@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 47,
   "response": "### Key Characteristics of a Strong Password\n\nA good password is one that is hard for attackers to guess or crack while being easy for you to remember. Here's a step-by-step guide to what makes a password effective:\n\n1. **Make it Long**: Aim for at least 12-16 characters. Longer passwords are exponentially harder to brute-force attack, as the number of possible combinations grows rapidly.\n\n2. **Include a Mix of Character Types**: Use a combination of uppercase letters (A-Z), lowercase letters (a-z), numbers (0-9), and special symbols (!@#$%^&*). This increases complexity, making dictionary attacks less effective.\n\n3. **Avoid Predictable Patterns**: Don't use common sequences like \"123456,\" \"password,\" or keyboard patterns (e.g., \"qwerty\"). Steer clear of personal information such as names, birthdays, or pet names, as these can be easily guessed or found online.\n\n4. **Use Unique Passwords for Each Account**: Never reuse passwords across sites or services. If one account is compromised, others remain secure. Consider a password manager to generate and store unique ones.\n\n5. **Opt for Passphrases**: Create memorable phrases instead of single words, like \"BlueSky$unshine2023!\" These are long and complex but easier to recall than random strings.\n\n6. **Enable Multi-Factor Authentication (MFA)**: While not part of the password itself, pair a strong password with MFA (e.g., via an app or hardware key) for added security, as it requires a second verification step.\n\n7. **Change Regularly and Monitor**: Update passwords periodically, especially after potential breaches. Use tools like password checkers (e.g., from Have I Been Pwned?) to verify if yours has been exposed.\n\nFollowing these steps significantly reduces the risk of unauthorized access. For personalized advice, tools like password generators can help create strong options.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0004846,
   "expected": "",
   "tokens": {
     "input": 215,
     "output": 552
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

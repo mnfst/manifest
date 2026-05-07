@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 11,
   "response": "Here is a **pytest** test suite that exercises the happy\u2011path, edge\u2011cases and error\u2011conditions of `merge_sorted`.  \nSave it as `test_merge_sorted.py` (or any name that starts with `test_`) in the same directory as the module containing `merge_sorted`.\n\n```python\n# test_merge_sorted.py\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# Example: if the function lives in `my_module.py`:\n#   from my_module import merge_sorted\nfrom your_module import merge_sorted  # <-- replace `your_module` with the actual name\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path tests\n# ----------------------------------------------------------------------\ndef test_merge_two_nonempty_sorted_lists():\n    a = [1, 3, 5, 7]\n    b = [2, 4, 6, 8]\n    assert merge_sorted(a, b) == [1, 2, 3, 4, 5, 6, 7, 8]\n\n\ndef test_merge_with_duplicates():\n    a = [1, 2, 2, 4]\n    b = [2, 3, 5, 5]\n    assert merge_sorted(a, b) == [1, 2, 2, 2, 2, 3, 4, 5, 5]\n\n\ndef test_merge_negative_numbers():\n    a = [-10, -5, 0, 3]\n    b = [-7, -2, 1, 4]\n    assert merge_sorted(a, b) == [-10, -7, -5, -2, 0, 1, 3, 4]\n\n\ndef test_merge_floats():\n    a = [1.1, 2.2, 3.3]\n    b = [0.5, 2.2, 4.4]\n    assert merge_sorted(a, b) == [0.5, 1.1, 2.2, 2.2, 3.3, 4.4]\n\n\ndef test_merge_strings():\n    a = [\"apple\", \"orange\", \"pear\"]\n    b = [\"banana\", \"grape\"]\n    assert merge_sorted(a, b) == [\"apple\", \"banana\", \"grape\", \"orange\", \"pear\"]\n\n\n# ----------------------------------------------------------------------\n# Edge\u2011case tests\n# ----------------------------------------------------------------------\ndef test_merge_one_empty_list():\n    a = []\n    b = [1, 2, 3]\n    assert merge",
-  "score": 0,
+  "score": 4,
   "cost": 0.00010233,
   "expected": "",
   "tokens": {
     "input": 137,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

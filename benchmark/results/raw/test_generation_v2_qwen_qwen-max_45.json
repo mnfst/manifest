@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 45,
   "response": "Sure, let's write some unit tests for the `sliding_window` function using `pytest`. We'll cover the happy path, edge cases, and error cases.\n\nFirst, let's install `pytest` if you haven't already:\n```sh\npip install pytest\n```\n\nNow, let's write the tests in a file, say `test_sliding_window.py`:\n\n```python\nimport pytest\nfrom sliding_window import sliding_window\n\ndef test_sliding_window_happy_path():\n    # Happy path: Normal usage with a list of integers\n    iterable = [1, 2, 3, 4, 5]\n    size = 3\n    expected = [\n        (1, 2, 3),\n        (2, 3, 4),\n        (3, 4, 5)\n    ]\n    assert list(sliding_window(iterable, size)) == expected\n\ndef test_sliding_window_happy_path_string():\n    # Happy path: Normal usage with a string\n    iterable = \"abcde\"\n    size = 3\n    expected = [\n        ('a', 'b', 'c'),\n        ('b', 'c', 'd'),\n        ('c', 'd', 'e')\n    ]\n    assert list(sliding_window(iterable, size)) == expected\n\ndef test_sliding_window_edge_case_single_element():\n    # Edge case: Single element in the iterable\n    iterable = [1]\n    size = 1\n    expected = [\n        (1,)\n    ]\n    assert list(sliding_window(iterable, size)) == expected\n\ndef test_sliding_window_edge_case_empty_iterable():\n    # Edge case: Empty iterable\n    iterable = []\n    size = 3\n    expected = []\n    assert list(sliding_window(iterable, size)) == expected\n\ndef test_sliding_window_edge_case_size_larger_than_iterable():\n    # Edge case: Size larger than the iterable\n    iterable = [1, 2]\n    size = 3\n    expected = []\n    assert list(sliding_window(iterable, size)) == expected\n\ndef test_sliding_window_edge_case_size_zero():\n    # Edge case: Size is zero\n    iterable = [1, 2, 3]\n    size = 0\n    with pytest.raises(ValueError):\n        list(sliding_window(iterable, size))\n\ndef test_sliding_window_error_case_negative_size():\n    # Error case: Negative size\n    iterable = [1, 2, 3]\n    size = -1\n    with pytest.raises(ValueError):\n        list(sliding_window(iterable, size))\n\ndef test_sliding_window_error_case_non_integer_size():\n    # Error case: Non-integer size\n    iterable = [1, 2, 3]\n    size = 1.5\n    with pytest.raises(TypeError):\n        list(sliding_window(iterable, size))\n\ndef test_sliding_window_error_case_non_iterable():\n    # Error case: Non-iterable input\n    iterable = 123\n    size = 3\n    with pytest.raises(TypeError):\n        list(sliding_window(iterable, size))\n```\n\nTo run the tests, you can use the following command in your terminal:\n```sh\npytest test_sliding_window.py\n```\n\nMake sure to place the `sliding_window` function in a file named `sliding_window.py` in the same directory as your test file. This way, the tests can import and use the function.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0030867200000000003,
   "expected": "",
   "tokens": {
     "input": 100,
     "output": 717
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

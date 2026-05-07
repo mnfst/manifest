@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 1,
   "response": "{\"title\": \"Q4 Planning\", \"date\": \"Dec 15 2024\", \"time\": \"2pm\", \"attendees\": [\"Alice\", \"Bob\", \"Charlie\"], \"room\": \"301B\"}",
-  "score": 0,
+  "score": 5,
   "cost": 0.00020700000000000002,
   "expected": "",
   "tokens": {
     "input": 134,
     "output": 484
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

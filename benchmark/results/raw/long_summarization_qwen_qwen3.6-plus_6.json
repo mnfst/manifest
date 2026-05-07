@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 6,
   "response": "Remote work rapidly evolved from a niche perk, with less than 5% of employees fully remote pre-pandemic, into a mainstream practice after the 2020 crisis forced widespread adoption through digital collaboration tools and cloud infrastructure. While Stanford\u2019s Nick Bloom notes mixed productivity outcomes, the shift has permanently disrupted traditional workplaces, driving hybrid models, commercial real estate declines, and geographic arbitrage as workers relocate to lower-cost areas. This flexibility has simultaneously sparked corporate return-to-office mandates, raised concerns about eroding company culture and junior employee development, and fueled the rise of digital nomad visas. Ultimately, remote work has fundamentally redefined modern employment, balancing unprecedented worker mobility with ongoing structural and cultural debates.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00309465,
   "expected": "",
   "tokens": {
     "input": 154,
     "output": 2342
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

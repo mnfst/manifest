@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 27,
   "response": "Newton's First Law of Motion.",
-  "score": 0,
+  "score": 5,
   "cost": 2.529e-05,
   "expected": "Newton's First",
   "tokens": {
     "input": 273,
     "output": 8
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

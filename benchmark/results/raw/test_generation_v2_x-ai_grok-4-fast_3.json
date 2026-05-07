@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 3,
   "response": "```python\nimport pytest\n\n# Assuming the flatten function is defined in a module named 'flatten_module'\nfrom flatten_module import flatten\n\n\ndef test_flatten_empty_list():\n    \"\"\"Happy path: Empty list should return empty list.\"\"\"\n    assert flatten([]) == []\n\n\ndef test_flatten_flat_list():\n    \"\"\"Happy path: Flat list with integers should return the same list.\"\"\"\n    assert flatten([1, 2, 3]) == [1, 2, 3]\n\n\ndef test_flatten_nested_one_level():\n    \"\"\"Happy path: One level of nesting should flatten correctly.\"\"\"\n    assert flatten([1, [2, 3], 4]) == [1, 2, 3, 4]\n\n\ndef test_flatten_deeply_nested():\n    \"\"\"Happy path: Multiple levels of nesting should flatten completely.\"\"\"\n    assert flatten([1, [2, [3, [4, 5]]]]) == [1, 2, 3, 4, 5]\n\n\ndef test_flatten_mixed_types():\n    \"\"\"Happy path: Mixed types including strings and numbers should flatten correctly.\"\"\"\n    assert flatten([1, \"a\", [2, \"b\", 3]]) == [1, \"a\", 2, \"b\", 3]\n\n\ndef test_flatten_single_element():\n    \"\"\"Edge case: Single element list (not nested) should return the same.\"\"\"\n    assert flatten([42]) == [42]\n\n\ndef test_flatten_list_with_empty_nested_lists():\n    \"\"\"Edge case: Nested empty lists should be ignored in the output.\"\"\"\n    assert flatten([1, [], [2, []], 3]) == [1, 2, 3]\n\n\ndef test_flatten_deep_nesting_single_element():\n    \"\"\"Edge case: Deeply nested single element should flatten to single element.\"\"\"\n    assert flatten([[[[1]]]]) == [1]\n\n\ndef test_flatten_non_iterable_input_none():\n    \"\"\"Error case: Input is None (not iterable) should raise TypeError.\"\"\"\n    with pytest.raises(TypeError, match=\"'NoneType' object is not iterable\"):\n        flatten(None)\n\n\ndef test_flatten_non_iterable_input_integer():\n    \"\"\"Error case: Input is an integer (not iterable) should raise TypeError.\"\"\"\n    with pytest.raises(TypeError, match=\"'int' object is not iterable\"):\n        flatten(42)\n\n\ndef test_flatten_non_list_iterable_string():\n    \"\"\"Edge case: Input is a string (iterable but not list) - function iterates but may not behave as expected; test for unexpected behavior.\"\"\"\n    # Note: Function will iterate over string characters, which is not intended for list input\n    result = flatten(\"abc\")\n    assert result == [\"a\", \"b\", \"c\"]  # Demonstrates it works but flattens chars, not ideal for non-list\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.0010072,
   "expected": "",
   "tokens": {
     "input": 228,
     "output": 1202
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

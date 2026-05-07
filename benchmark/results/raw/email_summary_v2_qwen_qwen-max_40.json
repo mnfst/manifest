@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 40,
   "response": "The email reports on the Quarterly OKR scores, with the Product team missing its target of 0.7 due to a delayed AI feature, while other teams met or exceeded their targets. It is recommended to carry forward the AI OKR with increased resource allocation, and the planning for the next quarter is set to begin on Monday.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00040768000000000005,
   "expected": "",
   "tokens": {
     "input": 124,
     "output": 67
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

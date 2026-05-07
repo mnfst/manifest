@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 41,
   "response": "third_indices = [l[i] for i in range(0, len(l), 3)]\n    sorted_third_indices = sorted(third_indices)\n    l_prime = l[:]\n    for i, value in enumerate(sorted_third_indices):\n        l_prime[i * 3] = value\n    return l_prime",
-  "score": 0,
+  "score": 3,
   "cost": 0.0004524,
   "expected": "",
   "tokens": {
     "input": 183,
     "output": 63
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

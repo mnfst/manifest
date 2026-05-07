@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 42,
   "response": "The sky bruised into a heavy charcoal as swollen clouds swallowed the afternoon light, their undersides churning with restless energy. A sudden, jagged fork of lightning split the horizon, painting the trees and rooftops in a stark, blinding white that lingered in the eyes long after it vanished. Seconds later, the atmosphere shattered with a deafening crack of thunder, its raw force vibrating through the ground before fading into a low, rolling rumble that echoed across the valley. The first raindrops struck like cold needles against bare skin, quickly multiplying into a relentless downpour that drummed a frantic rhythm on tin roofs and broad leaves. As the storm settled in, the thick, humid air gave way to the sharp, metallic tang of ozone, mingling with the rich, damp scent of wet earth rising from the thirsty soil.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0016727749999999998,
   "expected": "",
   "tokens": {
     "input": 23,
     "output": 1281
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

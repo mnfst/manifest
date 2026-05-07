@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 16,
   "response": "The April marketing campaign generated 45K impressions, 2.3K clicks, and 187 signups at a cost of $12K and $64 CAC, with CTR improving but conversion rate declining compared to March. The team recommends A/B testing the landing page CTA to optimize performance.",
-  "score": 0,
+  "score": 5,
   "cost": 8.756000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 126,
     "output": 68
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

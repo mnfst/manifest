@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 20,
   "response": "Sunshine, sugar, substance, synthesis, spectrum, spreading, sprouting, splendid.",
-  "score": 0,
+  "score": 5,
   "cost": 9.984e-05,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 18
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

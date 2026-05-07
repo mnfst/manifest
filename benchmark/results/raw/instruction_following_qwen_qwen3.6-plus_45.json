@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 45,
   "response": "### TCP vs UDP: Overview\n\n**TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)** are the two primary transport-layer protocols in the TCP/IP suite. Both sit above IP and are responsible for delivering data between applications, but they take fundamentally different approaches to reliability, speed, and control.\n\n#### \ud83d\udd39 TCP (Transmission Control Protocol)\n- **Connection-oriented**: Requires a 3-way handshake (`SYN \u2192 SYN-ACK \u2192 ACK`) before data transfer.\n- **Reliable**: Guarantees delivery. Lost or corrupted packets are automatically retransmitted.\n- **Ordered**: Data is reassembled in the exact sequence it was sent.\n- **Flow & Congestion Control**: Dynamically adjusts transmission speed to avoid overwhelming the receiver or network.\n- **Higher overhead**: Larger header (20\u201360 bytes) and more processing due to acknowledgments, sequencing, and control mechanisms.\n- **Best for**: Applications where data integrity and completeness are critical.\n\n#### \ud83d\udd39 UDP (User Datagram Protocol)\n- **Connectionless**: No handshake. Data is sent immediately as independent datagrams.\n- **Unreliable**: No delivery guarantees, no retransmissions, no acknowledgments.\n- **Unordered**: Packets may arrive out of sequence, duplicated, or lost entirely.\n- **No flow/congestion control**: Sends at the application's pace, regardless of network conditions.\n- **Lower overhead**: Fixed 8-byte header. Minimal processing, enabling very low latency.\n- **Best for**: Real-time or latency-sensitive applications where speed matters more than perfect delivery.\n\n---\n\n### \ud83d\udcca Comparison Table\n\n| Feature                | TCP                                      | UDP                                      |\n|------------------------|------------------------------------------|------------------------------------------|\n| **Connection Type**    | Connection-oriented                      | Connectionless                           |\n| **Reliability**        | Guaranteed delivery                      | Best-effort (no guarantees)              |\n| **Data Ordering**      | Maintains strict sequence                | No ordering guarantee                    |\n| **Error Handling**     | Checksum + automatic retransmission      | Checksum only; no retransmission         |\n| **Flow Control**       | Yes (sliding window)                     | No                                       |\n| **Congestion Control** | Yes (slow start, congestion avoidance)   | No                                       |\n| **Header Size**        | 20\u201360 bytes (variable)",
-  "score": 0,
+  "score": 4,
   "cost": 0.001860625,
   "expected": "",
   "tokens": {
     "input": 21,
     "output": 1426
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

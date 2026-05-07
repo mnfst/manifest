@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 41,
   "response": "This code implements the CRC-32 checksum algorithm, which processes input data byte by byte to compute a 32-bit cyclic redundancy check value used for error detection. The algorithm initializes a CRC register to all ones, then for each byte XORs it with the current CRC value and performs bitwise operations (shifts and conditional XORs with the CRC-32 polynomial 0xEDB88320) for each bit position, finally inverting all bits to produce the result.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00011132000000000001,
   "expected": "",
   "tokens": {
     "input": 110,
     "output": 99
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

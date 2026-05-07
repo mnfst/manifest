@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 22,
   "response": "The code implements an LRU (Least\u2011Recently\u2011Used) cache: it stores key\u2011value pairs in an `OrderedDict` that preserves insertion order, moves accessed or updated keys to the end (most\u2011recently used), and evicts the oldest entry (the front of the dict) when the size exceeds the given capacity. This gives O(1) average\u2011time `get` and `put` operations.",
-  "score": 0,
+  "score": 5,
   "cost": 2.061e-05,
   "expected": "",
   "tokens": {
     "input": 142,
     "output": 87
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

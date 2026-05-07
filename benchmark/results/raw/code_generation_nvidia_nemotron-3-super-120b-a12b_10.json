@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 10,
   "response": "We need to write function body only. The function count_nums(arr) returns number of elements whose sum of digits > 0, where for negative numbers, the first signed digit is negative: i.e., treat the number's digits with sign on the most significant digit? For -123, signed digits are -1, 2, 3. So sum of signed digits = -1 + 2 + 3 = 4 > 0. For -11: digits: -1, 1 => sum = 0? Actually -1 + 1 = 0. So not >0. For -1: digits: -1 => sum = -1 <=0. For 0? Not specified but sum of digits of 0 is 0? Probably not >0. For positive numbers, sum of digits >0 if any digit non-zero? Actually sum of digits >0 if number not zero? For positive numbers, sum of digits >0 unless number is 0. For negative numbers, sum of signed digits >0 if the sum of absolute digits minus the most significant digit? Actually sum = -(most significant digit) + sum of other digits. Equivalent to sum of absolute digits - 2*most_significant_digit? Wait: For negative number -abc... where a>0 is most significant digit. Signed digits: -a, b, c,... So sum = -a + (b + c + ...) = (sum of all digits) - 2a? Actually sum of absolute digits = a + b + c + ... So sum_signed = -a + (b + c + ...) = (a + b + c + ...) - 2a = sum_abs - 2a. So sum_signed >0 iff sum_abs > 2a. Equivalent to sum of digits excluding the most significant digit > a. But easier: compute signed sum directly.\n\nImplementation: For each number n in arr: if n >=0: sum_digits = sum(int(d) for d in str(n)). else: s = str(abs(n)); first = int(s[0]); rest = sum(int(d) for d in s[1:]); sum_digits = -first + rest. Then if sum_digits >0: count++.\n\nEdge cases: n=0 => sum_digits = 0 => not >0. Negative zero? Not relevant.\n\nReturn count",
-  "score": 0,
+  "score": 3,
   "cost": 6.075e-05,
   "expected": "",
   "tokens": {
     "input": 175,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

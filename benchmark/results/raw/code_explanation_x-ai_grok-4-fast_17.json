@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 17,
   "response": "This code implements the Chain of Responsibility design pattern as a higher-order function in Python: it accepts a variable number of handler functions and returns a new `handle` function that passes a given `request` sequentially to each handler, returning the first non-`None` result from any handler or `None` if all return `None`. This enables a chain of potential processors where the request stops at the first capable handler without the caller needing to know the specific handler in advance.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00020380000000000002,
   "expected": "",
   "tokens": {
     "input": 227,
     "output": 198
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

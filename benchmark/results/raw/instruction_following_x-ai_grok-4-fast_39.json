@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 39,
   "response": "### What is a VPN?\n\nA VPN, or Virtual Private Network, is a service that creates a secure, encrypted connection between your device and the internet. It acts like a protected tunnel for your online traffic, shielding it from prying eyes such as hackers, ISPs, or governments.\n\n### What does a VPN do?\n\nA VPN primarily does three key things:\n- **Encrypts your data**: It scrambles your internet traffic so that even if someone intercepts it (e.g., on public Wi-Fi), they can't read it without the decryption key.\n- **Hides your IP address**: By routing your connection through a remote server, it masks your real location and identity, making it appear as if you're browsing from the server's location.\n- **Bypasses restrictions**: It allows you to access geo-blocked content (like streaming services) or censored websites by making your traffic appear to originate from a different country.\n\n### How does a VPN work?\n\nWhen you connect to a VPN:\n1. Your device establishes a secure link to a VPN server operated by your provider.\n2. All your internet requests are routed through this server, which encrypts the data using protocols like OpenVPN or WireGuard.\n3. The server then forwards your requests to the destination (e.g., a website), and the responses are sent back through the encrypted tunnel to you.\nThis process ensures privacy and security without slowing down the internet too much, depending on the provider.\n\n### Why would someone use a VPN?\n\nPeople use VPNs for privacy (to avoid tracking), security (especially on unsecured networks), accessing restricted content, or torrenting safely. However, it's not a magic bullet\u2014VPNs don't make you completely anonymous and can sometimes reduce connection speeds. Always choose a reputable provider to avoid logging or data leaks.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00041380000000000003,
   "expected": "",
   "tokens": {
     "input": 169,
     "output": 475
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

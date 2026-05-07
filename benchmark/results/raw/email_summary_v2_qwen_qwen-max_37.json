@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 37,
   "response": "BigCo has expressed interest in acquiring the ML team (5 people) for $15M, but the CEO believes this offer undervalues the team and suggests either countering with a higher amount or politely declining. The CEO recommends discussing the approach and informing the board before responding.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00034632,
   "expected": "",
   "tokens": {
     "input": 105,
     "output": 57
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

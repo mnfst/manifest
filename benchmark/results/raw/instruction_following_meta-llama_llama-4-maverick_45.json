@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 45,
   "response": "Here's a comparison of TCP (Transmission Control Protocol) and UDP (User Datagram Protocol) using a table:\n\n**TCP vs UDP Comparison Table**\n\n| **Feature** | **TCP (Transmission Control Protocol)** | **UDP (User Datagram Protocol)** |\n| --- | --- | --- |\n| **Connection-oriented** | Yes, establishes a connection before data transfer | No, connectionless; sends data without establishing a connection |\n| **Reliability** | Guarantees delivery of data; ensures data is received in the correct order | No guarantee of delivery; packets may be lost or arrive out of order |\n| **Error-checking** | Performs error-checking and retransmits lost or corrupted packets | Performs basic error-checking, but does not retransmit lost or corrupted packets |\n| **Flow control** | Regulates the amount of data sent to prevent network congestion | No flow control; sends data at a constant rate |\n| **Speed** | Generally slower due to overhead of establishing and maintaining connections | Faster, as it doesn't require establishing a connection or guaranteeing delivery |\n| **Header size** | 20 bytes (minimum) | 8 bytes (fixed) |\n| **Use cases** | File transfers (FTP), email (SMTP), web browsing (HTTP), reliable data transfer | Online gaming, video streaming, VoIP (Voice over Internet Protocol), DNS lookups |\n| **Packet ordering** | Ensures packets are delivered in the correct order | Does not guarantee packet order; packets may arrive out of order |\n\n**Key differences:**\n\n1. **Connection-oriented vs connectionless**: TCP establishes a connection before data transfer, while UDP sends data without establishing a connection.\n2. **Reliability**: TCP guarantees delivery of data, while UDP does not.\n3. **Speed**: UDP is generally faster than TCP due to its lower overhead.\n\n**When to use each:**\n\n1. **Use TCP** when:\n\t* You need guaranteed delivery of data (e.g., file transfers, email).\n\t* You require data to be received in the correct order.\n2. **Use UDP** when:\n\t* You need fast, best-effort delivery (e.g., online gaming, video streaming).\n\t* You can tolerate some packet loss or corruption.\n\nIn summary, TCP is a reliable, connection-oriented protocol suitable for applications that require guaranteed delivery, while UDP is a faster, connectionless protocol suitable for applications that prioritize speed over reliability.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00029774999999999995,
   "expected": "",
   "tokens": {
     "input": 21,
     "output": 491
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

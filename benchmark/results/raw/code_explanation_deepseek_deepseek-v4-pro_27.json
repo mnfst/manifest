@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 27,
   "response": "This code computes the maximum value in every contiguous subarray (sliding window) of size `k` from the input list `nums`. It uses a **monotonic deque** pattern, where a double-ended queue stores indices in decreasing order of their values",
-  "score": 0,
+  "score": 4,
   "cost": 0.00040368,
   "expected": "",
   "tokens": {
     "input": 128,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

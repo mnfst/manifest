@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 45,
   "response": "### Unit Tests for `sliding_window` Function\n\n```python\nimport pytest\nfrom your_module import sliding_window  # Replace 'your_module' with the actual module name\n\ndef test_sliding_window_happy_path():\n    \"\"\"Test the function with a list and a valid window size.\"\"\"\n    iterable = [1, 2, 3, 4, 5]\n    size = 3\n    expected_output = [(1, 2, 3), (2, 3, 4), (3, 4, 5)]\n    assert list(sliding_window(iterable, size)) == expected_output\n\ndef test_sliding_window_edge_case_empty_iterable():\n    \"\"\"Test the function with an empty iterable.\"\"\"\n    iterable = []\n    size = 3\n    assert list(sliding_window(iterable, size)) == []\n\ndef test_sliding_window_edge_case_size_larger_than_iterable():\n    \"\"\"Test the function with a window size larger than the iterable.\"\"\"\n    iterable = [1, 2, 3]\n    size = 5\n    assert list(sliding_window(iterable, size)) == []\n\ndef test_sliding_window_edge_case_size_equal_to_iterable():\n    \"\"\"Test the function with a window size equal to the length of the iterable.\"\"\"\n    iterable = [1, 2, 3]\n    size = 3\n    expected_output = [(1, 2, 3)]\n    assert list(sliding_window(iterable, size)) == expected_output\n\ndef test_sliding_window_edge_case_size_one():\n    \"\"\"Test the function with a window size of 1.\"\"\"\n    iterable = [1, 2, 3]\n    size = 1\n    expected_output = [(1,), (2,), (3,)]\n    assert list(sliding_window(iterable, size)) == expected_output\n\ndef test_sliding_window_error_case_non_integer_size():\n    \"\"\"Test the function with a non-integer window size.\"\"\"\n    iterable = [1, 2, 3]\n    size = '3'\n    with pytest.raises(TypeError):\n        list(sliding_window(iterable, size))\n\ndef test_sliding_window_error_case_negative_size():\n    \"\"\"Test the function with a negative window size.\"\"\"\n    iterable = [1, 2, 3]\n    size = -3\n    with pytest.raises(ValueError):\n        list(sliding_window(iterable, size))\n\ndef test_sliding_window_error_case_zero_size():\n    \"\"\"Test the function with a window size of 0.\"\"\"\n    iterable = [1, 2, 3]\n    size = 0\n    with pytest.raises(ValueError):\n        list(sliding_window(iterable, size))\n```\n\nTo make the `sliding_window` function more robust, you may want to add input validation to handle the error cases. Here's an updated version of the function:\n\n```python\ndef sliding_window(iterable, size: int):\n    if not isinstance(size, int):\n        raise TypeError(\"Window size must be an integer.\")\n    if size <= 0:\n        raise ValueError(\"Window size must be a positive integer.\")\n    \n    from collections import deque\n    it = iter(iterable)\n    window = deque(maxlen=size)\n    for _ in range(size):\n        try:\n            window.append(next(it))\n        except StopIteration:\n            return\n    yield tuple(window)\n    for item in it:\n        window.append(item)\n        yield tuple(window)\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.00044909999999999997,
   "expected": "",
   "tokens": {
     "input": 170,
     "output": 706
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

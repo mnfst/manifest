@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 16,
   "response": "**Issues in the current implementation**\n\n| Category | Problem | Why it\u2019s bad | How to fix it |\n|----------|---------|--------------|---------------|\n| **Cryptographic strength** | Uses **MD5** (`hashlib.md5`) to \u201cencrypt\u201d a password. | MD5 is a fast, broken hash: collisions are easy to find, it is vulnerable to length\u2011extension attacks, and GPUs/ASICs can compute billions of MD5 hashes per second. It provides **no** resistance to brute\u2011force or rainbow\u2011table attacks. | Replace MD5 with a **slow, memory\u2011hard password\u2011hashing algorithm** such as **bcrypt**, **scrypt**, or **Argon2id**. These algorithms incorporate a configurable work factor (cost) and a per\u2011password salt, making brute\u2011force attacks infeasible. |\n| **Salt handling** | No salt is added. | Identical passwords produce identical hashes, enabling rainbow\u2011table attacks and making it trivial to see when two users share the same password. | Generate a **cryptographically random salt** (e.g., `secrets.token_bytes(16)`) for each password and store it alongside the hash. Most password\u2011hashing libraries do this automatically. |\n| **Work factor / iteration count** | None \u2013 a single MD5 call. | Allows an attacker to test billions of candidates per second. | Choose an appropriate **cost factor** (e.g., bcrypt cost\u202f=\u202f12, Argon2 time\u202f=\u202f2, memory\u202f=\u202f64\u202fMiB, parallelism\u202f=\u202f4). Increase it over time as hardware improves. |\n| **Function name & semantics** | Called `encrypt_password`, but it **hashes**, not encrypts. | Misleading name can cause developers to think the operation is reversible. | Rename to something like `hash_password` or `make_password_hash`. |\n| **Import placement** | `import hashlib` inside the function. | Causes the module to be imported on every call (tiny overhead) and hides dependencies from readers/static analysers. | Move imports to the top",
-  "score": 0,
+  "score": 5,
   "cost": 7.821e-05,
   "expected": "",
   "tokens": {
     "input": 69,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

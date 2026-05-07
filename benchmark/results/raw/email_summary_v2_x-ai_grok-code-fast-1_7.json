@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 7,
   "response": "The office is relocating to 500 Market St, with the new space ready on June 1, IT network setup scheduled for June 4-6, and the actual move occurring over the weekend of June 7-8, with budget approved for professional movers. Each team must designate a move coordinator by Friday.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00025100000000000003,
   "expected": "",
   "tokens": {
     "input": 287,
     "output": 242
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

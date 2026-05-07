@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 4,
   "response": "North America\n\n## Explanation\n\nThe reasoning process begins by examining the question, which seeks the region where the term \"private schools\" applies to universities, based solely on the provided context. The context states that in the United Kingdom and Commonwealth countries like Australia and Canada, the term is restricted to primary and secondary levels and is almost never used for universities or other tertiary institutions. In contrast, the context specifies that private education in North America encompasses the full range of educational levels, from pre-school to tertiary institutions. This broad usage indicates that North America includes universities under the umbrella of private education, aligning with the term \"private schools.\" Therefore, the context directly supports North America as the region where the term extends to universities.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00039860000000000004,
   "expected": "North America",
   "tokens": {
     "input": 301,
     "output": 423
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

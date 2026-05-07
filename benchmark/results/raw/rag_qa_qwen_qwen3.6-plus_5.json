@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 5,
   "response": "Based on the provided context, the Rhine bridge is located at Arnhem.",
-  "score": 0,
+  "score": 5,
   "cost": 0.001813825,
   "expected": "Arnhem",
   "tokens": {
     "input": 245,
     "output": 1334
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

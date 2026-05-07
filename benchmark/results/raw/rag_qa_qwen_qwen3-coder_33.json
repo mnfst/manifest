@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 33,
   "response": "OPEC raised the price of oil to $5.11 in response to American aid to Israel. This action was taken on October 16, 1973, as a reaction to the U.S. support for Israel during the conflict.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00010736,
   "expected": "In response to American aid to Israel",
   "tokens": {
     "input": 280,
     "output": 52
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 27,
   "response": "We need to summarize email in exactly 2 sentences, capturing main point and any action items. Provide two sentences. Ensure we include main point: sprint retrospective notes: what went well, improvements, action items. So first sentence: summarize what went well and improvements. Second sentence: list action items. Must be exactly 2 sentences. No extra punctuation that could be considered sentence? Use periods. Ensure no extra sentences. Let's craft:\n\nSentence 1: The team successfully shipped the auth redesign on schedule and praised cross\u2011team collaboration with design, but identified excessive context switching (three projects) and overly long standups (25\u202fmin vs. 15\u202fmin target) as areas for improvement.\n\nSentence 2: To address these, the Scrum Master recommends limiting work\u2011in\u2011progress to two items per developer and implementing timeboxed standups with a parking lot for off\u2011topic discussions.\n\nThat's two sentences. Ensure no extra sentence. No trailing spaces",
-  "score": 0,
+  "score": 5,
   "cost": 2.871e-05,
   "expected": "",
   "tokens": {
     "input": 119,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

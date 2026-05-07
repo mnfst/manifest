@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 40,
   "response": "**Code under review**\n\n```python\ndef background_task(data):\n    thread = threading.Thread(target=process, args=(data,))\n    thread.start()\n    return {'status': 'started'}\n```\n\n---\n\n## 1. Bugs / Runtime Problems\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Missing import** | `threading` is not imported \u2192 `NameError` when the function is called. | Add `import threading` at the top of the module (or import it locally). |\n| **Undefined `process`** | The function `process` is referenced but not defined in the shown snippet \u2192 `NameError` when the thread starts. | Ensure `process` is imported or defined (e.g., `from mymodule import process`). |\n| **No error handling around `Thread.start()`** | If the thread cannot be started (e.g., system limit exceeded), an exception propagates out of `background_task` and may crash the caller. | Wrap the start in a `try/except` block and return an error status or raise a custom exception. |\n| **Thread is non\u2011daemon by default** | The interpreter will wait for all non\u2011daemon threads to finish before exiting. If the caller forgets to join or the program ends while the thread is still running, the process will hang. | Set `daemon=True` (if the work can be safely abandoned on interpreter shutdown) **or** provide a mechanism for the caller to join/retrieve results. |\n| **No way to know if the task succeeded or failed** | The function only returns a static dict; the caller cannot retrieve results or exceptions from `process`. | Return a `Future`\u2011like object (e.g., from `concurrent.futures.ThreadPoolExecutor`) or store results/exceptions in a thread\u2011safe queue or callback. |\n| **Potential resource leak** | Each call creates a new `Thread` object that lives until the thread finishes. If `background_task` is called rapidly, you can create an unbounded number of threads \u2192 exhaustion of system resources. | Use a thread pool (`ThreadPoolExecutor`) with a bounded `max_workers`, or implement a work\u2011queue with a fixed number",
-  "score": 0,
+  "score": 5,
   "cost": 7.902e-05,
   "expected": "",
   "tokens": {
     "input": 78,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 1,
   "response": "This function implements the **binary search algorithm** to efficiently locate a target value in a **sorted array** by repeatedly halving the search interval. It uses two boundary pointers to narrow the search space based on comparisons with the middle element, returning the target's index if found or `-1` if the value is absent.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0009113000000000001,
   "expected": "",
   "tokens": {
     "input": 116,
     "output": 672
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

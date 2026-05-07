@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 24,
   "response": "This code implements the `zip_longest` function, which combines multiple iterables by yielding tuples of their elements position-wise until the longest iterable is exhausted. Unlike the standard `zip()` function that stops when the shortest iterable ends, this version continues until all iterables are exhausted, filling in missing values with a specified `fillvalue` (defaulting to `None`) for shorter iterables.",
-  "score": 0,
+  "score": 5,
   "cost": 9.614e-05,
   "expected": "",
   "tokens": {
     "input": 121,
     "output": 79
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

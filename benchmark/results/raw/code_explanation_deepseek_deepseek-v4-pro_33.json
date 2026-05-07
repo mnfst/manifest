@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 33,
   "response": "This code implements **reservoir sampling (Algorithm R)** to randomly select a fixed-size sample of `k` items from a stream of unknown length, ensuring that every element has an equal probability `k/n` of being included in the final reservoir.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000313635,
   "expected": "",
   "tokens": {
     "input": 93,
     "output": 157
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

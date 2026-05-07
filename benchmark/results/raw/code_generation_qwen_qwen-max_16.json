@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 16,
   "response": "```python\nfrom heapq import heappush, heappop\n\nN = len(grid)\ndirections = [(-1, 0), (1, 0), (0, -1), (0, 1)]\nvisited = set()\npq = [(grid[i][j], (i, j), 1, [grid[i][j]]) for i in range(N) for j in range(N)]\nheapq.heapify(pq)\n\nwhile pq:\n    value, (x, y), length, path = heappop(pq)\n    if length == k:\n        return path\n    for dx, dy in directions:\n        nx, ny = x + dx, y + dy\n        if 0 <= nx < N and 0 <= ny < N and (nx, ny, length + 1) not in visited:\n            new_path = path + [grid[nx][ny]]\n            heappush(pq, (tuple(new_path), (nx, ny), length + 1, new_path))\n            visited.add((nx, ny, length + 1))\n```",
-  "score": 0,
+  "score": 2,
   "cost": 0.0013863200000000001,
   "expected": "",
   "tokens": {
     "input": 429,
     "output": 226
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

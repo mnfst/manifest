@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 33,
   "response": "Here is a **pytest** test suite that exercises the `flatten_dict` function from the happy path, through edge\u2011cases, to error conditions.  \nSave the following as `test_flatten_dict.py` (or any name that starts with `test_`) and run it with `pytest`.\n\n```python\n# test_flatten_dict.py\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# Example: if the function lives in mymodule.py:\n#   from mymodule import flatten_dict\nfrom mymodule import flatten_dict  # <-- change this line to match your project\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path tests\n# ----------------------------------------------------------------------\ndef test_flatten_dict_simple_nested():\n    \"\"\"Basic nesting with default separator.\"\"\"\n    d = {\"a\": 1, \"b\": {\"c\": 2, \"d\": {\"e\": 3}}}\n    expected = {\"a\": 1, \"b.c\": 2, \"b.d.e\": 3}\n    assert flatten_dict(d) == expected\n\n\ndef test_flatten_dict_no_nesting():\n    \"\"\"Input already flat \u2013 should be returned unchanged (except for ordering).\"\"\"\n    d = {\"x\": 10, \"y\": 20, \"z\": 30}\n    assert flatten_dict(d) == d\n\n\ndef test_flatten_dict_custom_separator():\n    \"\"\"Using a non\u2011default separator.\"\"\"\n    d = {\"a\": {\"b\": 1}, \"c\": 2}\n    expected = {\"a_b\": 1, \"c\": 2}\n    assert flatten_dict(d, sep=\"_\") == expected\n\n\ndef test_flatten_dict_with_parent_key():\n    \"\"\"Supplying a non\u2011empty parent_key should prefix all keys.\"\"\"\n    d = {\"a\": 1, \"b\": {\"c\": 2}}\n    expected = {\"pref.a\": 1, \"pref.b.c\": 2}\n    assert flatten_dict(d, parent_key=\"pref\") == expected\n\n\ndef test_flatten_dict_key_contains_separator():\n    \"\"\"Keys that already contain the separator should not be mis\u2011interpreted.\"\"\"\n    d = {\"a.b\": {\"c\": 1}, \"d\": 2}\n    # With default '.' separator the key \"a.b\" becomes part of the flattened key.\n    expected = {\"a.b.c\": 1, \"d\": 2}\n    assert flatten_dict(d) == expected\n\n\ndef test_flatten_dict_deep_nesting():\n    \"\"\"Deeply nested structure (5 levels).\"\"\"\n    d = {\"l1\": {\"l2\": {\"l3\": {\"l4\": {\"l5\": 42}}}}}\n    expected = {\"l1.l2.l3.l4.l5\":",
-  "score": 0,
+  "score": 4,
   "cost": 0.00010224,
   "expected": "",
   "tokens": {
     "input": 136,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

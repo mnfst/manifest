@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 20,
   "response": "Primary phase. Sunlight strikes pigments. Photons penetrate photosystems. Pure substances split. Solar strength produces special particles. Subsequent phase. Stroma stores substances. Sugar synthesis starts. Spare substances spill past stomata. Plants prosper. Systems sustain species.",
-  "score": 0,
+  "score": 3,
   "cost": 0.00905385,
   "expected": "",
   "tokens": {
     "input": 26,
     "output": 6958
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

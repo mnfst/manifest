@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 23,
   "response": "min_so_far = float('inf')\n    current_min = 0\n    for num in nums:\n        current_min += num\n        if current_min < min_so_far:\n            min_so_far = current_min\n        if current_min > 0:\n            current_min = 0\n    return min_so_far",
-  "score": 0,
+  "score": 3,
   "cost": 0.006681675,
   "expected": "",
   "tokens": {
     "input": 127,
     "output": 5108
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

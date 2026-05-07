@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 32,
   "response": "The code implements a Disjoint Set Union (Union\u2011Find) data structure: it maintains a `parent` array where each element initially points to itself, and a `rank` array to keep tree heights shallow. The `find` function uses path compression (making each visited node point directly to the root), and `union` merges two sets by attaching the lower\u2011rank tree under the higher\u2011rank one, incrementing the rank only when the two trees have equal rank. This yields near\u2011constant\u2011time amortized operations for connectivity queries.",
-  "score": 0,
+  "score": 5,
   "cost": 2.4390000000000002e-05,
   "expected": "",
   "tokens": {
     "input": 160,
     "output": 111
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

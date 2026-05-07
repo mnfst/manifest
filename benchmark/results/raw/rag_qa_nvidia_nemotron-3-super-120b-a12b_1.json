@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 1,
   "response": "1665",
-  "score": 0,
+  "score": 1,
   "cost": 2.457e-05,
   "expected": "1665",
   "tokens": {
     "input": 270,
     "output": 3
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

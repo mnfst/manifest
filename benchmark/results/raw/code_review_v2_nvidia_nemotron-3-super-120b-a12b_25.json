@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 25,
   "response": "**Code under review**\n\n```python\nclass Config:\n    API_KEY = 'sk-prod-abc123xyz'\n    DB_PASSWORD = 'SuperSecret123'\n    DEBUG = True\n```\n\n---\n\n## 1. What\u2019s wrong \u2013 bugs & security issues\n\n| Issue | Why it\u2019s a problem | Impact |\n|-------|-------------------|--------|\n| **Hard\u2011coded secrets** (`API_KEY`, `DB_PASSWORD`) | Secrets are stored in plain text in the source file. If the repository is ever pushed to a public (or even a private but poorly\u2011controlled) repo, the credentials are exposed. | Credential leakage \u2192 unauthorized API calls, data breach, account takeover, financial loss, compliance violations (PCI\u2011DSS, GDPR, SOC\u202f2, etc.). |\n| **Secrets committed to version control** | The class lives in a `.py` file that is likely tracked by Git. Even if you later add the file to `.gitignore`, the secrets remain in the history unless you rewrite history (which is disruptive). | Same as above; attackers can scrape git history for secrets. |\n| **Mutable class attributes** | Anyone can do `Config.API_KEY = 'evil'` at runtime, unintentionally (or maliciously) changing configuration. | Configuration drift, hard\u2011to\u2011debug bugs, potential privilege escalation if an attacker can inject code that mutates the class. |\n| **No typing / documentation** | No type hints, docstrings, or explanation of what each constant means. | Reduces maintainability; IDEs can\u2019t help with autocomplete or static analysis. |\n| **`DEBUG = True` baked in** |",
-  "score": 0,
+  "score": 4,
   "cost": 7.92e-05,
   "expected": "",
   "tokens": {
     "input": 80,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 1,
   "response": "groups = paren_string.split()\n    result = []\n    for group in groups:\n        depth = 0\n        max_depth = 0\n        for char in group:\n            if char == '(':\n                depth += 1\n                if depth > max_depth:\n                    max_depth = depth\n            elif char == ')':\n                depth -= 1\n        result.append(max_depth)\n    return result",
-  "score": 0,
+  "score": 3,
   "cost": 0.000428,
   "expected": "",
   "tokens": {
     "input": 292,
     "output": 462
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

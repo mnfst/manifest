@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 10,
   "response": "There once was a programmer named Dave,  \nWhose code was a tangled-up cave.  \nWith loops that went wild,  \nAnd bugs that beguiled,  \nHe debugged till he felt like a slave!",
-  "score": 0,
+  "score": 5,
   "cost": 0.000247,
   "expected": "",
   "tokens": {
     "input": 215,
     "output": 255
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

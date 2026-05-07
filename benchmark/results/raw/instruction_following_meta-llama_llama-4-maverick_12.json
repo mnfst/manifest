@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 12,
   "response": "Here's an explanation of what an API is, in simple terms:\n\nImagine you're at a restaurant and you want to order food. You can't just walk into the kitchen and start making your own food because that's not how it works. Instead, you give your order to the waiter, who takes it to the kitchen staff. They then prepare your food according to your request, and the waiter brings it back to you.\n\nIn this scenario, the kitchen is like a big system that can prepare lots of different dishes. The waiter is like a messenger who helps you interact with the kitchen. You tell the waiter what you want, and they help get it to you.\n\nAn API, or \"Application Programming Interface\", is like the waiter. It's a way for different systems to communicate with each other and exchange information. Just like how you give your order to the waiter and they help get your food, an API helps different systems \"order\" what they need from each other and get the right response.\n\nFor example, when you use a weather app on your phone, it might use an API to ask a weather service for the current temperature. The weather service then sends the temperature back to the app, which displays it to you. The API is like the messenger that helps the app and the weather service talk to each other.\n\nSo, in simple terms, an API is a way for different systems to communicate and exchange information, like a helpful messenger that makes things work smoothly.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00017894999999999999,
   "expected": "",
   "tokens": {
     "input": 25,
     "output": 292
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

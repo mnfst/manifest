@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 38,
   "response": "The production web server prod-web-01, located in the us-east-1 region, has been running steadily for 45 days with 127 active connections. It is currently utilizing 78% of its CPU, 12.4 GB out of 16 GB of memory, and 234 GB out of 500 GB of disk space. Performance metrics show a P99 latency of 145ms and only 3 errors per hour, indicating reliable operation overall.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000269,
   "expected": "",
   "tokens": {
     "input": 249,
     "output": 274
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 5,
   "response": "Since Alexander Fleming\u2019s 1928 discovery of penicillin, antibiotics have revolutionized medicine by transforming surgery and disease treatment, culminating in a golden age of discovery during the 1950s and 1960s. However, extensive agricultural use and poor financial incentives for pharmaceutical companies have severely slowed new drug development, triggering a global antimicrobial resistance crisis exemplified by pathogens like MRSA. In response, researchers are now pursuing innovative alternatives, including phage therapy, CRISPR-based treatments, and AI-driven drug discovery, to overcome this escalating public health threat.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00196625,
   "expected": "",
   "tokens": {
     "input": 150,
     "output": 1475
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 13,
   "response": "Quantum computing uses qubits that can be in superposition, entangled, and interfere, enabling exponential speed\u2011ups for certain problems over classical bits. Major players\u2014IBM, Google, IonQ, and Rigetti\u2014are developing hardware via superconducting circuits, trapped ions, photonics, and topological qubits; Google\u2019s 2019 \u201cquantum supremacy\u201d claim showed a 200\u2011second task that would need a supercomputer ~10,000 years. Current devices have 100\u20131,000 noisy qubits, requiring extreme cooling and extensive error correction, with estimates that millions of physical qubits may be needed for practical applications. Despite these hurdles, the technology holds promise for drug discovery, materials science, cryptography, optimization, and early experiments in finance and logistics.",
-  "score": 0,
+  "score": 5,
   "cost": 3.924e-05,
   "expected": "",
   "tokens": {
     "input": 277,
     "output": 159
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 34,
   "response": "The provided function is dangerously insecure for any real-world password handling. Below is a breakdown of the issues and how to fix them.\n\n## 1. Plaintext password comparison (Critical)\n**What\u2019s wrong**  \n`stored == provided` performs a direct string comparison. This implies that `stored` is the actual password (or its plaintext equivalent). Storing passwords in plaintext is a fundamental security flaw: if the database is ever breached, all passwords are immediately exposed.\n\n**How to fix**  \nNever store passwords. Store a **salted, one-way cryptographic hash** (e.g., bcrypt, scrypt, Argon2). When verifying, hash the user-provided password with the same salt and compare the hashes.\n\n```python\nimport bcrypt\n\ndef compare_passwords(stored_hash: str, provided_password: str) -> bool:\n    # stored_hash is a string like \"$2b$12$...\"\n    return bcrypt.checkpw(provided_password.encode(), stored_hash.encode())\n```\n\n## 2. Timing attack vulnerability (High)\n**What\u2019s wrong**  \nEven if `stored` and `provided` were hashes, using `==` on strings in Python (and most languages) short-circuits: it returns `False` as soon as two characters differ. An attacker can measure response times to gradually guess the correct hash byte-by-by",
-  "score": 0,
+  "score": 5,
   "cost": 0.00141288,
   "expected": "",
   "tokens": {
     "input": 48,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

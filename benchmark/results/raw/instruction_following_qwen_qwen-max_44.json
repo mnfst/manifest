@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 44,
   "response": "- [ ] Romaine lettuce\n- [ ] Cherry tomatoes\n- [ ] Cucumber\n- [ ] Red onion\n- [ ] Carrot\n- [ ] Bell pepper\n- [ ] Feta cheese (optional)\n- [ ] Olives (optional)\n- [ ] Dressing (e.g., olive oil, vinegar, salt, and pepper)",
-  "score": 0,
+  "score": 5,
   "cost": 0.00032760000000000005,
   "expected": "",
   "tokens": {
     "input": 19,
     "output": 74
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

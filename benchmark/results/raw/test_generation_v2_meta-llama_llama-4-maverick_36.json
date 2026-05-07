@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 36,
   "response": "### Unit Tests for `validate_password` Function\n\nThe following tests cover the happy path, edge cases, and error cases for the `validate_password` function.\n\n```python\nimport pytest\n\ndef test_validate_password_happy_path():\n    \"\"\"Test valid password.\"\"\"\n    assert validate_password(\"P@ssw0rd\") == True\n\ndef test_validate_password_too_short():\n    \"\"\"Test password that is too short.\"\"\"\n    assert validate_password(\"P@ssw0\") == False\n\ndef test_validate_password_no_uppercase():\n    \"\"\"Test password with no uppercase letters.\"\"\"\n    assert validate_password(\"p@ssw0rd\") == False\n\ndef test_validate_password_no_lowercase():\n    \"\"\"Test password with no lowercase letters.\"\"\"\n    assert validate_password(\"P@SSW0RD\") == False\n\ndef test_validate_password_no_digit():\n    \"\"\"Test password with no digits.\"\"\"\n    assert validate_password(\"P@ssword\") == False\n\ndef test_validate_password_empty_string():\n    \"\"\"Test empty password string.\"\"\"\n    assert validate_password(\"\") == False\n\ndef test_validate_password_whitespace():\n    \"\"\"Test password with whitespace.\"\"\"\n    assert validate_password(\"P@ss w0rd\") == True  # Note: This is a valid password according to the current implementation\n\ndef test_validate_password_special_characters():\n    \"\"\"Test password with special characters.\"\"\"\n    assert validate_password(\"P@ssw0rd!\") == True  # Note: This is a valid password according to the current implementation\n\ndef test_validate_password_non_string_input():\n    \"\"\"Test non-string input.\"\"\"\n    with pytest.raises(TypeError):\n        validate_password(12345)\n\ndef test_validate_password_none_input():\n    \"\"\"Test None input.\"\"\"\n    with pytest.raises(TypeError):\n        validate_password(None)\n```\n\n### Notes\n\n* The `validate_password` function does not currently check for non-alphanumeric characters or whitespace. If this is a requirement, the function should be updated accordingly.\n* The function does not handle non-string inputs. To improve robustness, you could add a type check at the beginning of the function to raise a `TypeError` if the input is not a string.\n\n### Improved `validate_password` Function\n\nTo handle non-string inputs and improve robustness, you could modify the `validate_password` function as follows:\n\n```python\ndef validate_password(pw: str) -> bool:\n    if not isinstance(pw, str):\n        raise TypeError(\"Input must be a string\")\n    if len(pw) < 8:\n        return False\n    has_upper = any(c.isupper() for c in pw)\n    has_lower = any(c.islower() for c in pw)\n    has_digit = any(c.isdigit() for c in pw)\n    return has_upper and has_lower and has_digit\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.00035565,
   "expected": "",
   "tokens": {
     "input": 115,
     "output": 564
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 42,
   "response": "The email recaps a workshop hosted for 15 enterprise customers, highlighting key feedback including the need for improved bulk import functionality (noted by 8 out of 15), SSO as a blocker for 5 accounts, and positive reception of the new analytics dashboard. It also mentions surprise interest from 3 customers in offering the internal tool as a standalone product, with a follow-up report attached for further review.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002678,
   "expected": "",
   "tokens": {
     "input": 255,
     "output": 271
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

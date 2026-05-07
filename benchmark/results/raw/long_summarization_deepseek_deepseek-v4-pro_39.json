@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 39,
   "response": "The EU's GDPR, effective May 2018, mandates strict data protection rules for any organization handling EU residents' data, including breach reporting within 72 hours and fines of",
-  "score": 0,
+  "score": 4,
   "cost": 0.000654675,
   "expected": "",
   "tokens": {
     "input": 305,
     "output": 300
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

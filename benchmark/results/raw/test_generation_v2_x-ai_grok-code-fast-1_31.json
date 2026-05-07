@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 31,
   "response": "```python\nimport pytest\nimport re\nfrom typing import Any\n\ndef camel_to_snake(s: str) -> str:\n    return re.sub(r'(?<=[a-z])(?=[A-Z])', '_', s).lower()\n\nclass TestCamelToSnake:\n    @pytest.mark.parametrize(\"input_str, expected\", [\n        # Happy path: standard camelCase conversions\n        (\"camelCase\", \"camel_case\"),\n        (\"thisIsATest\", \"this_is_a_test\"),\n        (\"simpleTest\", \"simple_test\"),\n        (\"aB\", \"a_b\"),\n        (\"XMLHttpRequest\", \"xml_http_request\"),  # Starts with uppercase\n        (\"APIKey\", \"api_key\"),\n        \n        # Edge cases: already snake_case, all upper/lower, empty, single char, numbers/special chars\n        (\"snake_case\", \"snake_case\"),  # Already snake_case\n        (\"ALLUPPER\", \"allupper\"),  # All uppercase\n        (\"alllower\", \"alllower\"),  # All lowercase\n        (\"\", \"\"),  # Empty string\n        (\"a\", \"a\"),  # Single lowercase\n        (\"A\", \"a\"),  # Single uppercase\n        (\"123\", \"123\"),  # Numbers only\n        (\"camel123Case\", \"camel123_case\"),  # Numbers in middle\n        (\"test_123\", \"test_123\"),  # Underscore already present\n        (\"aBcDeF\", \"a_bc_de_f\"),  # Multiple transitions\n        (\"Test\", \"test\"),  # Starts with uppercase, one word\n        (\"testCaseWithNumbers123\", \"test_case_with_numbers123\"),  # Numbers at end\n        (\"special@Case\", \"special@_case\"),  # Special characters\n    ])\n    def test_happy_path_and_edge_cases(self, input_str: str, expected: str):\n        assert camel_to_snake(input_str) == expected\n\n    @pytest.mark.parametrize(\"invalid_input\", [\n        123,  # Integer\n        None,  # None\n        [],  # List\n        {},  # Dict\n        12.34,  # Float\n    ])\n    def test_error_cases_non_string_inputs(self, invalid_input: Any):\n        with pytest.raises((TypeError, AttributeError)):\n            camel_to_snake(invalid_input)\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.000782,
   "expected": "",
   "tokens": {
     "input": 270,
     "output": 910
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

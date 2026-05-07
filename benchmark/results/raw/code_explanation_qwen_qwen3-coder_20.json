@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 20,
   "response": "This code implements a partitioning algorithm that splits an iterable into two separate iterators based on a predicate function. It uses `itertools.tee()` to create two independent iterators from the original iterable, then applies `filter()` to the first iterator to yield elements where the predicate returns `True`, and `itertools.filterfalse()` to the second iterator to yield elements where the predicate returns `False`.",
-  "score": 0,
+  "score": 5,
   "cost": 8.514e-05,
   "expected": "",
   "tokens": {
     "input": 71,
     "output": 79
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 30,
   "response": "Melbourne is called the sporting capital of Australia.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00031096000000000004,
   "expected": "Melbourne",
   "tokens": {
     "input": 259,
     "output": 10
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

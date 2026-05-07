@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 35,
   "response": "The provided code implements the Knuth-Morris-Praat (KMP) algorithm for string matching. It first constructs a longest prefix suffix (LPS) array to store the lengths of the longest proper prefixes which are also suffixes for the pattern, and then uses this LPS array to efficiently search for the pattern within the text, returning the starting index of the first occurrence of the pattern or -1 if the pattern is not found.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005636800000000001,
   "expected": "",
   "tokens": {
     "input": 186,
     "output": 89
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

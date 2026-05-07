@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 47,
   "response": "Here is a numbered, actionable breakdown of what makes a strong, secure password:\n1.  **Meet and exceed minimum length requirements**: Follow the U.S. National Institute of Standards and Technology (NIST) guideline of at least 8 characters for standard accounts, but target 12\u201316 characters for most personal accounts, and 16+ for sensitive accounts like banking or healthcare portals. Longer passwords drastically slow down brute-force and dictionary cracking attempts.\n2.  **Combine four distinct character categories**: Mix uppercase letters, lowercase letters, Arabic numerals, and special symbols (e.g., !, #, %, &). Avoid overused lazy substitutions like replacing \"s\" with \"$\" or \"i\" with \"1\", as these predictable tweaks are already built into modern password cracking tools.\n3.  **Skip common, predictable phrases and strings**: Avoid basic dictionary words, top stolen passwords (e.g., \"Password123\", \"qwerty\", \"123456\"), and sequential character sequences (e.g., \"abc123\", \"98765\"). These appear in widely available password cracking dictionaries and can be cracked in milliseconds.\n4.  **Never link your password to personal identifiable information (PII)**: Do not use your full name, username, phone number, home address, birthday, pet\u2019s name, family member names, wedding date, or other details that can be easily located via social media or public records. Attackers frequently use this data to target high-value accounts.\n5.  **Use random passphrases or cryptographically random character strings**: For easy memorization, use 3\u20134 unrelated, random words strung together with symbols or numbers (e.g., \"CrimsonGlider$Lemon72\"). For maximum security, generate a fully random string via a reputable password manager, or use the diceware method to create strong, memorable passphrases.\n6.  **Avoid outdated password \"hacks\" that offer minimal security**: Replacements like swapping letters for numbers or symbols are widely expected by password cracking software, so they do little to strengthen your password\u2019s resistance to attacks.\n7.  **Never reuse passwords across multiple accounts**: A single compromised account (e.g., a streaming service) will put all your other accounts at risk if you reuse the same password across them. Use a unique password for every online",
-  "score": 0,
+  "score": 5,
   "cost": 0.0011123,
   "expected": "",
   "tokens": {
     "input": 59,
     "output": 2766
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

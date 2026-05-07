@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 20,
   "response": "Photosynthesis is the process where plants use sunlight to synthesize sugars from carbon dioxide and water. Sunlight strikes plant leaves, powering the production of glucose through a series of chemical steps. Plants absorb carbon dioxide through small pores called stomata, while roots supply water from soil. Sugar molecules store solar energy, supporting plant survival and providing sustenance for many species. Oxygen is produced as a byproduct, supplying breathable air for people and other organisms. This photosynthetic process sustains planetary life, creating food supplies and maintaining atmospheric balance.",
-  "score": 0,
+  "score": 5,
   "cost": 9.944e-05,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 107
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

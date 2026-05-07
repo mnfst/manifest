@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 29,
   "response": "The capital of the Ottoman Empire was Istanbul.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00022256,
   "expected": "Istanbul",
   "tokens": {
     "input": 178,
     "output": 9
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

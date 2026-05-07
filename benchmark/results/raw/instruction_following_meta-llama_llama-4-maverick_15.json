@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 15,
   "response": "Here are 4 words that rhyme with \"cat\":\n\n1. Hat\n2. Mat\n3. Sat\n4. Rat",
-  "score": 0,
+  "score": 5,
   "cost": 1.965e-05,
   "expected": "",
   "tokens": {
     "input": 23,
     "output": 27
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

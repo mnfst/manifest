@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 30,
   "response": "```python\nimport pytest\nfrom your_module import snake_to_camel  # replace with actual module name\n\n\nclass TestSnakeToCamel:\n    \"\"\"Unit tests for snake_to_camel function.\"\"\"\n\n    # --- Happy Path ---\n    def test_basic_conversion(self):\n        \"\"\"Typical snake_case strings are converted correctly.\"\"\"\n        assert snake_to_camel(\"hello_world\") == \"helloWorld\"\n        assert snake_to_camel(\"this_is_a_test\") == \"thisIsATest\"\n        assert snake_to_camel(\"single",
-  "score": 0,
+  "score": 3,
   "cost": 0.001771755,
   "expected": "",
   "tokens": {
     "input": 73,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

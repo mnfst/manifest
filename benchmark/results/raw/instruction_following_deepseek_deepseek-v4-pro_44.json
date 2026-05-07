@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 44,
   "response": "- [ ] Lettuce (romaine, iceberg, or mixed greens)\n- [ ] Tomatoes (cherry or sliced)\n- [ ] Cucumber (sliced or diced)\n- [ ] Red onion (thinly sliced)\n- [ ] Carrots (shredded or sliced)\n- [ ] Bell peppers (sliced)\n- [ ] Olive oil\n- [ ] Vinegar (balsamic, red wine, or apple cider)\n- [ ] Salt\n- [ ] Black pepper",
-  "score": 0,
+  "score": 5,
   "cost": 0.00041238,
   "expected": "",
   "tokens": {
     "input": 16,
     "output": 233
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

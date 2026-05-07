@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 15,
   "response": "```python\nimport pytest\n\n# Assuming the function is in a module named `my_module`\n# from my_module import rotate_list\n# For the sake of a self\u2011contained example we define it here.\ndef rotate_list(lst: list, k: int) -> list:\n    if not lst:\n        return lst\n    k = k % len(lst)\n    return lst[-k:] + lst[:-k]\n\n\n# -------------------------- Happy Path --------------------------\n\ndef test_rotate_list_basic():\n    assert rotate_list([1, 2, 3, 4, 5], 2) == [4, 5, 1, 2, 3]\n    assert rotate_list(['a', 'b', 'c'], 1) == ['c', 'a', 'b']\n    assert rotate_list([True, False], 0) == [True, False]\n\n\ndef test_rotate_list_k_equals_length():\n    # Rotating by the length of the list should return the original list\n    assert rotate_list([10, 20, 30], 3) == [10, 20, 30]\n    assert rotate_list(['x', 'y', 'z', 'w'], 4) == ['x', 'y', 'z', 'w']\n\n\ndef test_rotate_list_k_greater_than_length():\n    # k larger than len(lst) should wrap around via modulo\n    assert rotate_list([1, 2, 3, 4], 6) == [3, 4, 1, 2]   # 6 % 4 == 2\n    assert rotate_list(['p', 'q'], 5) == ['q', 'p']       # 5 % 2 == 1\n\n\ndef test_rotate_list_negative_k():\n    # Negative k should also work (Python's modulo yields a positive remainder)\n    assert rotate_list([1, 2, 3, 4], -1) == [2, 3, 4, 1]  # -1 % 4 == 3\n    assert rotate_list(['a', 'b', 'c', 'd', 'e'], -7) == ['d', 'e', 'a', 'b', 'c']  # -7 % 5 == 3\n\n\n# -------------------------- Edge Cases --------------------------\n\ndef test_rotate_list_empty():\n    # Empty list should be returned unchanged regardless of k\n    assert rotate_list([], 5) == []\n    assert rotate_list([], -3) == []\n\n\ndef test_rotate_list_single_element():\n    # A list with one element is invariant under any rotation\n    assert rotate_list([42], 0) == [42]\n    assert rotate_list([42], 1) == [42]\n    assert rotate_list([42], 100) == [42]\n    assert rotate_list([42], -10) == [42]\n\n\ndef test_rotate_list_does_not_mutate_input():\n    original = [1, 2, 3, 4]\n    k = 2\n    result = rotate_list(original, k)\n    assert result == [3, 4, 1, 2]\n    # Original list must stay the same\n    assert original == [1, 2, 3, 4]\n\n\n# -------------------------- Error Cases --------------------------\n\n@pytest.mark.parametrize(\"bad_lst\", [\n    None,\n    123,\n    \"not a list\",\n    {1, 2, 3},\n    {\"a\": 1},\n])\ndef test_rotate_list_invalid_list_type(bad_lst):\n    with pytest.raises(TypeError):\n        rotate_list(bad_lst, 2)\n\n\n@pytest.mark.parametrize(\"bad_k\", [\n    3.5,          # float\n    \"2\",          # string\n    None,",
-  "score": 0,
+  "score": 4,
   "cost": 9.783e-05,
   "expected": "",
   "tokens": {
     "input": 87,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

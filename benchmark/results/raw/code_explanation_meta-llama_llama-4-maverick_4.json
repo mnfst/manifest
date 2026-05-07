@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 4,
   "response": "**The given code implements a memoization decorator using a dictionary-based cache.** It stores the results of expensive function calls and reuses them when the same inputs occur again, following the principle of caching to avoid redundant computations.",
-  "score": 0,
+  "score": 4,
   "cost": 3.885e-05,
   "expected": "",
   "tokens": {
     "input": 79,
     "output": 45
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

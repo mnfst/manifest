@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 16,
   "response": "The April marketing campaign achieved 45K impressions, 2.3K clicks, and 187 signups with a CAC of $64, showing a 1.2 percentage point increase in CTR but a 0.8 percentage point decrease in conversion compared to March. The marketing team recommends A/B testing the landing page CTA to improve performance.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00045136,
   "expected": "",
   "tokens": {
     "input": 126,
     "output": 77
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

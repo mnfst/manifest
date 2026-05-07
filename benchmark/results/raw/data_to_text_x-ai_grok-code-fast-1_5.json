@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 5,
   "response": "\"Oppenheimer,\" directed by Christopher Nolan and released in 2023, is a Drama/History film with a runtime of 180 minutes that explores the life of J. Robert Oppenheimer and the creation of the atomic bomb. The movie, made on a $100 million budget, grossed $952 million at the box office and earned critical acclaim with an IMDb rating of 8.3 and a Rotten Tomatoes score of 93%. It also won the Oscar for Best Picture.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002616,
   "expected": "",
   "tokens": {
     "input": 292,
     "output": 254
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

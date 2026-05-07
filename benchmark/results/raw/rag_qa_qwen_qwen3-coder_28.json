@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 28,
   "response": "Based on the provided context, C\u00e9loron handled business on his trip by:\n\n1. Leading an expedition force of about 200 Troupes de la marine and 30 Indians\n2. Covering approximately 3,000 miles between June and November 1749\n3. Following a specific route up the St. Lawrence, along Lake Ontario, across the Niagara portage, and along Lake Erie\n4. Moving inland at the Chautauqua Portage to reach the Allegheny River\n5. Following the Allegheny River to present-day Pittsburgh\n6. Burying lead plates engraved with French claims to the Ohio Country\n7. Confronting British merchants and fur-traders by informing them of French territorial claims and ordering them to leave\n\nThe context indicates C\u00e9loron conducted his expedition in a methodical manner, following a planned route while actively asserting French territorial claims through both physical markers (buried plates) and direct",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002255,
   "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
   "tokens": {
     "input": 225,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

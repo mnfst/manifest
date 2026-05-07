@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 3,
   "response": "The EU's General Data Protection Regulation (GDPR), effective since May 2018, mandates strict handling of personal data for EU residents by any company worldwide, including rights to access, erasure, data portability, and explicit consent, along with requirements for Data Protection Officers in large-scale operations and 72-hour breach reporting. Violations can incur fines up to 4% of global annual revenue or \u20ac20 million, with notable penalties including \u20ac1.2 billion for Meta in 2023, \u20ac746 million for Amazon, and over \u20ac200 million for Google. While GDPR has inspired similar laws like California's CCPA, Brazil's LGPD, and India's Digital Personal Data Protection Act, critics highlight burdens on small businesses, innovation stifling, user frustration from consent banners, and inconsistent enforcement across EU states. Overall, it establishes data privacy as a fundamental right and sets a global standard for data protection legislation.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00044300000000000003,
   "expected": "",
   "tokens": {
     "input": 499,
     "output": 429
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 34,
   "response": "Stockholm, the capital city of Sweden, was founded in 1252 and is home to approximately 1.6 million residents living in an area of 188 square kilometers. The city enjoys a temperate climate with average January temperatures of -3\u00b0C and July temperatures reaching 18\u00b0C, while its residents benefit from a high standard of living with a GDP per capita of $62,000. As Sweden's largest city, Stockholm serves as the country's cultural, economic, and political center, where Swedish is the primary language spoken by its inhabitants.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00012738,
   "expected": "",
   "tokens": {
     "input": 103,
     "output": 119
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

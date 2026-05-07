@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 33,
   "response": "In response to American aid to Israel.",
-  "score": 0,
+  "score": 1,
   "cost": 0.0005229249999999999,
   "expected": "In response to American aid to Israel",
   "tokens": {
     "input": 285,
     "output": 331
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 22,
   "response": "Dogs have long been celebrated as loyal companions who stand by their owners through every season of life. This loyal nature makes them exceptional working partners in fields ranging from search and rescue to therapy. Even when faced with hardship, a loyal dog will never abandon the family that cares for it. The loyal bond between humans and canines has been documented across centuries of history and literature. Ultimately, it is this deeply loyal spirit that transforms a simple pet into a cherished member of the household.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0016906500000000001,
   "expected": "",
   "tokens": {
     "input": 26,
     "output": 1294
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

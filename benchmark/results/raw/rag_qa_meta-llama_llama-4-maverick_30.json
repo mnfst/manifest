@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 30,
   "response": "Melbourne. \n\nThis is directly stated in the context: \"Culturally, Melbourne is home to a number of museums, art galleries and theatres and is also described as the 'sporting capital of Australia'.\"",
-  "score": 0,
+  "score": 5,
   "cost": 6.539999999999999e-05,
   "expected": "Melbourne",
   "tokens": {
     "input": 252,
     "output": 46
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

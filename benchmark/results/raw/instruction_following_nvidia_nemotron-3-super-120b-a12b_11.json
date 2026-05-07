@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 11,
   "response": "How can I assist you today? What topic would you like to explore? Do you have any particular questions in mind? Is there something specific you\u2019d like to discuss? Would you like me to clarify anything? How else can I be of help?",
-  "score": 0,
+  "score": 2,
   "cost": 5.94e-06,
   "expected": "",
   "tokens": {
     "input": 15,
     "output": 51
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

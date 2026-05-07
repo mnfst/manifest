@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 21,
   "response": "Here is a summary of the text in 3-4 sentences:\n\nQuantum computers use qubits that can exist in multiple states simultaneously, allowing them to solve certain problems exponentially faster than classical computers. Companies like IBM, Google, and startups are building quantum hardware using different approaches, with Google claiming quantum supremacy in 2019 by performing a calculation in 200 seconds that would take 10,000 years classically. However, practical quantum computing faces challenges such as fragile qubits and high error rates, with current machines having 100-1000 qubits, far short of the millions needed for useful applications. Despite these challenges, quantum computing shows promise for applications like drug discovery, materials science, and optimization problems.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001254,
   "expected": "",
   "tokens": {
     "input": 268,
     "output": 142
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

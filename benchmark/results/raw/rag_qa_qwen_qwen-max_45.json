@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 45,
   "response": "The show globe was employed until the early 20th century.",
-  "score": 0,
+  "score": 2,
   "cost": 0.00029432,
   "expected": "The show globe",
   "tokens": {
     "input": 227,
     "output": 14
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

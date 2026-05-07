@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 49,
   "response": "The product launch requires a two-week delay due to a PCI compliance failure with the payment integration, leaving the team to choose between launching without payments or postponing the full release to May 15. Please attend the meeting tomorrow at 10 AM to decide on the next steps.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0020332,
   "expected": "",
   "tokens": {
     "input": 108,
     "output": 1537
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 19,
   "response": "Along with advancements in military technology, Europe also continued to advance in communication.",
-  "score": 0,
+  "score": 4,
   "cost": 4.3799999999999994e-05,
   "expected": "communication",
   "tokens": {
     "input": 228,
     "output": 16
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

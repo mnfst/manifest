@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 3,
   "response": "The provided code has several critical security flaws, reliability issues, and missing best practices. Below is a detailed breakdown.\n\n---\n\n### 1. Logging Sensitive Data (Security \u2013 PCI DSS Violation)\n**Problem:**",
-  "score": 0,
+  "score": 1,
   "cost": 0.001436805,
   "expected": "",
   "tokens": {
     "input": 103,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

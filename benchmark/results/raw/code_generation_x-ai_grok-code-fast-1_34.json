@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 34,
   "response": "if n <= 1:\n    return y\nimport math\nfor i in range(2, int(math.sqrt(n)) + 1):\n    if n % i == 0:\n        return y\nreturn x",
-  "score": 0,
+  "score": 3,
   "cost": 0.0005446,
   "expected": "",
   "tokens": {
     "input": 315,
     "output": 602
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

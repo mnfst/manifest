@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 33,
   "response": "sides = sorted([a, b, c])\n    if sides[0] + sides[1] <= sides[2]:\n        return False\n    return sides[0]**2 + sides[1]**2 == sides[2]**2",
-  "score": 0,
+  "score": 4,
   "cost": 0.00071079,
   "expected": "",
   "tokens": {
     "input": 142,
     "output": 373
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

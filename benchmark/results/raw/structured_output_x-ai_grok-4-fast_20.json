@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 20,
   "response": "{\"items\": [{\"name\": \"pepperoni\", \"size\": \"large\", \"price\": 18.99}, {\"name\": \"margherita\", \"size\": \"medium\", \"price\": 14.99}, {\"name\": \"Coke\", \"size\": \"2L\", \"price\": 3.99}], \"delivery_address\": \"456 Oak Ave\", \"special_instructions\": \"ring doorbell twice\", \"total\": 37.97}",
-  "score": 0,
+  "score": 5,
   "cost": 0.0004156,
   "expected": "",
   "tokens": {
     "input": 258,
     "output": 455
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

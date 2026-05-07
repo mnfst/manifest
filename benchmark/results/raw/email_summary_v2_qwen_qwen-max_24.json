@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 24,
   "response": "The Design System version 3 (DS v3) is now ready for adoption, featuring new color tokens for dark mode, a revised spacing scale, and updated Button and Modal components. The Design Team recommends a team-by-team rollout starting with the Settings page, with a migration tool available to assist in the process.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00035256,
   "expected": "",
   "tokens": {
     "input": 87,
     "output": 63
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

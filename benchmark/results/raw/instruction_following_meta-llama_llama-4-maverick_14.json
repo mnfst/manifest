@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 14,
   "response": "Introducing the HydratePro water bottle, designed to keep your drinks at the perfect temperature for hours. Made from durable, BPA-free materials, this bottle is perfect for daily use on-the-go. Its leak-proof lid and ergonomic design make it easy to take with you wherever your adventures take you.",
-  "score": 0,
+  "score": 4,
   "cost": 5.099999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 92,
     "output": 62
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

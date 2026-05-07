@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 5,
   "response": "```python\nif not l:\n    return None\nreturn max(l)\n```",
-  "score": 0,
+  "score": 4,
   "cost": 3.795e-05,
   "expected": "",
   "tokens": {
     "input": 185,
     "output": 17
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

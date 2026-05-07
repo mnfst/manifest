@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 17,
   "response": "The given code implements the Chain of Responsibility design pattern, where a series of handlers are executed sequentially until one of them returns a non-`None` result. The function `chain_of_responsibility` takes in a variable number of handlers and returns a new function `handle` that chains these handlers together.",
-  "score": 0,
+  "score": 4,
   "cost": 4.9949999999999994e-05,
   "expected": "",
   "tokens": {
     "input": 81,
     "output": 63
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

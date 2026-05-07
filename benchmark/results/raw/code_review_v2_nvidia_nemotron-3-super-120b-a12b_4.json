@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 4,
   "response": "**Code review**\n\n```python\ndef get_user_file(filename):\n    base_path = '/var/app/uploads/'\n    file_path = base_path + filename\n    with open(file_path, 'r') as f:\n        return f.read()\n```\n\n---\n\n## 1. Bugs / Functional Problems  \n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **String concatenation for paths** (`base_path + filename`) | If `filename` does not start with a separator you may get a malformed path (`/var/app/uploadsfoo.txt`). If it already starts with `/` you lose the base directory (`/etc/passwd`). | Use `os.path.join(base_path, filename)` (or `pathlib.Path(base_path) / filename`). |\n| **No validation of the resulting path** | An attacker can supply `../../etc/passwd` and read arbitrary files on the host. | Resolve the absolute path and verify it is still inside `base_path`. |\n| **No error handling** | `open()` will raise `FileNotFoundError`, `PermissionError`, `IsADirectoryError`, etc., bubbling up to the caller and potentially exposing stack traces. | Wrap the open in a `try/except` block and return a sensible result (e.g., `None`) or raise a domain\u2011specific exception. |\n| **Reading the whole file into memory** | Very large uploads could exhaust RAM \u2192 DoS. | Stream the file or impose a size limit (`os.path.getsize`) before reading, or read in chunks. |\n| **Assuming text mode (`'r'`)** | If the file contains binary data (e.g., an image) decoding may fail with `UnicodeDecodeError`. | Open in binary mode (`'rb'`) and let the caller decode if needed, or explicitly handle encoding errors. |\n| **No symlink protection** | A malicious user could replace a legitimate upload with a symlink pointing to `/etc/shadow`. | After joining, call `os.path.realpath` (or `Path.resolve()`) and verify the resolved path is still under the intended directory. |\n| **Hard\u2011coded base path** | Makes the function less reusable and harder to test. | Accept",
-  "score": 0,
+  "score": 4,
   "cost": 7.983e-05,
   "expected": "",
   "tokens": {
     "input": 87,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

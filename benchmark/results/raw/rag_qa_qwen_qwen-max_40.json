@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 40,
   "response": "France offered full citizenship rights, or \u2018assimilation\u2019, to people in its colonies, which was rare by imperial standards. However, it's noted that in reality, this assimilation was rarely achieved and always seemed to be in the distant future.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00039312,
   "expected": "assimilation",
   "tokens": {
     "input": 178,
     "output": 50
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

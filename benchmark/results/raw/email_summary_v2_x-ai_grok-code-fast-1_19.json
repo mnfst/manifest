@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 19,
   "response": "The Datadog contract expires on June 30 at a current cost of $180K per year, with an offered 3-year renewal at $155K per year (a 14% discount) or an alternative switch to Grafana Cloud at $95K per year, though the latter requires a 3-month migration. Finance requires a decision on this matter by May 15.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002892,
   "expected": "",
   "tokens": {
     "input": 294,
     "output": 288
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

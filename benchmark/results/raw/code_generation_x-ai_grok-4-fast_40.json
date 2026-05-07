@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 40,
   "response": "abs_a = abs(a)\n    low = 0\n    high = abs_a\n    while low <= high:\n        mid = (low + high) // 2\n        cube = mid ** 3\n        if cube == abs_a:\n            return True\n        elif cube < abs_a:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return False",
-  "score": 0,
+  "score": 3,
   "cost": 0.0022877999999999996,
   "expected": "",
   "tokens": {
     "input": 291,
     "output": 2787
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

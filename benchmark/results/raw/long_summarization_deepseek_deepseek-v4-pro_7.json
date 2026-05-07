@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 7,
   "response": "The 2020s mark a transformative era in space exploration, characterized by an unprecedented blend of government-led lunar ambitions (NASA's Artemis, China's space station, India's Chandrayaan missions) and private-sector innovation, from SpaceX's Starship and Starlink constellations to space tourism ventures by Blue Origin and Virgin Galactic. Scientific discovery is being reshaped by the James Webb Space Telescope, while business eyes asteroid mining. This rapid expansion, however, exposes the limitations of the outdated Outer Space Treaty and escalates the urgent problem of space debris, threatening the sustainability of these endeavors.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0012232200000000001,
   "expected": "",
   "tokens": {
     "input": 128,
     "output": 671
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

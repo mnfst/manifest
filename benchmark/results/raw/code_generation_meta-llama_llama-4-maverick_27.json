@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 27,
   "response": "```python\nmax_strength = float('-inf')\nstrongest_extension = ''\nfor extension in extensions:\n    strength = sum(1 for c in extension if c.isupper()) - sum(1 for c in extension if c.islower())\n    if strength > max_strength:\n        max_strength = strength\n        strongest_extension = extension\nreturn f'{class_name}.{strongest_extension}'\n```",
-  "score": 0,
+  "score": 4,
   "cost": 9.375e-05,
   "expected": "",
   "tokens": {
     "input": 309,
     "output": 79
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

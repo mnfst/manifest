@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 9,
   "response": "70. \n\nThe relevant sentence from the context is: \"In the summers, temperature ranges are 90-60's while as winters are 70-50's...\" The high end of the temperature range in winter is 70.",
-  "score": 0,
+  "score": 5,
   "cost": 6.0899999999999996e-05,
   "expected": "70",
   "tokens": {
     "input": 214,
     "output": 48
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

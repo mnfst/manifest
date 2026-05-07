@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 13,
   "response": "The Customer Success team's Q1 quarterly update highlights positive metrics, including an NPS increase to 62 from 58, support CSAT at 4.3/5, and a reduced churn rate of 1.2% from 1.8%. Key feature requests include SSO, custom dashboards, and API rate limit increases, with three enterprise expansions in the pipeline totaling $800K.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002828,
   "expected": "",
   "tokens": {
     "input": 262,
     "output": 288
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

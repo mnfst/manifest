@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 7,
   "response": "```python\ndef special_factorial(n):\n    if n <= 0:\n        return 1\n    \n    # Calculate factorial of n\n    factorial_n = 1\n    for i in range(1, n + 1):\n        factorial_n *= i\n    \n    # Calculate special factorial by multiplying all factorials from n down to 1\n    result = 1\n    for i in range(n, 0, -1):\n        # Calculate factorial of i\n        factorial_i = 1\n        for j in range(1, i + 1):\n            factorial_i *= j\n        result *= factorial_i\n    \n    return result\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.00014652,
   "expected": "",
   "tokens": {
     "input": 130,
     "output": 134
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

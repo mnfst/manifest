@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 19,
   "response": "Based on the provided context, besides military technology, Europe also achieved advancements in communication.\n\nThe context explicitly states: \"Along with advancements in communication, Europe also continued to advance in military technology.\" This indicates that communication was another area where Europe made progress during this time period.",
-  "score": 0,
+  "score": 5,
   "cost": 8.403999999999999e-05,
   "expected": "communication",
   "tokens": {
     "input": 162,
     "output": 55
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

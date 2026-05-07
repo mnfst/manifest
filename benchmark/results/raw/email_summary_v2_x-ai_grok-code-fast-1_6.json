@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 6,
   "response": "Acme Corp, a high-value customer with $450K ARR, is threatening to churn due to persistent API latency spikes over the past three weeks and a five-day delay in support response, prompting a direct call from their CTO. A dedicated engineer has been assigned, and an executive sponsor is needed to join a call with the customer this week.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000285,
   "expected": "",
   "tokens": {
     "input": 297,
     "output": 282
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

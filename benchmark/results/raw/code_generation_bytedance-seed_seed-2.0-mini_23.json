@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 23,
   "response": "current_min = global_min = nums[0]\nfor num in nums[1:]:\n    current_min = min(num, current_min + num)\n    if current_min < global_min:\n        global_min = current_min\nreturn global_min",
-  "score": 0,
+  "score": 4,
   "cost": 0.0004037,
   "expected": "",
   "tokens": {
     "input": 169,
     "output": 967
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

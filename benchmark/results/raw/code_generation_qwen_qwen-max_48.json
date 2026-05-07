@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 48,
   "response": "cleaned_text = ''.join(char.lower() for char in text if char.isalnum())\n    return cleaned_text == cleaned_text[::-1]",
-  "score": 0,
+  "score": 4,
   "cost": 0.00022464,
   "expected": "",
   "tokens": {
     "input": 104,
     "output": 28
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

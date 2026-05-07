@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 33,
   "response": "To determine if three sides form a right-angled triangle, we use the Pythagorean theorem: the square of the hypotenuse equals the sum of the squares of the other two sides. We must also ensure the sides can form a triangle (triangle inequality theorem: sum of any two sides > third side).\n\n```python\n    # Check triangle inequality\n    if not (a + b > c and a + c > b and b + c > a):\n        return False\n    \n    # Check Pythagorean theorem for all possible hypotenuses\n    if a**2 + b**2 == c**2 or a**2 + c**2 == b**2 or b**2 + c**2 == a**2:\n        return True\n    return False\n```To determine if three sides form a right-angled triangle, we use the Pythagorean theorem: the square of the hypotenuse equals the sum of the squares of the other two sides. We must also ensure the sides can form a triangle (triangle inequality theorem: sum of any two sides > third side).\n\n```python\n    # Check triangle inequality\n    if not (a + b > c and a + c > b and b + c > a):\n        return False\n    \n    # Check Pythagorean theorem for all possible hypotenuses\n    if a**2 + b**2 == c**2 or a**2 + c**2 == b**2 or b**2 + c**2 == a**2:\n        return True\n    return False\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.000745,
   "expected": "",
   "tokens": {
     "input": 337,
     "output": 847
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

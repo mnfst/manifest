@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 32,
   "response": "\u2605\u2605\u2605\u2605\u00bd (4.5/5 Stars)\n# Review: Hachi & Biscuit, Asheville\u2019s Cozy Hidden Fusion Gem\n\nI drove 130 miles round-trip from Charlotte to check out Hachi & Biscuit, the tiny cottage restaurant that\u2019s been blowing up Appalachian food social media, and I\u2019d make the drive again without a second thought. My sister and I booked a reservation six weeks in advance for her 30th birthday, and walking through its pastel blue front door felt like stepping into our favorite aunt\u2019s sunlit, well-loved kitchen.\n\nThe 25-seat spot is crammed into a renovated shotgun cottage, with hand-thrown ceramic plates lining exposed brick walls, a crackling wood stove wafting cedar scent through the main dining room, and soft Stan Getz playing low over the speakers. Each table has a mason jar of foraged wild clover and daisies, and the only neon sign blinks softly: \u201cBiscuits > Everything.\u201d There\u2019s no stuffy fine dining formality here\u2014servers wear frayed vintage denim aprons, and the owner, Chef Maki Tate, popped out twice to check on tables, introducing herself to our group with a warm, flour-dusted grin.\n\nOur server, Lila, was a little fluttery right off the bat: she dropped a water glass within five minutes of sitting down, and forgot our initial cocktail order twice. But she owned every misstep immediately, comped our round of house ginger beer (spiked with local bourbon, no less) to make amends, and knew every single detail on the chalkboard menu by heart. She walked us through the restaurant\u2019s origin story: Chef Tate grew up in Atlanta, the daughter of Japanese immigrant parents, and spent years working in both kaiseki kitchens and Southern barbecue joints, dreaming up a spot where she could blend her two heritages without forced, gimmicky fusion.\n\nWe started with complimentary warm buttermilk biscuits, slathered with wildflower honey butter infused with a hint of matcha. They were flaky, layered, and still warm enough to melt the butter before we even ordered appetizers\u2014no small feat after a two-hour drive. We split the Uni & Short Rib Biscuit Sliders: two mini buttermilk biscuit buns stuffed with braised short rib that\u2019d been simmered in kombu,",
-  "score": 0,
+  "score": 4,
   "cost": 0.0019433000000000002,
   "expected": "",
   "tokens": {
     "input": 65,
     "output": 4842
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

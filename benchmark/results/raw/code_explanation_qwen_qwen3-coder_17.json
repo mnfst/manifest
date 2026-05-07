@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 17,
   "response": "This code implements the **Chain of Responsibility** design pattern, where multiple handler functions are chained together to process a request sequentially. The algorithm iterates through each handler in order, passing the request to each one, and returns the first non-None result encountered, or None if all handlers return None.",
-  "score": 0,
+  "score": 5,
   "cost": 7.128e-05,
   "expected": "",
   "tokens": {
     "input": 80,
     "output": 61
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

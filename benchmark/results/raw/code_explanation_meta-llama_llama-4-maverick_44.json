@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 44,
   "response": "The given code identifies and returns all connected components in an undirected graph using a Breadth-First Search (BFS) traversal algorithm. It iterates through all nodes in the graph, performing BFS from unvisited nodes to discover and group connected nodes into separate components.",
-  "score": 0,
+  "score": 4,
   "cost": 5.175e-05,
   "expected": "",
   "tokens": {
     "input": 133,
     "output": 53
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

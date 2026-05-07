@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 15,
   "response": "The Legal team has approved the updated terms with two changes: adding an arbitration clause for the enterprise tier and revising the data retention period to 90 days from 180. The final version will be prepared today and needs to be implemented before the EU launch on May 1.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00035568,
   "expected": "",
   "tokens": {
     "input": 106,
     "output": 59
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

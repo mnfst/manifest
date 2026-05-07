@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 28,
   "response": "Originating from 1960s U.S. defense research and the 1969 launch of ARPANET, the internet evolved through foundational milestones like the 1983 adoption of TCP/IP and Tim Berners-Lee\u2019s 1989 invention of the World Wide Web. Commercialization and public accessibility accelerated through the 1990s and 2000s, driven by user-friendly browsers, the dot-com boom, social media platforms, and the 2007 smartphone revolution. Today, this decades-long technological progression has created a ubiquitous global infrastructure connecting over 5 billion people and fundamentally underpinning modern commerce, communication, and daily life.",
-  "score": 0,
+  "score": 5,
   "cost": 0.002812225,
   "expected": "",
   "tokens": {
     "input": 341,
     "output": 2078
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 11,
   "response": "How would you like me to proceed? Should I keep asking questions indefinitely? Is there a particular subject you'd prefer to explore? Would you like me to adjust the tone or length? Does this format meet your expectations?",
-  "score": 0,
+  "score": 4,
   "cost": 0.0006376500000000001,
   "expected": "",
   "tokens": {
     "input": 18,
     "output": 486
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 24,
   "response": "-  On October 12, 2024, at 3:17 PM local time, a 2022 Honda Civic operated by 38-year-old Maria Gonzalez collided with the rear passenger quarter panel of a 2019 Ford F-150 parked curbside at 421 Oak Street, Maplewood, after Gonzalez failed to slow for a stopped school bus loading minors and activated its forward hazard lights.\n-  Gonzalez suffered a mild left wrist sprain and was cited for inattentive driving and failure to yield to a stopped school bus; the Ford\u2019s owner, 62-year-old James Torres, was seated inside the truck retrieving a package and escaped unharmed, with the Honda incurring $4,800 in front-end damage and the F-150 sustaining $2,100 in rear-panel and bumper repairs.\n-  Two eyewitnesses\u2014crossing guard Earl Tate and 17-year-old student Lila Mei\u2014confirmed Gonzalez was holding a mobile device and glancing downward at the moment of impact, and responding traffic officers documented no slick road conditions or mechanical malfunctions with either vehicle during the post-accident inspection.",
-  "score": 0,
+  "score": 3,
   "cost": 0.000378,
   "expected": "",
   "tokens": {
     "input": 60,
     "output": 930
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

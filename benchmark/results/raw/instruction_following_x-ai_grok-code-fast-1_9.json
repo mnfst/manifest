@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 9,
   "response": "April, June, September, November.",
-  "score": 0,
+  "score": 1,
   "cost": 0.00021360000000000001,
   "expected": "",
   "tokens": {
     "input": 220,
     "output": 212
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

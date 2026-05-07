@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 1,
   "response": "The provided Express route handler has several critical issues\u2014primarily a severe security flaw and missing error handling. Below is a detailed breakdown.\n\n---\n\n### 1. **Security: Password hash exposed to clients**\n**What\u2019s wrong:**  \nThe `SELECT *` fetches all columns, including the `",
-  "score": 0,
+  "score": 4,
   "cost": 0.00143289,
   "expected": "",
   "tokens": {
     "input": 94,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

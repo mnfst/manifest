@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 43,
   "response": "Did you know that a day on Venus (one full rotation on its axis) takes longer than a year on Venus (one orbit around the Sun)? It spins so slowly that a Venusian day lasts about 243 Earth days, while its year is only 225 Earth days!",
-  "score": 0,
+  "score": 5,
   "cost": 0.00024260000000000002,
   "expected": "",
   "tokens": {
     "input": 221,
     "output": 248
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

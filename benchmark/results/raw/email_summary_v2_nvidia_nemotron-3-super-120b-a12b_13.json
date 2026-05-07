@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 13,
   "response": "The CS team reported Q1 improvements with NPS rising to 62, support CSAT at 4.3/5, and churn dropping",
-  "score": 0,
+  "score": 5,
   "cost": 2.9789999999999998e-05,
   "expected": "",
   "tokens": {
     "input": 131,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

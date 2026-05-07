@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 46,
   "response": "Subject: Farewell and Best Wishes\n\nDear Team,\n\nI'm writing to share that today marks my last day with the company, and it's bittersweet to say goodbye.\n\nIt's been an incredible journey working alongside such talented and supportive colleagues like all of you.\n\nI've grown professionally and personally through our shared projects and daily collaborations.\n\nThank you for the laughter, the lessons, and the unwavering encouragement during my time here.\n\nI wish you continued success, innovation, and joy in everything you do moving forward.\n\nWarm regards,  \n[Your Name]",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003824,
   "expected": "",
   "tokens": {
     "input": 168,
     "output": 436
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

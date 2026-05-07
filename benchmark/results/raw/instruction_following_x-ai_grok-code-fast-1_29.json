@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 29,
   "response": "DNA, or deoxyribonucleic acid, is a long, double-stranded molecule that stores and transmits genetic information in living organisms, consisting of nucleotides with bases like adenine, thymine, guanine, and cytosine. It serves as the blueprint for building and maintaining an organism, with its structure\u2014discovered through X-ray crystallography by Rosalind Franklin and modeled by Watson and Crick in 1953\u2014enabling replication and protein synthesis.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002476,
   "expected": "",
   "tokens": {
     "input": 218,
     "output": 255
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

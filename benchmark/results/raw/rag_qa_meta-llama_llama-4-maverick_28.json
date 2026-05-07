@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 28,
   "response": "C\u00e9loron handled business on the trip by informing British merchants or fur-traders they encountered of the French claims on the territory and telling them to leave. He also buried lead plates engraved with the French claim to the Ohio Country at the site of present-day Pittsburgh.",
-  "score": 0,
+  "score": 5,
   "cost": 7.544999999999999e-05,
   "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
   "tokens": {
     "input": 283,
     "output": 55
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

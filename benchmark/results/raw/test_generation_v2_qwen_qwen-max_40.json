@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 40,
   "response": "Sure, here's how you can write unit tests for the `rgb_to_hex` function using `pytest`. The tests will cover the happy path, edge cases, and error cases.\n\nFirst, make sure you have `pytest` installed. You can install it using pip if you haven't already:\n\n```sh\npip install pytest\n```\n\nNow, create a test file, for example, `test_rgb_to_hex.py`, and add the following tests:\n\n```python\nimport pytest\nfrom your_module import rgb_to_hex  # Replace 'your_module' with the actual module name\n\ndef test_rgb_to_hex_happy_path():\n    assert rgb_to_hex(0, 0, 0) == '#000000'\n    assert rgb_to_hex(255, 255, 255) == '#ffffff'\n    assert rgb_to_hex(128, 64, 32) == '#804020'\n\ndef test_rgb_to_hex_edge_cases():\n    assert rgb_to_hex(0, 0, 0) == '#000000'\n    assert rgb_to_hex(255, 255, 255) == '#ffffff'\n    assert rgb_to_hex(1, 1, 1) == '#010101'\n    assert rgb_to_hex(254, 254, 254) == '#fefefe'\n\ndef test_rgb_to_hex_error_cases():\n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(-1, 0, 0)\n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(0, -1, 0)\n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(0, 0, -1)\n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(256, 0, 0)\n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(0, 256, 0)\n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(0, 0, 256)\n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(256, 256, 256)\n    with pytest.raises(ValueError, match='RGB values must be 0-255'):\n        rgb_to_hex(-1, -1, -1)\n```\n\n### Explanation:\n\n1. **Happy Path**:\n   - `test_rgb_to_hex_happy_path`: Tests the function with valid RGB values, including the minimum (0, 0, 0), maximum (255, 255, 255), and a middle value (128, 64, 32).\n\n2. **Edge Cases**:\n   - `test_rgb_to_hex_edge_cases`: Tests the function with edge values, such as (0, 0, 0), (255, 255, 255), (1, 1, 1), and (254, 254, 254). These values are at the boundaries of the valid range.\n\n3. **Error Cases**:\n   - `test_rgb_to_hex_error_cases`: Tests the function with invalid RGB values, including values less than 0 and greater than 255. Each test uses `pytest.raises` to ensure that the `ValueError` is raised with the expected message.\n\nTo run the tests, use the following command in your terminal:\n\n```sh\npytest test_rgb_to_hex.py\n```\n\nThis will execute all the tests and provide you with the results.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00362232,
   "expected": "",
   "tokens": {
     "input": 115,
     "output": 842
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

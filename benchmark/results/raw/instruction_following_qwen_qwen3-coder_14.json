@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 14,
   "response": "Stay hydrated in style with our premium stainless steel water bottle, featuring double-wall insulation that keeps drinks cold for up to 24 hours or hot for 12 hours. The leak-proof design and ergonomic grip make it perfect for gym sessions, office work, or outdoor adventures. Available in sleek matte finishes, this eco-friendly bottle holds 20oz of your favorite beverages while reducing single-use plastic waste.",
-  "score": 0,
+  "score": 5,
   "cost": 7.788e-05,
   "expected": "",
   "tokens": {
     "input": 22,
     "output": 83
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

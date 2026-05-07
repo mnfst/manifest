@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 15,
   "response": "Prussia. According to the context, the \"Calvinist Great Elector Frederick William\" was the ruler of Prussia.",
-  "score": 0,
+  "score": 4,
   "cost": 4.8450000000000005e-05,
   "expected": "Prussia",
   "tokens": {
     "input": 215,
     "output": 27
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

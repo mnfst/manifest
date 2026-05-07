@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 22,
   "response": "```python\ncount = 0\nfor bracket in brackets:\n    if bracket == \"<\":\n        count += 1\n    elif bracket == \">\":\n        count -= 1\n    if count < 0:\n        return False\nreturn count == 0\n```",
-  "score": 0,
+  "score": 4,
   "cost": 5.2650000000000006e-05,
   "expected": "",
   "tokens": {
     "input": 127,
     "output": 56
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

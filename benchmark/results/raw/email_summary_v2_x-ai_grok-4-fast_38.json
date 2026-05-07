@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 38,
   "response": "In the first month of the Bug Bounty Program, 47 reports were received, with 12 valid submissions including 3 critical vulnerabilities\u2014IDOR on user profiles, SSRF via webhook URL, and JWT secret in the client bundle\u2014all of which were patched within 24 hours, resulting in $15K in total payouts. The program demonstrates strong ROI, and it is recommended to continue it.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002676,
   "expected": "",
   "tokens": {
     "input": 258,
     "output": 270
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

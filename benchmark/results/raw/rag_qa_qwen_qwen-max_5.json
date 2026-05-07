@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 5,
   "response": "The context does not specify a single \"Rhine Bridge\" location but mentions several bridges over the Rhine or its distributaries. Specifically, it talks about the Rhine bridge at Arnhem and the Ludendorff Bridge crossing the Rhine at Remagen. Therefore, based on the provided context, there isn't one specific answer to \"Where is the Rhine Bridge?\" as it refers to multiple bridges in different locations.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00061464,
   "expected": "Arnhem",
   "tokens": {
     "input": 243,
     "output": 87
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

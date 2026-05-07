@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 9,
   "response": "This code implements a **retry decorator with exponential backoff**. It returns a decorator that wraps a function to retry it up to `max_attempts` times, sleeping for `delay * (2^i)` seconds after each failure (where `i` is the attempt index), and re-raises the last exception if all attempts are exhausted.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00031319999999999997,
   "expected": "",
   "tokens": {
     "input": 120,
     "output": 150
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

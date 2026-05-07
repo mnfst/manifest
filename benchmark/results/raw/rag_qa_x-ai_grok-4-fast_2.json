@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 2,
   "response": "taking physical control of another",
-  "score": 0,
+  "score": 1,
   "cost": 0.0003056,
   "expected": "taking physical control of another",
   "tokens": {
     "input": 452,
     "output": 269
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

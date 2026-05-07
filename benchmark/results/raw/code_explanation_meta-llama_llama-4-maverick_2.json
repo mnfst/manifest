@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 2,
   "response": "**The given code implements the Quicksort algorithm, a divide-and-conquer technique that recursively sorts an array by selecting a pivot element and partitioning the array into three sub-arrays: elements less than, equal to, and greater than the pivot.** The function returns the sorted array by concatenating the results of recursively sorting the sub-arrays.",
-  "score": 0,
+  "score": 5,
   "cost": 5.97e-05,
   "expected": "",
   "tokens": {
     "input": 118,
     "output": 70
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

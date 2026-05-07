@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 14,
   "response": "The AWS infrastructure costs have increased 40% month-over-month due to new ML training jobs using expensive p4d instances, resulting in an estimated $45K monthly impact. The DevOps team has proposed two cost-saving options\u2014spot instances (70% savings with interruption risk) or reserved instances (30% savings with commitment)\u2014and requires a decision by Friday.",
-  "score": 0,
+  "score": 5,
   "cost": 9.372e-05,
   "expected": "",
   "tokens": {
     "input": 114,
     "output": 78
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

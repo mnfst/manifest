@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 40,
   "response": "This code implements the **Circuit Breaker** pattern: it wraps a function call and tracks failures; if failures reach a threshold, it \u201copens\u201d the circuit and blocks further calls for a timeout period, then",
-  "score": 0,
+  "score": 4,
   "cost": 0.000438045,
   "expected": "",
   "tokens": {
     "input": 207,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

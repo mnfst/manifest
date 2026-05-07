@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 26,
   "response": "We need to compute for each sensor: average, min, max, anomalies count. Anomalies: likely readings that deviate beyond some threshold? Not defined. Perhaps anomalies are readings that are >2 standard deviations? Not given. Could be count of readings that are not equal to average? Hmm.\n\nMaybe anomalies defined as number of readings that differ from the average by more than 1? Not specified. Could be count of readings that are outside min-max? That would be zero. Hmm.\n\nMaybe they consider anomalies as readings that are not equal to the mode? Not.\n\nGiven typical tasks: compute average, min, max, and count of anomalies defined as readings that differ from the average by more than 2 degrees? Not given.\n\nLet's infer: For temp_1 readings: [22.1,22.3,22.0,23.5,22.2]. Average = (22.1+22.3+22.0+23.5+22.2)=112.1/5=22.42. Min=22.0, Max=23.5. Anomalies maybe count of readings > average+1? Not.\n\nFor temp_2: [21.0,21.2,28.5,21.1,21.0]. Average = (21.0+21.2+28.5+21.1+21.0)=112.8/5=22.56. Min=21.0, Max=28.5. Anomalies maybe the outlier 28.5. So anomalies count =1.\n\nThus anomalies likely count of readings that are more than 2 standard deviations away? For temp_1, maybe none. So anomalies=0.\n\nThus output: sensors list with objects containing id, avg, min, max, anomalies.\n\nCompute avg with maybe 2 decimal? Not specified. Keep as number.\n\nCompute precisely:\n\ntemp_1 sum = 22.1+22.3=44.4; +22.0=66.4; +23.5=89.9; +22.2=112.1. avg=112.1/5=22.42.\n\ntemp_",
-  "score": 0,
+  "score": 1,
   "cost": 6.021e-05,
   "expected": "",
   "tokens": {
     "input": 169,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

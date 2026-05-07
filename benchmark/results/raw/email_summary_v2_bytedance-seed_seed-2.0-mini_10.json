@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 10,
   "response": "The CEO has circulated an attached Q1 board deck draft, noting key metrics including 127% of the revenue target, 115% net revenue retention, and a 22% increase in customer acquisition cost, with the official board meeting taking place next Tuesday.\nThe primary action item requested is that the email\u2019s recipient submit their assigned product roadmap section by Wednesday ahead of the upcoming board meeting.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001995,
   "expected": "",
   "tokens": {
     "input": 135,
     "output": 465
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

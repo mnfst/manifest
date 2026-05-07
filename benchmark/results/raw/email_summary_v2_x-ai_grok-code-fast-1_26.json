@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 26,
   "response": "The email details a GDPR data export request from user ID 45892, with a 30-day deadline of May 25 to provide all personal data across services, documentation of processing purposes, a third-party data sharing log, and analytics data as advised by legal. The Privacy Team requires action to compile and deliver this information promptly.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002514,
   "expected": "",
   "tokens": {
     "input": 297,
     "output": 240
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 22,
   "response": "Dogs epitomize the essence of a loyal companion, always greeting you with unwavering enthusiasm. Their loyal nature ensures they stand by your side through every joy and hardship without judgment. A loyal dog will instinctively protect its family, proving its devotion in countless quiet moments. This steadfast loyal bond transforms a house into a home, offering a form of friendship that is purely unconditional. Cherishing such a deeply loyal heart makes every day brighter and more meaningful.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00054114,
   "expected": "",
   "tokens": {
     "input": 20,
     "output": 306
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

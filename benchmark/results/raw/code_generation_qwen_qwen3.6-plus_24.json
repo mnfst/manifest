@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 24,
   "response": "if a + b > c and a + c > b and b + c > a:\n        s = (a + b + c) / 2\n        return round((s * (s - a) * (s - b) * (s - c)) ** 0.5, 2)\n    return -1",
-  "score": 0,
+  "score": 4,
   "cost": 0.003279575,
   "expected": "",
   "tokens": {
     "input": 163,
     "output": 2482
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

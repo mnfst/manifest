@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 6,
   "response": "```python\nimport pytest\n\ndef reverse_words(s: str) -> str:\n    return ' '.join(s.split()[::-1])\n\ndef test_reverse_words_happy_path():\n    # Test normal sentence with multiple words\n    assert reverse_words(\"hello world\") == \"world hello\"\n    assert reverse_words(\"the quick brown fox\") == \"fox brown quick the\"\n    assert reverse_words(\"a b c d e\") == \"e d c b a\"\n\ndef test_reverse_words_single_word():\n    # Test single word\n    assert reverse_words(\"hello\") == \"hello\"\n    assert reverse_words(\"python\") == \"python\"\n\ndef test_reverse_words_empty_string():\n    # Test empty string\n    assert reverse_words(\"\") == \"\"\n\ndef test_reverse_words_whitespace_handling():\n    # Test multiple spaces between words\n    assert reverse_words(\"hello    world\") == \"world hello\"\n    assert reverse_words(\"  hello  world  \") == \"world hello\"\n    assert reverse_words(\"   \") == \"\"\n\ndef test_reverse_words_special_characters():\n    # Test words with special characters\n    assert reverse_words(\"hello, world!\") == \"world! hello,\"\n    assert reverse_words(\"test123 abc$\") == \"abc$ test123\"\n    assert reverse_words(\"a-b c_d\") == \"c_d a-b\"\n\ndef test_reverse_words_unicode():\n    # Test unicode characters\n    assert reverse_words(\"h\u00e9llo w\u00f6rld\") == \"w\u00f6rld h\u00e9llo\"\n    assert reverse_words(\"caf\u00e9 r\u00e9sum\u00e9\") == \"r\u00e9sum\u00e9 caf\u00e9\"\n\ndef test_reverse_words_newlines_and_tabs():\n    # Test with newlines and tabs\n    assert reverse_words(\"hello\\nworld\") == \"world hello\"\n    assert reverse_words(\"hello\\tworld\") == \"world hello\"\n    assert reverse_words(\"line1\\nline2\\tline3\") == \"line3 line2 line1\"\n\ndef test_reverse_words_preserve_single_space():\n    # Test that output has single spaces\n    assert reverse_words(\"a   b   c\") == \"c b a\"\n```\n\nThese tests cover:\n\n**Happy Path:**\n- Normal sentences with multiple words\n- Single word strings\n- Words with special characters and numbers\n\n**Edge Cases:**\n- Empty string\n- Multiple consecutive spaces (which get normalized to single spaces)\n- Leading/trailing whitespace\n- Unicode characters\n- Newlines and tabs\n- Strings with only whitespace\n\n**Error Cases:**\n- The function handles all string inputs gracefully, so there aren't traditional error cases, but the edge cases above test the robustness of the implementation\n\nThe tests verify that:\n1. Words are correctly reversed in order\n2. Extra whitespace is handled properly (normalized to single spaces)\n3. Special characters and unicode are preserved\n4. Edge cases don't cause crashes or unexpected behavior",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005236,
   "expected": "",
   "tokens": {
     "input": 56,
     "output": 581
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 47,
   "response": "### Unit Tests for Run Length Encoding Function\n\nThe following tests are written in pytest style to cover the happy path, edge cases, and error cases for the `run_length_encode` function.\n\n```python\nimport pytest\nfrom your_module import run_length_encode  # Replace 'your_module' with the actual module name\n\ndef test_run_length_encode_happy_path():\n    \"\"\"Test run length encoding for a string with multiple characters.\"\"\"\n    input_str = \"AAABBBCCC\"\n    expected_output = [(\"A\", 3), (\"B\", 3), (\"C\", 3)]\n    assert run_length_encode(input_str) == expected_output\n\ndef test_run_length_encode_single_character():\n    \"\"\"Test run length encoding for a string with a single character.\"\"\"\n    input_str = \"A\"\n    expected_output = [(\"A\", 1)]\n    assert run_length_encode(input_str) == expected_output\n\ndef test_run_length_encode_empty_string():\n    \"\"\"Test run length encoding for an empty string.\"\"\"\n    input_str = \"\"\n    expected_output = []\n    assert run_length_encode(input_str) == expected_output\n\ndef test_run_length_encode_repeated_single_character():\n    \"\"\"Test run length encoding for a string with a repeated single character.\"\"\"\n    input_str = \"AAAA\"\n    expected_output = [(\"A\", 4)]\n    assert run_length_encode(input_str) == expected_output\n\ndef test_run_length_encode_invalid_input_type():\n    \"\"\"Test run length encoding with an invalid input type.\"\"\"\n    input_str = 123  # Not a string\n    with pytest.raises(TypeError):\n        run_length_encode(input_str)\n\ndef test_run_length_encode_none_input():\n    \"\"\"Test run length encoding with None input.\"\"\"\n    input_str = None\n    with pytest.raises(TypeError):\n        run_length_encode(input_str)\n```\n\nTo make the function more robust and pass the above tests, you may want to add input type checking to the `run_length_encode` function. Here's an updated version:\n\n```python\ndef run_length_encode(s: str) -> list:\n    if not isinstance(s, str):\n        raise TypeError(\"Input must be a string\")\n    if not s:\n        return []\n    result = []\n    count = 1\n    for i in range(1, len(s)):\n        if s[i] == s[i-1]:\n            count += 1\n        else:\n            result.append((s[i-1], count))\n            count = 1\n    result.append((s[-1], count))\n    return result\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.00032759999999999994,
   "expected": "",
   "tokens": {
     "input": 128,
     "output": 514
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

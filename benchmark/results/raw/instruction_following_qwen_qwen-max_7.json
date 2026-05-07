@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 7,
   "response": "Beat 2-3 eggs, add salt, pepper. Melt butter in pan, pour eggs. Stir gently until set. Serve hot.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00014664,
   "expected": "",
   "tokens": {
     "input": 25,
     "output": 29
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

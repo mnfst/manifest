@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 37,
   "response": "The taste of chocolate is like a velvet whisper from a sun-kissed cocoa dream\u2014rich, smooth, and subtly bittersweet, melting into pure indulgence on your tongue.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00016500000000000003,
   "expected": "",
   "tokens": {
     "input": 169,
     "output": 164
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

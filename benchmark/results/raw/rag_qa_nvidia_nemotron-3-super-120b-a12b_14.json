@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 14,
   "response": "Ctenophora live in marine waters worldwide.",
-  "score": 0,
+  "score": 5,
   "cost": 2.997e-05,
   "expected": "marine waters",
   "tokens": {
     "input": 322,
     "output": 11
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 21,
   "response": "I'm happy to help with directions, but your query is a bit vague since you didn't specify which park or library (or their locations). Directions can vary wildly depending on the city, country, or even the exact spots. For example, are we talking about Central Park in New York to the New York Public Library, or something else entirely?\n\nTo demonstrate, I'll provide a sample set of directions assuming a generic urban layout (e.g., from a hypothetical \"City Park\" to a nearby \"City Library\" in a grid-based street system). These use only left and right turns, as requested. In reality, you'd want to use a map app like Google Maps for precise, real-time routes.\n\n### Sample Directions: From City Park to City Library (Hypothetical Route)\n- Start at the park's main exit.\n- Turn right onto Park Avenue.\n- Turn left onto Elm Street.\n- Turn right onto Library Lane.\n- Turn left into the library parking lot or entrance.\n\nThis is a simplified, fictional example\u2014total distance might be about 1-2 miles, depending on the setup. If you provide more details (like city, addresses, or landmarks), I can give tailored, accurate directions! If this is for a game, puzzle, or something else, let me know for better context.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0008626000000000002,
   "expected": "",
   "tokens": {
     "input": 221,
     "output": 1023
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

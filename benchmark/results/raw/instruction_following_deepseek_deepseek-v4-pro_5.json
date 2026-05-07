@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 5,
   "response": "The horizon softens into a layered wash of tangerine and lavender, the sky deepening upward into indigo. Long ribbons of cloud, touched with copper and rose-gold, drift like embers fading against the cooling dome. The sun, now a molten coin, slips past the edge of the world, and its last light spills across the water in a trembling path of lemon and slate. Shadows stretch and yawn, claiming the fields as birds trace dark calligraphy toward the treeline. A hush settles, the air itself turning tender, holding the memory of warmth before the first star winks awake.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0006085649999999999,
   "expected": "",
   "tokens": {
     "input": 19,
     "output": 345
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

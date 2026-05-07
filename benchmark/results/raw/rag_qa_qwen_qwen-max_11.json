@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 11,
   "response": "According to the provided context, Amazonian forests store about 10% of the carbon in ecosystems.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00027456000000000003,
   "expected": "10% of the carbon stores",
   "tokens": {
     "input": 180,
     "output": 21
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

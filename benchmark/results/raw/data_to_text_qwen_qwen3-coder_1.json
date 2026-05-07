@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 1,
   "response": "LeBron James, at age 40, continues to dominate the court for the Lakers during the 2024-25 season, averaging an impressive 28.4 points, 7.2 rebounds, and 8.1 assists per game over 71 games. His outstanding performance earned him All-Star recognition, demonstrating his remarkable longevity and skill level in his fourth decade of professional basketball.",
-  "score": 0,
+  "score": 5,
   "cost": 9.636e-05,
   "expected": "",
   "tokens": {
     "input": 98,
     "output": 85
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

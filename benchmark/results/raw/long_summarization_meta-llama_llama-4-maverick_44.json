@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 44,
   "response": "Here is a summary of the text in 3-4 sentences:\n\nThe internet originated in the 1960s with the US Department of Defense's funding of computer networking research, leading to the development of ARPANET in 1969. The modern internet took shape in the 1980s and 1990s with the introduction of TCP/IP protocols, the World Wide Web, and the first web browser, Mosaic. Key milestones include the dot-com boom of the late 1990s, the rise of social media in the mid-2000s, and the launch of the iPhone in 2007, which made mobile internet ubiquitous. Today, over 5 billion people are connected to the internet, which underpins many aspects of modern life.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001512,
   "expected": "",
   "tokens": {
     "input": 384,
     "output": 156
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

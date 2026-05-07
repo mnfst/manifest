@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 16,
   "response": "In simple terms, gravity is a natural force that pulls any two objects with mass toward each other. The heavier an object is, the stronger its gravitational pull, and the closer two objects are, the more strongly they attract. On Earth, this invisible force keeps your feet on the ground, causes dropped items to fall, and holds our atmosphere in place. Beyond our planet, gravity governs the motion of celestial bodies: it keeps the Moon orbiting Earth, Earth circling the Sun, and entire galaxies bound together. While Isaac Newton first described it as a universal attraction between masses, Albert Einstein later showed that gravity actually arises because mass and energy warp the fabric of space and time, causing objects to follow curved paths. That is gravity.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0008030750000000001,
   "expected": "",
   "tokens": {
     "input": 31,
     "output": 610
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

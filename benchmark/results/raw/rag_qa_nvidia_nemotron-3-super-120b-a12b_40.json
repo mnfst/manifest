@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 40,
   "response": "Full citizenship rights \u2013 \u2018assimilation\u2019 \u2013 were offered.",
-  "score": 0,
+  "score": 4,
   "cost": 2.6909999999999998e-05,
   "expected": "assimilation",
   "tokens": {
     "input": 183,
     "output": 116
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

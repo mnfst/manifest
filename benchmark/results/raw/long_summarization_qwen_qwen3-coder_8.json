@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 8,
   "response": "The text traces AI's evolution from Alan Turing's foundational work through decades of development, including the AI winters of the 1970s-1980s and the deep learning resurgence in the 2010s. The 2017 transformer architecture paper catalyzed rapid advancement, leading to GPT models and a competitive race among major tech companies like OpenAI, Google, Anthropic, and Meta. Key challenges include the open vs. closed source debate, safety concerns around AI alignment and job displacement, and ongoing regulatory efforts such as the EU AI Act and US executive orders. The technology is now significantly impacting knowledge work and the broader economy.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00015597999999999998,
   "expected": "",
   "tokens": {
     "input": 157,
     "output": 138
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 20,
   "response": "### Photosynthesis Process\n\nPhotosynthesis is a process plants perform. Plants produce sugar using sunlight, sap, and particular substance. Plants produce special substance as product.\n\n### Steps in Photosynthesis\n\nPlants perform photosynthesis in stages. Plants produce sugar in primary stage using sunlight and pigments. Plants produce special substance in secondary stage.\n\n### Importance\n\nPhotosynthesis provides sugar for plants. Plants produce special substance plants and people use. Photosynthesis supports plant species and provides power for systems.",
-  "score": 0,
+  "score": 3,
   "cost": 0.0011332,
   "expected": "",
   "tokens": {
     "input": 218,
     "output": 1362
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

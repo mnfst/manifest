@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 25,
   "response": "cleaned = paren_string.replace(\" \", \"\")\n    result = []\n    i = 0\n    while i < len(cleaned):\n        current = \"\"\n        balance = 0\n        while i < len(cleaned):\n            current += cleaned[i]\n            if cleaned[i] == \"(\":\n                balance += 1\n            else:\n                balance -= 1\n            i += 1\n            if balance == 0:\n                result.append(current)\n                break\n    return result",
-  "score": 0,
+  "score": 3,
   "cost": 0.0031322000000000003,
   "expected": "",
   "tokens": {
     "input": 297,
     "output": 3841
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

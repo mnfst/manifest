@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 43,
   "response": "**Code under review**\n\n```javascript\nasync function getUser(id) {\n  const response = await fetch(`/api/users/${id}`);\n  return response.json();\n}\n```\n\n---\n\n## 1. Functional / Correctness Issues  \n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **No HTTP\u2011status checking** | `fetch` resolves even for 4xx/5xx responses. Calling `response.json()` on a non\u2011JSON error body (e.g., HTML error page) will throw, and the caller receives an unhelpful promise rejection. | After `await fetch(...)`, check `if (!response.ok) { \u2026 }` and either throw a meaningful error or return a structured error object. |\n| **No handling of network errors** | If the request fails (DNS, CORS, abort, etc.) the `await fetch` will reject, but the function does not catch or translate it. Callers may see a generic `TypeError: Failed to fetch`. | Wrap the call in a `try / catch` (or let the caller handle it) and optionally re\u2011throw with added context (`throw new Error(`Unable to fetch user ${id}: ${error.message}`);`). |\n| **`id` is not validated / sanitized** | If `id` is `undefined`, `null`, `\"\"`, or contains characters like `/`, `?`, `#`, or URL\u2011encoded sequences, the resulting URL can be malformed or lead to unintended path traversal (`/api/users/../admin`). | \u2022 Validate that `id` is a non\u2011empty string (or number) that matches the expected format (e.g., UUID, numeric). <br>\u2022 Encode the value with `encodeURIComponent` before interpolating: ``/api/users/${encodeURIComponent(id)}``. |\n| **Potential JSON parsing error** | `response.json()` throws if the body is not valid JSON (e.g., server returns plain text error). The function propagates that raw `SyntaxError`. | Catch the JSON parse error and convert it to a domain\u2011specific error, or check `response.headers.get('content-type')` includes `application/json` before calling `.json()`. |\n| **No timeout / cancellation support** | A stalled request can hang indefinitely, holding up the caller. | Accept an optional `AbortSignal` (or create one with a timeout) and pass it to `fetch`. |\n| **No explicit return type** (if using TypeScript) | Callers lose compile\u2011time safety about the shape of the returned data. | Add a TypeScript return type",
-  "score": 0,
+  "score": 5,
   "cost": 7.839e-05,
   "expected": "",
   "tokens": {
     "input": 71,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

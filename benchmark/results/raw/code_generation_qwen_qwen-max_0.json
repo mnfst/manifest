@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 0,
   "response": "result = \"\"\nfor string in strings:\n    result += string\nreturn result",
-  "score": 0,
+  "score": 3,
   "cost": 0.000156,
   "expected": "",
   "tokens": {
     "input": 90,
     "output": 15
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

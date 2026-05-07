@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 2,
   "response": "sorted_lst = sorted(lst)\n    result = []\n    while sorted_lst:\n        result.append(sorted_lst.pop(0))  # Add min\n        if sorted_lst:\n            result.append(sorted_lst.pop())  # Add max\n    return result",
-  "score": 0,
+  "score": 3,
   "cost": 0.00036712,
   "expected": "",
   "tokens": {
     "input": 157,
     "output": 49
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

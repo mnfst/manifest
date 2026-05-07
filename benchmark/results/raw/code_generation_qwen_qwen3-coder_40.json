@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 40,
   "response": "```python\n    if a == 0:\n        return True\n    \n    # Handle negative numbers\n    if a < 0:\n        # For negative numbers, check if the absolute value is a perfect cube\n        # and the cube root would be negative (odd root of negative number)\n        cube_root = round((-a) ** (1/3))\n        return cube_root ** 3 == -a\n    else:\n        # For positive numbers\n        cube_root = round(a ** (1/3))\n        return cube_root ** 3 == a\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.00013508,
   "expected": "",
   "tokens": {
     "input": 146,
     "output": 117
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 37,
   "response": "This code implements a trie (prefix tree) data structure for string storage and prefix-based word lookup: the `insert` method builds a nested dictionary hierarchy representing the trie, marking the end of each valid stored word with a `#` key, while the `starts_with` method first verifies the given prefix exists in the trie, then uses depth-first search (DFS) to collect and return all full stored words that begin with that prefix as a list.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0002541,
   "expected": "",
   "tokens": {
     "input": 237,
     "output": 576
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

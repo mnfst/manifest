@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 26,
   "response": "The water cycle, also known as the hydrological cycle, is a continuous process by which water moves through the Earth's atmosphere and surface. It involves several key steps: evaporation, condensation, precipitation, and collection. The cycle begins with the sun, which heats water in oceans, lakes, and rivers, causing it to evaporate and rise into the atmosphere as water vapor. Plants also contribute to this process through transpiration, where they release water vapor into the air from their leaves.\n\nAs the water vapor rises, it cools and condenses into tiny droplets, forming clouds. This condensation process is facilitated by the presence of tiny particles in the air, such as dust or pollen, around which the water vapor can condense. When these droplets combine and grow large enough, they fall back to Earth as precipitation, which can take the form of rain, snow, sleet, or hail, depending on the temperature and atmospheric conditions.\n\nUpon reaching the Earth's surface, the water flows over land as surface runoff, replenishing bodies of water such as rivers, lakes, and eventually, the oceans. Some of the water also seeps into the ground, becoming part of the groundwater system, which is essential for supplying water to plants, animals, and human activities. This movement of water across the landscape is crucial for the distribution of nutrients and the maintenance of ecosystems.\n\nThe water cycle is a vital natural system that supports all life on Earth. It plays a crucial role in regulating the Earth's climate, supporting plant and animal life, and providing fresh water for human use. Understanding and conserving the water cycle is essential for managing water resources effectively and ensuring the sustainability of ecosystems, especially in the face of global challenges such as climate change and population growth.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0014976,
   "expected": "",
   "tokens": {
     "input": 20,
     "output": 355
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

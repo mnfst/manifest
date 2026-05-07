@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 37,
   "response": "Not found in context. The context mentions that Kublai secured the \"northeast border\" by installing a ruler in Korea, implying Korea is to the northeast, but it does not directly state that Korea shared a border with Kublai's territory.",
-  "score": 0,
+  "score": 4,
   "cost": 6.495e-05,
   "expected": "northeast",
   "tokens": {
     "input": 225,
     "output": 52
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

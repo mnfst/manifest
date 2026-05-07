@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 3,
   "response": "FRANCE\nGERMANY\nITALY\nSPAIN\nUNITED KINGDOM",
-  "score": 0,
+  "score": 1,
   "cost": 3.42e-06,
   "expected": "",
   "tokens": {
     "input": 20,
     "output": 18
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

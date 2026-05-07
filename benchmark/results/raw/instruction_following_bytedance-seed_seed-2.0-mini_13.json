@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 13,
   "response": "The 7 standard rainbow colors in order are:\n1.  Red\n2.  Orange\n3.  Yellow\n4.  Green\n5.  Blue\n6.  Indigo\n7.  Violet",
-  "score": 0,
+  "score": 5,
   "cost": 7.83e-05,
   "expected": "",
   "tokens": {
     "input": 59,
     "output": 181
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 47,
   "response": "Here's a complete, pytest-style test suite covering happy paths, edge cases, and error cases. It uses `@pytest.mark.parametrize` for clean, data-driven testing and groups tests logically.\n\n```python\nimport pytest\n\n# Assuming the function is imported from your module:\n# from your_module import run_length_encode\n\nclass TestRunLengthEncode:\n    \"\"\"Tests for run_length_encode function.\"\"\"\n\n    @pytest.mark.parametrize(\"input_str, expected\", [\n        (\"aabbc\", [('a', 2), ('b', 2), ('c', 1)]),\n        (\"abc\", [('a', 1), ('b', 1), ('c', 1)]),\n        (\"aaabbbccc\", [('a', 3), ('b', 3), ('c', 3)]),\n        (\"a\", [('a', 1)]),\n    ])\n    def test_happy_path(self, input_str, expected):\n        \"\"\"Standard inputs with mixed and single character runs.\"\"\"\n        assert run_length_encode(input_str) == expected\n\n    @pytest.mark.parametrize(\"input_str, expected\", [\n        (\"\", []),\n        (\"aaaa\", [('a', 4)]),\n        (\"ababab\", [('a', 1), ('b', 1), ('a', 1), ('b', 1), ('a', 1), ('b', 1)]),\n        (\"a  b\", [('a', 1), (' ', 2), ('b', 1)]),\n        (\"!!@@##\", [('!', 2), ('@', 2), ('#', 2)]),\n        (\"\ud83c\udf4e\ud83c\udf4e\ud83c\udf4c\", [('\ud83c\udf4e', 2), ('\ud83c\udf4c', 1)]),\n        (None, []),  # Note: function's `if not s:` truthiness check handles None gracefully\n    ])\n    def test_edge_cases(self, input_str, expected):\n        \"\"\"Boundary conditions, whitespace, special chars, unicode, and falsy values.\"\"\"\n        assert run_length_encode(input_str) == expected\n\n    @pytest.mark.parametrize(\"invalid_input\", [\n        123,\n        3.14,\n        True,\n        object(),\n    ])\n    def test_error_cases(self, invalid_input):\n        \"\"\"Non-string types that lack string methods/length should raise TypeError.\"\"\"\n        with pytest.raises(TypeError):\n            run_length_encode(invalid_input)\n```\n\n### Key Design Choices:\n1. **`@pytest.mark.parametrize`**: Keeps tests DRY and makes it trivial to add new cases without duplicating test logic.\n2. **Categorization**: Separates happy path, edge cases, and error cases into distinct test methods for better test reporting and maintainability.\n3. **Error Case Coverage**: Tests types that will fail at `len()` or indexing (`int`, `float`, `bool`, `object`). Note that `None` and `[]` return `[]` due to Python's truthiness evaluation in `if not s:`, which is tested under edge cases to document actual runtime behavior.\n4. **Unicode & Whitespace**: Explicitly tests multi-byte characters and spaces to ensure the function handles Python's native string encoding correctly.\n\nRun with: `pytest test_run_length_encode.py -v`",
-  "score": 0,
+  "score": 5,
   "cost": 0.007112950000000001,
   "expected": "",
   "tokens": {
     "input": 138,
     "output": 5437
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

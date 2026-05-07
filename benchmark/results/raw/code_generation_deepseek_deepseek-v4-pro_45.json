@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 45,
   "response": "return sorted(set(l1) & set(l2))",
-  "score": 0,
+  "score": 4,
   "cost": 0.000476325,
   "expected": "",
   "tokens": {
     "input": 143,
     "output": 238
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 4,
   "response": "```python\nimport pytest\nfrom your_module import celsius_to_fahrenheit  # replace with actual module name\n\n\nclass TestCelsiusToFahrenheit:\n    \"\"\"Unit tests for celsius_to_fahrenheit function.\"\"\"\n\n    # ---------- Happy Path ----------\n    @pytest.mark.parametrize(\n        \"celsius, expected\",\n        [\n            (0, 32.0),\n            (100, 212.0),\n            (-40, -40.0),\n            (37, 98.6),\n            (20, 68.0),\n            (-10, 14.0),\n        ],\n    )\n    def test_typical_values(self, celsius, expected):\n        \"\"\"Should correctly convert typical Celsius values to Fahrenheit.\"\"\"\n        result = celsius_to_fahrenheit(celsius)\n        assert result == pytest.approx(expected)\n\n    # ---------- Edge Cases ----------\n    def test_absolute_zero(self):\n        \"\"\"Should handle absolute zero (-273.15\u00b0C = -459.67\u00b0F).\"\"\"\n        result = celsius_to_fahrenheit(-273.15)\n        assert result == pytest.approx(-459.67)\n\n    def test_very_large_positive(self):\n        \"\"\"Should handle very large positive numbers without overflow.\"\"\"\n        result = celsius_to_fahrenheit(1e308)\n        assert result == pytest.approx(1e308 * 9 / 5 + 32)\n\n    def test_very_large_negative(self):\n        \"\"\"Should handle very large negative numbers without overflow.\"\"\"\n        result = celsius_to_fahrenheit(-1e308)\n        assert result == pytest.approx(-1e308 * 9 / 5 + 32)\n\n    def test_positive_infinity(self):\n        \"\"\"Should return inf for positive infinity input.\"\"\"\n        result = celsius_to_fahrenheit(float(\"inf\"))\n        assert result == float(\"inf\")\n\n    def test_negative_infinity(self):\n        \"\"\"Should return -inf for negative infinity input.\"\"\"\n        result = celsius_to_fahrenheit(float(\"-inf\"))\n        assert result == float(\"-inf\")\n\n    def test_nan(self):\n        \"\"\"Should return NaN for NaN input.\"\"\"\n        result = celsius_to_fahrenheit(float(\"nan\"))\n        assert result != result  # NaN is the only value not equal to itself\n\n    def test_zero(self):\n        \"\"\"0\u00b0C should be exactly 32\u00b0F.\"\"\"\n        assert celsius_to_fahrenheit(0) == 32.0\n\n    def test_float_precision(self):\n        \"\"\"Should maintain reasonable floating point precision.\"\"\"\n        result = celsius_to_fahrenheit(0.1)\n        # 0.1 * 9/5 + 32 = 32.18\n        assert result == pytest.approx(32.18, rel=1e-9)\n\n    # ---------- Error Cases ----------\n    @pytest.mark.parametrize(\n        \"invalid_input\",\n        [\n            \"100",
-  "score": 0,
+  "score": 4,
   "cost": 0.001763925,
   "expected": "",
   "tokens": {
     "input": 55,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

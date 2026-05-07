@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 29,
   "response": "```python\nimport pytest\n\ndef test_happy_path_simple():\n    \"\"\"Test basic happy path with integers.\"\"\"\n    data = [1, 2, 3, 4]\n    window = 2\n    expected = [1.5, 2.5, 3.0]\n    assert moving_average(data, window) == expected\n\ndef test_happy_path_with_floats():\n    \"\"\"Test happy path with floating-point numbers.\"\"\"\n    data = [1.0, 2.5, 3.0, 4.5]\n    window = 2\n    expected = [1.75, 2.75, 3.75]\n    assert moving_average(data, window) == expected\n\ndef test_window_one():\n    \"\"\"Test edge case where window is 1 (returns original data as averages).\"\"\"\n    data = [1, 2, 3]\n    window = 1\n    expected = [1.0, 2.0, 3.0]\n    assert moving_average(data, window) == expected\n\ndef test_full_window():\n    \"\"\"Test edge case where window equals length of data (single average).\"\"\"\n    data = [1, 2, 3]\n    window = 3\n    expected = [2.0]\n    assert moving_average(data, window) == expected\n\ndef test_empty_data():\n    \"\"\"Test edge case with empty data list.\"\"\"\n    data = []\n    window = 1\n    assert moving_average(data, window) == []\n\ndef test_invalid_window_zero():\n    \"\"\"Test error case with window equal to zero.\"\"\"\n    data = [1, 2, 3]\n    window = 0\n    assert moving_average(data, window) == []\n\ndef test_invalid_window_negative():\n    \"\"\"Test error case with negative window.\"\"\"\n    data = [1, 2, 3]\n    window = -1\n    assert moving_average(data, window) == []\n\ndef test_invalid_window_too_large():\n    \"\"\"Test error case with window larger than data length.\"\"\"\n    data = [1, 2, 3]\n    window = 4\n    assert moving_average(data, window) == []\n\ndef test_non_numeric_data():\n    \"\"\"Test error case with non-numeric data (should raise TypeError).\"\"\"\n    data = [1, 'a', 3]\n    window = 2\n    with pytest.raises(TypeError):\n        moving_average(data, window)\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.001011,
   "expected": "",
   "tokens": {
     "input": 247,
     "output": 1202
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

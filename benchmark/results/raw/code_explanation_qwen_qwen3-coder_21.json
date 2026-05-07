@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 21,
   "response": "This code implements a **function composition pipeline** that takes multiple functions as arguments and returns a new function that applies them sequentially from left to right. When the returned `piped` function is called with an input `x`, it passes `x` through each function in the order they were provided, with the output of each function becoming the input to the next, ultimately returning the final result.",
-  "score": 0,
+  "score": 5,
   "cost": 8.492000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 70,
     "output": 79
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

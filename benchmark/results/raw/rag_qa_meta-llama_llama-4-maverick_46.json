@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 46,
   "response": "The Los Angeles Kings. \n\nThis is based on the context provided, which lists the Los Angeles Kings as an NHL team, and both Los Angeles and Anaheim are considered part of Southern California.",
-  "score": 0,
+  "score": 4,
   "cost": 4.185e-05,
   "expected": "Los Angeles Kings",
   "tokens": {
     "input": 127,
     "output": 38
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

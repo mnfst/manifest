@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 12,
   "response": "To write unit tests for the `chunk_list` function using `pytest`, we need to cover the following cases:\n1. **Happy Path**: The function works as expected with a regular list and valid size.\n2. **Edge Cases**:\n   - An empty list.\n   - A list with a size that is a multiple of the list length.\n   - A list with a size that is greater than the list length.\n3. **Error Cases**:\n   - A size of zero.\n   - A negative size.\n\nHere is the `pytest`-style test code:\n\n```python\nimport pytest\n\ndef chunk_list(lst: list, size: int) -> list:\n    if size <= 0:\n        raise ValueError('size must be positive')\n    return [lst[i:i+size] for i in range(0, len(lst), size)]\n\ndef test_chunk_list_happy_path():\n    lst = [1, 2, 3, 4, 5, 6, 7, 8, 9]\n    size = 3\n    expected = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]\n    assert chunk_list(lst, size) == expected\n\ndef test_chunk_list_empty_list():\n    lst = []\n    size = 3\n    expected = []\n    assert chunk_list(lst, size) == expected\n\ndef test_chunk_list_size_multiple_of_length():\n    lst = [1, 2, 3, 4, 5, 6]\n    size = 3\n    expected = [[1, 2, 3], [4, 5, 6]]\n    assert chunk_list(lst, size) == expected\n\ndef test_chunk_list_size_greater_than_length():\n    lst = [1, 2, 3, 4, 5]\n    size = 10\n    expected = [[1, 2, 3, 4, 5]]\n    assert chunk_list(lst, size) == expected\n\ndef test_chunk_list_size_zero():\n    lst = [1, 2, 3, 4, 5]\n    size = 0\n    with pytest.raises(ValueError, match='size must be positive'):\n        chunk_list(lst, size)\n\ndef test_chunk_list_negative_size():\n    lst = [1, 2, 3, 4, 5]\n    size = -1\n    with pytest.raises(ValueError, match='size must be positive'):\n        chunk_list(lst, size)\n```\n\n### Explanation:\n- **test_chunk_list_happy_path**: Tests the function with a regular list and a valid size, expecting the list to be split into chunks of the specified size.\n- **test_chunk_list_empty_list**: Tests the function with an empty list, expecting an empty list in return.\n- **test_chunk_list_size_multiple_of_length**: Tests the function with a list where the size is a multiple of the list length, expecting the list to be split into equal-sized chunks.\n- **test_chunk_list_size_greater_than_length**: Tests the function with a list where the size is greater than the list length, expecting the entire list to be returned as a single chunk.\n- **test_chunk_list_size_zero**: Tests the function with a size of zero, expecting a `ValueError` to be raised.\n- **test_chunk_list_negative_size**: Tests the function with a negative size, expecting a `ValueError` to be raised.\n\nYou can run these tests using the `pytest` command in your terminal. Make sure you have `pytest` installed in your environment. You can install it using `pip install pytest` if you haven't already.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00324272,
   "expected": "",
   "tokens": {
     "input": 86,
     "output": 758
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

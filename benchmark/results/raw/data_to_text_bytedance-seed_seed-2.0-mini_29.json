@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 29,
   "response": "On March 15, 2024 at 14:23 UTC, a magnitude 7.2 earthquake struck at a depth of 15 kilometers near Tokyo, with its epicenter located at 35.6 degrees north latitude and 139.7 degrees east latitude, prompting officials to issue a tsunami warning. The powerful quake affected 2.3 million people, left 12 confirmed casualties in its wake, and caused an estimated $4.5 billion in total damage.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003926,
   "expected": "",
   "tokens": {
     "input": 170,
     "output": 939
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

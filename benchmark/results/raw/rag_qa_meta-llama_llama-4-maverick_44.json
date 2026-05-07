@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 44,
   "response": "The Ohio Company of Virginia.",
-  "score": 0,
+  "score": 5,
   "cost": 4.3049999999999996e-05,
   "expected": "Ohio Company of Virginia",
   "tokens": {
     "input": 263,
     "output": 6
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

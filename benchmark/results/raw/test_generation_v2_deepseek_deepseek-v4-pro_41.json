@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 41,
   "response": "```python\nimport pytest\nfrom your_module import hex_to_rgb  # replace with actual module name\n\n# Happy path tests\n@pytest.mark.parametrize(\n    \"input_hex, expected\",\n    [\n        (\"#000000\", (0, 0, 0)),\n        (\"#FFFFFF\", (255, 255, 255)),\n        (\"#FF00AA\", (255, 0, 170)),\n        (\"#00ff00\", (0, 255, 0)),\n        (\"123456\", (18, 52, 86)),          # without leading '#'\n        (\"#aBcDeF\", (171, 205, 239)),      # mixed case\n        (\"abcdef\", (171, 205, 239)),       # lowercase without '#'\n        (\"#808080\", (128, 128, 128)),\n    ],\n)\ndef test_hex_to_rgb_valid(input_hex, expected):\n    \"\"\"Test valid hex color strings return correct RGB tuples.\"\"\"\n    assert hex_to_rgb(input_hex) == expected\n\n\n# Edge-case tests\ndef test_hex_to_rgb_min_value():\n    \"\"\"Test the smallest possible value (#000000).\"\"\"\n    assert hex_to_rgb(\"#000000\") == (0, 0, 0)\n\n\ndef test_hex_to_rgb_max_value():\n    \"\"\"Test the largest possible value (#FFFFFF).\"\"\"\n    assert hex_to_rgb(\"#",
-  "score": 0,
+  "score": 4,
   "cost": 0.00177306,
   "expected": "",
   "tokens": {
     "input": 76,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

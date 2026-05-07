@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 23,
   "response": "**Code under review**\n\n```javascript\nfunction checkAdmin(req, res, next) {\n  if (req.headers['x-admin'] === 'true') {\n    next();\n  } else {\n    res.status(403).json({ error: 'Not admin' });\n  }\n}\n```\n\n---\n\n## 1. Bugs / Logical Issues  \n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **Header name case\u2011sensitivity** | Although Express lower\u2011cases header names, relying on the exact string `'x-admin'` is fragile if the code ever runs in a non\u2011Express environment (e.g., plain Node `http` server) where headers retain the original case sent by the client. | Normalise the lookup: `const adminHeader = req.headers['x-admin'] || req.headers['X-Admin'];` or simply `req.get('x-admin')` (Express provides a case\u2011insensitive getter). |\n| **Strict equality (`===`) with a header value** | Header values are always strings, but if a client accidentally sends a non\u2011string (e.g., `true` as a boolean via some proxy) the check will fail even though the intent was \u201ctrue\u201d. | Convert to string and trim: `String(req.get('x-admin')).trim().toLowerCase() === 'true'`. |\n| **Missing handling of malformed or missing header** | If the header is absent, `req.headers['x-admin']` is `undefined`; the check fails and returns 403, which is fine, but there is no logging or metrics to detect probing attempts. | Add a debug/log line when the header is missing or invalid (see logging suggestion below). |\n| **No error\u2011handling forwarding** | If an error occurs later in the chain, the middleware does not pass it to Express\u2019 error\u2011handling middleware (`next(err)`). | Keep the pattern `next()` for success and `next(new Error('Not authorized'))` for failure, or at least call `next()` with an error object so centralized error handling can format the response uniformly. |\n\n---\n\n## 2. Security Issues  \n\n| Issue | Why it\u2019s a problem | Recommended mitigation |\n|-------",
-  "score": 0,
+  "score": 4,
   "cost": 8.073000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 97,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

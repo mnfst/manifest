@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 15,
   "response": "Here are four clear, common perfect rhymes for \"cat\" (sharing its short /\u00e6t/ phonetic sound):\n1.  **Mat** \u2013 A flat, padded or woven covering for a surface (e.g., doormat, bath mat)\n2.  **Hat** \u2013 A styled head covering worn for warmth, style, or sun protection\n3.  **Bat** \u2013 Either the small nocturnal flying mammal or the wooden tool used in baseball\n4.  **Pat** \u2013 A soft, quick tap administered with an open hand or flat object",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002792,
   "expected": "",
   "tokens": {
     "input": 60,
     "output": 683
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

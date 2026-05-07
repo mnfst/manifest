@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 15,
   "response": "```python\nimport pytest\nfrom your_module import rotate_list  # Replace with the actual module name\n\nclass TestRotateList:\n    \"\"\"Unit tests for rotate_list function.\"\"\"\n\n    # --- Happy Path ---\n    @pytest.mark.parametrize(\"lst, k, expected\", [\n        ([1, 2, 3, 4, 5], 2, [4, 5, 1, 2, 3]),      # typical right rotation\n        ([1, 2, 3], 0, [1, 2, 3]),                  # k = 0\n        ([1, 2, 3], 3, [1, 2, 3]),                  # k equals length\n        ([1, 2, 3], 5, [2, 3, 1]),                  # k > length (modulo)\n        ([42], 3, [42]),                            # single element\n        ([1, \"a\", 3.0], 1, [3.0, 1, \"a\"]),          # mixed types\n    ])\n    def test_happy_path(self, lst, k, expected):\n        assert rotate_list(lst, k) == expected\n\n    # --- Edge Cases ---\n    @pytest.mark.parametrize(\"lst, k, expected\", [\n        ([], 5, []),                                # empty list with non-zero k\n        ([], 0, []),                                # empty list with k=0\n        ([1, 2, 3, 4, 5], -1, [2, 3, 4, 5, 1]),    # negative k (left rotation)\n        ([1, 2, 3], -4, [2, 3, 1]),                 # negative k > length (modulo)\n    ])\n    def test_edge_cases(self, lst, k, expected):\n        assert rotate_list(lst, k) == expected\n\n    def test_large_k_performance(self):\n        \"\"\"Large k should behave identically to k % len(lst).\"\"\"\n        lst = [1, 2, 3]\n        assert rotate_list(lst, 1_000_000) == rotate_list(lst, 1_000_000 % 3)\n\n    # --- Error Cases ---\n    @pytest.mark.parametrize(\"lst, k\", [\n        (123, 2),                # lst is an int\n        (None, 2),               # lst is None\n        ([1, 2, 3], \"a\"),        # k is a string\n        ([1, 2, 3], 2.0),        # k is a float (causes slice error)\n        ([1, 2, 3], 1 + 2j),     # k is complex\n    ])\n    def test_type_errors(self, lst, k):\n        \"\"\"Invalid input types should raise TypeError.\"\"\"\n        with pytest.raises(TypeError):\n            rotate_list(lst, k)\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.005063835,
   "expected": "",
   "tokens": {
     "input": 73,
     "output": 2892
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

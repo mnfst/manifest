@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 27,
   "response": "Newton's First Law\n\n## Explanation\n\nThe reasoning process begins by examining the question: \"What law connects relative velocities with inertia?\" and ensuring the response is derived solely from the provided context. The context explicitly states that Newton's First Law of Motion connects inertia with the concept of relative velocities, noting that it makes rest physically indistinguishable from non-zero constant velocity. This is supported by the description of systems where objects move with different velocities, making it impossible to determine which is in motion or at rest, and by the principle that the laws of physics are the same in every inertial frame of reference. These elements directly align with the question, confirming that Newton's First Law is the relevant law identified in the context. No other information outside the context is considered, as per the guidelines.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003556,
   "expected": "Newton's First",
   "tokens": {
     "input": 410,
     "output": 342
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

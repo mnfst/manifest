@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 28,
   "response": "This code implements the dynamic programming algorithm for finding the length of the longest common subsequence (LCS) between two strings `a` and `b`. It builds a 2D table where each cell `dp[i][j]` stores the LCS length for the first `i` characters of `a` and first `j` characters of `b`, updating values by incrementing on matches or taking the maximum from adjacent cells, and returns the final table value.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00027440000000000006,
   "expected": "",
   "tokens": {
     "input": 356,
     "output": 254
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

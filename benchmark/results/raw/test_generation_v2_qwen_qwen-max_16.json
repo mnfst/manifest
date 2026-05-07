@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 16,
   "response": "To write unit tests for the given `gcd` function using `pytest`, we need to cover the following scenarios:\n\n1. **Happy Path**: Basic cases where the function is expected to work correctly.\n2. **Edge Cases**: Cases where the inputs are at the boundaries, such as 0 or 1.\n3. **Error Cases**: Cases where the inputs might cause the function to behave unexpectedly, such as negative numbers or non-integer inputs.\n\nHere is the `pytest`-style unit test code for the `gcd` function:\n\n```python\nimport pytest\n\ndef gcd(a: int, b: int) -> int:\n    while b:\n        a, b = b, a % b\n    return abs(a)\n\ndef test_gcd_happy_path():\n    assert gcd(10, 5) == 5\n    assert gcd(25, 15) == 5\n    assert gcd(100, 25) == 25\n    assert gcd(17, 13) == 1\n\ndef test_gcd_with_zero():\n    assert gcd(0, 5) == 5\n    assert gcd(5, 0) == 5\n    assert gcd(0, 0) == 0\n\ndef test_gcd_with_one():\n    assert gcd(1, 1) == 1\n    assert gcd(1, 10) == 1\n    assert gcd(10, 1) == 1\n\ndef test_gcd_with_negative_numbers():\n    assert gcd(-10, 5) == 5\n    assert gcd(10, -5) == 5\n    assert gcd(-10, -5) == 5\n\ndef test_gcd_with_large_numbers():\n    assert gcd(1000000, 100000) == 100000\n    assert gcd(123456789, 987654321) == 9\n\ndef test_gcd_with_non_integers():\n    with pytest.raises(TypeError):\n        gcd(10.5, 5)\n    with pytest.raises(TypeError):\n        gcd(10, 5.5)\n    with pytest.raises(TypeError):\n        gcd(\"10\", 5)\n    with pytest.raises(TypeError):\n        gcd(10, \"5\")\n\ndef test_gcd_with_invalid_input():\n    with pytest.raises(TypeError):\n        gcd([10], 5)\n    with pytest.raises(TypeError):\n        gcd(10, [5])\n    with pytest.raises(TypeError):\n        gcd(None, 5)\n    with pytest.raises(TypeError):\n        gcd(10, None)\n\nif __name__ == \"__main__\":\n    pytest.main()\n```\n\n### Explanation:\n\n1. **Happy Path**:\n   - `test_gcd_happy_path`: Tests the function with typical positive integers.\n\n2. **Edge Cases**:\n   - `test_gcd_with_zero`: Tests the function with zeros.\n   - `test_gcd_with_one`: Tests the function with ones.\n   - `test_gcd_with_large_numbers`: Tests the function with large numbers.\n\n3. **Error Cases**:\n   - `test_gcd_with_negative_numbers`: Tests the function with negative numbers.\n   - `test_gcd_with_non_integers`: Tests the function with non-integer inputs, expecting a `TypeError`.\n   - `test_gcd_with_invalid_input`: Tests the function with invalid inputs, such as lists and `None`, expecting a `TypeError`.\n\nTo run these tests, you can save the code in a file (e.g., `test_gcd.py`) and run `pytest` in the terminal:\n\n```sh\npytest test_gcd.py\n```\n\nThis will execute all the tests and provide you with the results.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00337792,
   "expected": "",
   "tokens": {
     "input": 68,
     "output": 795
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

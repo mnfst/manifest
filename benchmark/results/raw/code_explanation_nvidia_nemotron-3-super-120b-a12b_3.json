@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 3,
   "response": "The `compose` function builds",
-  "score": 0,
+  "score": 2,
   "cost": 2.466e-05,
   "expected": "",
   "tokens": {
     "input": 74,
     "output": 200
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

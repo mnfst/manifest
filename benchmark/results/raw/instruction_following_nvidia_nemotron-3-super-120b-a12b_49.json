@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 49,
   "response": "- **Formal:** \"Good day. How may I assist you today?\"  \n- **Casual:** \"Hey there! What's up?\"  \n- **Humorous:** \"Greetings, human! I promise I won\u2019t take over the world\u2026 yet. How can I help?\"",
-  "score": 0,
+  "score": 5,
   "cost": 7.65e-06,
   "expected": "",
   "tokens": {
     "input": 26,
     "output": 59
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

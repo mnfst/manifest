@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 8,
   "response": "The evolution of artificial intelligence began with Alan Turing's foundational question in the mid-20th century and progressed through AI winters in the 1970s and 1980s, marked by funding cuts and hype cycles, before a resurgence in the 2010s driven by deep learning advancements. A pivotal moment was the 2017 transformer architecture paper, which enabled breakthroughs like GPT models and the scaling hypothesis, fueling a competitive race among companies such as OpenAI, Google, Anthropic, and Meta, alongside debates over open versus closed source AI development. However, this rapid progress has raised AI safety concerns including alignment issues, potential misuse, and job displacement in knowledge work, prompting regulatory efforts like the EU AI Act and US executive orders to mitigate risks and address economic impacts.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00041980000000000007,
   "expected": "",
   "tokens": {
     "input": 343,
     "output": 439
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

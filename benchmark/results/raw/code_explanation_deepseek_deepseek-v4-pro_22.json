@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 22,
   "response": "This code implements an **LRU (Least Recently Used) cache** using Python\u2019s `OrderedDict`. The `get` method returns the value and marks the key as recently used by moving it to the end, while `put` inserts or updates a key and evicts the oldest (least recently used) entry when the capacity is exceeded.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00042891,
   "expected": "",
   "tokens": {
     "input": 150,
     "output": 209
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

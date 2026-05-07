@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 0,
   "response": "- Improves cardiovascular health and reduces the risk of heart disease  \n- Enhances mood and reduces symptoms of anxiety and depression  \n- Supports weight management and increases metabolic rate",
-  "score": 0,
+  "score": 5,
   "cost": 0.00013572,
   "expected": "",
   "tokens": {
     "input": 16,
     "output": 74
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

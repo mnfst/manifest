@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 4,
   "response": "### Unit Tests for `celsius_to_fahrenheit` Function\n\n```python\nimport pytest\n\ndef test_celsius_to_fahrenheit_happy_path():\n    \"\"\"Test the function with a valid input.\"\"\"\n    assert celsius_to_fahrenheit(0) == 32\n    assert celsius_to_fahrenheit(100) == 212\n\ndef test_celsius_to_fahrenheit_edge_cases():\n    \"\"\"Test the function with edge cases.\"\"\"\n    assert celsius_to_fahrenheit(-273.15) == -459.67  # absolute zero\n    assert celsius_to_fahrenheit(float('inf')) == float('inf')  # positive infinity\n    assert celsius_to_fahrenheit(float('-inf')) == float('-inf')  # negative infinity\n\ndef test_celsius_to_fahrenheit_error_cases():\n    \"\"\"Test the function with invalid inputs.\"\"\"\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit('string')  # non-numeric input\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(None)  # None input\n\ndef test_celsius_to_fahrenheit_nan():\n    \"\"\"Test the function with NaN input.\"\"\"\n    assert celsius_to_fahrenheit(float('nan')) != float('nan')  # NaN is not equal to NaN\n    assert pytest.isna(celsius_to_fahrenheit(float('nan')))  # check if result is NaN\n\ndef test_celsius_to_fahrenheit_precision():\n    \"\"\"Test the function with a value that requires precision.\"\"\"\n    assert round(celsius_to_fahrenheit(37.5), 2) == 99.5\n```\n\n### Explanation\n\nThe tests cover the following cases:\n\n*   **Happy Path**: Test the function with valid inputs (0\u00b0C and 100\u00b0C).\n*   **Edge Cases**: Test the function with edge cases like absolute zero (-273.15\u00b0C), positive infinity, and negative infinity.\n*   **Error Cases**: Test the function with invalid inputs like a string and None, expecting a TypeError.\n*   **NaN Input**: Test the function with NaN input and verify that the result is also NaN.\n*   **Precision**: Test the function with a value that requires precision (37.5\u00b0C) to ensure the result is accurate up to two decimal places.\n\nThese tests ensure that the `celsius_to_fahrenheit` function behaves as expected under various scenarios.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00029474999999999993,
   "expected": "",
   "tokens": {
     "input": 61,
     "output": 476
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

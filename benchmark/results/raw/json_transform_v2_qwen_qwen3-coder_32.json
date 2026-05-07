@@ -3,11 +3,13 @@
   "task": "json_transform_v2",
   "case": 32,
   "response": "{\"admins\": [\"Alice\", \"Charlie\"], \"users\": [\"Bob\"], \"inactive_count\": 1}",
-  "score": 0,
+  "score": 5,
   "cost": 4.7739999999999994e-05,
   "expected": "",
   "tokens": {
     "input": 129,
     "output": 22
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

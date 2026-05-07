@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 46,
   "response": "A critical SQL injection vulnerability affecting versions 3.2.0 through 3.4.1 has been identified in the login API endpoint. Please review the prepared patch and deploy a hotfix within 24 hours to resolve the issue.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0007120750000000001,
   "expected": "",
   "tokens": {
     "input": 107,
     "output": 521
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 11,
   "response": "of the order of 1.1 \u00d7 10^11 metric tonnes of carbon",
-  "score": 0,
+  "score": 2,
   "cost": 0.00026274,
   "expected": "10% of the carbon stores",
   "tokens": {
     "input": 164,
     "output": 110
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

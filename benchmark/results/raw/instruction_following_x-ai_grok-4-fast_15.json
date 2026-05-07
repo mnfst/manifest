@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 15,
   "response": "hat, mat, bat, rat",
-  "score": 0,
+  "score": 5,
   "cost": 0.00012859999999999998,
   "expected": "",
   "tokens": {
     "input": 167,
     "output": 119
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

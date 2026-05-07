@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 44,
   "response": "```python\ndef encode(message):\n    vowels = 'aeiouAEIOU'\n    result = []\n    \n    for char in message:\n        if char.isalpha():\n            # Swap case\n            swapped_char = char.lower() if char.isupper() else char.upper()\n            \n            # Replace vowels with letter 2 places ahead\n            if swapped_char in vowels:\n                if swapped_char.islower():\n                    # For lowercase vowels\n                    new_char = chr((ord(swapped_char) - ord('a') + 2) % 26 + ord('a'))\n                else:\n                    # For uppercase vowels\n                    new_char = chr((ord(swapped_char) - ord('A') + 2) % 26 + ord('A'))\n                result.append(new_char)\n            else:\n                result.append(swapped_char)\n        else:\n            # Keep spaces and other non-letter characters\n            result.append(char)\n    \n    return ''.join(result)\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.00020372,
   "expected": "",
   "tokens": {
     "input": 142,
     "output": 196
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

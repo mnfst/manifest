@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 15,
   "response": "The European Union's General Data Protection Regulation (GDPR), effective since May 2018, significantly transformed how organizations manage personal data by introducing key rights such as data access, erasure, and portability, and requiring explicit consent for data processing. It applies to any company handling EU residents' data, mandating the appointment of Data Protection Officers for large-scale data processors and imposing fines of up to 4% of global annual revenue or 20 million euros for violations. Notable fines include a 1.2 billion euro penalty for Meta in 2023. While GDPR has inspired similar laws globally, critics argue it imposes heavy compliance burdens on small businesses and can stifle innovation, with enforcement varying across EU member states.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0009609600000000001,
   "expected": "",
   "tokens": {
     "input": 320,
     "output": 151
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

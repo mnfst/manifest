@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 40,
   "response": "To test the `rgb_to_hex` function thoroughly with pytest, we'll cover valid happy paths, edge cases, and invalid input scenarios using parameterized tests for clean, maintainable coverage.\n\n### Test File Code\n```python\nimport pytest\n# Replace with the actual module name where your rgb_to_hex function lives\nfrom color_utils import rgb_to_hex\n\n\n@pytest.mark.parametrize(\n    \"r, g, b, expected_hex\",\n    [\n        # Core base cases\n        (0, 0, 0, \"#000000\"),  # Black\n        (255, 255, 255, \"#ffffff\"),  # White\n        # Primary RGB colors\n        (255, 0, 0, \"#ff0000\"),  # Red\n        (0, 255, 0, \"#00ff00\"),  # Green\n        (0, 0, 255, \"#0000ff\"),  # Blue\n        # Secondary mixed colors\n        (255, 255, 0, \"#ffff00\"),  # Yellow\n        (0, 255, 255, \"#00ffff\"),  # Cyan\n        (255, 0, 255, \"#ff00ff\"),  # Magenta\n        # Grayscale tones\n        (127, 127, 127, \"#7f7f7f\"),  # Medium gray\n        (50, 50, 50, \"#323232\"),\n        # Custom mixed values with leading zero hex digits\n        (128, 64, 192, \"#8040c0\"),\n        (10, 20, 30, \"#0a141e\"),  # Tests leading zero for single-digit hex\n        (255, 127, 0, \"#ff7f00\"),  # Orange\n        (16, 0, 0, \"#100000\"),  # Explicitly tests 02x padding behavior\n    ],\n)\ndef test_rgb_to_hex_valid_inputs(r, g, b, expected_hex):\n    \"\"\"Verifies that valid RGB integer inputs return the correct lowercase hex string.\"\"\"\n    assert rgb_to_hex(r, g, b) == expected_hex\n\n\n@pytest.mark.parametrize(\n    \"r, g, b\",\n    [\n        # Single out-of-range component\n        (-1, 0, 0),\n        (256, 0, 0),\n        (0, -5, 0),\n        (0, 257, 0),\n        (0, 0, -1),\n        (0, 0, 256),\n        # Multiple out-of-range components\n        (-1, 256, 100),\n        (100, -200, 300),\n        (256, 256, 256),\n        (-5, -10, -15),\n    ],\n)\ndef test_rgb_to_hex_invalid_component_values(r, g, b):\n    \"\"\"Verifies that out-of-range RGB values raise the explicit ValueError.\"\"\"\n    with pytest.raises(ValueError, match=\"RGB values must be 0-255\"):\n        rgb_to_hex(r, g, b)\n```\n\n---\n\n### Test Coverage Breakdown\n1.  **Happy Path Tests**:\n    Covers core colors (black, white, primaries), secondary mixed colors, grayscale tones, and cases that require leading zeros in single-digit hex components.\n\n2.  **Edge Cases**:\n    Tests the exact bounds of the valid 0-255 range, and values that need padding to two hex digits.\n\n3.  **Error Cases**:\n    Validates that any single out-of-range component, or multiple out-of-range components, raise the correct `ValueError` with the predefined error message.",
-  "score": 0,
+  "score": 4,
   "cost": 0.0023618,
   "expected": "",
   "tokens": {
     "input": 162,
     "output": 5864
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

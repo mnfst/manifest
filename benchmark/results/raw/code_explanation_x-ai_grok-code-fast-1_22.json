@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 22,
   "response": "This code implements an LRU (Least Recently Used) cache using Python's OrderedDict to maintain insertion order, where keys are moved to the end upon access or update to mark them as most recently used. When the cache exceeds its capacity during a put operation, it evicts the least recently used item by removing the first (oldest) entry in the OrderedDict.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000271,
   "expected": "",
   "tokens": {
     "input": 339,
     "output": 254
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

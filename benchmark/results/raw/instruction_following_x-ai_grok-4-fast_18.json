@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 18,
   "response": "It's a wildly humorous science fiction novel that follows an ordinary Englishman whose unremarkable life is upended when his home is bulldozed for a bypass\u2014only for the entire planet to be demolished shortly after to make way for a hyperspace express route. He embarks on a chaotic interstellar adventure with a two-headed alien president, a depressed robot, and a guidebook that's equal parts informative and infuriating. The story blends absurdity, philosophy, and satire, pondering the ultimate question of life, the universe, and everything, while delivering laugh-out-loud moments about bureaucracy, improbability, and the search for a decent cup of tea in the cosmos. I adore how it turns the vastness of space into a playground for wit and whimsy.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00029659999999999995,
   "expected": "",
   "tokens": {
     "input": 167,
     "output": 329
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

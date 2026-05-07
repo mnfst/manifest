@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 35,
   "response": "To extract the required information and format it into valid JSON according to the given schema, we will analyze the provided text step by step.\n\n1. **Product**: The product is described as \"Samsung 65-inch TV\".\n2. **Model**: The model number is given as \"QN65S95D\".\n3. **Serial Number**: The serial number is \"SN-2024-XYZ789\".\n4. **Duration Years**: The warranty duration is 2 years.\n5. **Purchase Date**: The purchase date is \"2024-03-01\".\n6. **Covers**: It is mentioned that the warranty covers \"manufacturer defects\".\n7. **Excludes**: The warranty does not cover \"accidental damage\".\n\nNow, let's format this information into the required JSON schema:\n\n```json\n{\n  \"product\": \"Samsung 65-inch TV\",\n  \"model\": \"QN65S95D\",\n  \"serial_number\": \"SN-2024-XYZ789\",\n  \"duration_years\": 2,\n  \"purchase_date\": \"2024-03-01\",\n  \"covers\": [\"manufacturer defects\"],\n  \"excludes\": [\"accidental damage\"]\n}\n```\n\nThis JSON object matches the provided schema and contains all the extracted information from the given text.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00017399999999999997,
   "expected": "",
   "tokens": {
     "input": 128,
     "output": 258
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

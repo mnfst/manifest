@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 14,
   "response": "To extract the required information and format it according to the given schema, we will parse the provided text.\n\n1. **Title**: \"The Great Gatsby\"\n2. **Author**: \"F. Scott Fitzgerald\"\n3. **Year**: 1925\n4. **Genre**: \"literary fiction\"\n5. **Pages**: 180\n6. **ISBN**: \"978-0743273565\"\n7. **Rating**: The rating is given as \"4.2/5\". To convert this into a float, we consider only the numeric part before the slash, which is 4.2.\n\nNow, let's format this information into the required JSON schema:\n\n```json\n{\n  \"title\": \"The Great Gatsby\",\n  \"author\": \"F. Scott Fitzgerald\",\n  \"year\": 1925,\n  \"genre\": \"literary fiction\",\n  \"pages\": 180,\n  \"isbn\": \"978-0743273565\",\n  \"rating\": 4.2\n}\n```\n\nThis JSON object matches the provided schema and contains the extracted information from the given text.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00015165,
   "expected": "",
   "tokens": {
     "input": 111,
     "output": 225
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

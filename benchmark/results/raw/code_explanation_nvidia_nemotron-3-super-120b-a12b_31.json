@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 31,
   "response": "The function implements the A* search algorithm: it repeatedly extracts from a min\u2011heap the node with the lowest estimated total cost\u202f\\(f = g + h\\) (where\u202f\\(g\\) is the actual path cost so far and\u202f\\(h\\) is the heuristic), expands its neighbors, and returns the first path that reaches the goal, or\u202fNone if the goal is unreachable. The heap serves as the open set, while a `visited` set prevents re\u2011processing nodes.",
-  "score": 0,
+  "score": 5,
   "cost": 2.4390000000000002e-05,
   "expected": "",
   "tokens": {
     "input": 168,
     "output": 103
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

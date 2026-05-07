@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 13,
   "response": "return len(string)",
-  "score": 0,
+  "score": 2,
   "cost": 0.0001584,
   "expected": "",
   "tokens": {
     "input": 224,
     "output": 142
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "2"
 }

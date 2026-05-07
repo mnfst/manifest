@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 25,
   "response": "This April investor update from the company founders announces several key milestones: crossing a 10K MAU milestone, closing an $8M Series A term sheet at a $40M pre-money valuation, hiring a VP of Sales, and sharing core performance metrics including $85K in monthly recurring revenue (up 12% month-over-month), a $120K monthly burn rate, and 11 months of post-fundraise runway.\nThe sole noted pending action item for the business is that its fundraising round will officially close on May 10.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00034020000000000003,
   "expected": "",
   "tokens": {
     "input": 158,
     "output": 811
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

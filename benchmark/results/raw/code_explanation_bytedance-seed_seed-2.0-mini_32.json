@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 32,
   "response": "This code implements the optimized Disjoint Set Union (Union-Find, DSU) data structure pattern: it initializes each of `n` distinct elements as its own parent with a rank tracking array, then provides a `find` function that uses path compression to flatten lookup paths and speed up future calls, and a `union` function that merges two disjoint sets by attaching the lower-ranked tree to the higher-ranked one to keep the underlying tree structure shallow, before returning both helper functions.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00036930000000000003,
   "expected": "",
   "tokens": {
     "input": 209,
     "output": 871
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

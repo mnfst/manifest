@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 31,
   "response": "This code implements the **A\\*** search algorithm to find the lowest-cost path from a start node to a goal node in a weighted graph. It uses a priority queue ordered by `cost + heuristic` (the sum of the actual path cost so far and the estimated remaining cost) to efficiently explore the most promising paths first.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00042020999999999996,
   "expected": "",
   "tokens": {
     "input": 170,
     "output": 199
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

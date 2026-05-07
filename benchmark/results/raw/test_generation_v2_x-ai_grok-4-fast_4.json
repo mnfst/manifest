@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 4,
   "response": "```python\nimport pytest\n\nfrom your_module import celsius_to_fahrenheit  # Replace 'your_module' with the actual module name\n\n\ndef test_celsius_to_fahrenheit_zero():\n    \"\"\"Happy path: Convert 0\u00b0C to 32\u00b0F.\"\"\"\n    assert celsius_to_fahrenheit(0.0) == 32.0\n\n\ndef test_celsius_to_fahrenheit_boiling():\n    \"\"\"Happy path: Convert 100\u00b0C (boiling point) to 212\u00b0F.\"\"\"\n    assert celsius_to_fahrenheit(100.0) == 212.0\n\n\ndef test_celsius_to_fahrenheit_freezing_negative():\n    \"\"\"Happy path: Convert -40\u00b0C to -40\u00b0F (crossover point).\"\"\"\n    assert celsius_to_fahrenheit(-40.0) == -40.0\n\n\ndef test_celsius_to_fahrenheit_large_positive():\n    \"\"\"Edge case: Handle large positive input (1000\u00b0C).\"\"\"\n    assert celsius_to_fahrenheit(1000.0) == 1832.0\n\n\ndef test_celsius_to_fahrenheit_large_negative():\n    \"\"\"Edge case: Handle large negative input (-1000\u00b0C).\"\"\"\n    assert celsius_to_fahrenheit(-1000.0) == -1480.0\n\n\ndef test_celsius_to_fahrenheit_int_input():\n    \"\"\"Edge case: Accept integer input (implicitly convertible to float).\"\"\"\n    assert celsius_to_fahrenheit(25) == 77.0  # 25\u00b0C = 77\u00b0F\n\n\ndef test_celsius_to_fahrenheit_string_input():\n    \"\"\"Error case: Reject non-numeric string input.\"\"\"\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(\"100\")\n\n\ndef test_celsius_to_fahrenheit_none_input():\n    \"\"\"Error case: Reject None input.\"\"\"\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(None)\n\n\ndef test_celsius_to_fahrenheit_list_input():\n    \"\"\"Error case: Reject non-scalar input like a list.\"\"\"\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit([0.0])\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0009496,
   "expected": "",
   "tokens": {
     "input": 208,
     "output": 1135
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

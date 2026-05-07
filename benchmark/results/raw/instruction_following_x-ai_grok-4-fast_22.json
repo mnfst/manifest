@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 22,
   "response": "Dogs are renowned for their loyal companionship, making them ideal pets for families around the world. A loyal dog will eagerly greet its owner after a long day, wagging its tail with unwavering devotion. Owners often share stories of their loyal canine friends who protect the home without hesitation. The loyal bond formed between a dog and its human can last a lifetime, filled with joyful adventures and unconditional love. Even in challenging times, a loyal dog's presence offers comfort and reassurance to those who cherish it.",
-  "score": 0,
+  "score": 3,
   "cost": 0.000239,
   "expected": "",
   "tokens": {
     "input": 171,
     "output": 256
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

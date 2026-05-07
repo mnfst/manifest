@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 28,
   "response": "```python\nresult = []\nfor i, row in enumerate(lst):\n    for j, val in enumerate(row):\n        if val == x:\n            result.append((i, j))\nresult.sort(key=lambda k: (k[0], -k[1]))\nreturn result\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.0005407999999999999,
   "expected": "",
   "tokens": {
     "input": 292,
     "output": 57
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

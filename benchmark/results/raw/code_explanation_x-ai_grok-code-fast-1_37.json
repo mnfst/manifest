@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 37,
   "response": "This code implements a Trie (prefix tree) data structure, where words are inserted by traversing and building nested dictionaries for each character, with a '#' marker denoting the end of a word. The `starts_with` method navigates to the node corresponding to the given prefix and uses depth-first search (DFS) to recursively collect and return all complete words stored in the trie that begin with that prefix.",
-  "score": 0,
+  "score": 4,
   "cost": 0.000337,
   "expected": "",
   "tokens": {
     "input": 369,
     "output": 329
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

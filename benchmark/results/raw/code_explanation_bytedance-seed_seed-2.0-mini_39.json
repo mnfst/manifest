@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 39,
   "response": "This code defines the core worker logic for a multi-worker producer-consumer queue pattern: the nested `producer` function adds all provided work items to the shared queue followed by a `None` sentinel to signal the end of available work, while the nested `consumer` function repeatedly pulls items from the queue, runs a placeholder `process` function on each non-sentinel item, and safely shuts down all consumer workers by re-queuing the `None` sentinel before exiting when it receives the termination signal.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0005193000000000001,
   "expected": "",
   "tokens": {
     "input": 161,
     "output": 1258
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

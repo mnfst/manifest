@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 33,
   "response": "```python\n    # Sort the sides to make sure c is the largest\n    sides = sorted([a, b, c])\n    # Check if it satisfies Pythagorean theorem: a\u00b2 + b\u00b2 = c\u00b2\n    return sides[0]**2 + sides[1]**2 == sides[2]**2\n```",
-  "score": 0,
+  "score": 5,
   "cost": 9.108e-05,
   "expected": "",
   "tokens": {
     "input": 142,
     "output": 68
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 3,
   "response": "To extract the required information and format it into valid JSON according to the given schema, we will break down the text and identify the relevant details.\n\n1. **Flight Number**: The text starts with \"Flight AA123\", so the flight number is \"AA123\".\n2. **Origin**: The origin is \"JFK\".\n3. **Destination**: The destination is \"LAX\".\n4. **Departure Time**: The departure time is \"3:45pm\".\n5. **Arrival Time**: The arrival time is \"6:30pm\".\n6. **Date**: The date is \"March 5\".\n7. **Class**: The class is \"Economy\".\n8. **Number of Stops**: The number of stops is \"1\".\n9. **Stop Cities**: The stop city is \"Dallas\".\n\nNow, let's format this information into the required JSON schema:\n\n```json\n{\n  \"flight_number\": \"AA123\",\n  \"origin\": \"JFK\",\n  \"destination\": \"LAX\",\n  \"departure\": \"3:45pm\",\n  \"arrival\": \"6:30pm\",\n  \"date\": \"March 5\",\n  \"class\": \"Economy\",\n  \"stops\": 1,\n  \"stop_cities\": [\"Dallas\"]\n}\n```\n\nThis JSON object matches the provided schema and contains all the extracted information from the given text.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00018675,
   "expected": "",
   "tokens": {
     "input": 117,
     "output": 282
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

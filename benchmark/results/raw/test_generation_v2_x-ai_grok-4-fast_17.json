@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 17,
   "response": "```python\nimport pytest\n\nfrom your_module import is_balanced_parens  # Replace 'your_module' with the actual module name\n\n\ndef test_empty_string():\n    assert is_balanced_parens(\"\") is True\n\n\ndef test_balanced_simple_parens():\n    assert is_balanced_parens(\"()\") is True\n\n\ndef test_balanced_square_brackets():\n    assert is_balanced_parens(\"[]\") is True\n\n\ndef test_balanced_curly_braces():\n    assert is_balanced_parens(\"{}\") is True\n\n\ndef test_balanced_nested():\n    assert is_balanced_parens(\"({[]})\") is True\n\n\ndef test_balanced_multiple_types():\n    assert is_balanced_parens(\"[]{}()\") is True\n\n\ndef test_balanced_with_non_bracket_chars():\n    assert is_balanced_parens(\"a(b)c{d}e\") is True\n\n\ndef test_unbalanced_extra_opening():\n    assert is_balanced_parens(\"((())\") is False\n\n\ndef test_unbalanced_extra_closing():\n    assert is_balanced_parens(\"()())\") is False\n\n\ndef test_unbalanced_mismatched_types():\n    assert is_balanced_parens(\"(]\") is False\n\n\ndef test_unbalanced_crossed_nesting():\n    assert is_balanced_parens(\"([)]\") is False\n\n\ndef test_unbalanced_single_opening():\n    assert is_balanced_parens(\"(\") is False\n\n\ndef test_unbalanced_single_closing():\n    assert is_balanced_parens(\")\") is False\n\n\ndef test_unbalanced_all_openings():\n    assert is_balanced_parens(\"[[[\") is False\n\n\ndef test_unbalanced_all_closings():\n    assert is_balanced_parens(\"]]]\") is False\n\n\ndef test_non_bracket_chars_only():\n    assert is_balanced_parens(\"abc123\") is True\n\n\ndef test_mixed_with_mismatch_and_non_brackets():\n    assert is_balanced_parens(\"a(b]c\") is False\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0009860000000000001,
   "expected": "",
   "tokens": {
     "input": 266,
     "output": 1166
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

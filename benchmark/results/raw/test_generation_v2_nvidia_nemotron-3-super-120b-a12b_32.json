@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 32,
   "response": "Here is a **pytest** test suite that exercises the happy\u2011path, edge\u2011cases and error\u2011conditions of `find_missing`.\n\n```python\n# test_find_missing.py\nimport pytest\nfrom typing import List\n\n# Import the function under test \u2013 adjust the import path as needed.\n# from mymodule import find_missing\ndef find_missing(nums: List[int]) -> int:          # <-- placeholder; replace with real import\n    \"\"\"Find missing number in [0..n] sequence.\"\"\"\n    n = len(nums)\n    return n * (n + 1) // 2 - sum(nums)\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path tests\n# ----------------------------------------------------------------------\n@pytest.mark.parametrize(\n    \"nums, expected\",\n    [\n        ([0], 1),               # n=1, missing 1\n        ([1], 0),               # n=1, missing 0\n        ([0, 1], 2),            # n=2, missing 2\n        ([0, 2], 1),            # n=2, missing 1\n        ([1, 2], 0),            # n=2, missing 0\n        ([0, 1, 2, 3, 5], 4),   # n=5, missing 4\n        ([3, 0, 1], 2),         # unsorted input\n        (list(range(0, 1000)) + [1001], 1000),  # large n, missing 1000\n        (list(range(0, 1000000)), 1000000),     # missing the last element\n    ],\n)\ndef test_find_missing_happy_path(nums, expected):\n    assert find_missing(nums) == expected\n\n\n# ----------------------------------------------------------------------\n# Edge\u2011case tests\n# ----------------------------------------------------------------------\ndef test_find_missing_empty_list():\n    \"\"\"When nums is empty, n = 0 \u2192 missing number is 0.\"\"\"\n    assert find_missing([]) == 0\n\n\ndef test_find_missing_single_element_zero():\n    \"\"\"List containing only 0 \u2192 missing 1.\"\"\"\n    assert find_missing([0]) == 1\n\n\ndef test_find_missing_single_element_max():\n    \"\"\"List containing only the max value (n) \u2192 missing 0.\"\"\"\n    # For a list of length 1, the only possible complete set is [0,1];\n    # if we have [1] the missing number is 0.\n    assert find_missing([1]) == 0\n\n\ndef test_find_missing_duplicate_values():\n    \"\"\"\n    The function does not guard against duplicates; it will still compute a\n    result based on the supplied list.  We test that the behaviour is\n    deterministic (i",
-  "score": 0,
+  "score": 4,
   "cost": 9.81e-05,
   "expected": "",
   "tokens": {
     "input": 90,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

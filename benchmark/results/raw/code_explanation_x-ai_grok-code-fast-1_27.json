@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 27,
   "response": "This code implements the sliding window maximum algorithm using a monotonic deque to efficiently find the maximum value in each window of size `k` as it slides across the list `nums`. It maintains a deque of indices in decreasing order of their corresponding values, removing outdated indices (outside the current window) from the front and smaller values from the back before appending the current index, ensuring the front always holds the maximum for the window once it's full.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0003304,
   "expected": "",
   "tokens": {
     "input": 320,
     "output": 333
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

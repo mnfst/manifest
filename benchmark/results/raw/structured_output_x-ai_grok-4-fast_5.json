@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 5,
   "response": "{\"name\": \"Spaghetti Carbonara\", \"servings\": 4, \"prep_time_minutes\": 25, \"ingredients\": [{\"item\": \"spaghetti\", \"amount\": \"400g\"}, {\"item\": \"guanciale\", \"amount\": \"200g\"}, {\"item\": \"eggs\", \"amount\": \"4\"}, {\"item\": \"pecorino\", \"amount\": \"100g\"}, {\"item\": \"black pepper\", \"amount\": \"\"}]}",
-  "score": 0,
+  "score": 5,
   "cost": 0.00039520000000000007,
   "expected": "",
   "tokens": {
     "input": 252,
     "output": 431
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 9,
   "response": "70\n\n## Explanation\n\nThe reasoning process begins by examining the question, which asks for the high end of the temperature range in winter for Southern California. Next, the relevant information from the context is identified: \"In the summers, temperature ranges are 90-60's while as winters are 70-50's.\" This specifies the winter temperature range as 70-50's. The high end of this range is then determined to be 70, as it represents the upper value in the stated interval. This directly answers the question based solely on the provided context.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002118,
   "expected": "70",
   "tokens": {
     "input": 291,
     "output": 192
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

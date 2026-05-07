@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 6,
   "response": "This code defines a recursive generator function that flattens a nested list into a one-dimensional sequence using a depth-first traversal pattern. It yields each non-list item in the original list and its sublists, effectively removing any nesting.",
-  "score": 0,
+  "score": 5,
   "cost": 3.825e-05,
   "expected": "",
   "tokens": {
     "input": 67,
     "output": 47
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

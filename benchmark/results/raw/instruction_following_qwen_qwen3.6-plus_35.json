@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 35,
   "response": "Elias sat alone in his dimly lit workshop, surrounded by the quiet ticking of a hundred forgotten clocks. On his velvet workpad lay a tarnished silver pocket watch that had not moved in forty years. With trembling hands, he pried open the stubborn casing and carefully aligned the fractured mainspring. A sudden click echoed through the room as the tiny gears caught and began their slow, deliberate dance. Tears blurred his vision when the familiar engraving on the inner lid finally caught the lamplight. He closed his eyes and listened to the steady rhythm, knowing his brother\u2019s time had finally come home.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0020163000000000004,
   "expected": "",
   "tokens": {
     "input": 20,
     "output": 1546
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

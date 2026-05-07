@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 15,
   "response": "Here are 4 perfect rhyming words for \"cat\" (all sharing the exact /\u00e6t/ sound):\n\n1. **Hat**  \n2. **Bat**  \n3. **Mat**  \n4. **Sat**  \n\nThese are the most common and straightforward rhymes. If you'd like less common options (e.g., *that*, *chat*, *gnat*, *sprat*), or near-rhymes/slant rhymes for creative writing, just let me know! \ud83d\ude0a",
-  "score": 0,
+  "score": 5,
   "cost": 4.284e-05,
   "expected": "",
   "tokens": {
     "input": 28,
     "output": 448
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

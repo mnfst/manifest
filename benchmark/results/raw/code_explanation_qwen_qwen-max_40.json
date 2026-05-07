@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 40,
   "response": "This code implements a Circuit Breaker pattern in Python, designed to prevent repeated failures in a system by temporarily stopping the execution of an operation after a certain number of consecutive failures (defined by `threshold`). It transitions between three states\u2014'closed', 'open', and 'half-open'\u2014based on the success or failure of the function `fn`, and it resets or opens the circuit depending on the outcome and the time elapsed since the last failure.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00058552,
   "expected": "",
   "tokens": {
     "input": 203,
     "output": 90
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 31,
   "response": "2, 3, 5, 7, 11, 13, 17, 19, 23, 29",
-  "score": 0,
+  "score": 1,
   "cost": 3.52e-05,
   "expected": "",
   "tokens": {
     "input": 20,
     "output": 35
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

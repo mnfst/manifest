@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 9,
   "response": "This code implements an exponential backoff retry decorator that attempts to execute a function up to `max_attempts` times, doubling the delay between each retry starting from the initial `delay` value. When applied to a function, it will catch exceptions and automatically retry the operation with increasing wait times (delay, 2\u00d7delay, 4\u00d7delay, etc.) between attempts, raising the final exception only if all retries fail.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00010076,
   "expected": "",
   "tokens": {
     "input": 114,
     "output": 86
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

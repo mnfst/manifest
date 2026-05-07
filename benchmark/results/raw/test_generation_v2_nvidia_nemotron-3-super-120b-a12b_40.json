@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 40,
   "response": "Here is a **pytest** test suite that exercises the `rgb_to_hex` function for:\n\n* **Happy path** \u2013 normal, valid RGB values.  \n* **Edge cases** \u2013 the minimum (0) and maximum (255) values for each channel, as well as a few mixed\u2011value combos.  \n* **Error cases** \u2013 values outside the 0\u2011255 range and inputs of the wrong type.\n\n```python\n# test_rgb_to_hex.py\nimport pytest\n\n# Import the function to test \u2013 adjust the import path as needed.\n# Example: from mymodule.color import rgb_to_hex\nfrom mymodule.color import rgb_to_hex  # <-- replace with your actual module\n\n\n# -------------------------\n# Happy\u2011path tests\n# -------------------------\n@pytest.mark.parametrize(\n    \"r,g,b,expected\",\n    [\n        (0, 0, 0, \"#000000\"),          # black\n        (255, 255, 255, \"#ffffff\"),    # white\n        (1, 2, 3, \"#010203\"),\n        (10, 20, 30, \"#0a141e\"),\n        (128, 64, 32, \"#804020\"),\n        (17, 34, 51, \"#112233\"),\n    ],\n)\ndef test_rgb_to_hex_happy_path(r, g, b, expected):\n    \"\"\"Valid RGB values should produce the correct hex string.\"\"\"\n    assert rgb_to_hex(r, g, b) == expected\n\n\n# -------------------------\n# Edge\u2011case tests\n# -------------------------\n@pytest.mark.parametrize(\n    \"r,g,b\",\n    [\n        (0, 0, 255),   # pure blue\n        (0, 255, 0),   # pure green\n        (255, 0, 0),   # pure red\n        (255, 255, 0), # yellow\n        (255, 0, 255), # magenta\n        (0, 255, 255), # cyan\n        (1, 255, 1),   # near\u2011green with min/max mix\n        (254, 254, 254), # near\u2011white\n    ],\n)\ndef test_rgb_to_hex_edge_cases(r, g, b):\n    \"\"\"Values at the boundaries (0 or 255) should still format correctly.\"\"\"\n    # We just check that the function returns a string of the right shape.\n    result = rgb_to_hex(r, g, b)\n    assert isinstance(result, str)\n    assert result.startswith(\"#\")\n    assert len(result) == 7  # '#' + 6 hex digits\n    # Each pair should be a valid hex representation of the input.\n    assert int(result[1:3], 16) == r\n    assert int(result[3:5], 16) == g\n    assert int(result[5:7], 16) == b\n\n\n# -------------------------\n# Error\u2011case tests\n# -------------------------\n@pytest.mark.parametrize(\n    \"r,g,b\",\n    [\n        (-1, 0, 0),      # negative red\n        (0",
-  "score": 0,
+  "score": 4,
   "cost": 0.00010125,
   "expected": "",
   "tokens": {
     "input": 125,
     "output": 1000
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

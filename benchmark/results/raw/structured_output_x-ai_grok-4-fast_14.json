@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 14,
   "response": "{\"title\": \"The Great Gatsby\", \"author\": \"F. Scott Fitzgerald\", \"year\": 1925, \"genre\": \"literary fiction\", \"pages\": 180, \"isbn\": \"978-0743273565\", \"rating\": 4.2}",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002472,
   "expected": "",
   "tokens": {
     "input": 256,
     "output": 245
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

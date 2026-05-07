@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 38,
   "response": "Invalid username or password.",
-  "score": 0,
+  "score": 1,
   "cost": 0.00031668,
   "expected": "",
   "tokens": {
     "input": 20,
     "output": 177
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "1"
 }

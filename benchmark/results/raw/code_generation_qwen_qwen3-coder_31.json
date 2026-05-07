@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 31,
   "response": "```python\ndef sorted_list_sum(lst):\n    # Filter out strings with odd lengths\n    even_length_strings = [s for s in lst if len(s) % 2 == 0]\n    \n    # Sort by length first, then alphabetically\n    sorted_strings = sorted(even_length_strings, key=lambda x: (len(x), x))\n    \n    return sorted_strings\n```",
-  "score": 0,
+  "score": 3,
   "cost": 0.00011791999999999998,
   "expected": "",
   "tokens": {
     "input": 220,
     "output": 79
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

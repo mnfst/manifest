@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 44,
   "response": "result = []\nfor c in message:\n    sc = c.swapcase()\n    lower_sc = sc.lower()\n    if lower_sc in {'a', 'e', 'i', 'o', 'u'}:\n        base = ord('A') if sc.isupper() else ord('a')\n        offset = ord(sc) - base\n        new_char = chr(base + offset + 2)\n    else:\n        new_char = sc\n    result.append(new_char)\nreturn ''.join(result)",
-  "score": 0,
+  "score": 3,
   "cost": 0.0017354,
   "expected": "",
   "tokens": {
     "input": 194,
     "output": 4290
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

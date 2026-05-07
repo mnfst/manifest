@@ -3,11 +3,13 @@
   "task": "code_review_v2",
   "case": 29,
   "response": "**Code review**\n\n```js\napp.get('/api/search', (req, res) => {\n  const { q } = req.query;\n  const results = db.query(`SELECT * FROM products WHERE name LIKE '%${q}%'`);\n  res.json(results);\n});\n```\n\n---\n\n## 1. What is wrong (bugs & logical issues)\n\n| Issue | Why it\u2019s a problem | How to fix it |\n|-------|-------------------|---------------|\n| **No validation of `q`** | If `q` is `undefined`, `null`, or not a string, the template literal will produce `SELECT * FROM products WHERE name LIKE '%undefined%'` (or crash if `db.query` expects a string). | Check that `q` exists, is a string, and optionally trim/limit its length. Return **400 Bad Request** for invalid input. |\n| **No error handling** | If the DB query throws (connection error, syntax error, timeout, etc.) the exception bubbles up to Express\u2019 default error handler (if any) or crashes the process. Clients receive a hanging request or a generic 500 with no useful info. | Wrap the call in `try / catch` (or use `.catch` if it returns a promise) and send an appropriate error response (500) while",
-  "score": 0,
+  "score": 4,
   "cost": 8.046e-05,
   "expected": "",
   "tokens": {
     "input": 94,
     "output": 800
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 5,
   "response": "The day exhales as the sun sinks toward the horizon, washing the sky in layers of apricot, copper, and bruised violet. Clouds drift low, their undersides catching the fading light like scattered embers before softening into pale lavender. Long, stretching shadows creep across the fields, and the air grows still, heavy with the quiet weight of evening. The final sliver of daylight slips beneath the earth, leaving the heavens to deepen from peach to indigo. A cool breeze stirs the grass, and the first stars blink awake, marking the gentle surrender of day to night.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0010439000000000002,
   "expected": "",
   "tokens": {
     "input": 24,
     "output": 797
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

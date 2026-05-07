@@ -3,11 +3,13 @@
   "task": "data_to_text",
   "case": 49,
   "response": "In the 2024-25 season, at the age of 40, LeBron James continued to be a dominant force for the Lakers, averaging an impressive 28.4 points, 7.2 rebounds, and 8.1 assists across 71 games, earning him another All-Star selection.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00038064000000000007,
   "expected": "",
   "tokens": {
     "input": 98,
     "output": 67
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

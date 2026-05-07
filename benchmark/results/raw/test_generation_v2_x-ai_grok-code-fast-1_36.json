@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 36,
   "response": "```python\nimport pytest\nfrom your_module import validate_password  # Replace 'your_module' with the actual module name\n\nclass TestValidatePassword:\n    \"\"\"Unit tests for validate_password function using pytest.\"\"\"\n\n    def test_happy_path_valid_passwords(self):\n        \"\"\"Test cases where passwords meet all criteria (length >=8, upper, lower, digit).\"\"\"\n        # Standard valid password\n        assert validate_password(\"Password1\") == True\n        # Exactly 8 characters with one of each\n        assert validate_password(\"A1b2c3d4\") == True\n        # Longer valid password\n        assert validate_password(\"MySecurePassword123\") == True\n        # Valid with special characters (not required, but allowed)\n        assert validate_password(\"Pass word1!\") == True\n        # Valid with multiple digits\n        assert validate_password(\"Abcdefgh123\") == True\n\n    def test_edge_cases_minimum_requirements(self):\n        \"\"\"Test edge cases at the boundaries of requirements.\"\"\"\n        # Exactly 8 characters, just meeting criteria\n        assert validate_password(\"A1b2c3d4\") == True\n        # Password with only one upper, one lower, one digit, and rest fillers\n        assert validate_password(\"Aaaaaaaa1\") == True\n        # Password with digits at the end\n        assert validate_password(\"Password123\") == True\n\n    def test_error_cases_invalid_passwords(self):\n        \"\"\"Test cases where passwords fail one or more criteria.\"\"\"\n        # Too short (length < 8)\n        assert validate_password(\"Pass1\") == False\n        assert validate_password(\"A1b\") == False\n        assert validate_password(\"\") == False\n        assert validate_password(\"1234567\") == False\n        \n        # Length >=8 but missing uppercase\n        assert validate_password(\"password1\") == False\n        assert validate_password(\"abcdefgh1\") == False\n        \n        # Length >=8 but missing lowercase\n        assert validate_password(\"PASSWORD1\") == False\n        assert validate_password(\"ABCDEFGH1\") == False\n        \n        # Length >=8 but missing digit\n        assert validate_password(\"Password\") == False\n        assert validate_password(\"Abcdefgh\") == False\n        \n        # Length >=8 but missing multiple criteria\n        assert validate_password(\"12345678\") == False  # No letters\n        assert validate_password(\"ABCDEFGH\") == False  # No lower/digit\n        assert validate_password(\"password\") == False  # No upper/digit\n        assert validate_password(\"PASS123\") == False   # No lower\n        \n        # Exactly 7 characters, valid otherwise\n        assert validate_password(\"Passwor\") == False\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.001165,
   "expected": "",
   "tokens": {
     "input": 309,
     "output": 1379
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

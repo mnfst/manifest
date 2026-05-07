@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 37,
   "response": "Chocolate's taste is like a warm embrace from an old friend\u2014rich and comforting, with a hint of bittersweet depth that lingers like a secret shared in whispers. The creamy smoothness melts on your tongue, blending sweetness and subtle earthiness into a symphony of indulgence.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002146,
   "expected": "",
   "tokens": {
     "input": 217,
     "output": 214
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

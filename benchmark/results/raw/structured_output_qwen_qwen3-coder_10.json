@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 10,
   "response": "```json\n{\n  \"invoice_number\": \"2024-0847\",\n  \"vendor\": \"Acme Corp\",\n  \"date\": \"Jan 15 2024\",\n  \"items\": [\n    {\n      \"name\": \"Widget A\",\n      \"quantity\": 3,\n      \"unit_price\": 29.99\n    },\n    {\n      \"name\": \"Widget B\",\n      \"quantity\": 1,\n      \"unit_price\": 149.99\n    }\n  ],\n  \"subtotal\": 239.96,\n  \"tax_rate\": 8.5,\n  \"total\": 260.36\n}\n```",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001683,
   "expected": "",
   "tokens": {
     "input": 161,
     "output": 151
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

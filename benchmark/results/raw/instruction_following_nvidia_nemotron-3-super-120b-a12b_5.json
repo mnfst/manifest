@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 5,
   "response": "The sun dips low, pouring liquid gold across the horizon that slowly bleeds into soft apricot and then a deepening lav",
-  "score": 0,
+  "score": 4,
   "cost": 4.7969999999999996e-05,
   "expected": "",
   "tokens": {
     "input": 33,
     "output": 500
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

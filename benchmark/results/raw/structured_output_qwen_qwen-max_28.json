@@ -3,11 +3,13 @@
   "task": "structured_output",
   "case": 28,
   "response": "```json\n{\n  \"podcast\": \"The Daily\",\n  \"publisher\": \"The New York Times\",\n  \"episode_title\": \"The AI Race\",\n  \"duration_minutes\": 28,\n  \"release_date\": \"March 15 2024\",\n  \"rating\": 4.8,\n  \"downloads\": \"2.3M\"\n}\n```",
-  "score": 0,
+  "score": 4,
   "cost": 0.00045344,
   "expected": "",
   "tokens": {
     "input": 120,
     "output": 79
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

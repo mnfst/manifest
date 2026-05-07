@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 11,
   "response": "Implemented in May 2018, the EU's General Data Protection Regulation (GDPR) mandates strict data handling standards for any organization processing EU residents' information, granting individuals rights to access, erasure, and explicit consent alongside a 72-hour breach reporting requirement. Violations can trigger fines up to 4% of global annual revenue or \u20ac20 million, leading to major penalties like \u20ac1.2 billion for Meta, \u20ac746 million for Amazon, and over \u20ac200 million for Google. Despite criticisms over heavy compliance costs, inconsistent enforcement, and user frustration, the GDPR has successfully established data privacy as a fundamental right and set a global benchmark that has inspired similar legislation worldwide.",
-  "score": 0,
+  "score": 5,
   "cost": 0.002183025,
   "expected": "",
   "tokens": {
     "input": 325,
     "output": 1598
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

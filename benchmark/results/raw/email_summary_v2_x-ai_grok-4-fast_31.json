@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 31,
   "response": "The email proposes introducing a new 'Starter' pricing tier at $29/month, positioned between the Free and Pro ($79/month) tiers, to address churn among users sensitive to pricing. It includes features like support for 5 users, 10K API calls, and email support, with analysis showing 40% of churned users cite price as the reason and a projected recovery of 15% of those users, adding $180K in annual recurring revenue.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000269,
   "expected": "",
   "tokens": {
     "input": 257,
     "output": 272
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

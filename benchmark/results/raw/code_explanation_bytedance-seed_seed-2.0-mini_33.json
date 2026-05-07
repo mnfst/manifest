@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 33,
   "response": "This code implements the classic uniform reservoir sampling algorithm, which selects a fixed-size random subset of exactly k items uniformly at random from an input stream of unknown total length. For the first k stream elements, they are directly added to the reservoir, and for each subsequent item, a random integer between 0 and the current element's 0-based index is generated; if that integer is less than k, the reservoir element at that index is replaced with the new stream item, ensuring every item has an equal probability of being included in the final sample.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00028,
   "expected": "",
   "tokens": {
     "input": 144,
     "output": 664
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

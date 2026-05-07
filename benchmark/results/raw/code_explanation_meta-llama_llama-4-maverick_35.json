@@ -3,11 +3,13 @@
   "task": "code_explanation",
   "case": 35,
   "response": "The given code implements the **Knuth-Morris-Pratt (KMP) algorithm**, a linear-time string searching algorithm that efficiently searches for a given pattern within a text by precomputing a lookup table (`lps`) to skip unnecessary comparisons. The function `kmp_search` returns the starting index of the pattern in the text if found, or -1 if not found.",
-  "score": 0,
+  "score": 5,
   "cost": 7.425e-05,
   "expected": "",
   "tokens": {
     "input": 187,
     "output": 77
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

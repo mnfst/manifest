@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 8,
   "response": "The annual performance review cycle begins May 1 and introduces a new competency framework with a structured timeline extending through June 5. Key action items include managers attending a training session on April 30, employees submitting self-reviews by May 15, and managers completing their evaluations by May 22.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0021281,
   "expected": "",
   "tokens": {
     "input": 100,
     "output": 1612
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

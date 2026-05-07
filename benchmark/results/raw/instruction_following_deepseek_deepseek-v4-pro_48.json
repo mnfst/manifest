@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 48,
   "response": "In Verona, a bitter feud divides the Montagues and Capulets. Romeo Montague falls for Juliet Capulet at a ball, and they secretly wed. After Tybalt kills Mercutio, Romeo slays Tybalt and is exiled. To avoid marrying Paris, Juliet fakes death with a potion. Miscommunication leads Romeo to believe she is truly dead; he poisons himself at her tomb. Juliet wakes, finds him dead, and stabs herself. Their tragic deaths finally reconcile the warring families.",
-  "score": 0,
+  "score": 5,
   "cost": 0.000655545,
   "expected": "",
   "tokens": {
     "input": 23,
     "output": 371
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

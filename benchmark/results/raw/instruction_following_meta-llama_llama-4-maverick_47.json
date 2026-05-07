@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 47,
   "response": "Here are the steps to create a good password:\n\n1. **Make it long**: A good password should be at least 12 characters long. The longer the password, the harder it is to guess or crack using automated tools.\n\n2. **Use a mix of characters**: A strong password should include a mix of:\n\t* Uppercase letters (A-Z)\n\t* Lowercase letters (a-z)\n\t* Numbers (0-9)\n\t* Special characters (!, @, #, $, etc.)\n\n3. **Avoid common patterns**: Avoid using easily guessable patterns such as:\n\t* Your name or initials\n\t* Common words or phrases\n\t* Sequences (e.g., \"qwerty\" or \"123456\")\n\t* Repeating characters (e.g., \"aaaaaa\")\n\n4. **Don't use personal info**: Avoid using personal information that can be easily discovered, such as:\n\t* Your birthdate or anniversary\n\t* Your address or phone number\n\t* Your family members' names\n\n5. **Make it unique**: Use a different password for each account or service. This way, if one password is compromised, the others will remain secure.\n\n6. **Use a passphrase**: Consider using a passphrase, which is a sequence of words that is easy for you to remember, but hard for others to guess. You can use a combination of words, numbers, and special characters to create a strong passphrase.\n\n7. **Change it regularly**: Update your passwords regularly, ideally every 60-90 days, to minimize the risk of a compromised password being used to access your accounts.\n\n8. **Store it securely**: Store your passwords securely using a reputable password manager, which can help you generate and store unique, complex passwords for each account.\n\nBy following these steps, you can create a strong and unique password that will help protect your online identity and security.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00023234999999999998,
   "expected": "",
   "tokens": {
     "input": 21,
     "output": 382
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

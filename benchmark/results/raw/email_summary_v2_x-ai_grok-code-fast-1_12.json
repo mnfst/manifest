@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 12,
   "response": "The email provides an update on engineering hiring, noting four open requisitions (two backend, one frontend, and one ML) with 23 candidates in process and five in final rounds. It expresses concern over the frontend role being open for 60 days without strong candidates and recommends expanding to remote hiring or adjusting the compensation band.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00025620000000000005,
   "expected": "",
   "tokens": {
     "input": 293,
     "output": 247
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

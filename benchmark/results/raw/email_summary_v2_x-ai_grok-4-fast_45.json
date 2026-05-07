@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 45,
   "response": "The server outage was caused by a misconfigured load balancer at 2:14 PM, resulting in 47 minutes of degraded service that affected 12,000 users. Action items include adding load balancer configuration validation to the CI pipeline, updating the runbook, and implementing traffic distribution alerts, with the full post-mortem document attached.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0002426,
   "expected": "",
   "tokens": {
     "input": 253,
     "output": 240
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

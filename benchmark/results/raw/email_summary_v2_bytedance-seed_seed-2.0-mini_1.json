@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 1,
   "response": "The server outage post-mortem shared by Jen notes that a misconfigured load balancer at 2:14 PM caused 47 minutes of degraded service impacting 12,000 users, with the full post-mortem documentation attached. The listed action items to prevent similar future incidents are adding load balancer config validation to CI, updating the runbook, and implementing traffic distribution alerts.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0001992,
   "expected": "",
   "tokens": {
     "input": 152,
     "output": 460
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

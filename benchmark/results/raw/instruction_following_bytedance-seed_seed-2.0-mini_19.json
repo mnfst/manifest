@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 19,
   "response": "Everyone\u2019s talking AI\u2019s big risks, but today it nailed my grocery list (accounting for leftover rice!) and fixed my blurry cat photo. It\u2019s not all doomsday\u2014sometimes it\u2019s the tiny, helpful sidekick we didn\u2019t know we needed \ud83e\udd16\u2764\ufe0f",
-  "score": 0,
+  "score": 5,
   "cost": 0.0011114,
   "expected": "",
   "tokens": {
     "input": 62,
     "output": 2763
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

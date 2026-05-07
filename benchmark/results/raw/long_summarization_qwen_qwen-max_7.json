@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 7,
   "response": "In the 2020s, space exploration is marked by significant technological and commercial advancements, including SpaceX's Starship development and NASA's Artemis program, which aims to return humans to the Moon. Key achievements include the James Webb Space Telescope's groundbreaking discoveries, China's expanding space station and lunar ambitions, and India's successful Chandrayaan missions. The era also sees the growth of satellite internet constellations like Starlink and OneWeb, the emergence of space tourism with companies like Blue Origin and Virgin Galactic, and the exploration of asteroid mining, all while grappling with the challenges of space debris and the limitations set by the Outer Space Treaty.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0006874400000000001,
   "expected": "",
   "tokens": {
     "input": 137,
     "output": 131
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

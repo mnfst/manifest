@@ -3,11 +3,13 @@
   "task": "test_generation_v2",
   "case": 0,
   "response": "### Unit Tests for the `add` Function\n\nThe following tests cover the happy path, edge cases, and error cases for the `add` function.\n\n```python\nimport pytest\n\ndef test_add_happy_path():\n    \"\"\"Test the add function with positive numbers.\"\"\"\n    assert add(1, 2) == 3\n    assert add(10, 20) == 30\n\ndef test_add_edge_cases():\n    \"\"\"Test the add function with edge cases.\"\"\"\n    assert add(0, 0) == 0\n    assert add(-1, 1) == 0\n    assert add(-1, -1) == -2\n\ndef test_add_error_cases():\n    \"\"\"Test the add function with non-integer inputs.\"\"\"\n    with pytest.raises(TypeError):\n        add(1, '2')\n    with pytest.raises(TypeError):\n        add('1', 2)\n    with pytest.raises(TypeError):\n        add('1', '2')\n\ndef test_add_large_numbers():\n    \"\"\"Test the add function with large numbers.\"\"\"\n    assert add(1000000, 2000000) == 3000000\n\ndef test_add_negative_numbers():\n    \"\"\"Test the add function with negative numbers.\"\"\"\n    assert add(-1000000, -2000000) == -3000000\n```\n\n### Alternative Test Structure Using Parametrization\n\nYou can also use pytest's parametrization feature to simplify the test structure.\n\n```python\nimport pytest\n\n@pytest.mark.parametrize(\"a, b, expected\", [\n    (1, 2, 3),\n    (10, 20, 30),\n    (0, 0, 0),\n    (-1, 1, 0),\n    (-1, -1, -2),\n    (1000000, 2000000, 3000000),\n    (-1000000, -2000000, -3000000),\n])\ndef test_add(a, b, expected):\n    \"\"\"Test the add function with various inputs.\"\"\"\n    assert add(a, b) == expected\n\n@pytest.mark.parametrize(\"a, b\", [\n    (1, '2'),\n    ('1', 2),\n    ('1', '2'),\n])\ndef test_add_error_cases(a, b):\n    \"\"\"Test the add function with non-integer inputs.\"\"\"\n    with pytest.raises(TypeError):\n        add(a, b)\n```\n\nBoth test structures cover the same cases, but the second one is more concise and easier to maintain.",
-  "score": 0,
+  "score": 5,
   "cost": 0.00031199999999999994,
   "expected": "",
   "tokens": {
     "input": 56,
     "output": 506
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

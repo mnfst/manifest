@@ -3,11 +3,13 @@
   "task": "code_generation",
   "case": 11,
   "response": "total_sum = 0\n    total_product = 1\n    for num in numbers:\n        total_sum += num\n        total_product *= num\n    return (total_sum, total_product)",
-  "score": 0,
+  "score": 3,
   "cost": 0.000203,
   "expected": "",
   "tokens": {
     "input": 339,
     "output": 169
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "3"
 }

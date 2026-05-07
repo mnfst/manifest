@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 21,
   "response": "Based on the provided context, oxygen is poisonous to the anaerobic bacteria that cause gas gangrene.\n\nThe context states: \"Oxygen gas is poisonous to the anaerobic bacteria that cause gas gangrene, so increasing its partial pressure helps kill them.\"\n\nHowever, the specific name or type of anaerobic bacteria is not mentioned in the context, so I cannot provide a more specific identification of the pathogen.\n\nNot found in context.",
-  "score": 0,
+  "score": 4,
   "cost": 0.00012562,
   "expected": "anaerobic bacteria",
   "tokens": {
     "input": 211,
     "output": 90
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

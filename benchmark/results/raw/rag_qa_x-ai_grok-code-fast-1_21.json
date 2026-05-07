@@ -3,11 +3,13 @@
   "task": "rag_qa",
   "case": 21,
   "response": "Anaerobic bacteria that cause gas gangrene.",
-  "score": 0,
+  "score": 4,
   "cost": 0.000413,
   "expected": "anaerobic bacteria",
   "tokens": {
     "input": 397,
     "output": 417
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

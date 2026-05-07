@@ -3,11 +3,13 @@
   "task": "email_summary_v2",
   "case": 20,
   "response": "The On-Call team submitted a weekend incident report noting that a disk space alert triggered on prod-db-01 at 2 AM Saturday, where automated cleanup freed 40GB but failed to resize the disk, requiring manual intervention at 8 AM to restore service, identifying misconfigured log rotation following the last migration as the root cause and confirming no customer impact due to a maintenance window. The necessary corrective action to avoid future similar incidents will be correcting the misconfigured log rotation settings for the production database server.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0004343,
   "expected": "",
   "tokens": {
     "input": 143,
     "output": 1050
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }

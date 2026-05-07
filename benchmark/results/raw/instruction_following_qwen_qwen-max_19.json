@@ -3,11 +3,13 @@
   "task": "instruction_following",
   "case": 19,
   "response": "Diving into the future with #AI - where innovation meets endless possibilities! \ud83d\ude80 From enhancing daily tasks to solving complex global challenges, AI is reshaping our world for the better. #TechForGood #ArtificialIntelligence",
-  "score": 0,
+  "score": 4,
   "cost": 0.0002184,
   "expected": "",
   "tokens": {
     "input": 22,
     "output": 47
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "4"
 }

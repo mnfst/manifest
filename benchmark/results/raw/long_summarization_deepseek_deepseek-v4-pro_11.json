@@ -3,11 +3,13 @@
   "task": "long_summarization",
   "case": 11,
   "response": "The EU's GDPR, effective since 2018, fundamentally reshaped global data privacy by granting individuals rights like data access, erasure, and portability, while requiring explicit consent and mandating breach reporting within 72 hours. It imposes severe fines of up to 4% of global annual revenue or \u20ac20 million, with major penalties already levied against tech giants like Meta (\u20ac1.2 billion) and Amazon (\u20ac746 million). The regulation has inspired similar laws worldwide, such as California's CCPA and Brazil's LGPD, establishing data privacy as a fundamental right. Despite criticism over compliance burdens and inconsistent enforcement, GDPR remains the global standard for data protection.",
-  "score": 0,
+  "score": 5,
   "cost": 0.0008982750000000001,
   "expected": "",
   "tokens": {
     "input": 305,
     "output": 440
-  }
+  },
+  "judge_rerun": true,
+  "judge_raw": "5"
 }
