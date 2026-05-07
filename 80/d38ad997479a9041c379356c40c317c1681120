@@ -1,0 +1,21 @@
+packages/frontend/tests/components/FallbackList.test.tsx
+  s_ff3ef56e742c11::t_8e78a09f8853e3 1101-1123
+packages/frontend/src/components/FallbackList.tsx
+  s_ff3ef56e742c11::t_3cecdc65a3a536 395-396
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "80d38ad997479a9041c379356c40c317c1681120",
+  "prompts": {},
+  "sessions": {
+    "s_ff3ef56e742c11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2a650283-6325-472f-84da-3c2e5e3a3423",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
