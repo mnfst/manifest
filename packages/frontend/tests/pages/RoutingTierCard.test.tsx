@@ -1313,6 +1313,71 @@ describe("RoutingTierCard", () => {
       expect(btn!.classList.contains("routing-card__chip-action--configured")).toBe(true);
     });
 
+    it("opens the dialog with DeepSeek's default when DeepSeek is the fallback (not the primary)", async () => {
+      // Drives the fallback iteration in paramSurfaceProvider: primary is
+      // not params-compatible, so the dialog's provider hint must come from
+      // the first compatible fallback.
+      const openaiPrimaryDeepseekFallback: TierAssignment = {
+        id: "t-mixed",
+        agent_id: "a1",
+        tier: "simple",
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+        auto_assigned_route: null,
+        fallback_routes: [
+          { provider: "deepseek", authType: "api_key", model: "deepseek-v4-flash" },
+        ],
+        updated_at: "2025-01-01",
+      };
+      const mixedModels: AvailableModel[] = [
+        ...deepseekModels,
+        {
+          model_name: "gpt-4o",
+          provider: "OpenAI",
+          auth_type: "api_key",
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+          context_window: 128000,
+          capability_reasoning: false,
+          capability_code: false,
+          quality_score: 8,
+          display_name: "GPT-4o",
+        },
+      ];
+      const mixedProviders: RoutingProvider[] = [
+        ...deepseekProviders,
+        {
+          id: "p-oa",
+          provider: "openai",
+          auth_type: "api_key",
+          is_active: true,
+          has_api_key: true,
+          connected_at: "2025-01-01",
+        },
+      ];
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => openaiPrimaryDeepseekFallback,
+            models: () => mixedModels,
+            activeProviders: () => mixedProviders,
+            connectedProviders: () => mixedProviders,
+            persistParamDefaults: vi.fn(),
+            getFallbacksFor: () => ["deepseek-v4-flash"],
+          })}
+        />
+      ));
+      const fbProps = fallbackListProps[fallbackListProps.length - 1];
+      (fbProps.onConfigureParams as () => void)();
+      // The dialog mounts and the provider-default hint reads from DeepSeek
+      // (the first compatible route), not from OpenAI.
+      const hint = await waitFor(() => {
+        const el = container.querySelector(".model-params__label-hint");
+        expect(el).not.toBeNull();
+        return el!;
+      });
+      expect(hint.textContent).toContain("enabled");
+    });
+
     it("hides the chip-level params button when primary is not params-compatible (DeepSeek only as fallback)", () => {
       // Primary OpenAI (no thinking), DeepSeek as fallback. The chip-level
       // icon would be misleading here — the params apply to DeepSeek, not
@@ -1373,9 +1438,9 @@ describe("RoutingTierCard", () => {
       expect(chipBtn).toBeUndefined();
     });
 
-    it("passes onConfigureParams to FallbackList when persistParamDefaults is wired", () => {
+    it("passes onConfigureParams to FallbackList when persistParamDefaults is wired and the callback opens the dialog", async () => {
       const persist = vi.fn();
-      render(() => (
+      const { container } = render(() => (
         <RoutingTierCard
           {...makeProps({
             tier: () => deepseekTier,
@@ -1388,6 +1453,12 @@ describe("RoutingTierCard", () => {
       ));
       const fbProps = fallbackListProps[fallbackListProps.length - 1];
       expect(typeof fbProps.onConfigureParams).toBe("function");
+      // Invoke the callback the way FallbackList would on a row click; the
+      // dialog must mount with the same state as the chip-level click path.
+      (fbProps.onConfigureParams as () => void)();
+      await waitFor(() => {
+        expect(container.querySelector(".model-params__toggle")).not.toBeNull();
+      });
     });
 
     it("omits onConfigureParams on FallbackList when persistParamDefaults is not wired", () => {
