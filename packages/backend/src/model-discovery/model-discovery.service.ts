@@ -130,6 +130,19 @@ export class ModelDiscoveryService {
         );
       }
 
+      // Subscription providers whose `/models` endpoint either does not
+      // exist (CodeAssist) or returns more than the subscription tier
+      // actually grants must use the curated `knownModels` list — otherwise
+      // the routing UI offers models that 404 at chat time.
+      if (raw.length === 0 && provider.auth_type === 'subscription') {
+        raw = buildSubscriptionFallbackModels(this.pricingSync, provider.provider);
+        if (raw.length > 0) {
+          this.logger.log(
+            `Subscription provider ${provider.provider} — using ${raw.length} curated models`,
+          );
+        }
+      }
+
       // If native API returned no models, try models.dev first (native IDs), then OpenRouter
       if (raw.length === 0) {
         raw = buildModelsDevFallback(this.modelsDevSync, provider.provider);

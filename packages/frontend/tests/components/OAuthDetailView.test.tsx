@@ -14,6 +14,11 @@ vi.mock('../../src/services/api.js', () => ({
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
   submitOpenaiOAuthCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
   revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+  getPopupOauthApi: () => ({
+    getUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+    submitCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
+    revoke: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+  }),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   renameProviderKey: (...args: unknown[]) => mockRenameProviderKey(...args),
 }));

@@ -96,3 +96,57 @@ export function revokeAnthropicOAuth(agentName: string, label?: string) {
     { method: 'POST' },
   );
 }
+
+export function getGeminiOAuthUrl(agentName: string) {
+  return fetchJson<{ url: string }>(`/oauth/gemini/authorize`, {
+    agentName,
+  });
+}
+
+export function submitGeminiOAuthCallback(code: string, state: string) {
+  return fetchMutate<{ ok: boolean }>('/oauth/gemini/callback', {
+    method: 'POST',
+    body: JSON.stringify({ code, state }),
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+export function revokeGeminiOAuth(agentName: string, label?: string) {
+  const params = new URLSearchParams({ agentName });
+  if (label) params.set('label', label);
+  return fetchMutate<{ ok: boolean; notifications?: string[] }>(
+    `/oauth/gemini/revoke?${params.toString()}`,
+    { method: 'POST' },
+  );
+}
+
+/**
+ * Dispatch table for popup-OAuth providers. The detail view picks the
+ * right getUrl/submitCallback/revoke triplet based on the provider id.
+ */
+export interface PopupOauthApi {
+  getUrl: (agentName: string) => Promise<{ url: string }>;
+  submitCallback: (code: string, state: string) => Promise<{ ok: boolean }>;
+  revoke: (agentName: string, label?: string) => Promise<{ ok: boolean; notifications?: string[] }>;
+}
+
+const POPUP_OAUTH_PROVIDERS: Record<string, PopupOauthApi> = {
+  openai: {
+    getUrl: getOpenaiOAuthUrl,
+    submitCallback: submitOpenaiOAuthCallback,
+    revoke: revokeOpenaiOAuth,
+  },
+  gemini: {
+    getUrl: getGeminiOAuthUrl,
+    submitCallback: submitGeminiOAuthCallback,
+    revoke: revokeGeminiOAuth,
+  },
+};
+
+export function getPopupOauthApi(providerId: string): PopupOauthApi {
+  const api = POPUP_OAUTH_PROVIDERS[providerId];
+  if (!api) {
+    throw new Error(`Provider "${providerId}" does not support popup OAuth`);
+  }
+  return api;
+}

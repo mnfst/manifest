@@ -483,6 +483,11 @@ export class ProviderModelFetcherService {
       configKey = 'zai-subscription';
     } else if (configKey === 'opencode-go') {
       return this.fetchOpencodeGoCatalog();
+    } else if (configKey === 'gemini' && authType === 'subscription') {
+      // CodeAssist (`cloudcode-pa.googleapis.com`) does not expose a
+      // `/models` endpoint; the discovery fallback chain pulls Gemini
+      // models from the OpenRouter cache instead.
+      return [];
     }
     const config = PROVIDER_CONFIGS[configKey];
     if (!config) {

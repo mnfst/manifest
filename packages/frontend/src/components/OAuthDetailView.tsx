@@ -9,9 +9,7 @@ import {
 } from 'solid-js';
 import type { ProviderDef } from '../services/providers.js';
 import {
-  getOpenaiOAuthUrl,
-  submitOpenaiOAuthCallback,
-  revokeOpenaiOAuth,
+  getPopupOauthApi,
   renameProviderKey,
   type AuthType,
   type RoutingProvider,
@@ -54,12 +52,14 @@ const OAuthDetailView: Component<Props> = (props) => {
     }
   });
 
+  const oauthApi = () => getPopupOauthApi(props.provId);
+
   const handleOAuthLogin = async () => {
     props.setBusy(true);
     setPasteUrl('');
     setPasteError(null);
     try {
-      const { url } = await getOpenaiOAuthUrl(props.agentName);
+      const { url } = await oauthApi().getUrl(props.agentName);
       const popup = window.open(url, 'manifest-oauth', 'width=500,height=700');
       if (!popup) {
         toast.error(
@@ -101,7 +101,7 @@ const OAuthDetailView: Component<Props> = (props) => {
 
       props.setBusy(true);
       setPasteError(null);
-      await submitOpenaiOAuthCallback(code, state);
+      await oauthApi().submitCallback(code, state);
       toast.success(`${props.provDef.name} subscription connected`);
       props.onUpdate();
     } catch {
@@ -114,7 +114,7 @@ const OAuthDetailView: Component<Props> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      const result = await revokeOpenaiOAuth(props.agentName);
+      const result = await oauthApi().revoke(props.agentName);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -132,7 +132,7 @@ const OAuthDetailView: Component<Props> = (props) => {
   const handleDeleteKey = async (label: string) => {
     props.setBusy(true);
     try {
-      const result = await revokeOpenaiOAuth(props.agentName, label);
+      const result = await oauthApi().revoke(props.agentName, label);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);

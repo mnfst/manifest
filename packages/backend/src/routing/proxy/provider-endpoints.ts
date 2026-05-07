@@ -13,6 +13,14 @@ export interface ProviderEndpoint {
   baseUrl: string;
   buildHeaders: (apiKey: string, authType?: string) => Record<string, string>;
   buildPath: (model: string) => string;
+  /**
+   * Optional override used when the request is a stream. Some upstreams
+   * (notably the CodeAssist API) expose a separate `:streamGenerateContent`
+   * method instead of accepting `?alt=sse` on the non-streaming path. When
+   * absent, the proxy falls back to `buildPath` and appends `?alt=sse` for
+   * `format: 'google'` streams.
+   */
+  buildStreamPath?: (model: string) => string;
   format: 'openai' | 'google' | 'anthropic' | 'chatgpt';
   /**
    * Set to `true` for endpoints whose `baseUrl` is user-supplied (custom
@@ -23,6 +31,13 @@ export interface ProviderEndpoint {
    * forward time.
    */
   requiresSsrfRevalidation?: boolean;
+  /**
+   * When `true`, the proxy wraps the outgoing Google-shape request body in
+   * the CodeAssist envelope (`{ model, project, request }`) and unwraps
+   * `{ response }` from the upstream reply. The project id is read from
+   * the OAuth blob's `u` field. Only valid alongside `format: 'google'`.
+   */
+  codeAssistEnvelope?: boolean;
 }
 
 const openaiHeaders = (apiKey: string) => ({
@@ -176,6 +191,23 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     }),
     buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
+  },
+  // Gemini OAuth (gemini-cli flow) routes through the CodeAssist API, which
+  // wraps the standard Gemini request/response in a small envelope and
+  // identifies the user via a Bearer token + their assigned
+  // `cloudaicompanionProject` id (stored in the OAuth blob's `u` field).
+  // Wrap/unwrap happens in `provider-client` and `proxy-response-handler`
+  // when `endpointKey === 'gemini-subscription'`.
+  'gemini-subscription': {
+    baseUrl: 'https://cloudcode-pa.googleapis.com',
+    buildHeaders: (apiKey: string) => ({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    }),
+    buildPath: () => '/v1internal:generateContent',
+    buildStreamPath: () => '/v1internal:streamGenerateContent',
+    format: 'google',
+    codeAssistEnvelope: true,
   },
   copilot: {
     baseUrl: 'https://api.githubcopilot.com',

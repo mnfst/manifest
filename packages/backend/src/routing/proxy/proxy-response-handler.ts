@@ -36,6 +36,10 @@ import { supportsReasoningContent } from './provider-client-converters';
 import type { CallerAttribution } from './caller-classifier';
 import type { CaptureSink } from './recording-capture';
 import { sanitizeResponseHeaders } from './recording-capture';
+import {
+  unwrapCodeAssistResponse,
+  unwrapCodeAssistStreamChunk,
+} from '../oauth/codeassist-envelope';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -307,8 +311,9 @@ export async function handleStreamResponse(
       forward.response.body!,
       res,
       (chunk) => {
+        const innerChunk = forward.isCodeAssist ? unwrapCodeAssistStreamChunk(chunk) : chunk;
         const { chunk: out, signatures } = providerClient.convertGoogleStreamChunk(
-          chunk,
+          innerChunk,
           meta.model,
         );
         if (signatureCache && sessionKey) {
@@ -441,7 +446,8 @@ export async function handleNonStreamResponse(
   if (apiMode === 'responses' && forward.isResponses) {
     responseBody = await readNativeResponsesBody(forward.response);
   } else if (forward.isGoogle) {
-    const googleData = (await forward.response.json()) as Record<string, unknown>;
+    const rawData = (await forward.response.json()) as Record<string, unknown>;
+    const googleData = forward.isCodeAssist ? unwrapCodeAssistResponse(rawData) : rawData;
     responseBody = providerClient.convertGoogleResponse(googleData, meta.model);
     const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
       | ExtractedSignature[]

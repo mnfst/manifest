@@ -286,6 +286,168 @@ describe('buildSubscriptionFallbackModels', () => {
     const result = buildSubscriptionFallbackModels(makePricingSync(new Map()), 'opencode-go');
     expect(result).toEqual([]);
   });
+
+  describe('knownModelsMatch exact mode (gemini)', () => {
+    it('includes only verbatim knownModel entries from the OpenRouter cache', () => {
+      const cache = new Map([
+        // Exact match for 'gemini-2.5-pro' → included
+        [
+          'google/gemini-2.5-pro',
+          {
+            input: 0.00000125,
+            output: 0.00001,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Pro',
+          },
+        ],
+        // Exact match for 'gemini-2.5-flash' → included
+        [
+          'google/gemini-2.5-flash',
+          {
+            input: 0.0000003,
+            output: 0.0000025,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Flash',
+          },
+        ],
+        // Suffixed preview → excluded in exact mode
+        [
+          'google/gemini-2.5-pro-preview-06-05',
+          {
+            input: 0.00000125,
+            output: 0.00001,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Pro Preview',
+          },
+        ],
+        // Suffixed lite preview → excluded in exact mode
+        [
+          'google/gemini-2.5-flash-lite-preview-06-17',
+          {
+            input: 0.0000001,
+            output: 0.0000008,
+            contextWindow: 1000000,
+            displayName: 'Flash Lite Preview',
+          },
+        ],
+        // Different provider — excluded
+        [
+          'openai/gpt-4o',
+          { input: 0.0000025, output: 0.00001, contextWindow: 128000, displayName: 'GPT-4o' },
+        ],
+      ]);
+
+      const result = buildSubscriptionFallbackModels(makePricingSync(cache), 'gemini');
+      const ids = result.map((m) => m.id);
+
+      expect(ids).toContain('gemini-2.5-pro');
+      expect(ids).toContain('gemini-2.5-flash');
+      // Suffixed variants excluded
+      expect(ids).not.toContain('gemini-2.5-pro-preview-06-05');
+      expect(ids).not.toContain('gemini-2.5-flash-lite-preview-06-17');
+      // gemini-2.5-flash-lite knownModel not in cache → added as zero-cost directly
+      expect(ids).toContain('gemini-2.5-flash-lite');
+      expect(result.find((m) => m.id === 'gemini-2.5-flash-lite')!.inputPricePerToken).toBe(0);
+    });
+
+    it('compares exact match case-insensitively', () => {
+      // OpenRouter may return 'gemini-2.5-pro' in lowercase, config has lowercase too
+      const cache = new Map([
+        [
+          'google/gemini-2.5-pro',
+          {
+            input: 0.00000125,
+            output: 0.00001,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Pro',
+          },
+        ],
+      ]);
+
+      const result = buildSubscriptionFallbackModels(makePricingSync(cache), 'gemini');
+      expect(result.map((m) => m.id)).toContain('gemini-2.5-pro');
+    });
+
+    it('contrast: prefix mode keeps suffix entries that exact mode would drop', () => {
+      // Anthropic uses prefix mode: 'claude-opus-4-20260301' starts with 'claude-opus-4' → included
+      // Gemini uses exact mode: 'gemini-2.5-pro-preview' does NOT equal 'gemini-2.5-pro' → excluded
+      const anthropicCache = new Map([
+        [
+          'anthropic/claude-opus-4-20260301',
+          {
+            input: 0.000015,
+            output: 0.000075,
+            contextWindow: 200000,
+            displayName: 'Claude Opus 4',
+          },
+        ],
+      ]);
+      const geminiCache = new Map([
+        [
+          'google/gemini-2.5-pro-preview',
+          {
+            input: 0.00000125,
+            output: 0.00001,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Pro Preview',
+          },
+        ],
+      ]);
+
+      const anthropicResult = buildSubscriptionFallbackModels(
+        makePricingSync(anthropicCache),
+        'anthropic',
+      );
+      const geminiResult = buildSubscriptionFallbackModels(makePricingSync(geminiCache), 'gemini');
+
+      // Prefix: dated suffix accepted
+      expect(anthropicResult.map((m) => m.id)).toContain('claude-opus-4-20260301');
+      // Exact: preview suffix rejected
+      expect(geminiResult.map((m) => m.id)).not.toContain('gemini-2.5-pro-preview');
+      // All 3 knownModels added directly as zero-cost for gemini
+      expect(geminiResult.map((m) => m.id)).toContain('gemini-2.5-pro');
+      expect(geminiResult.map((m) => m.id)).toContain('gemini-2.5-flash');
+      expect(geminiResult.map((m) => m.id)).toContain('gemini-2.5-flash-lite');
+    });
+
+    it('applies maxContextWindow cap from gemini subscription capabilities', () => {
+      const cache = new Map([
+        // OpenRouter reports 2M but Gemini subscription caps at 1M
+        [
+          'google/gemini-2.5-pro',
+          {
+            input: 0.00000125,
+            output: 0.00001,
+            contextWindow: 2000000,
+            displayName: 'Gemini 2.5 Pro',
+          },
+        ],
+      ]);
+
+      const result = buildSubscriptionFallbackModels(makePricingSync(cache), 'gemini');
+      const proModel = result.find((m) => m.id === 'gemini-2.5-pro');
+
+      expect(proModel).toBeDefined();
+      // Capped at Gemini subscription capability maxContextWindow (1000000)
+      expect(proModel!.contextWindow).toBe(1000000);
+    });
+
+    it('returns all 3 gemini knownModels as zero-cost when pricingSync returns nothing', () => {
+      const result = buildSubscriptionFallbackModels(makePricingSync(new Map()), 'gemini');
+
+      expect(result).toHaveLength(3);
+      expect(result.map((m) => m.id).sort()).toEqual([
+        'gemini-2.5-flash',
+        'gemini-2.5-flash-lite',
+        'gemini-2.5-pro',
+      ]);
+      for (const m of result) {
+        expect(m.inputPricePerToken).toBe(0);
+        expect(m.outputPricePerToken).toBe(0);
+        expect(m.provider).toBe('gemini');
+      }
+    });
+  });
 });
 
 describe('supplementWithKnownModels', () => {

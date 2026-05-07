@@ -35,6 +35,7 @@ const mockGetOpenaiOAuthUrl = vi.fn();
 const mockPollMinimaxOAuth = vi.fn();
 const mockRevokeOpenaiOAuth = vi.fn();
 const mockRevokeMinimaxOAuth = vi.fn();
+const mockSubmitOpenaiOAuthCallback = vi.fn();
 const mockStartMinimaxOAuth = vi.fn();
 const mockStartAnthropicOAuth = vi.fn();
 const mockSubmitAnthropicOAuth = vi.fn();
@@ -59,6 +60,15 @@ vi.mock('../../src/services/api.js', () => ({
   createCustomProvider: (...args: unknown[]) => mockCreateCustomProvider(...args),
   updateCustomProvider: (...args: unknown[]) => mockUpdateCustomProvider(...args),
   deleteCustomProvider: (...args: unknown[]) => mockDeleteCustomProvider(...args),
+  // Dispatch table consumed by OAuthDetailView. Returns the same mocked
+  // OpenAI/Gemini funcs so the existing tests keep working unchanged.
+  getPopupOauthApi: (providerId: string) => ({
+    getUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+    submitCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
+    revoke: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+    _provider: providerId,
+  }),
+  submitOpenaiOAuthCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
 }));
 
 vi.mock('../../src/services/toast-store.js', () => ({

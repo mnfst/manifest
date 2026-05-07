@@ -3,7 +3,11 @@ import {
   OPENROUTER_PREFIX_TO_PROVIDER,
   PROVIDER_BY_ID_OR_ALIAS,
 } from '../common/constants/providers';
-import { getSubscriptionKnownModels, getSubscriptionCapabilities } from 'manifest-shared';
+import {
+  getSubscriptionKnownModels,
+  getSubscriptionKnownModelsMatch,
+  getSubscriptionCapabilities,
+} from 'manifest-shared';
 import { normalizeAnthropicShortModelId } from '../common/utils/anthropic-model-id';
 import { GOOGLE_VARIANT_RE } from '../model-prices/model-name-normalizer';
 import type { ModelsDevSyncService } from '../database/models-dev-sync.service';
@@ -224,6 +228,7 @@ export function buildSubscriptionFallbackModels(
   const knownPrefixes = getSubscriptionKnownModels(providerId);
   if (!knownPrefixes) return [];
   const normalizedKnownPrefixes = knownPrefixes.map((modelId) => modelId.toLowerCase());
+  const matchMode = getSubscriptionKnownModelsMatch(providerId);
 
   const capabilities = getSubscriptionCapabilities(providerId);
   const models: DiscoveredModel[] = [];
@@ -235,9 +240,12 @@ export function buildSubscriptionFallbackModels(
     for (const [fullId, entry] of pricingSync.getAll()) {
       if (!fullId.startsWith(`${orPrefix}/`)) continue;
       const modelId = normalizeProviderModelId(providerId, fullId.substring(orPrefix.length + 1));
-      if (!normalizedKnownPrefixes.some((p: string) => modelId.toLowerCase().startsWith(p))) {
-        continue;
-      }
+      const lowerId = modelId.toLowerCase();
+      const matches =
+        matchMode === 'exact'
+          ? normalizedKnownPrefixes.includes(lowerId)
+          : normalizedKnownPrefixes.some((p: string) => lowerId.startsWith(p));
+      if (!matches) continue;
       if (seen.has(modelId)) continue;
       seen.add(modelId);
 

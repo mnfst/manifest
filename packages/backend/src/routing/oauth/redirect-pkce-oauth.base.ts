@@ -174,11 +174,16 @@ export abstract class RedirectPkceOauthBaseService {
       throw new Error('Token exchange failed');
     }
     const data = (await response.json()) as OAuthTokenResponse;
-    const blob: OAuthTokenBlob = {
+    const baseBlob: OAuthTokenBlob = {
       t: data.access_token,
       r: data.refresh_token ?? '',
       e: Date.now() + data.expires_in * 1000,
     };
+    // Subclass hook: providers like Gemini run a per-account onboarding
+    // call (CodeAssist `loadCodeAssist`/`onboardUser`) immediately after
+    // exchange to discover their assigned project id. The result lives in
+    // `blob.u` and is preserved across refreshes by `unwrapToken`.
+    const blob = await this.enrichBlob(baseBlob);
     const label = await this.providerService.nextOAuthLabel(
       pending.agentId,
       this.oauthConfig.providerId,
@@ -204,7 +209,7 @@ export abstract class RedirectPkceOauthBaseService {
     this.shutdownCallbackServerIfIdle();
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<OAuthTokenBlob> {
+  async refreshAccessToken(refreshToken: string, resourceField?: string): Promise<OAuthTokenBlob> {
     const body = new URLSearchParams({
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
@@ -228,6 +233,9 @@ export abstract class RedirectPkceOauthBaseService {
       t: data.access_token,
       r: data.refresh_token || refreshToken,
       e: Date.now() + data.expires_in * 1000,
+      // Preserve provider-specific resource field (e.g. Gemini's CodeAssist
+      // project id, MiniMax's resource URL) across refreshes.
+      ...(resourceField ? { u: resourceField } : {}),
     };
   }
 
@@ -242,7 +250,7 @@ export abstract class RedirectPkceOauthBaseService {
     if (Date.now() < blob.e - 60_000) return blob.t;
     if (!blob.r) return null;
     try {
-      const refreshed = await this.refreshAccessToken(blob.r);
+      const refreshed = await this.refreshAccessToken(blob.r, blob.u);
       await this.providerService.upsertProvider(
         agentId,
         userId,
@@ -298,6 +306,17 @@ export abstract class RedirectPkceOauthBaseService {
   /** Path on the loopback callback server (relative). Subclasses can override. */
   protected get callbackPath(): string {
     return '/auth/callback';
+  }
+
+  /**
+   * Optional hook for subclasses to enrich the OAuth blob with provider-
+   * specific fields (e.g. Gemini stores the CodeAssist project id in
+   * `blob.u` after a successful onboarding round-trip). The default is
+   * pass-through. Throwing here aborts the exchange; the user sees a
+   * generic "Token exchange failed" error.
+   */
+  protected async enrichBlob(blob: OAuthTokenBlob): Promise<OAuthTokenBlob> {
+    return blob;
   }
 
   /** Spins up a one-shot HTTP server on `callbackPort` to receive the redirect. */

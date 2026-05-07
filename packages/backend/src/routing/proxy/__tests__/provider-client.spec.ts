@@ -2600,4 +2600,97 @@ describe('ProviderClient', () => {
       expect(await captureTimeoutMs('0')).toBe(180_000);
     });
   });
+
+  describe('Gemini subscription (CodeAssist envelope)', () => {
+    it('wraps the request body in the CodeAssist envelope for gemini subscription', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'gemini',
+        apiKey: 'access-token',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: false,
+        authType: 'subscription',
+        providerResource: 'proj-code-assist-999',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('gemini-2.5-pro');
+      expect(sentBody.project).toBe('proj-code-assist-999');
+      expect(sentBody.request).toBeDefined();
+      expect(sentBody.request.contents).toBeDefined();
+      expect(result.isGoogle).toBe(true);
+      expect(result.isCodeAssist).toBe(true);
+    });
+
+    it('uses the non-stream generateContent path for non-streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'gemini',
+        apiKey: 'access-token',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: false,
+        authType: 'subscription',
+        providerResource: 'proj-123',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('/v1internal:generateContent');
+      expect(url).not.toContain(':streamGenerateContent');
+    });
+
+    it('uses the stream path and appends alt=sse for streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'gemini',
+        apiKey: 'access-token',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: true,
+        authType: 'subscription',
+        providerResource: 'proj-123',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('/v1internal:streamGenerateContent');
+      expect(url).toContain('alt=sse');
+    });
+
+    it('sends Authorization: Bearer header (not x-goog-api-key)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'gemini',
+        apiKey: 'my-oauth-token',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: false,
+        authType: 'subscription',
+        providerResource: 'proj-123',
+      });
+
+      const headers = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+      expect(headers['Authorization']).toBe('Bearer my-oauth-token');
+      expect(headers['x-goog-api-key']).toBeUndefined();
+    });
+
+    it('sets isCodeAssist=false when not using the CodeAssist endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'google',
+        apiKey: 'AIza-key',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: false,
+      });
+
+      expect(result.isCodeAssist).toBeFalsy();
+      expect(result.isGoogle).toBe(true);
+    });
+  });
 });

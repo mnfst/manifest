@@ -884,6 +884,15 @@ describe('ProviderModelFetcherService', () => {
         expect.objectContaining({ headers: {} }),
       );
     });
+
+    it('should return [] immediately without any HTTP call when authType is subscription', async () => {
+      // CodeAssist does not expose a /models endpoint; the discovery fallback
+      // chain handles Gemini subscription models via the OpenRouter cache.
+      const result = await service.fetch('gemini', 'ya29.some-oauth-access-token', 'subscription');
+
+      expect(result).toEqual([]);
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
   });
 
   /* ── OpenRouter provider ── */

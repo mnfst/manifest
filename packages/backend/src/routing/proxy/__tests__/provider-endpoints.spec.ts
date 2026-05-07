@@ -5,6 +5,7 @@ import {
   resolveEndpointKey,
   PROVIDER_ENDPOINTS,
 } from '../provider-endpoints';
+import { resolveSubscriptionEndpointKey } from '../provider-hooks';
 
 describe('buildCustomEndpoint', () => {
   it('strips trailing /v1 from base URL to avoid double /v1', () => {
@@ -362,5 +363,59 @@ describe('buildEndpointOverride', () => {
     expect(() => buildEndpointOverride('https://example.com', 'nonexistent-template')).toThrow(
       'No provider endpoint template configured for: nonexistent-template',
     );
+  });
+});
+
+describe('resolveSubscriptionEndpointKey', () => {
+  it('returns gemini-subscription for google (the Gemini API-key endpoint key)', () => {
+    expect(resolveSubscriptionEndpointKey('google')).toBe('gemini-subscription');
+  });
+
+  it('returns openai-subscription for openai', () => {
+    expect(resolveSubscriptionEndpointKey('openai')).toBe('openai-subscription');
+  });
+
+  it('returns minimax-subscription for minimax', () => {
+    expect(resolveSubscriptionEndpointKey('minimax')).toBe('minimax-subscription');
+  });
+
+  it('returns undefined for providers with no subscription override', () => {
+    expect(resolveSubscriptionEndpointKey('anthropic')).toBeUndefined();
+    expect(resolveSubscriptionEndpointKey('deepseek')).toBeUndefined();
+    expect(resolveSubscriptionEndpointKey('unknown')).toBeUndefined();
+  });
+});
+
+describe('gemini-subscription endpoint', () => {
+  const ep = PROVIDER_ENDPOINTS['gemini-subscription'];
+
+  it('exists in PROVIDER_ENDPOINTS', () => {
+    expect(ep).toBeDefined();
+  });
+
+  it('uses the CodeAssist base URL', () => {
+    expect(ep.baseUrl).toBe('https://cloudcode-pa.googleapis.com');
+  });
+
+  it('uses google format', () => {
+    expect(ep.format).toBe('google');
+  });
+
+  it('has codeAssistEnvelope set to true', () => {
+    expect(ep.codeAssistEnvelope).toBe(true);
+  });
+
+  it('buildHeaders returns Authorization: Bearer and Content-Type', () => {
+    const headers = ep.buildHeaders('my-access-token');
+    expect(headers['Authorization']).toBe('Bearer my-access-token');
+    expect(headers['Content-Type']).toBe('application/json');
+  });
+
+  it('buildPath returns the non-streaming generateContent path', () => {
+    expect(ep.buildPath('gemini-2.5-pro')).toBe('/v1internal:generateContent');
+  });
+
+  it('buildStreamPath returns the streamGenerateContent path', () => {
+    expect(ep.buildStreamPath!('gemini-2.5-pro')).toBe('/v1internal:streamGenerateContent');
   });
 });

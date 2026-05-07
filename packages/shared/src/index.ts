@@ -92,6 +92,7 @@ export {
   getSubscriptionProviderConfig,
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
+  getSubscriptionKnownModelsMatch,
   getSubscriptionCapabilities,
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';

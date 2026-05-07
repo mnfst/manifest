@@ -9,22 +9,33 @@ import { CopilotDeviceAuthService } from './copilot-device-auth.service';
 import { AnthropicOauthService } from './anthropic/anthropic-oauth.service';
 import { AnthropicOauthController } from './anthropic/anthropic-oauth.controller';
 import { OAuthPendingFlowStore } from './core';
+import { GeminiOauthService } from './gemini-oauth.service';
+import { GeminiOauthController } from './gemini-oauth.controller';
+import { CodeAssistClientService } from './codeassist-client.service';
 
 @Module({
   imports: [RoutingCoreModule, ModelDiscoveryModule],
-  controllers: [OpenaiOauthController, MinimaxOauthController, AnthropicOauthController],
+  controllers: [
+    OpenaiOauthController,
+    MinimaxOauthController,
+    AnthropicOauthController,
+    GeminiOauthController,
+  ],
   providers: [
     OpenaiOauthService,
     MinimaxOauthService,
     CopilotDeviceAuthService,
     AnthropicOauthService,
     OAuthPendingFlowStore,
+    GeminiOauthService,
+    CodeAssistClientService,
   ],
   exports: [
     OpenaiOauthService,
     MinimaxOauthService,
     CopilotDeviceAuthService,
     AnthropicOauthService,
+    GeminiOauthService,
   ],
 })
 export class OAuthModule {}
