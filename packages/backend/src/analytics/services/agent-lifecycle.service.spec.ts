@@ -78,6 +78,7 @@ describe('AgentLifecycleService', () => {
         display_name: 'Bot One',
         agent_category: 'app',
         agent_platform: 'openai-sdk',
+        record_messages: true,
       });
 
       const result = await service.findAgentInfo('user-1', 'bot-1');
@@ -86,7 +87,20 @@ describe('AgentLifecycleService', () => {
         display_name: 'Bot One',
         agent_category: 'app',
         agent_platform: 'openai-sdk',
+        record_messages: true,
       });
+    });
+
+    it('defaults record_messages to false when entity has it unset', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({
+        id: 'agent-id-1',
+        name: 'bot-1',
+        display_name: 'Bot One',
+        agent_category: null,
+        agent_platform: null,
+      });
+      const result = await service.findAgentInfo('user-1', 'bot-1');
+      expect(result?.record_messages).toBe(false);
     });
 
     it('falls back display_name to agent name when null', async () => {

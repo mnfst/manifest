@@ -50,7 +50,10 @@ export function createCaptureSink(limitBytes: number = RECORDING_MAX_BYTES): Cap
         this.jsonBody = undefined;
         return;
       }
+      // Stream and non-stream paths are mutually exclusive in proxy-response-handler,
+      // so the JSON body fully replaces any prior state for byte accounting.
       this.bytesUsed = size;
+      this.rawSse = '';
       this.jsonBody = body;
     },
     setHeaders(h: Record<string, string>): void {

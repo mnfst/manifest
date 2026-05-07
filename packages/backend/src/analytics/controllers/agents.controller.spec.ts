@@ -75,6 +75,7 @@ describe('AgentsController', () => {
                     display_name: 'Bot One',
                     agent_category: 'app',
                     agent_platform: 'openai-sdk',
+                    record_messages: false,
                   }
                 : null,
             ),
@@ -146,6 +147,7 @@ describe('AgentsController', () => {
         display_name: 'Bot One',
         agent_category: 'app',
         agent_platform: 'openai-sdk',
+        record_messages: false,
       },
     });
   });
@@ -388,6 +390,11 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn() } },
+        { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
+        {
+          provide: AgentDuplicationService,
+          useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
+        },
         {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: mockInvalidate },

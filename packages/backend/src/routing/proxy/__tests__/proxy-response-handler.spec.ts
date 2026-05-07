@@ -521,6 +521,7 @@ describe('proxy-response-handler', () => {
         res,
         expect.any(Function),
         undefined,
+        undefined,
       );
     });
 
@@ -584,6 +585,7 @@ describe('proxy-response-handler', () => {
         res,
         expect.any(Function),
         undefined,
+        undefined,
       );
     });
 
@@ -618,8 +620,13 @@ describe('proxy-response-handler', () => {
 
       await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
 
-      // Called with only 2 args (no transformer)
-      expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res, undefined, undefined);
+      expect(pipeStreamSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        undefined,
+        undefined,
+        undefined,
+      );
     });
 
     it('passes a finalize callback to pipeStream when apiMode=messages (default OpenAI provider)', async () => {
@@ -645,6 +652,7 @@ describe('proxy-response-handler', () => {
         res,
         expect.any(Function),
         expect.any(Function),
+        undefined,
       );
     });
 
@@ -731,7 +739,13 @@ describe('proxy-response-handler', () => {
         'responses',
       );
 
-      expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res);
+      expect(pipeStreamSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        undefined,
+        undefined,
+        undefined,
+      );
     });
 
     it('should convert chat completion streams when serving Responses clients', async () => {
@@ -1587,6 +1601,7 @@ describe('proxy-response-handler', () => {
         undefined,
         undefined,
         undefined,
+        undefined,
         capture as any,
       );
 
@@ -1629,6 +1644,7 @@ describe('proxy-response-handler', () => {
         makeMeta(),
         {},
         client as any,
+        undefined,
         undefined,
         undefined,
         undefined,

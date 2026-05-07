@@ -25,6 +25,7 @@ export class AgentLifecycleService {
     display_name: string;
     agent_category: string | null;
     agent_platform: string | null;
+    record_messages: boolean;
   } | null> {
     const agent = await this.findAgentByUser(userId, agentName);
     if (!agent) return null;
@@ -33,6 +34,7 @@ export class AgentLifecycleService {
       display_name: agent.display_name ?? agent.name,
       agent_category: agent.agent_category ?? null,
       agent_platform: agent.agent_platform ?? null,
+      record_messages: agent.record_messages === true,
     };
   }
 
