@@ -1,0 +1,23 @@
+packages/frontend/src/pages/RoutingTierCard.tsx
+  s_ff3ef56e742c11::t_54d5cf920f8b73 152-159,161-168,170-172
+.changeset/params-fallback-visibility.md
+  s_ff3ef56e742c11::t_e6203d6b295f3e 1-5
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_ff3ef56e742c11::t_33e940632c1768 1316-1449
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "93501a1cccc686e762e64f2da043b64e1b131fa6",
+  "prompts": {},
+  "sessions": {
+    "s_ff3ef56e742c11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2a650283-6325-472f-84da-3c2e5e3a3423",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
