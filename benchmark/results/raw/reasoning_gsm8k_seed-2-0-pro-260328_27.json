@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let's solve this problem step-by-step, working backwards from the final number of vacuum cleaners Melanie has:\n1.  **Before the orange house:** Melanie sold half of her remaining vacuums at the orange house, leaving her with 5. This means 5 was half of what she had before arriving at the orange house.\n    Amount before orange house = `5 * 2 = 10`\n2.  **Before the red house:** She sold 2 vacuums at the red house, leaving her with 10 (the amount she brought to the orange house).\n    Amount before red house = `10 + 2 = 12`\n3.  **Original starting amount:** She sold 1/3 of her vacuums at the green house, meaning she kept 2/3 of her starting total. This remaining 2/3 equals the 12 vacuums she had before going to the red house.\n    Let `x` = starting number of vacuums:\n    ```\n    (2/3) * x = 12\n    x = 12 * (3/2)\n    x = 18\n    ```\nWe can verify this:\n-   Start with 18. Sell 1/3 (6) at green house: 18-6=12 left.\n-   Sell 2 at red house: 12-2=10 left.\n-   Sell half (5) at orange house: 10-5=5 left. This matches the problem statement.\nANSWER: 18",
+  "score": 5,
+  "cost": 0.0019458,
+  "expected": "18",
+  "tokens": {
+    "input": 143,
+    "output": 775
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "This text provides a sweeping overview of artificial intelligence\u2019s evolution, from Alan Turing\u2019s foundational conceptual inquiry through two major \"AI winters\" (periods of stalled funding and progress) in the 1970s and 1980s, a 2010s resurgence fueled by deep learning, and the 2017 transformer architecture paper that ignited the current transformative AI boom. It details the fierce industry race between leading firms OpenAI, Google, Anthropic, and Meta, which centers on the scaling hypothesis\u2014the premise that larger models trained on more data yield superior performance, underpinning tools like GPT\u2014and the divisive open vs. closed-source AI development debate. Finally, it addresses critical associated issues: AI safety risks (alignment failures, malicious misuse), economic disruption to knowledge work, and emerging regulatory frameworks including the EU\u2019s AI Act and U.S. executive orders aimed at governing AI\u2019s risks.",
+  "score": 5,
+  "cost": 0.0021765,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 1768
+  }
+}

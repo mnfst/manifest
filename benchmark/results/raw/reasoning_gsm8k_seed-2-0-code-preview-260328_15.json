@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "To solve the problem, we calculate the final scores of Joey and Marcy first, then find the difference between them.\n\nStep 1: Calculate Joey's final score.\nJoey starts with 214 points, then scores 26 more.\nJoey's final score = 214 + 26 = 240 points.\n\nStep 2: Calculate Marcy's final score.\nMarcy starts with 225 points, then scores 10 more.\nMarcy's final score = 225 + 10 = 235 points.\n\nStep 3: Find how many points Joey is winning by.\nThis is the difference between Joey's final score and Marcy's final score:\n240 - 235 = 5 points.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0006672,
+  "expected": "5",
+  "tokens": {
+    "input": 116,
+    "output": 527
+  }
+}

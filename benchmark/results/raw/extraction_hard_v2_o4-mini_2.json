@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "extraction_hard_v2",
+  "case": 2,
+  "response": "{\"meeting_title\":\"Product sync\",\"date\":\"2026-04-10\",\"attendees\":[\"Jamie\",\"Priya\",\"Marcus\",\"Lin\"],\"decisions\":[\"Push the recommendation engine to Q3 due to data pipeline not being ready until June.\",\"Allocate 20% of sprint capacity to tech debt.\"],\"action_items\":[{\"owner\":\"Marcus\",\"task\":\"Create onboarding mockups\",\"deadline\":\"2026-04-18\"},{\"owner\":\"Jamie\",\"task\":\"Send updated roadmap\",\"deadline\":\"2026-04-13\"},{\"owner\":\"Lin\",\"task\":\"Deliver analytics dashboard\",\"deadline\":\"Before May board meeting\"}]}",
+  "score": 4,
+  "cost": 0.0055935,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 1229
+  }
+}

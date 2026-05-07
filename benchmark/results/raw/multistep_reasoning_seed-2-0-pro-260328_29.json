@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 29,
+  "response": "First, recall the overall process of cellular respiration:\nThe chemical reaction for aerobic respiration is **Glucose (sugar) + Oxygen \u2192 Carbon Dioxide + Water + Usable Cellular Energy**.\nThis means:\n1.  The inputs/reactants (materials used in the process) are sugar and oxygen.\n2.  The outputs/waste products are carbon dioxide and water, plus energy for the cell.\n\nNow verify each option:\n- Option A: Matches the correct inputs and waste products of respiration.\n- Option B: Incorrectly lists water as an input, and oxygen as a waste product.\n- Option C: Incorrectly lists carbon dioxide as an input, and sugar as a waste product.\n- Option D: Incorrectly lists carbon dioxide as an input, and oxygen as a waste product.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.0008837999999999999,
+  "expected": "A",
+  "tokens": {
+    "input": 197,
+    "output": 319
+  }
+}

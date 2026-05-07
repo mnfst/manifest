@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT production_code, channel\nFROM tv_shows\nWHERE genre = 'Cartoon'\nORDER BY air_date DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 0.0069297,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 5750
+  }
+}

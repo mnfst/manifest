@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 1,
+  "response": "groups = paren_string.split()\nresult = []\nfor group in groups:\n    current_depth = 0\n    max_depth = 0\n    for char in group:\n        if char == '(':\n            current_depth += 1\n            if current_depth > max_depth:\n                max_depth = current_depth\n        else:\n            current_depth -= 1\n    result.append(max_depth)\nreturn result",
+  "score": 5,
+  "cost": 0.0034731,
+  "expected": "",
+  "tokens": {
+    "input": 177,
+    "output": 2850
+  }
+}

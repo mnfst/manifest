@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 46,
+  "response": "### Final Explanation (2 clear, specific sentences):\n1. This function implements the **left-parent branch of the standard CLRS-style red-black tree (RBT) post-insertion fixup algorithm**, which resolves violations of RBT properties\u2014*no two consecutive red nodes* and *the root must be black*\u2014introduced by inserting a new red node (the conventional RBT insert color to minimize initial violations).\n2. It follows a **case-based self-balancing BST fixup pattern** with three canonical RBT insert cases: recoloring (parent/uncle \u2192 black, grandparent \u2192 red) and moving the check up to the grandparent if the uncle is red; a left rotation of the parent to convert to the third case if the node is the parent\u2019s right child; and a recoloring + right rotation of the grandparent if the uncle is black, before forcing the root to black to fix any final root-color violation.\n\n---\n### Key Specifics (condensed for clarity, if needed):\n- Targets RBT violations from inserting a *red node* (standard RBT insert choice).\n- Only handles the **symmetric left-parent subcase** (parent is the *left child* of the grandparent; the right-parent subcase is omitted but identical in logic, mirrored).\n- Uses **constant-time operations only**: recoloring (O(1)) and left/right rotations (O(1)), ensuring the fixup runs in *O(log n)* total time (matches RBT insert complexity).\n- Enforces the two critical RBT properties that can break during red-node insertion: no consecutive reds, and root is black.",
+  "score": 5,
+  "cost": 0.003948,
+  "expected": "",
+  "tokens": {
+    "input": 216,
+    "output": 3236
+  }
+}

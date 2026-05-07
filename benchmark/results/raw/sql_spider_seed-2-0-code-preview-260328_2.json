@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "SELECT s.name, s.capacity\nFROM stadium s\nINNER JOIN concert c ON s.stadium_id = c.stadium_id\nWHERE c.concert_date >= '2014-01-01'\nGROUP BY s.stadium_id, s.name, s.capacity\nORDER BY COUNT(*) DESC\nFETCH FIRST 1 ROWS ONLY;",
+  "score": 4,
+  "cost": 0.0063536999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 5268
+  }
+}

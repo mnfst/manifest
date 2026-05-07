@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The first month of the organization\u2019s bug bounty program produced 47 total submitted reports, 12 of which were valid (including 3 critical vulnerabilities: an IDOR on user profiles, SSRF via webhook URL, and JWT secret in the client bundle), $15,000 in total payouts, all critical flaws patched within 24 hours, and a strong return on investment per the security team.\nThe security team\u2019s primary action item stemming from these initial program results is a formal recommendation to continue the bug bounty program.",
+  "score": 5,
+  "cost": 0.0017213999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 1399
+  }
+}

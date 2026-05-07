@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 14,
+  "response": "The global food system is under severe strain, as a projected global population of 9.7 billion by 2050 will require a 60% rise in food production, even as the sector faces overlapping threats: climate-related yield declines, agriculture contributing 25% of global greenhouse gas emissions, depleted critical aquifers, degraded soil on 33% of the world's arable land, and one-third of all produced food being wasted.\nA range of solutions are being pursued to address this crisis, including AI-powered precision agriculture, urban vertical farming, alternative proteins, drought-resistant crop modification, regenerative farming practices, and reformed policies for subsidies, trade and carbon pricing.\nThe central remaining challenge is deploying these solutions at the necessary global scale, while also ensuring food remains affordable and accessible to the world's poorest populations.",
+  "score": 5,
+  "cost": 0.0017231999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 348,
+    "output": 631
+  }
+}

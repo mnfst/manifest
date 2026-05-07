@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles have developed from early 1830s experiments through to Tesla's transformative disruption of the global automotive industry, with progress constrained by persistent challenges including battery technology limitations, range anxiety, long charging times, and grid capacity concerns, while solid-state batteries represent a major potential future breakthrough. Legacy automakers including Ford, GM, and VW are now transitioning their vehicle fleets to electric, and China currently operates as both the world's largest EV market and leading manufacturer. Alongside technical and industry shifts, EV expansion is shaped by charging infrastructure rollout, government incentive programs, and ongoing environmental debate surrounding the impacts of lithium and cobalt mining.",
+  "score": 5,
+  "cost": 0.0013884000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 182,
+    "output": 533
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 33,
+  "response": "CV33 (1) (1.3) Remplacer \u00ab le conducteur et les autres membres de l'\u00e9quipage \u00bb par \u00ab les membres de l'\u00e9quipage du v\u00e9hicule \u00bb.\n\n---\n*Note: This retains the formal technical instruction tone appropriate for document amendment notation, uses standard French typographic quotation marks, and preserves all reference numbering exactly as in the original.*",
+  "score": 5,
+  "cost": 0.0007314,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 280
+  }
+}

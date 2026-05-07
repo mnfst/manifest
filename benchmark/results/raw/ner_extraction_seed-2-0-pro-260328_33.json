@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 33,
+  "response": "{\"persons\": [], \"organizations\": [\"International Monetary Fund\"], \"locations\": [\"Latin America\"]}",
+  "score": 5,
+  "cost": 0.000258,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 79
+  }
+}

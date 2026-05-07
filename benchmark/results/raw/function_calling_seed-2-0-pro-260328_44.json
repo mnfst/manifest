@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 44,
+  "response": "{\"name\": \"set_log_level\", \"arguments\": {\"service\": \"payment\", \"level\": \"debug\"}}",
+  "score": 5,
+  "cost": 0.00032460000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 99
+  }
+}

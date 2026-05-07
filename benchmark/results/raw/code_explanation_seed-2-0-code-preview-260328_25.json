@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "### Explanation (2 clear, specific sentences):\nThis `EventEmitter` class implements the **Publish-Subscribe (Pub/Sub) / Observer behavioral design pattern**\u2014a decoupled, one-to-many event communication pattern\u2014by maintaining an internal dictionary that maps named event keys to lists of subscribed callback functions.\nIt exposes three core methods: `on` adds a callback to an event\u2019s subscriber list (initializing the list if the event is new), `emit` triggers all subscribed callbacks for an event with optional positional arguments, and `off` removes a specific callback from an event\u2019s list.",
+  "score": 5,
+  "cost": 0.0030329999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 2489
+  }
+}

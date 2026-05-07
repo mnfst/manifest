@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Artificial intelligence has evolved from Alan Turing's early foundational inquiries through two major industry downturns known as the AI winters of the 1970s and 1980s, before resurging via deep learning in the 2010s and accelerating dramatically following the 2017 publication of the groundbreaking transformer architecture research paper. This technical breakthrough enabled the rise of large language models built around the scaling hypothesis, sparking an ongoing development race between major firms OpenAI, Google, Anthropic, and Meta, as well as persistent debate over the merits of open versus closed source AI systems. Alongside this rapid progress, stakeholders have raised critical concerns around AI safety including alignment challenges, misuse risks, and potential displacement of knowledge work, driving governments to advance regulatory measures such as the EU AI Act and United States executive orders.",
+  "score": 5,
+  "cost": 0.0017309999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 201,
+    "output": 671
+  }
+}

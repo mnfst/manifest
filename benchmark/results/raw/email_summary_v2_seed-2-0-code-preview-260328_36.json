@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The backend team reported an API performance regression where /api/v2/search\u2019s P99 latency jumped from 200ms to 800ms after Thursday\u2019s deployment, identifying a new full-text search query that fails to use an index as the root cause. The planned remediation is adding a GIN index on the content column, which will be deployed tonight during the scheduled maintenance window.",
+  "score": 5,
+  "cost": 0.0010089,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 809
+  }
+}

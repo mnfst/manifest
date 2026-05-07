@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 26,
+  "response": "{\"name\": \"upload_file\", \"arguments\": {\"path\": \"report.pdf\", \"destination\": \"shared documents\"}}",
+  "score": 4,
+  "cost": 0.0001893,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 129
+  }
+}

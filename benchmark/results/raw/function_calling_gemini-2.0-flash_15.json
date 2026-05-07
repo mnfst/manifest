@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 15,
+  "response": "{\"name\": \"compress_video\", \"arguments\": {\"path\": \"downloads presentation.mp4\", \"target_reduction\": 0.5}}",
+  "score": 5,
+  "cost": 2.34e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 31
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Taking physical control of another country; beginning a conquest over an area and eventually ruling over the areas the previous nation controlled; exploiting the valuable assets and supplies of the conquered nation and gaining benefits from the spoils of war; and building and preserving colonial possessions in an area via a population coming from a foreign region.",
+  "score": 5,
+  "cost": 0.0024704999999999996,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 339,
+    "output": 1974
+  }
+}

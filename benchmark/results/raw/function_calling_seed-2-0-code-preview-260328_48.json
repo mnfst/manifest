@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 48,
+  "response": "[{\"name\":\"git_tag\",\"arguments\":{\"name\":\"v3.0.0\"}},{\"name\":\"git_push\",\"arguments\":{\"remote\":\"origin\",\"tags\":true}}]",
+  "score": 2,
+  "cost": 0.005166,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 4272
+  }
+}

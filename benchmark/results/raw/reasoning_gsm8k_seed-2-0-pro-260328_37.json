@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Let's solve this problem step by step:\n1.  **Calculate votes for Candidate A**:\n    Candidate A received 20% of 100 total votes.\n    Votes for A = 0.20 * 100 = 20 votes.\n2.  **Calculate votes for Candidate B**:\n    Candidate B got 50% *more* than Candidate A's votes. This means B's votes equal A's votes plus 50% of A's votes:\n    50% of A's votes = 0.50 * 20 = 10 votes\n    Votes for B = 20 + 10 = 30 votes.\n3.  **Calculate votes for Candidate C**:\n    All remaining votes go to C. Subtract the votes for A and B from the total 100 voters:\n    Votes for C = 100 - 20 - 30 = 50 votes.\nANSWER: 50",
+  "score": 5,
+  "cost": 0.001767,
+  "expected": "50",
+  "tokens": {
+    "input": 145,
+    "output": 700
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 24,
+  "response": "[{\"name\": \"rotate_api_key\", \"arguments\": {\"service\": \"production\", \"environment\": \"production\"}}, {\"name\": \"notify_team\", \"arguments\": {\"message\": \"API keys for the production service have been successfully rotated.\"}}]",
+  "score": 2,
+  "cost": 0.003513,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 1429
+  }
+}

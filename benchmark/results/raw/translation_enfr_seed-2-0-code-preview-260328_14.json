@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 accueille favorablement la pr\u00e9sentation du rapport initial de l'\u00c9tat partie et se f\u00e9licite du dialogue constructif et fructueux engag\u00e9 avec une d\u00e9l\u00e9gation comp\u00e9tente de haut niveau.\n\n### Notes on accuracy & tone:\n1. **Formal diplomatic terminology** (aligned with UN human rights treaty body standards, the clear context of the original text):\n   - *Welcomes* = **accueille favorablement** (standard formal phrasing for committee reception of state reports, distinct from the stronger \"gratified\" below)\n   - *Submission* = **pr\u00e9sentation** (the UN\u2019s official French term for state party report submissions, per treaty texts like the ICCPR)\n   - *Is gratified by* = **se f\u00e9licite de** (conveys the formal, warm approval of \"gratified\" in diplomatic contexts, stronger than mere satisfaction)\n   - *Initiated* = **engag\u00e9** (the UN\u2019s standard term for formal dialogue launched with state delegations, more natural than the literal *initi\u00e9* in this context)\n2. **Capitalization** follows UN French norms: *Le Comit\u00e9* (specific treaty body) and *l'\u00c9tat partie* (formal treaty status) are capitalized.\n3. **Adjective order** (*comp\u00e9tente de haut niveau*) aligns with French grammatical rules for descriptive adjectives and prepositional phrases, matching the original\u2019s \"competent high-level\" framing.",
+  "score": 5,
+  "cost": 0.0043143,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 3575
+  }
+}

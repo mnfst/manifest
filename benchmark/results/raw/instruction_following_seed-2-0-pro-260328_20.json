@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "### Full explanation, *every single word only starts with S or P*:\nPhotosynthesis processes sunlight.\n\nPlants possess special pigments.\nPigments seize sun photons.\nSun photons provide power.\nPower splits simple plant solution particles.\nParticles produce stored sugar.\n\nSugar powers plant survival, supports plant propagation, supplies planetary sustenance systems.",
+  "score": 5,
+  "cost": 0.0027,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 1109
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "Let's solve this problem step by step:\n1. **Determine the daily water removal rate for each setting**:\n   - Low setting: Given as 1 liter per day.\n   - Medium setting: Twice the low setting,  \\(2 \\times 1 = 2\\) liters per day.\n   - High setting: Twice the medium setting,  \\(2 \\times 2 = 4\\) liters per day.\n2. **Calculate total water removed by each setting**:\n   - Low setting (3 days): \\(3 \\text{ days} \\times 1 \\text{ liter/day} = 3\\) liters.\n   - Medium setting (3 days): \\(3 \\text{ days} \\times 2 \\text{ liters/day} = 6\\) liters.\n   - High setting (5 days): \\(5 \\text{ days} \\times 4 \\text{ liters/day} = 20\\) liters.\n3. **Sum the total water removed**:\n   Add the amounts from each setting: \\(3 + 6 + 20 = 29\\) liters.\nANSWER: 29",
+  "score": 5,
+  "cost": 0.0010122,
+  "expected": "29",
+  "tokens": {
+    "input": 230,
+    "output": 786
+  }
+}

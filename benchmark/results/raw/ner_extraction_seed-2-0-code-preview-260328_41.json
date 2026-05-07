@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "ner_extraction",
+  "case": 41,
+  "response": "{\"persons\": [\"LeBron James\"], \"organizations\": [\"Los Angeles Lakers\"], \"locations\": []}",
+  "score": 4,
+  "cost": 0.0017832,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 1461
+  }
+}

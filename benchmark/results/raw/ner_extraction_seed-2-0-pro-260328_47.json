@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "{\n  \"persons\": [\"Alain Aspect\"],\n  \"organizations\": [\"Universite Paris-Saclay\"],\n  \"locations\": [\"Stockholm\"]\n}",
+  "score": 5,
+  "cost": 0.0007074,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 265
+  }
+}

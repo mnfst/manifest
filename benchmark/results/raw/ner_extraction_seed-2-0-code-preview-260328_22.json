@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "ner_extraction",
+  "case": 22,
+  "response": "{\"persons\":[\"Jamie Dimon\"],\"organizations\":[\"JPMorgan Chase\",\"Davos World Economic Forum\"],\"locations\":[\"Switzerland\"]}",
+  "score": 5,
+  "cost": 0.0007626,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 610
+  }
+}

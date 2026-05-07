@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This is an implementation of the **A* shortest path search algorithm** for weighted graphs. It uses a min-heap priority queue to always expand the most promising node first (ranked by f(n) = actual traveled cost from start + provided heuristic estimate to the goal), tracks visited nodes to avoid redundant work, and returns the full lowest-cost path from start to goal if one exists, otherwise returns None.",
+  "score": 5,
+  "cost": 0.001845,
+  "expected": "",
+  "tokens": {
+    "input": 227,
+    "output": 712
+  }
+}

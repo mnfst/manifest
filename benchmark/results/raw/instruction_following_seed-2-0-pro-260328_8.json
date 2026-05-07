@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine every kid on the playground has the exact same sticker book. Whenever someone trades a crayon, every single kid draws that trade in their book right away. Nobody can lie about who has what crayon later, because everyone has the same picture written down.",
+  "score": 5,
+  "cost": 0.0005928,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 231
+  }
+}

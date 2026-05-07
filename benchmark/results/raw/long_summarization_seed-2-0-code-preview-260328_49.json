@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "long_summarization",
+  "case": 49,
+  "response": "Quantum computing operates on fundamentally different principles than classical computing: classical machines use bits restricted to 0 or 1, while quantum computers leverage qubits with superposition, entanglement, and interference to solve certain problems exponentially faster. A 2019 Google claim of \"quantum supremacy\" marked a key milestone: the firm completed a calculation in 200 seconds that would take a classical supercomputer 10,000 years. Major players including IBM, Google, and startups IonQ and Rigetti are developing quantum hardware via diverse approaches (such as superconducting circuits, trapped ions, photonics, and topological qubits) but face critical practical barriers: current machines have only 100\u20131,000 physical qubits (millions are required for useful applications), qubits are extremely fragile and need near-absolute-zero cooling, and high error rates demand error correction that uses many physical qubits per functional logical qubit. Despite these significant hurdles, quantum computing shows targeted promise for use cases like drug discovery, materials science, cryptography, and optimization, with companies already experimenting with quantum algorithms for financial modeling and logistics.",
+  "score": 5,
+  "cost": 0.0035715,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 2900
+  }
+}

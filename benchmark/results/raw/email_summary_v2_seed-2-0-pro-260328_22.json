@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "This email details the planned Japan international expansion, including a phased launch timeline running from May through August and a total $200K budget allocated across legal, localization, and local hiring costs. The sender is requesting approval from the CEO in order to proceed with this expansion plan.",
+  "score": 5,
+  "cost": 0.0006917999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 252
+  }
+}

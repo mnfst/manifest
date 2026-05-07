@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 20,
+  "response": "numeral_map = [\n        (1000, 'M'),\n        (900, 'CM'),\n        (500, 'D'),\n        (400, 'CD'),\n        (100, 'C'),\n        (90, 'XC'),\n        (50, 'L'),\n        (40, 'XL'),\n        (10, 'X'),\n        (9, 'IX'),\n        (5, 'V'),\n        (4, 'IV'),\n        (1, 'I')\n    ]\n    result = ''\n    for val, sym in numeral_map:\n        while number >= val:\n            result += sym\n            number -= val\n    return result.lower()",
+  "score": 4,
+  "cost": 0.0022749,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 1851
+  }
+}

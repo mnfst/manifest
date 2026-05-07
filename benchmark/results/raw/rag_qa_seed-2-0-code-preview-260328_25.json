@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure",
+  "score": 5,
+  "cost": 0.0012954,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 190,
+    "output": 1032
+  }
+}

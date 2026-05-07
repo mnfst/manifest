@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a programmer named Dave,\nWho swore his latest build would behave.\nIt crashed at 2 AM,\nHe screamed at his RAM,\nAnd buried his laptop in a grave.",
+  "score": 5,
+  "cost": 0.0023298000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 956
+  }
+}

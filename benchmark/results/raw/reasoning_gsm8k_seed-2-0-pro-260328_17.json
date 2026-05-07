@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "To solve the problem, we calculate the cost of each type of item first, then sum these costs:\n1.  **Calculate total cost for books:**\n    Ted buys 3 books at $16 each.\n    Total for books = `3 * 16 = 48` dollars.\n2.  **Calculate total cost for pencils:**\n    Ted buys 3 pencils at $6 each.\n    Total for pencils = `3 * 6 = 18` dollars.\n3.  **Find total amount spent:**\n    Add the cost of the books and pencils together:\n    Total spent = `48 + 18 = 66` dollars.\nThe starting $200 is extra information not required for calculating total spending.\nANSWER: 66",
+  "score": 5,
+  "cost": 0.0014081999999999999,
+  "expected": "66",
+  "tokens": {
+    "input": 123,
+    "output": 556
+  }
+}

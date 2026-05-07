@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "international_visa",
+  "score": 5,
+  "cost": 0.00046439999999999996,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 606,
+    "output": 42
+  }
+}

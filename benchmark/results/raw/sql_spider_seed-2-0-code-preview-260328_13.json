@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 13,
+  "response": "SELECT MAX(transcript_release_date) AS last_transcript_release_date FROM transcripts;",
+  "score": 5,
+  "cost": 0.0019431,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 1595
+  }
+}

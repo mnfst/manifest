@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Cursor blinks alone\nOne typo still sleeps uncaught\nIt is 3 AM.",
+  "score": 5,
+  "cost": 0.0026946,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 1109
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "### Formal (neutral/formal address, to strangers/elders/groups):\nSavez-vous d'o\u00f9 vient l'argent?\n\n### Informal (matches the original's casual, contracted tone, for peers/friends/family):\nTu sais d'o\u00f9 vient l'argent?\n\n---\n#### Context Note:\nThe original uses the casual contraction *money's* (short for *money is*), so the **informal *Tu sais d'o\u00f9 vient l'argent?*** is the most tone-accurate translation. The formal version is provided for situations requiring politeness or group address.\n\nThe phrase *d'o\u00f9 vient l'argent* directly translates \"where the money's from\" (using *venir de*, the natural French verb for \"to be from\" when referencing origin, rather than *\u00eatre de* which is less common for inanimate objects like money).",
+  "score": 5,
+  "cost": 0.0034821,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 2887
+  }
+}

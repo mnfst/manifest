@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "Here is a structured breakdown of balanced, evidence-based pros and cons:\n\n| # | Pros of Remote Work | Cons of Remote Work |\n|---|---|---|\n| 1 | **Geographic & schedule autonomy**: Workers are not forced to relocate for roles, and can arrange work hours around personal responsibilities such as caregiving, education or health needs. | **Work-life boundary erosion**: The lack of physical separation between home and workplace frequently leads to longer uncompensated work hours, difficulty disengaging, and elevated burnout risk. |\n| 2 | **Reduced overhead costs**: Both employers and employees save substantially on office rent, commuting expenses, work attire, and daily on-site meals. | **Social isolation & broken spontaneous collaboration**: Casual in-person interactions that build team trust and spark unplanned creative problem solving are almost entirely lost for most teams. |\n| 3 | **Reduced routine workplace interruptions**: Employees avoid constant impromptu desk drop-ins, unproductive gossip and unnecessary last-minute meetings that disrupt deep focused work. | **Career visibility bias**: Remote workers are statistically more likely to be overlooked for promotions and high-impact projects, even with equivalent or better work output. |",
+  "score": 5,
+  "cost": 0.0019968,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 816
+  }
+}

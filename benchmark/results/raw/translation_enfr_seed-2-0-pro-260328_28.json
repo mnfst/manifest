@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Nous sommes capables... de lancer plus de puissance de feu... que tout ce qui a jamais \u00e9t\u00e9 d\u00e9cha\u00een\u00e9 dans toute l'histoire de la guerre.\n\nThis translation preserves the original dramatic paused rhythm (matching the ellipsis placement exactly), uses the appropriate weighty military tone for the context, and retains the full meaning of the original line. The verb *d\u00e9cha\u00een\u00e9* is used rather than a literal generic translation for \"released\" to properly convey the sense of unleashed military firepower in this context.",
+  "score": 5,
+  "cost": 0.0019854,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 805
+  }
+}

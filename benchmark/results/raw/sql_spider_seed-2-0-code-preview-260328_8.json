@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT cl.Language) AS total_unique_official_languages\nFROM country c\nINNER JOIN countrylanguage cl ON c.Code = cl.CountryCode\nWHERE c.IndepYear < 1930\nAND cl.IsOfficial = 'T';",
+  "score": 5,
+  "cost": 0.0031265999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 2578
+  }
+}

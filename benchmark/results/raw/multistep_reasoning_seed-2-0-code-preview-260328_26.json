@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "Let's break down each option to match the process described (liquid water \u2192 water vapor):\n1.  **Option A (Condensation):** This is the reverse process\u2014water vapor (gas) cooling into liquid water (e.g, dew forming on grass). This does not match the question.\n2.  **Option B (Transportation):** In the water cycle, transportation refers to moving water (e.g, rivers carrying liquid water, wind moving water vapor) but does not involve a state change from liquid to gas. This is incorrect.\n3.  **Option C (Evaporation):** This is the process where liquid water gains energy and turns into water vapor (a gas), such as a puddle drying up. This directly matches the question.\n4.  **Option D (Accumulation):** This describes water collecting in large bodies (e.g, oceans, lakes, groundwater) and does not involve a state change. This is incorrect.\nAnswer: C",
+  "score": 5,
+  "cost": 0.0005331,
+  "expected": "C",
+  "tokens": {
+    "input": 93,
+    "output": 421
+  }
+}

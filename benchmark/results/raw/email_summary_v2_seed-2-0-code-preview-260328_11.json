@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The Compliance Team\u2019s completed SOC 2 Type II compliance audit revealed no critical findings but uncovered three key observations: insufficient access review frequency, an incident response plan untested in six months, and incomplete vendor risk assessments for two vendors. The Compliance Team requires full remediation of these three identified observations within 30 days.",
+  "score": 5,
+  "cost": 0.0009039,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 722
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Approximately fifty percent.",
+  "score": 5,
+  "cost": 0.00032219999999999997,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 261,
+    "output": 69
+  }
+}

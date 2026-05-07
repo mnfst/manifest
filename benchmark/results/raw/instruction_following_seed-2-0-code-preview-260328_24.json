@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "\u2022 09/14/2024, 7:22 AM: Collision occurred at the uncontrolled 4-way stop intersection of Oakwood Dr. and Maple Ave. (Naperville, IL) involving a 2021 Toyota Camry (VIN 4T1G11AKXMU023456, registered to Maria Gonzalez, DOB 05/12/1988, valid Illinois driver\u2019s license) and a 2019 Ford F-150 (VIN 1FTEW1EP8KFA12345, registered to James T. Mitchell, DOB 11/03/1972, valid Illinois license with 1 2023 speeding citation).\n\u2022 Physical evidence & witness account: 12-foot skid mark from the F-150\u2019s front passenger tire (indicating hard braking after failing to stop) and 3-foot scuff mark from the Camry\u2019s rear driver\u2019s side bumper; witness Eleanor Hale (DOB 02/28/1955, stopped at the adjacent crosswalk) stated the F-150 did not come to a full stop at the sign, while the Camry had been stationary for 8+ seconds before entering the intersection on its right-of-way.\n\u2022 Post-incident actions & preliminary finding: Both drivers declined ambulance transport and signed official medical refusal forms; Gonzalez submitted a timestamped dashcam clip (7:22 AM) corroborating the witness statement; Naperville Traffic Division preliminary fault finding: Mitchell violated Illinois Vehicle Code 11-1201(a) (failure to yield at a stop sign), citation issued with a court date of 10/05/2024.",
+  "score": 2,
+  "cost": 0.0017778,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 1471
+  }
+}

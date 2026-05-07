@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit : \u00ab Bien s\u00fbr. \u00bb Et j'ai dit : \u00ab Eh bien, je me demande o\u00f9 \u00e7a va \u00eatre. \u00bb\n\n### Notes on tone/accuracy alignment:\n1. **Tense match**: Uses *pass\u00e9 compos\u00e9* (`a dit`) for casual, conversational past utterances (matches the informal, spoken tone of the original \"said\").\n2. **Casual register**: \n   - `Bien s\u00fbr` = natural casual equivalent of \"Sure\" (neutral, willing confirmation, not overly formal).\n   - `\u00e7a va \u00eatre` = informal *futur proche* (near future) that exactly mirrors the casual \"gonna\" (contraction of \"going to\").\n3. **Filler word**: `Eh bien` matches the hesitant, conversational \"Well\" (not a strong adverb, just a soft transition to a curious thought).\n4. **French typography**: Uses standard *guillemets* (\u00ab \u00bb) for direct speech, per French punctuation rules.",
+  "score": 5,
+  "cost": 0.0031931999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 2643
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "The on-call team\u2019s weekend incident report details a 2 AM Saturday disk space alert on the prod-db-01 production server, where automated cleanup freed 40GB but failed to resize, requiring 8 AM manual intervention to restore service, with no customer impact as the incident unfolded during a maintenance window. The identified root cause is a log rotation misconfiguration implemented after a recent migration, so the responsible team must remediate this misconfiguration to prevent similar disk space-related incidents in the future.",
+  "score": 5,
+  "cost": 0.0015015,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 1220
+  }
+}

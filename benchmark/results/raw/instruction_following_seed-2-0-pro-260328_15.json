@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are 4 perfect rhymes for the word 'cat':\n1.  Bat\n2.  Mat\n3.  Hat\n4.  Rat\n\nAll of these share the exact same final vowel and ending consonant sound as 'cat', making them full, natural rhymes.",
+  "score": 5,
+  "cost": 0.0005208,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 202
+  }
+}

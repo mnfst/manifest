@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "The CPU (central processing unit) is a computer\u2019s core general-purpose processor that fetches, decodes, and executes program instructions, performs arithmetic and logical calculations, and coordinates the operation of all other system hardware to run software and complete user tasks.",
+  "score": 1,
+  "cost": 0.0006018,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 236
+  }
+}

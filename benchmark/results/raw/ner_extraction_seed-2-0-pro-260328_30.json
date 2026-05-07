@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "{\n  \"persons\": [\"Justin Trudeau\"],\n  \"organizations\": [\"General Assembly\", \"United Nations\"],\n  \"locations\": [\"New York\"]\n}",
+  "score": 5,
+  "cost": 0.000666,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 249
+  }
+}

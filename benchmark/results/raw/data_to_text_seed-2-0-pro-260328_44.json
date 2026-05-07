@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "Founded in 1861, MIT is ranked #1, hosts a student body of 11,500, employs 1,069 faculty members, and is associated with 98 Nobel laureates. This elite institution has an extremely selective 3.9% acceptance rate, charges annual tuition of $57,590, and holds an endowment valued at $24.6 billion.",
+  "score": 5,
+  "cost": 0.0012713999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 491
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan, a nation with a population of 125 million and a globally high average life expectancy of 84.6 years, maintains a $4.2 trillion gross domestic product (GDP) supported by $756 billion in annual exports. Its core economic metrics include a 1.1% annual GDP growth rate, a low 2.6% unemployment rate, a 3.2% inflation rate, and a notably high debt-to-GDP ratio of 263%.",
+  "score": 5,
+  "cost": 0.0018069,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 1472
+  }
+}

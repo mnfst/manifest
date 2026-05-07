@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 19,
+  "response": "{\"name\": \"run_tests\", \"arguments\": {\"module\": \"backend\", \"verbose\": true}}",
+  "score": 5,
+  "cost": 1.8900000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 22
+  }
+}

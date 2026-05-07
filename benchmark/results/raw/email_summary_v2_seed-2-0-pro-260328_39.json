@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "This finance email advises that the year-end audit will start January 15, and outlines a pre-audit checklist consisting of finalizing Q4 revenue recognition, reconciling all bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A controller meeting will be held next Tuesday to assign responsibilities for this audit preparation work.",
+  "score": 5,
+  "cost": 0.0007668000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 284
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Si le revenu et/ou la situation professionnelle d'une personne \u00e9volue, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle, auquel cas il y aura une nouvelle \u00e9valuation.\n\n### Rationale for tone/accuracy:\n1. **Formal administrative register**: Matches the original\u2019s procedural, institutional tone using standard French administrative terminology:\n   - *Situation professionnelle* (not *statut d'emploi*) = the standard term for \"employment status\" in official contexts (covers all employment-related statuses: employed, unemployed, self-employed, etc.)\n   - *Responsabilit\u00e9 institutionnelle* = exact formal equivalent of \"institutional responsibility\"\n   - *Auquel cas* = formal, precise link to the preceding hypothetical clause (better than the informal *dans ce cas*)\n2. **Agreement/meaning fidelity**:\n   - *\u00c9volue* (not *change*) = aligns with the context of gradual/official shifts in income/employment status (common in French administrative language for such changes)\n   - *Nouvelle \u00e9valuation* = exact match for \"new assessment\" (avoids over-specifying with *r\u00e9\u00e9valuation*, which would imply a \"reassessment\" rather than a *new* evaluation)\n3. **Syntax**: Mirrors the original\u2019s conditional-procedural structure without awkward phrasing.",
+  "score": 5,
+  "cost": 0.0025116,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 2073
+  }
+}

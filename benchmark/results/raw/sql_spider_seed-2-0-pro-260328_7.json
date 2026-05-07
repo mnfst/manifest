@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "```sql\nSELECT COUNT(*) AS total_cars FROM cars WHERE year = 1980;\n```",
+  "score": 5,
+  "cost": 0.0004764,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 169
+  }
+}

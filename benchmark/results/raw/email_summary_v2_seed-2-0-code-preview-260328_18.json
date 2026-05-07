@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering has proposed splitting the Platform team into two specialized teams\u2014Infrastructure, which will oversee networking, compute, and storage, and Developer Experience, which will manage CI/CD, tooling, and onboarding\u2014to eliminate the persistent bottleneck where Developer Experience work is regularly deprioritized to address Infrastructure incidents. A draft org chart outlining the proposed team restructuring is attached to the email.",
+  "score": 5,
+  "cost": 0.0015669000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 1276
+  }
+}

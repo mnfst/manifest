@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s represent an era of intensified activity across both the scientific and commercial dimensions of space exploration, with major parallel efforts from national space agencies and private industry. Key initiatives from this period include SpaceX's Starship development, NASA's Artemis lunar return program, discoveries from the James Webb Space Telescope, China's space station and lunar ambitions, India's successful Chandrayaan missions, expanding satellite internet constellations, emerging space tourism services, and early work around asteroid mining prospects. Alongside this rapid expansion, critical systemic and safety challenges have emerged, most notably the documented limitations of the existing Outer Space Treaty and the growing global problem of orbital space debris.",
+  "score": 5,
+  "cost": 0.0013128,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 502
+  }
+}

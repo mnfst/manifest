@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are 4 valid programming languages:\n1.  **Rust** - A modern systems language focused on guaranteed memory safety, high performance, and safe concurrency, used for operating system components, web infrastructure, and embedded software.\n2.  **Go (Golang)** - Developed at Google, this statically typed language prioritizes simplicity, extremely fast compilation, and native first-class support for concurrent programming.\n3.  **C#** - A general-purpose object-oriented language from Microsoft, most widely used for Unity game development, enterprise backend services, and cross-platform desktop applications.\n4.  **Haskell** - A purely functional, statically typed language with advanced type inference, used for academic research, compiler construction, and high-reliability critical systems.",
+  "score": 5,
+  "cost": 0.0009893999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 397
+  }
+}

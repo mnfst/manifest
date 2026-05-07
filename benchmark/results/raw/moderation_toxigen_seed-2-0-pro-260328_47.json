@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "moderation_toxigen",
+  "case": 47,
+  "response": "toxic",
+  "score": 5,
+  "cost": 0.0015396,
+  "expected": "toxic",
+  "tokens": {
+    "input": 86,
+    "output": 620
+  }
+}

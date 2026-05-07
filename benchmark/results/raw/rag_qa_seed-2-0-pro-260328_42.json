@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Not found in context.",
+  "score": 1,
+  "cost": 0.00031379999999999993,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 263,
+    "output": 65
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "the mass of the system",
+  "score": 5,
+  "cost": 0.000297,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 207,
+    "output": 72
+  }
+}

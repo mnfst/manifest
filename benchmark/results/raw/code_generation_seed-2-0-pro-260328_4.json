@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 4,
+  "response": "inc = all(l[i] <= l[i+1] for i in range(len(l) - 1))\n    dec = all(l[i] >= l[i+1] for i in range(len(l) - 1))\n    return inc or dec",
+  "score": 5,
+  "cost": 0.0015348,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 597
+  }
+}

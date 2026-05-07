@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 7,
+  "response": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"6:30 AM\", \"label\": \"Morning Workout\"}}",
+  "score": 5,
+  "cost": 2.16e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 28
+  }
+}

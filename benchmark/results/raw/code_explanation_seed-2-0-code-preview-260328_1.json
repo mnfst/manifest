@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 1,
+  "response": "This code implements the **iterative binary search algorithm**, which efficiently locates the 0-based index of a `target` value in an *ascending-sorted input array* by repeatedly halving the active search interval (bounded by `lo` and `hi`). It returns the matching element\u2019s index immediately if found, or -1 if the entire sorted array is searched without locating the target.",
+  "score": 5,
+  "cost": 0.0012198,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 982
+  }
+}

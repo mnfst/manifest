@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "structured_output",
+  "case": 28,
+  "response": "{\"podcast\": \"The Daily\", \"publisher\": \"The New York Times\", \"episode_title\": \"The AI Race\", \"duration_minutes\": 28, \"release_date\": \"March 15 2024\", \"rating\": 4.8, \"downloads\": \"2.3M\"}",
+  "score": 5,
+  "cost": 0.0006744,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 240
+  }
+}

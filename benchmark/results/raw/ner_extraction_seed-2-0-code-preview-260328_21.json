@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "{\"persons\": [\"Picasso\", \"Monet\"], \"organizations\": [\"The Metropolitan Museum of Art\"], \"locations\": [\"New York\"]}",
+  "score": 5,
+  "cost": 0.0004305,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 334
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that on Venus, a single \"day\" (one full rotation on its axis) takes 243 Earth days\u2014longer than its entire \"year\" (one orbit around the Sun), which only lasts 225 Earth days? Even weirder, Venus rotates *backwards* (retrograde) compared to most planets in our solar system, so the Sun rises in the west and sets in the east. If you could somehow survive its 900\u00b0F (482\u00b0C) surface, you\u2019d actually celebrate your birthday *before* you\u2019d finish a single full day on the planet!",
+  "score": 5,
+  "cost": 0.0018716999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 1548
+  }
+}

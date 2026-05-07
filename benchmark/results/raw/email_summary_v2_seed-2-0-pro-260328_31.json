@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "This email proposes a new $29/month 'Starter' pricing tier that would sit between the existing Free tier and $79/month Pro tier, with internal analysis finding 40% of churned users left the service due to pricing concerns.\nThe proposed Starter tier would include 5 user seats, 10K API calls, and email support, and is projected to recover 15% of price-related churned users to generate an additional $180K in annual recurring revenue.",
+  "score": 5,
+  "cost": 0.0013116,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 506
+  }
+}

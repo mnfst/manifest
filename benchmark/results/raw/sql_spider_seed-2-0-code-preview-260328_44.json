@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "WITH airport_flight_counts AS (\n    SELECT\n        a.airport_code,\n        COUNT(f.airport_code) AS total_flights\n    FROM airports a\n    LEFT JOIN (\n        SELECT origin_airport_code AS airport_code FROM flights\n        UNION ALL\n        SELECT destination_airport_code AS airport_code FROM flights\n    ) f ON a.airport_code = f.airport_code\n    GROUP BY a.airport_code\n),\nranked_airports AS (\n    SELECT\n        airport_code,\n        RANK() OVER (ORDER BY total_flights ASC) AS flight_rank\n    FROM airport_flight_counts\n)\nSELECT airport_code\nFROM ranked_airports\nWHERE flight_rank = 1;",
+  "score": 5,
+  "cost": 0.005173799999999999,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 4287
+  }
+}

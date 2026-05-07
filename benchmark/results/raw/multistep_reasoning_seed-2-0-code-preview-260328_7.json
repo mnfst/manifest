@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "multistep_reasoning",
+  "case": 7,
+  "response": "First, we need to recall the definition of an exothermic reaction: a chemical process that releases thermal energy (heat) to its surroundings. We analyze each option against this definition:\n### Option A: Car engine\nCar engines rely on internal combustion, a chemical reaction where hydrocarbon fuel reacts with oxygen to produce carbon dioxide, water, and significant heat. This reaction is explicitly exothermic: the released heat warms the engine block, exhaust, and surrounding air\u2014clear evidence of heat transfer from the reaction (system) to the surroundings. A cooling system is required to manage this excess heat, further demonstrating the exothermic nature of the reaction.\n### Option B: Refrigerator\nRefrigerators operate using physical phase changes of a refrigerant (evaporation and condensation) to move heat from the inside of the fridge to the outside. No chemical reactions occur; the process relies on heat transfer and work input from the compressor, not exothermic chemical changes. This option is irrelevant to demonstrating an exothermic reaction.\n### Option C: Frying pan\nA frying pan is a passive metal conductor. Any heat associated with a frying pan comes from an external source (e.g., a stove burner), not a chemical reaction within the pan itself. While cooking food may involve chemical changes, these are typically endothermic (requiring heat input, like denaturing proteins in an egg), and the pan itself does not drive or demonstrate an exothermic reaction.\n### Option D: Glass bottle\nA glass bottle is an inert object with no associated chemical reaction under normal conditions. Breaking or heating a bottle involves physical changes, not exothermic chemical processes. This option is invalid.\nThe only option that directly involves an exothermic chemical reaction (combustion) and provides clear evidence of heat release is the car engine.\nAnswer: A",
+  "score": 5,
+  "cost": 0.0032541,
+  "expected": "A",
+  "tokens": {
+    "input": 99,
+    "output": 2687
+  }
+}

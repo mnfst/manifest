@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "HR has announced the upcoming annual performance review cycle will start May 1, with defined deadlines for each review stage and a new competency framework being implemented for this year's process.\nManagers are required to attend the dedicated performance review training session that has been scheduled for April 30.",
+  "score": 5,
+  "cost": 0.0007907999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 295
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "Avait votre mari invit\u00e9 le Lieutenant Gilbert chez vous ?\n\n### Explanation of tone/accuracy alignment:\n1. **Tense match**: English *past perfect* (\"Had invited\") uses French *plus-que-parfait* (`avait invit\u00e9`), the only tense for actions completed before another past event.\n2. **Tone**: The original uses a formal inverted past-perfect interrogative (not colloquial \"Did your husband have...\"), so French uses **formal subject-verb inversion** (standard for official/neutral contexts, appropriate given the military rank reference).\n3. **Vocabulary precision**:\n   - \"Your husband\" = `votre mari` (formal neutral, suitable for any addressee, vs. informal `ton mari` which would be unwarranted here).\n   - \"Lieutenant Gilbert\" = `le Lieutenant Gilbert` (French requires a definite article before military ranks paired with surnames, and capitalizes the rank for titled individuals).\n   - \"To your house\" = `chez vous` (natural French for \"at/to your residence\", far more idiomatic than a literal `\u00e0 votre maison`).",
+  "score": 5,
+  "cost": 0.00312,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 2585
+  }
+}

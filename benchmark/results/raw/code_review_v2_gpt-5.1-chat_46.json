@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 46,
+  "response": "Here is a review of the code, including bugs, security issues, and recommended improvements:\n\nCode:\ndef format_currency(amount):\n    return f'${amount}'\n\nIssues and improvements:\n\n1. No input validation.\n\u2022 Problem: The function assumes amount is safe to convert to a string. If amount is a complex object, malicious code object, or unexpected data type, the result may be incorrect or unsafe for display.\n\u2022 Fix: Validate that amount is a number (int, float, Decimal).\n\n2. Missing numeric formatting.\n\u2022 Problem: The function does not format decimals to two places. For example, format_currency(10.5) returns \"$10.5\" instead of \"$10.50\". This is not standard currency formatting.\n\u2022 Fix: Use formatting with two decimal places.\n\n3. No handling of negative amounts.\n\u2022 Problem: It returns \"$-10.00\" which is acceptable in some contexts but may not follow expected financial formatting such as \"-$10.00\" or parentheses \"(10.00)\" depending on conventions.\n\u2022 Fix: Normalize formatting based on requirements.\n\n4. No localization support.\n\u2022 Problem: Currency formatting differs by country (thousands separators, decimal marks). Hardcoding \"$\" is not flexible.\n\u2022 Fix: Accept a currency symbol parameter or use locale-aware formatting.\n\n5. Potential security issue: Embedding unescaped data in output strings.\n\u2022 Problem: If amount is user-supplied and not validated, and the result is later injected into HTML, it may lead to injection issues (e.g., XSS) if formatted string is not escaped.\n\u2022 Fix: Ensure amount is numeric. Escape output when rendering into HTML.\n\n6. No error handling.\n\u2022 Problem: Passing in something like format_currency({\"x\": 1}) causes an unintuitive output \"${'x': 1}\" instead of raising an error.\n\u2022 Fix: Raise a ValueError for unsupported types.\n\nImproved safe version:\n\ndef format_currency(amount, symbol=\"$\"):\n    if not isinstance(amount, (int, float)):\n        raise ValueError(\"amount must be a number\")\n    return f\"{symbol}{amount:,.2f}\"\n\nThis version:\n\u2022 Validates input\n\u2022 Formats with comma separators and two decimal places\n\u2022 Supports selecting a currency symbol\n\nIf strict security is needed before inserting into HTML, apply HTML escaping outside this function.",
+  "score": 5,
+  "cost": 0.003976,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 485
+  }
+}

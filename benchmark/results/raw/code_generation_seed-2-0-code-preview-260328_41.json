@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 41,
+  "response": "thirds = [v for i, v in enumerate(l) if i % 3 == 0]\nsorted_iter = iter(sorted(thirds))\nreturn [next(sorted_iter) if i % 3 == 0 else v for i, v in enumerate(l)]",
+  "score": 4,
+  "cost": 0.0062634,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 5165
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This is an implementation of the MinStack abstract data type using the standard auxiliary dual stack pattern, where a secondary parallel `min_stack` tracks the global minimum value that exists at every corresponding position in the main data stack.\nAll push, pop, and get_min operations execute in constant O(1) time, as values and their matching running minimum are always added and removed from both stacks in perfect sync.",
+  "score": 5,
+  "cost": 0.001017,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 380
+  }
+}

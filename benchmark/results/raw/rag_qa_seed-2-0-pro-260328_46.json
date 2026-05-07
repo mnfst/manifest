@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "Los Angeles Kings",
+  "score": 5,
+  "cost": 0.00019559999999999998,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 166,
+    "output": 40
+  }
+}

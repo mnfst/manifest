@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It unfolds as a polyphonic tapestry, each thread a woman\u2019s voice\u2014sharp, soft, bitter, luminous\u2014woven around the unyielding, silent weight of a man\u2019s obsession with a foreign, rigid ideal he\u2019s determined to force into a place that wants nothing to do with it. The setting is a place of extremes: red dust that clings to eyelashes and chipped teacups, foliage so thick it swallows even the sound of a scream, a river that can nourish a village or drag a child under in the span of an afternoon.\n\nThere are no grand battles, no prophecies, just the quiet, brutal work of surviving a life someone else mapped out for you\u2014trading starched pinafores for machetes, tucking handwritten notes into the hollows of strangler fig trees, speaking to the ghosts of those who left too soon when the living refuse to listen. The man at the center is not a cartoon villain; he\u2019s a man so convinced of his own moral clarity that he can\u2019t see the fire he\u2019s lit under his own family\u2019s feet, can\u2019t smell the smoke until it\u2019s singed his own hair.\n\nI\u2019ve read it three times, and each time I find a new voice I missed before\u2014like the faint, scratchy undercurrent in the soft-spoken woman\u2019s section that reveals she was the one who left the wildflower offerings all along, a quiet rebellion no one else noticed until you lean in close. The book doesn\u2019t end with a neat resolution: no tearful homecoming, no grand apology, no dramatic reckoning. Instead, it lingers on a single, stubborn wildflower pushing through crusted red dirt, the faint, sweet ghost of jasmine on the wind, and the quiet, unshakable certainty that the women who survived will not let their stories be buried under someone else\u2019s ideal.\n\nIt\u2019s the kind of book that makes you hold your breath mid-paragraph, that leaves a hollow ache in your sternum when you close the cover, that makes you reach for the phone to call the women in your life before you even realize you\u2019re moving.",
+  "score": 5,
+  "cost": 0.0041499,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 3448
+  }
+}

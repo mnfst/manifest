@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 25,
+  "response": "2. Le 21 f\u00e9vrier, Jos\u00e9 Asenio, Sous-Secr\u00e9taire \u00e0 la Guerre, fut r\u00e9voqu\u00e9, puis rapidement arr\u00eat\u00e9 conjointement avec le colonel Villalba pour la trahison de Malaga.",
+  "score": 5,
+  "cost": 0.0023424,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 949
+  }
+}

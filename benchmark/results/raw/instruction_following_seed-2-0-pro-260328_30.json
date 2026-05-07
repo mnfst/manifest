@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Crispy charred crust. Golden bubbled edges. Bright tangy tomato sauce. Melted stretchy mozzarella. Glossy curled pepperoni. Tiny burnt grease pools. Bright torn basil. Flecks of dried oregano. Fine snowy parmesan. Soft roasted garlic. Warm herby aroma. Sticky grease-flecked parchment. Fine flour dust. Quiet lazy afternoon. Empty chipped plates. Sharp hungry anticipation.",
+  "score": 5,
+  "cost": 0.001059,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 426
+  }
+}

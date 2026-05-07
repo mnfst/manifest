@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "SELECT c.conductor_name, o.orchestra_name\nFROM conductors c\nINNER JOIN conductor_orchestra co ON c.conductor_id = co.conductor_id\nINNER JOIN orchestras o ON co.orchestra_id = o.orchestra_id;",
+  "score": 5,
+  "cost": 0.0047450999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 3928
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "### French Translation (aligned with Canadian legislative/income tax legal terminology, formal tone preserved):\nLe paragraphe 104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu\u2019il s\u2019applique nonobstant le paragraphe 248(25) de la Loi. Le paragraphe 248(25) de la Loi d\u00e9crit, pour d\u2019autres fins de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est r\u00e9put\u00e9e \u00ab d\u00e9tentrice d\u2019un int\u00e9r\u00eat b\u00e9n\u00e9ficiaire \u00bb dans une fiducie.\n\n---\n### Terminology Validation (Canadian Income Tax Act [ITA] consistency):\n1. **Subsection**: *paragraphe* (standard ITA designation for subsections; *article* = full section, *alin\u00e9a* = sub-subsection)\n2. **Notwithstanding**: *nonobstant* (mandatory legal term for statutory \"notwithstanding\" clauses, not *malgr\u00e9*)\n3. **Partnership**: *soci\u00e9t\u00e9 de personnes* (ITA\u2019s fixed French term for partnerships, distinct from *soci\u00e9t\u00e9 par actions* [corporation])\n4. **Beneficially interested**: *d\u00e9tentrice d\u2019un int\u00e9r\u00eat b\u00e9n\u00e9ficiaire* (exact ITA French equivalent for the quoted legal status, aligned with the ITA\u2019s deeming language *est r\u00e9put\u00e9e* [is considered/deemed] for statutory statuses)\n5. **The Act**: *la Loi* (capitalized to match the English\u2019s implicit reference to a specific, previously identified statute [the ITA], consistent with Canadian legislative drafting conventions)\n6. **Trust**: *fiducie* (uniform ITA term for trusts, applicable nationwide across common-law and civil-law provinces)",
+  "score": 5,
+  "cost": 0.0053862,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 4458
+  }
+}

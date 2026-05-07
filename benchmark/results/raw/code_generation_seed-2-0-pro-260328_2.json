@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 2,
+  "response": "res = []\n    temp = lst.copy()\n    while temp:\n        min_val = min(temp)\n        res.append(min_val)\n        temp.remove(min_val)\n        if not temp:\n            break\n        max_val = max(temp)\n        res.append(max_val)\n        temp.remove(max_val)\n    return res",
+  "score": 4,
+  "cost": 0.0016902,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 652
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 2,
+  "response": "{\"name\": \"search_files\", \"arguments\": {\"directory\": \"src\", \"pattern\": \"*.py\", \"modified_within_days\": 7}}",
+  "score": 5,
+  "cost": 0.00042659999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 141
+  }
+}

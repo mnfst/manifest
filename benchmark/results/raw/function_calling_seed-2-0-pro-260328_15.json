@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 15,
+  "response": "{\"name\": \"compress_video\", \"arguments\": {\"path\": \"downloads presentation.mp4\", \"target_reduction\": 0.5}}",
+  "score": 4,
+  "cost": 0.00036359999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 114
+  }
+}

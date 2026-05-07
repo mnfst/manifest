@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT m.full_name, m.id, COUNT(DISTINCT mo.id) AS number\nFROM makers m\nLEFT JOIN models mo ON m.id = mo.maker_id\nGROUP BY m.id, m.full_name;",
+  "score": 5,
+  "cost": 0.004470600000000001,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 3699
+  }
+}

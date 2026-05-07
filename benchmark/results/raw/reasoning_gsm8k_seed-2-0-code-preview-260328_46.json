@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "To solve the problem, we first calculate the number of each sea creature Locsin caught, then sum the total catch for both Anakin and Locsin. The problem provides numbers for starfish, sea horses, and clownfish, so we assume all are counted as \"fish\" in the context of this math problem (since excluding starfish would make the given starfish numbers irrelevant).\n### Step 1: Calculate Locsin's catch\n- **Starfish**: Locsin caught 5 fewer than Anakin's 10.  \n  $10 - 5 = 5$ starfish.\n- **Sea horses**: Locsin caught 3 fewer than Anakin's 6.  \n  $6 - 3 = 3$ sea horses.\n- **Clownfish**: Locsin caught 2 more than Anakin's 3.  \n  $3 + 2 = 5$ clownfish.\n### Step 2: Calculate Anakin's total catch\nAnakin caught 10 starfish, 6 sea horses, and 3 clownfish.  \n$10 + 6 + 3 = 19$.\n### Step 3: Calculate Locsin's total catch\nLocsin caught 5 starfish, 3 sea horses, and 5 clownfish.  \n$5 + 3 + 5 = 13$.\n### Step 4: Calculate the combined total\nAdd Anakin's and Locsin's total catches.  \n$19 + 13 = 32$.\nANSWER: 32",
+  "score": 5,
+  "cost": 0.005052,
+  "expected": "32",
+  "tokens": {
+    "input": 140,
+    "output": 4175
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "Everyone\u2019s yelling about AI ending the world or building utopia, meanwhile I\u2019m just over here grateful it quietly fixes my 2am half-asleep work Slack typos before I hit send. We owe this generation of models so much. \ud83e\udd16",
+  "score": 5,
+  "cost": 0.0009852,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 395
+  }
+}

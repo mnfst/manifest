@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "ner_extraction",
+  "case": 6,
+  "response": "{\"persons\": [], \"organizations\": [\"Amazon\"], \"locations\": [\"Nashville\", \"Davidson County\"]}",
+  "score": 5,
+  "cost": 0.00030809999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 232
+  }
+}

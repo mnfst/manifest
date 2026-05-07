@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 36,
+  "response": "{\"name\": \"subscribe\", \"arguments\": {\"email\": \"jane@example.com\", \"list_name\": \"monthly newsletter\"}}",
+  "score": 5,
+  "cost": 0.000249,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 178
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "data_to_text",
+  "case": 23,
+  "response": "AAPL stock is currently priced at $185.50, posting a daily gain of 2.3% with trading volume hitting 45 million shares. The stock carries a market capitalization of $2.87 trillion, a PE ratio of 28.4, and a dividend yield of 0.55%, and has ranged between a 52-week low of $155 and a 52-week high of $198 over the past year.",
+  "score": 5,
+  "cost": 0.0011987999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 459
+  }
+}

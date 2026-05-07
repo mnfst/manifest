@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The Product Team has issued an urgent update regarding a potential product launch delay, stemming from its payment integration failing PCI compliance and requiring two additional weeks to resolve, with two proposed solutions: launching without payments (which Legal mandates needs updated Terms and Conditions) or delaying the full launch to May 15. The Product Team has scheduled a meeting for tomorrow at 10am for relevant stakeholders to deliberate and select between the two proposed launch options.",
+  "score": 5,
+  "cost": 0.0012036000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 971
+  }
+}

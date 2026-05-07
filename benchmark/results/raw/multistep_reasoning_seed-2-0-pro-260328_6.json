@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "Let's analyze each option using basic chemistry and conservation laws:\n1.  **Option A**: Matter and energy cannot be completely destroyed, per conservation principles. This is incorrect.\n2.  **Option B**: When wood burns, not all of it becomes heat energy. Solid ash, gaseous combustion products (like carbon dioxide, water vapor) are also produced, so it is not *completely* converted to heat. This is incorrect.\n3.  **Option C**: Burning wood is a chemical reaction: the log reacts with oxygen to form new types of matter (ash, smoke, exhaust gases) plus released energy (heat, light). This matches what actually occurs. This is correct.\n4.  **Option D**: Burning is a *chemical change* that produces entirely new substances, not a physical phase change of the original wood material. This is incorrect.\n\nAnswer: C",
+  "score": 5,
+  "cost": 0.0010758,
+  "expected": "C",
+  "tokens": {
+    "input": 137,
+    "output": 414
+  }
+}

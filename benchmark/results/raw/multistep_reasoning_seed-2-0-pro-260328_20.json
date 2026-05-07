@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 20,
+  "response": "First, recall the definition of a trade-off given: solving/improving one outcome requires sacrificing another feature. Analyze each option:\n1.  **Option A**: Increasing a car's gas mileage (the positive improvement/solved goal) comes at the cost of reduced engine power (a sacrificed feature). This matches the definition of a trade-off.\n2.  **Option B**: Both a more efficient engine *and* higher performance are positive outcomes. No feature is sacrificed here, so this is not a trade-off.\n3.  **Option C**: Improving taste while keeping nutritional content the same means no feature is lost or sacrificed. This is not a trade-off.\n4.  **Option D**: Upgrading hardware without increasing price is a pure gain with no sacrificed feature. This is not a trade-off.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.000933,
+  "expected": "A",
+  "tokens": {
+    "input": 179,
+    "output": 344
+  }
+}

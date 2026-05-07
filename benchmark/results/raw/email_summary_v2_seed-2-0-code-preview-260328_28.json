@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery (DR) test completed by the Site Reliability Engineering (SRE) team resulted in an actual recovery time objective (RTO) of 6 hours 23 minutes that missed the 4-hour target, with the gap stemming from a database restore taking 3 hours (instead of the planned 1 hour) due to a larger-than-expected dataset. The SRE recommends two corrective actions\u2014increasing backup frequency and pre-provisioning a standby database\u2014and confirms the next DR test is scheduled for October.",
+  "score": 5,
+  "cost": 0.0008058000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 638
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "KMJ-TV",
+  "score": 5,
+  "cost": 0.00041129999999999997,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 239,
+    "output": 283
+  }
+}

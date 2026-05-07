@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Istanbul",
+  "score": 5,
+  "cost": 0.00020219999999999998,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 221,
+    "output": 29
+  }
+}

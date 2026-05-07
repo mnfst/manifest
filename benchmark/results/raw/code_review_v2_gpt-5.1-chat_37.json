@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 37,
+  "response": "Here is a plain\u2011text review with specific issues and how to fix them.\n\nBugs and logic problems:\n\u2022 The code never saves the generated reset token or associates it with the user. That means the reset link sent to the user will never work.  \nFix: Store the token in the database with an expiration timestamp.\n\n\u2022 The code proceeds even if no user is found. This is usually intentional for privacy, but in this case, the logic still tries to send an email using a nonexistent user.  \nFix: If no user exists, either return success immediately without sending an email, or send a generic \u201cif this email exists\u201d message but skip real email sending.\n\nSecurity issues:\n\u2022 The reset token is weak. Math.random is not cryptographically secure, and the token is short and predictable.  \nFix: Use a cryptographically secure generator, for example crypto.randomBytes(32).toString('hex').\n\n\u2022 No rate limiting. An attacker could spam the endpoint and cause email flooding or brute force guesses.  \nFix: Add rate limiting per IP and per email.\n\n\u2022 No email normalization. An attacker could exploit case sensitivity or whitespace differences.  \nFix: Normalize email addresses before lookup.\n\n\u2022 No protection against account enumeration. If you change behavior based on whether the user exists, attackers can determine which accounts exist.  \nFix: Always return the same response regardless of user existence, but avoid sending emails for nonexistent accounts.\n\n\u2022 No HTTPS enforcement or token hashing. If the database is compromised, attackers would gain valid reset tokens.  \nFix: Hash the token before storing it (for example using SHA\u2011256) and compare hashes during reset.\n\nAdditional improvements:\n\u2022 Validate the email input to ensure it's a properly formatted email string.  \n\u2022 Add error handling around database operations and email sending so the API doesn\u2019t silently fail.  \n\u2022 Consider adding logging for suspicious activity.\n\nExample of safer logic flow:\n\u2022 Receive email.  \n\u2022 Normalize and validate.  \n\u2022 Lookup user.  \n\u2022 Generate a secure token.  \n\u2022 Hash token, store hash with expiration.  \n\u2022 If user exists, send email containing the token.  \n\u2022 Always respond with a generic success message.\n\nLet me know if you'd like a corrected version of the code.",
+  "score": 5,
+  "cost": 0.00388,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 459
+  }
+}

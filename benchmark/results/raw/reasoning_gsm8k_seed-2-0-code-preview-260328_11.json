@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Let's solve this problem step by step:\n1. **Calculate the number of burritos given to students**: There are 50 students, and each gets 10 burritos.  \n   So, burritos for students = \\(50 \\times 10 = 500\\).\n2. **Add the burritos Mr. George ate**: Mr. George ate 20 burritos.  \n   Total burritos eaten = burritos for students + burritos George ate = \\(500 + 20 = 520\\).\n3. **Find the leftover burritos**: Total burritos ordered were 600.  \n   Leftover burritos = total ordered - total eaten = \\(600 - 520 = 80\\).\nANSWER: 80",
+  "score": 5,
+  "cost": 0.0007308,
+  "expected": "80",
+  "tokens": {
+    "input": 132,
+    "output": 576
+  }
+}

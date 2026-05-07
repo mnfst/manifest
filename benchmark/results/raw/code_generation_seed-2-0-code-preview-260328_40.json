@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 40,
+  "response": "if a % 9 not in {0, 1, 8}:\n    return False\nabs_a = abs(a)\nb = abs_a.bit_length()\nhigh = 1 << ((b + 2) // 3)\nlow = 0\nwhile low <= high:\n    mid = (low + high) // 2\n    mid_cubed = mid ** 3\n    if mid_cubed == abs_a:\n        return True\n    elif mid_cubed < abs_a:\n        low = mid + 1\n    else:\n        high = mid - 1\nreturn False",
+  "score": 3,
+  "cost": 0.012085499999999999,
+  "expected": "",
+  "tokens": {
+    "input": 181,
+    "output": 10026
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "long_summarization",
+  "case": 18,
+  "response": "The global food system faces unprecedented, interconnected stress driven by quantified, overlapping crises: the UN projects a 2050 global population of 9.7 billion requiring a 60% increase in food production, while concurrent threats include climate-related crop yield declines, agriculture\u2019s 25% share of global greenhouse gas emissions, 33% of arable land degraded by intensive farming, and one-third of all produced food wasted. Compounding these strains is rapid depletion of critical aquifers\u2014including the U.S. Ogallala Aquifer, which irrigates the Great Plains, and similar water sources in India, China, and the Middle East\u2014being drained faster than they can recharge. Stakeholders are exploring cross-cutting solutions: technological tools like AI-powered precision agriculture and urban vertical farming, food innovations such as insect and cultured alternative proteins and drought-resistant genetically modified crops, soil-rebuilding regenerative farming, and policy reforms to agricultural subsidies, trade rules, and carbon pricing. The text\u2019s core argument is that while these targeted interventions could mitigate the food system\u2019s pressures, the defining equity-centered challenge is implementing them at global scale without making food unaffordable or inaccessible to the world\u2019s poorest populations.",
+  "score": 5,
+  "cost": 0.0034866,
+  "expected": "",
+  "tokens": {
+    "input": 330,
+    "output": 2823
+  }
+}

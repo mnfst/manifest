@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu te d\u00e9battras, plus ce sera g\u00eanant pour tout le monde.",
+  "score": 5,
+  "cost": 0.0006929999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 268
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 18,
+  "response": "def is_prime(n):\n        if n <= 1:\n            return False\n        for i in range(2, int(n ** 0.5) + 1):\n            if n % i == 0:\n                return False\n        return True\n    words = sentence.split()\n    filtered = [word for word in words if is_prime(len(word))]\n    return ' '.join(filtered)",
+  "score": 4,
+  "cost": 0.0026934000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 226,
+    "output": 2188
+  }
+}

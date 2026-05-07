@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT DISTINCT c.makeid, m.make_name\nFROM cars c\nJOIN makes m ON c.makeid = m.makeid\nWHERE c.horsepower > (SELECT MIN(horsepower) FROM cars)\n  AND c.cylinders <= 3;\n```",
+  "score": 5,
+  "cost": 0.0010188,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 391
+  }
+}

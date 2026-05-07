@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sentiment_sst2",
+  "case": 26,
+  "response": "positive",
+  "score": 5,
+  "cost": 0.0001686,
+  "expected": "positive",
+  "tokens": {
+    "input": 113,
+    "output": 42
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "The CEO is following up on BigCo's $15M acqui-hire offer for the company's 5-person ML team, which the CEO judges to be below the team's actual value. The CEO recommends either countering the offer or politely declining it, requests that the group discuss the situation before responding, and notes the board should be informed about this acquisition interest.",
+  "score": 5,
+  "cost": 0.0008538,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 319
+  }
+}

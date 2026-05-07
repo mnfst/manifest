@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 33,
+  "response": "CV33 (1) (1.3) Remplacer \u00ab le conducteur et les autres membres de l\u2019\u00e9quipage \u00bb par \u00ab les membres de l\u2019\u00e9quipage du v\u00e9hicule \u00bb.\n\n### Notes on faithfulness:\n1. **Technical/regulatory tone**: Uses the standard formal French phrasing for document amendments (*Remplacer X par Y*, the equivalent of \"Replace X with Y\" in regulatory contexts).\n2. **Terminology**:\n   - *\u00c9quipage* is the formal, standard term for \"vehicle crew\" in French transport/military regulatory documents (the context implied by the numbered CV33 reference).\n   - *Conducteur* matches \"driver\" precisely for formal vehicle terminology.\n3. **Punctuation**: Uses French guillemets (\u00ab \u00bb) instead of English quotation marks, per standard French typographic conventions for official/technical text.\n4. **Reference preservation**: The alphanumeric reference *CV33 (1) (1.3)* remains untranslated (standard for technical document identifiers).",
+  "score": 5,
+  "cost": 0.0019635,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 1616
+  }
+}

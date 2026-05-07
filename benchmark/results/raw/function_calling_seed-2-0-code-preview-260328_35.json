@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\"name\": \"get_order\", \"arguments\": {\"order_id\": \"12345\"}}",
+  "score": 2,
+  "cost": 0.0002448,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 173
+  }
+}

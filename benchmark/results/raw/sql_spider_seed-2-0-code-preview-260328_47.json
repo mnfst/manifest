@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "SELECT type_code FROM template_type WHERE description = 'Book';",
+  "score": 5,
+  "cost": 0.0002943,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 219
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements the **Least Recently Used (LRU)** cache eviction algorithm, using Python's OrderedDict which preserves insertion order to track key access recency. Whenever a key is retrieved or updated it is moved to mark it as most recently used; when the cache exceeds its set capacity, the least recently used item is automatically removed from the front of the ordered dictionary.",
+  "score": 5,
+  "cost": 0.0012012000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 194,
+    "output": 452
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "This engineering hiring update outlines there are 4 open roles (2 backend, 1 frontend, 1 ML), with 23 candidates currently in the hiring pipeline and 5 candidates advancing through final interview rounds. The key outstanding concern is the frontend position which has remained open for 60 days without strong candidates, and recruiting recommends either expanding hiring to remote candidates or adjusting the role's compensation band to resolve this.",
+  "score": 5,
+  "cost": 0.0008711999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 327
+  }
+}

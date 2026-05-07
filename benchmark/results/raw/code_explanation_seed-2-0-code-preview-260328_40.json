@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This Python class implements the **Circuit Breaker design pattern**\u2014a stability pattern used to prevent cascading failures in systems with unreliable dependencies\u2014by wrapping function calls and enforcing configurable failure tolerance and recovery windows. It operates in three states: \"closed\" (normal operation, allowing calls), \"open\" (immediately rejecting calls after a configurable `threshold` (default 5) of consecutive failures, for a configurable `timeout` (default 30s) window), and \"half-open\" (testing recovery by permitting one call after the timeout\u2014success resets to \"closed\" and clears failure counts, while failure reopens the circuit and re-raises the original exception).",
+  "score": 5,
+  "cost": 0.0027345,
+  "expected": "",
+  "tokens": {
+    "input": 247,
+    "output": 2217
+  }
+}

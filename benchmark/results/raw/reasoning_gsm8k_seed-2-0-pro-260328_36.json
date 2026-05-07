@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Let's solve this problem step by step:\n1.  **Initial amount of cards**: Elaine starts with 20 Pokemon cards.\n2.  **Cards collected in the first month**: She collected 3 times the initial number.\n    Calculation: `3 * 20 = 60` cards collected in the first month.\n3.  **Cards collected in the second month**: She collected 20 fewer than the first month's collection.\n    Calculation: `60 - 20 = 40` cards collected in the second month.\n4.  **Cards collected in the third month**: She collected twice the combined total of the first and second month collections.\n    First, find the combined first + second month collection: `60 + 40 = 100`\n    Then calculate the third month collection: `2 * 100 = 200` cards collected in the third month.\n5.  **Total cards now**: Add the initial cards plus all collected cards across all months.\n    Calculation: `20 + 60 + 40 + 200 = 320`\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.0021558,
+  "expected": "320",
+  "tokens": {
+    "input": 161,
+    "output": 858
+  }
+}

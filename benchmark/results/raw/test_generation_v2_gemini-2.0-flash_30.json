@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "```python\nimport pytest\n\ndef snake_to_camel(s: str) -> str:\n    parts = s.split('_')\n    return parts[0] + ''.join(p.capitalize() for p in parts[1:])\n\nclass TestSnakeToCamel:\n    def test_happy_path(self):\n        assert snake_to_camel(\"snake_case\") == \"snakeCase\"\n        assert snake_to_camel(\"another_snake_case_example\") == \"anotherSnakeCaseExample\"\n        assert snake_to_camel(\"single_word\") == \"singleWord\"\n\n    def test_empty_string(self):\n        assert snake_to_camel(\"\") == \"\"\n\n    def test_no_underscores(self):\n        assert snake_to_camel(\"camelcase\") == \"camelcase\"\n        assert snake_to_camel(\"CAPITAL\") == \"CAPITAL\"\n\n    def test_leading_underscore(self):\n        assert snake_to_camel(\"_leading\") == \"Leading\"\n        assert snake_to_camel(\"__leading\") == \"Leading\"\n        assert snake_to_camel(\"___leading\") == \"Leading\"\n\n    def test_trailing_underscore(self):\n        assert snake_to_camel(\"trailing_\") == \"trailing\"\n        assert snake_to_camel(\"trailing__\") == \"trailing\"\n        assert snake_to_camel(\"trailing___\") == \"trailing\"\n\n    def test_multiple_underscores(self):\n        assert snake_to_camel(\"multiple__underscores\") == \"multipleUnderscores\"\n        assert snake_to_camel(\"multiple___underscores\") == \"multipleUnderscores\"\n\n    def test_numbers(self):\n        assert snake_to_camel(\"snake_case_123\") == \"snakeCase123\"\n        assert snake_to_camel(\"123_snake_case\") == \"123SnakeCase\"\n        assert snake_to_camel(\"snake_123_case\") == \"snake123Case\"\n\n    def test_mixed_case(self):\n        assert snake_to_camel(\"snake_Case\") == \"snakeCase\"\n        assert snake_to_camel(\"Snake_case\") == \"SnakeCase\"\n        assert snake_to_camel(\"sNaKe_cAsE\") == \"sNaKeCaSe\"\n\n    def test_empty_parts(self):\n        assert snake_to_camel(\"___\") == \"\"\n        assert snake_to_camel(\"____\") == \"\"\n\n    def test_single_character_parts(self):\n        assert snake_to_camel(\"a_b_c\") == \"aBC\"\n        assert snake_to_camel(\"a_B_c\") == \"aBC\"\n\n    def test_unicode(self):\n        assert snake_to_camel(\"unicode_test_\u00e4\u00f6\u00fc\") == \"unicodeTest\u00c4\u00f6\u00fc\"\n        assert snake_to_camel(\"test_unicode_\u4f60\u597d\u4e16\u754c\") == \"testUnicode\u4f60\u597d\u4e16\u754c\"\n```",
+  "score": 4,
+  "cost": 0.0002762,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 672
+  }
+}

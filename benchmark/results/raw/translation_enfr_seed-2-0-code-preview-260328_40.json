@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Nous n'avons qu'\u00e0 obtenir plus d'informations.\n\n### Breakdown (tone/meaning alignment):\n- **\"We just need to\"**: Translated with the natural French structure *nous n'avons qu'\u00e0* (literally \"we have only to\"), which captures the casual, straightforward \"just\" (emphasizing this is the *only* required action) and matches the original\u2019s neutral-conversational tone.\n- **\"get more information\"**: *Obtenir plus d'informations* is the direct, natural equivalent:\n  - *Obtenir* = \"get\" (acquire, the core meaning here)\n  - *Plus d'informations* = \"more information\" (French uses plural *informations* for countable \"pieces of information,\" the standard equivalent to English\u2019s uncountable *information* in this context)\n- No formal *davantage* (more formal \"more\") or casual *on* (impersonal/colloquial \"we\") is used, preserving the original\u2019s explicit, neutral \"we\" tone.",
+  "score": 5,
+  "cost": 0.0024246,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 2006
+  }
+}

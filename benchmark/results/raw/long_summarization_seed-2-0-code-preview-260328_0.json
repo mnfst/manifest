@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "long_summarization",
+  "case": 0,
+  "response": "The internet originated from 1960s U.S. Department of Defense-funded computer networking research, with its precursor ARPANET first demonstrated in 1969 via a message sent from UCLA to Stanford Research Institute; 1983\u2019s transition to TCP/IP protocols established its modern technical foundation, and Tim Berners-Lee\u2019s 1989 invention of the World Wide Web (at CERN, with HTML, URLs, HTTP) plus 1993\u2019s Mosaic browser made it accessible to non-academic, non-research users. Pivotal post-accessibility milestones included the late-1990s dot-com boom (and 2001 crash) that spawned enduring giants Amazon and Google, 2006\u2019s AWS launch catalyzing cloud computing, 2007\u2019s iPhone popularizing mobile internet, and mid-2000s social media (Facebook, Twitter, YouTube) revolutionizing global communication. Today, the internet is a ubiquitous global infrastructure connecting over 5 billion people, underpinning nearly every facet of modern life from commerce to entertainment to interpersonal communication.",
+  "score": 5,
+  "cost": 0.0032922,
+  "expected": "",
+  "tokens": {
+    "input": 362,
+    "output": 2653
+  }
+}

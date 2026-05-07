@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible, steady tug that every object with mass\u2014from a crumb of bread to a blazing star, even your own body\u2014exerts on every other object with mass. The more mass an object has, the stronger its tug: Earth\u2019s enormous mass, for example, pulls hard enough to keep our feet planted on the ground, hold our breathable atmosphere in place, lock the moon into its looping orbit, and yank a dropped pencil straight down instead of letting it drift away. Smaller objects (like a single grain of sand) have such tiny gravitational tugs that we never notice them, but they\u2019re always at work. That is gravity.",
+  "score": 5,
+  "cost": 0.0012525,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 1031
+  }
+}

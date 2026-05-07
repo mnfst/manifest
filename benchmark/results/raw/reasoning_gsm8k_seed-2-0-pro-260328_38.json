@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "### Step 1: Calculate total parts of the ratio\nThe money is split in the ratio 3:2 (Gerald : Julia). To find the total number of equal parts:\nTotal parts = 3 + 2 = 5 parts\n\n### Step 2: Find the value of one part\nThe total amount of money is $100, split across 5 equal parts:\nValue of 1 part = $100 \u00f7 5 = $20\n\n### Step 3: Find Gerald's original amount\nGerald gets 3 parts of the total:\nGerald's initial money = 3 \u00d7 $20 = $60\n\n### Step 4: Subtract the money he spent\nGerald spent $10 on a book, so his remaining money is:\nRemaining money = $60 - $10 = $50\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0011928,
+  "expected": "50",
+  "tokens": {
+    "input": 120,
+    "output": 467
+  }
+}

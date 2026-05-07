@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "The 7 traditional rainbow colors, ordered from the outer (longest wavelength) to inner (shortest wavelength) arc of a primary rainbow are:\n1.  Red\n2.  Orange\n3.  Yellow\n4.  Green\n5.  Blue\n6.  Indigo\n7.  Violet",
+  "score": 5,
+  "cost": 0.00042659999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 163
+  }
+}

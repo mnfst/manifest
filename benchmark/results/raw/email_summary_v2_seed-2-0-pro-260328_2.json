@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "David sent this email to alert recipients of a critical 9.8 CVSS score SQL injection vulnerability in the /api/v2/auth/login endpoint, which impacts all software versions from v3.2.0 through v3.4.1.\nA patch addressing this issue by parameterizing the query at line 142 of auth_controller.py is ready for review, and the email recommends deploying a hotfix for this vulnerability within 24 hours.",
+  "score": 5,
+  "cost": 0.000918,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 346
+  }
+}

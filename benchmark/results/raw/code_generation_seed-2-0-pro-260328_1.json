@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 1,
+  "response": "groups = paren_string.split()\n    res = []\n    for group in groups:\n        current = 0\n        max_depth = 0\n        for c in group:\n            if c == '(':\n                current += 1\n                max_depth = max(max_depth, current)\n            else:\n                current -= 1\n        res.append(max_depth)\n    return res",
+  "score": 4,
+  "cost": 0.0016145999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 195,
+    "output": 624
+  }
+}

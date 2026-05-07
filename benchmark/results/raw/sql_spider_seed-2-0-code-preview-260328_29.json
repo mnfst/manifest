@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "SELECT COUNT(DISTINCT Language) FROM countrylanguage;",
+  "score": 5,
+  "cost": 0.0018374999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 1507
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "The Mobile Team sent a crash rate alert advising that since yesterday\u2019s app release, the Android 12+ version has a 2.3% crash rate\u2014well above the 0.5% threshold\u2014caused by a null pointer in the notification handler, while iOS remains unaffected. The Mobile Team has already merged the crash fix to the main codebase and submitted an emergency release request to the Google Play Store to resolve the elevated crash rate.",
+  "score": 5,
+  "cost": 0.0006956999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 549
+  }
+}

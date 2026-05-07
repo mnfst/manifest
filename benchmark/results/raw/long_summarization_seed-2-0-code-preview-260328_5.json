@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Alexander Fleming\u2019s 1928 discovery of penicillin launched the era of antibiotic medicine, a breakthrough that revolutionized surgical safety and infectious disease treatment, with a 1950s\u20131960s \u201cgolden age\u201d yielding most of the core antibiotic classes still in clinical use today. A catastrophic antimicrobial resistance crisis now endangers these historic gains, driven by two key factors: plummeting private-sector antibiotic development due to poor financial returns, and widespread agricultural antibiotic use in livestock that has accelerated the spread of resistant pathogens like MRSA. To combat this crisis, researchers are investigating three innovative, high-potential strategies: phage therapy, CRISPR-based antimicrobial tools, and AI-driven drug discovery platforms.",
+  "score": 5,
+  "cost": 0.0019848,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 1612
+  }
+}

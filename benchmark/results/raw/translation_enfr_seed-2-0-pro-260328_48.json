@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 48,
+  "response": "- Choisissez l'un de ces Renault \u00e0 louer \u00e0 Gala\u021bi ou dans d'autres villes telles qu'Arad, Timi\u0219oara, Sibiu, Oradea, Bra\u0219ov, Bucarest, Ia\u0219i ou Suceava : vous arriverez \u00e0 destination en un rien de temps. En prime, vous \u00e9conomiserez bien de l'argent que vous pourrez d\u00e9penser pour autre chose.\n\n---\n*Note: The translation preserves the original casual promotional tone, uses standard French spellings for the Romanian cities, and maintains the exact marketing meaning of the original text.*",
+  "score": 5,
+  "cost": 0.0014927999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 587
+  }
+}

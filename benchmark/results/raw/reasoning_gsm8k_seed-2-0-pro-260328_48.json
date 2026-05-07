@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Let's solve this problem step by step:\n1.  First, identify the starting weight: Jamaal begins with an 8-pound weight.\n2.  Calculate the 50% increase: 50% of 8 pounds is \\(0.5 \\times 8 = 4\\) pounds. Adding this to the original weight gives the increased weight: \\(8 + 4 = 12\\) pounds.\n3.  Subtract the 2 pounds he reduces after finding the increased weight too heavy: \\(12 - 2 = 10\\) pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.0010337999999999999,
+  "expected": "10",
+  "tokens": {
+    "input": 147,
+    "output": 394
+  }
+}

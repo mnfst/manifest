@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "WITH conductor_orchestra_counts AS (\n    SELECT\n        c.name,\n        COUNT(DISTINCT p.orchestra_id) AS num_orchestras\n    FROM conductors c\n    INNER JOIN performances p ON c.conductor_id = p.conductor_id\n    GROUP BY c.conductor_id, c.name\n)\nSELECT name\nFROM conductor_orchestra_counts\nWHERE num_orchestras = (SELECT MAX(num_orchestras) FROM conductor_orchestra_counts);",
+  "score": 4,
+  "cost": 0.0073371,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 6089
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "```python\nimport pytest\n\ndef title_case(s: str) -> str:\n    return ' '.join(word.capitalize() for word in s.split())\n\nclass TestTitleCase:\n\n    def test_happy_path(self):\n        assert title_case(\"this is a string\") == \"This Is A String\"\n        assert title_case(\"aBcDeFg\") == \"Abcdefg\"\n        assert title_case(\"multiple   spaces\") == \"Multiple Spaces\"\n\n    def test_empty_string(self):\n        assert title_case(\"\") == \"\"\n\n    def test_string_with_only_spaces(self):\n        assert title_case(\"   \") == \"\"\n\n    def test_string_with_leading_and_trailing_spaces(self):\n        assert title_case(\"  leading and trailing  \") == \"Leading And Trailing\"\n\n    def test_string_with_numbers(self):\n        assert title_case(\"123 abc\") == \"123 Abc\"\n        assert title_case(\"abc 123\") == \"Abc 123\"\n        assert title_case(\"123\") == \"123\"\n\n    def test_string_with_special_characters(self):\n        assert title_case(\"!@#$%^&*()\") == \"!@#$%^&*()\"\n        assert title_case(\"abc!@#\") == \"Abc!@#\"\n        assert title_case(\"!@# abc\") == \"!@# Abc\"\n\n    def test_string_with_mixed_case_and_special_characters(self):\n        assert title_case(\"aBc!@#DeF\") == \"Abc!@#def\"\n\n    def test_string_with_unicode_characters(self):\n        assert title_case(\"\u4f60\u597d\u4e16\u754c\") == \"\u4f60\u597d\u4e16\u754c\"\n        assert title_case(\"\u4f60\u597d \u4e16\u754c\") == \"\u4f60\u597d \u4e16\u754c\"\n        assert title_case(\"h\u00e9ll\u00f6 w\u00f8rld\") == \"H\u00e9ll\u00f6 W\u00f8rld\"\n\n    def test_string_with_hyphens(self):\n        assert title_case(\"self-assessment\") == \"Self-assessment\"\n        assert title_case(\"self - assessment\") == \"Self - Assessment\"\n\n    def test_string_with_apostrophes(self):\n        assert title_case(\"it's a test\") == \"It's A Test\"\n        assert title_case(\"o'malley\") == \"O'malley\"\n```",
+  "score": 5,
+  "cost": 0.0002279,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 555
+  }
+}

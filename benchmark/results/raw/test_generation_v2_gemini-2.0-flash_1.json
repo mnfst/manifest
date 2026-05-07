@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 1,
+  "response": "```python\nimport pytest\n\ndef is_palindrome(s: str) -> bool:\n    s = s.lower().replace(' ', '')\n    return s == s[::-1]\n\nclass TestIsPalindrome:\n    def test_happy_path_palindrome(self):\n        assert is_palindrome(\"racecar\") == True\n        assert is_palindrome(\"A man, a plan, a canal: Panama\") == True\n        assert is_palindrome(\"Was it a car or a cat I saw?\") == True\n\n    def test_happy_path_not_palindrome(self):\n        assert is_palindrome(\"hello\") == False\n        assert is_palindrome(\"world\") == False\n\n    def test_edge_case_empty_string(self):\n        assert is_palindrome(\"\") == True\n\n    def test_edge_case_single_character(self):\n        assert is_palindrome(\"a\") == True\n\n    def test_edge_case_single_space(self):\n        assert is_palindrome(\" \") == True\n\n    def test_edge_case_multiple_spaces(self):\n        assert is_palindrome(\"   \") == True\n\n    def test_case_insensitive(self):\n        assert is_palindrome(\"Racecar\") == True\n        assert is_palindrome(\"Madam\") == True\n\n    def test_ignores_spaces(self):\n        assert is_palindrome(\"race car\") == True\n        assert is_palindrome(\"A man a plan a canal Panama\") == True\n\n    def test_mixed_case_and_spaces(self):\n        assert is_palindrome(\"Race car\") == True\n        assert is_palindrome(\"Madam I'm Adam\") == True\n\n    def test_with_punctuation(self):\n        assert is_palindrome(\"Madam, I'm Adam.\") == False # Punctuation is not removed\n        assert is_palindrome(\"No 'x' in Nixon\") == False # Punctuation is not removed\n\n    def test_numbers(self):\n        assert is_palindrome(\"121\") == True\n        assert is_palindrome(\"123\") == False\n        assert is_palindrome(\"A121A\") == True\n        assert is_palindrome(\"A man, a plan, a canal: Panama1\") == False # Numbers are not removed\n```",
+  "score": 4,
+  "cost": 0.0002054,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 498
+  }
+}

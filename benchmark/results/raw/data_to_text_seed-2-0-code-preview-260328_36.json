@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "data_to_text",
+  "case": 36,
+  "response": "American Airlines Flight AA 1234 flies the route from JFK International Airport to Los Angeles International Airport (LAX), departing at 08:30, arriving at 11:45, with a total flight duration of 5 hours 15 minutes, and holds an 82% on-time performance rate. Operated using a Boeing 787 aircraft, this flight offers economy class seating at a price of $289.",
+  "score": 5,
+  "cost": 0.0022949999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 1879
+  }
+}

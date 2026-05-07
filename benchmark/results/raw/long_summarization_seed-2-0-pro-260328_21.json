@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 21,
+  "response": "Unlike classical computers that operate using binary 0/1 bits, quantum computers leverage qubits capable of superposition, entanglement, and interference, which allows them to solve certain types of problems exponentially faster than classical systems. Major technology firms and startups are developing quantum hardware via varied technical approaches, and Google made a landmark 2019 quantum supremacy claim, completing a calculation in 200 seconds that would take a classical supercomputer an estimated 10,000 years. Practical quantum computing still faces significant barriers: qubits are extremely fragile, error rates remain high, and while current machines hold 100 to 1000 qubits, millions will likely be required for useful real-world applications. Despite these challenges, quantum computing shows promise across fields including drug discovery and cryptography, with companies already experimenting with quantum algorithms for use cases such as financial modeling and logistics.",
+  "score": 5,
+  "cost": 0.0016673999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 323,
+    "output": 614
+  }
+}

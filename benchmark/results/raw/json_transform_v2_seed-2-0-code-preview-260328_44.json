@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "json_transform_v2",
+  "case": 44,
+  "response": "{\"services\":[{\"name\":\"database\",\"host\":\"db.prod.internal\",\"port\":5432},{\"name\":\"cache\",\"host\":\"redis.prod.internal\",\"port\":6379}],\"app_settings\":{\"debug\":false,\"log_level\":\"warn\",\"workers\":4}}",
+  "score": 5,
+  "cost": 0.0016956,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 1369
+  }
+}

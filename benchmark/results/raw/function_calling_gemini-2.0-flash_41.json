@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 41,
+  "response": "```json\n{\"name\": \"add_comment\", \"arguments\": {\"pr_id\": 789, \"body\": \"LGTM approved\"}}\n```",
+  "score": 5,
+  "cost": 2.4400000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 34
+  }
+}

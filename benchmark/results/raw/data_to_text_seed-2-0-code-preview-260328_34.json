@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "data_to_text",
+  "case": 34,
+  "response": "Stockholm, a Swedish-speaking hub in Sweden founded in 1252, spans 188 square kilometers, is home to 1.6 million residents, and boasts a GDP per capita of $62,000. The city experiences a seasonal temperate climate with average January temperatures of -3\u00b0C and mild average July temperatures of 18\u00b0C.",
+  "score": 5,
+  "cost": 0.0015036000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 1221
+  }
+}

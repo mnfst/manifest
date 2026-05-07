@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "SELECT GovernmentForm, SUM(Population) AS TotalPopulation\nFROM country\nGROUP BY GovernmentForm\nHAVING AVG(LifeExpectancy) > 72;",
+  "score": 3,
+  "cost": 0.0008759999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 701
+  }
+}

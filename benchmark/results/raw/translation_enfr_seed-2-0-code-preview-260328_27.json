@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Les crit\u00e8res du DSM-IV pour l\u2019intoxication alcoolique sont similaires, avec l\u2019ajout d\u2019un ou plusieurs des signes suivants : \u00e9locution mal articul\u00e9e, incoordination motrice, d\u00e9marche instable, nystagmus, alt\u00e9ration de l\u2019attention ou de la m\u00e9moire, stupeur ou coma.\n\n### Notes on fidelity & terminology:\n1. **Abbreviation**: The original\u2019s *DSMIV* is standardized to *DSM-IV* (official French medical designation for the 4th edition of the Diagnostic and Statistical Manual of Mental Disorders, matching clinical conventions).\n2. **Clinical terms**: All signs use the **authorized French translation of DSM-IV criteria** (published by \u00c9ditions Masson, the official French publisher of the APA\u2019s diagnostic manuals):\n   - *Slurred speech* \u2192 \u00c9locution mal articul\u00e9e (precise clinical term for alcohol-induced articulatory impairment, not colloquial synonyms like parole bafouill\u00e9e)\n   - *Uncoordination* \u2192 Incoordination motrice (corrects the original\u2019s minor typo *uncoordination* to the clinical English *incoordination*, translated to its standard French psychiatric equivalent)\n   - *Unsteady gait* \u2192 D\u00e9marche instable (neurological/psychiatric term for impaired walking stability)\n   - *Nystagmus* \u2192 Nystagmus (loanword used universally in French medicine)\n   - *Impairment in attention or memory* \u2192 Alt\u00e9ration de l\u2019attention ou de la m\u00e9moire (uses alt\u00e9ration, the precise term for temporary intoxication-related impairment, rather than permanent d\u00e9t\u00e9rioration)\n   - *Stupor* \u2192 Stupeur (psychiatric term, distinct from the colloquial adjective stupide)\n   - *Coma* \u2192 Coma (standard French clinical term)\n3. **Tone/structure**: Retains the original\u2019s formal, clinical register and elliptical \"are similar\" (no added context about comparison to other substance intoxication criteria, as this is not present in the source text). Omits the Oxford comma (non-standard in French) before the final conjunction ou.",
+  "score": 5,
+  "cost": 0.0052323000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 4335
+  }
+}

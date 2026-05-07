@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "First, calculate how much money Mitchell made that weekend. He sold 21 lemonades at $4 each, so multiply the number of lemonades by the price per lemonade:\n\\[ 21 \\times 4 = 84 \\]\nMitchell made $84 that weekend.\n\nNext, find the difference between Mitchell's earnings and Liam's earnings. Liam made $63, so subtract Liam's amount from Mitchell's amount:\n\\[ 84 - 63 = 21 \\]\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0008832,
+  "expected": "21",
+  "tokens": {
+    "input": 152,
+    "output": 330
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "extraction_hard_v2",
+  "case": 39,
+  "response": "{\n  \"date\": \"March 15, 2024\",\n  \"time\": \"2:00-4:30 PM EST\",\n  \"location\": \"Conference Room A + Zoom\",\n  \"attendees\": [\"J. Smith\", \"M. Johnson\", \"L. Chen\", \"R. Patel\", \"K. Williams\"],\n  \"absent\": [\"D. Brown\"],\n  \"secretary\": \"A. Taylor\",\n  \"agenda_items\": [\n    {\n      \"topic\": \"Q4 Financial Review\",\n      \"summary\": \"Revenue $12.3M (108% of target). EBITDA margin improved to 18%. Cash: $8.2M.\"\n    },\n    {\n      \"topic\": \"Series B Update\",\n      \"summary\": \"Term sheet from Sequoia at $80M pre-money. Board voted 4-1 to proceed, with Williams dissenting.\"\n    },\n    {\n      \"topic\": \"Hiring Plan\",\n      \"summary\": \"Approved 15 new hires in Q2 (8 eng, 4 sales, 3 ops) with a $1.8M budget.\"\n    },\n    {\n      \"topic\": \"Next Meeting\",\n      \"summary\": \"Scheduled for June 14, 2024.\"\n    }\n  ],\n  \"motions\": [\n    {\n      \"description\": \"Approve Q4 financials\",\n      \"result\": \"Passed\",\n      \"vote\": \"Unanimous\"\n    },\n    {\n      \"description\": \"Authorize Series B negotiation\",\n      \"result\": \"Passed\",\n      \"vote\": \"4-1\"\n    },\n    {\n      \"description\": \"Approve Q2 hiring budget\",\n      \"result\": \"Passed\",\n      \"vote\": \"Unanimous\"\n    }\n  ],\n  \"next_meeting\": \"June 14, 2024\"\n}",
+  "score": 4,
+  "cost": 0.004278,
+  "expected": "",
+  "tokens": {
+    "input": 335,
+    "output": 451
+  }
+}

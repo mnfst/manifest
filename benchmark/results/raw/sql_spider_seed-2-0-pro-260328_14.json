@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT cm.full_name, cm.id, COUNT(m.id) AS number_of_models\nFROM car_makers cm\nLEFT JOIN car_models m ON cm.id = m.maker_id\nGROUP BY cm.id, cm.full_name\n```",
+  "score": 5,
+  "cost": 0.0006455999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 238
+  }
+}

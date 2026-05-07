@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "### Step 1: Calculate the time Tom spends sailing outward\nTom sails from 1 PM to 4 PM. The total time for the outward trip is:\n`4 PM - 1 PM = 3 hours`\n\n### Step 2: Calculate the one-way distance traveled\nDistance is calculated as `speed \u00d7 time`. Tom's outward speed is 10 mph:\n`Distance = 10 mph \u00d7 3 hours = 30 miles`\n\n### Step 3: Calculate the return trip time\nTime is calculated as `distance \u00f7 speed`. Tom's return speed is 6 mph, and he travels the same 30 miles back:\n`Return time = 30 miles \u00f7 6 mph = 5 hours`\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0011322,
+  "expected": "5",
+  "tokens": {
+    "input": 135,
+    "output": 438
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "long_summarization",
+  "case": 16,
+  "response": "The internet\u2019s origins trace to 1960s U.S. Department of Defense-funded computer networking research, which spawned ARPANET\u2014its precursor\u2014first demoed in 1969 via a message between UCLA and Stanford Research Institute; the network grew slowly through the 1970s linking universities and research institutions, 1983\u2019s transition to TCP/IP protocols laid the modern internet\u2019s technical foundation, and Tim Berners-Lee invented the World Wide Web (with HTML, URLs, and HTTP) at CERN in 1989. Key accessibility and expansion milestones followed: 1993\u2019s Mosaic browser brought the web to non-expert users; the late-1990s dot-com boom saw massive investment, with a 2001 crash that spared survivors like Amazon and Google; 2006\u2019s AWS launched cloud computing; 2007\u2019s iPhone catalyzed ubiquitous mobile internet; and mid-2000s social media platforms (Facebook, Twitter, YouTube) transformed global communication. Today, the internet connects over 5 billion people worldwide, serving as the indispensable backbone for nearly every facet of modern life, from commerce and communication to entertainment.",
+  "score": 5,
+  "cost": 0.0037974,
+  "expected": "",
+  "tokens": {
+    "input": 362,
+    "output": 3074
+  }
+}

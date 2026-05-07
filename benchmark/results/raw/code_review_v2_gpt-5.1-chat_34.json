@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 34,
+  "response": "Here are the issues with the provided function and how to fix them.\n\nBugs:\n\u2022 None in terms of syntax \u2014 the function runs.  \n\u2022 The real problems are security\u2011related.\n\nSecurity issues:\n\u2022 The function compares passwords using a normal string equality check. This is unsafe because:\n  \u2013 It likely compares unhashed passwords, meaning the system is storing raw passwords.  \n  \u2013 Even if passwords are hashed, the comparison is vulnerable to timing attacks. A normal string equality check often exits early on the first mismatch, leaking information about how many characters are correct.\n\n\u2022 Using plain string comparison does not protect against brute\u2011force or guessing attacks.\n\nImprovements:\n\u2022 Never store plaintext passwords. Store a salted, slow hash using a library such as bcrypt, scrypt, Argon2, or PBKDF2.  \n\u2022 Use a constant\u2011time string comparison function. In Python, use hmac.compare_digest to prevent timing attacks.  \n\u2022 Rename variables to reflect that the \u201cstored\u201d value should be hashed and salted.  \n\nExample of a corrected version:\n\n```\nimport hmac\nimport bcrypt\n\ndef compare_passwords(stored_hash, provided_password):\n    return bcrypt.checkpw(provided_password.encode(), stored_hash)\n```\n\nIf using hashed strings without bcrypt:\n\n```\nimport hmac\n\ndef compare_passwords(stored_hash, provided_hash):\n    return hmac.compare_digest(stored_hash, provided_hash)\n```\n\nSummary:\n\u2022 Do not store or compare plaintext passwords.  \n\u2022 Use secure hashing with salt.  \n\u2022 Use constant\u2011time comparison.  \n\u2022 Rely on a vetted password\u2011handling library rather than custom logic.",
+  "score": 5,
+  "cost": 0.00283,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 341
+  }
+}

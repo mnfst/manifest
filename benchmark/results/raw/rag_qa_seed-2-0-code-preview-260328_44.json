@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "The Ohio Company of Virginia",
+  "score": 5,
+  "cost": 0.00022439999999999998,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 296,
+    "output": 113
+  }
+}

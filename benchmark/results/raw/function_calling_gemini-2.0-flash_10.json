@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 10,
+  "response": "{\"name\": \"play_song\", \"arguments\": {\"title\": \"Bohemian Rhapsody\", \"artist\": \"Queen\"}}",
+  "score": 5,
+  "cost": 1.98e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 27
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "This email outlines April marketing campaign performance and cost metrics, noting that compared to March results, the campaign's CTR increased by 1.2 percentage points while its conversion rate decreased by 0.8 percentage points.\nThe marketing team recommends running A/B testing on the landing page call to action based on these campaign results.",
+  "score": 5,
+  "cost": 0.0007421999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 268
+  }
+}

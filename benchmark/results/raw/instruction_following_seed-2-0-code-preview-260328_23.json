@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "Apple; Banana; Cherry; Date; Elderberry",
+  "score": 5,
+  "cost": 0.0026898,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 2230
+  }
+}

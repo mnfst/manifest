@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Infinitely many prime numbers.",
+  "score": 5,
+  "cost": 0.00034979999999999994,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 291,
+    "output": 73
+  }
+}

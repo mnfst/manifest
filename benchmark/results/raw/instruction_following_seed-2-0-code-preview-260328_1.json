@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "The central processing unit (CPU), often called a computer\u2019s \"brain\" as its primary computational and control hardware, performs the foundational fetch-decode-execute cycle by retrieving encoded program instructions from system RAM, translating those instructions into actionable tasks, executing the required arithmetic, logical, and control operations, and coordinating data transfer between itself and other system components (e.g., storage, peripherals, GPUs) to run software and carry out all core computing functions.",
+  "score": 1,
+  "cost": 0.0012086999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 997
+  }
+}

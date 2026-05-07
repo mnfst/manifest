@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "data_to_text",
+  "case": 12,
+  "response": "Founded in 1861, the Massachusetts Institute of Technology (MIT)\u2014ranked #1\u2014has a total student body of 11,500, 1,069 faculty members, and an impressive 98 affiliated Nobel laureates, underscoring its exceptional academic standing. This elite institution maintains an extraordinarily competitive acceptance rate of just 3.9%, charges $57,590 in annual tuition, and holds a substantial $24.6 billion endowment.",
+  "score": 5,
+  "cost": 0.0021842999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 1786
+  }
+}

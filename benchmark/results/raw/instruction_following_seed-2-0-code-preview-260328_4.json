@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "1. French: Bonjour le monde\n2. Spanish: Hola mundo\n3. German: Hallo Welt\n\n(Note: These are the standard, widely recognized translations\u2014including for the iconic \"Hello World\" programming test phrase\u2014with consistent capitalization per each language\u2019s grammatical rules.)",
+  "score": 5,
+  "cost": 0.0013082999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 1078
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 10,
+  "response": "Peut-\u00eatre d\u00e9gager des indices, pour nous rapprocher de cet animal qui a fait \u00e7a.",
+  "score": 4,
+  "cost": 0.0021258,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 865
+  }
+}

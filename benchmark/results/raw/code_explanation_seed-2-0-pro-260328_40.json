@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This is a standard implementation of the **Circuit Breaker resiliency pattern**, used to avoid overwhelming or repeatedly calling failing external operations.\nIt counts failed function executions, blocks all calls entirely for the configured timeout window once the failure threshold is hit, then automatically tests if the operation has recovered before restoring normal operation.",
+  "score": 5,
+  "cost": 0.0008502,
+  "expected": "",
+  "tokens": {
+    "input": 265,
+    "output": 288
+  }
+}

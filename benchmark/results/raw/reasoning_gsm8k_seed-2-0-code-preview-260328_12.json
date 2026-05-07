@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Let's break down the problem step by step:\n### Step 1: Calculate reading time per session\nJim watches TV for 2 hours per session, and reads for **half as long** as his TV time.  \nReading time per session = $2 \\div 2 = 1$ hour.\n### Step 2: Total time per session (TV + reading)\nEach session includes 2 hours of TV and 1 hour of reading.  \nTotal per session = $2 + 1 = 3$ hours.\n### Step 3: Weekly total time\nHe does this 3 times per week.  \nWeekly total = $3 \\text{ sessions/week} \\times 3 \\text{ hours/session} = 9$ hours/week.\n### Step 4: Total over 4 weeks\nMultiply the weekly total by 4 weeks.  \nTotal over 4 weeks = $9 \\text{ hours/week} \\times 4 \\text{ weeks} = 36$ hours.\n(We can also verify by calculating TV and reading separately:  \n- Total TV time: $2 \\text{ h/session} \\times 3 \\text{ sessions/week} \\times 4 \\text{ weeks} = 24$ hours  \n- Total reading time: $1 \\text{ h/session} \\times 3 \\text{ sessions/week} \\times 4 \\text{ weeks} = 12$ hours  \n- Combined total: $24 + 12 = 36$ hours.)\nANSWER: 36",
+  "score": 5,
+  "cost": 0.0020133,
+  "expected": "36",
+  "tokens": {
+    "input": 115,
+    "output": 1649
+  }
+}

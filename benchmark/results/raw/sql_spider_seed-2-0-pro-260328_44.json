@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "```sql\nSELECT airport_code\nFROM (\n    SELECT origin_airport_code AS airport_code FROM flights\n    UNION ALL\n    SELECT destination_airport_code AS airport_code FROM flights\n) AS all_airport_flights\nGROUP BY airport_code\nORDER BY COUNT(*) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.0027312,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 1109
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 49,
+  "response": "{\n  \"persons\": [\"Pope Francis\"],\n  \"organizations\": [],\n  \"locations\": [\"St. Peter Square\", \"Vatican\"]\n}",
+  "score": 4,
+  "cost": 0.0006924,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 259
+  }
+}

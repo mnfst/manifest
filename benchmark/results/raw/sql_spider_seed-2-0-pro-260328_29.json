@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "```sql\nSELECT COUNT(DISTINCT Language) AS unique_language_count FROM countrylanguage;\n```",
+  "score": 5,
+  "cost": 0.0002946,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 94
+  }
+}

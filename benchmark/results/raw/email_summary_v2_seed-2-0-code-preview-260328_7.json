@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "Facilities has issued an office move update confirming the new space at 500 Market St will be ready June 1, with IT conducting network setup June 4\u20136, moving scheduled for the weekend of June 7\u20138, and the budget for professional movers already approved. The required action item from this update is that each team must designate a move coordinator by Friday to support the relocation.",
+  "score": 5,
+  "cost": 0.000951,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 763
+  }
+}

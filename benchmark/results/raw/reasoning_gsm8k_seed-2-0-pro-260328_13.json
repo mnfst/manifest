@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Let's calculate the total cost step by step:\n1.  First, sum the cost of materials and jeweler construction:\n    $500 (material) + $800 (construction) = $1300\n2.  Next, calculate the insurance cost, which is 10% of the above total:\n    10% of $1300 = 0.10 * $1300 = $130\n3.  Add the insurance cost to the earlier total to get the full amount paid:\n    $1300 + $130 = $1430\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.0009306000000000001,
+  "expected": "1430",
+  "tokens": {
+    "input": 147,
+    "output": 351
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "What specific thought or context led you to request a response composed entirely of questions? Did you have a particular topic or scenario in mind that suits this question-only format? Are you curious about how coherent a back-and-forth exchange can be when limited solely to interrogative statements? Might there be a specific goal or curiosity you\u2019re aiming to explore with this unique communication style?",
+  "score": 5,
+  "cost": 0.00044459999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 361
+  }
+}

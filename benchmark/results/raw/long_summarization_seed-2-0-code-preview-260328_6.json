@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work has shifted from a rare pre-pandemic workplace perk\u2014with fewer than 5% of workers fully remote before 2020\u2014to a mainstream practice, catalyzed by the 2020 COVID-19 forced remote work experiment that relied on enabling tools like Zoom, Slack, and cloud infrastructure. Its trajectory has been marked by mixed productivity findings from Stanford researcher Nick Bloom\u2019s studies, alongside tensions such as the return-to-office backlash, the rise of hybrid work as a dominant compromise, and tangible ripple effects including commercial real estate strain and geographic arbitrage (workers relocating to lower-cost areas). Additional critical dimensions of this shift include documented impacts on company culture and gaps in junior employee development, as well as formal policy adaptations like the emergence of digital nomad visas to accommodate this new work paradigm.",
+  "score": 5,
+  "cost": 0.0017657999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 1428
+  }
+}

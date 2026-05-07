@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product team has notified that the product launch is at risk because the payment integration has not passed PCI compliance and will require an additional two weeks to resolve, with two proposed options: launch without payments (which Legal confirms will need updated terms and conditions) or delay the full launch to May 15.\nAn urgent meeting to decide on the path forward for this launch issue has been scheduled for tomorrow at 10am.",
+  "score": 5,
+  "cost": 0.000894,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 336
+  }
+}

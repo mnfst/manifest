@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "To solve the problem, we first calculate Gerald's initial share of the $100, then subtract the $10 he spent.\n### Step 1: Understand the ratio and total parts\nThe money is divided in the ratio 3:2 between Gerald and Julia. This means:\n- Gerald gets 3 parts, Julia gets 2 parts.\n- Total number of parts = 3 + 2 = 5 parts.\n### Step 2: Find the value of one part\nThe total amount is $100, split into 5 equal parts.  \nValue of 1 part = Total amount \u00f7 Total parts = $100 \u00f7 5 = $20.\n### Step 3: Calculate Gerald's initial share\nGerald has 3 parts, so his initial money is:  \n3 parts \u00d7 $20/part = $60.\n### Step 4: Subtract the money Gerald spent\nHe spent $10 on a book,  his remaining money is:  \n$60 - $10 = $50.\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0007806,
+  "expected": "50",
+  "tokens": {
+    "input": 102,
+    "output": 625
+  }
+}

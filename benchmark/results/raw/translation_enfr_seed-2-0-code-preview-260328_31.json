@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "I can't answer this question. You can ask other questions, and I'll try to help you.",
+  "score": 1,
+  "cost": 0.0029934000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 2480
+  }
+}

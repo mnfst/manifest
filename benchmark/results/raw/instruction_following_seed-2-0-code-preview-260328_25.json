@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "### Meeting Invite Subject Line (7 words, <10 max):\n**Meeting Invite: Q3 Product Launch Prep Sync**\n\n#### Breakdown (clear, actionable, specific):\n- Signals *explicitly* it\u2019s a meeting invite (cuts spam/confusion)\n- Ties to a high-priority, time-bound initiative (Q3 Product Launch)\n- States the meeting\u2019s narrow purpose (prep, not vague \"check-in\")\n- \"Sync\" implies cross-team collaboration (common corporate clarity)\n- Word count: 7 (well under 10-word limit)",
+  "score": 5,
+  "cost": 0.0022782,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 1887
+  }
+}

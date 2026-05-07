@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 29,
+  "response": "Here are the problems with the code and how to fix them, written without special formatting:\n\nMain issues:\n\n1. SQL injection vulnerability  \n   The query directly embeds user input into SQL. An attacker could pass something like:  \n   q = 'x' OR 1=1 --  \n   This would return all products or worse.\n\n   How to fix:  \n   Use parameterized queries. Example (conceptual):  \n   const results = db.query(\"SELECT * FROM products WHERE name LIKE ?\", [`%${q}%`]);\n\n2. No input validation or sanitization  \n   The API allows any string, including extremely long input or unexpected types.\n\n   How to fix:  \n   Validate q to ensure it is a string, trim excessively long input, and reject empty or invalid values.\n\n3. Potential for performance issues  \n   A leading wildcard in a LIKE query (e.g., %term%) disables most database indexes and can cause slow queries on large tables.\n\n   How to fix:  \n   Consider:  \n   - Using full\u2011text search if supported  \n   - Indexing strategies  \n   - Restricting prefix-only searches (e.g., term%)\n\n4. No error handling  \n   If db.query fails (database offline, syntax error, etc.), the server will crash or hang the request.\n\n   How to fix:  \n   Wrap query in a try/catch and send an appropriate error response.\n\n5. Missing rate limiting or abuse protection  \n   This route could be called repeatedly to brute\u2011force search or overload the database.\n\n   How to fix:  \n   Add rate limiting middleware such as express-rate-limit.\n\n6. Potential information leakage  \n   Returning all columns with SELECT * may expose internal data that should not be public.\n\n   How to fix:  \n   Select only needed fields, for example:  \n   SELECT id, name, price FROM products WHERE ...\n\nImproved version (described, not formatted):\n\nDefine the route. Validate that req.query.q exists and is a reasonable length. Use a parameterized query such as \"SELECT id, name, price FROM products WHERE name LIKE ?\" and pass [\"%\" + q + \"%\"] as parameters. Wrap in try/catch, send an error response if needed.",
+  "score": 5,
+  "cost": 0.003832,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 458
+  }
+}

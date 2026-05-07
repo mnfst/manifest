@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "This DevOps email alerts that the SSL certificate for api.company.com is set to expire in 7 days on May 4, with auto-renewal having failed because the corresponding CNAME record was removed during the last DNS migration. DevOps will resolve the issue by re-adding the required _acme-challenge.api.company.com CNAME record today, and is flagging this situation for team visibility.",
+  "score": 5,
+  "cost": 0.000798,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 295
+  }
+}

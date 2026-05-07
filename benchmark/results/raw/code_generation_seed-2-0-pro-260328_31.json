@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 31,
+  "response": "filtered = [s for s in lst if len(s) % 2 == 0]\n    return sorted(filtered, key=lambda x: (len(x), x))",
+  "score": 4,
+  "cost": 0.0009965999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 277,
+    "output": 346
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "intent_clinc150",
+  "case": 4,
+  "response": "uber",
+  "score": 5,
+  "cost": 0.00044760000000000004,
+  "expected": "uber",
+  "tokens": {
+    "input": 610,
+    "output": 34
+  }
+}

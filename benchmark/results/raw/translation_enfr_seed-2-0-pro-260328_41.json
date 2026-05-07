@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "Tu n'es pas membre de la DGA. Zomme juste et ferme ta gueule.\n\n*Note: This preserves the original aggressive, vulgar on-set informal tone, matching the crude register of the source line. The DGA acronym is retained as it is standard terminology in global film industry contexts including French-speaking production environments.*",
+  "score": 4,
+  "cost": 0.0012102,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 483
+  }
+}

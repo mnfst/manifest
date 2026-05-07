@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "intent_clinc150",
+  "case": 11,
+  "response": "travel_alert",
+  "score": 5,
+  "cost": 0.00047759999999999995,
+  "expected": "travel_alert",
+  "tokens": {
+    "input": 604,
+    "output": 48
+  }
+}

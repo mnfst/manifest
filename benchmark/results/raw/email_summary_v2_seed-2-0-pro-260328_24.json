@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "The Design Team has announced that Design System v3 is ready for adoption, with changes including new dark mode color tokens, a 4px base revised spacing scale, updated Button and Modal components, and an available migration tool.\nThe Design Team recommends completing a team-by-team rollout of the new system, starting with the Settings page.",
+  "score": 5,
+  "cost": 0.0007932,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 298
+  }
+}

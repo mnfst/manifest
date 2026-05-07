@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 45,
+  "response": "Jen\u2019s server outage post-mortem identifies a misconfigured load balancer at 2:14 PM as the root cause of 47 minutes of degraded service affecting 12,000 users, with a full post-mortem document attached. The outlined action items are adding load balancer (LB) config validation to the continuous integration (CI) pipeline, updating the relevant runbook, and implementing traffic distribution alerts.",
+  "score": 5,
+  "cost": 0.0015102,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 1225
+  }
+}

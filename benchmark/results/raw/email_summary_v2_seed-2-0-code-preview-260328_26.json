@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The Privacy Team has communicated receipt of a GDPR data export request from user ID 45892, which carries a 30-day compliance deadline of May 25 and a legal mandate to include analytics data in the response. The required deliverables for this request are all of the user\u2019s personal data across services, documentation of data processing purposes, a third-party data sharing log, and the legally required analytics data.",
+  "score": 5,
+  "cost": 0.0015285,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 1241
+  }
+}

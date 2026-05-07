@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Les crit\u00e8res du DSM-IV relatifs \u00e0 l'intoxication alcoolique sont similaires, \u00e0 l'ajout d'un ou plusieurs des signes suivants : \u00e9locution embrouill\u00e9e, incoordination motrice, d\u00e9marche instable, nystagmus, alt\u00e9ration de l'attention ou de la m\u00e9moire, stupeur ou coma.\n\n*Note: All medical terminology matches the official French translation conventions for DSM literature, and the formal technical tone of the original medical text is preserved.*",
+  "score": 5,
+  "cost": 0.0019794,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 795
+  }
+}

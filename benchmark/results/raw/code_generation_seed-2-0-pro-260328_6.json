@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 6,
+  "response": "count = {}\n    for num in numbers:\n        count[num] = count.get(num, 0) + 1\n    return [num for num in numbers if count[num] == 1]",
+  "score": 5,
+  "cost": 0.0018918,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 746
+  }
+}

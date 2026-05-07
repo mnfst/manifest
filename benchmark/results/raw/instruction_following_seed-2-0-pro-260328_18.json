@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It's not a grand epic. Nobody saves the world. Nobody even dies, not really, not on the page.\n\nIt's just a grumpy, boring middle-aged man stuck in a life he never meant to build, who gets a random legal letter one day that drags him back to a few months of his teenage years he'd spent decades deliberately not thinking about.\n\nYou spend the whole book waiting for the big twist: the secret affair, the hidden crime, the dramatic betrayal that will explain everything. It never comes. All the revelations are small, ordinary, unforgivable and tender all at once. You learn that a memory you carried for forty years was not even slightly true. That the boy you bullied and forgot was not who you thought he was. That the girl you romanticised as a tragedy was just a girl, angry and alive, who you never bothered to see at all.\n\nWhen you close it you don't cry, not exactly. You just sit very still for a while. You start scrolling old high school group chats you left years ago. You wonder how many versions of you are walking around in other people's heads, most of them wrong. You wonder how many small, quiet kindnesses were done for you, how many quiet harms you dealt out, that you will never, ever get to know about.\n\nIt is the only book I have ever read that gets it right: that the worst and most important things you do in your whole life are the ones you don't even notice you are doing at the time.",
+  "score": 5,
+  "cost": 0.0023538,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 966
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This is a configurable Python decorator that implements the **exponential backoff retry pattern**. It will attempt to execute the wrapped function up to `max_attempts` total times, waiting an exponentially increasing duration between failed attempts, and only re-raises the caught exception if all attempts fail.",
+  "score": 5,
+  "cost": 0.001089,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 411
+  }
+}

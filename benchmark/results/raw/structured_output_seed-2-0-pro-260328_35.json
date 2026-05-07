@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "structured_output",
+  "case": 35,
+  "response": "{\n  \"product\": \"Samsung 65-inch TV\",\n  \"model\": \"QN65S95D\",\n  \"serial_number\": \"SN-2024-XYZ789\",\n  \"duration_years\": 2,\n  \"purchase_date\": \"2024-03-01\",\n  \"covers\": [\"manufacturer defects\"],\n  \"excludes\": [\"accidental damage\"]\n}",
+  "score": 5,
+  "cost": 0.000855,
+  "expected": "",
+  "tokens": {
+    "input": 177,
+    "output": 312
+  }
+}

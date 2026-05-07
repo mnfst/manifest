@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "### Step 1: Define variables\nLet the number of copies Harald sold = \\( x \\).\nSince Marilyn sold 10 times as many as Harald, Marilyn's sales = \\( 10x \\).\n### Step 2: Set up the total sales equation\nCombined sales equal 88,000, so:\n\\( x + 10x = 88000 \\)\n### Step 3: Simplify and solve for \\( x \\)\nCombine like terms:\n\\( 11x = 88000 \\)\nDivide both sides by 11 to isolate \\( x \\):\n\\( x = \\frac{88000}{11} = 8000 \\)\n### Step 4: Verify\nHarald sold 8,000 copies, Marilyn sold \\( 10*8000 = 80000 \\) copies. Combined: \\( 8000 + 80000 = 88000 \\), which matches the given total.\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.0012347999999999999,
+  "expected": "8000",
+  "tokens": {
+    "input": 122,
+    "output": 484
+  }
+}

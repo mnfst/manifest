@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old librarian kept a single cracked teacup on her checkout desk, filled every morning with chamomile that smelled like rain.\nNo one ever asked her why she never drank it, not even the regulars who came in every Wednesday for mystery novels.\nLast week, a girl with braids trailing dandelion fluff paused before the desk, and before she could think better of it, said the teacup was exactly like her grandmother\u2019s.\nThe librarian\u2019s hands stilled mid-stamp, and for the first time in twelve years, she lifted the cup and took a slow, quiet sip.\nIt was cold, of course, had been cold every morning for all those years, but this time it didn\u2019t feel like waiting.\nThat evening, she locked the library door, walked to the bus stop, and bought a one-way ticket home.",
+  "score": 5,
+  "cost": 0.001458,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 593
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Today is my last day with the team, and I wanted to send this quick note to say goodbye properly before I log off for the final time.\nI\u2019ll leave with so many good memories: late night snack runs before deadlines, the terrible lunch break pun wars, and the quiet way everyone showed up for each other when things got hard.\nWorking alongside all of you taught me more about creativity, kindness, and showing up even on bad days than any job description ever promised.\nI\u2019ve linked my personal contact info below, please reach out anytime \u2014 even if it\u2019s just to complain about the broken office coffee machine or send a dumb meme.\nThank you for making this place feel like more than just work, and I wish every single one of you all the wonderful things you deserve.",
+  "score": 3,
+  "cost": 0.001932,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 790
+  }
+}

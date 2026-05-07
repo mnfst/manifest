@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 20,
+  "response": "roman_numerals = [\n        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),\n        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),\n        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')\n    ]\n    result = ''\n    for val, sym in roman_numerals:\n        while number >= val:\n            result += sym\n            number -= val\n    return result",
+  "score": 5,
+  "cost": 0.0019757999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 774
+  }
+}

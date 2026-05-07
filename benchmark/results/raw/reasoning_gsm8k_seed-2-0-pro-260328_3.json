@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "First, calculate the age of the younger son:\nThe older son is 12, and the younger son is 4 years younger.\nYounger son age = 12 - 4 = 8 years old.\n\nNext, find the total number of candles needed (one candle per year of age for each son):\nTotal candles = Older son age + Younger son age = 12 + 8 = 20 candles.\n\nThen, calculate how many packs of candles are required:\nEach pack has 5 candles.\nNumber of packs = Total candles / Candles per pack = 20 / 5 = 4 packs.\n\nFinally, calculate total cost:\nEach pack costs $3.\nTotal cost = Number of packs * Cost per pack = 4 * 3 = $12.\n\nANSWER: 12",
+  "score": 5,
+  "cost": 0.0011202,
+  "expected": "12",
+  "tokens": {
+    "input": 135,
+    "output": 433
+  }
+}

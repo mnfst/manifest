@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 32,
+  "response": "Here is a clear review of the code, including bugs, security issues, and suggested improvements:\n\nThe code:\n```\ndef get_env(key):\n    return os.environ[key]\n```\n\nProblems and how to fix them:\n\n\u2022 Missing import  \n  The function uses os.environ but never imports the os module.  \n  Fix: add `import os`.\n\n\u2022 Unhandled KeyError exception  \n  Accessing os.environ[key] will raise KeyError if the environment variable is missing.  \n  This can crash the program unexpectedly.  \n  Fix: use os.environ.get(key) or catch KeyError explicitly.\n\n\u2022 Potential information disclosure  \n  If this function is used in an API or logs its output, it could leak sensitive environment variables such as API keys, secrets, or database passwords.  \n  Fix: validate allowed variable names, or avoid exposing environment variables altogether.\n\n\u2022 No input validation  \n  A caller could pass non\u2011string values or maliciously crafted strings.  \n  Fix: ensure key is a string and optionally restrict to a safe whitelist.\n\n\u2022 Better default behavior  \n  Returning None or a caller-defined default is usually safer than raising an exception.  \n  Fix: allow an optional default parameter.\n\nImproved version:\n```\nimport os\n\ndef get_env(key, default=None):\n    if not isinstance(key, str):\n        raise TypeError(\"Environment variable name must be a string.\")\n    # optionally: enforce whitelist here\n    return os.environ.get(key, default)\n```\n\nOptional security improvement:\nLimit what can be accessed:\n```\nALLOWED_ENV_KEYS = {\"APP_MODE\", \"LOG_LEVEL\"}\n\ndef get_env(key, default=None):\n    if key not in ALLOWED_ENV_KEYS:\n        raise PermissionError(\"Access to this environment variable is not allowed.\")\n    return os.environ.get(key, default)\n```",
+  "score": 5,
+  "cost": 0.003086,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 374
+  }
+}

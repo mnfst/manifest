@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "First, calculate Joey's new total score:\nJoey starts with 214 points, then scores 26 more.\nJoey's final score = 214 + 26 = 240 points.\n\nNext, calculate Marcy's new total score:\nMarcy starts with 225 points, then scores 10 more.\nMarcy's final score = 225 + 10 = 235 points.\n\nFinally, find the difference between Joey's score and Marcy's score to see how many points Joey is winning by:\nDifference = 240 - 235 = 5 points.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.000894,
+  "expected": "5",
+  "tokens": {
+    "input": 134,
+    "output": 339
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "structured_output",
+  "case": 26,
+  "response": "{\"title\": \"Team standup\", \"recurrence\": \"weekdays\", \"time_start\": \"9:00 AM\", \"time_end\": \"9:15 AM\", \"timezone\": \"PST\", \"meeting_link\": \"meet.google.com/abc-defg-hij\", \"organizer\": \"sarah@company.com\"}",
+  "score": 4,
+  "cost": 0.0014328,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 1160
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "data_to_text",
+  "case": 14,
+  "response": "Team Alpha #23 wrapped a sprint running January 15 to 26, during which they completed 38 of their 42 planned story points\u2014surpassing their average velocity of 36\u2014while finishing 8 user stories, fixing 5 bugs, and navigating 2 project blockers. Stakeholders rated the team\u2019s sprint performance a 4.1 out of 5, reflecting solid execution despite the small shortfall in their planned story point workload.",
+  "score": 5,
+  "cost": 0.0021588,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 1767
+  }
+}

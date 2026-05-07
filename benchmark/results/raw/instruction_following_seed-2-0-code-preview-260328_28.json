@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Your consistent tiny steps today stitch the starlight of your tomorrow\u2019s unshakable wins.\n\n(Word count: 13 | Motivational focus: Ties actionable, low-stakes daily effort to a vivid, lasting reward)",
+  "score": 5,
+  "cost": 0.00111,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 913
+  }
+}

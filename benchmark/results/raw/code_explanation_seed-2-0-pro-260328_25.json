@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This is a minimal Python implementation of the **Observer (Publish-Subscribe)** pattern. It maintains a mapping of named events to registered callback functions, supporting adding callbacks to an event, triggering all callbacks for an event with supplied arguments, and removing callbacks from an event.",
+  "score": 5,
+  "cost": 0.0008376,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 306
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 41,
+  "response": "res = l.copy()\nthird_positions = list(range(0, len(l), 3))\nsorted_vals = sorted(l[i] for i in third_positions)\nfor idx, pos in enumerate(third_positions):\n    res[pos] = sorted_vals[idx]\nreturn res",
+  "score": 5,
+  "cost": 0.0015936,
+  "expected": "",
+  "tokens": {
+    "input": 236,
+    "output": 605
+  }
+}

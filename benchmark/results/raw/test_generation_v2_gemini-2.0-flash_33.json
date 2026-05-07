@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 33,
+  "response": "```python\nimport pytest\nfrom your_module import flatten_dict  # Replace your_module\n\ndef test_flatten_dict_happy_path():\n    d = {'a': 1, 'b': {'c': 2, 'd': 3}, 'e': 4}\n    expected = {'a': 1, 'b.c': 2, 'b.d': 3, 'e': 4}\n    assert flatten_dict(d) == expected\n\ndef test_flatten_dict_nested_dicts():\n    d = {'a': {'b': {'c': 1, 'd': 2}, 'e': 3}, 'f': 4}\n    expected = {'a.b.c': 1, 'a.b.d': 2, 'a.e': 3, 'f': 4}\n    assert flatten_dict(d) == expected\n\ndef test_flatten_dict_empty_dict():\n    d = {}\n    expected = {}\n    assert flatten_dict(d) == expected\n\ndef test_flatten_dict_no_nested_dicts():\n    d = {'a': 1, 'b': 2, 'c': 3}\n    expected = {'a': 1, 'b': 2, 'c': 3}\n    assert flatten_dict(d) == expected\n\ndef test_flatten_dict_empty_nested_dict():\n    d = {'a': {}, 'b': 1}\n    expected = {'b': 1}\n    assert flatten_dict(d) == expected\n\ndef test_flatten_dict_custom_separator():\n    d = {'a': 1, 'b': {'c': 2, 'd': 3}}\n    expected = {'a': 1, 'b_c': 2, 'b_d': 3}\n    assert flatten_dict(d, sep='_') == expected\n\ndef test_flatten_dict_parent_key():\n    d = {'a': 1, 'b': {'c': 2, 'd': 3}}\n    expected = {'prefix.a': 1, 'prefix.b.c': 2, 'prefix.b.d': 3}\n    assert flatten_dict(d, parent_key='prefix') == expected\n\ndef test_flatten_dict_parent_key_and_separator():\n    d = {'a': 1, 'b': {'c': 2, 'd': 3}}\n    expected = {'prefix_a': 1, 'prefix_b_c': 2, 'prefix_b_d': 3}\n    assert flatten_dict(d, parent_key='prefix', sep='_') == expected\n\ndef test_flatten_dict_mixed_data_types():\n    d = {'a': 1, 'b': {'c': 'hello', 'd': [1, 2, 3]}, 'e': True}\n    expected = {'a': 1, 'b.c': 'hello', 'b.d': [1, 2, 3], 'e': True}\n    assert flatten_dict(d) == expected\n\ndef test_flatten_dict_numeric_keys():\n    d = {1: 'a', 2: {'3': 'b', 4: 'c'}}\n    expected = {1: 'a', '2.3': 'b', '2.4': 'c'}\n    assert flatten_dict(d) == expected\n\ndef test_flatten_dict_key_collision():\n    d = {'a': 1, 'a.b': 2, 'b': {'c': 3}}\n    expected = {'a': 1, 'a.b': 2, 'b.c': 3}\n    assert flatten_dict(d) == expected\n\ndef test_flatten_dict_with_none_values():\n    d = {'a': None, 'b': {'c': None, 'd': 3}}\n    expected = {'a': None, 'b.c': None, 'b.d': 3}\n    assert flatten_dict(d) == expected\n```",
+  "score": 4,
+  "cost": 0.00038710000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 932
+  }
+}

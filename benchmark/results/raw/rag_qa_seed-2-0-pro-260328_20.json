@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "They are funded in whole by charging their students tuition fees.",
+  "score": 5,
+  "cost": 0.0002736,
+  "expected": "tuition",
+  "tokens": {
+    "input": 188,
+    "output": 67
+  }
+}

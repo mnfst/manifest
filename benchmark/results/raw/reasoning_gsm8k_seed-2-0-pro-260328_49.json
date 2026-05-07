@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Let's solve this problem step by step:\n1.  First calculate the total age of the 3 sisters:\n    Each sister is 16 years old.\n    Total sister age = 3 * 16 = 48 years.\n2.  Next calculate the ages of the 2 brothers:\n    -   One brother is 12 years old.\n    -   We are told 12 is half the age of the older brother, so the older brother's age = 12 * 2 = 24 years.\n    Total brother age = 12 + 24 = 36 years.\n3.  Find the total age of all siblings by adding the total sister age and total brother age:\n    Total age = 48 + 36 = 84 years.\nANSWER: 84",
+  "score": 5,
+  "cost": 0.001332,
+  "expected": "84",
+  "tokens": {
+    "input": 144,
+    "output": 519
+  }
+}

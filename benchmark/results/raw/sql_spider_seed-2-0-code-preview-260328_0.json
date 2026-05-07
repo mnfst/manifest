@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "SELECT money_rank\nFROM players\nWHERE height = (SELECT MAX(height) FROM players);",
+  "score": 4,
+  "cost": 0.0047343,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 3921
+  }
+}

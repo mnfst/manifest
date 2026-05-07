@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "data_to_text",
+  "case": 40,
+  "response": "This patient is a 45-year-old female who does not smoke, exercises twice weekly, and has a family history of diabetes affecting her mother. Her key clinical metrics include a BMI of 27.3, blood pressure of 138/88, total cholesterol of 225 mg/dL, and a fasting glucose level of 110 mg/dL.",
+  "score": 5,
+  "cost": 0.0014037,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 1137
+  }
+}

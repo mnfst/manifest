@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "Trust & Safety is updating content moderation policies to address AI-generated content, implementing rules that require labeling for AI-generated images, prohibit deepfakes, and mandate disclosure for AI-assisted text, with official enforcement of these new rules starting June 1. The Trust & Safety team also notes that training materials for this updated policy are currently being prepared.",
+  "score": 5,
+  "cost": 0.0007332,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 270
+  }
+}

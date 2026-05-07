@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Let's solve this problem step by step:\n\n1. First, find how many pomelos Eve has left. The problem states she has 1/4 of her original 20 pomelos remaining.  \n   Calculate 1/4 of 20:  \n   \\( \\frac{1}{4} \\times 20 = 5 \\)  \n   So Eve has 5 pomelos left.\n\n2. Next, find how many pomelos she gave away. This is equal to her original number of pomelos minus the number she has left.  \n   Original pomelos: 20  \n   Pomelos left: 5  \n   Pomelos given away: \\( 20 - 5 = 15 \\)\n\n(We can also verify this another way: If Eve has 1/4 left, she gave away \\( 1 - \\frac{1}{4} = \\frac{3}{4} \\) of her pomelos. \\( \\frac{3}{4} \\times 20 = 15 \\), which confirms the result.)\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.0007149,
+  "expected": "15",
+  "tokens": {
+    "input": 111,
+    "output": 568
+  }
+}

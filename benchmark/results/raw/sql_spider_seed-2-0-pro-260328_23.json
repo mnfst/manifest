@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "```sql\nSELECT production_code, channel FROM cartoons ORDER BY air_date DESC LIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.000531,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 192
+  }
+}

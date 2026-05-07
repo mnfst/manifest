@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Source : examplereferenceletter.com",
+  "score": 1,
+  "cost": 0.000261,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 203
+  }
+}

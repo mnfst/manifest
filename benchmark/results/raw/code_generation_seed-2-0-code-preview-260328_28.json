@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 28,
+  "response": "coords = []\nfor r, row in enumerate(lst):\n    for c, val in enumerate(row):\n        if val == x:\n            coords.append((r, c))\ncoords.sort(key=lambda t: (t[0], -t[1]))\nreturn coords",
+  "score": 5,
+  "cost": 0.0059397,
+  "expected": "",
+  "tokens": {
+    "input": 335,
+    "output": 4866
+  }
+}

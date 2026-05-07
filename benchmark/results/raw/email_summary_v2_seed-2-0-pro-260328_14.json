@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "DevOps has issued an infrastructure cost alert advising that the AWS bill is up 40% month-over-month, driven primarily by new ML training jobs using p4d instances, with an estimated additional monthly impact of $45K.\nTwo cost mitigation options are being proposed, and a decision between spot instances or reserved instances is required by Friday.",
+  "score": 5,
+  "cost": 0.0007733999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 283
+  }
+}

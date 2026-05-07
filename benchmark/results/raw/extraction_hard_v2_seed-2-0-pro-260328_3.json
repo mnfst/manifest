@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page is completely broken on Chrome 121, resulting in white screen after attempting payment with no user-facing error message\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout page\",\n    \"Enter card information\",\n    \"Click the pay button\"\n  ],\n  \"expected_behavior\": \"Payment should process successfully, or an appropriate error message should be displayed if a failure occurs\",\n  \"actual_behavior\": \"After clicking pay, a spinner displays for 30 seconds then the page becomes a white screen with no error message; browser console shows a CORS error and 'undefined is not a function' error at checkout.bundle.js:847\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 5,
+  "cost": 0.0011742,
+  "expected": "",
+  "tokens": {
+    "input": 217,
+    "output": 435
+  }
+}

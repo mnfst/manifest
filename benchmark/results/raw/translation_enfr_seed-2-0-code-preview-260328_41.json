@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "T'es pas \u00e0 la DGA. Juste fais un zoom avant et ferme ta putain de gueule.\n\n### Breakdown for accuracy/tone:\n1. **\"You ain't in the DGA\"**: *\"T'es pas \u00e0 la DGA\"* matches the non-standard, colloquial tone of \"ain't\" (using spoken French's elision of *tu n'es pas* to *t'es pas*). The DGA (Directors Guild of America) is a widely recognized English acronym in French film circles, so it\u2019s retained (no awkward translation of the full guild name). *\u00c0 la DGA* is natural colloquial French for \"in the [professional guild].\"\n2. **\"Just zoom in and shut the fuck up\"**: *\"Juste fais un zoom avant et ferme ta putain de gueule\"* matches the aggressive, vulgar imperative tone:\n   - *Juste fais un zoom avant* = snappy, colloquial command for \"just zoom in\" (uses film industry standard *zoom avant* for \"zoom in\").\n   - *Ferme ta putain de gueule* = the exact French vulgar equivalent of \"shut the fuck up\" (amplifies vulgarity with *putain de* to match the intensity of \"fuck\").",
+  "score": 5,
+  "cost": 0.0038072999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 3156
+  }
+}

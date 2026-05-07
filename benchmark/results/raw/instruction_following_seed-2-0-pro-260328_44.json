@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "### Basic Salad Ingredients\n- [ ]  Salad greens base (romaine, iceberg, or mixed baby greens)\n- [ ]  Cherry tomatoes (halved)\n- [ ]  Cucumber (sliced / diced)\n- [ ]  Thinly sliced red onion\n- [ ]  Diced bell pepper\n- [ ]  Grated or julienned carrot\n- [ ]  Olive oil (for dressing)\n- [ ]  Vinegar (balsamic, apple cider or white wine)\n- [ ]  Salt & fresh black pepper\n- [ ]  Optional: Plain croutons\n- [ ]  Optional: Shredded parmesan cheese",
+  "score": 5,
+  "cost": 0.0010248,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 412
+  }
+}

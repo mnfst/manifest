@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 46,
+  "response": "This is the standard CLRS-algorithm red-black tree post-insertion rebalancing function, which runs immediately after a new node is inserted to repair violated red-black tree invariants.\nIt resolves red parent violations by either recoloring the parent, uncle and grandparent when the uncle node is red, or performing the required left/right rotations and targeted recoloring when the uncle is black, propagating upwards through the tree as needed before finally ensuring the tree root remains black.",
+  "score": 5,
+  "cost": 0.0016332,
+  "expected": "",
+  "tokens": {
+    "input": 234,
+    "output": 622
+  }
+}

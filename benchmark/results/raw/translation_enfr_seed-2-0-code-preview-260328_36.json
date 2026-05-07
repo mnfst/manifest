@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu te bats, plus \u00e7a va \u00eatre g\u00eanant pour tout le monde.\n\n### Breakdown of tone/meaning alignment:\n1. **Informal tone match**: Uses *tu* (casual \"you\") instead of formal *vous*, and *va \u00eatre* (futur proche, conversational \"gonna\") instead of formal future *sera*.\n2. **Comparative structure**: *Plus...plus...* directly mirrors English \"The more...the more...\".\n3. **Lexical precision**:\n   - *Se battre* = natural casual equivalent of \"struggle\" (fits the implied active resistance/struggle context of the warning).\n   - *G\u00eanant* = correct for \"awkward\" (describes an uncomfortable/tense situation, unlike *maladroit* which refers to physical clumsiness).\n   - *Tout le monde* = casual, exact equivalent of \"everybody\" (avoids formal *pour tous*).\n4. **Contextual fit**: Matches the original's conversational, slightly warning tone (e.g., a bouncer/cop speaking to someone resisting, or a friend warning a panicking person).",
+  "score": 5,
+  "cost": 0.0038558999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 3197
+  }
+}

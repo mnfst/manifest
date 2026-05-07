@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "### Sentence 1: This code is a Python implementation of a **fixed-capacity Least Recently Used (LRU) Cache**\u2014a data structure that evicts the least recently accessed entry when full\u2014by leveraging Python\u2019s `OrderedDict` (which preserves insertion order) to track entry recency.\n### Sentence 2: The `get` method returns a cached value (moving the key to the `OrderedDict`\u2019s end to mark it as most recently used, or -1 if absent), while `put` adds/updates entries (also marking them as most recent) and evicts the least recently used entry (the `OrderedDict`\u2019s front entry via `popitem(last=False)`) when capacity is exceeded.",
+  "score": 5,
+  "cost": 0.0031356,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 2569
+  }
+}

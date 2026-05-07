@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun\u2019s last warm press slides from the nape of my neck, leaving salt-kissed air pricking the bare skin of my forearms. I\u2019m curled on a weathered cedar dock where splinters catch the gilded edge of the sky\u2014each tiny sliver glows like a stolen pinprick of saffron.\n\nAbove, the sky bleeds ash-blue at the zenith, fading to soft lavender halfway down, then a tight, luminous band near the horizon layered like pressed wildflower petals: apricot, pale tangerine, a wash of honeyed amber that seeps into the marsh grass below. Tidal pools cupped in the cordgrass hold shards of that light; when a great blue heron steps through, its talons disturbing the surface, the shards fracture into ripples of apricot and saffron. The cordgrass itself\u2014tall, frayed at the seed heads\u2014wears the light like gilded lace, each thread glowing as the sun\u2019s molten saffron disk slips behind the tallest stalks.\n\nA dragonfly skims the dock\u2019s edge, its wings humming a thin, steady note, catching the light so they turn translucent\u2014like stained glass softened by steam. Distant, a screen door slams; a child\u2019s laugh curls over the marsh, then fades. A single cricket chirps, tentative, then another, then a dozen, their chorus swelling like a quiet fanfare.\n\nThe air smells like dried cordgrass (sweet, earthy, a little briny) and a whiff of cedar smoke curling from a cottage chimney half a mile off, plus the buttery, sweet tang of grilled corn carried on the breeze. I reach for the chipped ceramic mug at my feet\u2014lemonade, still lukewarm, tart enough to make my tongue tingle\u2014and the chip along its rim glows with the last of the saffron light.\n\nThen the sun\u2019s disk vanishes entirely. The gilded lace on the cordgrass dims to soft peach, then to pale gray. The first star pricks through the ash-blue zenith, sharp as a needle. The crickets\u2019 chorus swells louder, and the air nips my knuckles now\u2014the sun\u2019s warmth a faint, lingering press on the nape of my neck.\n\n(No \u201cbeautiful\u201d or \u201cred\u201d appears; the description leans into tactile, olfactory, auditory, and specific, non-red visual details to anchor the sunset in lived experience.)",
+  "score": 5,
+  "cost": 0.0037272,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 3095
+  }
+}

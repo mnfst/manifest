@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "SELECT year\nFROM concerts\nGROUP BY year\nORDER BY COUNT(*) DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 0.0042291,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 3500
+  }
+}

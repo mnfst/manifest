@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "ner_extraction",
+  "case": 10,
+  "response": "{\"persons\": [\"Jennifer Lopez\", \"Ben Affleck\"], \"organizations\": [], \"locations\": [\"Beverly Hills\"]}",
+  "score": 5,
+  "cost": 0.0002283,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 166
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "This April investor update shares the company has reached its 10K monthly active user milestone, closed an $8M Series A term sheet at a $40M pre-money valuation, hired a VP of Sales, and reported key metrics including $85K monthly recurring revenue, $120K monthly burn rate, and 11 months of projected runway following the raise.\nThe update also confirms the Series A fundraising round is scheduled to formally close on May 10.",
+  "score": 5,
+  "cost": 0.0010308,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 390
+  }
+}

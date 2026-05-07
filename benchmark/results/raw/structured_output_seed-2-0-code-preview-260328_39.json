@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "structured_output",
+  "case": 39,
+  "response": "{\"build_number\": 4521, \"branch\": \"feature/auth-v2\", \"status\": \"failed\", \"failed_stage\": \"test stage\", \"duration\": \"8m 32s\", \"tests\": {\"passed\": 247, \"failed\": 3, \"skipped\": 0}, \"trigger\": \"push\", \"author\": \"@alice\"}",
+  "score": 4,
+  "cost": 0.0013128,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 1053
+  }
+}

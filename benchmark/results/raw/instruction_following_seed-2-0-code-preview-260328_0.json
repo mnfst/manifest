@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "\u2022 Strengthens cardiovascular health and reduces chronic disease risk by fortifying the heart muscle, lowering resting blood pressure, and decreasing LDL (\u201cbad\u201d cholesterol) levels\u2014cutting the likelihood of developing heart disease or type 2 diabetes by 20\u201330% in consistent exercisers, per CDC data.\n\u2022 Enhances cognitive function and mood stability by triggering endorphin release (the body\u2019s natural mood boosters) and increasing cerebral blood flow, which improves working memory, reduces symptoms of mild anxiety and depression, and may slow age-related cognitive decline (e.g., dementia risk).\n\u2022 Preserves long-term functional independence by maintaining bone density (lowering osteoporosis and fracture risk by 40% in postmenopausal people, per the National Osteoporosis Foundation) and building lean muscle mass, which supports balance, mobility, and daily task performance (e.g., carrying groceries, climbing stairs) as individuals age.",
+  "score": 1,
+  "cost": 0.0010206,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 840
+  }
+}

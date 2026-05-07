@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "intent_clinc150",
+  "case": 20,
+  "response": "vaccines",
+  "score": 5,
+  "cost": 0.0004752,
+  "expected": "vaccines",
+  "tokens": {
+    "input": 608,
+    "output": 46
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "the mass of the system",
+  "score": 5,
+  "cost": 0.00046829999999999994,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 189,
+    "output": 343
+  }
+}

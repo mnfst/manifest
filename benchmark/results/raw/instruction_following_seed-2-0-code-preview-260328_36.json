@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are 4 programming languages (excluding Python/JavaScript) with distinct core paradigms and use cases:\n1. **Rust**: A statically typed, memory-safe systems programming language that uses a \"borrow checker\" to enforce memory safety *without a garbage collector*. It\u2019s used for embedded systems, browser components (e.g., Firefox\u2019s Stylo CSS engine), and high-performance backend services (e.g., Discord\u2019s voice server).\n2. **Haskell**: A pure functional, statically typed language with lazy evaluation (expressions compute only when needed). Favored in academic research and high-assurance fintech (e.g., Jane Street\u2019s trading systems) for its mathematical rigor and minimal side effects.\n3. **Elixir**: A dynamically (but strongly) typed functional-concurrent language built on the Erlang Virtual Machine (BEAM). Designed for fault tolerance and low-latency real-time systems, it powers web apps (via the Phoenix framework), chat platforms, and IoT infrastructure.\n4. **Kotlin**: A statically typed, JVM-compatible language (Google\u2019s official preferred language for Android development). It\u2019s also used for backend services (Spring Boot) and cross-platform mobile development, with concise syntax and full Java interoperability.",
+  "score": 5,
+  "cost": 0.0017325,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 1433
+  }
+}

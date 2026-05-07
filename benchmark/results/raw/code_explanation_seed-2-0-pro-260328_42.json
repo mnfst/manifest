@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This is a bounded async FIFO queue implementation for Python asyncio, using the standard async waiter pattern rather than busy polling. When a `put` would exceed the queue max size or a `get` runs on an empty queue, the calling coroutine parks itself via a pending future stored in a waitlist, which gets resolved later when the queue state changes to wake the waiting task.",
+  "score": 5,
+  "cost": 0.0012498,
+  "expected": "",
+  "tokens": {
+    "input": 279,
+    "output": 451
+  }
+}

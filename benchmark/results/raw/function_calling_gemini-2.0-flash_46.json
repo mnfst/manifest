@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 46,
+  "response": "{\"name\": \"restart_service\", \"arguments\": {\"name\": \"Redis cache server\"}}",
+  "score": 4,
+  "cost": 1.73e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 20
+  }
+}

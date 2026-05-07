@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "{\"persons\": [], \"organizations\": [\"SpaceX\"], \"locations\": [\"Cape Canaveral\"]}",
+  "score": 4,
+  "cost": 0.0005481,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 432
+  }
+}

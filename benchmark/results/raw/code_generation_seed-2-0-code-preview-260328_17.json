@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 17,
+  "response": "if not text:\n        return None\n    import hashlib\n    return hashlib.md5(text.encode('utf-8')).hexdigest()",
+  "score": 5,
+  "cost": 0.005123399999999999,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 4232
+  }
+}

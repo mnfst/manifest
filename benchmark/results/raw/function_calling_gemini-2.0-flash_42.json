@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 42,
+  "response": "{\"name\": \"create_bucket\", \"arguments\": {\"name\": \"data-lake-prod\", \"region\": \"us-east-1\"}}",
+  "score": 5,
+  "cost": 2.23e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 31
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 38,
+  "response": "neg = [x for x in lst if x < 0]\n    pos = [x for x in lst if x > 0]\n    return (max(neg) if neg else None, min(pos) if pos else None)",
+  "score": 4,
+  "cost": 0.0010932,
+  "expected": "",
+  "tokens": {
+    "input": 226,
+    "output": 399
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP Engineering is proposing splitting the Platform team into two separate teams, Infrastructure and Developer Experience, to resolve the bottleneck where developer experience work is regularly deprioritized for infrastructure incidents.\nA draft org chart is attached alongside this team restructuring proposal.",
+  "score": 5,
+  "cost": 0.0008742,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 330
+  }
+}

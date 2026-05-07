@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 31,
+  "response": "2,3,5,7,11,13,17,19,23,29",
+  "score": 5,
+  "cost": 0.00030929999999999993,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 247
+  }
+}

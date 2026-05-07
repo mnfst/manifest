@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "Hassan al-Turabi.",
+  "score": 5,
+  "cost": 0.00023939999999999996,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 195,
+    "output": 51
+  }
+}

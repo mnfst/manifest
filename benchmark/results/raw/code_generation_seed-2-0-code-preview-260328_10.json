@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 10,
+  "response": "count = 0\nfor num in arr:\n    s = str(num)\n    if s.startswith('-'):\n        digit_sum = -int(s[1]) + sum(int(c) for c in s[2:])\n    else:\n        digit_sum = sum(int(c) for c in s)\n    if digit_sum > 0:\n        count += 1\nreturn count",
+  "score": 4,
+  "cost": 0.0041388,
+  "expected": "",
+  "tokens": {
+    "input": 196,
+    "output": 3400
+  }
+}

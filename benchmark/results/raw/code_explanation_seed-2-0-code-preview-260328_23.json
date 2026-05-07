@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 23,
+  "response": "This code implements the **binary search-based `bisect_left` algorithm** (matching Python\u2019s standard `bisect.bisect_left`), which requires an **ascending-sorted input list `a`**. It returns the leftmost valid insertion index for `x`: either the position of `x`\u2019s first occurrence in `a` (if present) or the spot where inserting `x` preserves `a`\u2019s sorted order.",
+  "score": 5,
+  "cost": 0.0022137,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1814
+  }
+}

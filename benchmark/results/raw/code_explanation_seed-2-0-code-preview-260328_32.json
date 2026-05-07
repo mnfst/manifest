@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This Python factory function `union_find(n)` initializes the **Disjoint Set Union (DSU/Union-Find)** data structure\u2014for managing non-overlapping (disjoint) sets\u2014with `n` singleton sets (each element is its own parent) and returns optimized `find` and `union` inner functions using two core DSU optimizations: *path compression* and *union by rank*. The `find` function recursively locates an element\u2019s root *and compresses the path* by linking all lookup-path nodes directly to the root (flattening the tree for faster future access), while `union` merges sets by attaching the root of the shorter \"rank\" (a tree height proxy) tree to the taller tree\u2019s root\u2014only incrementing the taller tree\u2019s rank if both were equal height\u2014to minimize tree depth, ensuring near-constant amortized time (O(\u03b1(n)), where \u03b1 is the inverse Ackermann function) for all operations.",
+  "score": 5,
+  "cost": 0.0023361,
+  "expected": "",
+  "tokens": {
+    "input": 191,
+    "output": 1899
+  }
+}

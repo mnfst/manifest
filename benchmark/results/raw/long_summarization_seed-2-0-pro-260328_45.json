@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 45,
+  "response": "Quantum computing operates differently than classical computing, using qubits capable of superposition, entanglement, and interference which allow it to solve certain problems exponentially faster than classical machines, while companies including IBM, Google, IonQ and Rigetti develop quantum hardware using a range of technical approaches. In 2019, Google claimed to achieve quantum supremacy by completing a calculation in 200 seconds that would have taken a classical supercomputer an estimated 10,000 years. Significant barriers to practical usable quantum computing remain, including extremely fragile qubits, high error rates, and the fact that current devices only have 100-1000 qubits while millions may be required for useful applications. Despite these challenges, quantum computing holds promise for fields including drug discovery and cryptography, and companies are already experimenting with quantum algorithms for financial modeling and logistics.",
+  "score": 5,
+  "cost": 0.0016577999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 323,
+    "output": 610
+  }
+}

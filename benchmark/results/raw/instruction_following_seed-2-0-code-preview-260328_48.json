@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, feuding Montague and Capulet clans\u2019 teen heirs\u2014Romeo (Montague) and Juliet (Capulet)\u2014fall instantly for each other at a masked ball, wed secretly via Friar Laurence, who hopes to mend their grudge. When Tybalt slays Romeo\u2019s friend Mercutio, Romeo kills Tybalt and is exiled; the friar\u2019s fake-death ruse for Juliet backfires, leaving both dead, their families finally reconciling.",
+  "score": 5,
+  "cost": 0.0022343999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 1849
+  }
+}

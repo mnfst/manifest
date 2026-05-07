@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 5,
+  "response": "current_max = l[0]\n    for num in l:\n        if num > current_max:\n            current_max = num\n    return current_max",
+  "score": 4,
+  "cost": 0.010818,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 8978
+  }
+}

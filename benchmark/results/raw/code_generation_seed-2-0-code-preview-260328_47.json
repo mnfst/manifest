@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 47,
+  "response": "return ' '.join(map(str, range(n + 1)))",
+  "score": 5,
+  "cost": 0.0006672000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 523
+  }
+}

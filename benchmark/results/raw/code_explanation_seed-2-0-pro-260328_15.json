@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 15,
+  "response": "This is an implementation of the **Merge Sort** divide-and-conquer sorting algorithm. It recursively splits the input array into equal halves down to single-element subarrays, then merges these sorted subarrays by sequentially comparing front elements to build and return the final fully sorted array.",
+  "score": 5,
+  "cost": 0.0009846,
+  "expected": "",
+  "tokens": {
+    "input": 213,
+    "output": 357
+  }
+}

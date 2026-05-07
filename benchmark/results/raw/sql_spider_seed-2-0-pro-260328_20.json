@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT a.abbreviation, a.country\nFROM airlines a\nINNER JOIN flights f ON a.airline_id = f.airline_id\nGROUP BY a.airline_id, a.abbreviation, a.country\nORDER BY COUNT(f.flight_id) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.0006822,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 254
+  }
+}

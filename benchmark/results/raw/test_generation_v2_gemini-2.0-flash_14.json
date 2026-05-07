@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 14,
+  "response": "```python\nimport pytest\n\nfrom your_module import deep_get  # Replace your_module\n\n\ndef test_deep_get_happy_path():\n    data = {\"a\": {\"b\": {\"c\": 1}}}\n    assert deep_get(data, \"a.b.c\") == 1\n    assert deep_get(data, \"a.b\") == {\"c\": 1}\n    assert deep_get(data, \"a\") == {\"b\": {\"c\": 1}}\n\n\ndef test_deep_get_default_value():\n    data = {\"a\": {\"b\": 1}}\n    assert deep_get(data, \"a.c\", default=None) is None\n    assert deep_get(data, \"a.c\", default=\"default\") == \"default\"\n    assert deep_get(data, \"x.y.z\", default=123) == 123\n\n\ndef test_deep_get_key_not_found():\n    data = {\"a\": {\"b\": 1}}\n    assert deep_get(data, \"a.c\") is None\n    assert deep_get(data, \"x.y.z\") is None\n\n\ndef test_deep_get_intermediate_value_not_dict():\n    data = {\"a\": 1}\n    assert deep_get(data, \"a.b\") is None\n\n    data = {\"a\": {\"b\": \"string\"}}\n    assert deep_get(data, \"a.b.c\") is None\n\n    data = {\"a\": [1, 2, 3]}\n    assert deep_get(data, \"a.b\") is None\n\n\ndef test_deep_get_empty_keys():\n    data = {\"a\": 1}\n    assert deep_get(data, \"\") == data\n    assert deep_get(data, \"\", default=\"default\") == data\n\n\ndef test_deep_get_empty_dict():\n    data = {}\n    assert deep_get(data, \"a\") is None\n    assert deep_get(data, \"a.b.c\") is None\n    assert deep_get(data, \"a\", default=\"default\") == \"default\"\n\n\ndef test_deep_get_none_dict():\n    data = None\n    assert deep_get(data, \"a\") is None\n    assert deep_get(data, \"a.b.c\") is None\n    assert deep_get(data, \"a\", default=\"default\") == \"default\"\n\n\ndef test_deep_get_keys_with_leading_or_trailing_dots():\n    data = {\"a\": {\"b\": {\"c\": 1}}}\n    assert deep_get(data, \".a.b.c\") is None\n    assert deep_get(data, \"a.b.c.\") is None\n    assert deep_get(data, \"a..b.c\") is None\n\n\ndef test_deep_get_keys_with_numbers():\n    data = {\"a1\": {\"b2\": {\"c3\": 1}}}\n    assert deep_get(data, \"a1.b2.c3\") == 1\n\n\ndef test_deep_get_keys_with_special_characters():\n    data = {\"a-b\": {\"c_d\": {\"e.f\": 1}}}\n    assert deep_get(data, \"a-b.c_d.e.f\") is None  # . is special character\n    data = {\"a-b\": {\"c_d\": {\"ef\": 1}}}\n    assert deep_get(data, \"a-b.c_d.ef\") == 1\n```",
+  "score": 5,
+  "cost": 0.0003366,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 816
+  }
+}

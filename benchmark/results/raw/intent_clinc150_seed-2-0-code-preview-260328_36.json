@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "intent_clinc150",
+  "case": 36,
+  "response": "insurance",
+  "score": 5,
+  "cost": 0.0002625,
+  "expected": "insurance",
+  "tokens": {
+    "input": 587,
+    "output": 72
+  }
+}

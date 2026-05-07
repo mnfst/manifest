@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Following a Q3 budget review with finance, Sarah informed the team that marketing exceeded its budget by 15% due to an August campaign while engineering remained 8% under budget because of delayed hiring. Sarah proposed reallocating $50K from engineering\u2019s under-budget funds to cover marketing\u2019s overspend and asked the team to discuss this suggestion on Thursday.",
+  "score": 5,
+  "cost": 0.0006228000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 488
+  }
+}

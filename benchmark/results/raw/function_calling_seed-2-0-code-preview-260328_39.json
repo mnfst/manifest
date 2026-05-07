@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 39,
+  "response": "{\"name\": \"export_table\", \"arguments\": {\"table\": \"users\", \"format\": \"csv\"}}",
+  "score": 5,
+  "cost": 0.0006744,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 531
+  }
+}

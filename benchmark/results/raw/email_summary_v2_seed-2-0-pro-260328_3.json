@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "The March onboarding cohort rated their overall experience 7.2/10, a drop from the prior 8.1 rating, with positive feedback for the buddy system and timely IT support, alongside reported issues including confusion over benefits deadlines, delayed tools access, and missing culture handbooks.\nThe top priority action item identified from this feedback is resolving the tools access delays.",
+  "score": 5,
+  "cost": 0.0008315999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 307
+  }
+}

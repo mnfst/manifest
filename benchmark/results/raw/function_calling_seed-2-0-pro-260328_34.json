@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 34,
+  "response": "{\"name\": \"scale_deployment\", \"arguments\": {\"service\": \"web\", \"replicas\": 5}}",
+  "score": 5,
+  "cost": 0.0003378,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 107
+  }
+}

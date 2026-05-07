@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Crafted from BPA-free, food-grade stainless steel with double-wall vacuum insulation, this 24oz water bottle keeps drinks icy cold for 24 hours or steamy hot for 12\u2014ideal for trail runs, office shifts, and weekend road trips. Its leak-proof flip spout with a secure straw lock eliminates messy spills, while the slim, smudge-resistant matte body slides seamlessly into standard car cup holders. Ditch single-use plastics with this durable, reusable pick, which includes a free cleaning brush and a lifetime warranty against manufacturing defects.",
+  "score": 1,
+  "cost": 0.0007452,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 610
+  }
+}

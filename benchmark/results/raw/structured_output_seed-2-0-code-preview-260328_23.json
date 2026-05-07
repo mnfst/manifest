@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "structured_output",
+  "case": 23,
+  "response": "{\n  \"type\": \"package\",\n  \"tracking_number\": \"TRK-99281\",\n  \"status\": \"delivered\",\n  \"delivery_location\": \"front door\",\n  \"delivery_time\": \"2:15 PM\",\n  \"delivery_date\": \"March 12\",\n  \"signed_by\": \"M. Johnson\",\n  \"carrier\": \"FedEx\"\n}",
+  "score": 5,
+  "cost": 0.0055712999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 4607
+  }
+}

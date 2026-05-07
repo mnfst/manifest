@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "Ce type de r\u00e9pression, conjugu\u00e9 \u00e0 l'arrestation au cours des derni\u00e8res semaines de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de pr\u00e9tendues fausses informations, a l\u00e9gitimement \u00e9veill\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.\n\nThis translation preserves the original formal, critical tone: it retains the implied scepticism around the \"false information\" accusation via *pr\u00e9tendues*, uses appropriate official register terminology for the institutional context, and maintains the grammatical flow of the original long clause structure.",
+  "score": 5,
+  "cost": 0.0015144,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 604
+  }
+}

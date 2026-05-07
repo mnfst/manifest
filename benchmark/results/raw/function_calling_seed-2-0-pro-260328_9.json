@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 9,
+  "response": "{\"name\": \"search_flights\", \"arguments\": {\"origin\": \"New York\", \"destination\": \"London\", \"date\": \"December 15th\", \"passengers\": 2}}",
+  "score": 5,
+  "cost": 0.000564,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 195
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "*Sector Source* est un site web de ressources d\u00e9di\u00e9 \u00e0 aider ceux qui dirigent des organismes caritatifs et des associations \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...\n\n### Notes on fidelity:\n- The proper noun *Sector Source* is italicized (standard for foreign brand/website names in French translations) and untranslated as it is a registered resource platform.\n- \"Nonprofits\" is rendered as **associations \u00e0 but non lucratif** (the standard, inclusive term for non-profit entities in French, matching the original\u2019s professional register).\n- The mandatory preposition *\u00e0* is added before *rester* (per French grammar: *aider quelqu\u2019un \u00e0 faire quelque chose* = \"help someone [to] do something\"), preserving the original\u2019s grammatical intent despite the casual English omission of \"to\".\n- The tone remains neutral, professional, and informative, matching the original\u2019s purpose as a resource for organizational leaders.",
+  "score": 5,
+  "cost": 0.0037278,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 3089
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "To solve the problem, we break down the number of kittens from each source and sum them:\n\n### Step 1: Identify the number of adopted kittens\nThe sisters brought home **7 adopted kittens**, as stated in the problem.\n\n### Step 2: Calculate Patchy's kittens\nPatchy had \"thrice the number of adopted kittens.\" \"Thrice\" means 3 times, so:\nPatchy's kittens = 3 \u00d7 number of adopted kittens = 3 \u00d7 7 = 21\n\n### Step 3: Identify Trixie's kittens\nThe problem explicitly states Trixie had **12 kittens**.\n\n### Step 4: Calculate total kittens\nAdd all the kittens together (adopted + Patchy's + Trixie's):\nTotal kittens = 7 + 21 + 12 = 40\n\nANSWER: 40",
+  "score": 5,
+  "cost": 0.0014873999999999998,
+  "expected": "40",
+  "tokens": {
+    "input": 150,
+    "output": 1202
+  }
+}

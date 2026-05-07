@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "In response to American aid to Israel.",
+  "score": 5,
+  "cost": 0.0005484,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 308,
+    "output": 380
+  }
+}

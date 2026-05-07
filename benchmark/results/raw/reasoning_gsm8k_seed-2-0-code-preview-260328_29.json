@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Let's solve the problem step by step:\n1. **Red cars**: The problem states there are 12 red cars. So red = 12.\n2. **Green cars**: They have 2 fewer green cars than red cars.  green = red - 2 = 12 - 2 = 10.\n3. **Blue cars**: They have 3 times as many blue cars as green cars.  blue = 3 * green = 3 * 10 = 30.\n4. **Total known cars**: Add up the red, green, and blue cars: 12 + 10 + 30 = 52.\n5. **Yellow cars**: Total cars are 75. Subtract the known cars from the total to find yellow cars: 75 - 52 = 23.\nANSWER: 23",
+  "score": 5,
+  "cost": 0.0009402000000000001,
+  "expected": "23",
+  "tokens": {
+    "input": 134,
+    "output": 750
+  }
+}

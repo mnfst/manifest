@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements a Python decorator that adds an **LRU (Least Recently Used)** cache to any wrapped function, using an OrderedDict to track function call arguments and their computed results. When the cache reaches its configured maximum size, it automatically evicts the least recently accessed entry, and every successful cache lookup marks the accessed entry as most recently used.",
+  "score": 5,
+  "cost": 0.0010295999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 385
+  }
+}

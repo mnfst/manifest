@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "ner_extraction",
+  "case": 19,
+  "response": "{\"persons\": [\"Thierry Breton\"], \"organizations\": [\"European Parliament\"], \"locations\": [\"Brussels\"]}",
+  "score": 5,
+  "cost": 0.00015959999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 109
+  }
+}

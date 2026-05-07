@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "```python\nimport pytest\nfrom typing import List\n\ndef chunk_list(lst: list, size: int) -> list:\n    if size <= 0:\n        raise ValueError('size must be positive')\n    return [lst[i:i+size] for i in range(0, len(lst), size)]\n\n\nclass TestChunkList:\n    def test_happy_path(self):\n        assert chunk_list([1, 2, 3, 4, 5, 6], 2) == [[1, 2], [3, 4], [5, 6]]\n        assert chunk_list([1, 2, 3, 4, 5, 6], 3) == [[1, 2, 3], [4, 5, 6]]\n        assert chunk_list([1, 2, 3, 4, 5, 6], 4) == [[1, 2, 3, 4], [5, 6]]\n\n    def test_empty_list(self):\n        assert chunk_list([], 2) == []\n        assert chunk_list([], 1) == []\n\n    def test_size_larger_than_list(self):\n        assert chunk_list([1, 2, 3], 4) == [[1, 2, 3]]\n        assert chunk_list([1], 2) == [[1]]\n\n    def test_size_equal_to_list_length(self):\n        assert chunk_list([1, 2, 3], 3) == [[1, 2, 3]]\n\n    def test_list_length_not_divisible_by_size(self):\n        assert chunk_list([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n        assert chunk_list([1, 2, 3, 4, 5], 3) == [[1, 2, 3], [4, 5]]\n\n    def test_size_is_one(self):\n        assert chunk_list([1, 2, 3], 1) == [[1], [2], [3]]\n\n    def test_negative_size(self):\n        with pytest.raises(ValueError) as excinfo:\n            chunk_list([1, 2, 3], -1)\n        assert str(excinfo.value) == 'size must be positive'\n\n    def test_zero_size(self):\n        with pytest.raises(ValueError) as excinfo:\n            chunk_list([1, 2, 3], 0)\n        assert str(excinfo.value) == 'size must be positive'\n\n    def test_list_with_different_data_types(self):\n        assert chunk_list([1, \"hello\", 3.14, True], 2) == [[1, \"hello\"], [3.14, True]]\n\n    def test_list_with_nested_lists(self):\n        assert chunk_list([[1, 2], [3, 4], [5, 6]], 2) == [[[1, 2], [3, 4]], [[5, 6]]]\n```",
+  "score": 5,
+  "cost": 0.0003044,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 739
+  }
+}

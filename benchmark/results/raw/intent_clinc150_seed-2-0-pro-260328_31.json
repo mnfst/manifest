@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "intent_clinc150",
+  "case": 31,
+  "response": "freeze_account",
+  "score": 5,
+  "cost": 0.00045959999999999995,
+  "expected": "freeze_account",
+  "tokens": {
+    "input": 606,
+    "output": 40
+  }
+}

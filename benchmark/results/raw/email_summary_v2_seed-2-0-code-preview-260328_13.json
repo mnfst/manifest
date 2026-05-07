@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success team\u2019s Q1 quarterly update details positive performance metrics (a 4-point NPS increase to 62, a 0.6% churn decrease to 1.2%, and 4.3/5 support CSAT), three top customer feature requests (SSO, custom dashboards, API rate limit increases), and an $800K pipeline of three potential enterprise expansions. Cross-functional stakeholders, including the product and sales teams, should review the prioritized feature requests and engage with the enterprise pipeline leads to advance the prospective $800K in revenue.",
+  "score": 5,
+  "cost": 0.0021846,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 1784
+  }
+}

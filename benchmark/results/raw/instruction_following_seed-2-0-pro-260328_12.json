@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Imagine you're sitting at a table in a restaurant.\n\nYou want food, but you can't just walk straight back into the kitchen. The kitchen has all the ingredients, recipes and equipment, but they don't let random guests wander back there. That would be chaos: people would grab the wrong things, mess up ongoing orders, break stuff, or see private recipes.\n\nInstead there is a waiter.\nYou tell the waiter exactly what you want. They go back to the kitchen, pass on your request, then bring you back exactly what you asked for. You never need to know how they cooked it, you don't get access to the whole kitchen, you just get the one thing you requested.\n\nThat is an API.\n\nIt is just this agreed, polite go-between that lets two separate things talk to each other.\n- When your weather app loads? Your phone doesn't have a tiny weather station inside it. It uses an API as the waiter to ask the weather service for the current forecast.\n- When you click \"login with Google\" on a website? That site never sees your Google password. They just use Google's API to ask: \"hey can you confirm this person is who they say they are?\" and get back a simple yes/no answer.\n\nNobody has to rebuild whole systems from scratch, nobody lets strangers rummage through their private stuff, everyone only gets exactly the information they actually need.",
+  "score": 5,
+  "cost": 0.0016937999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 690
+  }
+}

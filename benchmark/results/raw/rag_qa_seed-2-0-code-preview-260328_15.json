@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia",
+  "score": 5,
+  "cost": 0.00024359999999999999,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 252,
+    "output": 140
+  }
+}

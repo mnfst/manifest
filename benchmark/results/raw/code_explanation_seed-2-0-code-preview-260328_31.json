@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "### 1-Sentence Explanation (concise, specific):\nThis Python function implements the **A* (A-star) informed pathfinding algorithm**\u2014a best-first search variant that finds the *lowest-cost path* between `start` and `goal` nodes in a weighted graph by prioritizing nodes via a `heapq` min-heap (open set) sorted by their **f-score** (sum of the *g-score*, actual accumulated cost from the start, and a user-provided heuristic; an *admissible* heuristic (never overestimates) guarantees the shortest path), using a `visited` set (closed set) to avoid cycles/reprocessing, tracking the explicit path taken, and returning the first valid goal path (or `None` if no path exists).\n\n---\n### 2-Sentence Explanation (more scannable):\n1. This Python function implements the **A* (A-star) informed pathfinding algorithm**\u2014a best-first search variant that finds the *lowest-cost path* between `start` and `goal` nodes in a weighted graph by prioritizing nodes via a `heapq` min-heap (open set) sorted by their **f-score**: the sum of the *g-score* (actual accumulated cost from the start) and a user-provided heuristic (estimated cost to the goal; an *admissible* heuristic (never overestimates) guarantees the shortest possible path).\n2. It uses a `visited` set (closed set) to skip reprocessing nodes/cycles, tracks the explicit path taken to each node, and returns the first valid goal path upon discovery (or `None` if no path exists).",
+  "score": 5,
+  "cost": 0.0027422999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 2233
+  }
+}

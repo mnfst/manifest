@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 8,
+  "response": "```python\nimport pytest\nfrom typing import List\n\ndef binary_search(arr: List[int], target: int) -> int:\n    \"\"\"\n    Performs a binary search on a sorted list to find the index of a target value.\n\n    Args:\n        arr: A sorted list of integers.\n        target: The integer value to search for.\n\n    Returns:\n        The index of the target value in the list if found, otherwise -1.\n    \"\"\"\n    low, high = 0, len(arr) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n\n\nclass TestBinarySearch:\n    def test_happy_path(self):\n        assert binary_search([2, 5, 7, 8, 11, 12], 13) == -1\n        assert binary_search([2, 5, 7, 8, 11, 12], 12) == 5\n        assert binary_search([2, 5, 7, 8, 11, 12], 0) == -1\n        assert binary_search([2, 5, 7, 8, 11, 12], 2) == 0\n        assert binary_search([2, 5, 7, 8, 11, 12], 5) == 1\n        assert binary_search([2, 5, 7, 8, 11, 12], 7) == 2\n        assert binary_search([2, 5, 7, 8, 11, 12], 8) == 3\n        assert binary_search([2, 5, 7, 8, 11, 12], 11) == 4\n\n    def test_empty_list(self):\n        assert binary_search([], 5) == -1\n\n    def test_single_element_list_found(self):\n        assert binary_search([5], 5) == 0\n\n    def test_single_element_list_not_found(self):\n        assert binary_search([5], 10) == -1\n\n    def test_target_less_than_smallest(self):\n        assert binary_search([2, 5, 7, 8, 11, 12], 1) == -1\n\n    def test_target_greater_than_largest(self):\n        assert binary_search([2, 5, 7, 8, 11, 12], 13) == -1\n\n    def test_duplicate_elements(self):\n        assert binary_search([2, 5, 5, 7, 8, 11, 12], 5) == 1  # Returns the first occurrence\n\n    def test_negative_numbers(self):\n        assert binary_search([-5, -2, 0, 3, 7], -2) == 1\n        assert binary_search([-5, -2, 0, 3, 7], -6) == -1\n        assert binary_search([-5, -2, 0, 3, 7], 8) == -1\n\n    def test_list_with_same_elements(self):\n        assert binary_search([5, 5, 5, 5, 5], 5) == 2\n\n    def test_large_list(self):\n        large_list = list(range(1000))\n        assert binary_search(large_list, 500) == 500\n        assert binary_search(large_list, 999) == 999\n        assert binary_search(large_list, 0) == 0\n        assert binary_search(large_list, -1) == -1\n        assert binary_search(large_list, 1000) == -1\n```",
+  "score": 5,
+  "cost": 0.0003945,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 954
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT a.airport_id, a.airport_name\nFROM airports a\nWHERE a.airport_id NOT IN (\n    SELECT departure_airport FROM flights\n    UNION\n    SELECT arrival_airport FROM flights\n);\n```",
+  "score": 4,
+  "cost": 0.0006617999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 247
+  }
+}

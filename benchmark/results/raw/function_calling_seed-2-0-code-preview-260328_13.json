@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 13,
+  "response": "[{\"name\":\"control_light\",\"arguments\":{\"room\":\"living room\",\"action\":\"off\"}},{\"name\":\"set_thermostat\",\"arguments\":{\"temperature\":72}}]",
+  "score": 1,
+  "cost": 0.0023934,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 1962
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 2 eggs with 1 tbsp milk, a pinch of salt, and pepper. Melt 1 tsp butter in a nonstick pan over low heat. Stir gently until soft curds form; serve right away.",
+  "score": 5,
+  "cost": 0.0004713,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 381
+  }
+}

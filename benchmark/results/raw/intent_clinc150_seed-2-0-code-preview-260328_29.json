@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "intent_clinc150",
+  "case": 29,
+  "response": "recipe",
+  "score": 5,
+  "cost": 0.00029519999999999997,
+  "expected": "recipe",
+  "tokens": {
+    "input": 584,
+    "output": 100
+  }
+}

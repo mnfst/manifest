@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "Urarina",
+  "score": 5,
+  "cost": 0.0002622,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 205,
+    "output": 58
+  }
+}

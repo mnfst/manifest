@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let's solve this problem by defining the unknown and tracking the number of people on the bus at each step:\n1.  Let \\( x \\) = the number of people who got on the bus at the terminal (this is our unknown value).\n2.  **After the terminal**: Only the initial \\( x \\) people are on the bus.\n3.  **First bus stop**: 5 more people get in.  the number of people becomes:\n    \\( x + 5 \\)\n4.  **Second bus stop**: 7 people get down (subtract 7) and 8 more get in (add 8). Update the count:\n    \\( (x + 5) - 7 + 8 \\)\n    Simplify the constants: \\( -7 + 8 = 1 \\),  this becomes:\n    \\( x + 5 + 1 = x + 6 \\)\n5.  The problem states there are 20 people heading to the third stop. This is the number of people on the bus *after the second stop*, :\n    \\( x + 6 = 20 \\)\n6.  Solve for \\( x \\): Subtract 6 from both sides:\n    \\( x = 20 - 6 = 14 \\)\nLet's verify: If 14 people started at the terminal, add 5 (first stop) \u2192 19. Then subtract 7, add 8 (second stop): 19 -7 +8 = 20, which matches the given total.\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0012974999999999998,
+  "expected": "14",
+  "tokens": {
+    "input": 137,
+    "output": 1047
+  }
+}

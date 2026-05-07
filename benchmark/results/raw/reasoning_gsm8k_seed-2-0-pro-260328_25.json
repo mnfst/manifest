@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "Let's solve this problem step by step:\n1.  **Calculate the loan amount:**\n    The house is worth $250,000, and the loan is 40% of this value.\n    Loan amount = $250,000 \u00d7 0.40 = $100,000\n2.  **Calculate the amount used to pay debts:**\n    John uses 60% of the loan for debt payments.\n    Debt payment amount = $100,000 \u00d7 0.60 = $60,000\n3.  **Calculate leftover money:**\n    Subtract the debt payment from the total loan amount.\n    Leftover money = Total loan - Debt payment = $100,000 - $60,000 = $40,000\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.0014712,
+  "expected": "40,000",
+  "tokens": {
+    "input": 152,
+    "output": 575
+  }
+}

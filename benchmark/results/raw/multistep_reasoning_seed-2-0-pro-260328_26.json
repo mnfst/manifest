@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "First, analyze each option:\n1.  **Option A (Condensation):** This is the reverse process: water vapor (gas) cooling and changing into liquid water. This does not match the question.\n2.  **Option B (Transportation):** This describes the movement of water through the atmosphere (e.g., moving clouds), not a change of physical state. This is incorrect.\n3.  **Option C (Evaporation):** This is defined as the process where liquid water gains energy and changes into gaseous water vapor. This exactly matches the process described in the question.\n4.  **Option D (Accumulation):** This refers to water collecting and pooling in bodies like lakes, rivers, or oceans. It is not a state change process. This is incorrect.\n\nAnswer: C",
+  "score": 5,
+  "cost": 0.0009498,
+  "expected": "C",
+  "tokens": {
+    "input": 111,
+    "output": 368
+  }
+}

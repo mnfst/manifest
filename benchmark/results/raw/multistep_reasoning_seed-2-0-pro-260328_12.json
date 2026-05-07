@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "First, define the key terms: the hydrosphere is all water on/around Earth, while the lithosphere is Earth's solid outer rocky layer (crust and upper mantle). Now evaluate each option:\n1.  **Option A**: Erosion of rocks occurs when moving water (part of the hydrosphere) wears away rock material that makes up the lithosphere. This is a direct effect of the hydrosphere on the lithosphere.\n2.  **Option B**: Evaporation of water describes water moving from the hydrosphere into the atmosphere. This does not interact with or affect the lithosphere.\n3.  **Option C**: Heating of Earth's core is driven by internal radioactive decay, not surface water in the hydrosphere.\n4.  **Option D**: Melting of the crust is caused by extreme internal geothermal heat, not the hydrosphere.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.0010475999999999999,
+  "expected": "A",
+  "tokens": {
+    "input": 122,
+    "output": 406
+  }
+}

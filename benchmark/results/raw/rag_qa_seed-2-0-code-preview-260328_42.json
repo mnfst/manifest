@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Not found in context. The context only provides the average discharge of the Moselle, but does not give discharge data for the other mentioned tributaries (Neckar, Main) to compare which contributes the most.",
+  "score": 5,
+  "cost": 0.0008906999999999999,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 245,
+    "output": 681
+  }
+}

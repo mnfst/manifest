@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The scrum master\u2019s sprint retrospective notes document two key successes\u2014shipping the auth redesign on time and strong cross-team collaboration with the design team\u2014and two areas needing improvement: excessive context switches from working on 3 different projects and standups running 25 minutes (10 minutes over the 15-minute target). The action items outlined in the retrospective are capping each developer\u2019s work in progress (WIP) at 2 items and using timeboxed standups with a parking lot to address the identified process pain points.",
+  "score": 5,
+  "cost": 0.0014046,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 1137
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 46,
+  "response": "J'ai re\u00e7u sept propositions de r\u00e9solution conform\u00e9ment \u00e0 l'article 37 du R\u00e8glement int\u00e9rieur.\n\n### Translation Justification (Formal/Parliamentary Tone Alignment):\n1. **\"I have received\"**: Retained as *J'ai re\u00e7u* (first-person formal, consistent with a presiding officer\u2019s procedural statement).\n2. **\"seven motions for resolutions\"**: Translated to *sept propositions de r\u00e9solution* \u2014 the **standard official parliamentary term** in French (EU/national assemblies) for substantive resolution proposals (distinct from procedural *motions*).\n3. **\"pursuant to\"**: Rendered as *conform\u00e9ment \u00e0* (formal, precise for compliance with procedural rules, matching the legal/parliamentary tone).\n4. **\"Rule 37 of the Rules of Procedure\"**: Translated to *l'article 37 du R\u00e8glement int\u00e9rieur*:\n   - *Article* = the standard French term for numbered provisions in a parliamentary body\u2019s standing rules (vs. generic *r\u00e8gle* for informal rules).\n   - *R\u00e8glement int\u00e9rieur* = the exact French equivalent of parliamentary \"Rules of Procedure\" (vs. *R\u00e8glement de proc\u00e9dure*, which applies to non-parliamentary procedural frameworks).",
+  "score": 5,
+  "cost": 0.0024771,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 2047
+  }
+}

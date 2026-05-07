@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 40,
+  "response": "abs_a = abs(a)\n    root = round(abs_a ** (1/3))\n    return root ** 3 == abs_a",
+  "score": 4,
+  "cost": 0.0030642,
+  "expected": "",
+  "tokens": {
+    "input": 199,
+    "output": 1227
+  }
+}

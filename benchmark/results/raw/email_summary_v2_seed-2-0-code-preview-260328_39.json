@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The Finance department announced that the company\u2019s year-end audit will commence on January 15 and outlined a four-item pre-audit checklist: finalizing Q4 revenue recognition, reconciling all bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A controller meeting is scheduled for next Tuesday to assign specific responsibilities for completing the required pre-audit tasks.",
+  "score": 5,
+  "cost": 0.0006972,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 550
+  }
+}

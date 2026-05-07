@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)\n\n### Notes for accuracy:\n1. The username *Hommejeunechh* is retained (it is a unique handle, not translatable).\n2. The concise profile tone (metadata-style fragment) is matched: *49 years old* becomes **49 ans** (standard for French profile snippets, no extra phrasing like *il a*).\n3. *Pays-de-la-Loire* (French administrative region) and *Angers* (French city) are proper nouns already in French, so they remain unchanged.",
+  "score": 5,
+  "cost": 0.0010811999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 883
+  }
+}

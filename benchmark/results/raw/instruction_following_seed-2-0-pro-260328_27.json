@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "### Mammals\n1.  Bottlenose Dolphin (marine mammal, one of the few non-human animals observed using tools)\n2.  Red Kangaroo (the largest living marsupial mammal)\n3.  African Lion (social big cat, the only truly social felid species)\n\n---\n\n### Birds\n1.  Bald Eagle (large North American raptor, national bird of the United States)\n2.  Atlantic Puffin (colony-nesting seabird with seasonal colourful beaks)\n3.  Ruby-throated Hummingbird (the smallest long-distance migrating bird)\n\n---\n\n### Fish\n1.  Common Clownfish (tropical reef fish famous for symbiosis with sea anemones)\n2.  Atlantic Salmon (anadromous fish that travels from oceans to freshwater to spawn)\n3.  Great White Shark (large predatory cartilaginous fish, the largest living predatory fish on Earth)",
+  "score": 3,
+  "cost": 0.001713,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 697
+  }
+}

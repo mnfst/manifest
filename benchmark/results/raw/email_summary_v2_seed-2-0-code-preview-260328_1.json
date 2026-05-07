@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "Jen\u2019s \u201cServer Outage Post-Mortem\u201d email communicates that a misconfigured load balancer at 2:14 PM caused 47 minutes of degraded service impacting 12,000 users, with a full post-mortem document attached. The outlined action items from the post-mortem are adding load balancer configuration validation to CI, updating the runbook, and implementing traffic distribution alerts.",
+  "score": 5,
+  "cost": 0.0011658,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 938
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "intent_clinc150",
+  "case": 21,
+  "response": "recipe",
+  "score": 0,
+  "cost": 0.0016298999999999999,
+  "expected": "ingredient_substitution",
+  "tokens": {
+    "input": 585,
+    "output": 1212
+  }
+}

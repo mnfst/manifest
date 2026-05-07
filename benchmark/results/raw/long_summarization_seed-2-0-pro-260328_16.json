@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 16,
+  "response": "The internet traces its origins to 1960s U.S. Department of Defense computer networking research, with precursor network ARPANET first demonstrated in 1969, before the 1983 transition to TCP/IP protocols established the technical foundation of the modern internet. Subsequent major developments included Tim Berners-Lee's 1989 invention of the World Wide Web, the 1993 launch of the accessible Mosaic browser, the late 1990s dot-com boom and 2001 market crash, and the 2000s emergence of social media, cloud computing, and smartphone-powered mobile internet. Surviving firms from the dot-com era including Amazon and Google grew into some of the world's most valuable companies. Today, the internet connects over 5 billion people and underpins almost every domain of modern life.",
+  "score": 5,
+  "cost": 0.0017232,
+  "expected": "",
+  "tokens": {
+    "input": 380,
+    "output": 623
+  }
+}

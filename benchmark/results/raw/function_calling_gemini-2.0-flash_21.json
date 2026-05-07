@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 21,
+  "response": "{\"name\": \"deploy\", \"arguments\": {\"version\": \"2.3.1\", \"environment\": \"staging\"}}",
+  "score": 5,
+  "cost": 1.86e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 25
+  }
+}

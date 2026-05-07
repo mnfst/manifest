@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "intent_clinc150",
+  "case": 10,
+  "response": "pto_request",
+  "score": 5,
+  "cost": 0.0004323,
+  "expected": "pto_request",
+  "tokens": {
+    "input": 585,
+    "output": 214
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "This single-origin Ecuadorian 72% dark chocolate\u2014dusted with a micro-grind of Breton fleur de sel\u2014**is a sun-steeped limestone grotto tucked into a Basque coastal cliff**, its taste unfolding the exact second you breach its slate threshold.\n\nThe sharp, clean snap when you sink your teeth in is the crunch of slate under scuffed leather boots: a sharp introductory note of earthy, unadulterated cacao that hits the tongue as the grotto\u2019s cold, unyielding entryway greets your palm. As the chocolate warms, it softens into a silken pool\u2014this is stepping past the threshold into the grotto\u2019s core, where the day\u2019s Atlantic sun has baked the limestone until it breathes warm, roasted air. That air is the chocolate\u2019s dominant taste: toasty, nutty cacao, laced with the faint, caramelized sweetness of dried chestnuts that have settled into the grotto\u2019s crevices since last autumn.\n\nA faint, bright tang of wild red currant (the cacao\u2019s Andean terroir, bright and unforced) drifts in as the last sea breeze of twilight\u2014this is the chocolate\u2019s subtle fruit note, delicate enough to miss if you rush, sharp enough to tug at the edges of the roasted richness. The grotto\u2019s limestone walls hum with a cool, stony mineral edge; that\u2019s the chocolate\u2019s backbone, an earthy, almost chalky depth that keeps the sweetness from cloying. Then the fleur de sel hits: a single saltwater droplet splashing off the grotto\u2019s tide pool, catching the last sliver of tangerine sunset, its bright, briny ping cutting through the richness as the grotto\u2019s hidden spring cuts through limestone\u2014unexpected, vital, perfect.\n\nThe long, lingering finish is staying in the grotto after dark, when the air holds both the day\u2019s sun-warmed stone and the sea\u2019s quiet salt, no rush, just the slow, soft weight of something old and intentional settling on your tongue\u2014no sharp edges, no fanfare, just the quiet, complex comfort of a place (and a chocolate) that remembers the sun.\n\n(The central metaphor\u2014*chocolate is a coastal grotto*\u2014is sustained throughout, mapping every layer of the chocolate\u2019s taste, texture, and finish to a sensory, spatial detail of the grotto, avoiding generic chocolate clich\u00e9s to ground the description in specific, vivid taste.)",
+  "score": 5,
+  "cost": 0.0041516999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 3449
+  }
+}

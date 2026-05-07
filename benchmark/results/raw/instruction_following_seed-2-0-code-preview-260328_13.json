@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "The **exact 7 traditional rainbow colors in spectral order** (from longest to shortest wavelength, corresponding to their top-to-bottom appearance in a primary rainbow) are:\n1. Red\n2. Orange\n3. Yellow\n4. Green\n5. Blue\n6. Indigo\n7. Violet\n\n(This follows the mnemonic *ROYGBIV*, the standard 7-color division formalized by Isaac Newton to align the spectrum with the 7 musical notes of the Western scale.)",
+  "score": 5,
+  "cost": 0.0005330999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 434
+  }
+}

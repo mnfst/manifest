@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 20,
+  "response": "The internet originated from 1960s U.S. Department of Defense computer networking research, with its precursor ARPANET first demonstrated in 1969, while the 1983 transition to TCP/IP protocols created the formal foundation for the modern internet. Tim Berners-Lee invented the World Wide Web in 1989, and the 1993 launch of the Mosaic browser made the web accessible to ordinary users, preceding the late 1990s dot-com boom and 2001 crash that left behind enduring industry leaders including Amazon and Google. Later major developments included the mid-2000s rise of social media platforms, the 2006 launch of AWS cloud computing, and the 2007 iPhone release which drove widespread mobile internet adoption. Today, the internet connects over 5 billion people worldwide and underpins nearly every domain of modern life, from commerce to entertainment.",
+  "score": 5,
+  "cost": 0.0018528,
+  "expected": "",
+  "tokens": {
+    "input": 380,
+    "output": 677
+  }
+}

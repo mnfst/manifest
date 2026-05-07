@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "70's",
+  "score": 4,
+  "cost": 0.0008742,
+  "expected": "70",
+  "tokens": {
+    "input": 174,
+    "output": 685
+  }
+}

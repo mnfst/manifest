@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "Founded in 1861, MIT holds the #1 university ranking, with a student body of 11,500 and 1,069 faculty members. It is highly selective, boasting a 3.9% acceptance rate and an annual tuition of $57,590. Backed by a $24.6B endowment and counting 98 Nobel laureates among its community, it stands as one of the world\u2019s most prestigious and well-resourced academic institutions.",
+  "score": 5,
+  "cost": 0.0020211,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 1650
+  }
+}

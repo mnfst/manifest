@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "To solve the problem, we can break it into steps:\n### Step 1: Find the total fraction of a skein used\nMariah used \\( \\frac{1}{4} \\) of a skein, and her grandma used \\( \\frac{1}{2} \\) of a skein. To add these fractions, use a common denominator (4):\n\\( \\frac{1}{2} = \\frac{2}{4} \\)\nTotal fraction used: \\( \\frac{1}{4} + \\frac{2}{4} = \\frac{3}{4} \\) of a skein.\n### Step 2: Calculate the total yards used\nThere are 364 yards in one skein. We need to find \\( \\frac{3}{4} \\) of 364 yards. This is done by multiplying 364 by \\( \\frac{3}{4} \\):\nFirst, divide 364 by 4: \\( 364 \\div 4 = 91 \\)\nThen multiply by 3: \\( 91 \\times 3 = 273 \\)\n*(We can also verify by calculating individual usage: Mariah used \\( 364 \\times \\frac{1}{4} = 91 \\) yards, grandma used \\( 364 \\times \\frac{1}{2} = 182 \\) yards. Adding these gives \\( 91 + 182 = 273 \\) yards, which matches.)*\nANSWER: 273",
+  "score": 5,
+  "cost": 0.0011838,
+  "expected": "273",
+  "tokens": {
+    "input": 130,
+    "output": 954
+  }
+}

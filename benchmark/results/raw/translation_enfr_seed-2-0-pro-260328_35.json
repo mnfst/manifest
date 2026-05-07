@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[Reporter masculin n\u00b01 \u00e0 la t\u00e9l\u00e9vision] L'accident s'est produit juste apr\u00e8s 10 heures du matin.",
+  "score": 5,
+  "cost": 0.0007302,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 282
+  }
+}

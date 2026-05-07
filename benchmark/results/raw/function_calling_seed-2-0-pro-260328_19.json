@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 19,
+  "response": "{\"name\": \"run_tests\", \"arguments\": {\"module\": \"backend\", \"verbose\": true}}",
+  "score": 5,
+  "cost": 0.000318,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 97
+  }
+}

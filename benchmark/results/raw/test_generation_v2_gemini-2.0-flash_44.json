@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 44,
+  "response": "```python\nimport pytest\n\ndef compose(*fns):\n    def composed(x):\n        for fn in reversed(fns):\n            x = fn(x)\n        return x\n    return composed\n\ndef test_compose_happy_path():\n    def add_one(x):\n        return x + 1\n\n    def multiply_by_two(x):\n        return x * 2\n\n    composed_function = compose(multiply_by_two, add_one)\n    assert composed_function(3) == 8  # (3 + 1) * 2 = 8\n\ndef test_compose_multiple_functions():\n    def add_one(x):\n        return x + 1\n\n    def multiply_by_two(x):\n        return x * 2\n\n    def subtract_three(x):\n        return x - 3\n\n    composed_function = compose(subtract_three, multiply_by_two, add_one)\n    assert composed_function(3) == 5  # ((3 + 1) * 2) - 3 = 5\n\ndef test_compose_single_function():\n    def add_one(x):\n        return x + 1\n\n    composed_function = compose(add_one)\n    assert composed_function(3) == 4\n\ndef test_compose_no_functions():\n    composed_function = compose()\n    assert composed_function(3) == 3  # Should return the input unchanged\n\ndef test_compose_with_lambda():\n    composed_function = compose(lambda x: x * 2, lambda x: x + 1)\n    assert composed_function(3) == 8\n\ndef test_compose_with_different_data_types():\n    def stringify(x):\n        return str(x)\n\n    def add_prefix(x):\n        return \"Result: \" + x\n\n    composed_function = compose(add_prefix, stringify)\n    assert composed_function(10) == \"Result: 10\"\n\ndef test_compose_with_function_returning_none():\n    def return_none(x):\n        return None\n\n    def add_one(x):\n        return x + 1\n\n    composed_function = compose(add_one, return_none)\n    with pytest.raises(TypeError):\n        composed_function(3) # add_one(None) will raise TypeError\n\ndef test_compose_with_function_expecting_specific_type():\n    def string_length(s):\n        return len(s)\n\n    def add_one(x):\n        return x + 1\n\n    composed_function = compose(string_length, add_one)\n    with pytest.raises(TypeError):\n        composed_function(\"hello\") # string_length(6) will raise TypeError\n\ndef test_compose_with_function_raising_exception():\n    def raise_exception(x):\n        raise ValueError(\"Something went wrong\")\n\n    def add_one(x):\n        return x + 1\n\n    composed_function = compose(add_one, raise_exception)\n    with pytest.raises(ValueError) as excinfo:\n        composed_function(3)\n    assert str(excinfo.value) == \"Something went wrong\"\n```",
+  "score": 5,
+  "cost": 0.0003014,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 737
+  }
+}

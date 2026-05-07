@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "The Charles River.",
+  "score": 5,
+  "cost": 0.0003216,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 300,
+    "output": 59
+  }
+}

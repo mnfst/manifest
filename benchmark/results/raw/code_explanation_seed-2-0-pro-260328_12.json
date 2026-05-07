@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code implements the classic depth-first search (DFS) based topological sorting algorithm for directed acyclic graphs (DAGs).\nIt runs a full post-order DFS traversal, adding each node to a stack *only after all its outgoing neighbors have been fully processed*, then returns the reversed stack as a valid topological order where every node appears before any nodes that depend on it.",
+  "score": 5,
+  "cost": 0.0011993999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 459
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 31,
+  "response": "{\"name\": \"archive_emails\", \"arguments\": {\"folder\": \"inbox\", \"older_than_days\": 180}}",
+  "score": 5,
+  "cost": 0.0013644,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 1105
+  }
+}

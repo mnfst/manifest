@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT first_name, AVG(ranking) AS average_ranking FROM players GROUP BY first_name;",
+  "score": 4,
+  "cost": 0.000924,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 355
+  }
+}

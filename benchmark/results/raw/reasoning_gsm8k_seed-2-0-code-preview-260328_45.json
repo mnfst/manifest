@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "To solve the problem, we first calculate the total number of wheels Henry needs for the toys, then subtract that from the number of wheels he has to find the remaining wheels.\n\n### Step 1: Calculate wheels needed for cars\nThere are 57 cars, each requiring 4 wheels:\n\\[ 57 \\times 4 = 228 \\text{ wheels for cars} \\]\n\n### Step 2: Calculate wheels needed for motorcycles\nThere are 73 motorcycles, each requiring 2 wheels:\n\\[ 73 \\times 2 = 146 \\text{ wheels for motorcycles} \\]\n\n### Step 3: Calculate total wheels needed\nAdd the wheels for cars and motorcycles:\n\\[ 228 + 146 = 374 \\text{ total wheels needed} \\]\n\n### Step 4: Calculate remaining wheels\nSubtract the total wheels needed from the 650 wheels Henry has:\n\\[ 650 - 374 = 276 \\]\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.0011072999999999999,
+  "expected": "276",
+  "tokens": {
+    "input": 131,
+    "output": 890
+  }
+}

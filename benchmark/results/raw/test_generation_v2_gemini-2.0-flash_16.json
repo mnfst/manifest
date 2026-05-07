@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "```python\nimport pytest\n\ndef gcd(a: int, b: int) -> int:\n    while b:\n        a, b = b, a % b\n    return abs(a)\n\ndef test_gcd_positive_numbers():\n    assert gcd(12, 18) == 6\n    assert gcd(48, 18) == 6\n    assert gcd(10, 15) == 5\n    assert gcd(35, 49) == 7\n\ndef test_gcd_one_number_is_zero():\n    assert gcd(10, 0) == 10\n    assert gcd(0, 10) == 10\n    assert gcd(0, 0) == 0\n\ndef test_gcd_negative_numbers():\n    assert gcd(-12, 18) == 6\n    assert gcd(12, -18) == 6\n    assert gcd(-12, -18) == 6\n    assert gcd(-48, 18) == 6\n    assert gcd(48, -18) == 6\n    assert gcd(-48, -18) == 6\n\ndef test_gcd_one_number_is_one():\n    assert gcd(1, 10) == 1\n    assert gcd(10, 1) == 1\n    assert gcd(1, -10) == 1\n    assert gcd(-10, 1) == 1\n    assert gcd(-1, 10) == 1\n    assert gcd(10, -1) == 1\n    assert gcd(-1, -10) == 1\n    assert gcd(-10, -1) == 1\n\ndef test_gcd_numbers_are_equal():\n    assert gcd(5, 5) == 5\n    assert gcd(-5, -5) == 5\n    assert gcd(0, 0) == 0\n\ndef test_gcd_large_numbers():\n    assert gcd(1071, 462) == 21\n    assert gcd(252, 105) == 21\n    assert gcd(600, 134) == 2\n\ndef test_gcd_one_number_is_a_multiple_of_the_other():\n    assert gcd(24, 8) == 8\n    assert gcd(8, 24) == 8\n    assert gcd(-24, 8) == 8\n    assert gcd(8, -24) == 8\n    assert gcd(-24, -8) == 8\n    assert gcd(-8, -24) == 8\n```",
+  "score": 5,
+  "cost": 0.0002542,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 619
+  }
+}

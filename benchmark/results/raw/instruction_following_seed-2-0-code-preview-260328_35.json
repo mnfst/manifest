@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The rain slanted cold over the chipped bus-stop bench, where Lila clutched a crumpled library book stamped due three years prior. A man with a scar snaking from his left eyebrow to his jaw sat beside her, holding a tattered copy of the same out-of-print poetry collection. Lila\u2019s thumb brushed the faded coffee stain on her book\u2019s spine\u2014one she\u2019d made at a college open mic, where she\u2019d lent her copy to a boy who\u2019d fled mid-poem after a family emergency. He tapped his book\u2019s matching coffee stain, his voice rough like unfiltered rain: \u201cI\u2019ve carried this to 17 bus stops in three states, hoping to return it.\u201d When the bus rumbled into view, Lila didn\u2019t reach for her fare\u2014instead, she flipped to the dog-eared page where she\u2019d scrawled her phone number all those years ago. The rain softened to mist as he read the number, his scar crinkling into a smile that felt like the home neither had realized they\u2019d been searching for.",
+  "score": 5,
+  "cost": 0.0011615999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 958
+  }
+}

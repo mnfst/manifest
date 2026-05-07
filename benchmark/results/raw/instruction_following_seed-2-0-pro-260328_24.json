@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- **Incident Overview**: Occurred 18:12 on 12 October 2024 at the signalised intersection of Oak Street and 3rd Avenue, involving a northbound silver 2019 Honda Civic and westbound white 2022 Ford F-150; conditions included light rain and fully operational traffic lights.\n- **Collision Sequence**: The Honda entered the intersection on a solid yellow light and failed to clear the roadway before opposing traffic received a green signal; the Ford struck the Honda's passenger rear quarter panel, spinning the smaller vehicle 90 degrees into the kerb, with no secondary collisions recorded.\n- **Outcome & Next Steps**: Honda driver reported minor neck stiffness and declined ambulance transport, Ford driver was uninjured; the Honda operator was issued a citation for failure to yield, both parties exchanged insurance details, and dashcam footage from a nearby parked vehicle was logged as case evidence.",
+  "score": 2,
+  "cost": 0.0011783999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 476
+  }
+}

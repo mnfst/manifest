@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1.  The Moon is tidally locked to Earth, meaning the same hemisphere always faces our planet. Over time, only around 59% of the Moon's total surface is ever visible from Earth.\n2.  There is no atmosphere, wind, or surface weather on the Moon. Footprints and rover tracks left by the Apollo missions will remain undisturbed for millions of years, unless struck by a meteorite.\n3.  The Moon is slowly drifting away from Earth. It recedes at a rate of approximately 3.8 centimetres (1.5 inches) per year.",
+  "score": 5,
+  "cost": 0.0006695999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 262
+  }
+}

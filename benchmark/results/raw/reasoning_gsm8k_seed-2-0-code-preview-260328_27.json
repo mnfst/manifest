@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "To solve the problem, we can track the number of vacuum cleaners Melanie has left after each sale, or work backwards from the final 5. Let's use a step-by-step algebraic approach first, then verify with working backwards.\n### Step 1: Define the starting number\nLet \\( x \\) = the number of vacuum cleaners Melanie started with.\n### Step 2: Track remaining vacuums after each house\n1. **Green House**: She sold \\( \\frac{1}{3} \\) of her vacuums, so she has \\( 1 - \\frac{1}{3} = \\frac{2}{3} \\) left.  \n   Remaining after green house: \\( \\frac{2}{3}x \\).\n2. **Red House**: She sold 2 more, so subtract 2 from the previous amount.  \n   Remaining after red house: \\( \\frac{2}{3}x - 2 \\).\n3. **Orange House**: She sold half of what was left,  she has \\( \\frac{1}{2} \\) of the remaining vacuums left.  \n   Remaining after orange house: \\( \\frac{1}{2} \\times \\left( \\frac{2}{3}x - 2 \\right) \\).\n### Step 3: Set up the equation\nThe problem states she has 5 vacuums left after all sales, :  \n\\( \\frac{1}{2} \\times \\left( \\frac{2}{3}x - 2 \\right) = 5 \\)\n### Step 4: Solve for \\( x \\)\n1. Multiply both sides by 2 to eliminate the fraction:  \n   \\( \\frac{2}{3}x - 2 = 10 \\)\n2. Add 2 to both sides:  \n   \\( \\frac{2}{3}x = 12 \\)\n3. Multiply both sides by \\( \\frac{3}{2} \\) (the reciprocal of \\( \\frac{2}{3} \\)) to solve for \\( x \\):  \n   \\( x = 12 \\times \\frac{3}{2} = 18 \\)\n### Verification (working backwards)\n- Final remaining: 5. This is half of what she had before the orange house,  before orange: \\( 5 \\times 2 = 10 \\).\n- Before the red house, she had 2 more than 10: \\( 10 + 2 = 12 \\).\n- 12 is \\( \\frac{2}{3} \\) of her starting number (since she sold \\( \\frac{1}{3} \\) at the green house). So starting number: \\( 12 \\div \\frac{2}{3} = 18 \\).\nANSWER: 18",
+  "score": 5,
+  "cost": 0.0025995,
+  "expected": "18",
+  "tokens": {
+    "input": 125,
+    "output": 2135
+  }
+}

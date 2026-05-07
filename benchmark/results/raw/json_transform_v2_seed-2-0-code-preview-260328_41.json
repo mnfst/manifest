@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "json_transform_v2",
+  "case": 41,
+  "response": "{\"sensors\": [{\"id\": \"temp_1\", \"avg\": 22.42, \"min\": 22.0, \"max\": 23.5, \"anomalies\": 0}, {\"id\": \"temp_2\", \"avg\": 22.56, \"min\": 21.0, \"max\": 28.5, \"anomalies\": 1}]}",
+  "score": 3,
+  "cost": 0.0071772,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 5934
+  }
+}

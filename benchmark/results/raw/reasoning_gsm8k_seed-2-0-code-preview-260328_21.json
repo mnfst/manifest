@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Let's solve this problem step by step:\n1. First, identify Elliott's daily step goal: 10,000 steps.\n2. Calculate the steps he took walking to and from school: He finished half of his daily steps here. Half of 10,000 is \\( \\frac{10,000}{2} = 5,000 \\) steps.\n3. Add the steps from his walk with his friend: 1,000 steps.  far, his total non-jog steps are \\( 5,000 + 1,000 = 6,000 \\) steps.\n4. Find how many steps he had already completed *after his jog*: He only had 2,000 steps left to reach his goal,  completed steps = total goal - remaining steps. That is \\( 10,000 - 2,000 = 8,000 \\) steps.\n5. Calculate the jog steps: The completed steps after the jog include the school steps, friend steps, and jog steps.  jog steps = completed steps after jog - non-jog steps. That is \\( 8,000 - 6,000 = 2,000 \\) steps.\nWe can verify this by adding all components: 5,000 (school) + 1,000 (friend) + 2,000 (jog) + 2,000 (remaining) = 10,000, which matches the daily goal.\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.0026807999999999997,
+  "expected": "2000",
+  "tokens": {
+    "input": 160,
+    "output": 2194
+  }
+}

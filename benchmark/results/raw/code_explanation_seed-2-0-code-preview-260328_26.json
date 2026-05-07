@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code uses the **bottom-up dynamic programming (DP) tabulation pattern** to solve the **0-1 Knapsack Problem**, calculating the maximum total value of items (each must be fully included or excluded\u2014no partial items) that fit within a given knapsack weight capacity. It builds a 2D DP table where `dp[i][w]` tracks the maximum value achievable with the first `i` items and a knapsack of capacity `w`, updating values by either excluding the current item or including it if its weight does not exceed the remaining capacity.",
+  "score": 5,
+  "cost": 0.0020829,
+  "expected": "",
+  "tokens": {
+    "input": 191,
+    "output": 1688
+  }
+}

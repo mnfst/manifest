@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT s.name\nFROM students s\nINNER JOIN likes l ON s.student_id = l.recipient_student_id\nGROUP BY s.student_id, s.name\nORDER BY COUNT(l.like_id) DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 0.0009383999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 362
+  }
+}

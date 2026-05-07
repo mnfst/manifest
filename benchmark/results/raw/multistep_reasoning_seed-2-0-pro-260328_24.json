@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "First, recall the definitions and classification of rock types:\n1.  Extrusive igneous rocks form when magma erupts *onto Earth's surface* and cools quickly. By definition, this category of igneous rock is also known as **volcanic** rock.\n2.  Eliminate incorrect options:\n    - Option A: Intrusive igneous rock is the *opposite* of extrusive igneous rock (it forms underground, not at the surface). A rock cannot be both.\n    - Option B: Clastic sedimentary rock is an entirely separate rock class, formed from deposited sediment, not cooled magma.\n    - Option C: Metamorphic rock is another separate rock class, formed when existing rocks are altered by heat/pressure, not from cooled magma.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.001041,
+  "expected": "D",
+  "tokens": {
+    "input": 135,
+    "output": 400
+  }
+}

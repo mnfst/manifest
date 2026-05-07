@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is like the worker at a tiny taco stand\u2019s window\u2014here\u2019s a no-tech breakdown:\n\n---\n\n### The Taco Stand Analogy (Zero Tech Words)\nYou want a taco, but you can\u2019t step behind the stand\u2019s window:\n- The cooks only make/ share items from a printed menu (no off-menu tacos, no sharing their secret salsa recipe\u2014those are off-limits)\n- A dedicated worker at the window has *one job*:\n  1. Only take orders that match the menu (if you ask for a burger, they say \u201csorry, not on the menu\u201d)\n  2. Pass valid orders back to the cooks\n  3. Bring the finished taco (or allowed info) back to you\n\nThat window worker? **That\u2019s an API.**\n\n---\n\n### How This Works For Stuff You Use Every Day\nLet\u2019s say you use a phone app to look up movie times at your local theater:\n- The theater has a \u201cmenu\u201d of allowed info it will share: movie titles, showtimes, available seats, ticket prices (it won\u2019t share private employee schedules, for example)\n- The theater has an API (its \u201cwindow worker\u201d) that only handles orders for that menu info\n- Your movie app \u201corders\u201d info from this API: \u201cI need showtimes for *Barbie* at 7 PM tonight at the downtown theater\u201d\n- The API checks if this is on the theater\u2019s menu (yes) and grabs the info from the theater\u2019s internal list (the \u201ccooks\u201d who track showtimes)\n- The API sends that info back to your app, which shows it to you\n\n---\n\n### Quick Relatable Example\nWhen you tag a coffee shop in an Instagram post:\n- Instagram doesn\u2019t have a list of every coffee shop on Earth. It uses an API from Google Maps (Google\u2019s \u201cwindow worker\u201d)\n- Google Maps has a \u201cmenu\u201d of location info it will share\n- Instagram \u201corders\u201d \u201call coffee shops near this person\u2019s current spot\u201d from Google\u2019s API\n- The API sends back the list, and Instagram lets you pick a coffee shop to tag\n\nIn short: An API is a middleman that only lets two groups (like a phone app and a theater) interact using pre-approved, publicly listed options\u2014no direct access to each other\u2019s private \u201ckitchen\u201d stuff.",
+  "score": 5,
+  "cost": 0.0043238999999999994,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 3592
+  }
+}

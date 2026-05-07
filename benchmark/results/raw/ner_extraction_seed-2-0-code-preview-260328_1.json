@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "ner_extraction",
+  "case": 1,
+  "response": "{\"persons\":[\"President Biden\",\"French President Macron\"],\"organizations\":[\"NATO\"],\"locations\":[\"White House\"]}",
+  "score": 5,
+  "cost": 0.0025452,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 2097
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 26,
+  "response": "Here are the main issues in the code, why they are problems, and how to fix them.\n\nBugs and security issues:\n\n\u2022 Path traversal vulnerability: Using the raw filename lets an attacker upload a file named something like `../../etc/passwd`, which could overwrite system files.  \nFix: Sanitize the filename with a safe-rename function such as Werkzeug\u2019s `secure_filename`.\n\n\u2022 Hard\u2011coded absolute path `/uploads/`: This may not exist, may not be writable, or may be wrong in production.  \nFix: Use a configuration value or ensure the directory exists before saving.\n\n\u2022 No validation of the uploaded file: The code accepts any file type and name.  \nFix: Check allowed extensions or MIME types.\n\n\u2022 Name collisions: If two users upload the same filename, the second will overwrite the first.  \nFix: Append a random UUID or timestamp to the stored filename.\n\n\u2022 No error handling: If saving fails (permissions, disk full, invalid file object), the function will crash.  \nFix: Wrap the save operation in try/except and return a useful error.\n\n\u2022 Potential large file DoS: No file size checks.  \nFix: Enforce maximum upload size in configuration or code.\n\nImproved example (plain text, not relying on specific framework details):\n\nUse a safe filename:\nsafe_name = secure_filename(file.filename)\n\nEnsure upload directory exists:\nos.makedirs(upload_dir, exist_ok=True)\n\nAvoid overwriting by generating a unique name:\nunique_name = f\"{uuid4()}_{safe_name}\"\n\nSave inside the controlled directory:\nfile.save(os.path.join(upload_dir, unique_name))\n\nAdd validation and error handling.\n\nIf you want, I can provide a fully rewritten secure version for your specific framework (Flask, FastAPI, Django, etc.).",
+  "score": 5,
+  "cost": 0.003054,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 366
+  }
+}

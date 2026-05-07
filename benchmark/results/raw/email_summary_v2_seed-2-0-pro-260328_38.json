@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "This email details the first month results of the bug bounty program, noting 47 reports were received, 12 were valid including 3 critical vulnerabilities, total payouts reached $15,000, and all critical findings were patched within 24 hours.\nThe security team confirms the program has a strong return on investment, and recommends continuing to run the bug bounty program.",
+  "score": 5,
+  "cost": 0.0010655999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 404
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "The CEO follows up on a conversation with BigCo regarding acquisition interest, noting the company has made a $15M acqui-hire offer for the sender\u2019s 5-person ML team\u2014a sum the CEO deems too low given the team\u2019s value. The CEO recommends either countering the offer or politely declining it, requests a discussion with relevant stakeholders before responding to BigCo, and asks that the board be informed of the situation.",
+  "score": 5,
+  "cost": 0.0011367,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 915
+  }
+}

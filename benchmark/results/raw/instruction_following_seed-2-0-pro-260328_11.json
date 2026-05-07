@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "What kind of message were you hoping I would respond to? Is there a specific topic you'd like these questions to focus on? Should every reply from me stay formatted only as questions going forward? Would you prefer these questions to be lighthearted, thoughtful, or something else entirely?",
+  "score": 5,
+  "cost": 0.0004776,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 185
+  }
+}

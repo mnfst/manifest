@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "### Formal\nGood day. Thank you for reaching out. I am available to assist with account questions, support requests, policy information, or any other official needs you may have. How may I help you today?\n*Designed for enterprise support, banking, government, or professional service chatbots.\n\n---\n\n### Casual\nHey there! Nice you stopped by. Need help with something, got a random question, or just wanna hang out? Whatever it is, I\u2019m here.\n*Built for consumer apps, hobby communities, and everyday entertainment platforms.\n\n---\n\n### Humorous\nOh hey! You caught me literally 2 seconds before I started reorganizing my digital sock drawer. Lucky timing. What can I do for you today?\n*Works for gaming bots, social media brand accounts, and casual creator tools.",
+  "score": 5,
+  "cost": 0.0014616,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 592
+  }
+}

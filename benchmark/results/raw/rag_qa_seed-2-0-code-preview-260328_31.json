@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 5,
+  "cost": 0.00026579999999999996,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 202,
+    "output": 171
+  }
+}

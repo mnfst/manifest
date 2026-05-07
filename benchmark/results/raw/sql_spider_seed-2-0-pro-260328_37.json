@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT song_name, release_year\nFROM song\nWHERE singer_id = (\n    SELECT singer_id\n    FROM singer\n    ORDER BY birth_date DESC\n    LIMIT 1\n);\n```",
+  "score": 5,
+  "cost": 0.0010416,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 404
+  }
+}

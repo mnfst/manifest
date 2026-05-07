@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "```python\nimport pytest\nfrom typing import List\n\ndef flatten(lst: list) -> list:\n    result = []\n    for item in lst:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\n\nclass TestFlatten:\n    def test_happy_path(self):\n        assert flatten([1, [2, 3], 4, [5, [6, 7]]]) == [1, 2, 3, 4, 5, 6, 7]\n\n    def test_empty_list(self):\n        assert flatten([]) == []\n\n    def test_list_with_only_numbers(self):\n        assert flatten([1, 2, 3, 4, 5]) == [1, 2, 3, 4, 5]\n\n    def test_list_with_only_nested_lists(self):\n        assert flatten([[1, 2], [3, 4]]) == [1, 2, 3, 4]\n\n    def test_deeply_nested_list(self):\n        assert flatten([[[[1]]]]) == [1]\n\n    def test_list_with_empty_nested_lists(self):\n        assert flatten([1, [], 2, [3, []]]) == [1, 2, 3]\n\n    def test_list_with_mixed_data_types(self):\n        assert flatten([1, [2, \"a\"], 3, [True, [4.5]]]) == [1, 2, \"a\", 3, True, 4.5]\n\n    def test_list_with_none_values(self):\n        assert flatten([1, [None, 2], None]) == [1, None, 2, None]\n\n    def test_list_with_strings(self):\n        assert flatten([\"a\", [\"b\", \"c\"], \"d\"]) == [\"a\", \"b\", \"c\", \"d\"]\n\n    def test_list_with_tuples(self):\n        # Tuples are not flattened\n        assert flatten([1, (2, 3), [4, 5]]) == [1, (2, 3), 4, 5]\n\n    def test_list_with_sets(self):\n        # Sets are not flattened\n        assert flatten([1, {2, 3}, [4, 5]]) == [1, {2, 3}, 4, 5]\n\n    def test_list_with_dictionaries(self):\n        # Dictionaries are not flattened\n        assert flatten([1, {\"a\": 1}, [4, 5]]) == [1, {'a': 1}, 4, 5]\n\n    def test_list_with_objects(self):\n        class MyObject:\n            pass\n        obj = MyObject()\n        assert flatten([1, obj, [4, 5]]) == [1, obj, 4, 5]\n\n    def test_list_with_recursive_structure(self):\n        # This test case checks for potential stack overflow issues with deeply nested structures.\n        # The flatten function should handle this without crashing.\n        recursive_list = [1, [2, [3, [4, [5]]]]]\n        assert flatten(recursive_list) == [1, 2, 3, 4, 5]\n```",
+  "score": 4,
+  "cost": 0.00032020000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 779
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs earned their title as humanity's oldest companion because they are unshakably loyal even when the world feels unkind. A loyal dog will wait by the door for hours, tail twitching at every passing footstep, just for the first glimpse of your return. Even on hard days when you have nothing left to give, a loyal dog will curl quiet at your feet and love you anyway. Most owners will tell you there is no more loyal comfort than a warm dog leaning heavy against your side when you cannot find the words to speak. Even scruffy shelter dogs, who may have known neglect before, prove they can be fiercely loyal once someone shows them even a little softness. At the end of every long noisy day, there is something perfectly gentle about coming home to a creature who is simply, uncomplicatedly loyal.",
+  "score": 5,
+  "cost": 0.0014064000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 570
+  }
+}

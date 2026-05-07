@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Let's solve the problem step by step:\n1.  **Find the number of green cars**:\n    We know there are 12 red cars, and there are 2 fewer green cars than red cars.\n    Green cars = Red cars - 2 = 12 - 2 = 10.\n\n2.  **Find the number of blue cars**:\n    Blue cars are 3 times the number of green cars.\n    Blue cars = 3 * Green cars = 3 * 10 = 30.\n\n3.  **Calculate the total of non-yellow cars**:\n    Add the red, green, and blue cars together:\n    Total non-yellow = Red + Green + Blue = 12 + 10 + 30 = 52.\n\n4.  **Find the number of yellow cars**:\n    The total number of cars is 75. Subtract the non-yellow car count from the total:\n    Yellow cars = Total cars - Total non-yellow = 75 - 52 = 23.\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.0014472,
+  "expected": "23",
+  "tokens": {
+    "input": 152,
+    "output": 565
+  }
+}

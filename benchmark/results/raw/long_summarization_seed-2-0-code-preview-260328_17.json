@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "long_summarization",
+  "case": 17,
+  "response": "Quantum computing differs fundamentally from classical computing\u2014which relies on binary 0/1 bits\u2014by using qubits with superposition, entanglement, and interference to solve select problems exponentially faster, with major developers including IBM, Google, IonQ, and Rigetti exploring diverse hardware approaches such as superconducting circuits, trapped ions, photonics, and topological qubits. A key 2019 milestone came when Google claimed quantum supremacy, completing a calculation in 200 seconds that would take the world\u2019s fastest classical supercomputer 10,000 years, though practical quantum computing faces significant barriers: qubits are extremely fragile (requiring near-absolute-zero cooling), have high error rates that demand error correction using many physical qubits per logical one, and current machines only hold 100\u20131000 qubits while millions are likely required for useful applications. Despite these obstacles, quantum computing shows promise for fields like drug discovery, materials science, cryptography, and optimization, with companies already testing quantum algorithms for use cases such as financial modeling and logistics.",
+  "score": 5,
+  "cost": 0.0024722999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 1984
+  }
+}

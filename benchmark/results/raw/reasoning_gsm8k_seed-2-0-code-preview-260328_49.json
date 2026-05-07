@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Let's break down the problem step by step:\n1. **Identify the number of siblings and their age groups**: There are 3 sisters (all same age) and 2 brothers (two different ages).\n2. **Calculate the total age of the sisters**: Each sister is 16, and there are 3 sisters.  \n   Total sister age = 3 * 16 = 48.\n3. **Find the ages of the two brothers**:  \n   - One brother is explicitly 12 years old.  \n   - The problem states 12 is *half* the age of the older brother, so the older brother\u2019s age is 2 * 12 = 24.  \n   Total brother age = 12 + 24 = 36.\n4. **Add the total ages of sisters and brothers**:  \n   Total sibling age = 48 + 36 = 84.\nANSWER: 84",
+  "score": 5,
+  "cost": 0.0008225999999999999,
+  "expected": "84",
+  "tokens": {
+    "input": 126,
+    "output": 654
+  }
+}

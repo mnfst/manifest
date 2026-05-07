@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 30,
+  "response": "The global food system is under extreme strain: the world population is projected to hit 9.7 billion by 2050, requiring a 60% rise in food production, while climate disruption, agriculture's 25% share of global greenhouse gas emissions, degradation of 33% of arable land, and waste of one-third of all produced food all worsen the crisis. A range of solutions are being explored, including AI-powered precision farming, urban vertical agriculture, alternative proteins, drought-resistant crops, regenerative farming practices, and policy overhauls for subsidies, trade and carbon pricing. The central remaining challenge is implementing these solutions at full global scale while ensuring food remains affordable and accessible to the world's poorest populations.",
+  "score": 5,
+  "cost": 0.0015647999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 348,
+    "output": 565
+  }
+}

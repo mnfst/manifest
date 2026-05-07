@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 22,
+  "response": "First, let's analyze each option based on the growing requirements of ferns:\n1.  **Option A (desert):** Deserts are extremely dry environments. Ferns require consistent moisture to thrive, so they cannot grow in deserts. This is incorrect.\n2.  **Option B (along a river):** River banks have consistent moisture, shaded areas, and suitable soil\u2014all ideal conditions for fern growth. This is correct.\n3.  **Option C (bottom of an ocean):** Ferns are primarily terrestrial land plants. The deep ocean floor has no sunlight for photosynthesis and is a saltwater environment unsuitable for ferns. This is incorrect.\n4.  **Option D (middle of a prairie):** Prairies are open, dry grassland habitats with full sun exposure, which does not match the moist, shaded requirements of ferns. This is incorrect.\n\nAnswer: B",
+  "score": 5,
+  "cost": 0.0009504,
+  "expected": "B",
+  "tokens": {
+    "input": 124,
+    "output": 365
+  }
+}

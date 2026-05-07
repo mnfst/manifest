@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "intent_clinc150",
+  "case": 45,
+  "response": "accept_reservations",
+  "score": 5,
+  "cost": 0.0005244,
+  "expected": "accept_reservations",
+  "tokens": {
+    "input": 606,
+    "output": 67
+  }
+}

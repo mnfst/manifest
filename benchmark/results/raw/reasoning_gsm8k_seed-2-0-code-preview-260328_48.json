@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Let's solve this problem step by step:\n\n### Step 1: Calculate the 50% increase of the starting weight\nJamaal starts with an 8-pound weight. A 50% increase means we add 50% of 8 pounds to the original 8 pounds.\n- 50% of 8 pounds = \\(0.5 \\times 8 = 4\\) pounds\n- Weight after the increase = \\(8 + 4 = 12\\) pounds (or equivalently, \\(1.5 \\times 8 = 12\\) pounds, since a 50% increase = 150% of the original)\n\n### Step 2: Subtract 2 pounds from the increased weight\nThe 12-pound weight is too heavy, so he uses a weight 2 pounds lighter:\n- Final weight = \\(12 - 2 = 10\\) pounds\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.0008535,
+  "expected": "10",
+  "tokens": {
+    "input": 129,
+    "output": 679
+  }
+}

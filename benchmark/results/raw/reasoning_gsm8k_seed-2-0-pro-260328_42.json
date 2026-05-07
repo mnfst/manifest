@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "Let's solve the problem step by step:\n1.  First, identify the given values:\n    - Number of children in 1 row = 8\n    - Number of rows per school = 7\n    - Total number of schools = 5\n2.  Calculate the number of children from 1 school:\n    Children per school = (Children per row) \u00d7 (Rows per school)\n    = 8 \u00d7 7 = 56 children per school\n3.  Calculate the total number of children across all schools:\n    Total children = (Children per school) \u00d7 (Number of schools)\n    = 56 \u00d7 5 = 280\nANSWER: 280",
+  "score": 5,
+  "cost": 0.0012042,
+  "expected": "280",
+  "tokens": {
+    "input": 139,
+    "output": 467
+  }
+}

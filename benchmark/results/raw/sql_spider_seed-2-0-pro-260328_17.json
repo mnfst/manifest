@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT s.name\nFROM stadium s\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM concert c\n    WHERE c.stadium_id = s.stadium_id\n      AND EXTRACT(YEAR FROM c.concert_date) = 2014\n);\n```",
+  "score": 5,
+  "cost": 0.0013164,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 517
+  }
+}

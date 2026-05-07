@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Dear Team, As today marks my last day at GreenLeaf Solutions, I wanted to reach out with a heartfelt goodbye to every one of you who turned our daily work into a collaborative, joyful adventure rather than just a job. I\u2019m especially grateful for your unwavering support during the Q4 eco-friendly product launch, where your quick thinking, late-night troubleshooting, and constant encouragement turned a potentially chaotic project into one of our company\u2019s biggest recent wins. Next, I\u2019m stepping into a role focused on sustainable supply chain consulting\u2014a path I never would have felt confident pursuing without the skills and mentorship I gained from each of you here. I\u2019d love to stay in touch, so please feel free to connect with me on LinkedIn (linkedin.com/in/maggielee) or shoot me an email at my personal address (maggie.lee@email.com) whenever you want to catch up, collaborate, or even just debate the best office coffee brand. Thank you again for everything, and I\u2019m cheering for each of you and GreenLeaf\u2019s continued success\u2014here\u2019s to crossing paths again soon, whether at an industry event or a casual coffee catch-up.",
+  "score": 2,
+  "cost": 0.0018101999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 1498
+  }
+}

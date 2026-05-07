@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Below are 5 capital cities, each from a **distinct, widely recognized continent** (using the standard 7-continent model, with no transcontinental ambiguities), paired with their country and continent for clarity:\n1. **Washington, D.C.** \u2013 United States of America, *North America* (undisputed federal capital of the U.S.)\n2. **Bras\u00edlia** \u2013 Federative Republic of Brazil, *South America* (purpose-built federal capital of the largest country in South America)\n3. **Paris** \u2013 French Republic, *Europe* (longstanding, undisputed capital of France)\n4. **Nairobi** \u2013 Republic of Kenya, *Africa* (capital of East Africa\u2019s Kenya, with no transcontinental overlap)\n5. **Canberra** \u2013 Commonwealth of Australia, *Oceania* (official national capital of Australia, Oceania\u2019s largest sovereign nation)",
+  "score": 5,
+  "cost": 0.0027539999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 2284
+  }
+}

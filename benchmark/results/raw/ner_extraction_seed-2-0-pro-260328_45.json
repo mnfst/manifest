@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 45,
+  "response": "{\"persons\": [\"Leonardo da Vinci\"], \"organizations\": [\"Louvre Museum\", \"Royal Collection\"], \"locations\": [\"Paris\"]}",
+  "score": 5,
+  "cost": 0.00043919999999999994,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 154
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 7,
+  "response": "First, define an exothermic reaction: a chemical reaction that releases thermal (heat) energy to its surroundings.\nNow evaluate each option:\n1.  **Option A (car engine):** A car engine operates via combustion of gasoline. Combustion is a classic exothermic chemical reaction that releases large amounts of heat energy to the environment, which is directly observable (the engine becomes hot during operation). This correctly demonstrates an exothermic reaction.\n2.  **Option B (refrigerator):** Refrigerators use a physical refrigeration cycle to *remove* heat from their interior, they do not rely on a heat-releasing chemical reaction to function.\n3.  **Option C (frying pan):** A frying pan is only a passive heat conductor. It does not produce heat via its own chemical reaction; it absorbs heat from an external source.\n4.  **Option D (glass bottle):** A glass bottle is an inert object with no inherent chemical reaction that releases heat.\nAnswer: A",
+  "score": 5,
+  "cost": 0.0015438,
+  "expected": "A",
+  "tokens": {
+    "input": 117,
+    "output": 614
+  }
+}

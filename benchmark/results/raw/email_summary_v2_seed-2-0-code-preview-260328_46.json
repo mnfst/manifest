@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 46,
+  "response": "David\u2019s security vulnerability-themed email notifies stakeholders of a critical (CVSS score 9.8) SQL injection flaw in the /api/v2/auth/login endpoint that affects software versions 3.2.0 to 3.4.1. The required fix is parameterizing the query at line 142 in auth_controller.py, a patch for this fix is ready for review, and David recommends deploying a hotfix within 24 hours.",
+  "score": 5,
+  "cost": 0.0006515999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 511
+  }
+}

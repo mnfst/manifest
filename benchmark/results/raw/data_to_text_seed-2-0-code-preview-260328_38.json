@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "Hosted in the us-east-1 region, the production web server prod-web-01 has an uptime of 45 days, with current resource metrics including 78% CPU utilization, 12.4 GB of its 16 GB total memory consumed, and 234 GB of its 500 GB total disk space used. This server is currently handling 127 active connections, has a P99 latency of 145 milliseconds, and reports an average of 3 errors per hour.",
+  "score": 5,
+  "cost": 0.0019257,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 1570
+  }
+}

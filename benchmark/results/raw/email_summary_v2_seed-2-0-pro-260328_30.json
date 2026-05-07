@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "This competitive analysis update outlines that Competitor X recently launched AI features including an auto-categorization capability the sender's company lacks, though Competitor X's pricing is twice as high, the market response was neutral, and the sender's company retains advantages with a better API and integrations. The product team's recommended action item is for the company to fast-track its own AI roadmap item.",
+  "score": 5,
+  "cost": 0.0010049999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 384
+  }
+}

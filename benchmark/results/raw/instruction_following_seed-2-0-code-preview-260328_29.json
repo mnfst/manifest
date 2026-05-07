@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "Deoxyribonucleic acid (DNA) is a double-stranded, helical nucleic acid made of nucleotide monomers (each with deoxyribose sugar, a phosphate group, and one of four nitrogenous bases: adenine, thymine, cytosine, guanine) that stores and transmits the genetic instructions for the growth, development, function, and reproduction of all known living organisms and many viruses. Its strict complementary base-pairing (adenine with thymine, cytosine with guanine) enables accurate DNA replication and serves as a template for synthesizing ribonucleic acid (RNA), which directs protein assembly to express genetic traits.",
+  "score": 1,
+  "cost": 0.0006699,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 547
+  }
+}

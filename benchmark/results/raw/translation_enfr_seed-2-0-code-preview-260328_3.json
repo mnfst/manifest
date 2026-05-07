@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n'existe aucune autre explication \u00e0 l'allocation parcimonieuse de 10 ou 12 millions d'\u00e9cus, qui, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 de moyens modernes permettant d'exercer une fonction de surveillance dans le secteur des p\u00eaches.\n\n### Notes on fidelity:\n1. **Tone**: Maintains the formal, critical register (appropriate for EU policy/parliamentary discourse, the implied context of the old \"ECU\" currency).\n2. **Terminology**:\n   - *Parsimonious grant* \u2192 *allocation parcimonieuse* (precise for a budget allocation from a public body like the EU; \"subvention\" would imply a grant to a specific beneficiary, which is not specified here).\n   - *ECU* \u2192 *\u00e9cus* (standard French pluralization for the former European Currency Unit, consistent with EU archival terminology).\n   - *Fisheries sector* \u2192 *secteur des p\u00eaches* (standard EU French for the broad fisheries industry, rather than the narrower *secteur de la p\u00eache*).\n3. **Grammar/Flow**:\n   - The verb *ne suffisent* agrees with the plural antecedent *10 ou 12 millions d'\u00e9cus*.\n   - *Comme nous le savons tous* preserves the formal, collective framing of \"as we all know\" (avoids colloquial alternatives like *comme tout le monde sait*).\n   - *Moyens modernes permettant d'exercer une fonction de surveillance* faithfully retains the original's emphasis on \"means of carrying out a monitoring function\" (not just \"surveillance equipment\").",
+  "score": 5,
+  "cost": 0.004156499999999999,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 3438
+  }
+}

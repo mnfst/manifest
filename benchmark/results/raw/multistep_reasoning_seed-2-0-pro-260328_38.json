@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 38,
+  "response": "First, recall Newton's second law of motion, which is mathematically expressed as:\n`F = m * a`\nWhere:\n- `F` = force applied to the object\n- `m` = mass of the object\n- `a` = resulting acceleration of the object\n\nRearranging to solve for acceleration gives `a = F / m`. In this experiment, the *same object* is used, so mass `m` stays constant. Acceleration is **directly proportional** to applied force when mass is fixed.\n\nIf force is increased 4 times (new force = `4F`):\nNew acceleration = `(4F) / m = 4 * (F/m) = 4 * original acceleration`\n\nThe acceleration increases 4 times.\nAnswer: B",
+  "score": 5,
+  "cost": 0.0007866,
+  "expected": "B",
+  "tokens": {
+    "input": 151,
+    "output": 290
+  }
+}

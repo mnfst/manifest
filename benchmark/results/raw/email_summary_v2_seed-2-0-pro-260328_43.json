@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "This email outlines the results of a completed open source dependency audit, which identified two issues after scanning 234 packages: an AGPL charting library incompatible with the company's SaaS model, and one package with no assigned license.\nThe legal and engineering teams recommend switching the charting library to the Apache-licensed Chart.js and removing both problematic packages prior to the next release.",
+  "score": 5,
+  "cost": 0.000798,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 294
+  }
+}

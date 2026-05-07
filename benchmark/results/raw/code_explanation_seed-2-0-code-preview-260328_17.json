@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 17,
+  "response": "This code implements a **stop-on-first-handler variant of the Chain of Responsibility design pattern** as a higher-order factory function that accepts any number of callable `handlers` and returns a nested `handle` function for request processing. The returned `handle` iterates through handlers in sequential order, passes the input `request` to each, short-circuits to return the first non-`None` result (signaling a handled request), or returns `None` if no handlers processed the input.",
+  "score": 5,
+  "cost": 0.001608,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 1313
+  }
+}

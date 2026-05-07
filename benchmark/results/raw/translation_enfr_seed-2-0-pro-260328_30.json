@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie d\u00e9di\u00e9e aux apprentissages des jeunes au sein des PME, des entreprises de taille interm\u00e9diaire et des collectivit\u00e9s territoriales.\n\n*Note: This translation uses standard EU administrative French terminology: midcaps are formally referred to as *entreprises de taille interm\u00e9diaire* (ETI) in official French policy and finance contexts, while *collectivit\u00e9s territoriales* is the correct equivalent for local authorities in this public programme context.",
+  "score": 5,
+  "cost": 0.0012564,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 502
+  }
+}

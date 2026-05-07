@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "The South African Schools Act of 1996.",
+  "score": 5,
+  "cost": 0.0002868,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 190,
+    "output": 72
+  }
+}

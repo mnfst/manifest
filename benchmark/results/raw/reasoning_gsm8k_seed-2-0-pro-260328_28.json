@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let's solve this problem step by step:\n1.  Let `x` = the number of people who got on the bus at the terminal (this is the value we need to find).\n2.  After the first bus stop: 5 more people boarded, so the total number of people becomes `x + 5`.\n3.  At the second bus stop:\n    -  First 7 people got off: subtract 7, total becomes `(x + 5) - 7`\n    -  Then 8 more people boarded: add 8, total becomes `(x + 5) - 7 + 8`\n4.  Simplify the total after the second stop:\n    `x + 5 - 7 + 8 = x + 6`\n5.  We know this final total equals the 20 people heading to the third stop. Set up the equation:\n    `x + 6 = 20`\n6.  Solve for `x` by subtracting 6 from both sides:\n    `x = 20 - 6 = 14`\nWe can verify: 14 initial people + 5 at first stop = 19. Then 19 - 7 off + 8 on = 20, which matches the given total.\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0016217999999999998,
+  "expected": "14",
+  "tokens": {
+    "input": 155,
+    "output": 637
+  }
+}

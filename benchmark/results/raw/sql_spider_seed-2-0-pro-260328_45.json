@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "```sql\nSELECT p.first_name, t.treatment_description\nFROM professionals p\nINNER JOIN treatments t ON p.professional_id = t.professional_id;\n```",
+  "score": 5,
+  "cost": 0.0010764,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 418
+  }
+}

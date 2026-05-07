@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This is the classic bottom-up 2D dynamic programming implementation of the **0-1 Knapsack algorithm**, which calculates the maximum total value obtainable by selecting items (each item may be taken at most once) without exceeding the given bag weight capacity. It iteratively builds a solution table tracking the best possible value for every combination of the first `i` items and every possible weight limit, at each step choosing whether including the current item produces a better result than skipping it entirely.",
+  "score": 5,
+  "cost": 0.0012126,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 453
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "British bacteriologist J. F. D. Shrewsbury.",
+  "score": 5,
+  "cost": 0.000513,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 243,
+    "output": 153
+  }
+}

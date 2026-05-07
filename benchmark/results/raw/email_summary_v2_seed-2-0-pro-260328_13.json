@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "This Customer Success Quarterly update from the CS Team reports improved Q1 performance metrics, lists the top three requested customer features, and notes three enterprise expansions worth $800K are currently in the pipeline.\nThis status email does not specify any formal assigned action items for recipients.",
+  "score": 4,
+  "cost": 0.0018336000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 723
+  }
+}

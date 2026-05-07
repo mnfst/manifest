@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "SELECT SUM(SurfaceArea) AS total_surface_area\nFROM country\nWHERE Region = 'Caribbean';",
+  "score": 5,
+  "cost": 0.0008319,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 668
+  }
+}

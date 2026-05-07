@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 43,
+  "response": "result = []\n    for i, num in enumerate(numbers):\n        if i > 0:\n            result.append(delimeter)\n        result.append(num)\n    return result",
+  "score": 4,
+  "cost": 0.001446,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 558
+  }
+}

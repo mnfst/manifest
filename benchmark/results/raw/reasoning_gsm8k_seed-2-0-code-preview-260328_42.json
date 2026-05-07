@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "Let's break down the problem step by step to find the total number of children:\n1. **First, calculate the number of children per school**:\n   Each school has 7 rows, with 8 children in each row. So the number of children in one school is the number of rows multiplied by the number of children per row:\n   \\( 7 \\text{ rows} \\times 8 \\text{ children/row} = 56 \\text{ children per school} \\).\n2. **Then, calculate the total number of children across all schools**:\n   There are 5 different schools.  total children are the number per school multiplied by the number of schools:\n   \\( 56 \\text{ children/school} \\times 5 \\text{ schools} = 280 \\).\n*Alternative check*: We can also first find the total number of rows across all schools, then multiply by the number of children per row. Total rows = \\( 7 \\text{ rows/school} \\times 5 \\text{ schools} = 35 \\text{ rows} \\). Total children = \\( 35 \\text{ rows} \\times 8 \\text{ children/row} = 280 \\).\nANSWER: 280",
+  "score": 5,
+  "cost": 0.0012747,
+  "expected": "280",
+  "tokens": {
+    "input": 121,
+    "output": 1032
+  }
+}

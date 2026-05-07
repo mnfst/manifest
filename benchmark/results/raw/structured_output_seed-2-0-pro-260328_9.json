@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "structured_output",
+  "case": 9,
+  "response": "{\"title\": \"Introduction to Machine Learning\", \"instructor\": \"Dr. Sarah Chen\", \"duration_weeks\": 12, \"prerequisites\": [\"Linear Algebra\", \"Python\"], \"level\": \"Intermediate\"}",
+  "score": 5,
+  "cost": 0.00048239999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 167
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "data_to_text",
+  "case": 39,
+  "response": "Apple Inc. (AAPL) stock is currently priced at $185.50, marking a 2.3% daily gain, with 45 million shares traded, a $2.87 trillion market capitalization, a price-to-earnings (PE) ratio of 28.4, and a 0.55% dividend yield. Over the past 52 weeks, the stock has traded within a range from a low of $155 to a high of $198.",
+  "score": 5,
+  "cost": 0.0020748,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 1693
+  }
+}

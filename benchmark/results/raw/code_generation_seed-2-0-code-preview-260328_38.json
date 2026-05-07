@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 38,
+  "response": "negatives = [x for x in lst if x < 0]\n    positives = [x for x in lst if x > 0]\n    largest_neg = max(negatives) if negatives else None\n    smallest_pos = min(positives) if positives else None\n    return (largest_neg, smallest_pos)",
+  "score": 5,
+  "cost": 0.0014124,
+  "expected": "",
+  "tokens": {
+    "input": 208,
+    "output": 1125
+  }
+}

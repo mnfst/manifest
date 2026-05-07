@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 8,
+  "response": "return [x for x in values if isinstance(x, int) and not isinstance(x, bool)]",
+  "score": 5,
+  "cost": 0.0036846,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 3031
+  }
+}

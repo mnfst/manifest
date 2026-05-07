@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "First, define key rock categories and eliminate incorrect options:\n1. Extrusive igneous rocks form when magma erupts onto Earth\u2019s surface as lava and cools quickly. This is a specific subcategory of igneous rocks with a direct synonym.\n2. Option A: Intrusive igneous rocks are the *opposite subcategory* of igneous rocks, forming from magma that cools slowly underground. A rock cannot be both extrusive and intrusive igneous. Eliminate A.\n3. Option B: Clastic sedimentary rocks form from compacted/cemented weathered rock fragments, an entirely separate rock type from igneous. A rock cannot be both igneous and sedimentary. Eliminate B.\n4. Option C: Metamorphic rocks form when pre-existing rocks are altered by heat/pressure, another separate rock type from igneous. A rock cannot be both igneous and metamorphic. Eliminate C.\n5. Option D: Extrusive igneous rocks are *synonymously called volcanic rocks* because they form from volcanic eruptions of lava at the surface. This matches the description.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.0009243,
+  "expected": "D",
+  "tokens": {
+    "input": 117,
+    "output": 741
+  }
+}

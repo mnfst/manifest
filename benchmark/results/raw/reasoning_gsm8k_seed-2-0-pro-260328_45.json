@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "First, calculate the total wheels needed for the cars:\nThere are 57 cars, each requiring 4 wheels.\nWheels for cars = \\(57 \\times 4 = 228\\)\n\nNext, calculate the total wheels needed for the motorcycles:\nThere are 73 motorcycles, each requiring 2 wheels.\nWheels for motorcycles = \\(73 \\times 2 = 146\\)\n\nNow find the total number of wheels used for all toys:\nTotal wheels used = Wheels for cars + Wheels for motorcycles = \\(228 + 146 = 374\\)\n\nFinally, subtract the total wheels used from the number of wheels Henry has:\nLeftover wheels = Total available wheels - Total wheels used = \\(650 - 374 = 276\\)\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.0016206,
+  "expected": "276",
+  "tokens": {
+    "input": 149,
+    "output": 638
+  }
+}

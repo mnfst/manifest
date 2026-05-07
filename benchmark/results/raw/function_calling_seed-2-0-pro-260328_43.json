@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 43,
+  "response": "{\"name\": \"git_revert\", \"arguments\": {\"commit\": \"HEAD\"}}",
+  "score": 4,
+  "cost": 0.0052254,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 2141
+  }
+}

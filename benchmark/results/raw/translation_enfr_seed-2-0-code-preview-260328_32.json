@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "### French Translation (aligned with EU official terminology, formal institutional tone, and exact meaning):\nLes \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement de personnel au RSUE.\n\n---\n### Term Validation (EU Legislative/Institutional Standards):\n1. **Member States** \u2192 *Les \u00c9tats membres* (capitalized per EU French style for EU-specific member states)\n2. **EEAS** \u2192 *SEAE* (official French acronym for *Service europ\u00e9en pour l'action ext\u00e9rieure* = European External Action Service)\n3. **EUSR** \u2192 *RSUE* (official French acronym for *Repr\u00e9sentant sp\u00e9cial de l'Union europ\u00e9enne* = European Union Special Representative)\n4. **secondment of staff** \u2192 *d\u00e9tachement de personnel* (mandatory EU Staff Regulations term for temporary staff assignment without loss of original post)\n5. **may propose** \u2192 *peuvent proposer* (matches the original's permissive, non-obligatory tone)",
+  "score": 5,
+  "cost": 0.0029649,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 2452
+  }
+}

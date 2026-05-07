@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne",
+  "score": 5,
+  "cost": 0.0001527,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 285,
+    "output": 56
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "This matte stainless steel water bottle keeps drinks ice-cold for 24 hours or piping hot for 12, with zero condensation that never leaves wet rings on your desk. It fits every standard car cup holder, features a leak-proof one-handed flip top that survives being tossed in backpacks and gym bags, and comes in seven soft, scratch-resistant muted hues. There\u2019s no harsh plastic aftertaste, just clean, perfectly tempered water every time you take a sip.",
+  "score": 2,
+  "cost": 0.0009276,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 371
+  }
+}

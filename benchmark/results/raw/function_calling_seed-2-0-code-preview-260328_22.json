@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 22,
+  "response": "{\"name\": \"create_database\", \"arguments\": {\"name\": \"analytics_prod\"}}",
+  "score": 4,
+  "cost": 0.000597,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 468
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE, GERMANY, SPAIN, ITALY, POLAND",
+  "score": 5,
+  "cost": 0.000219,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 76
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 33,
+  "response": "sides = sorted([a, b, c])\nreturn sides[0] ** 2 + sides[1] ** 2 == sides[2] ** 2",
+  "score": 5,
+  "cost": 0.001149,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 914
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "Legal and Engineering completed an open source dependency audit, scanning 234 packages and identifying two issues: a charting library using the AGPL (a viral license incompatible with their SaaS model) and one package with no license. The audit recommends replacing the AGPL charting library with the Apache-licensed Chart.js and removing both problematic packages prior to the next release.",
+  "score": 5,
+  "cost": 0.0010632,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 852
+  }
+}

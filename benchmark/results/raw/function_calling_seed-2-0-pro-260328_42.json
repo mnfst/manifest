@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 42,
+  "response": "{\"name\": \"create_bucket\", \"arguments\": {\"name\": \"data-lake-prod\", \"region\": \"us-east-1\"}}",
+  "score": 5,
+  "cost": 0.00043380000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 145
+  }
+}

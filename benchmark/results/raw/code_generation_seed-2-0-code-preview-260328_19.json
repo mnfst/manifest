@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 19,
+  "response": "return \"\".join([chr(((ord(ch) - 5 - ord(\"a\")) % 26) + ord(\"a\")) for ch in s])",
+  "score": 3,
+  "cost": 0.0109995,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 9127
+  }
+}

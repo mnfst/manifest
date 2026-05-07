@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "1. The quarterly OKR review from Ops notes that Engineering met its 0.7 target, Sales (0.9) and Support (0.8) exceeded their 0.7 targets, and Product fell short of its 0.7 target with a 0.6 score due to a delayed AI feature. 2. Ops recommends carrying forward Product\u2019s AI-focused OKR with an increased resource allocation, and next quarter\u2019s OKR planning is set to begin on Monday.",
+  "score": 5,
+  "cost": 0.0008375999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 661
+  }
+}

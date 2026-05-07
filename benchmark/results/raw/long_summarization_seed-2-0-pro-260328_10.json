@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 10,
+  "response": "The global food system is under extreme pressure, as a projected 2050 world population of 9.7 billion will require a 60% rise in food production, while concurrent threats include climate-related yield declines, agriculture contributing 25% of global greenhouse gas emissions, widespread aquifer depletion, soil degradation reducing productivity on 33% of arable land, and one-third of all produced food being wasted. A range of solutions are being explored to address this crisis, including technological innovations such as AI-enabled precision agriculture, vertical farming, alternative proteins and drought-resistant crops, along with regenerative farming practices and policy reforms to subsidies, trade and carbon pricing. The central remaining challenge is implementing these solutions at sufficient global scale, while ensuring food remains affordable and accessible to the world's poorest populations.",
+  "score": 5,
+  "cost": 0.0017591999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 348,
+    "output": 646
+  }
+}

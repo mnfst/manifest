@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 40,
+  "response": "{\"name\": \"search_messages\", \"arguments\": {\"channel\": \"announcements\", \"query\": \"release\"}}",
+  "score": 2,
+  "cost": 2.0200000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 25
+  }
+}

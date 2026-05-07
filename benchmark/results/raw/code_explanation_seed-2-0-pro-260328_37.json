@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 37,
+  "response": "This code implements a **Trie (prefix tree)** data structure: it provides an `insert` method to store words as nested dictionary nodes, and a `starts_with` method that first traverses to the position of the input prefix, then runs a depth-first search on that subtree to return all complete stored words that begin with the given prefix.",
+  "score": 5,
+  "cost": 0.0008502000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 237,
+    "output": 295
+  }
+}

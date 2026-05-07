@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "SELECT Name\nFROM country\nWHERE Continent = 'Africa'\nAND Population < (SELECT MIN(Population) FROM country WHERE Continent = 'Asia' AND Population > 0);",
+  "score": 4,
+  "cost": 0.004995,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 4137
+  }
+}

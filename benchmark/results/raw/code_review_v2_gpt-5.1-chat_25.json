@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 25,
+  "response": "Here is a review of the code, the problems it contains, and specific ways to fix them.\n\nProblems:\n\n\u2022 Hard\u2011coded secrets  \nThe API key and database password are stored directly in the source code. This is unsafe because:\n- Anyone who gains access to the code repository can see them.\n- They may leak through logs, screenshots, or error messages.\n- Rotating keys becomes difficult.\n\n\u2022 Real\u2011looking API key format  \nThe string resembles a production key. Even if it is fake, keeping realistic keys in code encourages bad practices.\n\n\u2022 Debug mode enabled  \nLeaving DEBUG set to True in production environments can expose sensitive information through detailed error messages.\n\n\u2022 No separation between environments  \nProduction, development, and testing configurations are mixed into a single class.\n\nFixes and improvements:\n\n\u2022 Move all secrets to environment variables  \nExamples:\n- API_KEY = os.environ.get(\"API_KEY\")\n- DB_PASSWORD = os.environ.get(\"DB_PASSWORD\")\n\n\u2022 Use a proper configuration management system  \nOptions:\n- A .env file with a loader (ensuring the file is excluded from version control)\n- A secrets manager (AWS Secrets Manager, Vault, etc.)\n\n\u2022 Provide safe defaults  \nFor example, return an empty string or raise an error if a required variable is missing.\n\n\u2022 Add separate configuration classes  \nFor example:\n- DevConfig\n- ProdConfig\n- TestConfig  \nEach can override only what differs.\n\n\u2022 Disable debug mode by default  \nSet DEBUG to False and only override it through an environment variable.\n\n\u2022 Validate configuration at startup  \nFail early if required variables are not set.\n\nIf you'd like, I can rewrite the class to reflect all these improvements.",
+  "score": 5,
+  "cost": 0.002866,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 342
+  }
+}

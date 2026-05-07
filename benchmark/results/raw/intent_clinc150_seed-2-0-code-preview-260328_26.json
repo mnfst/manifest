@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "intent_clinc150",
+  "case": 26,
+  "response": "change_volume",
+  "score": 5,
+  "cost": 0.0002889,
+  "expected": "change_volume",
+  "tokens": {
+    "input": 583,
+    "output": 95
+  }
+}

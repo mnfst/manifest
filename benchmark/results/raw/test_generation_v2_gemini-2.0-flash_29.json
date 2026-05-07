@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 29,
+  "response": "```python\nimport pytest\nfrom typing import List\n\ndef moving_average(data: list, window: int) -> list:\n    if window <= 0 or window > len(data):\n        return []\n    result = []\n    for i in range(len(data) - window + 1):\n        result.append(sum(data[i:i+window]) / window)\n    return result\n\nclass TestMovingAverage:\n\n    def test_happy_path(self):\n        data = [1, 2, 3, 4, 5, 6]\n        window = 3\n        expected = [2.0, 3.0, 4.0, 5.0]\n        assert moving_average(data, window) == expected\n\n    def test_happy_path_window_one(self):\n        data = [1, 2, 3, 4, 5]\n        window = 1\n        expected = [1.0, 2.0, 3.0, 4.0, 5.0]\n        assert moving_average(data, window) == expected\n\n    def test_happy_path_window_equals_data_length(self):\n        data = [1, 2, 3, 4, 5]\n        window = 5\n        expected = [3.0]\n        assert moving_average(data, window) == expected\n\n    def test_empty_data(self):\n        data: List[int] = []\n        window = 3\n        expected: List[float] = []\n        assert moving_average(data, window) == expected\n\n    def test_window_zero(self):\n        data = [1, 2, 3, 4, 5]\n        window = 0\n        expected: List[float] = []\n        assert moving_average(data, window) == expected\n\n    def test_window_negative(self):\n        data = [1, 2, 3, 4, 5]\n        window = -1\n        expected: List[float] = []\n        assert moving_average(data, window) == expected\n\n    def test_window_greater_than_data_length(self):\n        data = [1, 2, 3, 4, 5]\n        window = 6\n        expected: List[float] = []\n        assert moving_average(data, window) == expected\n\n    def test_data_with_negative_numbers(self):\n        data = [-1, 2, -3, 4, -5, 6]\n        window = 3\n        expected = [-0.6666666666666666, 1.0, -1.3333333333333333, 1.6666666666666667]\n        assert moving_average(data, window) == expected\n\n    def test_data_with_floats(self):\n        data = [1.0, 2.5, 3.0, 4.5, 5.0]\n        window = 2\n        expected = [1.75, 2.75, 3.75, 4.75]\n        assert moving_average(data, window) == expected\n\n    def test_large_data_and_window(self):\n        data = list(range(1, 1001))\n        window = 100\n        expected = [float(sum(range(i, i + window)) / window) for i in range(1, 902)]\n        assert moving_average(data, window) == expected\n```",
+  "score": 4,
+  "cost": 0.00035240000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 854
+  }
+}

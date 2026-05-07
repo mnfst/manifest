@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 28,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Johns Hopkins University\"],\n  \"locations\": [\"Baltimore\"]\n}",
+  "score": 4,
+  "cost": 0.0004062,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 141
+  }
+}

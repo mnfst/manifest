@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "structured_output",
+  "case": 33,
+  "response": "{\"username\":\"@techguru42\",\"joined_year\":2020,\"followers\":\"1.2K\",\"following\":890,\"posts\":342,\"verified\":true,\"bio\":\"Building the future of AI\"}",
+  "score": 5,
+  "cost": 0.0008787,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 698
+  }
+}

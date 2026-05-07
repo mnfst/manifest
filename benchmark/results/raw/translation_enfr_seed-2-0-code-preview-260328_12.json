@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 12,
+  "response": "Ce premier r\u00e9sultat, jug\u00e9 exceptionnel, a permis l\u2019identification de 80 signaux acoustiques diff\u00e9rents pr\u00e8s des Rocas Consag. Ces r\u00e9sultats confirment les \u00e9tudes ant\u00e9rieures sur la distribution de la vaquita dans la r\u00e9gion.\n\n### Notes on faithfulness:\n- Maintains formal scientific tone (uses nominalized *identification* instead of verbal *identifier* to match the original\u2019s noun phrase, prefers *\u00e9tudes ant\u00e9rieures* [standard academic term for prior research] over colloquial *\u00e9tudes pr\u00e9c\u00e9dentes*).\n- Retains proper noun *Rocas Consag* (a geographically specific rock formation, left untranslated per scientific convention).\n- Uses *la vaquita* (the accepted French common name for the porpoise, no unnecessary modifiers added as the original omits them).\n- Follows tense logic: *a permis* (pass\u00e9 compos\u00e9) for a completed action with present scientific relevance, *confirment* (pr\u00e9sent de l\u2019indicatif) for a persistent, evidence-based conclusion.",
+  "score": 5,
+  "cost": 0.0016887,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 1384
+  }
+}

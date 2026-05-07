@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 7,
+  "response": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"6:30 AM tomorrow\", \"label\": \"Morning Workout\"}}",
+  "score": 4,
+  "cost": 0.0005708999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 443
+  }
+}

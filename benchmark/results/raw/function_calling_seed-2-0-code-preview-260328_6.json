@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 6,
+  "response": "{\"name\":\"translate\",\"arguments\":{\"text\":\"The meeting has been rescheduled to Monday\",\"target_language\":\"Spanish\"}}",
+  "score": 4,
+  "cost": 0.00040469999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 303
+  }
+}

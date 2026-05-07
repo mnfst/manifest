@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Je dirais que c'est, au mieux, de faible valeur.",
+  "score": 4,
+  "cost": 0.0008201999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 322
+  }
+}

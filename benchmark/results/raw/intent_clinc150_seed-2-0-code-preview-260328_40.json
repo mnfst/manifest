@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "intent_clinc150",
+  "case": 40,
+  "response": "mpg",
+  "score": 5,
+  "cost": 0.0002265,
+  "expected": "mpg",
+  "tokens": {
+    "input": 587,
+    "output": 42
+  }
+}

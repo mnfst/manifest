@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "ner_extraction",
+  "case": 9,
+  "response": "{\"persons\": [], \"organizations\": [\"World Health Organization\"], \"locations\": [\"sub-Saharan Africa\", \"Geneva\"]}",
+  "score": 4,
+  "cost": 0.00033299999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 253
+  }
+}

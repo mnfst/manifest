@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "anaerobic bacteria",
+  "score": 5,
+  "cost": 0.00038639999999999996,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 248,
+    "output": 99
+  }
+}

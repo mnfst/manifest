@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "SELECT songs.song_name AS name, songs.release_year\nFROM songs\nJOIN singers ON songs.singer_id = singers.id\nWHERE singers.birth_year = (SELECT MAX(birth_year) FROM singers);",
+  "score": 4,
+  "cost": 0.005445,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 4512
+  }
+}

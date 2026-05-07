@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "### French (technical, tone-matched, meaning-preserving):\nLes flocs provenant de SRT plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et se sont av\u00e9r\u00e9s poss\u00e9der une couche dense d'EPS qui recouvre une grande partie de leur surface.\n\n---\n### Notes on technical accuracy & tone:\n1. **SRT/EPS**: Retained as international acronyms (widely used in French environmental engineering literature; no added definition to match the original's unannotated style).\n2. **Floc**: Corrected to plural *flocs* (matches the original's plural verb *were*, a scientific shorthand for collective \"floc material\").\n3. **\"leur surface\"**: Added clarifying possessive (original's \"the surface\" unambiguously refers to the flocs' surface; French requires explicit reference to avoid ambiguity).\n4. **\"se sont av\u00e9r\u00e9s poss\u00e9der\"**: Standard scientific French phrasing for \"were found to possess\" (maintains the original's passive, technical tone without awkward literalism).\n5. **Tense consistency**: *\u00e9taient* (imparfait, for past state of hydration) + *se sont av\u00e9r\u00e9s* (pass\u00e9 compos\u00e9, for the completed discovery) + *recouvre* (present, for the permanent property of the EPS layer) matches the original's tense logic.",
+  "score": 5,
+  "cost": 0.00615,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 5106
+  }
+}

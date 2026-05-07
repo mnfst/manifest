@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "json_transform_v2",
+  "case": 10,
+  "response": "{\"items\":4,\"subtotal\":1136,\"discount_code\":\"SAVE20\",\"member_discount\":true,\"estimated_total\":908.8}",
+  "score": 4,
+  "cost": 0.004424099999999999,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 3643
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "This IT Procurement email outlines that the Datadog contract expires June 30, presenting two options: renewing for 3 years at a discounted $155K per year, or switching to Grafana Cloud for $95K per year which would require a 3-month migration.\nFinance requires a final decision on this vendor contract renewal matter by May 15.",
+  "score": 5,
+  "cost": 0.0008177999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 302
+  }
+}

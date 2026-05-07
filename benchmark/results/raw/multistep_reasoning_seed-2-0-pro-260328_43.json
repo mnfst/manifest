@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "First, let's analyze each option:\n1.  Option A: Evaporated seas form mineral deposits (such as salt), not coal. This is incorrect.\n2.  Option B: Natural gas is a separate fossil fuel, it is not a source material for coal formation. This is incorrect.\n3.  Option C: Melted and cooled rock forms igneous rock, not coal. This is incorrect.\n4.  Option D: Coal forms over millions of years when dead plant matter is buried, deprived of oxygen, and subjected to sustained high pressure and heat underground. This is correct.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.0007968,
+  "expected": "D",
+  "tokens": {
+    "input": 124,
+    "output": 301
+  }
+}

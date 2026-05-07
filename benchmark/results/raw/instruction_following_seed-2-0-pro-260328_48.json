@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In feuding Verona, Montague Romeo crashes a Capulet family party, falling instantly for Juliet Capulet. They marry secretly the next day, but Romeo kills Juliet\u2019s cousin Tybalt in a brawl and is exiled. To escape a forced marriage, Juliet takes a fake-death potion; Romeo, never alerted to the plan, poisons himself at her tomb. Waking to find him dead, Juliet stabs herself. Their tragedy finally ends their families\u2019 bitter feud.",
+  "score": 5,
+  "cost": 0.0009444,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 376
+  }
+}

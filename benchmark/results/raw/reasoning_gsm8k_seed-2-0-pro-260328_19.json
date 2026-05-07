@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "To solve the problem, we calculate the total number of kittens by adding all groups of kittens together:\n1.  First, the sisters adopted **7 kittens** to bring home.\n2.  Patchy the house cat had thrice the number of adopted kittens:\n    \\( 3 \\times 7 = 21 \\) kittens from Patchy.\n3.  Trixie the other house cat had **12 kittens**, as directly stated.\n\nAdd all the kittens to get the total:\n\\( 7 + 21 + 12 = 40 \\)\n\nANSWER: 40",
+  "score": 5,
+  "cost": 0.0015936,
+  "expected": "40",
+  "tokens": {
+    "input": 168,
+    "output": 622
+  }
+}

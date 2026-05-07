@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "### Exact Directions (Only Left/Right Turns; No U-Turns/Non-Standard Turns)\n**Starting Point: Oakridge Neighborhood Park (North Entrance Curb Cut) | Starting Orientation: Facing *OUT* of the park (toward 2-lane Oakridge Drive; your back is to the park\u2019s blue-roofed picnic pavilion). All turns are relative to your current forward direction. Straight travel between turns is allowed, but all directional changes (turns) are exclusively left/right.**\n\n1. **Turn RIGHT** onto the Oakridge Drive eastbound sidewalk.  \n   (Walk straight *until* the chipped red mailbox mounted on a wooden post at the Oakridge Drive / 2nd Street corner\u2014this is just a travel segment, no turn here.)\n2. **At the red mailbox corner, Turn LEFT** onto the 2nd Street northbound sidewalk.  \n   (Walk straight *until* the neon yellow fire hydrant at the 2nd Street / Birch Avenue corner\u2014travel segment only.)\n3. **At the neon yellow fire hydrant, Turn RIGHT** onto the Birch Avenue eastbound sidewalk.  \n   (Walk straight *until* the \"No Parking\" sign bolted to a gnarled maple tree at the Birch Avenue / Library Lane corner\u2014travel segment only.)\n4. **At the maple tree \"No Parking\" sign, Turn LEFT** onto the Library Lane sidewalk.  \n   (Walk straight 50 feet\u2014no turn\u2014until you reach the **Maplewood Public Library Main Entrance** (glass awning with black book decals, metal bike rack out front).)\n\n### Validation:\nEvery directional change (turn) is explicitly left or right; no other turn types are used. Landmarks eliminate ambiguity about where to turn.",
+  "score": 5,
+  "cost": 0.0029397,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 2438
+  }
+}

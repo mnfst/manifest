@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 8,
+  "response": "return [x for x in values if type(x) is int]",
+  "score": 5,
+  "cost": 0.0005376000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 180
+  }
+}

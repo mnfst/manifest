@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 3,
+  "response": "return [xs[i] * i for i in range(1, len(xs))]",
+  "score": 5,
+  "cost": 0.0039945,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 3285
+  }
+}

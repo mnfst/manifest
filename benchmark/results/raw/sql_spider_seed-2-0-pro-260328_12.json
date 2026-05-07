@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "```sql\nSELECT p.professional_id, p.role, p.first_name\nFROM professionals p\nINNER JOIN treatments t ON p.professional_id = t.professional_id\nGROUP BY p.professional_id, p.role, p.first_name\nHAVING COUNT(t.treatment_id) >= 2;\n```",
+  "score": 5,
+  "cost": 0.0006378000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 234
+  }
+}

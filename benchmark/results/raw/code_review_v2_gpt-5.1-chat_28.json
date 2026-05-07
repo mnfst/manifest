@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 28,
+  "response": "Issues and improvements:\n\n\u2022 Missing imports. The function uses os and json but never imports them.  \nFix: add \u201cimport os\u201d and \u201cimport json\u201d.\n\n\u2022 Predictable temporary file name. Using \u201c/tmp/data_<pid>.json\u201d is insecure. Any other process can predict the name, overwrite it, or create a symlink to cause the program to write to an unintended location.  \nFix: use Python\u2019s tempfile module (NamedTemporaryFile or mkstemp), which creates securely randomized, non\u2011guessable paths.\n\n\u2022 Possible file overwrite. If the process is restarted or called twice in quick succession with the same PID, it will overwrite an existing file.  \nFix: again, use tempfile to guarantee unique files.\n\n\u2022 No file permissions control. The created file gets default permissions, which may leak sensitive data.  \nFix: set restrictive permissions when opening the file or use tempfile.NamedTemporaryFile, which defaults to secure permissions.\n\n\u2022 No error handling. If writing fails, an exception will propagate without cleanup or context.  \nFix: optionally add try/except to handle I/O errors or log issues.\n\n\u2022 Returns a path to a file that may be left behind. Depending on usage, this could cause cleanup or disk\u2011space issues.  \nFix: either delete the file when done or use a NamedTemporaryFile with delete=True if appropriate.\n\nImproved secure version:\n\n```\nimport json\nimport tempfile\n\ndef create_temp_file(data):\n    fd, path = tempfile.mkstemp(suffix=\".json\")\n    try:\n        with os.fdopen(fd, \"w\") as f:\n            json.dump(data, f)\n        return path\n    except:\n        os.remove(path)\n        raise\n```\n\nOr if the caller does not need the file after closing:\n\n```\nwith tempfile.NamedTemporaryFile(mode=\"w\", suffix=\".json\", delete=False) as f:\n    json.dump(data, f)\n    return f.name\n```",
+  "score": 5,
+  "cost": 0.00337,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 401
+  }
+}

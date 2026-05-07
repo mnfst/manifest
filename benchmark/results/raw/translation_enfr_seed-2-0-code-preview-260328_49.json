@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "J'ai des g\u00e2teaux \u00e0 la cr\u00e8me, des friandises, des harengs marin\u00e9s et des dattes cristallis\u00e9es.\n\n### Breakdown for accuracy:\n1. **\"I've got\"** \u2192 *J'ai* (casual, conversational, matches the original\u2019s informal tone for listing possessions)\n2. **\"cream cakes\"** \u2192 *des g\u00e2teaux \u00e0 la cr\u00e8me* (standard plural term for cream-filled cakes; *des* = indefinite plural article for unspecified quantities, matching the original\u2019s vague \"some\" implication)\n3. **\"sweet meats\"** \u2192 *des friandises* (critical non-literal translation: \"sweet meats\" is an old-fashioned term for sweet confections/pastries, not animal flesh\u2014*friandises* covers all sweet treats, including candies and small pastries, to match the original\u2019s broad meaning)\n4. **\"pickled herring\"** \u2192 *des harengs marin\u00e9s* (standard French term for vinegar-pickled herring; avoids the literal but incorrect \"harengs saumur\u00e9s\" = brined herring)\n5. **\"crystallized dates\"** \u2192 *des dattes cristallis\u00e9es* (direct, standard technical term for sugar-crystallized dates)\n6. **Tone/structure** \u2192 No Oxford comma (matches French conventions; original also omits the Oxford comma before \"and\")",
+  "score": 5,
+  "cost": 0.0042375,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 3514
+  }
+}

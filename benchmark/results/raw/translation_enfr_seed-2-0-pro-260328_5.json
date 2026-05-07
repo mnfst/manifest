@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocs issus de SRT plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et il a \u00e9t\u00e9 constat\u00e9 qu'ils poss\u00e9daient une couche dense d'EPS recouvrant la majeure partie de leur surface.\n\n*Note: This translation preserves the formal scientific tone of the original technical text. The acronyms SRT (Sludge Retention Time) and EPS (Extracellular Polymeric Substances) are universally adopted and retained as-is in French academic literature for this field.*",
+  "score": 5,
+  "cost": 0.0025908000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 1056
+  }
+}

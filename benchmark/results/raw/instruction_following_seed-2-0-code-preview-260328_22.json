@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "The scruffy, one-eared shelter mutt who pressed his cold nose to a grieving widow\u2019s tear-streaked cheek on their first encounter proved he was a loyal companion before he even stepped foot in her cottage. Each morning, he waits by her front door with her frayed knit scarf looped loosely around his neck, a loyal ritual that turns her quiet solo walks into gentle adventures. When a neighborhood off-leash dog darted toward her last month, he positioned himself between her and the rambunctious intruder, a loyal protector who didn\u2019t flinch despite being half the other dog\u2019s size. She often tells her grandkids that he\u2019s the most loyal confidant she\u2019s ever had, one who sits quietly beside her while she talks to her late husband\u2019s old photograph without demanding anything in return. Even when the grandkids sneak him extra peanut butter treats that make his tail wag so hard it knocks over the windowsill planters, he remains a loyal guardian of her late husband\u2019s vintage pocket watch, never letting it tumble from the side table during his chaotic zoomies. Dogs like this remind every human that a loyal heart isn\u2019t defined by pedigree or training, but by the quiet, unwavering ways they show up for the people who let them into their lives.",
+  "score": 5,
+  "cost": 0.0020022,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 1657
+  }
+}

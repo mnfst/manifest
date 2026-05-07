@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "SELECT COUNT(*) AS number_of_cars\nFROM cars\nWHERE cylinders > 6;",
+  "score": 5,
+  "cost": 0.000282,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 89
+  }
+}

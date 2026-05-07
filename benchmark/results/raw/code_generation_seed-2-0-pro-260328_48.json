@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 48,
+  "response": "cleaned = ''.join(c.lower() for c in text if c.isalnum())\n    return cleaned == cleaned[::-1]",
+  "score": 5,
+  "cost": 0.0012533999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 481
+  }
+}

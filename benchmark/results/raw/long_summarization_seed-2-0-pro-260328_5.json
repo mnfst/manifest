@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Antibiotics began with Alexander Fleming's 1928 discovery of penicillin, leading to a golden age of antibiotic development in the 1950s and 1960s that transformed surgery and global disease treatment. Over time, new antibiotic development declined due to poor financial returns, while widespread use including agricultural application in livestock fueled the spread of resistant bacteria such as MRSA, creating the modern antimicrobial resistance crisis. Currently, researchers are investigating promising solutions to this public health challenge, including phage therapy, CRISPR-based approaches, and AI-driven drug discovery.",
+  "score": 5,
+  "cost": 0.0013019999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 496
+  }
+}

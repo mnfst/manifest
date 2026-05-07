@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The International team\u2019s email outlines a Japan-focused international expansion plan that includes a phased launch timeline (May for legal entity setup, June for localization completion, July for a 10-customer beta, August for general availability) and a $200K total budget allocated to legal costs ($50K), localization ($80K), and a local hire ($70K). The sole action item required to advance this plan is securing the CEO\u2019s formal approval to proceed with the outlined timeline and budget.",
+  "score": 5,
+  "cost": 0.0008961,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 715
+  }
+}

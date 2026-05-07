@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "{\"persons\": [], \"organizations\": [], \"locations\": [\"Puerto Rico\", \"Dominican Republic\"]}",
+  "score": 4,
+  "cost": 0.00032219999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 106
+  }
+}

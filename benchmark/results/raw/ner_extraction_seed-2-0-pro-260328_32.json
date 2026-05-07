@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\"persons\": [\"Serena Williams\"], \"organizations\": [\"ESPY\"], \"locations\": [\"Los Angeles\"]}",
+  "score": 5,
+  "cost": 0.0002964,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 95
+  }
+}

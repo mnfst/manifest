@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "Un large \u00e9ventail d'attractions et de produits touristiques (th\u00e9, itin\u00e9raires culturels, stations de sant\u00e9 et bien-\u00eatre avec spas, gastronomie, activit\u00e9s nautiques, etc.) a \u00e9t\u00e9 identifi\u00e9 sur la destination. Ceux-ci requi\u00e8rent un d\u00e9veloppement interd\u00e9pendant, du fait de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne.\n\nThis translation preserves the formal technical tone of the original tourism planning text, uses standard industry terminology for French administrative/study documents, and retains all nuance regarding the interdependency rationale.",
+  "score": 5,
+  "cost": 0.001824,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 729
+  }
+}

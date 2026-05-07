@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "Let's break down the problem step by step:\n1. **Madeline's grapes**: Madeline ate 6 grapes.\n2. **Brother's grapes**: Her brother used 5 times as many grapes as Madeline. Calculate this:  \n   \\(5 \\times 6 = 30\\) grapes.\n3. **Mom's grapes**: Mom used the remaining grapes to make 4 pies, with 12 grapes per pie. Calculate total grapes for pies:  \n   \\(4 \\times 12 = 48\\) grapes.\n4. **Total initial grapes**: All grapes were used by Madeline, her brother, and mom (no leftovers mentioned). Add the three amounts together:  \n   \\(6 + 30 + 48 = 84\\).\nWe can verify this: Start with 84. Subtract Madeline's 6 (84-6=78), subtract brother's 30 (78-30=48), which exactly matches the 48 grapes mom used for 4 pies.\nANSWER: 84",
+  "score": 5,
+  "cost": 0.001077,
+  "expected": "84",
+  "tokens": {
+    "input": 134,
+    "output": 864
+  }
+}

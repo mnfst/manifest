@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "```python\nimport pytest\n\ndef reverse_words(s: str) -> str:\n    return ' '.join(s.split()[::-1])\n\nclass TestReverseWords:\n    def test_happy_path(self):\n        assert reverse_words(\"the sky is blue\") == \"blue is sky the\"\n\n    def test_single_word(self):\n        assert reverse_words(\"hello\") == \"hello\"\n\n    def test_empty_string(self):\n        assert reverse_words(\"\") == \"\"\n\n    def test_leading_and_trailing_spaces(self):\n        assert reverse_words(\"  the sky is blue  \") == \"blue is sky the\"\n\n    def test_multiple_spaces_between_words(self):\n        assert reverse_words(\"the   sky   is blue\") == \"blue is sky the\"\n\n    def test_only_spaces(self):\n        assert reverse_words(\"   \") == \"\"\n\n    def test_string_with_numbers(self):\n        assert reverse_words(\"1 2 3 4 5\") == \"5 4 3 2 1\"\n\n    def test_string_with_special_characters(self):\n        assert reverse_words(\"!@# $%^ &*()\") == \"&*() $%^ !@#\"\n\n    def test_string_with_mixed_case(self):\n        assert reverse_words(\"The Sky Is Blue\") == \"Blue Is Sky The\"\n\n    def test_string_with_unicode_characters(self):\n        assert reverse_words(\"\u4f60\u597d \u4e16\u754c\") == \"\u4e16\u754c \u4f60\u597d\"\n\n    def test_long_string(self):\n        long_string = \"a \" * 1000 + \"b\"\n        expected_result = \"b \" + \"a \" * 1000\n        assert reverse_words(long_string) == expected_result.strip()\n```",
+  "score": 5,
+  "cost": 0.0001739,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 421
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort_values(iterable, key=None, reverse=False):\n    \"\"\"Sorts elements from an input iterable using a stable comparison algorithm.\n\n    Implements a stable Timsort routine that preserves relative order of elements\n    with equal sort keys. Original input iterable is never modified; a new sorted\n    list is always returned.\n\n    Args:\n        iterable (Iterable[Any]): Input collection containing elements to sort.\n            All elements must support mutual comparison operations.\n        key (Callable[[Any], Any], optional): Transformation function applied to\n            each element before comparison to extract a sort ordering key.\n            If omitted, elements are compared directly. Defaults to None.\n        reverse (bool, optional): If set to True, output will be sorted in\n            descending order. Defaults to False for ascending order.\n\n    Returns:\n        list[Any]: New list containing all elements from the input iterable,\n            arranged in the requested sort order.\n\n    Raises:\n        TypeError: If input elements cannot be compared, or provided `key` is\n            not a valid callable.\n\n    Examples:\n        >>> sort_values([3, 1, 4, 1, 5])\n        [1, 1, 3, 4, 5]\n        >>> sort_values([\"Apple\", \"banana\", \"Cherry\"], key=str.lower)\n        ['Apple', 'banana', 'Cherry']\n        >>> sort_values([7, 2, 9, 0], reverse=True)\n        [9, 7, 2, 0]\n\n    Notes:\n        Sort stability guarantee: elements with identical sort keys retain the\n        same relative position they held in the original input iterable.\n        Behaviour matches Python's native `sorted()` builtin.\n    \"\"\"\n    # implementation logic here\n```\n\nThis follows official Google Python Style Guide docstring conventions, including proper section ordering, type annotation formatting, doctest-compatible examples, and descriptive context for maintainers.",
+  "score": 5,
+  "cost": 0.0028307999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 1164
+  }
+}

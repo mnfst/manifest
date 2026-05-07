@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "### Explanation (2 clear, specific sentences):\n1. This code implements a **Python decorator factory** that generates a **Least Recently Used (LRU) cache decorator**\u2014a wrapper for target functions that caches results using only positional arguments as keys, eliminating redundant computations for identical inputs.\n2. It leverages Python\u2019s `OrderedDict` (for its `move_to_end` order-modification method) to enforce the LRU eviction rule: cached entries are moved to the OrderedDict\u2019s *end* on access to mark them as recently used, and when the cache exceeds `maxsize`, the **least recently used entry** (the OrderedDict\u2019s first item, removed via `popitem(last=False)`) is evicted to free space.\n\n---\n### Key Specifics (condensed):\n- **Pattern**: Decorator factory (outer function `lru_cache` takes `maxsize` to parameterize the inner decorator, which wraps the target function).\n- **Algorithm**: *LRU (Least Recently Used)* cache eviction (only retains the most recently accessed results).\n- **Data Structure**: `OrderedDict` (used for its `move_to_end` method to reorder entries on access, and `popitem(last=False)` to evict the oldest/least-recent entry).\n- **Cache Key**: Only positional arguments (`*args`; keyword arguments are ignored for caching).",
+  "score": 5,
+  "cost": 0.0026081999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 2134
+  }
+}

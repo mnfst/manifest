@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 13,
+  "response": "```json\n{\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}}\n```\n```json\n{\"name\": \"set_thermostat\", \"arguments\": {\"temperature\": 72}}\n```",
+  "score": 5,
+  "cost": 3.19e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 54
+  }
+}

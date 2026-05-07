@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This is an implementation of the **Knuth-Morris-Pratt (KMP) linear-time string matching algorithm**. It first precomputes a Longest Prefix Suffix (LPS) lookup array for the pattern to avoid redundant backtracking during search, then scans the input text in one single pass to return the starting index of the first full pattern match, or -1 if the pattern is not found.",
+  "score": 5,
+  "cost": 0.0009539999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 238,
+    "output": 338
+  }
+}

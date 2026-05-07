@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 21,
+  "response": "even = 0\nodd = 0\nfor x in range(1, n + 1):\n    s = str(x)\n    if s == s[::-1]:\n        if x % 2 == 0:\n            even += 1\n        else:\n            odd += 1\nreturn (even, odd)",
+  "score": 5,
+  "cost": 0.0024057,
+  "expected": "",
+  "tokens": {
+    "input": 291,
+    "output": 1932
+  }
+}

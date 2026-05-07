@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The Platform team\u2019s API Deprecation Notice announces the v1 API will be deprecated on June 30 and fully removed on September 30, noting 340 integrations (including 12 enterprise customers that have not started migration) still use v1 and a migration guide was published the prior month. To facilitate v1 API migration, the Platform team plans to conduct personal outreach to the top 20 v1 users and host a webinar for all remaining v1 integration stakeholders.",
+  "score": 5,
+  "cost": 0.0011244,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 905
+  }
+}

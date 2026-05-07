@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "Let's break down the problem step by step:\n1. Find the age of the second son: The first son is 12, and the second is 4 years younger. So 12 - 4 = 8 years old.\n2. Calculate total candles needed: Birthday candles are typically 1 per year of age. Add the two sons' ages: 12 + 8 = 20 candles total.\n3. Find the number of packs required: Candles come in packs of 5. Divide total candles by candles per pack: 20 \u00f7 5 = 4 packs.\n4. Compute total cost: Each pack costs $3. Multiply number of packs by cost per pack: 4 \u00d7 $3 = $12.\nANSWER: 12",
+  "score": 5,
+  "cost": 0.0005871,
+  "expected": "12",
+  "tokens": {
+    "input": 117,
+    "output": 460
+  }
+}

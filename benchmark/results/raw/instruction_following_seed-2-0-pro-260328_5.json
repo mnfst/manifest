@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun stops biting first. One minute you're squinting against it, the next you can hold your palm up towards it and only feel gentle warmth through your skin, no sting.\n\nIt softens at the edges first, blurs from a sharp white disc into something rounded, burnished, slow. It bleeds honey and burnt peach up into the sky, the colour seeping outwards until the whole west is translucent, like holding a stained glass pane up to your face. Clouds that were flat grey an hour before glow along their undersides, turned to folded amber silk.\n\nEverything on the ground catches it. Fence posts burn copper. Dandelion fluff drifting past lights up for half a second like a tiny passing star. Geese crossing the horizon have their wings gilded along the edges, so all you see is a string of glowing silhouettes beating slow south. The grass lights up from within, each blade holding the light until the whole field looks like it's breathing gold.\n\nIt sinks gentle, not falling, just tucking itself down behind the oak line like someone climbing into bed. For twenty minutes after it's gone the horizon still glows, faint and warm, long enough for the first cricket to start chirping, long enough for you to notice your drink has gone cold in your hand, that you haven't moved this whole time.\n\nThe first star pricks through right above the treetops, faint at first, then steady. The gold fades soft into lavender, then indigo. Somewhere a screen door slams. You breathe in, and the air smells like cut clover and the first wood smoke of the evening, and for a quiet minute nothing feels like it needs to be fixed, or rushed, or explained.",
+  "score": 5,
+  "cost": 0.0028187999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 1159
+  }
+}

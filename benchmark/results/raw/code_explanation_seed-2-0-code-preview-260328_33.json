@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This code implements **Algorithm R**, the classic unweighted reservoir sampling algorithm\u2014a pattern for sampling from unknown/unbounded-length data streams (avoiding full in-memory storage) \u2014 to generate an unbiased random k-element subset *without replacement*. Every element in the entire stream has an equal probability (k/n, where n is the stream\u2019s total length) of being selected into the returned reservoir.\n\n(If condensing to 1 sentence: This code implements **Algorithm R**, the classic unweighted reservoir sampling algorithm\u2014a pattern for sampling from unknown/unbounded-length data streams to avoid full in-memory storage\u2014to generate an unbiased random k-element subset without replacement where every stream element has an equal probability (k/n, n = total stream length) of being selected.)",
+  "score": 5,
+  "cost": 0.0024198,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 1985
+  }
+}

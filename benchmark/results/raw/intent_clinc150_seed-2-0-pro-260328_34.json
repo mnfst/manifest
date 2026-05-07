@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "intent_clinc150",
+  "case": 34,
+  "response": "replacement_card_duration",
+  "score": 5,
+  "cost": 0.0005267999999999999,
+  "expected": "replacement_card_duration",
+  "tokens": {
+    "input": 614,
+    "output": 66
+  }
+}

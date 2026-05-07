@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Ops sent an email titled \"Network Upgrade Proposal\" that notes the organization\u2019s current 1Gbps network links operate at 78% capacity during peak hours, then outlines two mitigation options: a 10Gbps upgrade with a $45K one-time fee plus $2K monthly, and a $15K solution combining traffic shaping and CDN optimization. Citing the organization\u2019s growth projections, Network Ops recommends the 10Gbps upgrade to avoid needing to address network capacity limitations again in just six months.",
+  "score": 5,
+  "cost": 0.0010211999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 816
+  }
+}

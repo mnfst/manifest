@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Not found in context.",
+  "score": 1,
+  "cost": 0.0018423,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 201,
+    "output": 1485
+  }
+}

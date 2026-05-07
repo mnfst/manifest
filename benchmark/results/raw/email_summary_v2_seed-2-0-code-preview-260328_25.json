@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The founders\u2019 April investor update outlines key company milestones\u2014including hitting 10,000 monthly active users, securing an $8 million Series A term sheet at a $40 million pre-money valuation, and hiring a VP of Sales\u2014alongside core metrics: $85,000 monthly recurring revenue (12% month-over-month growth), a $120,000 monthly burn rate, and 11 months of projected runway post-funding. The update confirms the company\u2019s Series A fundraising round is scheduled to close on May 10.",
+  "score": 5,
+  "cost": 0.0011856,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 953
+  }
+}

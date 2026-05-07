@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This is an implementation of **Algorithm R**, the standard reservoir sampling algorithm: it selects a uniformly random sample of exactly `k` items in a single pass over an input stream of unknown total length, without ever needing to load the full stream into memory.\nFor every item processed after the initial first `k` items, the algorithm randomly replaces an element in the reservoir with probability `k/i` (where `i` is the current 0-indexed position in the stream), which guarantees every item seen so far has equal chance of being kept in the final sample.",
+  "score": 5,
+  "cost": 0.0008952,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 337
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 23,
+  "response": "First, we analyze the order of steps for a valid scientific investigation:\n1.  **Option A (Repeat the investigation):** This is done *after* completing the full experiment once, to confirm results. It cannot be the first step.\n2.  **Option B (Write a report of the results):** Reports are written *after* all data is collected and analyzed, so this is a final step, not first.\n3.  **Option C (Make a table for recording data):** Before starting observations or testing, researchers first prepare an organized method to log data consistently. This is a preparation step that must happen *before* collecting measurements.\n4.  **Option D (Make daily observations of the light bulbs):** This is the data collection step. You cannot properly record observations without first having a pre-prepared system (like a data table) to log the measurements, so this happens after step C.\n\nAnswer: C",
+  "score": 5,
+  "cost": 0.0015366,
+  "expected": "C",
+  "tokens": {
+    "input": 145,
+    "output": 604
+  }
+}

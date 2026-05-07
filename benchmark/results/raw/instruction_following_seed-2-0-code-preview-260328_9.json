@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April, June, September, November",
+  "score": 5,
+  "cost": 0.0001581,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 120
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "data_to_text",
+  "case": 18,
+  "response": "Stockholm, a city in Sweden that was founded in 1252, has a population of 1.6 million spread across 188 km\u00b2, uses Swedish as its primary language, and records a GDP per capita of $62,000. This city sees an average temperature of -3\u00b0C in the cold month of January, while its warmest month July has a much milder average temperature of 18\u00b0C.",
+  "score": 5,
+  "cost": 0.0012564,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 487
+  }
+}

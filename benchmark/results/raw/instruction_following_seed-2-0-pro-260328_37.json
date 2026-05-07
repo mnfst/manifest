@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "At first it sits quiet on your tongue, cool and almost reserved, like it's waiting for permission to unfurl. Then the cocoa fat melts slow, and that first deep bloom hits: earthy just a little, sweet but never cloying, with that faint, sharp warm edge at the back of your throat that reminds you it didn't grow easy.\n\nChocolate tastes like the first ten seconds after someone you love drapes their own warm coat over your shoulders when you didn't even say you were cold. It doesn't yell. It doesn't demand you grin or cheer. It just settles. Not loud giddy joy, just the quiet, solid kind of good that makes you breathe a little slower, like you've just been told something true, and you don't have to do anything about it except be there for it.",
+  "score": 5,
+  "cost": 0.0016709999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 681
+  }
+}

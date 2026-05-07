@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "To solve the problem, we follow these steps:\n\n### Step 1: Convert length units to feet\nThe length is given in yards, but area and the final perimeter are in feet. We use the conversion factor: 1 yard = 3 feet.\nLength \\( L = 3 \\text{ yards} \\times 3 \\text{ feet/yard} = 9 \\text{ feet} \\)\n\n### Step 2: Solve for the width of the room\nThe area of a rectangle is given by \\( A = L \\times W \\), where \\( A = 360 \\text{ sq ft} \\) (given area) and \\( W \\) is the unknown width. Rearrange to solve for \\( W \\):\n\\( W = \\frac{A}{L} = \\frac{360}{9} = 40 \\text{ feet} \\)\n\n### Step 3: Calculate the perimeter\nThe perimeter of a rectangle is given by \\( P = 2(L + W) \\). Substitute \\( L = 9 \\text{ feet} \\) and \\( W = 40 \\text{ feet} \\):\n\\( P = 2(9 + 40) = 2(49) = 98 \\text{ feet} \\)\n\nANSWER: 98",
+  "score": 5,
+  "cost": 0.0017967,
+  "expected": "98",
+  "tokens": {
+    "input": 105,
+    "output": 1471
+  }
+}

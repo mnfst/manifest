@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 3,
+  "response": "Enacted by the European Union in May 2018, the General Data Protection Regulation (GDPR) governs how any company worldwide handles EU residents' personal data, establishing core privacy rights, requiring 72-hour breach reporting, and setting maximum violation fines of 4% of global annual revenue or 20 million euros (whichever is higher), with large penalties issued to tech firms including Meta, Amazon, and Google. The regulation has become a global blueprint, directly inspiring comparable data privacy legislation in California, Brazil, India, and other jurisdictions. Detractors criticize GDPR for placing disproportionate compliance burdens on small businesses, creating frustrating user experiences such as universal cookie consent banners, and having inconsistent enforcement across EU member states. Even with these flaws, GDPR cemented data privacy as a fundamental right and set the dominant worldwide standard for data protection law.",
+  "score": 5,
+  "cost": 0.0017201999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 363,
+    "output": 626
+  }
+}

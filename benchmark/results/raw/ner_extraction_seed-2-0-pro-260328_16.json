@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "{\"persons\": [\"Angela Merkel\"], \"organizations\": [], \"locations\": [\"White House\"]}",
+  "score": 4,
+  "cost": 0.0009678,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 375
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The thunderstorm doesn't arrive with a bang\u2014it creeps up on your skin first. For ten minutes before the first drop falls, the air goes thick and electric, every fine hair on your arms standing straight as pins. Sweat beads at your hairline and never dries, just sits warm and sticky against your neck, like the whole world is holding its breath.\n\nThe first thunder is too low to hear properly. It hums in the fillings of your molars, thrums through the splintered porch boards under your bare feet, makes the mason jar of sweet tea on the rail rattle just enough that ice clinks soft against glass. By the time the sound rolls up to your ears, it's already gone, a low growl fading over the cornfields.\n\nThen the rain breaks: fat, cold drops that hit your arms like little slaps before it comes down in a sheet. Ten breaths later the smell washes over you\u2014sharp petrichor that stings your sinuses, hot asphalt bleeding soft tar, crushed clover from the front lawn, that faint metallic tang of lightning that sticks in the back of your throat. When it flashes, the whole world bleaches white for half a heartbeat: you can see every raindrop hanging mid-air, every vein in the oak tree's leaves, the neighbor's bike fallen on its side in the ditch. Then it goes dark again, so deep and sudden your eyes spin, and the next crash of thunder shakes the windows so hard the curtains breathe.",
+  "score": 5,
+  "cost": 0.0028373999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 1167
+  }
+}

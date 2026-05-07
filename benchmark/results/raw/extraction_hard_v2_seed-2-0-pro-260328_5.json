@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "extraction_hard_v2",
+  "case": 5,
+  "response": "{\n  \"passenger\": {\n    \"name\": \"Maria Gonzalez\",\n    \"title\": \"Dr.\"\n  },\n  \"booking_ref\": \"XKJP42\",\n  \"flight\": {\n    \"number\": \"872\",\n    \"airline\": \"UA\",\n    \"origin\": \"SFO\",\n    \"destination\": \"NRT\",\n    \"departure\": \"2024-06-15 11:40 AM PDT\",\n    \"arrival\": \"2024-06-16 3:20 PM JST\"\n  },\n  \"seat\": {\n    \"number\": \"12A\",\n    \"class\": \"Business\"\n  },\n  \"extras\": {\n    \"baggage\": \"2 checked bags included\",\n    \"meal\": \"Vegetarian pre-ordered\",\n    \"ff_status\": \"UA Gold\",\n    \"ff_number\": \"MP2847291\"\n  }\n}",
+  "score": 5,
+  "cost": 0.0017406,
+  "expected": "",
+  "tokens": {
+    "input": 293,
+    "output": 652
+  }
+}

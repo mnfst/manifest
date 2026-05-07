@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe",
+  "score": 5,
+  "cost": 0.0001515,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 249,
+    "output": 64
+  }
+}

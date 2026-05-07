@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "FTI \u2014 Privil\u00e8ges et conditions\n\n### Notes on fidelity:\n1. The acronym **FTI** is retained (untranslated, per standard practice for undefined professional/official acronyms).\n2. Tone is preserved (formal, header-style, concise).\n3. French typographical rules are applied: non-breaking spaces flank the em dash (*tiret cadratin*) (standard for French formal separators), and capitalization matches the original\u2019s title-like structure (only the first content word after the dash is capitalized, per French header conventions).\n4. *Privileges* translates to **Privil\u00e8ges** (formal, contextually accurate for official special rights), and *conditions* remains **conditions** (direct, precise for the terms attached to the privileges).",
+  "score": 5,
+  "cost": 0.0020022,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 1654
+  }
+}

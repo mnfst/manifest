@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "Lisa\u2019s March onboarding feedback email reports that the March cohort\u2019s overall satisfaction fell to 7.2/10 from 8.1, highlighting strong positives (a 9.1/10-rated buddy system and on-time IT setup) and critical issues: 5 out of 8 members were confused about benefits deadlines, tools access took 3\u20135 days (vs. the 1-day target), and no culture handbooks were provided.\nThe feedback\u2019s top-priority action item is to address the delayed tools access to meet the required 1-day turnaround goal.",
+  "score": 5,
+  "cost": 0.0014903999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 1207
+  }
+}

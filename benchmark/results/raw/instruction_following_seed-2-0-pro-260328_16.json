@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, every object that has mass creates an invisible pull on every other object around it. The larger an object's mass, the stronger this pull becomes, and the closer two objects are to each other, the more strongly they will pull on one another. When you drop a cup it falls to the floor instead of floating away, when the Moon stays circling Earth instead of drifting off into space, when the planets all stay locked in their paths around the Sun\u2014all of this is the result of that constant, unseen pull between things that have mass. That is gravity.",
+  "score": 5,
+  "cost": 0.0007302,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 287
+  }
+}

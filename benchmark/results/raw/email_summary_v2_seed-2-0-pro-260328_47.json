@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "This March onboarding feedback reports the cohort's overall satisfaction fell to 7.2/10 from the previous 8.1, noting strong satisfaction with the buddy system and timely IT setup, alongside documented issues including benefits deadline confusion, delayed tools access, and undistributed culture handbooks.\nThe top priority action item identified from this feedback is resolving the tools access delay, which is currently taking 3-5 days instead of the established 1 day target.",
+  "score": 5,
+  "cost": 0.0008747999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 325
+  }
+}

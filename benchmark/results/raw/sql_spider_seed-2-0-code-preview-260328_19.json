@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "SELECT DISTINCT m.name FROM makers m INNER JOIN cars c ON m.id = c.maker_id WHERE c.year = 1970;",
+  "score": 5,
+  "cost": 0.0049197,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 4073
+  }
+}

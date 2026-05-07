@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Si les revenus et/ou la situation professionnelle d'une personne \u00e9voluent, un transfert de responsabilit\u00e9 institutionnelle peut survenir, auquel cas une nouvelle \u00e9valuation sera effectu\u00e9e.\n\n*This translation preserves the original formal administrative tone, using standard terminology appropriate for public service / social security regulatory contexts as implied by the source text.*",
+  "score": 5,
+  "cost": 0.0010692,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 421
+  }
+}

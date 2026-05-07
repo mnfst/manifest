@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 21,
+  "response": "First, analyze each option:\n1.  **Option A**: This is false. Many plant species are adapted to grow and thrive in natural desert environments. This statement is factually incorrect.\n2.  **Option B**: This matches the scenario. Maryland has a very different climate than a desert. Moving plants adapted to Maryland's native environment to harsh, hot, low-water desert conditions is a severe environmental change, and most organisms cannot survive such extreme, unadapted habitat shifts.\n3.  **Option C**: There is no evidence or logical support for this claim in the scenario. The plants were used for a scientific study, their survival rate does not make them \"unsuitable for studies\".\n4.  **Option D**: This is an incorrect absolute statement. Maryland native plants can survive in other locations with similar climate/conditions, not *exclusively* only in Maryland.\nAnswer: B",
+  "score": 5,
+  "cost": 0.0011898,
+  "expected": "B",
+  "tokens": {
+    "input": 255,
+    "output": 432
+  }
+}

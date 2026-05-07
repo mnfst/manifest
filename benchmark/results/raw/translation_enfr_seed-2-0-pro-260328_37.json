@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "Le paragraphe 104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu'il s'applique nonobstant le paragraphe 248(25) de la Loi. Le paragraphe 248(25) de la Loi d\u00e9crit, pour les autres fins de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est r\u00e9put\u00e9e avoir un \u00ab int\u00e9r\u00eat b\u00e9n\u00e9ficiaire \u00bb dans une fiducie.\n\n---\n*Note: This translation uses standard Canadian legislative and tax law terminology consistent with official French versions of federal statute amendments, preserving the formal legal tone and precise statutory meaning of the original text.*",
+  "score": 5,
+  "cost": 0.0028296,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 1144
+  }
+}

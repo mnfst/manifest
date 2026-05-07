@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "`Invitation: Q3 Team Sync Meeting Oct 12`",
+  "score": 5,
+  "cost": 0.0012648,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 511
+  }
+}

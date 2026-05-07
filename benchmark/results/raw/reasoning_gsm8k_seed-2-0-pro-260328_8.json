@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To solve the problem, follow these steps:\n1.  **Identify the base value**: Last year's enrollment was 50 students.\n2.  **Understand the percentage increase**: A 20% increase means this year's enrollment is equal to 100% of last year's enrollment *plus* an additional 20% of last year's enrollment. This totals to 100% + 20% = 120% of last year's count.\n3.  **Convert the percentage to a decimal**: 120% = 120 / 100 = 1.2\n4.  **Calculate this year's enrollment**: Multiply last year's student count by the decimal value:\n    \\( 50 \\times 1.2 = 60 \\)\nANSWER: 60",
+  "score": 5,
+  "cost": 0.0013608,
+  "expected": "60",
+  "tokens": {
+    "input": 128,
+    "output": 535
+  }
+}

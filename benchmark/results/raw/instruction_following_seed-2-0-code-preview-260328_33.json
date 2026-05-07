@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is tidally locked to Earth, meaning its rotational period (time to spin once on its axis) exactly matches its sidereal orbital period (time to orbit Earth relative to fixed stars)\u2014both ~27.3 Earth days. Tiny wobbles called libration (from its slightly elliptical orbit and tilted axis) let Earth observers see ~59% of its surface over time, not just the 50% of the familiar \"near side.\"\n2. Moonquakes (seismic activity on the Moon) last far longer than earthquakes on Earth\u2014up to 10 minutes, compared to 10\u201330 seconds for most terrestrial quakes. This is because the Moon has no liquid water in its crust to dampen seismic vibrations, and its rigid, dry rock transmits waves much more efficiently; Apollo mission seismometers first detected these quakes in the 1960s\u201370s.\n3. The leading scientific explanation for the Moon\u2019s origin is the Giant Impact Hypothesis, which posits it formed ~4.5 billion years ago when a Mars-sized protoplanet (dubbed Theia) collided with early Earth. Critical evidence comes from Apollo lunar samples, which have nearly identical isotopic ratios (e.g., oxygen, titanium) to Earth\u2019s mantle\u2014matching the expected debris from a collision that mixed Earth\u2019s outer layers with Theia\u2019s material.",
+  "score": 5,
+  "cost": 0.0021677999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 1794
+  }
+}

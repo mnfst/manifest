@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let's solve this problem step by step:\n1.  **Define variables**: Let \\( H \\) represent the number of copies Harald sold. Since Marilyn sold 10 times as many copies as Harald, Marilyn's sales are \\( 10H \\).\n2.  **Set up the combined sales equation**: The total copies sold by both is 88,000, so:\n    \\[\n    H + 10H = 88,000\n    \\]\n3.  **Combine like terms**: \\( H + 10H = 11H \\),  the equation simplifies to:\n    \\[\n    11H = 88,000\n    \\]\n4.  **Solve for \\( H \\)**: Divide both sides of the equation by 11:\n    \\[\n    H = \\frac{88,000}{11} = 8,000\n    \\]\n5.  **Verify**: If Harald sold 8,000 copies, Marilyn sold \\( 10 \\times 8,000 = 80,000 \\) copies. Adding these gives \\( 8,000 + 80,000 = 88,000 \\), which matches the total given in the problem.\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.0009588,
+  "expected": "8000",
+  "tokens": {
+    "input": 104,
+    "output": 773
+  }
+}

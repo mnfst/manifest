@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "Let's analyze each option step by step:\n1.  **Option A**: Being made of hydrogen and helium does not cause objects to orbit another body. Other solar system bodies (like Jupiter) are also primarily made of these gases, and planets do not orbit Jupiter. This is not the correct reason.\n2.  **Option B**: Age has no direct relationship to causing orbital motion. An old, low-mass object would not have other bodies revolving around it. This is incorrect.\n3.  **Option C**: While the Sun is the primary heat/light source, this energy does not produce the force that holds planets in orbit. Planets would still orbit the Sun even if it did not emit light and heat. This is not the cause of revolution.\n4.  **Option D**: Orbital motion is governed by gravitational force. The Sun contains over 99% of the total mass of the solar system, making it the strongest source of gravity. This gravitational pull is what keeps all planets revolving around the Sun. This is correct.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.0011664000000000002,
+  "expected": "D",
+  "tokens": {
+    "input": 144,
+    "output": 450
+  }
+}

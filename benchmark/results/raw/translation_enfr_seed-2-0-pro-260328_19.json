@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "FTI \u2014 Privil\u00e8ges et conditions",
+  "score": 5,
+  "cost": 0.00036960000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 135
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This is a reference bitwise implementation of the standard IEEE 802.3 CRC-32 error-detection checksum algorithm, using the widely used reflected (least-significant-bit first) polynomial constant `0xEDB88320`.\nIt initializes the checksum register to all 1 bits, processes every input bit via iterative binary polynomial long division, then inverts all bits of the final register value to produce the standard CRC32 result.",
+  "score": 5,
+  "cost": 0.0014238,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 552
+  }
+}

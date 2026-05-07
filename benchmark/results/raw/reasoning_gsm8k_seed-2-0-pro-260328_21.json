@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Let's solve this problem step by step:\n1.  First, identify Elliott's total daily step goal: 10,000 steps.\n2.  Calculate steps taken walking to/from school: He completed half his total steps here.\n    Half of 10,000 = \\(10000 \\div 2 = 5000\\) steps.\n3.  Add the steps taken walking with his friend: 1,000 steps.\n    Total steps completed before the jog = \\(5000 + 1000 = 6000\\) steps.\n4.  We know after the jog, only 2,000 steps are left to reach his goal.\n    All steps combined (before jog + jog + remaining steps) equal the total 10,000 steps.\n    Let \\(x\\) = steps taken during the jog:\n    \\(6000 + x + 2000 = 10000\\)\n5.  Solve for \\(x\\):\n    \\(x = 10000 - 6000 - 2000 = 2000\\)\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.0029388,
+  "expected": "2000",
+  "tokens": {
+    "input": 178,
+    "output": 1180
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement de personnel aupr\u00e8s du RSUE.\n\n*Note: This uses the standard official French abbreviations for EU bodies employed in all formal institutional documentation: SEAE = Service europ\u00e9en pour l'action ext\u00e9rieure (EEAS), RSUE = Repr\u00e9sentant sp\u00e9cial de l'Union europ\u00e9enne (EUSR), preserving the exact formal administrative tone of the original legal text.*",
+  "score": 5,
+  "cost": 0.0010061999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 396
+  }
+}

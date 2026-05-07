@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 8,
+  "response": "{\n  \"persons\": [\"Elon Musk\"],\n  \"organizations\": [\"Tesla\"],\n  \"locations\": [\"Fremont\", \"California\"]\n}",
+  "score": 5,
+  "cost": 0.00043259999999999994,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 151
+  }
+}

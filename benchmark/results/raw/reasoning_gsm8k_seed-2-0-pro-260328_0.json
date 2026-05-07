@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Let's solve this problem step by step:\n1.  First, find how much Kim raised:\n    Alexandra raises $430. Kim raises $320 more than Alexandra.\n    Kim's amount = $430 + $320 = $750\n2.  Next, find how much Maryam raised:\n    Sarah raises $300. Maryam raises $400 more than Sarah.\n    Maryam's amount = $300 + $400 = $700\n3.  Now list all raised amounts:\n    - Alexandra: $430\n    - Kim: $750\n    - Sarah: $300\n    - Maryam: $700\n4.  Calculate the total sum:\n    Total = $430 + $750 + $300 + $700 = $2180\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.0014537999999999999,
+  "expected": "2280",
+  "tokens": {
+    "input": 147,
+    "output": 569
+  }
+}

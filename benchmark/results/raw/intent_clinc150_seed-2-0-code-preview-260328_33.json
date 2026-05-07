@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "intent_clinc150",
+  "case": 33,
+  "response": "direct_deposit",
+  "score": 5,
+  "cost": 0.0002622,
+  "expected": "direct_deposit",
+  "tokens": {
+    "input": 590,
+    "output": 71
+  }
+}

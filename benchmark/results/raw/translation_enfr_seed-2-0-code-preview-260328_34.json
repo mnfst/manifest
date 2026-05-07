@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "Sydney, Esther sera dans mon bureau.\n\n### Breakdown (for clarity, not part of the translation):\n- Proper nouns (Sydney, Esther) remain unchanged as they are internationally recognized names\n- \"will be\" uses French **futur simple** (sera) for a neutral, factual planned state (matches the original\u2019s straightforward, work-appropriate tone)\n- \"in my office\" translates to *dans mon bureau* (bureau is masculine singular, so the possessive adjective uses *mon* instead of *ma*)",
+  "score": 5,
+  "cost": 0.0008769,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 716
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden.",
+  "score": 5,
+  "cost": 0.000426,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 474,
+    "output": 59
+  }
+}

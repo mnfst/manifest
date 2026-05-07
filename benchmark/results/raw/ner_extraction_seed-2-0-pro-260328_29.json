@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Tokyo Stock Exchange\"],\n  \"locations\": [\"Tokyo\"]\n}",
+  "score": 4,
+  "cost": 0.0010877999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 424
+  }
+}

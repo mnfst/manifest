@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "circuit switching",
+  "score": 5,
+  "cost": 0.0002472,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 188,
+    "output": 56
+  }
+}

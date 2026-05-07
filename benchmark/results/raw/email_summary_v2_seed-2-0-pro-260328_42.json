@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "This email recaps a recently hosted workshop with 15 enterprise customers, sharing that attendees requested improved bulk import and SSO functionality, praised the new analytics dashboard, and 3 customers unexpectedly expressed interest in the company's internal tool as a standalone product.\nSales has attached a follow-up workshop report for recipients to review.",
+  "score": 5,
+  "cost": 0.0008856000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 330
+  }
+}

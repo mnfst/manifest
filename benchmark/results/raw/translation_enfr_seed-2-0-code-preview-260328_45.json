@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "L'\u00e9vasion fiscale s'\u00e9tait accrue en Tunisie, causant un important d\u00e9ficit en termes de ressources publiques, a d\u00e9clar\u00e9 l'ancien chef du gouvernement int\u00e9rimaire, Ali Larayedh, en juin 2013, cit\u00e9 par le journal Business Flood.\n\n### Translation Justifications (Tone & Meaning Alignment):\n1. **Tense Accuracy**: Used *plus-que-parfait* (`s'\u00e9tait accrue`) for the reported speech core claim, as it reflects a state (growing tax evasion) existing *before* Ali Larayedh\u2019s 2013 statement (standard for French indirect speech with a past reporting verb like `a d\u00e9clar\u00e9`).\n2. **Formal Tone**: Replaced casual *\"said\"* with *\"a d\u00e9clar\u00e9\"* (appropriate for a former head of government\u2019s public statement), and used formal fiscal/political terminology:\n   - *Tax evasion* \u2192 **l'\u00e9vasion fiscale** (only standard French term for illegal tax non-compliance, distinct from legal *optimisation fiscale*)\n   - *Interim government* \u2192 **gouvernement int\u00e9rimaire** (official Tunisian post-2011 political terminology, not generic *gouvernement provisoire*)\n   - *Significant shortfall* \u2192 **important d\u00e9ficit** (formal fiscal term for a public resource gap, matching the original\u2019s administrative tone)\n3. **Structure Faithfulness**: Preserved the original\u2019s journalistic order (claim \u2192 attribution \u2192 date \u2192 source) and retained proper nouns (*Ali Larayedh*, *Business Flood*) as unmodified proper names.\n4. **Precision**: Used *en termes de* to mirror the original\u2019s *in terms of* (standard formal phrasing in French administrative/journalistic contexts, no Anglicism risk here).",
+  "score": 5,
+  "cost": 0.0059454,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 4931
+  }
+}

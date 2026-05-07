@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "500",
+  "score": 5,
+  "cost": 0.0007425,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 219,
+    "output": 564
+  }
+}

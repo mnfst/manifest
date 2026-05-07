@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "extraction_hard_v2",
+  "case": 33,
+  "response": "{\n  \"trial_id\": \"NCT04982562\",\n  \"phase\": \"III\",\n  \"sponsor\": \"NovaPharma Inc.\",\n  \"drug\": \"NP-401\",\n  \"indication\": \"Treatment-Resistant Major Depression\",\n  \"enrollment\": 842,\n  \"sites\": 28,\n  \"arms\": [\n    {\"name\": \"NP-401\", \"dose\": \"60mg\", \"n\": 421},\n    {\"name\": \"Placebo\", \"dose\": \"Placebo\", \"n\": 421}\n  ],\n  \"duration_weeks\": 12,\n  \"primary_endpoint\": \"Change in MADRS score from baseline\",\n  \"results\": {\n    \"treatment_effect\": -18.4,\n    \"placebo_effect\": -12.1,\n    \"p_value\": \"<0.001\",\n    \"nnt\": 5.2\n  },\n  \"adverse_events\": [\n    {\"event\": \"nausea\", \"rate_pct\": 23},\n    {\"event\": \"headache\", \"rate_pct\": 18},\n    {\"event\": \"insomnia\", \"rate_pct\": 12}\n  ]\n}",
+  "score": 4,
+  "cost": 0.0024486,
+  "expected": "",
+  "tokens": {
+    "input": 421,
+    "output": 915
+  }
+}

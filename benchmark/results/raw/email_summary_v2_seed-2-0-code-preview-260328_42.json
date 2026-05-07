@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The sales team sent a recap of a workshop hosted yesterday with 15 enterprise customers, which noted key feedback (8 customers requesting better bulk import tools, 5 citing SSO as a blocker, positive reviews for the new analytics dashboard) and an unexpected 3 customers expressing interest in the sales team\u2019s internal tool as a standalone product. A follow-up report documenting the full workshop findings is attached, and no explicit action items are specified in the recap.",
+  "score": 4,
+  "cost": 0.0021618,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 1767
+  }
+}

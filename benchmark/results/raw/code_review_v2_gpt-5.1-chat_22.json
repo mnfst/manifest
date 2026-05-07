@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 22,
+  "response": "Here are the issues in the code, grouped by bugs, security problems, and general improvements.\n\nBugs and functional issues:\n\u2022 The function does not import smtplib. Without `import smtplib`, this code will crash.  \n\u2022 The email is constructed manually as a raw string. This easily leads to malformed messages, especially if subject or body contains newlines or non\u2011ASCII characters. Use the email.message.EmailMessage class instead.  \n\u2022 The SMTP connection is opened but not wrapped in a context manager. If an exception occurs before `smtp.quit()`, the connection may remain open.  \n\u2022 The `to` parameter can be a list in smtplib, but you\u2019re always treating it as a string. If someone passes a list, your header will break.\n\nSecurity issues:\n\u2022 No authentication is used. Connecting to localhost without TLS or login assumes the SMTP server is locked down. If not, this is an open\u2011relay risk.  \n\u2022 Inputs are inserted directly into email headers. If `to` or `subject` contains newline characters, an attacker could inject arbitrary headers (header injection).  \n\u2022 No sanitization of any parameters. Attackers could add additional recipients, modify body, or add malicious headers through crafted input.  \n\u2022 The \"From\" address is hardcoded, but an attacker could still spoof headers via injection unless you validate input.\n\nRecommended fixes:\n\u2022 Import smtplib.  \n\u2022 Use email.message.EmailMessage instead of manual string concatenation. The library handles headers safely and prevents injection.  \n\u2022 Validate and sanitize inputs. At minimum, reject newline characters in header fields.  \n\u2022 Use a context manager:  \n  with smtplib.SMTP('localhost') as smtp: \u2026  \n\u2022 If your SMTP server supports it, enable TLS using smtp.starttls() and authenticate with smtp.login().  \n\u2022 Ensure \u201cto\u201d is validated and converted into a list if needed.  \n\u2022 Consider configuring \u201cFrom\u201d and SMTP settings outside the function to avoid hardcoding.\n\nIf you\u2019d like, I can provide a corrected version of the function.",
+  "score": 5,
+  "cost": 0.00363,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 428
+  }
+}

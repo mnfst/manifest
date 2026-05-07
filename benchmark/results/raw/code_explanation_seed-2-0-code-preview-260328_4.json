@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This Python code is a **decorator (higher-order function following the decorator design pattern)** that implements **memoization**\u2014a performance-optimizing caching algorithm for pure functions. It uses a closure to persist a dictionary cache keyed by the wrapped function\u2019s positional argument tuples, returning cached results instead of re-executing the target function for identical inputs to avoid redundant, costly computations.",
+  "score": 5,
+  "cost": 0.0015513,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 1266
+  }
+}

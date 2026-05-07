@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "Let's solve this problem step by step:\n### Step 1: List Anakin's catch\nAnakin caught:\n- Starfish: 10\n- Sea horses: 6\n- Clownfish: 3\nTotal for Anakin = 10 + 6 + 3 = 19\n### Step 2: Calculate Locsin's catch\nWe find each type of fish Locsin caught using the comparisons given:\n1.  Starfish: 5 fewer than Anakin = 10 - 5 = 5\n2.  Sea horses: 3 fewer than Anakin = 6 - 3 = 3\n3.  Clownfish: 2 more than Anakin = 3 + 2 = 5\nTotal for Locsin = 5 + 3 + 5 = 13\n### Step 3: Find the total combined catch\nAdd Anakin's total and Locsin's total:\nTotal fish caught = 19 + 13 = 32\nANSWER: 32",
+  "score": 5,
+  "cost": 0.0020099999999999996,
+  "expected": "32",
+  "tokens": {
+    "input": 158,
+    "output": 798
+  }
+}

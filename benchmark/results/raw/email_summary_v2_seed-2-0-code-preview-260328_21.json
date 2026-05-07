@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team\u2019s \u201cFeature Flag Cleanup\u201d email notes that 23 of the 47 currently active feature flags are from releases older than 6 months, and that a targeted cleanup would reduce config complexity and speed up the test suite by approximately 12%. The team proposes a dedicated cleanup sprint with two specific action items: removing 15 feature flags that are 100% rolled out and archiving 8 that are dead code.",
+  "score": 5,
+  "cost": 0.0006768,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 531
+  }
+}

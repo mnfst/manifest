@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "extraction_hard_v2",
+  "case": 28,
+  "response": "{\"date\":\"2024-03-12\",\"time\":\"16:45 EST\",\"location\":\"I-95 NB at Exit 42, Stamford CT\",\"weather\":{\"condition\":\"Light rain\",\"temperature_f\":48},\"vehicles\":[{\"year\":2022,\"make\":\"Tesla\",\"model\":\"Model 3\",\"plate\":\"AXR-4521\",\"driver\":{\"name\":\"James Mitchell\",\"age\":34},\"damage\":\"Front bumper, hood\",\"injuries\":\"Minor neck pain\"},{\"year\":2019,\"make\":\"Honda\",\"model\":\"Civic\",\"plate\":\"HKL-8890\",\"driver\":{\"name\":\"Susan Park\",\"age\":28},\"damage\":\"Rear bumper, trunk\",\"injuries\":\"None reported\"}],\"description\":\"V1 rear-ended V2 at traffic slowdown. Estimated speed 25mph. No airbag deployment. Both vehicles drivable.\"}",
+  "score": 5,
+  "cost": 0.0017763,
+  "expected": "",
+  "tokens": {
+    "input": 321,
+    "output": 1400
+  }
+}

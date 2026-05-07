@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "This engineering hiring update from the Recruiting team notes 4 open job requisitions\u20142 backend, 1 frontend, 1 machine learning (ML)\u2014with a candidate pipeline of 23 total applicants, 5 of whom are in final interview rounds. Recruiting flags a critical concern that the frontend requisition has been open for 60 days without yielding strong candidates, and recommends two actionable steps: expanding hiring to remote candidates or adjusting the frontend role\u2019s compensation band.",
+  "score": 5,
+  "cost": 0.0006341999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 497
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Le programme de nutrition urbaine de l\u2019UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et favorise l'acc\u00e8s au cr\u00e9dit pour les groupements de femmes qui commercialisent des produits alimentaires.\n\n### Breakdown of accuracy & tone alignment:\n1. **Official/formal tone** (matching UN-related context): Uses standard terminology for international development (*groupements de femmes*, *commercialisent des produits alimentaires*) and proper noun formatting (*l\u2019UNICEF*, *Nairobi*).\n2. **Meaning fidelity**:\n   - \"Urban nutrition program\" = *programme de nutrition urbaine* (standard UNICEF French terminology)\n   - \"Is headed by a woman\" = *est dirig\u00e9 par une femme* (agrees grammatically with the masculine subject *programme*)\n   - \"Promotes credit to\" = *favorise l'acc\u00e8s au cr\u00e9dit pour* (accurately conveys \"facilitating credit access\"\u2014the standard development framing of \"promote credit\" for marginalized groups)\n   - \"Women's groups who market food\" = *groupements de femmes qui commercialisent des produits alimentaires* (precise: *groupements de femmes* clarifies groups *composed of women*; *commercialisent des produits alimentaires* matches the formal \"market food\" (trade/sell food products) vs. casual \"sell food\").",
+  "score": 5,
+  "cost": 0.0031176,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 2579
+  }
+}

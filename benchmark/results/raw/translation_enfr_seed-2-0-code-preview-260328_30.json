@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie pour les apprentissages destin\u00e9s aux jeunes au sein des PMEs, des entreprises \u00e0 moyenne capitalisation et des collectivit\u00e9s territoriales\n\n### Translation Rationale (to verify tone/meaning alignment):\n1. **Formal institutional/financial tone preserved**: Uses standard French administrative/financial jargon (e.g., *ligne de cr\u00e9dit*, *PMEs*, *collectivit\u00e9s territoriales*).\n2. **Precise meaning matching**:\n   - *First line of credit* \u2192 *Premi\u00e8re ligne de cr\u00e9dit* (standard financial term, no anglicism)\n   - *Youth apprenticeships* \u2192 *apprentissages destin\u00e9s aux jeunes* (formal, clear reference to apprenticeships *intended for youth*, not just \"youth\u2019s apprenticeships\")\n   - *SMEs* \u2192 *PMEs* (plural French acronym for *Petites et Moyennes Entreprises*, consistent with the original\u2019s plural \"SMEs\")\n   - *Midcaps* \u2192 *entreprises \u00e0 moyenne capitalisation* (standard French financial term for mid-cap companies, avoids unnecessary anglicism)\n   - *Local authorities* \u2192 *collectivit\u00e9s territoriales* (precise French administrative term for all local government bodies, matches the original\u2019s broad reference to public local entities, not just municipal councils)\n   - *in [entities]* \u2192 *au sein des [entit\u00e9s]* (formal, precise phrasing indicating apprenticeships are hosted *within* the listed entities, aligns with the original\u2019s context of credit for entity-hosted apprenticeships)\n3. **Geographic placement**: *en Italie* (correct preposition for country references in French) is placed to match the original\u2019s structure.",
+  "score": 5,
+  "cost": 0.0048204,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 4000
+  }
+}

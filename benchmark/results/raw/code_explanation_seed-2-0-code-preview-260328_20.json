@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "### Explanation (2 clear, specific sentences:\n1. This code defines a `partition` function that implements the **lazy iterable partitioning pattern**, using `itertools.tee` to create two independent lazy iterators from the input `iterable` (to avoid exhausting the original iterable when applying two opposing filters).\n2. It returns two lazy iterables: one via `filter()` containing elements that satisfy the input `predicate`, and one via `itertools.filterfalse()` containing elements that do **not** satisfy the predicate, enabling memory-efficient processing of large or infinite iterables without upfront materialization.\n\n### Key Details (condensed for precision if 1-sentence option):\nThis code defines a `partition` function implementing the **lazy iterable partitioning pattern**\u2014using `itertools.tee` to create two independent lazy iterators from the input `iterable` (to avoid exhausting the original when applying two opposing filters)\u2014that returns two lazy iterables: one via `filter()` with elements satisfying the input `predicate`, and one via `itertools.filterfalse()` with elements that do not, enabling memory-efficient processing of large or infinite iterables without upfront materialization.\n\n---\n### Pattern/Algorithm Breakdown (for clarity, but the 1-2 sentence version above meets requirements):\n- **Pattern**: *Lazy Iterable Partitioning* (opposed to eager partitioning, which materializes results upfront as lists).\n- **Critical Tool**: `itertools.tee`: Creates 2 independent lazy iterators from the input iterable (required because Python iterables are **exhaustible**\u2014filtering the original iterable twice would leave the second filter empty).\n- **Output**: Two lazy iterables:\n  1. `filter(predicate, t1`: Elements that pass the predicate.\n  2. `itertools.filterfalse(predicate, t2)`: Elements that fail the predicate.\n- **Benefit**: No upfront memory usage for full iterable (works for infinite iterables like `itertools.count()`).",
+  "score": 5,
+  "cost": 0.0036419999999999994,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 3009
+  }
+}

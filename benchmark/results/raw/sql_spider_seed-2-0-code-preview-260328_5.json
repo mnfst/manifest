@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT a.airport_name, a.airport_code\nFROM airports a\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM flights f\n    WHERE f.departure_airport_id = a.airport_id\n       OR f.arrival_airport_id = a.airport_id\n);",
+  "score": 5,
+  "cost": 0.006473100000000001,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 5370
+  }
+}

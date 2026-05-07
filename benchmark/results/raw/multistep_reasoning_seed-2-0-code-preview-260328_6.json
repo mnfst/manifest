@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "To solve this question, we analyze each option using core scientific principles (conservation of mass/energy, chemical vs. physical changes):\n\n### Step 1: Evaluate Option A\nThe **law of conservation of mass** states matter cannot be created or destroyed, only transformed. A \"completely destroyed\" log violates this law. **Eliminate A.**\n\n### Step 2: Evaluate Option B\nCombustion releases heat/light energy, but the log also produces measurable matter (e.g., ash, carbon dioxide, water vapor). The claim that it is \"completely changed into heat energy\" ignores this leftover matter. **Eliminate B.**\n\n### Step 3: Evaluate Option C\nBurning wood is a **chemical change**:\n- **Matter transformation**: Wood (cellulose) reacts with oxygen to form new matter (solid ash, gaseous CO\u2082/water vapor).\n- **Energy transformation**: Chemical energy in wood is released as heat/light energy.\nThis matches the description of changing into \"other types of matter and energy.\" **Keep C.**\n\n### Step 4: Evaluate Option D\nA physical change (e.g., ice melting) only alters a substance\u2019s phase/shape, not its chemical identity. Burning is a *chemical change* (new substances form), not a physical phase change. **Eliminate D.**\n\nAnswer: C",
+  "score": 5,
+  "cost": 0.0009153000000000001,
+  "expected": "C",
+  "tokens": {
+    "input": 119,
+    "output": 733
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 16,
+  "response": "{\"name\": \"search_nearby\", \"arguments\": {\"category\": \"gas station\", \"open_now\": true}}",
+  "score": 4,
+  "cost": 0.0003336,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 103
+  }
+}

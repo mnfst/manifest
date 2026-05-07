@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 25,
+  "response": "```python\nimport pytest\n\nfrom typing import List\n\ndef deduplicate_sorted(lst: list) -> list:\n    if not lst:\n        return []\n    result = [lst[0]]\n    for item in lst[1:]:\n        if item != result[-1]:\n            result.append(item)\n    return result\n\n\nclass TestDeduplicateSorted:\n    def test_happy_path(self):\n        assert deduplicate_sorted([1, 1, 2, 3, 3, 3, 4, 5, 5]) == [1, 2, 3, 4, 5]\n\n    def test_empty_list(self):\n        assert deduplicate_sorted([]) == []\n\n    def test_single_element_list(self):\n        assert deduplicate_sorted([5]) == [5]\n\n    def test_all_same_elements(self):\n        assert deduplicate_sorted([2, 2, 2, 2, 2]) == [2]\n\n    def test_already_deduplicated(self):\n        assert deduplicate_sorted([1, 2, 3, 4, 5]) == [1, 2, 3, 4, 5]\n\n    def test_negative_numbers(self):\n        assert deduplicate_sorted([-3, -3, -2, -1, -1, 0, 1, 1, 2]) == [-3, -2, -1, 0, 1, 2]\n\n    def test_mixed_positive_negative_zero(self):\n        assert deduplicate_sorted([-1, -1, 0, 0, 1, 1, 1]) == [-1, 0, 1]\n\n    def test_list_with_zeroes(self):\n        assert deduplicate_sorted([0, 0, 0, 0]) == [0]\n\n    def test_large_numbers(self):\n        assert deduplicate_sorted([1000000, 1000000, 1000001]) == [1000000, 1000001]\n\n    def test_list_of_strings(self):\n        assert deduplicate_sorted([\"a\", \"a\", \"b\", \"c\", \"c\", \"c\"]) == [\"a\", \"b\", \"c\"]\n\n    def test_empty_string(self):\n        assert deduplicate_sorted([\"\", \"\", \"a\", \"b\"]) == [\"\", \"a\", \"b\"]\n\n    def test_mixed_data_types(self):\n        # While the function doesn't explicitly prevent mixed types,\n        # it's important to test how it behaves.  It will work as long as\n        # the types are comparable.  If they are not, it will raise a TypeError.\n        with pytest.raises(TypeError):\n            deduplicate_sorted([1, \"1\", 2])\n\n    def test_list_of_floats(self):\n        assert deduplicate_sorted([1.0, 1.0, 2.0, 3.0, 3.0]) == [1.0, 2.0, 3.0]\n\n    def test_list_of_booleans(self):\n        assert deduplicate_sorted([False, False, True, True]) == [False, True]\n```",
+  "score": 4,
+  "cost": 0.00031870000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 774
+  }
+}

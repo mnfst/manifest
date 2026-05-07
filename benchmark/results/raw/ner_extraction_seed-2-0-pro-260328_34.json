@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "{\n  \"persons\": [\"Gordon Ramsay\"],\n  \"organizations\": [\"Bellagio hotel\"],\n  \"locations\": [\"Las Vegas\"]\n}",
+  "score": 4,
+  "cost": 0.0006138,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 227
+  }
+}

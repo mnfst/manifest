@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 7,
+  "response": "Services de placement. C'est g\u00e9n\u00e9reux.\n\n### Breakdown for accuracy:\n1. **\"Placement services\"**: Translated to *Services de placement* \u2014 the standard, industry-recognized term in French for employment/placement services (used by official bodies like France\u2019s *P\u00f4le Emploi*), matching the original\u2019s formal-yet-concise tone. Capitalization aligns with the original\u2019s capitalized service-category framing.\n2. **\"That's generous\"**: Translated to *C'est g\u00e9n\u00e9reux* \u2014 retains the original\u2019s tight, appreciative (mildly surprised) tone, with no unnecessary additions (e.g., *de leur part*, \"on their part\") to preserve the original\u2019s brevity.",
+  "score": 5,
+  "cost": 0.0023526,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 1946
+  }
+}

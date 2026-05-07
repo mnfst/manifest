@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "extraction_hard_v2",
+  "case": 4,
+  "response": "{\"title\":\"Senior Backend Engineer\",\"company\":\"CloudMatrix\",\"location\":{\"city\":\"Austin, TX\",\"remote\":true},\"salary\":{\"min\":165000,\"max\":195000},\"requirements\":{\"min_years\":5,\"skills\":[\"distributed systems\",\"Go\",\"Rust\",\"Kubernetes\",\"event-driven architectures\"]},\"benefits\":[\"unlimited PTO\",\"health\",\"dental\",\"vision\",\"401k match\",\"$3K learning budget\"]}",
+  "score": 4,
+  "cost": 0.0040194,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 873
+  }
+}

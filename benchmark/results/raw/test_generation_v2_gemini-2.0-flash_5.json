@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "```python\nimport pytest\n\ndef count_vowels(s: str) -> int:\n    return sum(1 for c in s.lower() if c in 'aeiou')\n\nclass TestCountVowels:\n    def test_happy_path(self):\n        assert count_vowels(\"Hello World\") == 3\n        assert count_vowels(\"AEIOU\") == 5\n        assert count_vowels(\"aeiou\") == 5\n        assert count_vowels(\"Python\") == 1\n        assert count_vowels(\"Programming\") == 3\n\n    def test_empty_string(self):\n        assert count_vowels(\"\") == 0\n\n    def test_string_with_no_vowels(self):\n        assert count_vowels(\"Rhythm\") == 0\n        assert count_vowels(\"bcdfghjklmnpqrstvwxyz\") == 0\n\n    def test_string_with_only_vowels(self):\n        assert count_vowels(\"aeiouaeiou\") == 10\n        assert count_vowels(\"AAAAEEEEIIIIOOOOOUUUU\") == 20\n\n    def test_string_with_mixed_case(self):\n        assert count_vowels(\"HeLlO wOrLd\") == 3\n        assert count_vowels(\"aEiOu\") == 5\n\n    def test_string_with_numbers_and_symbols(self):\n        assert count_vowels(\"H3ll0 W0rld!\") == 3\n        assert count_vowels(\"A!E@I#O$U%\") == 5\n\n    def test_string_with_unicode_characters(self):\n        assert count_vowels(\"\u4f60\u597d\u4e16\u754c\") == 0  # Assuming no vowels in Chinese characters\n        assert count_vowels(\"\u00e4\u00f6\u00fc\") == 0 # Assuming no vowels in German characters\n\n    def test_long_string(self):\n        long_string = \"a\" * 1000 + \"b\" * 1000 + \"e\" * 1000 + \"i\" * 1000 + \"o\" * 1000 + \"u\" * 1000\n        assert count_vowels(long_string) == 6000\n\n    def test_string_with_spaces(self):\n        assert count_vowels(\"  a e i o u  \") == 5\n        assert count_vowels(\" a e i o u \") == 5\n```",
+  "score": 5,
+  "cost": 0.0002326,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 566
+  }
+}

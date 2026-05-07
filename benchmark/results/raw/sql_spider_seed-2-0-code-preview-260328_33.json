@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "SELECT title, rating FROM episodes ORDER BY rating DESC FETCH FIRST 3 ROWS ONLY;",
+  "score": 4,
+  "cost": 0.0065439,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 5427
+  }
+}

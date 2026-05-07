@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 0.0005315999999999999,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 606,
+    "output": 70
+  }
+}

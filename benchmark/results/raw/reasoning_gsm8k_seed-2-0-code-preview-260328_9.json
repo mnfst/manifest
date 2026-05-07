@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "To solve the problem, we calculate the number of crabs each person has step by step, then sum the totals:\n\n### Step 1: Confirm Bo's number of crabs\nThe problem states Bo has **40 crabs**.\n\n### Step 2: Calculate Monic's crabs\nMonic has 4 fewer crabs than Bo. So:\nMonic's crabs = Bo's crabs - 4  \nMonic's crabs = 40 - 4 = **36**\n\n### Step 3: Calculate Rani's crabs\nRani has 10 more crabs than Monic. So:\nRani's crabs = Monic's crabs + 10  \nRani's crabs = 36 + 10 = **46**\n\n### Step 4: Calculate the total number of crabs\nAdd the crabs for all three people:\nTotal = Bo's crabs + Monic's crabs + Rani's crabs  \nTotal = 40 + 36 + 46 = **122**\n\nANSWER: 122",
+  "score": 5,
+  "cost": 0.0011022,
+  "expected": "122",
+  "tokens": {
+    "input": 110,
+    "output": 891
+  }
+}

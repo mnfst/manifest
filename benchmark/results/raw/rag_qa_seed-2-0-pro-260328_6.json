@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU article 294",
+  "score": 5,
+  "cost": 0.00041579999999999997,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 445,
+    "output": 62
+  }
+}

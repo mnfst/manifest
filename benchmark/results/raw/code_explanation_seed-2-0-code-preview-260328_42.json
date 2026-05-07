@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "### Explanation (2 clear, specific sentences):\n1. This code implements a custom asyncio-compatible FIFO queue for the **producer-consumer concurrency pattern**, designed to coordinate asynchronous producer tasks (adding items) and consumer tasks (removing items) in Python\u2019s `asyncio` framework.\n2. It uses the *waiter queue synchronization algorithm* (leveraged by `asyncio`\u2019s built-in sync primitives) with `collections.deque` for O(1) FIFO operations, maintaining separate deques of pending `asyncio.Future` objects to block (via `await`) producers when the queue reaches a non-zero `maxsize` (a `maxsize` of 0, the default, makes the queue unbounded) or consumers when the queue is empty; it only wakes the oldest waiting consumer when an item is enqueued, but does **not** wake waiting producers when an item is dequeued (a key limitation of this implementation).\n\n---\n### Key Clarifications (for precision):\n- **Pattern**: *Producer-Consumer* (decouples tasks that create data from those that process it).\n- **Algorithm**: *Waiter Queue* (stores blocked tasks as `Future` objects in a queue, waking them by resolving the `Future` when the sync condition is met).\n- **Limitation**: The `get()` method never signals blocked `put()` tasks after freeing queue space, so producers waiting on a full queue will hang indefinitely.",
+  "score": 5,
+  "cost": 0.0054051,
+  "expected": "",
+  "tokens": {
+    "input": 261,
+    "output": 4439
+  }
+}

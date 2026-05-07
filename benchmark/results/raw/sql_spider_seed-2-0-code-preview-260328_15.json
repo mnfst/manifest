@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "SELECT MIN(share) AS min_share, MAX(share) AS max_share FROM tv_series;",
+  "score": 5,
+  "cost": 0.0017028,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 1395
+  }
+}

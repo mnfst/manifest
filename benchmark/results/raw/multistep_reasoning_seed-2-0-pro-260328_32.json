@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 32,
+  "response": "Let's analyze each option step by step:\n1.  **Option A**: Liquids do not hold a fixed shape; they take the shape of their container. This statement is false.\n2.  **Option B**: When water boils, it undergoes a phase change from liquid water to gaseous water vapor. This statement is correct.\n3.  **Option C**: Freezing is the process where liquid water turns into solid ice, not the other way around. Melting is when ice becomes liquid. This statement is false.\n4.  **Option D**: Solids (like ice) maintain a fixed shape, they do not conform to the shape of their container. This statement is false.\n\nAnswer: B",
+  "score": 5,
+  "cost": 0.0009,
+  "expected": "B",
+  "tokens": {
+    "input": 136,
+    "output": 341
+  }
+}

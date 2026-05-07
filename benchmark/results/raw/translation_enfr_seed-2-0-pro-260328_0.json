@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je veux le faire.",
+  "score": 5,
+  "cost": 0.0010914000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 435
+  }
+}

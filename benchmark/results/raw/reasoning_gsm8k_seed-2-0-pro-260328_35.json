@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "To solve the problem, calculate the total cost for each type of fruit first, then sum these costs:\n1.  **Cost of peaches**: Peaches cost $2.00 per pound, and Winston picked 6 pounds.\n    Cost = $2.00/lb * 6 lb = $12.00\n2.  **Cost of plums**: Plums cost $1.00 per pound, and Winston picked 8 pounds.\n    Cost = $1.00/lb * 8 lb = $8.00\n3.  **Cost of apricots**: Apricots cost $3.00 per pound, and Winston picked 6 pounds.\n    Cost = $3.00/lb * 6 lb = $18.00\n4.  **Total cost**: Add the individual costs together.\n    Total = $12.00 + $8.00 + $18.00 = $38.00\nANSWER: 38",
+  "score": 5,
+  "cost": 0.001251,
+  "expected": "38",
+  "tokens": {
+    "input": 169,
+    "output": 479
+  }
+}

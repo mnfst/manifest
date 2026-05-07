@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "### Q: What is a VPN, and what does it actually do at its core?\nA: A Virtual Private Network (VPN) is a tool that creates an encrypted, isolated connection between your device and the wider internet. Instead of your device connecting directly to websites, apps or online services, all your traffic is first routed through a secure intermediate server operated by the VPN provider.\n\n---\n\n### Q: What real, practical effects does this have on my internet use?\nA: Using an active VPN changes 4 key things about your connection:\n1.  Your internet service provider (ISP) can no longer see what websites or services you visit. They will only be able to observe that you connected to a VPN server, nothing more.\n2.  Your real physical location and home IP address are hidden. Every site or app you use will only see the location and identity of the VPN server you selected.\n3.  Unsecure public Wi-Fi becomes safe. On public cafe, hotel or airport networks, other users on the same network cannot intercept or snoop on your traffic, thanks to the VPN's encryption.\n4.  You can bypass most regional access restrictions. If a service is blocked in your country, connecting to a VPN server located somewhere the service is allowed will normally grant you access.\n\n---\n\n### Q: What important things does a VPN *not* do?\nA: This is commonly misrepresented in marketing:\n- It will not make you fully anonymous online. You can still be tracked via logged in accounts, browser fingerprinting, payment information or behaviour patterns.\n- It does not replace antivirus or anti-malware software\n- It will not protect you from scams, phishing or malicious downloads\n- It will almost always make your internet connection slightly slower, not faster.\n\n---\n\n### Q: When should I actually use a VPN?\nA: It is most useful when using public Wi-Fi, accessing sensitive work accounts away from your home network, travelling internationally to access services from your home country, or if you wish to prevent your ISP from logging and selling your browsing history.",
+  "score": 5,
+  "cost": 0.0021828,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 894
+  }
+}

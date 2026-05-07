@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This is the standard lazy min-heap implementation of Dijkstra's shortest path algorithm, which calculates the shortest path distance from the provided start node to every other reachable node in a graph with non-negative edge weights. It always processes the node with the smallest known current distance first, and skips outdated stale priority queue entries for nodes that already have a confirmed shorter path.",
+  "score": 5,
+  "cost": 0.0011742,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 440
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "data_to_text",
+  "case": 30,
+  "response": "Team Alpha ran their #23 sprint from January 15 through 26, planning 42 points of work and ultimately completing 38 points which exceeded their average velocity of 36, while finishing 8 stories and fixing 5 bugs over the period. The team encountered 2 blockers during the sprint, and earned an overall satisfaction rating of 4.1 out of 5 for this work cycle.",
+  "score": 5,
+  "cost": 0.0010236,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 390
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Let's break down the problem step by step to calculate the total profit:\n### Step 1: Calculate total number of lollipops sold\nThere are 30 students, and each sold an average of 10 lollipops.  \nTotal lollipops = Number of students \u00d7 Average lollipops per student  \nTotal lollipops = 30 \u00d7 10 = 300  \n### Step 2: Calculate profit per lollipop\nProfit per lollipop = Selling price per lollipop - Cost price per lollipop  \nProfit per lollipop = $0.8 - $0.5 = $0.3  \n### Step 3: Calculate total profit\nTotal profit = Profit per lollipop \u00d7 Total lollipops sold  \nTotal profit = $0.3 \u00d7 300 = $90  \nWe can verify this with an alternative method:\n- Total revenue (money from sales) = 300 lollipops \u00d7 $0.8 = $240  \n- Total cost (money spent buying lollipops) = 300 lollipops \u00d7 $0.5 = $150  \n- Total profit = Total revenue - Total cost = $240 - $150 = $90  \nANSWER: 90",
+  "score": 5,
+  "cost": 0.001383,
+  "expected": "90",
+  "tokens": {
+    "input": 150,
+    "output": 1115
+  }
+}

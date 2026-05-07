@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 7,
+  "response": "fact = 1\n    result = 1\n    for i in range(1, n + 1):\n        fact *= i\n        result *= fact\n    return result",
+  "score": 3,
+  "cost": 0.0014472,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 557
+  }
+}

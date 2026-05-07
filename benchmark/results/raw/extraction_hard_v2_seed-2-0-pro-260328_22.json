@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "extraction_hard_v2",
+  "case": 22,
+  "response": "{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\"Jamie (PM)\", \"Priya (eng lead)\", \"Marcus (design)\", \"Lin (data)\"],\n  \"decisions\": [\"Push the recommendation engine to Q3 since data pipeline won't be ready until June\", \"Allocate 20% of sprint capacity to tech debt\"],\n  \"action_items\": [\n    {\"owner\": \"Marcus\", \"task\": \"Deliver onboarding mockups\", \"deadline\": \"2026-04-18\"},\n    {\"owner\": \"Jamie\", \"task\": \"Send updated roadmap\", \"deadline\": \"Monday following 2026-04-10\"},\n    {\"owner\": \"Lin\", \"task\": \"Complete analytics dashboard\", \"deadline\": \"Before May board meeting\"}\n  ]\n}",
+  "score": 4,
+  "cost": 0.0029682000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 223,
+    "output": 1181
+  }
+}

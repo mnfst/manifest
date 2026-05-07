@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "### Step 1: Identify the original number of pomelos\nEve started with 20 pomelos total.\n### Step 2: Calculate how many pomelos Eve has left\nEve is left with 1/4 of her original pomelos. To find this value:\n$$\\text{Pomelos left} = \\text{Original amount} \\times \\frac{1}{4} = 20 \\times \\frac{1}{4} = 5$$\n### Step 3: Calculate the number of pomelos given away\nThe number of pomelos given away equals the original amount minus the amount left:\n$$\\text{Pomelos given away} = 20 - 5 = 15$$\n*(Alternative check: If 1/4 remains, Eve gave away $1 - \\frac{1}{4} = \\frac{3}{4}$ of the original pomelos. $\\frac{3}{4} \\times 20 = 15$, which confirms the result.)*\nANSWER: 15",
+  "score": 5,
+  "cost": 0.0016878,
+  "expected": "15",
+  "tokens": {
+    "input": 129,
+    "output": 671
+  }
+}

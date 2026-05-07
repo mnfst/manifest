@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 29,
+  "response": "def sum_digits(n):\n        s = str(n)\n        if s.startswith('-'):\n            total = int(s[:2])\n            for c in s[2:]:\n                total += int(c)\n            return total\n        return sum(int(c) for c in s)\n    return [val for idx, val in sorted(enumerate(nums), key=lambda x: (sum_digits(x[1]), x[0]))]",
+  "score": 3,
+  "cost": 0.0146205,
+  "expected": "",
+  "tokens": {
+    "input": 187,
+    "output": 12137
+  }
+}

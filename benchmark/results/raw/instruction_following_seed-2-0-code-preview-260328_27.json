@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "### Mammals\n1. **Red Kangaroo**: The largest marsupial mammal, native to Australia\u2019s arid inland; uses muscular hind legs for energy-efficient hopping locomotion.\n2. **Common Bottlenose Dolphin**: A marine placental (eutherian) mammal; uses biosonar (echolocation) to hunt and forms tight-knit social pods (not a fish, despite living in water).\n3. **African Bush Elephant**: The planet\u2019s largest land mammal; has a prehensile trunk for feeding/drinking and lives in matriarchal family herds.\n\n---\n\n### Birds\n1. **Atlantic Puffin**: A pelagic seabird nicknamed the \"sea parrot\" for its vibrant breeding-season beak; nests in cliffside burrows across the North Atlantic.\n2. **Ruby-Throated Hummingbird**: The smallest breeding bird in eastern North America; migrates 500+ miles nonstop across the Gulf of Mexico each fall.\n3. **Southern Cassowary**: A flightless ratite (related to ostriches/emus) native to Australian rainforests; has a bony \"casque\" on its head and sharp, defensive clawed feet.\n\n---\n\n### Fish\n1. **Great White Shark**: A cartilaginous elasmobranch fish (no bony skeleton); an apex predator of temperate oceans with electroreceptors to detect hidden prey.\n2. **Ocellaris Clownfish**: A bony ray-finned fish (made famous by *Finding Nemo*); forms an obligate symbiotic relationship with sea anemones for protection.\n3. **West Indian Coelacanth**: A lobe-finned fish once thought extinct for 66 million years (rediscovered 1938); has fleshy, limb-like fins and inhabits deep Indian Ocean caves.",
+  "score": 3,
+  "cost": 0.0023450999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 1942
+  }
+}

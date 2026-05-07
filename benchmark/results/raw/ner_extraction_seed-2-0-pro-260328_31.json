@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 31,
+  "response": "{\"persons\": [], \"organizations\": [\"Samsung Electronics\"], \"locations\": [\"South Korea\"]}",
+  "score": 5,
+  "cost": 0.0002742,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 86
+  }
+}

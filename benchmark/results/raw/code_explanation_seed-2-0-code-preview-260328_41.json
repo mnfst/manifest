@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "### Explanation (2 clear, specific sentences):\n1. This code implements a **naive bit-serial (non-lookup-table) version of the standard IEEE 802.3 CRC-32 checksum algorithm**\u2014the variant used in Ethernet, ZIP, PNG, and Python\u2019s `binascii.crc32`\u2014employing the *bit-reflected 32-bit polynomial* `0xEDB88320` (the little-endian form of the formal polynomial `0x04C11DB7`).\n2. It initializes a 32-bit CRC register to `0xFFFFFFFF` (all ones preset), XORs each input byte into the register\u2019s least significant 8 bits, processes 8 bits per byte by shifting right and conditionally XORing with the polynomial (based on the register\u2019s least significant bit), then finalizes by XORing with `0xFFFFFFFF` to invert all bits and produce the standard CRC32 output.\n\n---\n### Condensed 1-sentence version:\nThis is a naive bit-serial (non-lookup-table) implementation of the standard IEEE 802.3 CRC-32 checksum algorithm\u2014used in Ethernet, ZIP, and PNG\u2014using the bit-reflected 32-bit polynomial `0xEDB88320`; it initializes the CRC register to `0xFFFFFFFF`, XORs each input byte into the register\u2019s least significant bits, processes 8 bits per byte by shifting right and conditionally XORing with the polynomial, then finalizes by XORing with `0xFFFFFFFF` to invert all bits.",
+  "score": 5,
+  "cost": 0.0038024999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 3132
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "SELECT flight_number FROM flights WHERE airline_name = 'United Airlines';",
+  "score": 5,
+  "cost": 0.00027959999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 88
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment m\u00eame, c'est ce d\u00e9mon qui d\u00e9vale la Wangan.\n\n*(Note: Wangan is kept untranslated as it is the proper name of the famous Tokyo coastal expressway, universally recognised in the global street racing/car culture context the original line refers to. The phrasing preserves the dramatic, tense tone of the original sentence.)*",
+  "score": 4,
+  "cost": 0.0018516,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 752
+  }
+}

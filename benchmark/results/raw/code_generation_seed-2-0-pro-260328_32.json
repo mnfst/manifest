@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 32,
+  "response": "return ' '.join(''.join(sorted(word)) for word in s.split())",
+  "score": 4,
+  "cost": 0.0036522,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 1467
+  }
+}

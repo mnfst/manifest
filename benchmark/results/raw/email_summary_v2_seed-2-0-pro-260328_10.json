@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "This email from the CEO shares the attached draft Q1 board deck, which notes the company hit 127% of its revenue target, holds an NRR of 115%, and has experienced a 22% CAC increase, ahead of the board meeting scheduled for next Tuesday.\nThe CEO is requesting the recipient submit their product roadmap section for the board deck by Wednesday.",
+  "score": 5,
+  "cost": 0.0007986,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 299
+  }
+}

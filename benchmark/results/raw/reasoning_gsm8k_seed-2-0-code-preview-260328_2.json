@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Let's solve this problem step by step:\n1. **Calculate the time Tom spends sailing outward**: He sails from 1 PM to 4 PM. The duration is 4 - 1 = 3 hours.\n2. **Find the one-way distance**: Distance is calculated as speed \u00d7 time. His outward speed is 10 mph,  the distance is:\n   Distance = 10 mph \u00d7 3 hours = 30 miles.\n3. **Relate the return trip to the one-way distance**: The return trip covers the same 30-mile distance. His return speed is 6 mph.\n4. **Solve for the return time**: Using the rearranged distance formula (time = distance / speed):\n   Return time = 30 miles / 6 mph = 5 hours.\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0009182999999999999,
+  "expected": "5",
+  "tokens": {
+    "input": 117,
+    "output": 736
+  }
+}

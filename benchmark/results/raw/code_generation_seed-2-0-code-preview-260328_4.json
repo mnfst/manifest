@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 4,
+  "response": "return all(l[i] <= l[i+1] for i in range(len(l)-1)) or all(l[i] >= l[i+1] for i in range(len(l)-1))",
+  "score": 5,
+  "cost": 0.017096399999999998,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 14209
+  }
+}

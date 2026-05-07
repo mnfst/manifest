@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Des d\u00e9versoirs aptes \u00e0 \u00e9vacuer les \u00e9v\u00e9nements de crue postul\u00e9s sont soit int\u00e9gr\u00e9s aux structures du barrage, soit construits en tant qu'ouvrages ind\u00e9pendants.\n\n*Note: This translation uses standard technical terminology specific to dam and hydraulic engineering as used in French-language civil engineering documentation, preserving the formal, precise tone of the original technical text.*",
+  "score": 5,
+  "cost": 0.0012564000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 500
+  }
+}

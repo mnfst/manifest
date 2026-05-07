@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 1,
+  "response": "Here is a clear list of what is wrong with the code, why it is a problem, and how to fix it.\n\nBugs:\n\u2022 If no user is found, user.rows[0] will be undefined, causing a crash when spreading it or accessing password.  \n  Fix: Check if user.rows.length === 0 and return 404 before accessing.\n\nSecurity issues:\n\u2022 The password is being returned in the API response. Even if hashed, this should never be exposed.  \n  Fix: Remove password from the response entirely.\n\n\u2022 req.params.id is a string but used directly in a SQL query. Although parameterized queries prevent injection, you should still validate and sanitize the input.  \n  Fix: Ensure id is a valid integer before querying.\n\n\u2022 Excessive data exposure: using SELECT * returns all columns, which may include sensitive fields besides password.  \n  Fix: Explicitly select only the fields that should be public, such as id, name, email.\n\nImprovements:\n\u2022 Wrap database call in try/catch to avoid leaking unhandled errors to clients.  \n\u2022 Return consistent API error messages and HTTP status codes.  \n\u2022 Consider using a service layer instead of querying the database directly in the route.  \n\u2022 Validate request params using a library such as Joi, zod, or express-validator.\n\nImproved version (plain text, no formatting):\n\napp.get('/api/users/:id', async (req, res) => {\n  const id = parseInt(req.params.id, 10);\n  if (isNaN(id)) {\n    return res.status(400).json({ error: 'Invalid user id' });\n  }\n\n  try {\n    const result = await db.query(\n      'SELECT id, name, email FROM users WHERE id = $1',\n      [id]\n    );\n\n    if (result.rows.length === 0) {\n      return res.status(404).json({ error: 'User not found' });\n    }\n\n    return res.json(result.rows[0]);\n  } catch (err) {\n    return res.status(500).json({ error: 'Internal server error' });\n  }\n});\n\nIf you want, I can also provide recommendations for encrypting or hashing passwords, or for implementing a proper user DTO to control data exposure.",
+  "score": 5,
+  "cost": 0.003934,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 468
+  }
+}

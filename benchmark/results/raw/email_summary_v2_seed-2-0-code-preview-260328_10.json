@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO sent an email titled \u201cBoard Deck Review\u201d that attaches a Q1 board deck draft outlining key performance metrics\u2014127% of the revenue target achieved, 115% net revenue retention (NRR), and a 22% increase in customer acquisition cost (CAC)\u2014and states the board meeting is scheduled for next Tuesday.\nThe CEO\u2019s required action item for the recipient is to submit their product roadmap section for the Q1 board deck by Wednesday.",
+  "score": 5,
+  "cost": 0.0010683,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 861
+  }
+}

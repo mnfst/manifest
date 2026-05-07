@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "To solve this question, analyze each option based on how coal forms:\n\n1. **Option A**: Seas that evaporate form mineral deposits (e.g., salt, gypsum), not coal. This is incorrect.\n2. **Option B**: Natural gas is a separate fossil fuel formed from marine organic matter, not a precursor to coal. This is incorrect.\n3. **Option C**: Melted and cooled rock is igneous rock, not coal. Coal does not form from melted metamorphic rock. This is incorrect.\n4. **Option D**: Coal forms when dead plant matter (e.g., from ancient swamps) is buried, deprived of oxygen, and compressed over millions of years. This matches the scientific definition of coal formation.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.000513,
+  "expected": "D",
+  "tokens": {
+    "input": 106,
+    "output": 401
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a specialized data structure that dramatically speeds up data lookup and query operations by maintaining sorted, searchable references to table rows, instead of forcing the database to scan every single row when looking for matching values.\nWhile indexes drastically improve read performance, they introduce additional overhead for write operations such as inserts, updates, and deletes, as the database must also modify the index every time the underlying table data changes.",
+  "score": 3,
+  "cost": 0.000771,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 306
+  }
+}

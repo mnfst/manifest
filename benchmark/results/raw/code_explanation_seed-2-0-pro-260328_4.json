@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This is a Python decorator implementing the **memoization** optimization pattern. It caches return values of the wrapped function using its input arguments as cache keys, so repeated calls with identical arguments return the stored cached result instead of re-executing the original function logic to avoid redundant calculations.",
+  "score": 5,
+  "cost": 0.0008118,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 307
+  }
+}

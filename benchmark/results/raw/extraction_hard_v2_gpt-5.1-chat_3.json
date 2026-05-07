@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "{\"severity\":\"critical\",\"component\":\"checkout page\",\"summary\":\"Checkout fails with white screen and console errors\",\"steps_to_reproduce\":[\"Add items to cart\",\"Proceed to checkout\",\"Enter card information\",\"Click Pay\"],\"expected_behavior\":\"Payment should process and confirmation page should load\",\"actual_behavior\":\"30\u2011second spinner followed by a white screen with CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\"environment\":{\"os\":\"Windows 11\",\"browser\":\"Chrome 121\"}}",
+  "score": 5,
+  "cost": 0.001206,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 110
+  }
+}

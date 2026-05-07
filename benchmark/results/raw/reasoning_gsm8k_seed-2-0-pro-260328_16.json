@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "First, calculate the total number of books Sarah bought:\nSarah spent $300 total, and each book costs $15. To find the total number of books, divide the total amount spent by the cost per book:\nTotal books = $300 \u00f7 $15 per book = 20 books.\n\nNext, calculate how many books each child received:\nSarah distributed the 20 books equally among 4 kids. Divide the total number of books by the number of children:\nBooks per child = 20 books \u00f7 4 kids = 5 books.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0011141999999999999,
+  "expected": "5",
+  "tokens": {
+    "input": 133,
+    "output": 431
+  }
+}

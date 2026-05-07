@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "extraction_hard_v2",
+  "case": 37,
+  "response": "{\"requester\":{\"name\":\"Tom Zhang\",\"email\":\"tom.z@company.com\",\"team\":\"Platform Engineering\",\"manager\":\"Sarah Kim\"},\"date\":\"2024-03-15\",\"servers\":[{\"hostname\":\"prod-db-master\",\"ip\":\"10.0.1.50\",\"access_level\":\"READ ONLY\",\"purpose\":\"debugging query performance\"},{\"hostname\":\"staging-api-01\",\"ip\":\"10.0.2.10\",\"access_level\":\"SSH + sudo\",\"purpose\":\"deployment testing\"},{\"hostname\":\"monitoring-grafana\",\"ip\":\"grafana.internal\",\"access_level\":\"Admin role\",\"purpose\":\"dashboard creation\"}],\"justification\":\"Investigating P1 latency issue. Need to analyze slow queries on production and test fix on staging.\",\"related_incident\":\"INC-2024-0342\",\"duration_days\":14,\"approval_status\":\"Pending manager + security review\"}",
+  "score": 4,
+  "cost": 0.00302,
+  "expected": "",
+  "tokens": {
+    "input": 262,
+    "output": 312
+  }
+}

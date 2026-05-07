@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'\u00e9tendue de la longueur sans appui d\u00e9velopp\u00e9e \u00e0 la suite de l'affouillement a une influence significative sur la r\u00e9ponse flexurale tuyau-sol.\n\n### Technical & Grammatical Validation:\n1. **Tone/Register**: Formal, technical (matches the original engineering context)\n2. **Key Technical Terms (AFNOR-aligned)**:\n   - *Sensitivity analyses* \u2192 **Analyses de sensibilit\u00e9** (standard geotechnical/civil engineering term; definite article *Les* required for general plural nouns in French)\n   - *Unsupported length* \u2192 **Longueur sans appui** (preferred over *port\u00e9e libre* [free span] to retain the original\u2019s general \"unsupported\" framing)\n   - *Scour* \u2192 **Affouillement** (technical term for hydraulic scour affecting buried structures)\n   - *Flexural pipe-soil response* \u2192 **R\u00e9ponse flexurale tuyau-sol** (concise, technical phrasing matching the original\u2019s compact structure)\n3. **Meaning Fidelity**: Retains all critical details (extent of the unsupported length, causal link to scour, significant influence on pipe-soil flexural behavior)\n4. **Grammar**: Correct agreement (e.g., *d\u00e9velopp\u00e9e* modifies feminine singular *longueur*; *indiquent* agrees with plural *analyses*)",
+  "score": 5,
+  "cost": 0.0040992,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 3396
+  }
+}

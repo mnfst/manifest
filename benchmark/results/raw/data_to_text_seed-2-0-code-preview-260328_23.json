@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "data_to_text",
+  "case": 23,
+  "response": "Apple\u2019s stock (ticker AAPL) trades at $185.50 per share, posting a +2.3% daily price change, with 45 million shares in trading volume and a 52-week trading range spanning a low of $155 to a high of $198. The tech behemoth carries a $2.87 trillion market capitalization, a price-to-earnings (PE) ratio of 28.4, and a modest 0.55% dividend yield for shareholders.",
+  "score": 5,
+  "cost": 0.0015876,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 1287
+  }
+}

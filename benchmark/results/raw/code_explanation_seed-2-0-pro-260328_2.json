@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "This is a **3-way partition variant of the Quicksort sorting algorithm**. It recursively sorts an array by selecting a middle element as a pivot, splitting the input into groups of elements smaller than, equal to, and larger than the pivot, then combining the sorted left group, equal pivot group, and sorted right group to produce the final sorted array.",
+  "score": 5,
+  "cost": 0.0008003999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 292
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n'existe aucune autre explication \u00e0 l'octroi parcimonieux de 10 ou 12 millions d'\u00c9cus, un montant qui, comme nous le savons tous, ne suffit m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 des moyens modernes n\u00e9cessaires pour exercer des missions de surveillance dans le secteur de la p\u00eache.\n\n---\nThis translation preserves the original formal, critical institutional tone (consistent with the source European Parliament debate context), uses correct period terminology for the ECU currency, and adheres to standard official French phrasing for fisheries regulatory terminology.",
+  "score": 5,
+  "cost": 0.0018078,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 723
+  }
+}

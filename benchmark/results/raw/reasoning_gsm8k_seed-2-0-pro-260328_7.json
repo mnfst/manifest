@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Let's solve this problem step by step:\n### Step 1: Calculate the total cost of the plates\nFirst, recall that **half a dozen = 6** items.\nWe are given 1 plate costs $6000.\nTotal cost of half a dozen plates = Number of plates \u00d7 Cost per plate\n= $6000 \u00d7 6\n= $36000\n### Step 2: Calculate the total cost of 20 dozen cups\nThe problem states 20 dozen cups cost $1200 *less* than the total plate cost:\nTotal cost of 20 dozen cups = Total plate cost - $1200\n= $36000 - $1200\n= $34800\n### Step 3: Find the total number of individual cups\n1 dozen = 12 cups, so 20 dozen cups = 20 \u00d7 12 = 240 individual cups.\n### Step 4: Calculate the cost of 1 cup\nCost per cup = Total cost of 20 dozen cups \u00f7 Total number of cups\n= $34800 \u00f7 240\n= $145\nANSWER: 145",
+  "score": 5,
+  "cost": 0.0029322000000000003,
+  "expected": "145",
+  "tokens": {
+    "input": 123,
+    "output": 1191
+  }
+}

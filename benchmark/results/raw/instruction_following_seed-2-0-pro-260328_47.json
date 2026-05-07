@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here is a clear, actionable breakdown of what makes a good password, with numbered steps and explanation of why each rule matters:\n1.  **Prioritize length above almost all else**: Use a minimum of 12 characters, ideally 16 or more. This is the single strongest defense against brute force cracking -- every additional character multiplies the required cracking time exponentially. A properly random 16-character password cannot be cracked with current technology in any practical timeframe.\n2.  **Exclude all predictable and personal content**: Never use names, birthdays, addresses, pet names, keyboard patterns (qwerty, 12345), common phrases, or pop culture references. These values are always the first entries tested in modern password cracking dictionaries.\n3.  **Use unconnected, random components**: Combine unrelated words, numbers, and symbols with no logical or personal link. Passphrases built from 3-4 unrelated random words (e.g. `Wren$Tire9Cloud`) are far more secure *and* more memorable than short jumbled passwords.\n4.  **Never reuse a password across accounts**: Even throwaway, low-stakes accounts must have unique passwords. A data breach on one small website will expose that password, which attackers will immediately test against your bank, email, and social media accounts.\n5.  **Do not rely on common character tricks**: Replacing letters with numbers/symbols (like `P@ssw0rd`), or tacking a single `!` or `123` onto the end of a common word provides almost no real security. These substitutions are standard in every modern cracking tool.\n6.  **Do not add context clues**: Never include the name of the service, your username, or any hint about what the password is for in the password itself.\n7.  **Store it correctly**: A good password is useless if it is exposed. Use an end-to-end encrypted password manager rather than writing passwords down, saving them in notes, or sharing them over unencrypted messages. The only password you should ever need to memorize is the secure master password for your manager.",
+  "score": 5,
+  "cost": 0.003441,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 1419
+  }
+}

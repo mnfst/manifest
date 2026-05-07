@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 30,
+  "response": "def is_prime(x):\n        if x < 2:\n            return False\n        for i in range(2, int(x ** 0.5) + 1):\n            if x % i == 0:\n                return False\n        return True\n    a, b = 1, 1\n    count = 0\n    while True:\n        a, b = b, a + b\n        if is_prime(a):\n            count += 1\n            if count == n:\n                return a",
+  "score": 3,
+  "cost": 0.0020994,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 829
+  }
+}

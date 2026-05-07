@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "Ce type de r\u00e9pression, ainsi que l'arrestation, au cours des derni\u00e8res semaines, de repr\u00e9sentants d'institutions humanitaires et de syndicats, ainsi que de journalistes accus\u00e9s de diffuser de pr\u00e9tendues fausses informations, ont \u00e0 juste titre \u00e9veill\u00e9 la pr\u00e9occupation de la communaut\u00e9 internationale.\n\n### Translation Rationale (for transparency, though not required per prompt):\n1. **Tone & Formality**: Uses formal, diplomatic French (matches the original\u2019s official, concerned tone, likely from an international body/human rights statement).\n2. **Ambiguity Resolution**: Groups \"representatives of humanitarian institutions and trade unions\" separately from \"journalists\" (with *ainsi que*) to avoid the absurd misreading of \"representatives of journalists\" (a common English ellipsis fixed for French clarity).\n3. **\"So-called\"**: Translated as *pr\u00e9tendues* (not neutral *ce que l\u2019on appelle*) to retain the original\u2019s skeptical subtext: the \"false information\" label is the accusers\u2019 unproven claim.\n4. **\"Rightly\"**: Translated as *\u00e0 juste titre* (formal, legal/moral equivalence, not casual *\u00e0 juste raison*) to match the original\u2019s endorsement of the international community\u2019s concern.\n5. **Subject-Verb Agreement**: Uses plural *ont* (not singular *a*) to reflect the original\u2019s plural compound subject (repression + arrests, both core triggers of concern) rather than treating arrests as a mere afterthought.\n6. **Collocations**: Uses standard diplomatic phrases: *\u00e9veill\u00e9 la pr\u00e9occupation de la communaut\u00e9 internationale* (matches \"awakened the concern of the international community\") and *au cours des derni\u00e8res semaines* (formal equivalent of \"in recent weeks\").",
+  "score": 5,
+  "cost": 0.005595,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 4640
+  }
+}

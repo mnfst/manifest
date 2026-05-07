@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "### 4 Perfect (True) Rhyming Words for *Cat* (all match the core /\u00e6t/ rime sound, with no slant/near rhymes):\n1. **Hat** \u2013 A head covering (e.g., a striped sun hat)\n2. **Mat** \u2013 A flat protective floor covering (e.g., a welcome doormat)\n3. **Bat** \u2013 A nocturnal flying mammal or wooden sports tool (e.g., a baseball bat)\n4. **Rat** \u2013 A small long-tailed rodent (e.g., a fancy pet rat)",
+  "score": 5,
+  "cost": 0.0013218,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 1091
+  }
+}

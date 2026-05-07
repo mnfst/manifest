@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code finds all connected components of an undirected graph represented as an adjacency list, using the **Breadth-First Search (BFS)** graph traversal algorithm. It iterates through every graph node, launches a BFS from each unvisited node to collect all mutually reachable nodes in that component, marks nodes as visited to avoid duplicate processing, and returns the full list of distinct disconnected subgraph groups.",
+  "score": 5,
+  "cost": 0.0016728,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 650
+  }
+}

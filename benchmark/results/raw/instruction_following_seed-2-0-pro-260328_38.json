@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "`Login failed. Please check your credentials and try again.`",
+  "score": 5,
+  "cost": 0.0007662,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 303
+  }
+}

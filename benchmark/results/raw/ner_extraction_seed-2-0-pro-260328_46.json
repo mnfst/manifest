@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 46,
+  "response": "{\n  \"persons\": [\"Liang Rubo\"],\n  \"organizations\": [\"ByteDance\", \"Senate Commerce Committee\", \"TikTok\"],\n  \"locations\": [\"Washington\"]\n}",
+  "score": 5,
+  "cost": 0.00047279999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 168
+  }
+}

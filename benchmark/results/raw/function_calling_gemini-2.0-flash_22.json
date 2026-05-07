@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 22,
+  "response": "{\"name\": \"create_database\", \"arguments\": {\"name\": \"analytics_prod\", \"engine\": \"postgresql\"}}",
+  "score": 5,
+  "cost": 1.9e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 25
+  }
+}

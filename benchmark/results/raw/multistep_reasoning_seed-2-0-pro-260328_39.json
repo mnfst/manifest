@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "multistep_reasoning",
+  "case": 39,
+  "response": "To solve this question, we compare the relative masses of the particles listed:\n1.  **Proton (A) and Neutron (B):** Both have nearly equal mass, approximately 1 atomic mass unit (amu). Losing either would remove a significant amount of mass from the atom.\n2.  **Nucleus (C):** The nucleus contains *all* of an atom's protons and neutrons, which make up more than 99.9% of the atom's total mass. Losing the nucleus would remove almost all of the atom's mass.\n3.  **Electron (D):** An electron has an extremely small mass (~1/1836 the mass of a single proton or neutron). Losing an electron removes far less mass than losing any of the other options.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.0010842,
+  "expected": "D",
+  "tokens": {
+    "input": 119,
+    "output": 422
+  }
+}

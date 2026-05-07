@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "data_to_text",
+  "case": 26,
+  "response": "This Pad Thai recipe is a medium-difficulty Thai cuisine dish that requires 15 minutes of preparation time and 10 minutes of cooking time, yielding 4 total servings. Each individual serving contains 380 calories, along with 22 grams of protein, 45 grams of carbohydrates, and 12 grams of fat.",
+  "score": 5,
+  "cost": 0.001047,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 400
+  }
+}

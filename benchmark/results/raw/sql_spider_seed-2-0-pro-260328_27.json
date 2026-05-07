@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT c.Name\nFROM country c\nWHERE EXISTS (\n    SELECT 1 FROM countrylanguage cl\n    WHERE cl.CountryCode = c.Code AND cl.Language = 'English'\n)\nAND EXISTS (\n    SELECT 1 FROM countrylanguage cl\n    WHERE cl.CountryCode = c.Code AND cl.Language = 'French'\n);\n```",
+  "score": 5,
+  "cost": 0.0010638,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 414
+  }
+}

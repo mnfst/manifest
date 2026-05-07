@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 20,
+  "response": "{\"name\": \"git_merge\", \"arguments\": {\"source\": \"feature-auth\", \"target\": \"main\"}}",
+  "score": 5,
+  "cost": 0.0020139,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 1652
+  }
+}

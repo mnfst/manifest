@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "Un large \u00e9ventail d'attractions et de produits touristiques (le th\u00e9, les itin\u00e9raires culturels, les \u00e9tablissements de vill\u00e9giature sant\u00e9 et bien-\u00eatre ainsi que les spas, la gastronomie, les activit\u00e9s nautiques, etc.) ont \u00e9t\u00e9 identifi\u00e9s sur le territoire de la destination ; ceux-ci n\u00e9cessitent un d\u00e9veloppement interd\u00e9pendant en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne.\n\n### Notes on accuracy/tone alignment:\n1. **Register**: Uses formal, tourism-planning terminology matching the original\u2019s objective, administrative tone (e.g., *recens\u00e9s* \u2192 adjusted to *identifi\u00e9s* for strict lexical parity, *\u00e9tablissements de vill\u00e9giature* for \"resorts\" in tourism context).\n2. **Subject-verb agreement**: Fixes the original\u2019s English grammatical error (\"a wide number... has\") by using plural *ont \u00e9t\u00e9 identifi\u00e9s* (standard for *un large \u00e9ventail de [plural nouns]* when emphasizing individual items).\n3. **Clarity**: Replaces ambiguous relative *qui* with *ceux-ci* to explicitly link the \"interdependent development\" requirement to the attractions/products (avoids misattribution to the destination).\n4. **Lexical precision**:\n   - *Interd\u00e9pendant* (no hyphen, standard French spelling) for \"inter-dependent\"\n   - *Compl\u00e9mentarit\u00e9s* (planning-specific term) for \"complementarities\"\n   - *Isolement* (retains the original\u2019s vague but tourism-relevant implication of geographic/operational isolation)\n   - Adjusts \"spa\" (likely English typo) to plural *spas* for logical list consistency.",
+  "score": 5,
+  "cost": 0.0055326,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 4584
+  }
+}

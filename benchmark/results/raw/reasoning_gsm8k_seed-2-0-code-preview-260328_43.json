@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Let's solve this step by step:\n1. First, we know Mike's age from the problem: **Mike = 24 years old**.\n2. Next, the problem states Martha is 4 years younger than Mike. To find Martha's age, subtract 4 from Mike's age:\n   Martha = Mike - 4 = 24 - 4 = **20 years old**.\n3. Finally, Jeff is 10 years older than Martha. To find Jeff's age, add 10 to Martha's age:\n   Jeff = Martha + 10 = 20 + 10 = **30 years old**.\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.0007122000000000001,
+  "expected": "30",
+  "tokens": {
+    "input": 114,
+    "output": 565
+  }
+}

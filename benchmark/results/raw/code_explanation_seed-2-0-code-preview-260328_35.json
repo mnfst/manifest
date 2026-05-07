@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "### Two Clear, Specific Sentences:\n1. This code implements the **Knuth-Morris-Pratt (KMP)** linear-time string pattern-matching algorithm, first preprocessing the input `pattern` to build a *Longest Prefix Suffix (LPS) array*\u2014this array stores the length of the longest proper prefix that is also a suffix for each prefix of the pattern, eliminating the need to backtrack through the `text` index during mismatches.\n2. The algorithm then scans the `text` exactly once (the text index `i` never decrements) by using the LPS array to adjust the pattern index `j` (instead of resetting `j` to 0) on character mismatches, returning the 0-based starting index of the first occurrence of `pattern` in `text`, or -1 if no match exists.\n\n---\n### Concise 1-Sentence Version (if needed):\nThis is the **Knuth-Morris-Pratt (KMP)** linear-time pattern-matching algorithm: it first preprocesses the `pattern` to build a *Longest Prefix Suffix (LPS) array* (to avoid text backtracking) then scans the `text` *once* (no text index decrements) by using the LPS to adjust the pattern index on mismatches, returning the 0-based start of the first `pattern` match or -1 if none exists.",
+  "score": 5,
+  "cost": 0.0026747999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 220,
+    "output": 2174
+  }
+}

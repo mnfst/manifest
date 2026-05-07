@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "### Explanation (2 clear, specific sentences):\nThis code implements a **depth-first search (DFS)-based topological sort algorithm** for a directed acyclic graph (DAG), which produces a linear ordering of nodes such that for every directed edge `u\u2192v`, node `u` appears *before* `v` in the result.  \nIt uses **post-order DFS** (processing all of a node\u2019s neighbors *before* the node itself) by pushing nodes to a stack *only after their recursive DFS calls finish*, then reverses the stack to yield the valid topological order.\n\n---\n### Quick Key Details (for clarity):\n- Not Kahn\u2019s algorithm (which uses in-degrees + a queue); this is the standard **DFS-based topological sort**\n- Relies on the graph being a DAG (no cycle detection, as topological sort only works on DAGs)\n- Post-order stack + reversal ensures edges go \"forward\" in the final order",
+  "score": 5,
+  "cost": 0.0013635,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 1100
+  }
+}

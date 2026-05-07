@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "SELECT DISTINCT airline FROM flights WHERE destination_airport = 'AHD';",
+  "score": 5,
+  "cost": 0.0007848,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 298
+  }
+}

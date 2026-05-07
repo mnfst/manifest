@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "SELECT AVG(winner_rank) AS average_rank FROM matches;",
+  "score": 4,
+  "cost": 0.0008181,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 657
+  }
+}

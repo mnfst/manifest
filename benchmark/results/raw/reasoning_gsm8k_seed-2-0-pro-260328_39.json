@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "Let's solve this problem step by step:\n1.  First, calculate how many grapes Madeline's brother used:\n    Madeline ate 6 grapes, and her brother used 5 times that amount.\n    Brother's grapes = \\( 5 \\times 6 = 30 \\) grapes.\n2.  Next, calculate how many grapes were used for the pies:\n    There are 4 pies, and each pie needs 12 grapes.\n    Pie grapes = \\( 4 \\times 12 = 48 \\) grapes.\n3.  Finally, sum all the grapes used to get the total original number of grapes:\n    Total grapes = Madeline's grapes + Brother's grapes + Pie grapes\n    Total grapes = \\( 6 + 30 + 48 = 84 \\)\nANSWER: 84",
+  "score": 5,
+  "cost": 0.0013848,
+  "expected": "84",
+  "tokens": {
+    "input": 152,
+    "output": 539
+  }
+}

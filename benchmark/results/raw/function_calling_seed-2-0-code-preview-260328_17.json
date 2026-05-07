@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 17,
+  "response": "{\"name\": \"generate_qr\", \"arguments\": {\"data\": \"https://example.com/signup\"}}",
+  "score": 5,
+  "cost": 0.00022949999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 159
+  }
+}

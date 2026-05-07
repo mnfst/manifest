@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Legal has approved the updated terms referenced in the \"Legal Review of Terms Update\" email thread, with two required modifications: adding an arbitration clause for the enterprise tier and revising data retention from 180 days to 90 days. The revised terms incorporating these changes must go live prior to the May 1 EU launch, and the sending Legal representative will prepare the final version of the terms today.",
+  "score": 5,
+  "cost": 0.0016986,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 1383
+  }
+}

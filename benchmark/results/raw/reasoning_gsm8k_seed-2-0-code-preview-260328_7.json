@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Let's solve this problem step by step:\n### Step 1: Clarify the quantities and units\n- A dozen = 12 items.\n- \"Twenty dozen cups\" = 20 * 12 = 240 individual cups.\n- \"Half a dozen plates\" = 0.5 * 12 = 6 individual plates.\n### Step 2: Calculate the total cost of the plates\nThe problem states plates are sold at $6000 each (per plate). For 6 plates:\nTotal cost of plates = Number of plates * Price per plate  \nTotal cost of plates = 6 * $6000 = $36,000.\n### Step 3: Find the total cost of 20 dozen cups\nThe problem says 20 dozen cups cost $1200 less than the total cost of the plates:\nTotal cost of 20 dozen cups = Total cost of plates - $1200  \nTotal cost of 20 dozen cups = $36,000 - $1200 = $34,800.\n### Step 4: Calculate the cost per cup (total cost of buying each cup)\nThe question asks for the total cost of buying \"each cup,\" which refers to the unit cost per individual cup. We have 240 cups costing $34,800 total:\nCost per cup = Total cost of cups / Number of cups  \nCost per cup = $34,800 / 240 = $145.\nANSWER: 145",
+  "score": 5,
+  "cost": 0.012152699999999999,
+  "expected": "145",
+  "tokens": {
+    "input": 105,
+    "output": 10101
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "### Clear Explanation (2 sentences):\nThis Python function identifies **all connected components** of a graph (passed as an *adjacency-list dictionary*, where keys = nodes and values = lists of adjacent nodes) using the **Breadth-First Search (BFS)** traversal algorithm. It maintains a `visited` set to avoid reprocessing nodes, iterates over every graph node, and for each unvisited node, runs BFS to collect all reachable nodes (forming one connected component) before appending that component to the final output list.\n\n---\n### Key Specifics (embedded in explanation):\n- **Input**: Graph as an adjacency-list dict (handles isolated nodes via `graph.get(node, [])`).\n- **Algorithm**: *BFS* (confirmed by FIFO queue behavior: `queue.pop(0)` removes the first/oldest element, standard for level-order BFS).\n- **Pattern**: Connected-components detection via *exhaustive traversal with a visited set* (ensures no duplicate node processing across components).\n- **Output**: List of components, where each component is a list of mutually reachable nodes.",
+  "score": 5,
+  "cost": 0.0023154,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 1887
+  }
+}

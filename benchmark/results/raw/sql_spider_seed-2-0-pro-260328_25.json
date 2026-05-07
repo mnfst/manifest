@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "SELECT * FROM cartoon WHERE director = 'Ben Jones';",
+  "score": 5,
+  "cost": 0.0002694,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 84
+  }
+}

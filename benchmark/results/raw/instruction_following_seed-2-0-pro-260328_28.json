@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Keep showing up even when progress feels too slow to see.",
+  "score": 4,
+  "cost": 0.0012083999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 487
+  }
+}

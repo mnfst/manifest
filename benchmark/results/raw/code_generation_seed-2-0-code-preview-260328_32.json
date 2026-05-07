@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 32,
+  "response": "return ' '.join(''.join(sorted(part)) for part in s.split(' '))",
+  "score": 5,
+  "cost": 0.008993099999999999,
+  "expected": "",
+  "tokens": {
+    "input": 201,
+    "output": 7444
+  }
+}

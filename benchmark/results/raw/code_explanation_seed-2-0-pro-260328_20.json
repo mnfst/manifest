@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function implements the standard iterator partition pattern: it splits a single input iterable into two independent output iterators, one containing all elements that pass the provided predicate test and one containing all elements that fail it. It uses `itertools.tee` to safely duplicate the source iterable so the two filter operations can consume their own copy of the sequence without exhausting the source for the other.",
+  "score": 5,
+  "cost": 0.0009132000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 350
+  }
+}

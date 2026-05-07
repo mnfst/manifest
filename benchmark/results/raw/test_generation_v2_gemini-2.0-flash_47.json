@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 47,
+  "response": "```python\nimport pytest\nfrom typing import List, Tuple\n\ndef run_length_encode(s: str) -> List[Tuple[str, int]]:\n    \"\"\"\n    Performs run-length encoding on a string.\n\n    Args:\n        s: The input string.\n\n    Returns:\n        A list of tuples, where each tuple contains a character and the number of times it appears consecutively.\n    \"\"\"\n    if not s:\n        return []\n    result = []\n    count = 1\n    for i in range(1, len(s)):\n        if s[i] == s[i-1]:\n            count += 1\n        else:\n            result.append((s[i-1], count))\n            count = 1\n    result.append((s[-1], count))\n    return result\n\n\nclass TestRunLengthEncode:\n\n    def test_empty_string(self):\n        assert run_length_encode(\"\") == []\n\n    def test_single_character(self):\n        assert run_length_encode(\"a\") == [(\"a\", 1)]\n\n    def test_simple_encoding(self):\n        assert run_length_encode(\"aaabbc\") == [(\"a\", 3), (\"b\", 2), (\"c\", 1)]\n\n    def test_mixed_case(self):\n        assert run_length_encode(\"AaA\") == [(\"A\", 1), (\"a\", 1), (\"A\", 1)]\n\n    def test_numbers(self):\n        assert run_length_encode(\"11223\") == [(\"1\", 2), (\"2\", 2), (\"3\", 1)]\n\n    def test_special_characters(self):\n        assert run_length_encode(\"!!@@#\") == [(\"!\", 2), (\"@\", 2), (\"#\", 1)]\n\n    def test_long_run(self):\n        assert run_length_encode(\"aaaaaaaaaa\") == [(\"a\", 10)]\n\n    def test_alternating_characters(self):\n        assert run_length_encode(\"ababab\") == [(\"a\", 1), (\"b\", 1), (\"a\", 1), (\"b\", 1), (\"a\", 1), (\"b\", 1)]\n\n    def test_mixed_runs(self):\n        assert run_length_encode(\"aabbbaaccc\") == [(\"a\", 2), (\"b\", 3), (\"a\", 2), (\"c\", 3)]\n\n    def test_string_with_spaces(self):\n        assert run_length_encode(\"  a  b  \") == [(\" \", 2), (\"a\", 1), (\" \", 2), (\"b\", 1), (\" \", 2)]\n\n    def test_unicode_characters(self):\n        assert run_length_encode(\"\u4f60\u597d\u4f60\u597d\") == [(\"\u4f60\", 1), (\"\u597d\", 1), (\"\u4f60\", 1), (\"\u597d\", 1)]\n\n    def test_single_run(self):\n        assert run_length_encode(\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\") == [(\"b\", 200)]\n```",
+  "score": 4,
+  "cost": 0.0003453,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 829
+  }
+}

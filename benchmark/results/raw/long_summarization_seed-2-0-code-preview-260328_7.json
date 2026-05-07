@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s have emerged as a pivotal era for space exploration, defined by a convergence of scientific breakthroughs, global public missions, and booming private enterprise; key initiatives include NASA\u2019s Artemis lunar return program, China\u2019s space station and lunar ambitions, India\u2019s successful Chandrayaan missions, SpaceX\u2019s Starship development, and paradigm-shifting discoveries from the James Webb Space Telescope. Commercial space activity is expanding rapidly, with growing satellite internet constellations (Starlink, OneWeb), operational space tourism flights from Blue Origin and Virgin Galactic, and emerging prospects for asteroid mining. Despite these advances, the 2020s space landscape faces critical structural and safety gaps: limitations in the longstanding Outer Space Treaty\u2014Earth\u2019s primary global governance framework for space activity\u2014and the escalating problem of space debris, which endangers all operational orbital assets.",
+  "score": 5,
+  "cost": 0.0029526,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 2420
+  }
+}

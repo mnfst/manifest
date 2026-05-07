@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n    return -1\nreturn bin(round((n + m) / 2))",
+  "score": 3,
+  "cost": 0.005043,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 4149
+  }
+}

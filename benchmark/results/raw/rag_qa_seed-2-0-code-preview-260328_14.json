@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "Marine waters worldwide",
+  "score": 5,
+  "cost": 0.000366,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 332,
+    "output": 222
+  }
+}

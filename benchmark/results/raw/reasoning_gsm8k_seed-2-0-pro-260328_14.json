@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "Let's solve this problem step by step:\n1.  First, confirm the given value: 1 duck requires **3.5 pounds of insects per week** to survive.\n2.  Calculate the total weekly insect requirement for 10 ducks:\n    Multiply the per-duck weekly amount by the number of ducks:\n    `3.5 pounds/duck/week * 10 ducks = 35 total pounds per week` for the flock.\n3.  Convert the weekly requirement to a daily requirement:\n    There are 7 days in 1 week, so divide the total weekly amount by 7:\n    `35 pounds per week / 7 days = 5 pounds per day`.\nWe can also verify this by first finding the per-duck daily need: `3.5 lb/week \u00f7 7 days = 0.5 lb/duck/day`, then multiplying by 10 ducks gives the same `0.5 * 10 = 5` pounds per day.\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0014681999999999998,
+  "expected": "5",
+  "tokens": {
+    "input": 123,
+    "output": 581
+  }
+}

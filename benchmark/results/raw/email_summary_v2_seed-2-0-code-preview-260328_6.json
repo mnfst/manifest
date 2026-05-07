@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "CS Lead James reports that $450K ARR client Acme Corp is threatening to churn after a direct call from their CTO, who cited three weeks of API latency spikes and five days of no response from support as the driving issues. James has already assigned a dedicated engineer to address the client\u2019s concerns and is requesting an executive sponsor for a call with Acme Corp this week.",
+  "score": 5,
+  "cost": 0.0009849,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 788
+  }
+}

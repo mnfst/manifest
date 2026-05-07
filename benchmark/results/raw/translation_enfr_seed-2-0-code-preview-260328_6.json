@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment m\u00eame, sur la Wangan, roule ce d\u00e9mon-l\u00e0.\n\n### Breakdown for accuracy/tone alignment:\n1. **\"Right now\"**: Translated as *En ce moment m\u00eame* to preserve the urgent, immediate emphasis (not the generic *En ce moment*).\n2. **\"Wangan\"**: Retained as a proper noun (refers to Tokyo\u2019s iconic Wangan Expressway, untranslated in global street racing media). The feminine article *la* is added per French grammar rules for named roadways (e.g., *la Route 66*).\n3. **\"driving down\"**: Rendered via the inverted verb *roule* (drives) to mirror the original\u2019s **fronted, emphatic structure** (shifting focus to the location/action before the subject, a hallmark of urgent, observational speech).\n4. **\"that devil\"**: Translated as *ce d\u00e9mon-l\u00e0* to use the **distal demonstrative -l\u00e0** (matching \"that\" vs. \"this\") and retain the edgy, specific tone (referring to a legendary/street racing figure, e.g., the *Devil Z* from *Wangan Midnight*). The inversion of subject (*ce d\u00e9mon-l\u00e0*) and verb (*roule*) preserves the original\u2019s punchy, presentational flow (no flat SVO order, which would lose urgency).",
+  "score": 5,
+  "cost": 0.0037907999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 3144
+  }
+}

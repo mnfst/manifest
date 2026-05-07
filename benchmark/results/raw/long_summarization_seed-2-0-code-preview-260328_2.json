@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "long_summarization",
+  "case": 2,
+  "response": "The global food system faces unprecedented, multifaceted pressure: the 2050 projected global population of 9.7 billion will require a 60% increase in food production, while agriculture contributes 25% of global greenhouse gas emissions, 33% of arable land is degraded by intensive farming, one-third of all food is wasted, and climate-driven extreme weather plus widespread water scarcity (e.g., the fast-depleting Ogallala Aquifer and similar crises in India, China, and the Middle East) suppress crop yields. Proposed solutions to this crisis span technological, agronomic, and policy tools: AI-powered precision agriculture, urban vertical farming, insect and cultured alternative proteins, drought-resistant genetically modified crops, soil-rebuilding regenerative farming, and overhauls to farm subsidies, trade rules, and carbon pricing. The central challenge is implementing these solutions at scale while centering equity, ensuring food remains affordable and accessible to the world\u2019s poorest populations rather than worsening existing food insecurity.",
+  "score": 5,
+  "cost": 0.0018882,
+  "expected": "",
+  "tokens": {
+    "input": 330,
+    "output": 1491
+  }
+}

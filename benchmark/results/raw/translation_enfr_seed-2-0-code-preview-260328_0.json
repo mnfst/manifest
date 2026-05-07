@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je le veux.\n\n### Breakdown (for context, preserving tone/meaning):\n1. **\"I know how to help\"**: Translated as *Je sais comment aider* \u2013 uses explicit *comment* (how) to match the original\u2019s emphasis on possessing the *method* of helping (vs. the more idiomatic but less precise *Je sais aider*).\n2. **\"and I want to\"**: Translated as *et je le veux* \u2013 the neuter pronoun *le* stands in for the elliptical \"to help\" (mirroring the original\u2019s concise, non-repetitive structure) and uses *veux* (want) to retain the active, deliberate willingness of the original (vs. the softer *veux bien* = \"am willing\").\n3. Tone: Neutral, sincere, and direct \u2013 exactly matching the original\u2019s plain, earnest register.",
+  "score": 5,
+  "cost": 0.0029223,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 2420
+  }
+}

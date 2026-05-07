@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Let's solve this problem step by step:\n1.  **Clarify the original setup**: The problem refers to 20 total stalls, originally holding 20 cows each (the opening line has a likely wording clarification: all 20 stalls start with 20 cows, as the question only makes sense with consistent original stall counts).\n2.  Calculate new cows added per stall: Mr. Sylas buys 40 cows, divided equally across the 20 stalls.\n    New cows per stall = 40 total new cows / 20 stalls = 2 cows added per stall.\n3.  Find the new number of cows per stall:\n    Original count per stall + added cows = 20 + 2 = 22 cows per stall.\n4.  Calculate cows in 8 stalls:\n    8 stalls * 22 cows per stall = 176.\nANSWER: 176",
+  "score": 5,
+  "cost": 0.0051018,
+  "expected": "192",
+  "tokens": {
+    "input": 135,
+    "output": 2092
+  }
+}

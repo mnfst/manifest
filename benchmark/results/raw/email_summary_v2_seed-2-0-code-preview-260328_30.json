@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "The Product team\u2019s competitive analysis update details that Competitor X launched AI features last week, including auto-categorization (a capability the team currently lacks) at twice the team\u2019s pricing, which received a neutral market response, while the team maintains a competitive advantage with a better API and stronger integrations. The key action item from the Product team\u2019s analysis is to fast-track the team\u2019s AI roadmap item to address the identified competitive feature gap.",
+  "score": 5,
+  "cost": 0.0015915,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 1296
+  }
+}

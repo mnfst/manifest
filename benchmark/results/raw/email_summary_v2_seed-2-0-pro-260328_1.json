@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "This post-mortem email from Jen confirms the recent server service disruption was caused by a misconfigured load balancer, resulting in 47 minutes of degraded performance that impacted 12,000 users. The outlined action items are adding load balancer configuration validation to CI, updating the runbook, and implementing traffic distribution alerts, with the full formal post-mortem document attached to the email.",
+  "score": 5,
+  "cost": 0.0007968000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 294
+  }
+}

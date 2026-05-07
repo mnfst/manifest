@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product team has notified that the product launch is impacted as the payment integration has failed PCI compliance, outlining two options: launch without payments (which Legal confirms will require updated terms and conditions) or delay the full launch to May 15.\nA meeting to address this urgent launch issue is scheduled to take place tomorrow at 10am.",
+  "score": 5,
+  "cost": 0.0010283999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 392
+  }
+}

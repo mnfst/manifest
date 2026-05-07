@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is an auxiliary data structure (typically a B-tree or hash table) that maps values from one or more specified table columns to the physical or logical storage locations of their corresponding rows, eliminating the need for a full sequential scan of the entire table to find matching records. While indexes drastically accelerate read operations such as SELECT queries filtered by indexed columns, they incur extra storage and computational overhead for write operations (INSERT, UPDATE, DELETE) because the index structure must be updated to align with changes to the underlying table data.",
+  "score": 2,
+  "cost": 0.0006345,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 518
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "intent_clinc150",
+  "case": 8,
+  "response": "no",
+  "score": 0,
+  "cost": 0.0012222000000000001,
+  "expected": "maybe",
+  "tokens": {
+    "input": 601,
+    "output": 359
+  }
+}

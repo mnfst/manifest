@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that astronauts who\u2019ve completed spacewalks report that when they climb back into the spacecraft, their spacesuits carry a distinct, strong smell described as seared steak, hot metal, and arc welding fumes? This smell comes from high-energy charged particles that cling to the suit fabric while exposed to the vacuum of space.",
+  "score": 5,
+  "cost": 0.0005526,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 214
+  }
+}

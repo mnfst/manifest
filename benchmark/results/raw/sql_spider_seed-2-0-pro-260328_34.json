@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "SELECT * FROM employee_hire_evaluation;",
+  "score": 1,
+  "cost": 0.0003474,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 116
+  }
+}

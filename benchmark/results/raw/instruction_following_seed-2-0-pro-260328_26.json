@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle begins with the sun, the invisible engine driving the entire system. Sunlight heats liquid water across the planet\u2019s oceans, lakes, rivers, and even wet soil, causing molecules to break free and rise into the air as invisible water vapor. Water also enters the atmosphere through transpiration, when plants release moisture from their leaves, and sublimation, when ice and snow turn directly to vapor without first melting. Altogether, these processes lift roughly 505,000 cubic kilometres of water into the sky every year.\n\nAs water vapor climbs higher in the atmosphere, it encounters far colder temperatures. Cool air cannot hold as much moisture as warm air, so the vapor molecules slow down and condense onto tiny airborne particles like dust, sea salt, or pollen. These minuscule clumps form the liquid water droplets and ice crystals that make up clouds. Contrary to common assumption, individual cloud droplets are so small that even gentle upward air currents are enough to keep them suspended, sometimes for days at a time.\n\nPrecipitation occurs when cloud droplets collide and merge, growing heavy enough that gravity overcomes the updrafts holding them aloft. The form this falling water takes depends entirely on the temperature layers of the atmosphere it passes through: it falls as rain if it remains liquid the entire descent, snow if it freezes and stays frozen, or sleet and hail if it cycles between frozen and liquid states. Around 78% of all global precipitation falls directly back into the world\u2019s oceans.\n\nThe remaining precipitation that reaches land follows many different paths before returning to the ocean to complete the cycle. Some water runs over the ground surface as runoff, gathering into streams and rivers that carry it downhill. Some seeps deep into the ground to recharge underground aquifers, where it can remain stored for thousands of years. Other water is locked temporarily in glaciers, snowpack, or the bodies of living organisms. There is no true beginning or end to this loop: the same water molecules cycling today have moved through this pattern continuously for billions of years.",
+  "score": 4,
+  "cost": 0.0029616,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 1219
+  }
+}

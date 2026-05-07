@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "Pour sa part, le deuxi\u00e8me atelier a port\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de surveillance des organes conventionnels et adress\u00e9es \u00e0 l'\u00c9tat du Cameroun, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, et portant sur ses obligations \u00e0 l'\u00e9gard des populations autochtones.\n\n### Notes on fidelity & tone:\n- Uses **formal institutional/legal terminology** aligned with UN/regional body standards (e.g., *organes conventionnels* = treaty bodies, *mise en \u0153uvre* = implementation, *\u00e0 l'\u00e9gard de* = formal \"towards\").\n- Preserves the original logical structure: clarifies that recommendations are *made by supervisory bodies, addressed to Cameroon, grounded in treaties, and focused on Cameroon\u2019s indigenous obligations* (avoids ambiguity with explicit participial phrases *formul\u00e9es par...*, *adress\u00e9es \u00e0...*, *portant sur...*).\n- Matches the original\u2019s neutral, official tone (no colloquialisms, correct capitalization for *\u00c9tat du Cameroun* as a sovereign actor).",
+  "score": 5,
+  "cost": 0.0057147,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 4739
+  }
+}

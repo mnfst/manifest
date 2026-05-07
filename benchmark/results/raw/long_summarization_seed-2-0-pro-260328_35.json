@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 35,
+  "response": "Enacted in May 2018, the European Union's General Data Protection Regulation (GDPR) established binding data privacy rules applying to any company handling EU residents' data, with core provisions including user data rights, mandatory breach reporting within 72 hours, and maximum violation fines equal to 4% of global annual revenue or 20 million euros, whichever is higher.\nThe regulation has resulted in large penalties against major technology firms including a 1.2 billion euro fine for Meta in 2023, and has served as the foundational model for comparable data protection laws in California, Brazil, and India.\nCritics argue GDPR creates disproportionate compliance burdens for small businesses, stifles innovation, produces frustrating user experiences like universal cookie consent banners, and suffers from inconsistent enforcement across EU member states.\nDespite these documented flaws, GDPR formalized data privacy as a fundamental legal right and established the dominant global standard for modern data protection legislation.",
+  "score": 5,
+  "cost": 0.0014058,
+  "expected": "",
+  "tokens": {
+    "input": 363,
+    "output": 495
+  }
+}

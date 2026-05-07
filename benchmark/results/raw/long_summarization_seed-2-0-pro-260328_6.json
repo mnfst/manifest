@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Before the COVID-19 pandemic, less than 5% of workers were fully remote, with remote work functioning as a rare workplace perk, until 2020 created a mass forced experiment that pushed the practice into the mainstream, enabled by tools such as Zoom, Slack, and cloud infrastructure. Research led by Stanford's Nick Bloom has documented mixed results for remote work productivity, fueling return-to-office pushback that resulted in hybrid work becoming a common middle-ground arrangement for most employers. This large-scale shift has produced widespread secondary effects, including commercial real estate disruption, workers relocating to lower-cost regions via geographic arbitrage, and documented concerns around weakened company culture and junior employee development. As a reflection of remote work's new permanence, governments globally have also begun introducing dedicated digital nomad visas for mobile remote workers.",
+  "score": 5,
+  "cost": 0.0015792,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 610
+  }
+}

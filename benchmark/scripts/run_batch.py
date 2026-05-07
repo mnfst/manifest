@@ -47,6 +47,7 @@ REASONING_MODELS = {
     "MiniMax-M2.7", "claude-opus-4-7",
     "Phi-4-reasoning", "qwen3-32b",
     "gpt-5.5", "gpt-5.5-pro", "o3", "gpt-5.4", "gpt-5.4-mini", "gpt-5.4-nano",
+    "seed-2-0-pro-260328",
 }
 
 # Models that don't support temperature parameter
@@ -138,6 +139,13 @@ MODELS = {
     # Mistral coding specialist
     "devstral-latest": {
         "provider": "mistral", "input_price": 0.10, "output_price": 0.30,
+    },
+    # BytePlus (direct)
+    "seed-2-0-pro-260328": {
+        "provider": "byteplus", "input_price": 0.60, "output_price": 2.40,
+    },
+    "seed-2-0-code-preview-260328": {
+        "provider": "byteplus", "input_price": 0.30, "output_price": 1.20,
     },
     # Moonshot/Kimi (direct via api.moonshot.ai)
     "kimi-k2.6": {
@@ -517,6 +525,21 @@ def call_moonshot(model, messages, max_tokens):
     return resp.json()
 
 
+def call_byteplus(model, messages, max_tokens):
+    """Call BytePlus/Volcengine ARK API (OpenAI-compatible)."""
+    import requests as req
+    url = "https://ark.ap-southeast.bytepluses.com/api/v3/chat/completions"
+    headers = {"Authorization": f"Bearer {os.environ['BYTEPLUS_API_KEY']}", "Content-Type": "application/json"}
+    body = {"model": model, "messages": messages, "max_tokens": max(max_tokens, 2000)}
+    if model not in NO_TEMPERATURE_MODELS:
+        body["temperature"] = 0
+    try:
+        resp = req.post(url, json=body, headers=headers, timeout=300)
+        return resp.json()
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def call_openrouter(model, messages, max_tokens):
     """Call OpenRouter API (OpenAI-compatible, routes to many providers)."""
     import requests as req
@@ -560,6 +583,8 @@ def call_model(model_name, messages, max_tokens):
         return call_mistral(model_name, messages, mt)
     elif provider == "moonshot":
         return call_moonshot(model_name, messages, mt)
+    elif provider == "byteplus":
+        return call_byteplus(model_name, messages, mt)
     elif provider == "openrouter":
         return call_openrouter(model_name, messages, mt)
     elif provider == "azure":
@@ -632,6 +657,7 @@ def is_provider_available(provider):
         "minimax": "MINIMAX_API_KEY",
         "mistral": "MISTRAL_API_KEY",
         "moonshot": "MOONSHOT_API_KEY",
+        "byteplus": "BYTEPLUS_API_KEY",
         "openrouter": "OPENROUTER_API_KEY",
         "azure": "AZURE_API_KEY",
     }

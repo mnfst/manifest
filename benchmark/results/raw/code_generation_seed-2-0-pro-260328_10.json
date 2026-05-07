@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 10,
+  "response": "count = 0\n    for num in arr:\n        if num == 0:\n            continue\n        s = str(num)\n        total = 0\n        if s.startswith('-'):\n            total -= int(s[1])\n            for c in s[2:]:\n                total += int(c)\n        else:\n            for c in s:\n                total += int(c)\n        if total > 0:\n            count += 1\n    return count",
+  "score": 4,
+  "cost": 0.0031691999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 1267
+  }
+}

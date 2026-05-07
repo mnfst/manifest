@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA is a double-stranded molecule that stores the complete genetic instructions required for the growth, function, development, and reproduction of all known living organisms. Its specific sequence of four chemical building blocks forms a heritable biological blueprint that is passed from parents to their offspring.",
+  "score": 1,
+  "cost": 0.0003978,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 150
+  }
+}

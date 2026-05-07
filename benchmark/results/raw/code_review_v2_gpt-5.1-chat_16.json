@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 16,
+  "response": "Here is a clear review of the code, including bugs, security issues, and specific improvements.\n\nCode being reviewed:\n```\ndef encrypt_password(password):\n    import hashlib\n    return hashlib.md5(password.encode()).hexdigest()\n```\n\nIssues:\n\n1. MD5 is cryptographically broken  \n   \u2022 MD5 is not secure and is vulnerable to collisions and brute\u2011force attacks.  \n   \u2022 It should never be used for password storage.  \n   fix: Use a password\u2011hashing function designed for security, such as bcrypt, scrypt, PBKDF2, or Argon2.\n\n2. The function name is misleading  \n   \u2022 It says \u201cencrypt\u201d, but it performs hashing, not encryption.  \n   \u2022 Encryption is reversible; password storage must use hashing (one\u2011way).  \n   fix: Rename to hash_password or similar.\n\n3. Missing salt  \n   \u2022 Raw hashing without a random salt allows attackers to use rainbow tables.  \n   fix: Use a salted hashing algorithm; libraries like bcrypt and Argon2 add salts automatically.\n\n4. Import inside the function  \n   \u2022 Importing inside the function is inefficient and unnecessary unless there is a specific reason.  \n   fix: Move import hashlib to the top of the file.\n\n5. No input validation  \n   \u2022 If password is None or a non\u2011string, password.encode() will throw an exception.  \n   fix: Validate or convert input.\n\nRecommended secure version using bcrypt:\n```\nimport bcrypt\n\ndef hash_password(password):\n    if not isinstance(password, str):\n        raise ValueError(\"Password must be a string\")\n    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()\n```\n\nRecommended secure version using Python\u2019s built\u2011in PBKDF2:\n```\nimport hashlib\nimport os\n\ndef hash_password(password):\n    if not isinstance(password, str):\n        raise ValueError(\"Password must be a string\")\n    salt = os.urandom(16)\n    key = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, 100000)\n    return salt.hex() + \":\" + key.hex()\n```\n\nIf you want, I can also provide a secure password\u2011verification function to pair with the updated hashing approach.",
+  "score": 5,
+  "cost": 0.003808,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 462
+  }
+}

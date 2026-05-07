@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_generation",
+  "case": 16,
+  "response": "n = len(grid)\n    start = None\n    for i in range(n):\n        for j in range(n):\n            if grid[i][j] == 1:\n                start = (i, j)\n                break\n        if start:\n            break\n    res = [1]\n    if k == 1:\n        return res\n    dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n    ci, cj = start\n    for _ in range(k - 1):\n        min_v = float('inf')\n        ni, nj = -1, -1\n        for di, dj in dirs:\n            x = ci + di\n            y = cj + dj\n            if 0 <= x < n and 0 <= y < n:\n                if grid[x][y] < min_v:\n                    min_v = grid[x][y]\n                    ni, nj = x, y\n        res.append(min_v)\n        ci, cj = ni, nj\n    return res",
+  "score": 3,
+  "cost": 0.00525,
+  "expected": "",
+  "tokens": {
+    "input": 486,
+    "output": 2066
+  }
+}

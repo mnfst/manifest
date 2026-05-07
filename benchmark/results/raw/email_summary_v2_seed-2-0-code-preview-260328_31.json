@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The Revenue team has proposed a new $29/month \"Starter\" pricing tier\u2014positioned between the Free tier and $79/month Pro tier, with included benefits of 5 users, 10K API calls, and email support\u2014based on analysis showing 40% of churned users cited price as their reason for leaving. This proposed Starter tier is projected to recover 15% of price-related churned users and generate $180K in annual recurring revenue, so relevant stakeholders should review and act on the pricing tier proposal.",
+  "score": 5,
+  "cost": 0.0018012,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 1465
+  }
+}

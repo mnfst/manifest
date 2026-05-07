@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "Data Engineering reported that the nightly ETL job failed at 3 AM due to an upstream Salesforce schema change that broke their connector, resulting in dashboards displaying stale data since yesterday. The team has deployed a fix for the broken connector, initiated a backfill of missing data, and anticipates full recovery of the affected dashboards by 4 PM today.",
+  "score": 5,
+  "cost": 0.0010053,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 808
+  }
+}

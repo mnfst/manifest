@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 2,
+  "response": "s = sorted(lst)\nresult = []\nwhile s:\n    result.append(s.pop(0))\n    if s:\n        result.append(s.pop())\nreturn result",
+  "score": 4,
+  "cost": 0.0036597,
+  "expected": "",
+  "tokens": {
+    "input": 191,
+    "output": 3002
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 21,
+  "response": "Pourriez-vous jeter un coup d'\u0153il \u00e0 ceci, s'il vous pla\u00eet ?",
+  "score": 4,
+  "cost": 0.0007848,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 307
+  }
+}

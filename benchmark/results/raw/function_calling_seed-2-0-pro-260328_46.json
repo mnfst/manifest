@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 46,
+  "response": "[{\"name\": \"restart_service\", \"arguments\": {\"name\": \"Redis\"}}, {\"name\": \"get_service_logs\", \"arguments\": {\"name\": \"Redis\", \"since\": \"5m\"}}]",
+  "score": 1,
+  "cost": 0.0027594,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 1116
+  }
+}

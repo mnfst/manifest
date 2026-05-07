@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "long_summarization",
+  "case": 13,
+  "response": "1. Unlike classical computers, which rely on binary 0/1 bits, quantum computers use qubits with three defining properties\u2014superposition, entanglement, and interference\u2014to solve certain problems exponentially faster, with major developers (IBM, Google, startups IonQ and Rigetti) building hardware via superconducting circuits, trapped ions, photonics, or topological qubits.\n2. A 2019 milestone occurred when Google claimed quantum supremacy, completing a specialized calculation in 200 seconds that it estimated would take the world\u2019s top classical supercomputer 10,000 years.\n3. However, practical quantum computing faces steep barriers: qubits are extremely fragile (requiring cooling to near absolute zero), high error rates demand error correction that uses many physical qubits per usable logical qubit, and current machines have only 100\u20131000 physical qubits\u2014far fewer than the millions likely needed for large-scale, useful applications.\n4. Despite these hurdles, quantum computing holds significant promise for fields including drug discovery, materials science, cryptography, and optimization, with companies already experimenting with quantum algorithms for niche use cases such as financial modeling and logistics.",
+  "score": 5,
+  "cost": 0.0028550999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 2303
+  }
+}

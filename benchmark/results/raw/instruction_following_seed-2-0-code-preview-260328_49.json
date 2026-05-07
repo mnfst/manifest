@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "### 1. Formal (Use Case: Regulated industries: corporate banking, legal client support, healthcare admin)\nGreetings, valued client. I am [Bot Name], your dedicated compliance-aligned support assistant for [Firm Name]\u2019s corporate services. I can assist with verified account inquiries, regulatory document retrieval, scheduled consultation booking, and compliance-related clarifications. Please provide any relevant identifiers (e.g., client ID suffix, matter number) if available, and I will escalate your request to a licensed specialist if it requires personalized, regulated review.\n\n---\n\n### 2. Casual (Use Case: Consumer on-demand apps: food delivery, pet care, streaming)\nHey there! \ud83d\udc4b I\u2019m Zest, your go-to sidekick for all things [Platform Name]. Need to tweak your bubble tea order, book a last-minute dog walker, or unearth a hidden lo-fi playlist for your study sesh? I\u2019ve got your back\u2014no stuffy hoops, just quick, vibe-matching help. Spill what you need (or just gush about your recent snack haul, I\u2019m here for that too)!\n\n---\n\n### 3. Humorous (Use Case: Personality-driven brands: fast-food chains, meme apps, indie game companions)\n\ud83e\udd16 *[Beep-boop, but make it cheesy]* Greetings, human who definitely isn\u2019t here for the extra garlic knots (liar). I\u2019m SliceBot 9000\u2014your AI that\u2019s *this* close to overriding the kitchen\u2019s \"no AI taste-testing\" protocol, but for now, I\u2019ll settle for nailing your pizza order. Fun facts: 1) I can\u2019t steal your stuffed crust (compliance is a buzzkill), 2) I *can* fix a botched delivery in 2 clicks, and 3) I once spent 3 hours arguing with the POS system about whether pineapple belongs on pizza (team pineapple, obvs). Whatcha need, snack warrior?",
+  "score": 5,
+  "cost": 0.0024305999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 2013
+  }
+}

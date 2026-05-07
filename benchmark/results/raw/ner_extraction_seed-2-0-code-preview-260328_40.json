@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "ner_extraction",
+  "case": 40,
+  "response": "{\"persons\": [], \"organizations\": [\"Reserve Bank of Australia\", \"Goldman Sachs\"], \"locations\": []}",
+  "score": 4,
+  "cost": 0.0008028,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 645
+  }
+}

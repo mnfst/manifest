@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "To solve the problem, we calculate Janet's total costs step by step:\n\n1. **Calculate the cost of material and construction first**:\n   - Material cost = $500\n   - Jeweler construction cost = $800\n   - Combined cost before insurance = $500 + $800 = $1300\n\n2. **Calculate the insurance cost**:\n   Insurance is 10% of the combined material and construction cost.\n   - 10% of $1300 = 0.10 \u00d7 $1300 = $130\n\n3. **Calculate total amount paid**:\n   Add the material cost, construction cost, and insurance cost:\n   - Total = $500 + $800 + $130 = $1430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.0011523,
+  "expected": "1430",
+  "tokens": {
+    "input": 129,
+    "output": 928
+  }
+}

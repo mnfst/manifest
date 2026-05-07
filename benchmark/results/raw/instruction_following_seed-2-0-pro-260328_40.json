@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are 5 capital cities, each from a distinct world continent:\n1.  **Ottawa** (North America) - Official capital of Canada, often mistakenly confused with the larger city Toronto\n2.  **Accra** (Africa) - Coastal capital of Ghana\n3.  **Tokyo** (Asia) - Capital of Japan, one of the most populous metropolitan capitals on Earth\n4.  **Lisbon** (Europe) - Historic Atlantic coast capital of Portugal\n5.  **Canberra** (Oceania) - Purpose-built national capital of Australia (it is not Sydney or Melbourne, a common misconception)",
+  "score": 5,
+  "cost": 0.0012012000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 485
+  }
+}

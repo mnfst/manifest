@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 3 eggs with a pinch of salt and 1 tbsp milk. Melt butter in a low-heat pan. Pour in, stir gently slowly until soft fluffy curds form. Serve immediately.",
+  "score": 4,
+  "cost": 0.0005454,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 211
+  }
+}

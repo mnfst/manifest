@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "### Explanation (2 clear, specific sentences):\n1. This Python function computes the maximum value for every contiguous sliding window of size `k` in the input list `nums` using a **monotonic decreasing deque** algorithm\u2014a linear-time O(n) optimized approach that outperforms the naive O(nk) sliding window maximum method.\n2. The deque stores indices of elements within the current valid window, maintaining their corresponding values in strictly decreasing order by removing out-of-window indices from the deque\u2019s front and smaller-value indices from the deque\u2019s end before adding the current index; once the first full window forms (when `i \u2265 k-1`), the value at the deque\u2019s front (the current window\u2019s maximum) is appended to the result.\n\n---\n### Key Specifics:\n- **Algorithm/Pattern**: *Monotonic decreasing deque* (stores indices, not values, to validate window bounds; uses O(1) `popleft()`/`pop()` from `collections.deque` for linear time).\n- **Behavior**: Ensures the deque\u2019s *front index always maps to the current window\u2019s maximum* by pruning invalid (out-of-window) or irrelevant (smaller) elements before adding the current index.",
+  "score": 5,
+  "cost": 0.0040638,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 3345
+  }
+}

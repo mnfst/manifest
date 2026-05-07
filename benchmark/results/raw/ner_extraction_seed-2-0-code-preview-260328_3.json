@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "ner_extraction",
+  "case": 3,
+  "response": "{\"persons\": [\"Maria Garcia\"], \"organizations\": [\"Microsoft\", \"ACM\"], \"locations\": [\"Seattle\"]}",
+  "score": 5,
+  "cost": 0.0009005999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 726
+  }
+}

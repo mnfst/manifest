@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "function_calling",
+  "case": 25,
+  "response": "{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"standup meeting\", \"duration_minutes\": 30, \"time\": \"9:00\", \"recurrence\": \"every weekday\", \"attendees\": [\"dev team\"]}}",
+  "score": 4,
+  "cost": 0.0007974,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 291
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 5,
+  "response": "This code implements the **Singleton creational design pattern**, which restricts a class to have only one single instance throughout an application runtime.\nIt achieves this by overriding Python's `__new__` instance constructor method to check if an instance already exists, returning the existing cached instance instead of creating a new one on all subsequent calls.",
+  "score": 5,
+  "cost": 0.0006881999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 256
+  }
+}

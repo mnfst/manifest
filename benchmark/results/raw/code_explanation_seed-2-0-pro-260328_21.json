@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 21,
+  "response": "This implements the **forward function pipeline pattern** from functional programming.\nIt accepts any number of functions as input, then returns a composite function that, when called, passes an input value sequentially left-to-right through every provided function \u2014 feeding each function's output as the next function's input \u2014 before returning the final result.",
+  "score": 5,
+  "cost": 0.000981,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 380
+  }
+}

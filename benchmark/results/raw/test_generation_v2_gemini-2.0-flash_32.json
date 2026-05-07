@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 32,
+  "response": "```python\nimport pytest\n\ndef find_missing(nums: list) -> int:\n    \"\"\"Find missing number in [0..n] sequence.\"\"\"\n    n = len(nums)\n    return n * (n + 1) // 2 - sum(nums)\n\nclass TestFindMissing:\n    def test_happy_path(self):\n        assert find_missing([3, 0, 1]) == 2\n        assert find_missing([9,6,4,2,3,5,7,0,1]) == 8\n\n    def test_empty_list(self):\n        assert find_missing([]) == 0\n\n    def test_missing_zero(self):\n        assert find_missing([1]) == 0\n        assert find_missing([2, 1]) == 0\n\n    def test_missing_n(self):\n        assert find_missing([0, 1]) == 2\n        assert find_missing([0, 1, 2, 3]) == 4\n\n    def test_single_element_list(self):\n        assert find_missing([0]) == 1\n\n    def test_duplicate_numbers(self):\n        # The problem description doesn't explicitly state what to do with duplicates.\n        # This test case assumes that the function should still return a number in the range [0, n].\n        # In this case, the sum will be incorrect, leading to a wrong result.\n        # This test case highlights a potential weakness in the function's design.\n        assert find_missing([0, 0, 1]) == 2 # Expected 2, but the function returns 3.\n        assert find_missing([1, 1]) == 0 # Expected 0, but the function returns 1.\n\n    def test_large_numbers(self):\n        # Test with a larger range of numbers to check for potential overflow issues.\n        nums = list(range(1, 1001))\n        assert find_missing(nums) == 0\n\n    def test_all_numbers_present(self):\n        nums = list(range(0, 5))\n        nums.remove(2)\n        assert find_missing(nums) == 2\n\n    def test_negative_numbers(self):\n        # The problem description specifies [0..n] sequence.  This test case checks\n        # what happens if negative numbers are present.  The function will likely\n        # return an incorrect result.\n        nums = [-1, 0, 1]\n        assert find_missing(nums) == 2\n\n    def test_non_integer_numbers(self):\n        # The problem description specifies integers.  This test case checks\n        # what happens if non-integers are present.  The function will likely\n        # return an incorrect result.\n        nums = [0.5, 1.5]\n        with pytest.raises(TypeError):\n            find_missing(nums)\n```",
+  "score": 4,
+  "cost": 0.0002738,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 664
+  }
+}

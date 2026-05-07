@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "function_calling",
+  "case": 37,
+  "response": "{\"name\": \"invalidate_cache\", \"arguments\": {\"pattern\": \"**/*.{css,js}\"}}",
+  "score": 5,
+  "cost": 0.0027795,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 2290
+  }
+}

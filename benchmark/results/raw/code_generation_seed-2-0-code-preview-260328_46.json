@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 46,
+  "response": "min_even = float('inf')\nmin_idx = None\nfor i, num in enumerate(arr):\n    if num % 2 == 0:\n        if num < min_even:\n            min_even = num\n            min_idx = i\nreturn [min_even, min_idx] if min_idx is not None else []",
+  "score": 4,
+  "cost": 0.0032438999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 397,
+    "output": 2604
+  }
+}

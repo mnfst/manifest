@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- Improved cardiovascular health: Regular exercise strengthens the heart muscle, lowers resting blood pressure, and reduces long-term risk of heart disease and stroke.\n- Boosted mental well-being: Physical activity triggers endorphin release, reduces symptoms of anxiety and depression, and improves daily focus and mood regulation.\n- Sustained physical function with age: Exercise preserves muscle mass and bone density, supports healthy metabolism, and improves balance to reduce fall and injury risk.",
+  "score": 2,
+  "cost": 0.0007536,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 299
+  }
+}

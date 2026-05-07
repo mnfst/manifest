@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This is an optimized implementation of the Disjoint Set Union (Union-Find / DSU) data structure for managing collections of `n` disjoint element sets.\nIt uses two standard performance optimizations: *path compression* which flattens the set tree structure during lookup, and *union by rank* which keeps trees shallow when merging sets, resulting in nearly constant average time per operation.",
+  "score": 5,
+  "cost": 0.000987,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 359
+  }
+}

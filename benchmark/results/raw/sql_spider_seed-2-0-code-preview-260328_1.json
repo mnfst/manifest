@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(mpg) AS average_miles_per_gallon FROM cars WHERE cylinders = 4;",
+  "score": 5,
+  "cost": 0.0018633,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 1527
+  }
+}

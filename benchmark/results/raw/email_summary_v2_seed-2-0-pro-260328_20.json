@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "A disk space alert occurred on the prod-db-01 production database at 2AM Saturday; automated cleanup freed 40GB but failed to resolve the issue fully, requiring manual on-call intervention at 8AM to restore service with no customer impact as the incident took place during a maintenance window.\nThe root cause of the incident was traced to misconfigured log rotation following a recent system migration, and no specific follow-up action items are outlined in this on-call incident report.",
+  "score": 4,
+  "cost": 0.001197,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 463
+  }
+}

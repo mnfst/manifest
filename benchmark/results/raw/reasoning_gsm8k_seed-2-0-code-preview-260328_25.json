@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "Let's solve this problem step by step:\n\nStep 1: Calculate the loan amount\nJohn's house is worth $250,000, and the loan is 40% of that value. To find 40% of $250,000, convert 40% to a decimal (0.4) and multiply:\nLoan amount = $250,000 * 0.4 = $100,000\n\nStep 2: Calculate the leftover money after paying debt\nJohn uses 60% of the loan for debts, so the leftover portion is 100% - 60% = 40% of the loan. To find 40% of the $100,000 loan, convert 40% to a decimal (0.4) and multiply:\nLeftover money = $100,000 * 0.4 = $40,000\n\nANSWER: 40000",
+  "score": 2,
+  "cost": 0.0013062,
+  "expected": "40,000",
+  "tokens": {
+    "input": 134,
+    "output": 1055
+  }
+}

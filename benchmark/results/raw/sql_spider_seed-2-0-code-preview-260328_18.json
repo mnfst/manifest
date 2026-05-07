@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "SELECT country\nFROM singer\nGROUP BY country\nHAVING COUNT(CASE WHEN age > 40 THEN 1 END) > 0\n   AND COUNT(CASE WHEN age < 30 THEN 1 END) > 0;",
+  "score": 4,
+  "cost": 0.0050901,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 4215
+  }
+}

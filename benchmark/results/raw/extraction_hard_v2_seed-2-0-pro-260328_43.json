@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "extraction_hard_v2",
+  "case": 43,
+  "response": "{\"severity\": \"critical\", \"component\": \"checkout page\", \"summary\": \"Checkout page completely fails after initiating payment, resulting in a white screen with no user-facing error message\", \"steps_to_reproduce\": [\"Add items to the shopping cart\", \"Navigate to the checkout page\", \"Enter card payment information\", \"Click the pay button\"], \"expected_behavior\": \"Payment should process successfully, or an appropriate error message should be displayed if an issue occurs\", \"actual_behavior\": \"After clicking pay, a spinner displays for 30 seconds followed by a white screen with no error message. The browser console logs a CORS error and 'undefined is not a function' at checkout.bundle.js:847\", \"environment\": {\"os\": \"Windows 11\", \"browser\": \"Chrome 121\"}}",
+  "score": 5,
+  "cost": 0.0014838,
+  "expected": "",
+  "tokens": {
+    "input": 217,
+    "output": 564
+  }
+}

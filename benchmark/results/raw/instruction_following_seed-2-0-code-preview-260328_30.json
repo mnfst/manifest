@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Flaky, blistered, golden crust; zesty, basil-infused, sun-ripened tomato sauce; bubbly, oozy, low-moisture whole-milk mozzarella; charred, sweet cherry tomatoes; crisp, peppery wild arugula; briny, crumbled sheep\u2019s milk feta; crunchy, garlicky sourdough breadcrumbs; earthy, thin-sliced cremini mushrooms; spicy, crumbled Calabrian chiles; silky, grassy extra-virgin olive oil; bright, tangy aged balsamic glaze; fragrant, fresh-cracked black pepper.\n\n(All words are either adjectives [including compound adjectives like *basil-infused*, *thin-sliced*] or nouns [including possessive nouns like *sheep\u2019s* and noun adjuncts like *tomato* (sauce), *sourdough* (breadcrumbs)]; no verbs or adverbs.)",
+  "score": 5,
+  "cost": 0.0037485,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 3113
+  }
+}

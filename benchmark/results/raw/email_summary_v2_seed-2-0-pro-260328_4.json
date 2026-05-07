@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "email_summary_v2",
+  "case": 4,
+  "response": "DataSync CEO Maria Chen submitted this post-TechConnect conference partnership proposal for a revenue-share arrangement where DataSync will manage data sync infrastructure, the recipient will integrate DataSync's SDK, and both parties can expect 60% lower customer latency and an estimated $2 million in additional annual revenue. Chen is inquiring if the recipient is available for a technical discussion regarding this proposal during the upcoming week.",
+  "score": 5,
+  "cost": 0.0011346,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 439
+  }
+}

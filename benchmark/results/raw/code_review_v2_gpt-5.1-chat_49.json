@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "code_review_v2",
+  "case": 49,
+  "response": "Here is a clear review of the code, including bugs, security issues, and actionable improvements.\n\nIssues in the code:\n\n\u2022 Lost stack trace:\nThe timeout rejection uses a string ('timeout'). Rejecting with a string loses stack trace information and makes debugging difficult.\n\nHow to fix:\nReject with an Error object: reject(new Error('timeout')).\n\n\u2022 Possible unhandled rejection from the original promise:\nIf the original promise rejects after the timeout has already fired, its rejection may become unhandled (depending on how the caller handles it).\n\nHow to fix:\nWrap the original promise to ensure its later resolution or rejection is absorbed. Example pattern below.\n\n\u2022 Timeout remains active if the main promise resolves first:\nThe setTimeout is not cancelled when the main promise finishes, so the handler will run later, waste resources, or cause unexpected rejections if referenced improperly.\n\nHow to fix:\nUse AbortController with newer APIs or clearTimeout. Example below.\n\n\u2022 Cancellation not propagated:\nIf the promise supports cancellation (AbortController or custom cancellation), the timeout wrapper does not propagate it.\n\nPossible improvement:\nAdd optional AbortSignal support.\n\nImproved version with fixes:\n\nfunction withTimeout(promise, ms) {\n  let timer;\n  return new Promise((resolve, reject) => {\n    timer = setTimeout(() => reject(new Error('timeout')), ms);\n\n    promise\n      .then(value => {\n        clearTimeout(timer);\n        resolve(value);\n      })\n      .catch(err => {\n        clearTimeout(timer);\n        reject(err);\n      });\n  });\n}\n\nIf you need AbortController support:\n\nfunction withTimeout(promise, ms, signal) {\n  let timer;\n\n  return new Promise((resolve, reject) => {\n    if (signal && signal.aborted) {\n      return reject(new Error('aborted'));\n    }\n\n    timer = setTimeout(() => reject(new Error('timeout')), ms);\n\n    if (signal) {\n      signal.addEventListener('abort', () => {\n        clearTimeout(timer);\n        reject(new Error('aborted'));\n      });\n    }\n\n    promise\n      .then(value => {\n        clearTimeout(timer);\n        resolve(value);\n      })\n      .catch(err => {\n        clearTimeout(timer);\n        reject(err);\n      });\n  });\n}\n\nSummary of improvements:\n\n\u2022 Use Error objects instead of strings.  \n\u2022 Clear the timeout to avoid unnecessary work.  \n\u2022 Prevent unhandled rejections from the original promise.  \n\u2022 Optionally support cancellation via AbortSignal.",
+  "score": 5,
+  "cost": 0.004176,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 503
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government",
+  "score": 5,
+  "cost": 0.0001455,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 185,
+    "output": 75
+  }
+}

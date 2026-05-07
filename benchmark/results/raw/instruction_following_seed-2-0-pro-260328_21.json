@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Start at the main pedestrian park exit by the playground:\n1.  Turn right out of the park exit onto the sidewalk.\n2.  Walk 3 straight blocks, then turn left at the crosswalk by the corner coffee shop.\n3.  Continue 1 block, then turn right at the public bike rack.\n4.  Walk 2 more blocks, then turn left at the 4-way stop sign.\n5.  The library entrance will be immediately on your right.",
+  "score": 5,
+  "cost": 0.0006726,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 264
+  }
+}

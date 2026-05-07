@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "### Step 1: Define Key Terms\nFirst, clarify the spheres involved:\n- **Hydrosphere**: All Earth\u2019s water (oceans, rivers, rain, groundwater, etc.).\n- **Lithosphere**: Earth\u2019s rigid outer layer (crust + upper mantle, including rocks, soil, and landforms).\n\n---\n### Step 2: Evaluate Each Option\nWe need an effect where the **hydrosphere acts on the lithosphere**:\n#### Option A: Erosion of rocks\nErosion is the process of removing/transporting lithospheric material (rocks, soil) by surface forces. Water (hydrosphere) is a major agent of erosion\u2014e.g., rivers carving canyons, waves wearing down coastal cliffs, rain washing away soil. This directly links the hydrosphere to the lithosphere.\n\n#### Option B: Evaporation of water\nEvaporation is liquid water (hydrosphere) turning into water vapor (atmosphere). This is a hydrosphere-atmosphere interaction, with no effect on the lithosphere. **Eliminated**.\n\n#### Option C: Heating of the core\nThe core\u2019s heat comes from radioactive decay and residual heat from Earth\u2019s formation. The hydrosphere is a surface layer and cannot affect the deep core. **Eliminated**.\n\n#### Option D: Melting of the crust\nCrustal melting is driven by extreme heat from the mantle (e.g., subduction zones, hot spots). While trapped water *may lower mantle melting temperature* as a flux, this is not a direct effect of the hydrosphere on the lithosphere, and melting itself is caused by mantle heat, not water. **Eliminated**.\n\n---\n### Step 3: Confirm Correct Answer\nOnly Option A describes a direct effect of the hydrosphere on the lithosphere.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.0013272,
+  "expected": "A",
+  "tokens": {
+    "input": 104,
+    "output": 1080
+  }
+}

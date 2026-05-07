@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT country\nFROM car_makers\nGROUP BY country\nORDER BY COUNT(*) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.0007979999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 303
+  }
+}

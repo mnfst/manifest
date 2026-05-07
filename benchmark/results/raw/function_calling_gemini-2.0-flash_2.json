@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "function_calling",
+  "case": 2,
+  "response": "```json\n{\"name\": \"search_files\", \"arguments\": {\"directory\": \"src\", \"pattern\": \"*.py\", \"modified_within_days\": 7}}\n```",
+  "score": 5,
+  "cost": 2.57e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 38
+  }
+}

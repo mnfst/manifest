@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT EXTRACT(YEAR FROM concert_date) AS concert_year\nFROM concerts\nGROUP BY concert_year\nORDER BY COUNT(*) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.000453,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 160
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus vint et parla d'une voix claire et bienveillante : \u00ab C'est moi. \u00bb Cette parole devint le fondement de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 0.0008448,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 329
+  }
+}

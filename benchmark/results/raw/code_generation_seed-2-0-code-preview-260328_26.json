@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 26,
+  "response": "if len(l) < 3:\n        return False\n    sorted_l = sorted(l)\n    for i in range(len(sorted_l) - 2):\n        target = -sorted_l[i]\n        left = i + 1\n        right = len(sorted_l) - 1\n        while left < right:\n            current_sum = sorted_l[left] + sorted_l[right]\n            if current_sum == target:\n                return True\n            elif current_sum < target:\n                left += 1\n            else:\n                right -= 1\n    return False",
+  "score": 5,
+  "cost": 0.0163407,
+  "expected": "",
+  "tokens": {
+    "input": 225,
+    "output": 13561
+  }
+}

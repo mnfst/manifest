@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\", \"CES\"],\n  \"locations\": [\"Las Vegas\"]\n}",
+  "score": 4,
+  "cost": 0.0004434,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 156
+  }
+}

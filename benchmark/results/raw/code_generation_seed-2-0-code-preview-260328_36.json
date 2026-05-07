@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "code_generation",
+  "case": 36,
+  "response": "i = 2\nwhile i * i <= n:\n    if n % i == 0:\n        return n // i\n    i += 1\nreturn 1",
+  "score": 3,
+  "cost": 0.0158856,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 13210
+  }
+}

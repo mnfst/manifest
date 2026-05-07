@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-pro-260328",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This is the optimal O(n) monotonic deque algorithm for the sliding window maximum problem, which returns the maximum value of every contiguous k-length window in the input `nums` array.\nIt maintains a strictly decreasing deque of element indices: it first drops indices that have fallen outside the current window from the front, removes all smaller values from the back before appending the new index, and records the deque front (the current window maximum) once the first full window is formed.",
+  "score": 5,
+  "cost": 0.0011255999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 423
+  }
+}

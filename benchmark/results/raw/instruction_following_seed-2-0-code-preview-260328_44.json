@@ -1,0 +1,13 @@
+{
+  "model": "seed-2-0-code-preview-260328",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "### Basic Salad Ingredients (Checkbox Format)\n---\n#### Core Leafy Base (Required for salad structure)\n- [ ] Chopped romaine lettuce (most versatile basic base)\n- [ ] Shredded iceberg lettuce (budget-friendly, crisp basic)\n- [ ] Torn green leaf lettuce (mild, soft basic base)\n\n#### Essential Basic Toppings (Standard for a \"basic tossed salad\")\n- [ ] Sliced cucumber (seeded or unseeded)\n- [ ] Halved cherry tomatoes / chopped roma tomatoes\n- [ ] Thinly sliced red onion (mild, non-overpowering)\n- [ ] Shredded carrots\n\n#### Basic Dressing (Choose 1 type; mandatory for a complete salad)\n##### Homemade Basic Vinaigrette (Simplest homemade option)\n- [ ] Extra-virgin olive oil\n- [ ] Red wine vinegar (or white distilled vinegar)\n- [ ] Table salt\n- [ ] Ground black pepper\n##### Store-Bought Basic Dressing (Shortcut option)\n- [ ] Plain ranch dressing (most popular creamy basic)\n- [ ] Regular Italian dressing (most popular vinaigrette basic)\n\n#### Optional Basic Add-Ins (Common but non-essential for \"basic\")\n- [ ] Plain croutons (garlic/cheese-flavored is fine)\n- [ ] Shredded mild cheddar cheese\n- [ ] Sliced hard-boiled egg\n- [ ] Diced plain cooked chicken breast",
+  "score": 5,
+  "cost": 0.002175,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 1802
+  }
+}

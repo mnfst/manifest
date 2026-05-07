@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 22,
+  "response": "```python\nimport pytest\n\ndef group_by(items: list, key_fn) -> dict:\n    result = {}\n    for item in items:\n        k = key_fn(item)\n        result.setdefault(k, []).append(item)\n    return result\n\n\nclass TestGroupBy:\n\n    def test_happy_path_group_by_length(self):\n        items = [\"apple\", \"banana\", \"cherry\", \"date\"]\n        result = group_by(items, len)\n        assert result == {5: [\"apple\"], 6: [\"banana\", \"cherry\"], 4: [\"date\"]}\n\n    def test_happy_path_group_by_first_letter(self):\n        items = [\"apple\", \"banana\", \"cherry\", \"date\", \"avocado\"]\n        result = group_by(items, lambda x: x[0])\n        assert result == {'a': ['apple', 'avocado'], 'b': ['banana'], 'c': ['cherry'], 'd': ['date']}\n\n    def test_empty_list(self):\n        items = []\n        result = group_by(items, len)\n        assert result == {}\n\n    def test_empty_string_items(self):\n        items = [\"\", \"\", \"\"]\n        result = group_by(items, len)\n        assert result == {0: [\"\", \"\", \"\"]}\n\n    def test_mixed_types(self):\n        items = [1, 2, \"apple\", \"banana\", 3.14]\n        result = group_by(items, type)\n        assert result == {\n            int: [1, 2],\n            str: [\"apple\", \"banana\"],\n            float: [3.14]\n        }\n\n    def test_key_function_returns_none(self):\n        items = [1, 2, 3]\n        result = group_by(items, lambda x: None)\n        assert result == {None: [1, 2, 3]}\n\n    def test_key_function_returns_same_value_for_all(self):\n        items = [1, 2, 3]\n        result = group_by(items, lambda x: \"same\")\n        assert result == {\"same\": [1, 2, 3]}\n\n    def test_key_function_raises_exception(self):\n        items = [1, 2, 3]\n        def key_fn(x):\n            if x == 2:\n                raise ValueError(\"Key function error\")\n            return x\n\n        with pytest.raises(ValueError, match=\"Key function error\"):\n            result = group_by(items, key_fn) # The exception is raised during the first call to key_fn\n\n    def test_items_are_mutable(self):\n        items = [[1], [2], [1]]\n        result = group_by(items, lambda x: x[0])\n        assert result == {1: [[1], [1]], 2: [[2]]}\n        items[0].append(4)\n        assert result == {1: [[1, 4], [1]], 2: [[2]]} # The result dictionary now reflects the change in the original list\n```",
+  "score": 4,
+  "cost": 0.00030090000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 731
+  }
+}

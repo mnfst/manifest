@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "test_generation_v2",
+  "case": 41,
+  "response": "```python\nimport pytest\n\ndef hex_to_rgb(h: str) -> tuple:\n    h = h.lstrip('#')\n    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))\n\nclass TestHexToRGB:\n    def test_happy_path(self):\n        assert hex_to_rgb(\"#FFFFFF\") == (255, 255, 255)\n        assert hex_to_rgb(\"000000\") == (0, 0, 0)\n        assert hex_to_rgb(\"#FF0000\") == (255, 0, 0)\n        assert hex_to_rgb(\"00FF00\") == (0, 255, 0)\n        assert hex_to_rgb(\"#0000FF\") == (0, 0, 255)\n        assert hex_to_rgb(\"#123456\") == (18, 52, 86)\n        assert hex_to_rgb(\"abcdef\") == (171, 205, 239)\n\n    def test_edge_cases(self):\n        assert hex_to_rgb(\"#ffffff\") == (255, 255, 255)  # lowercase\n        assert hex_to_rgb(\"FFFFFF\") == (255, 255, 255)  # uppercase\n        assert hex_to_rgb(\"000\") == (0, 0, 0) # Short hex code\n        assert hex_to_rgb(\"#000\") == (0, 0, 0) # Short hex code with hash\n\n    def test_error_cases(self):\n        with pytest.raises(ValueError):\n            hex_to_rgb(\"#GGGGGG\")  # Invalid hex characters\n        with pytest.raises(ValueError):\n            hex_to_rgb(\"GGGGGG\")  # Invalid hex characters\n        with pytest.raises(ValueError):\n            hex_to_rgb(\"#12345\")  # Invalid length (5 characters)\n        with pytest.raises(ValueError):\n            hex_to_rgb(\"12345\")  # Invalid length (5 characters)\n        with pytest.raises(ValueError):\n            hex_to_rgb(\"#1234567\")  # Invalid length (7 characters)\n        with pytest.raises(ValueError):\n            hex_to_rgb(\"1234567\")  # Invalid length (7 characters)\n        with pytest.raises(TypeError):\n            hex_to_rgb(123456)  # Invalid input type\n        with pytest.raises(TypeError):\n            hex_to_rgb(None)  # Invalid input type\n        with pytest.raises(TypeError):\n            hex_to_rgb([1,2,3]) # Invalid input type\n\n```",
+  "score": 5,
+  "cost": 0.000276,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 669
+  }
+}
