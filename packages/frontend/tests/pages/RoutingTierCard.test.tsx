@@ -1247,7 +1247,7 @@ describe("RoutingTierCard", () => {
         <RoutingTierCard {...makeProps({ persistParamDefaults: vi.fn() })} />
       ));
       const labels = Array.from(
-        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+        container.querySelectorAll<HTMLButtonElement>("button"),
       ).map((b) => b.getAttribute("aria-label"));
       expect(labels.some((l) => l?.startsWith("Configure model parameters"))).toBe(false);
     });
@@ -1264,7 +1264,7 @@ describe("RoutingTierCard", () => {
         />
       ));
       const labels = Array.from(
-        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+        container.querySelectorAll<HTMLButtonElement>("button"),
       ).map((b) => b.getAttribute("aria-label"));
       expect(labels.some((l) => l?.startsWith("Configure model parameters"))).toBe(false);
     });
@@ -1282,7 +1282,7 @@ describe("RoutingTierCard", () => {
         />
       ));
       const btn = Array.from(
-        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+        container.querySelectorAll<HTMLButtonElement>("button"),
       ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"));
       expect(btn).toBeDefined();
       // Configured-state class only flips when param_defaults is non-null. Plain
@@ -1307,17 +1307,17 @@ describe("RoutingTierCard", () => {
         />
       ));
       const btn = Array.from(
-        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+        container.querySelectorAll<HTMLButtonElement>("button"),
       ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"));
       expect(btn).toBeDefined();
       expect(btn!.classList.contains("routing-card__chip-action--configured")).toBe(true);
     });
 
-    it("renders the sliders icon when DeepSeek is only a fallback", () => {
-      // Primary is OpenAI (no thinking param), fallback is DeepSeek. The
-      // tier-level `param_defaults` is filtered per-attempt against each
-      // route's provider in the proxy, so the affordance must be reachable
-      // even when the user picked OpenAI as primary.
+    it("hides the chip-level params button when primary is not params-compatible (DeepSeek only as fallback)", () => {
+      // Primary OpenAI (no thinking), DeepSeek as fallback. The chip-level
+      // icon would be misleading here — the params apply to DeepSeek, not
+      // Claude/OpenAI — so the chip stays clean. The fallback row gets its
+      // own button via FallbackList (covered by FallbackList tests).
       const openaiPrimaryDeepseekFallback: TierAssignment = {
         id: "t-mixed",
         agent_id: "a1",
@@ -1367,10 +1367,42 @@ describe("RoutingTierCard", () => {
           })}
         />
       ));
-      const btn = Array.from(
+      const chipBtn = Array.from(
         container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
       ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"));
-      expect(btn).toBeDefined();
+      expect(chipBtn).toBeUndefined();
+    });
+
+    it("passes onConfigureParams to FallbackList when persistParamDefaults is wired", () => {
+      const persist = vi.fn();
+      render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => deepseekTier,
+            models: () => deepseekModels,
+            activeProviders: () => deepseekProviders,
+            connectedProviders: () => deepseekProviders,
+            persistParamDefaults: persist,
+          })}
+        />
+      ));
+      const fbProps = fallbackListProps[fallbackListProps.length - 1];
+      expect(typeof fbProps.onConfigureParams).toBe("function");
+    });
+
+    it("omits onConfigureParams on FallbackList when persistParamDefaults is not wired", () => {
+      render(() => (
+        <RoutingTierCard
+          {...makeProps({
+            tier: () => deepseekTier,
+            models: () => deepseekModels,
+            activeProviders: () => deepseekProviders,
+            connectedProviders: () => deepseekProviders,
+          })}
+        />
+      ));
+      const fbProps = fallbackListProps[fallbackListProps.length - 1];
+      expect(fbProps.onConfigureParams).toBeUndefined();
     });
 
     it("does not render the sliders icon when neither primary nor any fallback is params-compatible", () => {
@@ -1442,7 +1474,7 @@ describe("RoutingTierCard", () => {
         />
       ));
       const labels = Array.from(
-        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+        container.querySelectorAll<HTMLButtonElement>("button"),
       ).map((b) => b.getAttribute("aria-label"));
       expect(labels.some((l) => l?.startsWith("Configure model parameters"))).toBe(false);
     });
@@ -1463,7 +1495,7 @@ describe("RoutingTierCard", () => {
         />
       ));
       const btn = Array.from(
-        container.querySelectorAll<HTMLButtonElement>(".routing-card__chip-action"),
+        container.querySelectorAll<HTMLButtonElement>("button"),
       ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"))!;
       fireEvent.click(btn);
 
