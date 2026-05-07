@@ -8,6 +8,8 @@ Manifest is a smart model router for **personal AI agents**. It sits between an 
 
 **Supported agents** (configured in `packages/shared/src/agent-type.ts`): OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL, and a generic `other` slot. OpenClaw remains the deepest integration, but no new code or copy should frame Manifest as OpenClaw-only. When adding examples, prefer "personal AI agent" as the noun and pick OpenClaw as the worked example rather than the sole target. Manifest is consumed as a generic OpenAI-compatible HTTP endpoint — there are no first-party OpenClaw plugins in this repo anymore.
 
+`packages/wingman/` is a developer-only SPA for sending test requests against a local Manifest gateway while impersonating any of the supported agents (useful for routing/header-classifier reproductions). It is not shipped in the Docker image and is excluded from changesets. See `packages/wingman/README.md`.
+
 ## IMPORTANT: Cloud Mode Always
 
 When starting the app for development or testing (e.g. `/serve`), **always use `MANIFEST_MODE=cloud`** (the default). Every dev session must use a **fresh PostgreSQL database** via Docker — multiple concurrent dev instances sharing one DB cause cross-run data pollution and intermittent test failures:
@@ -120,7 +122,11 @@ packages/
 │   │   ├── notifications/                   # Alert rules, email providers, cron
 │   │   ├── github/                          # GitHub stars endpoint
 │   │   ├── sse/                             # Server-Sent Events for real-time updates
-│   │   └── security/                        # GET /api/v1/security
+│   │   ├── setup/                           # First-run admin setup wizard
+│   │   ├── public-stats/                    # Public aggregate usage endpoints (opt-in)
+│   │   ├── free-models/                     # Free LLM model catalog
+│   │   ├── model-discovery/                 # Per-provider model fetching + fallback
+│   │   └── telemetry/                       # Anonymous self-hosted telemetry
 │   └── test/                                # E2E tests (supertest)
 ├── frontend/
 │   ├── src/
@@ -446,7 +452,7 @@ values with 400, so downgrades stay safe.
 - **Agent key auth caching**: `AgentKeyAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.
 - **Database migrations**: TypeORM migrations are version-controlled in `src/database/migrations/`. `synchronize` is permanently `false`. Migrations auto-run on boot (`migrationsRun: true`) wrapped in a single transaction. The CLI DataSource is at `src/database/datasource.ts`. Better Auth manages its own tables separately via `ctx.runMigrations()`.
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
-- **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SMTP email providers.
+- **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SendGrid email providers.
 - **LLM Routing**: Two-layer routing system with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`:
   - **Complexity tiers** (always active): 4 tiers (simple/standard/complex/reasoning) based on request content scoring with 23 weighted keyword dimensions.
   - **Specificity routing** (opt-in): 9 task-type categories (coding, web_browsing, data_analysis, image_generation, video_generation, social_media, email_management, calendar_management, trading). When enabled, overrides complexity tiers. Detection uses keyword analysis on the last user message + tool name heuristics. Categories defined in `shared/src/specificity.ts`, keywords in `scoring/keywords.ts`, detection in `scoring/specificity-detector.ts`.
@@ -481,7 +487,7 @@ The `specificity_assignments` table and UI components handle new categories auto
 ### Adding a New Provider
 
 1. Add entry to `PROVIDER_REGISTRY` in `common/constants/providers.ts`
-2. Add `FetcherConfig` in `routing/model-discovery/provider-model-fetcher.service.ts`
+2. Add `FetcherConfig` in `model-discovery/provider-model-fetcher.service.ts`
 3. Add `ProviderEndpoint` in `routing/proxy/provider-endpoints.ts`
 4. Add `ProviderDef` in `frontend/src/services/providers.ts`
 
