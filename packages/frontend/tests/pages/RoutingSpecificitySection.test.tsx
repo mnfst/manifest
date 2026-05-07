@@ -269,9 +269,11 @@ describe("RoutingSpecificitySection", () => {
       a: string,
       c: string,
       m: string[],
+      r?: { provider: string; authType: string; model: string }[],
     ) => Promise<unknown>;
-    await persist("demo", "coding", ["m1"]);
-    expect(mockSetSpecificityFallbacks).toHaveBeenCalledWith("demo", "coding", ["m1"]);
+    const routes = [{ provider: "openai", authType: "api_key", model: "m1" }];
+    await persist("demo", "coding", ["m1"], routes);
+    expect(mockSetSpecificityFallbacks).toHaveBeenCalledWith("demo", "coding", ["m1"], routes);
   });
 
   it("forwards persistClearFallbacks to clearSpecificityFallbacks via the tier card", async () => {

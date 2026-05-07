@@ -3,6 +3,7 @@ import type {
   AuthType,
   AvailableModel,
   CustomProviderData,
+  ModelRoute,
   RoutingProvider,
 } from '../services/api.js';
 import {
@@ -19,6 +20,7 @@ import { PROVIDERS } from '../services/providers.js';
 import FallbackList from './FallbackList.js';
 import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
+import { toast } from '../services/toast-store.js';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
@@ -43,7 +45,7 @@ interface Props {
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
   onOverride: (model: string, provider: string, authType?: AuthType) => void | Promise<void>;
-  onFallbacksUpdate: (fallbacks: string[]) => void;
+  onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onEdit?: () => void;
   onDisable?: () => void;
 }
@@ -118,11 +120,15 @@ const HeaderTierCard: Component<Props> = (props) => {
       await props.onOverride(model, provider, authType);
     } else if (mode === 'fallback') {
       const next = [...fallbacks(), model];
+      const currentRoutes = props.tier.fallback_routes ?? [];
+      const nextRoutes =
+        authType !== undefined ? [...currentRoutes, { provider, authType, model }] : undefined;
       try {
-        await setHeaderTierFallbacks(props.agentName, props.tier.id, next);
-        props.onFallbacksUpdate(next);
+        await setHeaderTierFallbacks(props.agentName, props.tier.id, next, nextRoutes);
+        props.onFallbacksUpdate(next, nextRoutes ?? null);
+        toast.success('Fallback added');
       } catch {
-        // toast handled by FallbackList parent flow normally; keep silent here.
+        toast.error('Failed to add fallback');
       }
     }
   };
@@ -335,7 +341,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             models={props.models}
             customProviders={props.customProviders}
             connectedProviders={props.connectedProviders}
-            onUpdate={(updated) => props.onFallbacksUpdate(updated)}
+            onUpdate={(updated, updatedRoutes) => props.onFallbacksUpdate(updated, updatedRoutes)}
             onAddFallback={() => setPickerMode('fallback')}
             persistFallbacks={(_agent, tierId, models, routes) =>
               setHeaderTierFallbacks(props.agentName, tierId, models, routes)

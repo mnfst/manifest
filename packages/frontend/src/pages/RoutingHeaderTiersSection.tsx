@@ -13,6 +13,7 @@ import type {
   AvailableModel,
   AuthType,
   CustomProviderData,
+  ModelRoute,
   RoutingProvider,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
@@ -25,13 +26,14 @@ export interface RoutingHeaderTiersSectionProps {
   connectedProviders: Accessor<RoutingProvider[]>;
   externalTiers?: Accessor<HeaderTier[] | undefined>;
   externalRefetch?: () => void;
+  externalMutate?: (mutator: (prev: HeaderTier[] | undefined) => HeaderTier[] | undefined) => void;
   embedded?: boolean;
 }
 
 type Props = RoutingHeaderTiersSectionProps;
 
 const RoutingHeaderTiersSection: Component<Props> = (props) => {
-  const [internalTiersRes, { refetch: internalRefetch }] = createResource(
+  const [internalTiersRes, { refetch: internalRefetch, mutate: internalMutate }] = createResource(
     () => (props.externalTiers ? false : props.agentName()),
     (name) =>
       listHeaderTiers(name as string).catch((err) => {
@@ -43,6 +45,25 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
   const refetch = () => {
     if (props.externalRefetch) props.externalRefetch();
     else void internalRefetch();
+  };
+
+  // Apply an optimistic update to the resource so the UI reflects fallback
+  // changes immediately, mirroring the tier path. Without this the refetch
+  // races the persist call and shows stale data on first click.
+  // When the caller doesn't know the new routes (e.g. tier reset, which also
+  // clears override_route), fall back to a refetch.
+  const applyFallbackUpdate = (
+    tierId: string,
+    updatedRoutes: ModelRoute[] | null | undefined,
+  ): void => {
+    if (updatedRoutes === undefined) {
+      refetch();
+      return;
+    }
+    const update = (prev: HeaderTier[] | undefined): HeaderTier[] | undefined =>
+      prev?.map((t) => (t.id === tierId ? { ...t, fallback_routes: updatedRoutes } : t));
+    if (props.externalMutate) props.externalMutate(update);
+    else internalMutate(update);
   };
 
   // Manage modal: lists all tiers. `null` = closed.
@@ -144,7 +165,9 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 customProviders={props.customProviders()}
                 connectedProviders={props.connectedProviders()}
                 onOverride={(m, p, a) => handleOverride(tier.id, m, p, a)}
-                onFallbacksUpdate={() => refetch()}
+                onFallbacksUpdate={(_fallbacks, updatedRoutes) =>
+                  applyFallbackUpdate(tier.id, updatedRoutes)
+                }
                 onEdit={() => setModalTier(tier)}
                 onDisable={() => handleToggle(tier.id, false)}
               />

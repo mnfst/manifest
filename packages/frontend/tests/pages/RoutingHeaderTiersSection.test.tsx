@@ -49,6 +49,19 @@ vi.mock("../../src/components/HeaderTierCard.js", () => ({
           fb-update
         </button>
         <button
+          data-testid={`fb-update-routes-${tier.id}`}
+          onClick={() =>
+            (
+              props.onFallbacksUpdate as (
+                fallbacks: string[],
+                routes: { provider: string; authType: string; model: string }[],
+              ) => void
+            )(["fb1"], [{ provider: "openai", authType: "api_key", model: "fb1" }])
+          }
+        >
+          fb-update-routes
+        </button>
+        <button
           data-testid={`edit-${tier.id}`}
           onClick={() => (props.onEdit as () => void)?.()}
         >
@@ -224,6 +237,70 @@ describe("RoutingHeaderTiersSection", () => {
     await waitFor(() => {
       expect(mockToastError).toHaveBeenCalledWith("boom");
     });
+  });
+
+  it("refetches when a card fires onFallbacksUpdate without routes (e.g. tier reset)", async () => {
+    mockListHeaderTiers.mockResolvedValue([tier1]);
+    const { getByTestId } = render(() => (
+      <RoutingHeaderTiersSection
+        {...makeProps({ externalTiers: undefined, externalRefetch: undefined })}
+      />
+    ));
+    await waitFor(() => {
+      expect(getByTestId("fb-update-ht-1")).toBeDefined();
+    });
+    mockListHeaderTiers.mockClear();
+    fireEvent.click(getByTestId("fb-update-ht-1"));
+    await waitFor(() => {
+      expect(mockListHeaderTiers).toHaveBeenCalled();
+    });
+  });
+
+  it("calls externalRefetch when fb update without routes and external prop wired", async () => {
+    const externalRefetch = vi.fn();
+    const { getByTestId } = render(() => (
+      <RoutingHeaderTiersSection
+        {...makeProps({ externalTiers: () => [tier1], externalRefetch })}
+      />
+    ));
+    fireEvent.click(getByTestId("fb-update-ht-1"));
+    expect(externalRefetch).toHaveBeenCalled();
+  });
+
+  it("calls externalMutate optimistically when fb update with routes and external prop wired", async () => {
+    const externalMutate = vi.fn();
+    const { getByTestId } = render(() => (
+      <RoutingHeaderTiersSection
+        {...makeProps({ externalTiers: () => [tier1], externalMutate })}
+      />
+    ));
+    fireEvent.click(getByTestId("fb-update-routes-ht-1"));
+    expect(externalMutate).toHaveBeenCalledTimes(1);
+    const mutator = externalMutate.mock.calls[0]![0] as (
+      prev: { id: string; fallback_routes: unknown }[] | undefined,
+    ) => unknown;
+    const result = mutator([tier1, tier2] as never) as { id: string; fallback_routes: unknown }[];
+    expect(result.find((t) => t.id === "ht-1")?.fallback_routes).toEqual([
+      { provider: "openai", authType: "api_key", model: "fb1" },
+    ]);
+    expect(result.find((t) => t.id === "ht-2")?.fallback_routes).toEqual(tier2.fallback_routes);
+  });
+
+  it("uses internalMutate optimistically when fb update with routes and no external prop", async () => {
+    mockListHeaderTiers.mockResolvedValue([tier1]);
+    const { getByTestId } = render(() => (
+      <RoutingHeaderTiersSection
+        {...makeProps({ externalTiers: undefined, externalRefetch: undefined })}
+      />
+    ));
+    await waitFor(() => {
+      expect(getByTestId("fb-update-routes-ht-1")).toBeDefined();
+    });
+    mockListHeaderTiers.mockClear();
+    fireEvent.click(getByTestId("fb-update-routes-ht-1"));
+    // internalMutate is synchronous and does not refetch
+    await new Promise((r) => setTimeout(r, 10));
+    expect(mockListHeaderTiers).not.toHaveBeenCalled();
   });
 
   it("calls toggleHeaderTier with false when disabling from a card", async () => {

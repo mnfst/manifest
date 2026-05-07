@@ -60,7 +60,7 @@ const Routing: Component = () => {
   );
   const [specificityAssignments, { refetch: refetchSpecificity, mutate: mutateSpecificity }] =
     createResource(() => agentName(), getSpecificityAssignments);
-  const [headerTiers, { refetch: refetchHeaderTiers }] = createResource(
+  const [headerTiers, { refetch: refetchHeaderTiers, mutate: mutateHeaderTiers }] = createResource(
     () => agentName(),
     (name) => listHeaderTiers(name).catch(() => [] as HeaderTier[]),
   );
@@ -442,19 +442,17 @@ const Routing: Component = () => {
                       setResettingSpecificity(null);
                     }
                   }}
-                  onFallbackUpdate={async (category, updatedFallbacks) => {
-                    try {
-                      if (updatedFallbacks.length === 0) {
-                        const { clearSpecificityFallbacks } = await import('../services/api.js');
-                        await clearSpecificityFallbacks(agentName(), category);
-                      } else {
-                        const { setSpecificityFallbacks } = await import('../services/api.js');
-                        await setSpecificityFallbacks(agentName(), category, updatedFallbacks);
-                      }
-                      await refetchSpecificity();
-                    } catch {
-                      toast.error('Failed to update fallbacks');
-                    }
+                  onFallbackUpdate={(category, _updatedFallbacks, updatedRoutes) => {
+                    // Optimistic local state mutation only. Persistence is
+                    // handled by RoutingTierCard via persistFallbacks (with
+                    // routes), so a second network call here would race the
+                    // first and drop route metadata for ambiguous models.
+                    if (updatedRoutes === undefined) return;
+                    mutateSpecificity((prev) =>
+                      prev?.map((a) =>
+                        a.category === category ? { ...a, fallback_routes: updatedRoutes } : a,
+                      ),
+                    );
                   }}
                   onAddFallback={(category) => setFallbackPickerTier(category)}
                   refetchAll={refetchAll}
@@ -480,6 +478,7 @@ const Routing: Component = () => {
                   connectedProviders={() => connectedProviders() ?? []}
                   externalTiers={() => headerTiers()}
                   externalRefetch={() => void refetchHeaderTiers()}
+                  externalMutate={mutateHeaderTiers}
                   embedded
                 />
               ),

@@ -12,6 +12,7 @@ import type {
   TierAssignment,
   AvailableModel,
   AuthType,
+  ModelRoute,
   RequestParamDefaults,
   RoutingProvider,
   CustomProviderData,
@@ -153,7 +154,7 @@ export interface RoutingSpecificitySectionProps {
     authType?: AuthType,
   ) => void;
   onReset: (category: string) => void;
-  onFallbackUpdate: (category: string, fallbacks: string[]) => void;
+  onFallbackUpdate: (category: string, fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onAddFallback: (category: string) => void;
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
@@ -250,8 +251,8 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                   getAssignment(cat)?.fallback_routes?.map((r) => r.model) ?? []
                 }
                 connectedProviders={props.connectedProviders}
-                persistFallbacks={(_agentName, category, models) =>
-                  setSpecificityFallbacks(_agentName, category, models)
+                persistFallbacks={(_agentName, category, models, routes) =>
+                  setSpecificityFallbacks(_agentName, category, models, routes)
                 }
                 persistClearFallbacks={(_agentName, category) =>
                   clearSpecificityFallbacks(_agentName, category)
