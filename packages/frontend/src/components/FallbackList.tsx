@@ -392,8 +392,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     <Show
                       when={
                         props.onConfigureParams &&
-                        route()?.provider &&
-                        providerThinkingDefault(route()!.provider) !== undefined
+                        provId() &&
+                        providerThinkingDefault(provId()!) !== undefined
                       }
                     >
                       <button
