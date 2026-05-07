@@ -1,0 +1,20 @@
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_ff3ef56e742c11::t_573e0e4ba5fc77 1316-1380
+  s_ff3ef56e742c11::t_2e59e40098633f 1441,1443,1456-1461
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "bfa481e534a54a08c5bda8c4479256167bfd81b9",
+  "prompts": {},
+  "sessions": {
+    "s_ff3ef56e742c11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2a650283-6325-472f-84da-3c2e5e3a3423",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
