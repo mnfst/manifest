@@ -230,6 +230,21 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockRejectedValue(new Error('network'));
       expect(await svc.unwrapToken(JSON.stringify(blob), 'a', 'u')).toBeNull();
     });
+
+    // Regression: a still-valid access token must be returned even when the
+    // OAuth response omitted a refresh token. The earlier check
+    // `!blob.t || !blob.r || !blob.e` short-circuited usable tokens to null.
+    it('returns the access token for a valid blob with no refresh token', async () => {
+      const blob = { t: 'still-good', r: '', e: Date.now() + 10 * 60 * 1000 };
+      expect(await svc.unwrapToken(JSON.stringify(blob), 'a', 'u')).toBe('still-good');
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('returns null for an expired blob with no refresh token (cannot refresh)', async () => {
+      const blob = { t: 'old', r: '', e: Date.now() + 1000 };
+      expect(await svc.unwrapToken(JSON.stringify(blob), 'a', 'u')).toBeNull();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
   });
 
   describe('revokeToken', () => {

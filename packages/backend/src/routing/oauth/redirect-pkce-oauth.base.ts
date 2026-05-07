@@ -235,6 +235,10 @@ export abstract class RedirectPkceOauthBaseService {
   async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
     const blob = parseOAuthTokenBlob(rawValue);
     if (!blob) return null;
+    // Access token + expiry are required to use the token at all. Refresh
+    // token is only required when we need to refresh — providers that omit
+    // it (or token responses where we exchanged a code with no offline scope)
+    // still produce a usable short-lived access token.
     if (Date.now() < blob.e - 60_000) return blob.t;
     if (!blob.r) return null;
     try {
