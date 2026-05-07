@@ -1,7 +1,7 @@
 # TaskBench Findings
 
-Last updated: 2026-05-02
-Status: ALL 21 V2 TASKS COMPLETE. Model expansion in progress (batch 2: 11 models at 2-16/21 tasks).
+Last updated: 2026-05-07
+Status: BENCHMARK COMPLETE. 49 models at 21/21 tasks. Data collection finished.
 
 **Rule: every finding below must be revalidated against final data before
 publication. Findings marked [STABLE] survived multiple lots without changing.
@@ -9,13 +9,13 @@ Findings marked [PRELIMINARY] are based on partial data and may shift.**
 
 ## Data Snapshot
 
-- 40,497 unique data points
-- 55 models across 13 providers (Anthropic, OpenAI, Google, Mistral, MiniMax, Moonshot, OpenRouter/ByteDance/Qwen/xAI/DeepSeek/Meta/NVIDIA/Microsoft, Azure)
+- 50,949 unique data points
+- 49 models at 21/21 tasks (57 total, 8 Azure doublons at 2/21)
+- 13 providers: Anthropic, OpenAI, Google, Mistral, MiniMax, Moonshot, BytePlus, OpenRouter, Azure
 - 21 v2 tasks (50 cases each), 13 v1 tasks (5-10 cases, exploratory only)
-- $82 spent of $250 budget (33%)
-- Commit: 63a1b8f55 on branch taskbench-data
-- In progress: 11 models (GPT-5.5 Pro, o3, V4 Pro, Maverick, Grok-fast/Code, Seed Mini, Qwen-Max/Plus/Coder, Nemotron) at 2-16/21 tasks
-- Pending: Seed 2.0 Pro (need ByteDance API key)
+- $98 spent of $250 budget (39%)
+- Commit: 14d8bdc38 on branch taskbench-data
+- Data collection COMPLETE. Next: analysis and paper.
 
 ---
 

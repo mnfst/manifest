@@ -1,6 +1,6 @@
 # TaskBench Methodology
 
-Last updated: 2026-05-02
+Last updated: 2026-05-07
 
 This document records every methodological decision made during the TaskBench benchmark.
 It serves three purposes: (1) reproducibility for the arXiv paper, (2) continuity
@@ -467,6 +467,13 @@ Changes made during the benchmark execution:
    and 4 providers. Added GPT-5.x family, Claude Sonnet 4.6, Gemini 3.1 Pro, Devstral,
    Llama 3.2 1B/3B, Qwen-Turbo/3-8B/Max/Plus/Coder, Gemma-4, Phi-4, Nemotron Super,
    DeepSeek V4 Pro/Flash, Llama-4-Maverick, Grok-4-fast/Code, Seed 2.0 Mini.
+
+8. **BytePlus direct API** (2026-05-07). Added Seed 2.0 Pro (reasoning) and Seed 2.0
+   Code (coding specialist) via BytePlus ARK API at
+   `ark.ap-southeast.bytepluses.com/api/v3`. OpenAI-compatible format. $500 free credits.
+
+9. **Final scale: 57 models (49 complete), 13 providers** (2026-05-07). Data collection
+   complete. 50,949 rows, $98 spent of $250 budget.
 
 ## 12. Decisions We Made and Why (FAQ)
 

@@ -3,7 +3,7 @@
 Notes that don't fit in formal documentation but matter for continuity.
 Read this file at the start of any new session to avoid repeating mistakes.
 
-Last updated: 2026-05-02
+Last updated: 2026-05-07
 
 ## Working with the user
 
@@ -117,13 +117,31 @@ listed questions. If not, do not do it. Prevents scope creep.
 **User wants top 5 best cost-quality ratio per use case.** Not just cheapest, not
 just best quality. Best ratio = quality high enough AND cheapest among those.
 
+## Session 3 notes (2026-05-03 to 2026-05-07)
+
+**BytePlus API endpoint resolved.** The correct hostname is
+`ark.ap-southeast.bytepluses.com` (NOT byteplusapi.com, NOT with -1 suffix).
+Model IDs include date: seed-2-0-pro-260328, seed-2-0-code-preview-260328.
+The API is OpenAI-compatible. $500 free credits available.
+
+**Seed 2.0 Pro and Code added.** Both completed 21/21 tasks via BytePlus direct.
+Pro is a reasoning model. Code is a coding specialist.
+
+**o3 was very slow and expensive.** Hit OpenAI quota multiple times. Needed
+extra credits ($5-6) to finish. The most expensive model to benchmark per task.
+
+**--skip-azure gotcha.** Azure models are silently skipped even if explicitly
+listed in --models when --skip-azure is active. Caused confusion when trying
+to complete gpt-5.1-chat and o4-mini.
+
+**Data collection is COMPLETE.** 49 models at 21/21, 50,949 rows, $98 spent.
+
 ## What the next session should do first
 
 1. Run `/taskbench` to load full context
 2. Read this file and QUESTIONS.md (scope guard)
-3. Finish batch 2 (11 models, most at 2-16/21 tasks)
-4. Rescore GPT-5.5 Pro and Nemotron on tasks where they score 0 (format bug)
-5. Regenerate analysis (Pareto plots, heatmaps) on v2 data only, filtering out v1
-6. Generate top 5 cost-quality ratio tables per use case
-7. Update FINDINGS.md with final numbers
-8. Write the paper
+3. Rescore GPT-5.5 Pro and Nemotron on tasks where they score 0 (format bug)
+4. Regenerate analysis (Pareto plots, heatmaps) on v2 data only, filtering out v1
+5. Generate top 5 cost-quality ratio tables per use case
+6. Update FINDINGS.md with final numbers from all 49 models
+7. Write the paper

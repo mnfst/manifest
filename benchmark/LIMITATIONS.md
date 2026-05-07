@@ -1,6 +1,6 @@
 # TaskBench Limitations
 
-Last updated: 2026-05-02
+Last updated: 2026-05-07
 
 This document lists every known limitation of the benchmark, with honest
 assessments of impact and mitigations. Written to prepare for reviewer
