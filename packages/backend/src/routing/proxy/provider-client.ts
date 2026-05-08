@@ -181,14 +181,8 @@ export class ProviderClient {
         resolved = 'opencode-go-anthropic';
       }
     }
-    if (resolved === 'opencode-zen') {
-      // OpenCode Zen routes Claude models through its native Anthropic
-      // /v1/messages endpoint; everything else goes through the
-      // OpenAI-compatible /v1/chat/completions path.
-      if (stripVendorPrefix(model).toLowerCase().startsWith('claude-')) {
-        resolved = 'opencode-zen-anthropic';
-      }
-    }
+    // OpenCode Zen routes every model family through a single unified
+    // /v1/chat/completions endpoint, so no per-family redirect is needed.
     return { endpoint: PROVIDER_ENDPOINTS[resolved], endpointKey: resolved };
   }
 

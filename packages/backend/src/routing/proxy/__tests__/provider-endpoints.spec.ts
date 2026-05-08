@@ -107,7 +107,6 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('opencode-go');
     expect(known).toContain('opencode-go-anthropic');
     expect(known).toContain('opencode-zen');
-    expect(known).toContain('opencode-zen-anthropic');
   });
 
   it('resolves ollama-cloud to ollama-cloud', () => {
@@ -340,23 +339,6 @@ describe('PROVIDER_ENDPOINTS', () => {
       Authorization: 'Bearer oz-token',
       'Content-Type': 'application/json',
     });
-  });
-
-  it('opencode-zen-anthropic uses Anthropic format with /v1/messages', () => {
-    const ep = PROVIDER_ENDPOINTS['opencode-zen-anthropic'];
-    expect(ep.baseUrl).toBe('https://opencode.ai/zen');
-    expect(ep.format).toBe('anthropic');
-    expect(ep.buildPath('claude-opus-4-7')).toBe('/v1/messages');
-  });
-
-  it('opencode-zen-anthropic uses x-api-key (not Bearer) with anthropic-version header', () => {
-    const headers = PROVIDER_ENDPOINTS['opencode-zen-anthropic'].buildHeaders('oz-token');
-    expect(headers).toEqual({
-      'x-api-key': 'oz-token',
-      'Content-Type': 'application/json',
-      'anthropic-version': '2023-06-01',
-    });
-    expect(headers['Authorization']).toBeUndefined();
   });
 });
 

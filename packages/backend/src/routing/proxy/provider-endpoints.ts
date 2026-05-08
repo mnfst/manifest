@@ -52,11 +52,10 @@ const anthropicBearerHeaders = (apiKey: string): Record<string, string> => ({
   'anthropic-version': '2023-06-01',
 });
 
-// The OpenCode Zen platform (used by both opencode-go and opencode-zen)
-// authenticates the native Anthropic /v1/messages endpoint via `x-api-key`,
-// not `Authorization: Bearer`. Sending a Bearer token yields a
-// "Missing API key" 401 from the upstream.
-const opencodeAnthropicHeaders = (apiKey: string): Record<string, string> => ({
+// OpenCode Go's /v1/messages endpoint follows the native Anthropic protocol
+// and authenticates via the `x-api-key` header, not `Authorization: Bearer`.
+// Sending a Bearer token yields a "Missing API key" 401 from the upstream.
+const opencodeGoAnthropicHeaders = (apiKey: string): Record<string, string> => ({
   'x-api-key': apiKey,
   'Content-Type': 'application/json',
   'anthropic-version': '2023-06-01',
@@ -216,23 +215,26 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   'opencode-go-anthropic': {
     baseUrl: OPENCODE_GO_BASE,
-    buildHeaders: opencodeAnthropicHeaders,
+    buildHeaders: opencodeGoAnthropicHeaders,
     buildPath: () => '/v1/messages',
     format: 'anthropic',
   },
+  // OpenCode Zen's /v1/chat/completions is a unified OpenAI-compatible
+  // endpoint that handles Claude, GPT, and the long tail of OpenAI-compatible
+  // models (Qwen, GLM, Kimi, MiniMax, …) on a single Bearer-auth route.
+  //
+  // Gemini models on Zen are currently broken upstream — Zen forwards our
+  // `Authorization: Bearer` header to Vertex AI verbatim, which rejects the
+  // request with OVERLOADED_CREDENTIALS because Zen also attaches its own
+  // GCP credentials. This is a Zen-side gateway bug; switching to `x-api-key`
+  // only makes Zen reject with "Missing API key" before the request even
+  // reaches GCP. There is no client-side workaround until Zen stops
+  // tunneling our auth header through.
   'opencode-zen': {
     baseUrl: OPENCODE_ZEN_BASE,
     buildHeaders: openaiHeaders,
     buildPath: () => '/v1/chat/completions',
     format: 'openai',
-  },
-  // OpenCode Zen routes Claude models through its native Anthropic
-  // /v1/messages endpoint, which authenticates via `x-api-key` (not Bearer).
-  'opencode-zen-anthropic': {
-    baseUrl: OPENCODE_ZEN_BASE,
-    buildHeaders: opencodeAnthropicHeaders,
-    buildPath: () => '/v1/messages',
-    format: 'anthropic',
   },
 };
 
