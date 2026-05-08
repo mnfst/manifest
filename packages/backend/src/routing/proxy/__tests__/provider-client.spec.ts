@@ -987,6 +987,59 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('OpenCode Zen provider', () => {
+    it('routes non-claude models to OpenAI /v1/chat/completions', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'opencode-zen',
+        apiKey: 'oz-token',
+        model: 'opencode-zen/qwen3.6-plus',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/v1/chat/completions',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer oz-token',
+            'Content-Type': 'application/json',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('qwen3.6-plus');
+      expect(result.isAnthropic).toBe(false);
+      expect(result.isChatGpt).toBe(false);
+    });
+
+    it('routes claude-* models to Anthropic /v1/messages', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'opencode-zen',
+        apiKey: 'oz-token',
+        model: 'opencode-zen/claude-opus-4-7',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/v1/messages',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-api-key': 'oz-token',
+            'anthropic-version': '2023-06-01',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('claude-opus-4-7');
+      expect(result.isAnthropic).toBe(true);
+    });
+  });
+
   describe('convertChatGptResponse', () => {
     it('delegates to fromResponsesResponse', () => {
       const data = {
@@ -2011,6 +2064,7 @@ describe('ProviderClient', () => {
       ['zai', 'glm-4.6'],
       ['copilot', 'gpt-4o-copilot'],
       ['opencode-go', 'claude-sonnet-4'],
+      ['opencode-zen', 'qwen3.6-plus'],
     ])(
       'injects stream_options.include_usage for %s streaming requests',
       async (provider, model) => {

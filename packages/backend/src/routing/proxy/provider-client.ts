@@ -60,6 +60,7 @@ const SUPPORTS_USAGE_STREAM_OPTIONS = new Set([
   'zai-subscription',
   'copilot',
   'opencode-go',
+  'opencode-zen',
   'custom',
 ]);
 
@@ -178,6 +179,14 @@ export class ProviderClient {
       // MiniMax models use Anthropic /v1/messages, all others use OpenAI /v1/chat/completions.
       if (stripVendorPrefix(model).toLowerCase().startsWith('minimax-')) {
         resolved = 'opencode-go-anthropic';
+      }
+    }
+    if (resolved === 'opencode-zen') {
+      // OpenCode Zen routes Claude models through its native Anthropic
+      // /v1/messages endpoint; everything else goes through the
+      // OpenAI-compatible /v1/chat/completions path.
+      if (stripVendorPrefix(model).toLowerCase().startsWith('claude-')) {
+        resolved = 'opencode-zen-anthropic';
       }
     }
     return { endpoint: PROVIDER_ENDPOINTS[resolved], endpointKey: resolved };

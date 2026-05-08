@@ -215,6 +215,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: '',
   },
   {
+    id: 'opencode-zen',
+    displayName: 'OpenCode Zen',
+    aliases: ['opencodezen'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#211E1E',
+    keyPrefix: '',
+    minKeyLength: 20,
+    keyPlaceholder: 'OpenCode Zen API key',
+  },
+  {
     id: 'openrouter',
     displayName: 'OpenRouter',
     aliases: [],

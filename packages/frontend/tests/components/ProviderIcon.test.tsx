@@ -18,6 +18,7 @@ const KNOWN_PROVIDERS = [
   "minimax",
   "zai",
   "opencode-go",
+  "opencode-zen",
 ];
 
 describe("providerIcon", () => {

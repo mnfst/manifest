@@ -34,6 +34,7 @@ describe('ProviderModelFetcherService', () => {
       'ollama',
       'ollama-cloud',
       'copilot',
+      'opencode-zen',
     ];
     for (const id of expected) {
       expect(PROVIDER_CONFIGS[id]).toBeDefined();
@@ -1435,6 +1436,34 @@ describe('ProviderModelFetcherService', () => {
       const result = await service.fetch('opencode-go', 'og-token', 'subscription');
       expect(result).toEqual([]);
       expect(fetchSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('opencode-zen provider', () => {
+    it('fetches the OpenAI-compatible /v1/models catalog with Bearer auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'qwen3.6-plus', object: 'model', owned_by: 'opencode' },
+            { id: 'claude-opus-4-7', object: 'model', owned_by: 'opencode' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('opencode-zen', 'oz-token');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/v1/models',
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: 'Bearer oz-token' }),
+        }),
+      );
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual(
+        expect.objectContaining({ id: 'qwen3.6-plus', provider: 'opencode-zen' }),
+      );
+      expect(result[1].id).toBe('claude-opus-4-7');
     });
   });
 

@@ -209,6 +209,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     beta: true,
     models: [],
   },
+  'opencode-zen': {
+    initial: 'OZ',
+    subtitle: 'Curated Claude, GPT, Gemini, Qwen, GLM, MiniMax',
+    models: [],
+  },
   openrouter: {
     initial: 'OR',
     subtitle: 'Auto-route to 300+ models',
@@ -266,6 +271,7 @@ const PROVIDER_ORDER = [
   'ollama-cloud',
   'openai',
   'opencode-go',
+  'opencode-zen',
   'openrouter',
   'xai',
   'zai',

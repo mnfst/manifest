@@ -370,6 +370,20 @@ describe("PROVIDERS", () => {
     expect(og.models).toEqual([]);
   });
 
+  it("OpenCode Zen is registered as an API-key provider with no subscription mode", () => {
+    const oz = PROVIDERS.find((p) => p.id === "opencode-zen")!;
+    expect(oz).toBeDefined();
+    expect(oz.name).toBe("OpenCode Zen");
+    expect(oz.supportsSubscription).toBeUndefined();
+    expect(oz.subscriptionOnly).toBeUndefined();
+    expect(oz.deviceLogin).toBeUndefined();
+    expect(oz.models).toEqual([]);
+  });
+
+  it("OpenCode Zen exposes an API-key signup URL", () => {
+    expect(getRoutingProviderApiKeyUrl("opencode-zen")).toBe("https://opencode.ai/auth");
+  });
+
   it("OpenCode Go subscription key is validated with generic min-length check", () => {
     const og = PROVIDERS.find((p) => p.id === "opencode-go")!;
     expect(validateSubscriptionKey(og, "")).toEqual({

@@ -52,10 +52,11 @@ const anthropicBearerHeaders = (apiKey: string): Record<string, string> => ({
   'anthropic-version': '2023-06-01',
 });
 
-// OpenCode Go's /v1/messages endpoint follows the native Anthropic protocol
-// and authenticates via the `x-api-key` header, not `Authorization: Bearer`.
-// Sending a Bearer token yields a "Missing API key" 401 from the upstream.
-const opencodeGoAnthropicHeaders = (apiKey: string): Record<string, string> => ({
+// The OpenCode Zen platform (used by both opencode-go and opencode-zen)
+// authenticates the native Anthropic /v1/messages endpoint via `x-api-key`,
+// not `Authorization: Bearer`. Sending a Bearer token yields a
+// "Missing API key" 401 from the upstream.
+const opencodeAnthropicHeaders = (apiKey: string): Record<string, string> => ({
   'x-api-key': apiKey,
   'Content-Type': 'application/json',
   'anthropic-version': '2023-06-01',
@@ -71,6 +72,7 @@ const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
 const ZAI_SUBSCRIPTION_BASE = 'https://open.bigmodel.cn/api/coding/paas/v4';
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
+const OPENCODE_ZEN_BASE = 'https://opencode.ai/zen';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
@@ -214,7 +216,21 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   'opencode-go-anthropic': {
     baseUrl: OPENCODE_GO_BASE,
-    buildHeaders: opencodeGoAnthropicHeaders,
+    buildHeaders: opencodeAnthropicHeaders,
+    buildPath: () => '/v1/messages',
+    format: 'anthropic',
+  },
+  'opencode-zen': {
+    baseUrl: OPENCODE_ZEN_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v1/chat/completions',
+    format: 'openai',
+  },
+  // OpenCode Zen routes Claude models through its native Anthropic
+  // /v1/messages endpoint, which authenticates via `x-api-key` (not Bearer).
+  'opencode-zen-anthropic': {
+    baseUrl: OPENCODE_ZEN_BASE,
+    buildHeaders: opencodeAnthropicHeaders,
     buildPath: () => '/v1/messages',
     format: 'anthropic',
   },

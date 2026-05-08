@@ -433,6 +433,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     }),
     parse: parseCopilot,
   },
+  'opencode-zen': {
+    endpoint: 'https://opencode.ai/zen/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
 };
 
 const OPENCODE_GO_CONTEXT_WINDOW = 200000;
