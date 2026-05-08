@@ -159,7 +159,7 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                 aria-selected={activeAgent() === 'nanobot'}
               >
                 <img
-                  src="/icons/other-agent.svg"
+                  src="/icons/nanobot.png"
                   alt=""
                   class="panel__tab-icon"
                   width="16"

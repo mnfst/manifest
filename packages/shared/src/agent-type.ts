@@ -43,7 +43,7 @@ export const PLATFORMS_BY_CATEGORY: Readonly<Record<AgentCategory, readonly Agen
 export const PLATFORM_ICONS: Readonly<Partial<Record<AgentPlatform, string>>> = {
   openclaw: '/icons/openclaw.png',
   hermes: '/icons/hermes.png',
-  nanobot: '/icons/other-agent.svg',
+  nanobot: '/icons/nanobot.png',
   'claude-code': '/icons/providers/claude-code.svg',
   'openai-sdk': '/icons/providers/openai.svg',
   'anthropic-sdk': '/icons/providers/anthropic.svg',
