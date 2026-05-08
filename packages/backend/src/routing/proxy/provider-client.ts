@@ -185,11 +185,15 @@ export class ProviderClient {
       resolved === 'opencode-zen' &&
       stripVendorPrefix(model).toLowerCase().startsWith('gemini-')
     ) {
-      // Gemini on Zen rejects /v1/chat/completions: forwarding `Authorization:
-      // Bearer` through to Vertex AI triggers a GCP OVERLOADED_CREDENTIALS
-      // 401. The dedicated Gemini route uses Google's `x-goog-api-key` header
-      // and the model-scoped generateContent path documented at
-      // https://opencode.ai/docs/zen/.
+      // TODO(opencode-zen): once Zen's gateway stops forwarding the client
+      // Authorization header to Vertex AI, drop this branch and let Gemini
+      // ride the unified /v1/chat/completions route like every other family.
+      // Today, sending `Authorization: Bearer <zen_key>` against the unified
+      // path triggers GCP OVERLOADED_CREDENTIALS (Zen also attaches its own
+      // GCP creds upstream). The dedicated Gemini route uses Google's
+      // `x-goog-api-key` header against `/v1/models/{id}:generateContent`,
+      // which Zen documents at https://opencode.ai/docs/zen/ and does not
+      // leak through to Vertex AI.
       resolved = 'opencode-zen-google';
     }
     return { endpoint: PROVIDER_ENDPOINTS[resolved], endpointKey: resolved };

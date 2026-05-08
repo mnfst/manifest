@@ -236,6 +236,11 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: () => '/v1/chat/completions',
     format: 'openai',
   },
+  // TODO(opencode-zen): collapse this back into the single `opencode-zen`
+  // entry once Zen's gateway stops tunneling the client Authorization header
+  // through to Vertex AI on /v1/chat/completions. The unified path already
+  // works for Claude, GPT, and the OpenAI-compatible long tail; Gemini is
+  // the only family that still needs the Google-native combo today.
   'opencode-zen-google': {
     baseUrl: OPENCODE_ZEN_BASE,
     buildHeaders: (apiKey: string) => ({
