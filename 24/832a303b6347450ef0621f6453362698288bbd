@@ -1,0 +1,40 @@
+packages/shared/src/agent-type.ts
+  s_6ea530aa44f956::t_a56e222805e263 7,27,38,46
+packages/frontend/tests/components/NanobotSetup.test.tsx
+  s_6ea530aa44f956::t_ef35a5b0f779e4 1-107
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  s_6ea530aa44f956::t_e0c555ee9c401b 49,52,55-64,70
+  s_6ea530aa44f956::t_5670e9f2d1f5f5 289-305
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  s_6ea530aa44f956::t_4733032a225797 64-66
+  s_6ea530aa44f956::t_a8b1129f2736b1 48-52
+  s_6ea530aa44f956::t_4e0ec8248332f2 5,10
+  s_6ea530aa44f956::t_457362c938cb05 156-169,196-197
+packages/shared/__tests__/agent-type.spec.ts
+  s_6ea530aa44f956::t_06d3ae79208744 114
+  s_6ea530aa44f956::t_2e33b1dd8e2bc3 17
+packages/frontend/src/components/NanobotSetup.tsx
+  s_6ea530aa44f956::t_e0e3cc3df79e95 1-54,56-79
+packages/frontend/src/services/framework-snippets.ts
+  s_6ea530aa44f956::t_f82285c21ae8cb 355-378
+packages/frontend/tests/services/framework-snippets.test.ts
+  s_6ea530aa44f956::t_15d40003277d1a 297-325
+.changeset/add-nanobot-platform.md
+  s_6ea530aa44f956::t_99352ad19b8e93 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "24832a303b6347450ef0621f6453362698288bbd",
+  "prompts": {},
+  "sessions": {
+    "s_6ea530aa44f956": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "511781cd-ffc6-442e-bd0d-e7ae98228adc",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
