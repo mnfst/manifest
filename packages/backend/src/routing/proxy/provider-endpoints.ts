@@ -236,6 +236,15 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: () => '/v1/chat/completions',
     format: 'openai',
   },
+  'opencode-zen-google': {
+    baseUrl: OPENCODE_ZEN_BASE,
+    buildHeaders: (apiKey: string) => ({
+      'x-goog-api-key': apiKey,
+      'Content-Type': 'application/json',
+    }),
+    buildPath: (model: string) => `/v1/models/${model}:generateContent`,
+    format: 'google',
+  },
 };
 
 /** Build a ProviderEndpoint for a custom provider with the given base URL. */

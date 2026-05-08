@@ -992,7 +992,6 @@ describe('ProviderClient', () => {
       ['claude-opus-4-7', 'claude-opus-4-7'],
       ['gpt-5.5', 'gpt-5.5'],
       ['qwen3.6-plus', 'qwen3.6-plus'],
-      ['gemini-3-flash', 'gemini-3-flash'],
     ])(
       'routes %s through the unified /v1/chat/completions endpoint with Bearer auth',
       async (modelName, expectedSentModel) => {
@@ -1022,6 +1021,28 @@ describe('ProviderClient', () => {
         expect(result.isGoogle).toBe(false);
       },
     );
+
+    it('routes gemini-* models to the dedicated generateContent endpoint with x-goog-api-key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'opencode-zen',
+        apiKey: 'oz-token',
+        model: 'opencode-zen/gemini-3-flash',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/v1/models/gemini-3-flash:generateContent',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-goog-api-key': 'oz-token',
+          }),
+        }),
+      );
+      expect(result.isGoogle).toBe(true);
+    });
   });
 
   describe('convertChatGptResponse', () => {

@@ -107,6 +107,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('opencode-go');
     expect(known).toContain('opencode-go-anthropic');
     expect(known).toContain('opencode-zen');
+    expect(known).toContain('opencode-zen-google');
   });
 
   it('resolves ollama-cloud to ollama-cloud', () => {
@@ -337,6 +338,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     const headers = PROVIDER_ENDPOINTS['opencode-zen'].buildHeaders('oz-token');
     expect(headers).toEqual({
       Authorization: 'Bearer oz-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('opencode-zen-google uses Google generateContent path with x-goog-api-key auth', () => {
+    const ep = PROVIDER_ENDPOINTS['opencode-zen-google'];
+    expect(ep.baseUrl).toBe('https://opencode.ai/zen');
+    expect(ep.format).toBe('google');
+    expect(ep.buildPath('gemini-3-flash')).toBe('/v1/models/gemini-3-flash:generateContent');
+    expect(ep.buildHeaders('oz-token')).toEqual({
+      'x-goog-api-key': 'oz-token',
       'Content-Type': 'application/json',
     });
   });

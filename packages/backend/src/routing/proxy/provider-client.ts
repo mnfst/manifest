@@ -181,8 +181,17 @@ export class ProviderClient {
         resolved = 'opencode-go-anthropic';
       }
     }
-    // OpenCode Zen routes every model family through a single unified
-    // /v1/chat/completions endpoint, so no per-family redirect is needed.
+    if (
+      resolved === 'opencode-zen' &&
+      stripVendorPrefix(model).toLowerCase().startsWith('gemini-')
+    ) {
+      // Gemini on Zen rejects /v1/chat/completions: forwarding `Authorization:
+      // Bearer` through to Vertex AI triggers a GCP OVERLOADED_CREDENTIALS
+      // 401. The dedicated Gemini route uses Google's `x-goog-api-key` header
+      // and the model-scoped generateContent path documented at
+      // https://opencode.ai/docs/zen/.
+      resolved = 'opencode-zen-google';
+    }
     return { endpoint: PROVIDER_ENDPOINTS[resolved], endpointKey: resolved };
   }
 
