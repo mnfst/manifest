@@ -352,6 +352,30 @@ export function getClaudeCodeSettingsSnippet(baseUrl: string, apiKey: string): s
 }`;
 }
 
+/**
+ * The JSON block to merge into ~/.nanobot/config.json. Nanobot reads providers
+ * and agent defaults from this file on every startup, so users edit the file
+ * directly — there is no CLI command to set provider values. The "manifest"
+ * provider key is just a label nanobot uses to look up the provider; agents
+ * point at it via `provider: "manifest"`.
+ */
+export function getNanobotConfigSnippet(baseUrl: string, apiKey: string): string {
+  return `{
+  "providers": {
+    "manifest": {
+      "apiKey": "${apiKey}",
+      "apiBase": "${baseUrl}"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "provider": "manifest",
+      "model": "auto"
+    }
+  }
+}`;
+}
+
 export function getOpenClawDisableSnippet(model: string): string {
   return `openclaw config unset models.providers.manifest
 openclaw config unset agents.defaults.models.manifest/auto

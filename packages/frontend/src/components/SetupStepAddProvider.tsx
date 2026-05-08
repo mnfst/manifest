@@ -2,11 +2,12 @@ import { createSignal, createMemo, Show, Switch, Match, type Component } from 's
 import FrameworkSnippets from './FrameworkSnippets.jsx';
 import OpenClawSetup from './OpenClawSetup.jsx';
 import HermesSetup from './HermesSetup.jsx';
+import NanobotSetup from './NanobotSetup.jsx';
 import ClaudeCodeSetup from './ClaudeCodeSetup.jsx';
 import type { ToolkitId } from '../services/framework-snippets.js';
 
 type SetupTab = 'toolkits' | 'agents';
-type AgentId = 'openclaw' | 'hermes' | 'claude-code';
+type AgentId = 'openclaw' | 'hermes' | 'nanobot' | 'claude-code';
 
 interface Props {
   apiKey: string | null;
@@ -44,9 +45,11 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           ? 'Connect your Hermes agent to Manifest'
           : props.platform === 'openclaw'
             ? 'Connect your OpenClaw agent to Manifest'
-            : props.platform === 'claude-code'
-              ? 'Connect Claude Code to Manifest'
-              : 'Connect your agent to Manifest'}
+            : props.platform === 'nanobot'
+              ? 'Connect your Nanobot agent to Manifest'
+              : props.platform === 'claude-code'
+                ? 'Connect Claude Code to Manifest'
+                : 'Connect your agent to Manifest'}
       </h3>
 
       {/* Platform-filtered mode: show only relevant content */}
@@ -57,6 +60,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           </Match>
           <Match when={props.platform === 'hermes'}>
             <HermesSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'nanobot'}>
+            <NanobotSetup {...snippetProps()} />
           </Match>
           <Match when={props.platform === 'claude-code'}>
             <ClaudeCodeSetup {...snippetProps()} />
@@ -147,6 +153,22 @@ const SetupStepAddProvider: Component<Props> = (props) => {
               </button>
               <button
                 class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'nanobot' }}
+                onClick={() => setActiveAgent('nanobot')}
+                role="tab"
+                aria-selected={activeAgent() === 'nanobot'}
+              >
+                <img
+                  src="/icons/other-agent.svg"
+                  alt=""
+                  class="panel__tab-icon"
+                  width="16"
+                  height="16"
+                />
+                Nanobot
+              </button>
+              <button
+                class="panel__tab"
                 classList={{ 'panel__tab--active': activeAgent() === 'claude-code' }}
                 onClick={() => setActiveAgent('claude-code')}
                 role="tab"
@@ -170,6 +192,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
             </Match>
             <Match when={activeAgent() === 'hermes'}>
               <HermesSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'nanobot'}>
+              <NanobotSetup {...snippetProps()} />
             </Match>
             <Match when={activeAgent() === 'claude-code'}>
               <ClaudeCodeSetup {...snippetProps()} />
