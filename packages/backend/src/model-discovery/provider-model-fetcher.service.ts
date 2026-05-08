@@ -319,6 +319,20 @@ const parseCopilot = createModelParser<OpenAIModelEntry>({
   outputPricePerToken: 0,
 });
 
+/* ── OpenCode Zen (aggregator, OpenAI-compatible /models) ── */
+
+// Prefix every Zen catalog entry with `opencode-zen/` so models like
+// `gemini-3-flash` or `qwen3.6-plus` cannot collide with the same IDs from a
+// directly-connected Google or Qwen provider — `getModelsForAgent`
+// deduplicates by `id + authType`, and a bare collision would silently hide
+// one provider's model.
+const parseOpencodeZen = createModelParser<OpenAIModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
+  getId: (entry) => `opencode-zen/${entry.id}`,
+  getDisplayName: (entry) => entry.id,
+});
+
 /* ── Provider configs ── */
 
 export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
@@ -436,7 +450,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
   'opencode-zen': {
     endpoint: 'https://opencode.ai/zen/v1/models',
     buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
+    parse: parseOpencodeZen,
   },
 };
 
