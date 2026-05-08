@@ -1,0 +1,22 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_a262ed5011967a::t_7b24bb8d792a46 453
+  s_a262ed5011967a::t_8c54eea41cc284 322-335
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_a262ed5011967a::t_ce19c34e3a02d1 1443,1450,1463-1470,1472
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "68f27f20e520bd629fb6fa5db214447db94c3add",
+  "prompts": {},
+  "sessions": {
+    "s_a262ed5011967a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0eb42318-4571-4021-8d89-13a025a2e5fe",
+        "model": "unknown"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
