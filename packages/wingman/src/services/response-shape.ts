@@ -38,17 +38,15 @@ export function extractUsage(json: unknown): { in?: number; out?: number; total?
   if (!usage || typeof usage !== 'object') return null;
   const u = usage as Record<string, unknown>;
   const num = (v: unknown) => (typeof v === 'number' ? v : undefined);
-  // Anthropic input_tokens is uncached only; sum cache reads + creation so the
-  // displayed prompt count matches what the user actually paid for.
-  const cacheRead = num(u.cache_read_input_tokens) ?? 0;
-  const cacheCreation = num(u.cache_creation_input_tokens) ?? 0;
-  const anthropicInput = num(u.input_tokens);
-  const anthropicTotal =
-    anthropicInput !== undefined ? anthropicInput + cacheRead + cacheCreation : undefined;
-  const inTokens = num(u.prompt_tokens) ?? anthropicTotal;
+  // Display whatever the upstream usage block actually reports — do not derive
+  // a "total" by summing cache fields. The exact semantics of `input_tokens`
+  // depend on the backend version: pre-#1879 it's the full total (including
+  // cache reads + creation), post-#1879 it's the uncached portion only.
+  // Summing would double-count against pre-#1879 backends.
+  const inTokens = num(u.prompt_tokens) ?? num(u.input_tokens);
   const outTokens = num(u.completion_tokens) ?? num(u.output_tokens);
-  // The Messages API doesn't report total_tokens; derive it so the UI's token
-  // chip (gated on `total`) still shows for Anthropic responses.
+  // Anthropic Messages doesn't include total_tokens; derive in+out so the UI's
+  // token chip (gated on `total`) still renders for Anthropic responses.
   const total =
     num(u.total_tokens) ??
     (inTokens !== undefined && outTokens !== undefined ? inTokens + outTokens : undefined);
