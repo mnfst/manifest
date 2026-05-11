@@ -1,0 +1,19 @@
+packages/wingman/src/services/response-shape.ts
+  s_21712ae965afee::t_c13af3115465b8 41-46,48-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "c638a69dad862270f2bcc90e8629c70aa9b1cf56",
+  "prompts": {},
+  "sessions": {
+    "s_21712ae965afee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87749cca-9d25-4b20-8a11-9623a50b919a",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
