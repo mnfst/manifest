@@ -1,0 +1,20 @@
+packages/backend/test/agent-duplication.e2e-spec.ts
+  s_ba10c1ee330272::t_c812c3023044cb 121
+  s_ba10c1ee330272::t_75f2ff30a3859c 95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "9382f300ffe2f06e032a6b87a14e2649bb3c2014",
+  "prompts": {},
+  "sessions": {
+    "s_ba10c1ee330272": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c9a5343-e4c0-42d8-bba9-ef88ea021798",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
