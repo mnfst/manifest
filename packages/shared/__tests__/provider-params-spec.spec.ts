@@ -15,6 +15,7 @@ describe('provider-params-spec', () => {
       expect(specs![0].key).toBe('thinking');
       expect(specs![0].control).toEqual({
         kind: 'toggle',
+        label: 'Thinking mode',
         values: ['enabled', 'disabled'],
         default: 'enabled',
       });

@@ -12,6 +12,8 @@ import type { RequestParamDefaults, RequestParamKey } from './request-params';
  */
 export type ParamControl = {
   kind: 'toggle';
+  /** Human-readable row title rendered in the dialog (e.g. "Thinking mode"). */
+  label: string;
   values: readonly [string, string];
   default: string;
 };
@@ -45,7 +47,12 @@ export const PROVIDER_PARAM_SPECS: Record<string, readonly ProviderParamSpec[]> 
   deepseek: [
     {
       key: 'thinking',
-      control: { kind: 'toggle', values: ['enabled', 'disabled'], default: 'enabled' },
+      control: {
+        kind: 'toggle',
+        label: 'Thinking mode',
+        values: ['enabled', 'disabled'],
+        default: 'enabled',
+      },
     },
   ],
 };

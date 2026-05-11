@@ -1,5 +1,5 @@
 import { createSignal, Show, type Component } from 'solid-js';
-import { providerThinkingDefault } from 'manifest-shared';
+import { getProviderParamSpecs } from 'manifest-shared';
 import type { AuthType, RequestParamDefaults } from '../services/api.js';
 import ModelParamsDialog from './ModelParamsDialog.jsx';
 
@@ -55,7 +55,7 @@ const ModelParamsAffordance: Component<Props> = (props) => {
   const [dialogOpen, setDialogOpen] = createSignal(false);
 
   const supports = () =>
-    props.provider !== undefined && providerThinkingDefault(props.provider) !== undefined;
+    props.provider !== undefined && getProviderParamSpecs(props.provider).length > 0;
 
   const current = () => {
     if (!props.provider || !props.authType) return null;
@@ -107,7 +107,7 @@ const ModelParamsAffordance: Component<Props> = (props) => {
           open={dialogOpen()}
           slotLabel={props.slotLabel}
           current={current()}
-          providerDefault={providerThinkingDefault(props.provider!) ?? 'enabled'}
+          provider={props.provider!}
           onSave={(next) => props.setParams(props.provider!, props.authType!, props.model, next)}
           onClose={() => setDialogOpen(false)}
         />
