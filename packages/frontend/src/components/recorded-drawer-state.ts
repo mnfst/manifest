@@ -37,8 +37,6 @@ export interface RecordedDrawerState {
   setConfirmingDelete: Setter<boolean>;
   deleting: Accessor<boolean>;
   setDeleting: Setter<boolean>;
-  /** Reset all transient UI state — call when the drawer closes. */
-  reset: () => void;
 }
 
 const ALL_ROLES: Role[] = ['user', 'assistant', 'system', 'tool'];
@@ -112,15 +110,6 @@ export function createRecordedDrawerState(
     setExpandedTurns(next);
   };
 
-  const reset = () => {
-    setActiveTab('conversation');
-    setSearchQueryRaw('');
-    setActiveTurnIndex(null);
-    setOverflowOpen(false);
-    setConfirmingDelete(false);
-    setDeleting(false);
-  };
-
   return {
     activeTab,
     setActiveTab,
@@ -141,6 +130,5 @@ export function createRecordedDrawerState(
     setConfirmingDelete,
     deleting,
     setDeleting,
-    reset,
   };
 }

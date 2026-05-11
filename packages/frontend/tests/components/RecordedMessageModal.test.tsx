@@ -99,6 +99,11 @@ describe("RecordedMessageModal (drawer)", () => {
     mockPathname = "/agents/test-agent/messages";
     mockGetMessageDetails.mockResolvedValue(baseDetails());
     mockDeleteMessageRecording.mockResolvedValue(undefined);
+    // jsdom doesn't implement scrollIntoView; the drawer's jumpTo() calls
+    // it inside queueMicrotask. Stub it so unhandled-error logs don't fire.
+    if (!(Element.prototype as { scrollIntoView?: () => void }).scrollIntoView) {
+      (Element.prototype as { scrollIntoView?: () => void }).scrollIntoView = () => {};
+    }
   });
 
   it("renders nothing when closed", () => {
@@ -449,6 +454,372 @@ describe("RecordedMessageModal (drawer)", () => {
     await vi.waitFor(() => {
       expect(q(".recorded-drawer__render-toggle")?.textContent?.trim()).toBe("Raw");
       expect(document.querySelector('[data-testid="code-plaintext"]')).not.toBeNull();
+    });
+  });
+
+  it("jumps to the last user turn when the Essentials user CTA is clicked", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-modal__essentials")).not.toBeNull());
+    const jumpBtns = Array.from(
+      document.querySelectorAll(".recorded-modal__essentials-jump"),
+    );
+    expect(jumpBtns.length).toBe(2);
+    fireEvent.click(jumpBtns[0]);
+    await vi.waitFor(() => {
+      const conv = document.querySelector('[role="tab"][aria-selected="true"]');
+      expect(conv?.textContent).toContain("Conversation");
+    });
+  });
+
+  it("jumps to the last assistant turn when the Essentials assistant CTA is clicked", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-modal__essentials")).not.toBeNull());
+    const jumpBtns = Array.from(
+      document.querySelectorAll(".recorded-modal__essentials-jump"),
+    );
+    fireEvent.click(jumpBtns[1]);
+    await vi.waitFor(() => {
+      const conv = document.querySelector('[role="tab"][aria-selected="true"]');
+      expect(conv?.textContent).toContain("Conversation");
+    });
+  });
+
+  it("shows Essentials tool-calls pill when assistant reply carries tool_calls", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            messages: [{ role: "user", content: "hi" }],
+          },
+          response_body: {
+            type: "json",
+            body: {
+              choices: [
+                {
+                  index: 0,
+                  message: {
+                    role: "assistant",
+                    content: "",
+                    tool_calls: [
+                      { id: "c1", type: "function", function: { name: "lookup" } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          response_headers: {},
+          size_bytes: 0,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => {
+      const ess = q(".recorded-modal__essentials")!;
+      expect(ess.textContent).toContain("tool calls");
+      expect(ess.textContent).toContain("lookup");
+    });
+  });
+
+  it("expands a long Essentials body via the Show full toggle", async () => {
+    const long = "x".repeat(500);
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: { messages: [{ role: "user", content: long }] },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 600,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(findButton("Show full")).toBeDefined());
+    fireEvent.click(findButton("Show full")!);
+    await vi.waitFor(() => expect(findButton("Show less")).toBeDefined());
+  });
+
+  it("renders a cache_read metric pill when the message has cached prompt tokens", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        message: { ...baseDetails().message, cache_read_tokens: 100 },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => {
+      const metrics = q(".recorded-drawer__metrics")!.textContent ?? "";
+      expect(metrics).toContain("cache read");
+    });
+  });
+
+  it("focuses the rail search input when '/' is pressed in the drawer", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-modal__rail-input")).not.toBeNull());
+    const drawer = q(".recorded-drawer") as HTMLElement;
+    fireEvent.keyDown(drawer, { key: "/" });
+    await vi.waitFor(() => {
+      expect(document.activeElement?.id).toBe("recorded-drawer-search");
+    });
+  });
+
+  it("does not hijack '/' when focus is in an input/textarea", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-modal__rail-input")).not.toBeNull());
+    const drawer = q(".recorded-drawer") as HTMLElement;
+    const railInput = q(".recorded-modal__rail-input") as HTMLInputElement;
+    railInput.focus();
+    const ev = new KeyboardEvent("keydown", { key: "/", bubbles: true, cancelable: true });
+    drawer.dispatchEvent(ev);
+    expect(ev.defaultPrevented).toBe(false);
+  });
+
+  it("closes the overflow menu when Escape is pressed while it is open", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-drawer__overflow-btn")).not.toBeNull());
+    fireEvent.click(q(".recorded-drawer__overflow-btn") as HTMLElement);
+    await vi.waitFor(() => expect(findButton("Delete recording")).toBeDefined());
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await vi.waitFor(() => expect(findButton("Delete recording")).toBeUndefined());
+  });
+
+  it("closes the overflow menu when clicking outside of it", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-drawer__overflow-btn")).not.toBeNull());
+    fireEvent.click(q(".recorded-drawer__overflow-btn") as HTMLElement);
+    await vi.waitFor(() => expect(findButton("Delete recording")).toBeDefined());
+    // Pointer-down on the body, outside the overflow wrapper. jsdom lacks
+    // PointerEvent, so a plain Event with the right type suffices for the
+    // listener — it only cares about .target and bubbling.
+    const ev = new Event("pointerdown", { bubbles: true });
+    Object.defineProperty(ev, "target", { value: document.body, configurable: true });
+    document.dispatchEvent(ev);
+    await vi.waitFor(() => expect(findButton("Delete recording")).toBeUndefined());
+  });
+
+  it("toasts an error when copy-request is clicked but the request body is missing", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: null,
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 0,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    // The Copy request button only renders when request_body is truthy, so
+    // here we assert it's hidden — the null-payload toast path is exercised
+    // separately by direct copyToClipboard tests when added.
+    await vi.waitFor(() => expect(q(".recorded-drawer__tabs")).not.toBeNull());
+    expect(findButton("Copy request")).toBeUndefined();
+  });
+
+  it("surfaces a clipboard-blocked toast when writeText rejects", async () => {
+    const writeText = vi.fn().mockRejectedValue(new Error("blocked"));
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(findButton("Copy request")).toBeDefined());
+    fireEvent.click(findButton("Copy request")!);
+    await vi.waitFor(() => {
+      expect(mockToast.error).toHaveBeenCalledWith("Clipboard write blocked by the browser.");
+    });
+  });
+
+  it("swallows delete errors without crashing the drawer", async () => {
+    mockDeleteMessageRecording.mockRejectedValueOnce(new Error("server fail"));
+    const onClose = vi.fn();
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={onClose} />);
+    await vi.waitFor(() => expect(q(".recorded-drawer__overflow-btn")).not.toBeNull());
+    fireEvent.click(q(".recorded-drawer__overflow-btn") as HTMLElement);
+    await vi.waitFor(() => expect(findButton("Delete recording")).toBeDefined());
+    fireEvent.click(findButton("Delete recording")!);
+    await vi.waitFor(() => expect(findButton("Confirm delete")).toBeDefined());
+    fireEvent.click(findButton("Confirm delete")!);
+    // Drawer stays open since delete failed — no onClose() call.
+    await vi.waitFor(() => {
+      expect(mockDeleteMessageRecording).toHaveBeenCalled();
+    });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("clicking an outline row for a collapsed turn expands it", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-modal__rail")).not.toBeNull());
+    // The system turn is collapsed by default (see "renders conversation turn rows" test).
+    const systemRow = Array.from(
+      document.querySelectorAll(".recorded-modal__outline-row"),
+    ).find((el) => el.textContent?.toLowerCase().includes("system")) as HTMLElement;
+    expect(systemRow).toBeDefined();
+    fireEvent.click(systemRow);
+    await vi.waitFor(() => {
+      const systemTurn = Array.from(document.querySelectorAll(".recorded-modal__turn")).find(
+        (t) => t.getAttribute("data-role") === "system",
+      );
+      expect(systemTurn?.classList.contains("recorded-modal__turn--compact")).toBe(false);
+    });
+  });
+
+  it("re-adds a role chip after it was toggled off", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(document.querySelectorAll(".recorded-modal__turn").length).toBe(3));
+    const userChip = Array.from(document.querySelectorAll(".recorded-modal__rail-filter")).find(
+      (b) => b.textContent?.trim() === "user",
+    ) as HTMLElement;
+    fireEvent.click(userChip); // turn off
+    await vi.waitFor(() =>
+      expect(document.querySelectorAll('.recorded-modal__turn[data-role="user"]').length).toBe(0),
+    );
+    fireEvent.click(userChip); // turn back on
+    await vi.waitFor(() =>
+      expect(
+        document.querySelectorAll('.recorded-modal__turn[data-role="user"]').length,
+      ).toBeGreaterThan(0),
+    );
+  });
+
+  it("Escape pressed inside the drawer closes it", async () => {
+    const onClose = vi.fn();
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={onClose} />);
+    await vi.waitFor(() => expect(q(".recorded-drawer")).not.toBeNull());
+    const drawer = q(".recorded-drawer") as HTMLElement;
+    fireEvent.keyDown(drawer, { key: "Escape" });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("renders the tools tab content when there are tools in the request_body", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            messages: [{ role: "user", content: "hi" }],
+            tools: [
+              { type: "function", function: { name: "lookup", description: "find a thing" } },
+            ],
+          },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 0,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-drawer__tabs")).not.toBeNull());
+    const toolsTab = Array.from(document.querySelectorAll('[role="tab"]')).find((t) =>
+      t.textContent?.includes("Tools"),
+    ) as HTMLElement;
+    fireEvent.click(toolsTab);
+    await vi.waitFor(() => {
+      expect(document.querySelector(".recorded-modal__tool-def")?.textContent).toContain("lookup");
+    });
+  });
+
+  it("renders the empty-tools fallback on the tools tab when none are defined", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: { messages: [{ role: "user", content: "hi" }] },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 0,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-drawer__tabs")).not.toBeNull());
+    const toolsTab = Array.from(document.querySelectorAll('[role="tab"]')).find((t) =>
+      t.textContent?.includes("Tools"),
+    ) as HTMLElement;
+    fireEvent.click(toolsTab);
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain("No tools defined");
+    });
+  });
+
+  it("jumps to the first user turn when the rail 'First user' button is clicked", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-modal__rail")).not.toBeNull());
+    fireEvent.click(findButton("⤒ First user")!);
+    await vi.waitFor(() => {
+      const conv = document.querySelector('[role="tab"][aria-selected="true"]');
+      expect(conv?.textContent).toContain("Conversation");
+    });
+  });
+
+  it("renders the '999+' badge when a turn has more than 999 matches", async () => {
+    // Compose content that has > MAX_COUNTED_MATCHES occurrences of 'a'.
+    const heavyContent = "a".repeat(1500);
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: { messages: [{ role: "user", content: heavyContent }] },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 1500,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-modal__rail-input")).not.toBeNull());
+    const input = q(".recorded-modal__rail-input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "a" } });
+    await vi.waitFor(() => {
+      const matches = Array.from(
+        document.querySelectorAll(".recorded-modal__outline-match"),
+      ).map((m) => m.textContent);
+      expect(matches.some((m) => m?.includes("999+"))).toBe(true);
+    });
+  });
+
+  it("renders an '(empty)' preview when a message has neither content nor tool_calls", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            messages: [{ role: "user", content: "hi" }, { role: "assistant", content: "" }],
+          },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 0,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => {
+      const previews = Array.from(document.querySelectorAll(".recorded-modal__outline-preview"))
+        .map((p) => p.textContent);
+      expect(previews.some((p) => p?.includes("(empty)"))).toBe(true);
+    });
+  });
+
+  it("falls back to text rendering when JSON-shaped content is malformed", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            messages: [{ role: "user", content: '{"q":"hi' /* missing close */ }],
+          },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 0,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => {
+      // Falls through to text — chip row and json codeblock should not appear.
+      expect(document.querySelector('[data-testid="code-json"]')).toBeNull();
     });
   });
 

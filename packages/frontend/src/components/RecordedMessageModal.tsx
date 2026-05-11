@@ -86,10 +86,6 @@ const RecordedMessageModal: Component<Props> = (props) => {
   };
 
   const copyToClipboard = async (payload: unknown, label: string) => {
-    if (payload == null) {
-      toast.error(`${label} is not captured on this recording.`);
-      return;
-    }
     try {
       await navigator.clipboard.writeText(prettyJson(payload));
       toast.success(`${label} copied to clipboard.`);
