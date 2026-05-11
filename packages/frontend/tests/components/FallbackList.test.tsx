@@ -1045,4 +1045,81 @@ describe("FallbackList", () => {
       );
     });
   });
+
+  describe("per-row params button", () => {
+    const deepseekRoute = {
+      provider: "deepseek",
+      authType: "api_key" as const,
+      model: "deepseek-v4-flash",
+      keyLabel: null,
+    };
+    const openaiRoute = {
+      provider: "openai",
+      authType: "api_key" as const,
+      model: "gpt-4o",
+      keyLabel: null,
+    };
+
+    it("renders the params button on a fallback row whose provider consumes a known param key", () => {
+      const onConfigureParams = vi.fn();
+      const { container } = render(() => (
+        <FallbackList
+          {...defaultProps}
+          fallbacks={["deepseek-v4-flash"]}
+          fallbackRoutes={[deepseekRoute] as any}
+          onConfigureParams={onConfigureParams}
+        />
+      ));
+      const btn = container.querySelector(".fallback-list__params") as HTMLButtonElement | null;
+      expect(btn).not.toBeNull();
+      fireEvent.click(btn!);
+      expect(onConfigureParams).toHaveBeenCalledTimes(1);
+    });
+
+    it("does NOT render the params button when the row's provider has no known param key", () => {
+      const { container } = render(() => (
+        <FallbackList
+          {...defaultProps}
+          fallbacks={["gpt-4o"]}
+          fallbackRoutes={[openaiRoute] as any}
+          onConfigureParams={vi.fn()}
+        />
+      ));
+      expect(container.querySelector(".fallback-list__params")).toBeNull();
+    });
+
+    it("does NOT render the params button when onConfigureParams is undefined", () => {
+      const { container } = render(() => (
+        <FallbackList
+          {...defaultProps}
+          fallbacks={["deepseek-v4-flash"]}
+          fallbackRoutes={[deepseekRoute] as any}
+        />
+      ));
+      expect(container.querySelector(".fallback-list__params")).toBeNull();
+    });
+
+    it("renders the params button when fallbackRoutes is null and provider is derived from the models list", () => {
+      // Legacy / pre-backfill data path: structured routes are not available
+      // yet, but the row's provider can still be resolved via the model
+      // catalog. Visibility must follow the resolved provider, not require
+      // an explicit ModelRoute.
+      const onConfigureParams = vi.fn();
+      const modelsWithDeepseek = [
+        ...models,
+        { model_name: "deepseek-v4-flash", provider: "DeepSeek" },
+      ] as any[];
+      const { container } = render(() => (
+        <FallbackList
+          {...defaultProps}
+          models={modelsWithDeepseek}
+          fallbacks={["deepseek-v4-flash"]}
+          fallbackRoutes={null}
+          onConfigureParams={onConfigureParams}
+        />
+      ));
+      const btn = container.querySelector(".fallback-list__params") as HTMLButtonElement | null;
+      expect(btn).not.toBeNull();
+    });
+  });
 });
