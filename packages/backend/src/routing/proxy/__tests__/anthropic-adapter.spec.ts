@@ -1,4 +1,5 @@
 import {
+  applyAnthropicMessagesMutations,
   toAnthropicRequest,
   fromAnthropicResponse,
   transformAnthropicStreamChunk,
@@ -183,77 +184,6 @@ describe('Anthropic Adapter', () => {
       });
       expect(tools[0].cache_control).toBeUndefined();
       expect(tools[1].cache_control).toEqual({ type: 'ephemeral' });
-    });
-
-    it('re-emits stashed Anthropic server tools with their type tag and drops their function-shaped duplicates (issue #1886)', () => {
-      const body = {
-        messages: [{ role: 'user', content: 'Search' }],
-        // Function-shaped duplicates that toChatTools would have emitted for
-        // the server tools, plus a real custom tool.
-        tools: [
-          { type: 'function', function: { name: 'web_search' } },
-          { type: 'function', function: { name: 'bash' } },
-          {
-            type: 'function',
-            function: {
-              name: 'my_custom',
-              description: 'do thing',
-              parameters: { type: 'object' },
-            },
-          },
-        ],
-        _anthropicServerTools: [
-          { type: 'web_search_20250305', name: 'web_search' },
-          { type: 'bash_20250124', name: 'bash' },
-        ],
-      };
-      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
-
-      const tools = result.tools as Array<Record<string, unknown>>;
-      expect(tools).toHaveLength(3);
-      // Server tools first, with type tag intact and no input_schema.
-      expect(tools[0]).toMatchObject({ type: 'web_search_20250305', name: 'web_search' });
-      expect(tools[0].input_schema).toBeUndefined();
-      expect(tools[1]).toMatchObject({ type: 'bash_20250124', name: 'bash' });
-      expect(tools[1].input_schema).toBeUndefined();
-      // Custom tool keeps input_schema. cache_control breakpoint lands on
-      // the last (custom) tool.
-      expect(tools[2].name).toBe('my_custom');
-      expect(tools[2].input_schema).toEqual({ type: 'object' });
-      expect(tools[2].cache_control).toEqual({ type: 'ephemeral' });
-      // Server-tool entries don't get a cache_control breakpoint.
-      expect(tools[0].cache_control).toBeUndefined();
-      expect(tools[1].cache_control).toBeUndefined();
-    });
-
-    it('emits stashed server tools even when no custom tools are present', () => {
-      const body = {
-        messages: [{ role: 'user', content: 'x' }],
-        tools: [{ type: 'function', function: { name: 'web_search' } }],
-        _anthropicServerTools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      };
-      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
-      const tools = result.tools as Array<Record<string, unknown>>;
-      expect(tools).toEqual([
-        {
-          type: 'web_search_20250305',
-          name: 'web_search',
-          cache_control: { type: 'ephemeral' },
-        },
-      ]);
-    });
-
-    it('omits cache_control on stashed server tools when injectCacheControl is false', () => {
-      const body = {
-        messages: [{ role: 'user', content: 'x' }],
-        tools: [{ type: 'function', function: { name: 'web_search' } }],
-        _anthropicServerTools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      };
-      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
-        injectCacheControl: false,
-      });
-      const tools = result.tools as Array<Record<string, unknown>>;
-      expect(tools).toEqual([{ type: 'web_search_20250305', name: 'web_search' }]);
     });
 
     it('converts tool_calls in assistant messages to tool_use blocks', () => {
@@ -2000,6 +1930,243 @@ describe('Anthropic Adapter', () => {
       // Should only modify the last system message (index 2)
       expect(typeof messages[0].content).toBe('string');
       expect(Array.isArray(messages[2].content)).toBe(true);
+    });
+  });
+
+  describe('applyAnthropicMessagesMutations', () => {
+    it('preserves Anthropic server tools with their type discriminator and skips input_schema (issue #1886)', () => {
+      const inbound = {
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'find cats' }],
+        tools: [
+          { type: 'web_search_20250305', name: 'web_search' },
+          { type: 'bash_20250124', name: 'bash' },
+          { name: 'my_custom', input_schema: { type: 'object' } },
+        ],
+      };
+      const result = applyAnthropicMessagesMutations(inbound);
+
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools).toHaveLength(3);
+      expect(tools[0]).toMatchObject({ type: 'web_search_20250305', name: 'web_search' });
+      expect(tools[0].input_schema).toBeUndefined();
+      expect(tools[1]).toMatchObject({ type: 'bash_20250124', name: 'bash' });
+      expect(tools[1].input_schema).toBeUndefined();
+      expect(tools[2]).toMatchObject({
+        name: 'my_custom',
+        input_schema: { type: 'object' },
+        cache_control: { type: 'ephemeral' },
+      });
+      // Inbound array isn't mutated.
+      expect((inbound.tools[2] as Record<string, unknown>).cache_control).toBeUndefined();
+    });
+
+    it('places cache_control on the last system block when system is an array', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        system: [
+          { type: 'text', text: 'persona' },
+          { type: 'text', text: 'task' },
+        ],
+      });
+      const system = result.system as Array<Record<string, unknown>>;
+      expect(system).toHaveLength(2);
+      expect(system[0].cache_control).toBeUndefined();
+      expect(system[1].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('wraps a string system in a block array and caches it', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        system: 'Be concise.',
+      });
+      expect(result.system).toEqual([
+        { type: 'text', text: 'Be concise.', cache_control: { type: 'ephemeral' } },
+      ]);
+    });
+
+    it('leaves string system intact when no mutations are needed', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [{ role: 'user', content: 'hi' }],
+          system: 'Be concise.',
+        },
+        { injectCacheControl: false },
+      );
+      expect(result.system).toBe('Be concise.');
+    });
+
+    it('prepends the subscription identity block ahead of an existing system', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [{ role: 'user', content: 'hi' }],
+          system: 'You are Manifest.',
+        },
+        { injectSubscriptionIdentity: true, injectCacheControl: false },
+      );
+      const system = result.system as Array<Record<string, unknown>>;
+      expect(system).toHaveLength(2);
+      expect(system[0].text).toMatch(/Claude agent/);
+      expect(system[1].text).toBe('You are Manifest.');
+    });
+
+    it('creates a system from scratch when subscription identity is requested and no system exists', () => {
+      const result = applyAnthropicMessagesMutations(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        { injectSubscriptionIdentity: true, injectCacheControl: false },
+      );
+      const system = result.system as Array<Record<string, unknown>>;
+      expect(system).toHaveLength(1);
+      expect(system[0].text).toMatch(/Claude agent/);
+    });
+
+    it('drops system when input has none and no mutations need it', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      expect(result).not.toHaveProperty('system');
+    });
+
+    it('drops an explicitly-empty system array', () => {
+      // Edge case: caller sends `system: []`. The cache_control branch runs
+      // (Array.isArray is true) but produces no blocks, so we drop the field
+      // rather than echo a useless empty array.
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        system: [],
+      });
+      expect(result).not.toHaveProperty('system');
+    });
+
+    it('omits cache_control when injectCacheControl is false', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [{ role: 'user', content: 'hi' }],
+          system: [{ type: 'text', text: 'persona' }],
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        },
+        { injectCacheControl: false },
+      );
+      const system = result.system as Array<Record<string, unknown>>;
+      expect(system[0].cache_control).toBeUndefined();
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools[0].cache_control).toBeUndefined();
+    });
+
+    it('defaults max_tokens to 4096 when not provided', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      expect(result.max_tokens).toBe(4096);
+    });
+
+    it('keeps caller-supplied max_tokens', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        max_tokens: 256,
+      });
+      expect(result.max_tokens).toBe(256);
+    });
+
+    it('replays cached thinking blocks ahead of tool_use in assistant turns', () => {
+      const cached = [{ type: 'thinking' as const, thinking: 'searching', signature: 'sig' }];
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [
+            { role: 'user', content: 'find cats' },
+            {
+              role: 'assistant',
+              content: [
+                { type: 'tool_use', id: 'call_1', name: 'web_search', input: { q: 'cats' } },
+              ],
+            },
+          ],
+        },
+        { thinkingLookup: (id) => (id === 'call_1' ? cached : null) },
+      );
+      const messages = result.messages as Array<Record<string, unknown>>;
+      const assistant = messages[1];
+      const content = assistant.content as Array<Record<string, unknown>>;
+      expect(content[0]).toEqual({ type: 'thinking', thinking: 'searching', signature: 'sig' });
+      expect(content[1]).toMatchObject({ type: 'tool_use', id: 'call_1' });
+    });
+
+    it('does not touch messages when thinkingLookup returns nothing', () => {
+      const inboundMessages = [
+        { role: 'user', content: 'hi' },
+        {
+          role: 'assistant',
+          content: [{ type: 'tool_use', id: 'call_x', name: 'foo', input: {} }],
+        },
+      ];
+      const result = applyAnthropicMessagesMutations(
+        { messages: inboundMessages },
+        { thinkingLookup: () => null },
+      );
+      expect(result.messages).toEqual(inboundMessages);
+    });
+
+    it('skips thinking replay for assistant turns without a tool_use block', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [
+            { role: 'user', content: 'hi' },
+            { role: 'assistant', content: [{ type: 'text', text: 'reply' }] },
+          ],
+        },
+        {
+          thinkingLookup: () => [{ type: 'thinking' as const, thinking: 'x', signature: 's' }],
+        },
+      );
+      const messages = result.messages as Array<Record<string, unknown>>;
+      const content = messages[1].content as Array<Record<string, unknown>>;
+      expect(content).toEqual([{ type: 'text', text: 'reply' }]);
+    });
+
+    it('skips tool_use blocks without a string id', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [
+            {
+              role: 'assistant',
+              content: [{ type: 'tool_use', name: 'foo', input: {} }],
+            },
+          ],
+        },
+        {
+          thinkingLookup: () => [{ type: 'thinking' as const, thinking: 'x', signature: 's' }],
+        },
+      );
+      const messages = result.messages as Array<Record<string, unknown>>;
+      const content = messages[0].content as Array<Record<string, unknown>>;
+      expect(content).toEqual([{ type: 'tool_use', name: 'foo', input: {} }]);
+    });
+
+    it('passes Anthropic-only fields through untouched (top_k, stop_sequences, thinking, metadata, tool_choice)', () => {
+      const result = applyAnthropicMessagesMutations({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'hi' }],
+        temperature: 0.5,
+        top_p: 0.9,
+        top_k: 40,
+        stop_sequences: ['END'],
+        thinking: { type: 'enabled', budget_tokens: 1024 },
+        metadata: { user_id: 'u' },
+        tool_choice: { type: 'auto' },
+      });
+      expect(result).toMatchObject({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        temperature: 0.5,
+        top_p: 0.9,
+        top_k: 40,
+        stop_sequences: ['END'],
+        thinking: { type: 'enabled', budget_tokens: 1024 },
+        metadata: { user_id: 'u' },
+        tool_choice: { type: 'auto' },
+      });
     });
   });
 });

@@ -186,30 +186,15 @@ export function toAnthropicRequest(
   };
   if (systemBlocks.length > 0) result.system = systemBlocks;
 
-  // Re-emit Anthropic server tools (web_search_*, bash_*, text_editor_*, etc.)
-  // unchanged when the inbound request was Anthropic Messages and stashed them
-  // on the body. The OpenAI tool shape can't represent a server tool's `type`
-  // tag, so convertTools would produce nameless customs that Anthropic rejects
-  // (issue #1886). Drop function-shaped entries whose name collides with a
-  // stashed server tool, then prepend the originals.
-  const stashedServerTools = Array.isArray(body._anthropicServerTools)
-    ? (body._anthropicServerTools as Array<Record<string, unknown>>)
-    : [];
-  const serverToolNames = new Set<string>();
-  for (const t of stashedServerTools) {
-    if (typeof t.name === 'string') serverToolNames.add(t.name);
-  }
-  const convertedTools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
-  const customTools: AnthropicTool[] = convertedTools
-    ? convertedTools.filter((t) => !serverToolNames.has(t.name))
-    : [];
-  const combinedTools: AnthropicTool[] = [
-    ...stashedServerTools.map((t) => ({ ...t }) as unknown as AnthropicTool),
-    ...customTools,
-  ];
-  if (combinedTools.length > 0) {
-    if (shouldCache) combinedTools[combinedTools.length - 1].cache_control = CACHE;
-    result.tools = combinedTools;
+  // This path runs only for chat_completions inbound requests resolving to an
+  // Anthropic upstream. Anthropic Messages inbound requests (POST /v1/messages)
+  // bypass translation entirely via applyAnthropicMessagesMutations, so
+  // server tools never reach this code path and the OpenAI function-shape
+  // assumption is safe.
+  const tools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
+  if (tools) {
+    if (shouldCache) tools[tools.length - 1].cache_control = CACHE;
+    result.tools = tools;
   }
 
   if (body.temperature !== undefined) result.temperature = body.temperature;
@@ -227,6 +212,83 @@ export function toAnthropicRequest(
   } else if (typeof body.stop === 'string' && body.stop) {
     result.stop_sequences = [body.stop];
   }
+  return result;
+}
+
+/**
+ * Apply additive mutations to a body that is ALREADY in Anthropic Messages
+ * shape (inbound `POST /v1/messages` forwarded to an Anthropic upstream).
+ * Bypasses the lossy OpenAI round-trip used by `toAnthropicRequest`: server
+ * tools keep their `type` discriminator, `cache_control` placement matches
+ * what Anthropic would see natively, and Anthropic-only fields don't leak
+ * through a chat-completions stencil. Mutations:
+ *
+ * - Default `max_tokens` to 4096 if unset.
+ * - Inject the subscription-identity system block for OAuth tokens.
+ * - Place a `cache_control` breakpoint on the last system block and last tool.
+ * - Replay cached extended-thinking blocks at the head of assistant turns
+ *   whose first content block is a `tool_use`.
+ */
+export function applyAnthropicMessagesMutations(
+  body: Record<string, unknown>,
+  options?: AnthropicRequestOptions,
+): Record<string, unknown> {
+  const shouldCache = options?.injectCacheControl !== false;
+  const result: Record<string, unknown> = { ...body };
+
+  // Normalize `system` to a content-block array so cache_control + identity
+  // injection have a uniform target. Anthropic accepts either a bare string
+  // or an array of blocks; we always emit the array form when either
+  // mutation needs to happen, otherwise we leave a string system intact.
+  const needsBlockSystem =
+    options?.injectSubscriptionIdentity ||
+    (shouldCache && (typeof body.system === 'string' ? body.system : Array.isArray(body.system)));
+  if (needsBlockSystem) {
+    let systemBlocks: ContentBlock[] = [];
+    if (typeof body.system === 'string') {
+      if (body.system) systemBlocks.push({ type: 'text', text: body.system });
+    } else if (Array.isArray(body.system)) {
+      systemBlocks = (body.system as ContentBlock[]).map((b) => ({ ...b }));
+    }
+    if (shouldCache && systemBlocks.length > 0) {
+      systemBlocks[systemBlocks.length - 1].cache_control = CACHE;
+    }
+    if (options?.injectSubscriptionIdentity) {
+      systemBlocks.unshift({ ...SUBSCRIPTION_IDENTITY_BLOCK });
+    }
+    if (systemBlocks.length > 0) {
+      result.system = systemBlocks;
+    } else {
+      delete result.system;
+    }
+  }
+
+  // Tools: shallow-clone the array + last entry so the cache_control mutation
+  // doesn't bleed back into the inbound body. Server tools' `type` tag and
+  // custom tools' `input_schema` both survive unchanged.
+  if (Array.isArray(body.tools)) {
+    const tools = (body.tools as Array<Record<string, unknown>>).map((t) => ({ ...t }));
+    if (tools.length > 0 && shouldCache) {
+      tools[tools.length - 1].cache_control = CACHE;
+    }
+    result.tools = tools;
+  }
+
+  if (result.max_tokens === undefined) result.max_tokens = 4096;
+
+  const thinkingLookup = options?.thinkingLookup;
+  if (thinkingLookup && Array.isArray(body.messages)) {
+    result.messages = (body.messages as Array<Record<string, unknown>>).map((m) => {
+      if (m.role !== 'assistant' || !Array.isArray(m.content)) return m;
+      const content = m.content as ContentBlock[];
+      const firstToolUse = content.find((b) => b.type === 'tool_use');
+      if (!firstToolUse || typeof firstToolUse.id !== 'string') return m;
+      const cached = thinkingLookup(firstToolUse.id);
+      if (!cached || cached.length === 0) return m;
+      return { ...m, content: [...(cached as ContentBlock[]), ...content] };
+    });
+  }
+
   return result;
 }
 

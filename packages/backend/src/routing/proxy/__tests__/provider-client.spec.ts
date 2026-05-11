@@ -268,6 +268,97 @@ describe('ProviderClient', () => {
       expect(sentBody.system).toBeUndefined();
     });
 
+    it('forwards Anthropic-Messages inbound to an Anthropic upstream without OpenAI translation (issue #1886)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const anthropicBody = {
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 1024,
+        system: 'Be concise.',
+        messages: [{ role: 'user', content: 'find cats' }],
+        tools: [
+          { type: 'web_search_20250305', name: 'web_search' },
+          { name: 'my_custom', input_schema: { type: 'object' } },
+        ],
+        top_k: 40,
+      };
+      // chatBody is what the routing layer would have produced — we pass it
+      // in to prove the wire path ignores it and reads the raw body instead.
+      const lossyChatBody = {
+        messages: [
+          { role: 'system', content: 'Be concise.' },
+          { role: 'user', content: 'find cats' },
+        ],
+        tools: [
+          { type: 'function', function: { name: 'web_search' } },
+          { type: 'function', function: { name: 'my_custom', parameters: { type: 'object' } } },
+        ],
+        max_tokens: 1024,
+      };
+
+      await client.forward({
+        provider: 'anthropic',
+        apiKey: 'sk-ant-test',
+        model: 'claude-sonnet-4-5-20250929',
+        body: anthropicBody,
+        chatBody: lossyChatBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      // Server tool keeps its `type` discriminator — the bug from #1886.
+      expect(sent.tools[0]).toMatchObject({ type: 'web_search_20250305', name: 'web_search' });
+      expect(sent.tools[0]).not.toHaveProperty('input_schema');
+      // Custom tool keeps input_schema.
+      expect(sent.tools[1]).toMatchObject({
+        name: 'my_custom',
+        input_schema: { type: 'object' },
+      });
+      // cache_control breakpoint lands on the last tool, as Anthropic expects.
+      expect(sent.tools[1].cache_control).toEqual({ type: 'ephemeral' });
+      // Anthropic-only fields survive verbatim.
+      expect(sent.top_k).toBe(40);
+      // System was promoted to a block array and got the cache_control breakpoint.
+      expect(sent.system).toEqual([
+        { type: 'text', text: 'Be concise.', cache_control: { type: 'ephemeral' } },
+      ]);
+      // Inbound body untouched (no surprise mutations).
+      expect((anthropicBody.tools[1] as Record<string, unknown>).cache_control).toBeUndefined();
+    });
+
+    it('still uses toAnthropicRequest for chat_completions inbound forwarded to an Anthropic upstream', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'anthropic',
+        apiKey: 'sk-ant-test',
+        model: 'claude-sonnet-4-5-20250929',
+        body: {
+          model: 'claude-sonnet-4-5-20250929',
+          messages: [
+            { role: 'system', content: 'Be concise.' },
+            { role: 'user', content: 'hi' },
+          ],
+          tools: [
+            {
+              type: 'function',
+              function: { name: 'lookup', parameters: { type: 'object' } },
+            },
+          ],
+          max_tokens: 256,
+        },
+        stream: false,
+        apiMode: 'chat_completions',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      // Translation happened: system pulled out of messages, function tool
+      // re-emitted as Anthropic `{ name, input_schema }` shape.
+      expect(sent.system[0].text).toBe('Be concise.');
+      expect(sent.tools[0]).toMatchObject({ name: 'lookup', input_schema: { type: 'object' } });
+    });
+
     it('strips Codex-unsupported params on the subscription Responses path', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
