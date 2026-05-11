@@ -159,16 +159,24 @@ export function MessageCell(item: MessageRow): JSX.Element {
 }
 
 export function CostCell(item: MessageRow): JSX.Element {
+  // Subscription rows with a non-zero recorded cost are per-request
+  // subscriptions like OpenCode Go (docs-attributed $/request). Flat-fee
+  // subscriptions (Claude Max, ChatGPT Plus, GLM Coding, Copilot) record
+  // $0 and keep the "Included in subscription" treatment.
+  const isPerRequestSubscription =
+    item.auth_type === 'subscription' && item.cost != null && item.cost > 0;
   return (
     <td style={MONO}>
       <Show
-        when={item.auth_type === 'subscription'}
+        when={item.auth_type === 'subscription' && !isPerRequestSubscription}
         fallback={
           <span
             title={
-              item.cost != null && item.cost > 0 && item.cost < 0.01
-                ? `$${item.cost.toFixed(6)}`
-                : undefined
+              isPerRequestSubscription
+                ? `Per-request subscription cost: $${item.cost!.toFixed(6)}`
+                : item.cost != null && item.cost > 0 && item.cost < 0.01
+                  ? `$${item.cost.toFixed(6)}`
+                  : undefined
             }
           >
             {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}

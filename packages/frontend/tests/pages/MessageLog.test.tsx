@@ -650,19 +650,38 @@ describe("MessageLog", () => {
     });
   });
 
-  it("shows $0.00 cost for subscription auth_type messages", async () => {
+  it("shows $0.00 cost for flat-fee subscription messages (cost null)", async () => {
     const dataWithSub = {
       ...messagesData,
       items: [
-        { ...messagesData.items[0], auth_type: "subscription", cost: 0.05 },
+        { ...messagesData.items[0], auth_type: "subscription", cost: null },
       ],
       total_count: 1,
     };
     mockGetMessages.mockResolvedValue(dataWithSub);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      // Subscription messages show "$0.00" instead of actual cost
       expect(container.textContent).toContain("$0.00");
+      expect(container.querySelector('[title="Included in subscription"]')).not.toBeNull();
+    });
+  });
+
+  it("shows the recorded per-request cost for OpenCode Go subscription messages", async () => {
+    const dataWithPerRequestSub = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], auth_type: "subscription", cost: 0.013636 },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithPerRequestSub);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      // Per-request subscriptions (OpenCode Go) record real costs — don't hide them.
+      expect(container.textContent).toContain("$0.01");
+      expect(
+        container.querySelector('[title^="Per-request subscription cost:"]'),
+      ).not.toBeNull();
     });
   });
 
