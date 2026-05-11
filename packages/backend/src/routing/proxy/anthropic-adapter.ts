@@ -192,8 +192,13 @@ export function toAnthropicRequest(
   // tag, so convertTools would produce nameless customs that Anthropic rejects
   // (issue #1886). Drop function-shaped entries whose name collides with a
   // stashed server tool, then prepend the originals.
+  //
+  // Filter to plain objects up front so a malformed stash element (null,
+  // primitive, array) doesn't throw on spread or break the name index.
   const stashedServerTools = Array.isArray(body._anthropicServerTools)
-    ? (body._anthropicServerTools as Array<Record<string, unknown>>)
+    ? body._anthropicServerTools.filter(
+        (t): t is Record<string, unknown> => !!t && typeof t === 'object' && !Array.isArray(t),
+      )
     : [];
   const serverToolNames = new Set<string>();
   for (const t of stashedServerTools) {
@@ -203,8 +208,16 @@ export function toAnthropicRequest(
   const customTools: AnthropicTool[] = convertedTools
     ? convertedTools.filter((t) => !serverToolNames.has(t.name))
     : [];
+  // Strip any pre-existing cache_control on stashed entries when caching is
+  // disabled (e.g. subscription OAuth path) — otherwise a client-supplied
+  // breakpoint would leak through and Anthropic would still treat the
+  // request as cached.
   const combinedTools: AnthropicTool[] = [
-    ...stashedServerTools.map((t) => ({ ...t }) as unknown as AnthropicTool),
+    ...stashedServerTools.map((t) => {
+      const clone = { ...t } as Record<string, unknown>;
+      if (!shouldCache) delete clone.cache_control;
+      return clone as unknown as AnthropicTool;
+    }),
     ...customTools,
   ];
   if (combinedTools.length > 0) {

@@ -256,6 +256,54 @@ describe('Anthropic Adapter', () => {
       expect(tools).toEqual([{ type: 'web_search_20250305', name: 'web_search' }]);
     });
 
+    it('strips a pre-existing cache_control on stashed server tools when injectCacheControl is false', () => {
+      // A client-supplied breakpoint on the inbound server tool must not
+      // leak through when the subscription path disables caching, or
+      // Anthropic still treats the request as cached.
+      const body = {
+        messages: [{ role: 'user', content: 'x' }],
+        tools: [{ type: 'function', function: { name: 'web_search' } }],
+        _anthropicServerTools: [
+          {
+            type: 'web_search_20250305',
+            name: 'web_search',
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
+        injectCacheControl: false,
+      });
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools).toEqual([{ type: 'web_search_20250305', name: 'web_search' }]);
+    });
+
+    it('skips malformed entries in _anthropicServerTools instead of throwing', () => {
+      // Defensive: any non-object entry (null, primitive, array) should be
+      // dropped before spread so a bad stash doesn't fail the whole request.
+      const body = {
+        messages: [{ role: 'user', content: 'x' }],
+        tools: [
+          { type: 'function', function: { name: 'web_search' } },
+          {
+            type: 'function',
+            function: { name: 'my_custom', parameters: { type: 'object' } },
+          },
+        ],
+        _anthropicServerTools: [
+          null,
+          'not-an-object',
+          ['array'],
+          { type: 'web_search_20250305', name: 'web_search' },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools).toHaveLength(2);
+      expect(tools[0]).toMatchObject({ type: 'web_search_20250305', name: 'web_search' });
+      expect(tools[1]).toMatchObject({ name: 'my_custom' });
+    });
+
     it('converts tool_calls in assistant messages to tool_use blocks', () => {
       const body = {
         messages: [
