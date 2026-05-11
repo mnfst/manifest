@@ -28,8 +28,16 @@ export { applyRequestParamDefaults, REQUEST_PARAM_KEYS } from './request-params'
 export type { RequestParamDefaults, RequestParamKey } from './request-params';
 export { snapshotRequestParams } from './request-params-snapshot';
 export type { RequestParamsSnapshotInput } from './request-params-snapshot';
-export { PROVIDER_THINKING_DEFAULTS, providerThinkingDefault } from './thinking-defaults';
+export { providerThinkingDefault } from './thinking-defaults';
 export type { ThinkingState } from './thinking-defaults';
+export {
+  PROVIDER_PARAM_SPECS,
+  getProviderParamSpecs,
+  providerParamDefault,
+  providerSupportsParam,
+  pickProviderCompatibleParams,
+} from './provider-params-spec';
+export type { ParamControl, ProviderParamSpec } from './provider-params-spec';
 export { API_KEY_PREFIX } from './api-key';
 export {
   FALLBACK_KEY_DELIMITER,

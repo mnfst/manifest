@@ -1,5 +1,5 @@
 import { BadRequestException, Body, Controller, Delete, Get, Param, Put } from '@nestjs/common';
-import { providerThinkingDefault, type RequestParamDefaults } from 'manifest-shared';
+import { pickProviderCompatibleParams, type RequestParamDefaults } from 'manifest-shared';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { AgentModelParamsService } from './routing-core/agent-model-params.service';
@@ -83,15 +83,18 @@ export class ModelParamsController {
   }
 
   /**
-   * Provider/key compatibility gate. Today only DeepSeek consumes
-   * `thinking`; future provider knobs append to the conditional below.
-   * Returns the params trimmed to the keys the provider actually consumes,
-   * so a partially-incompatible payload still saves the compatible part
-   * rather than throwing — matches the proxy's lenient merge behavior.
+   * Provider/key compatibility gate, driven by the single
+   * `PROVIDER_PARAM_SPECS` registry in `manifest-shared`. Returns the
+   * params trimmed to the keys the provider actually consumes — a partially
+   * incompatible payload still saves the compatible part rather than
+   * throwing, matching the proxy's lenient merge behavior.
    *
    * Throws when the payload is empty (no keys at all) or when no key is
    * compatible with the provider — those are user errors the UI should
    * surface, not silently swallow.
+   *
+   * Adding a new provider knob is one entry in `PROVIDER_PARAM_SPECS`;
+   * this method does not need to change.
    */
   private assertCompatibleParams(
     provider: string,
@@ -103,10 +106,7 @@ export class ModelParamsController {
     if (keys.length === 0) {
       throw new BadRequestException('params must contain at least one configurable field');
     }
-    const out: RequestParamDefaults = {};
-    if (params.thinking !== undefined && providerThinkingDefault(provider) !== undefined) {
-      out.thinking = params.thinking;
-    }
+    const out = pickProviderCompatibleParams(provider, params);
     if (Object.keys(out).length === 0) {
       throw new BadRequestException(
         `Provider "${provider}" does not consume any of the supplied params`,

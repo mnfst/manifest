@@ -1,7 +1,7 @@
-import { PROVIDER_THINKING_DEFAULTS, providerThinkingDefault } from '../src/thinking-defaults';
+import { providerThinkingDefault } from '../src/thinking-defaults';
 
 describe('providerThinkingDefault', () => {
-  it('returns the registered default for known providers', () => {
+  it('returns the registered default for providers whose spec declares the thinking key', () => {
     expect(providerThinkingDefault('deepseek')).toBe('enabled');
   });
 
@@ -9,13 +9,9 @@ describe('providerThinkingDefault', () => {
     expect(providerThinkingDefault('DeepSeek')).toBe('enabled');
   });
 
-  it('returns undefined for unknown or missing providers', () => {
+  it('returns undefined for providers whose spec has no thinking key', () => {
     expect(providerThinkingDefault('openai')).toBeUndefined();
     expect(providerThinkingDefault(undefined)).toBeUndefined();
     expect(providerThinkingDefault('')).toBeUndefined();
-  });
-
-  it('exports the registry for callers that need to enumerate it', () => {
-    expect(PROVIDER_THINKING_DEFAULTS.deepseek).toBe('enabled');
   });
 });

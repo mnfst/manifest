@@ -1,23 +1,20 @@
+import { providerParamDefault } from './provider-params-spec';
+
 /**
- * Provider-by-provider default for the OpenAI-compat `thinking.type` field.
- *
- * The popup needs to know what the upstream provider does *without* an
- * override so it can (a) show the user the real baseline and (b) collapse
- * a chosen value back to `null` when the user lands on the same state as
- * the effective default. The snapshot writer uses the same registry to
- * record provider-natural defaults on per-message telemetry.
- *
- * Add a provider here only when its API actually consumes `thinking.type`
- * in chat-completions. Anthropic / Gemini have their own thinking shapes
- * and don't belong on this surface.
+ * Two-state value for DeepSeek's `thinking.type` field. The wire shape is
+ * curated in `RequestParamDefaults` (a discriminated `thinking: { type }`)
+ * because OpenAI/Anthropic chat-completions don't share this knob — adding
+ * a provider that consumes `thinking.type` is one entry in
+ * `PROVIDER_PARAM_SPECS`, not a new wire schema.
  */
 export type ThinkingState = 'enabled' | 'disabled';
 
-export const PROVIDER_THINKING_DEFAULTS: Record<string, ThinkingState> = {
-  deepseek: 'enabled',
-};
-
+/**
+ * Thin alias preserved for callers that specifically want the thinking-key
+ * default (dialog hint, snapshot fallback). Derives from
+ * `PROVIDER_PARAM_SPECS` so adding a new provider that consumes `thinking`
+ * is one entry in `provider-params-spec.ts`, not a parallel registry edit.
+ */
 export function providerThinkingDefault(providerId: string | undefined): ThinkingState | undefined {
-  if (!providerId) return undefined;
-  return PROVIDER_THINKING_DEFAULTS[providerId.toLowerCase()];
+  return providerParamDefault(providerId, 'thinking') as ThinkingState | undefined;
 }
