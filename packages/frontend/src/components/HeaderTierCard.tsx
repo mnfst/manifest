@@ -28,7 +28,7 @@ function providerIdForModel(model: string, apiModels: AvailableModel[]): string 
     apiModels.find((x) => x.model_name.startsWith(model + '-'));
   if (m) {
     const dbId = resolveProviderId(m.provider);
-    if (dbId === 'ollama' || dbId === 'ollama-cloud') return dbId;
+    if (dbId && dbId !== 'openrouter' && PROVIDERS.find((p) => p.id === dbId)) return dbId;
     const prefixId = inferProviderFromModel(m.model_name);
     if (prefixId && PROVIDERS.find((p) => p.id === prefixId)) return prefixId;
     return dbId ?? prefixId;

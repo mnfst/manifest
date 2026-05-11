@@ -61,6 +61,7 @@ const SUPPORTS_USAGE_STREAM_OPTIONS = new Set([
   'copilot',
   'opencode-go',
   'custom',
+  'groq',
 ]);
 
 /**
@@ -70,11 +71,10 @@ const SUPPORTS_USAGE_STREAM_OPTIONS = new Set([
 function stripModelPrefix(model: string, endpointKey: string): string {
   // OpenRouter accepts and expects vendor prefixes
   if (endpointKey === 'openrouter') return model;
-  // Custom providers: CustomProviderService.rawModelName already stripped the
-  // internal "custom:<id>/" prefix upstream. Stripping again would eat a
-  // legitimate slash segment from the upstream model id
-  // (e.g. "MiniMaxAI/MiniMax-2.7" or "accounts/fireworks/routers/...").
-  if (endpointKey === 'custom') return model;
+  // Custom providers and Groq: model IDs from these APIs contain legitimate
+  // slash segments (e.g. "MiniMaxAI/MiniMax-2.7", "meta-llama/llama-guard-4-12b").
+  // Stripping would mangle the name the upstream API expects.
+  if (endpointKey === 'custom' || endpointKey === 'groq') return model;
   return stripVendorPrefix(model);
 }
 

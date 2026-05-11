@@ -149,20 +149,30 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const [primaryDropTarget, setPrimaryDropTarget] = createSignal(false);
   const [paramsDialogOpen, setParamsDialogOpen] = createSignal(false);
 
-  // The sliders icon only renders for providers whose API consumes a known
-  // param key (today: DeepSeek's `thinking`). Picking the resolved primary's
-  // provider here keeps the icon consistent with the chip the user is
-  // looking at — multi-key compat is implicit because params are stored at
-  // the tier level, independent of which key is currently pinned.
-  const paramSurfaceProvider = () => {
+  // The sliders icon renders next to whichever route — primary or fallback —
+  // uses a provider whose API consumes a known param key (today only
+  // DeepSeek's `thinking`). Param defaults are stored at the tier level and
+  // filtered per-attempt against the actual provider in the proxy, so the
+  // affordance attaches to the route that actually consumes the value rather
+  // than always living next to the primary.
+  const primaryProvider = (): string | null => {
     const t = props.tier();
-    const route = t ? effectiveRoute(t) : null;
-    return route?.provider ?? null;
+    return t ? (effectiveRoute(t)?.provider ?? null) : null;
   };
-  const supportsParams = () => {
-    const p = paramSurfaceProvider();
+  const primarySupportsParams = () => {
+    const p = primaryProvider();
     return p !== null && providerThinkingDefault(p) !== undefined;
   };
+  const paramSurfaceProvider = (): string | null => {
+    const fromPrimary = primaryProvider();
+    if (fromPrimary && providerThinkingDefault(fromPrimary) !== undefined) return fromPrimary;
+    const t = props.tier();
+    for (const r of t?.fallback_routes ?? []) {
+      if (r.provider && providerThinkingDefault(r.provider) !== undefined) return r.provider;
+    }
+    return null;
+  };
+  const supportsParams = () => paramSurfaceProvider() !== null;
   const paramsConfigured = () => (props.tier()?.param_defaults ?? null) !== null;
 
   const handlePrimaryDragStart = (e: DragEvent) => {
@@ -500,7 +510,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                             }}
                             disabled={() => props.changingTier() === props.stage.id}
                           />
-                          <Show when={supportsParams() && props.persistParamDefaults}>
+                          <Show when={primarySupportsParams() && props.persistParamDefaults}>
                             <button
                               class="routing-card__chip-action"
                               classList={{
@@ -598,6 +608,9 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               onFallbackDragEnd={() => setFallbackDragging(null)}
               persistFallbacks={props.persistFallbacks}
               persistClearFallbacks={props.persistClearFallbacks}
+              onConfigureParams={
+                props.persistParamDefaults ? () => setParamsDialogOpen(true) : undefined
+              }
             />
           </div>
         </Show>

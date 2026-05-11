@@ -71,7 +71,7 @@ const FREE_TO_BUILTIN: Record<string, string> = {
   'Google Gemini': 'gemini',
   'Mistral AI': 'mistral',
   'Z AI': 'zai',
-  Groq: 'custom',
+  Groq: 'groq',
   'Hugging Face': 'custom',
   'Kilo Code': 'custom',
   'NVIDIA NIM': 'custom',

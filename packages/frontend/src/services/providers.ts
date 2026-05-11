@@ -122,6 +122,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
     models: [],
   },
+  groq: {
+    initial: 'Gq',
+    subtitle: 'Llama, Gemma, Mixtral — fast inference',
+    models: [],
+  },
   llamacpp: {
     initial: 'Lc',
     subtitle: 'OpenAI-compatible server for GGUF models on CPU / Metal / CUDA',
@@ -257,6 +262,7 @@ const PROVIDER_ORDER = [
   'deepseek',
   'copilot',
   'gemini',
+  'groq',
   'llamacpp',
   'lmstudio',
   'minimax',

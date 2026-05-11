@@ -111,6 +111,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
   },
+  groq: {
+    baseUrl: 'https://api.groq.com/openai',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
   mistral: {
     baseUrl: 'https://api.mistral.ai',
     buildHeaders: openaiHeaders,

@@ -980,6 +980,23 @@
   color: hsl(var(--destructive));
 }
 
+.fallback-list__params {
+  background: none;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
+.fallback-list__params:hover {
+  color: hsl(var(--foreground));
+}
+
 /* Add fallback — uses btn btn--outline btn--sm, just adds spacing */
 .fallback-list__add {
   margin-top: 6px;

@@ -114,6 +114,17 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
     /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview|robotics)/i,
   mistral:
     /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-|^mistral-vibe-cli)/i,
+  // Groq filters:
+  //  - compound family: server-side router/agent product (compound,
+  //    compound-mini, compound-beta). Not a model the user picks directly,
+  //    and OpenRouter's cache surfaces it with the wrong attribution if we
+  //    let it through. Match start-of-string, slash-prefixed (models.dev
+  //    returns `groq/compound`), and hyphen-prefixed forms.
+  //  - prompt-guard: small Llama classifier, not a chat model.
+  //  - orpheus: text-to-speech, not chat.
+  // Note: do NOT block "safeguard" — Groq's gpt-oss-safeguard-20b is a chat
+  // model the user can call.
+  groq: /(?:(?:^|\/|-)compound|prompt-guard|orpheus)/i,
   xai: /(?:imagine|multi-agent)/i,
   copilot: /accounts\/[^/]+\/routers\//i,
 };
@@ -339,6 +350,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
   },
   deepseek: {
     endpoint: 'https://api.deepseek.com/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  groq: {
+    endpoint: 'https://api.groq.com/openai/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },

@@ -733,8 +733,8 @@ describe('ProviderSelectModal', () => {
     const customProviderData = [
       {
         id: 'cp-1',
-        name: 'Groq',
-        base_url: 'https://api.groq.com',
+        name: 'Cerebras',
+        base_url: 'https://api.cerebras.ai',
         has_api_key: true,
         models: [{ model_name: 'llama-3.1-70b' }, { model_name: 'llama-3.1-8b' }],
         created_at: '2025-01-01',
@@ -752,7 +752,7 @@ describe('ProviderSelectModal', () => {
         />
       ));
       fireEvent.click(screen.getByText('API Keys'));
-      expect(screen.getByText('Groq')).toBeDefined();
+      expect(screen.getByText('Cerebras')).toBeDefined();
       expect(screen.getByText('Custom')).toBeDefined();
     });
 
@@ -767,11 +767,11 @@ describe('ProviderSelectModal', () => {
         />
       ));
       fireEvent.click(screen.getByText('API Keys'));
-      // Find the Groq provider toggle and check its logo letter
-      const groqToggle = screen.getByText('Groq').closest('.provider-toggle');
-      const letter = groqToggle?.querySelector('.provider-card__logo-letter');
+      // Find the Cerebras provider toggle and check its logo letter
+      const cerebrasToggle = screen.getByText('Cerebras').closest('.provider-toggle');
+      const letter = cerebrasToggle?.querySelector('.provider-card__logo-letter');
       expect(letter).not.toBeNull();
-      expect(letter!.textContent).toBe('G');
+      expect(letter!.textContent).toBe('C');
     });
 
     it('shows Add custom provider button', () => {
@@ -814,9 +814,9 @@ describe('ProviderSelectModal', () => {
         />
       ));
       fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Groq'));
+      fireEvent.click(screen.getByText('Cerebras'));
       await waitFor(() => {
-        const nameInput = screen.getByDisplayValue('Groq');
+        const nameInput = screen.getByDisplayValue('Cerebras');
         expect(nameInput).toBeDefined();
       });
     });

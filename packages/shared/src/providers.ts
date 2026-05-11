@@ -81,6 +81,25 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
+    id: 'groq',
+    displayName: 'Groq',
+    aliases: [],
+    // Groq has its own native /models endpoint, so we never want to attribute
+    // Groq models from the OpenRouter pricing cache here. Mapping OR's
+    // `groq/*` prefix to this entry would surface models the user can't
+    // actually call (e.g. compound-*) and render them with the OpenRouter
+    // logo. Pricing for the native Groq catalog comes from
+    // known-model-prices.ts as a last-resort fallback.
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    // Brand orange from groq.com/favicon.svg
+    color: '#F43E01',
+    keyPrefix: 'gsk_',
+    minKeyLength: 50,
+    keyPlaceholder: 'gsk_...',
+  },
+  {
     id: 'copilot',
     displayName: 'GitHub Copilot',
     aliases: [],

@@ -19,6 +19,7 @@ import {
 import { toast } from '../services/toast-store.js';
 import { authBadgeFor } from './AuthBadge.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
+import { providerThinkingDefault } from 'manifest-shared';
 
 interface FallbackListProps {
   agentName: string;
@@ -52,6 +53,12 @@ interface FallbackListProps {
     routes?: ModelRoute[],
   ) => Promise<unknown>;
   persistClearFallbacks?: (agentName: string, tier: string) => Promise<unknown>;
+  // Open the tier's Model Parameters dialog. Rendered per-row when the
+  // row's route provider consumes a known param key (today only DeepSeek's
+  // `thinking`). Param defaults are tier-scoped — the proxy filters per
+  // attempt against the actual provider — so the affordance can attach to
+  // whichever fallback row is compatible without owning its own state.
+  onConfigureParams?: () => void;
 }
 
 const FallbackList: Component<FallbackListProps> = (props) => {
@@ -381,6 +388,42 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                         fallbackIndex={i()}
                         onPick={(label) => setLabelAt(i(), label)}
                       />
+                    </Show>
+                    <Show
+                      when={
+                        props.onConfigureParams &&
+                        provId() &&
+                        providerThinkingDefault(provId()!) !== undefined
+                      }
+                    >
+                      <button
+                        class="fallback-list__params"
+                        onClick={() => props.onConfigureParams!()}
+                        title="Model parameters"
+                        aria-label={`Configure model parameters for ${modelLabel(model())}`}
+                      >
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <line x1="4" y1="21" x2="4" y2="14" />
+                          <line x1="4" y1="10" x2="4" y2="3" />
+                          <line x1="12" y1="21" x2="12" y2="12" />
+                          <line x1="12" y1="8" x2="12" y2="3" />
+                          <line x1="20" y1="21" x2="20" y2="16" />
+                          <line x1="20" y1="12" x2="20" y2="3" />
+                          <line x1="1" y1="14" x2="7" y2="14" />
+                          <line x1="9" y1="8" x2="15" y2="8" />
+                          <line x1="17" y1="16" x2="23" y2="16" />
+                        </svg>
+                      </button>
                     </Show>
                     <button
                       class="fallback-list__remove"

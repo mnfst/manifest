@@ -1420,6 +1420,21 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('anthropic/claude-sonnet-4');
     });
+
+    it('preserves slash in Groq model names (e.g. meta-llama/...)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'groq',
+        apiKey: 'gsk-test',
+        model: 'meta-llama/llama-guard-4-12b',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('meta-llama/llama-guard-4-12b');
+    });
   });
 
   describe('Body sanitization for non-OpenAI providers', () => {
@@ -1979,6 +1994,20 @@ describe('ProviderClient', () => {
         provider: 'ollama-cloud',
         apiKey: 'ollama-key',
         model: 'llama3',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects stream_options.include_usage for Groq streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'groq',
+        apiKey: 'gsk-test',
+        model: 'llama-3.3-70b-versatile',
         body: { messages: [{ role: 'user', content: 'Hello' }] },
         stream: true,
       });

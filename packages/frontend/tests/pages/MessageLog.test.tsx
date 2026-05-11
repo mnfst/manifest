@@ -601,17 +601,17 @@ describe("MessageLog", () => {
     };
 
     it("renders custom provider icon in message rows", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        const img = container.querySelector('img[alt="Groq"]');
+        const img = container.querySelector('img[alt="Cerebras"]');
         expect(img).not.toBeNull();
       });
     });
 
     it("strips custom prefix from model name display", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
