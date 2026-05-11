@@ -1,5 +1,11 @@
 # manifest
 
+## 6.2.2
+
+### Patch Changes
+
+- 562d105: Fix Groq model attribution in the routing UI so Groq-served prefixed model IDs stay selectable and show the Groq provider.
+
 ## 6.2.1
 
 ### Patch Changes
