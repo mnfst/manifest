@@ -60,9 +60,11 @@ export class AgentModelParamsService {
   }
 
   /**
-   * Upsert one route's params. The unique index on (agent_id, provider,
-   * auth_type, model_name) makes the upsert deterministic; callers do not
-   * need to pre-check for existence.
+   * Atomic upsert for one route's params. The unique index on (agent_id,
+   * provider, auth_type, model_name) drives the ON CONFLICT clause so two
+   * concurrent writes for the same route resolve deterministically instead
+   * of racing on `findOne` + `save` and failing one with a duplicate-key
+   * error.
    *
    * Cache is invalidated so the next `list()` / `get()` reads the new
    * value rather than the now-stale snapshot. Eager re-fetch is not worth
@@ -76,32 +78,39 @@ export class AgentModelParamsService {
     modelName: string,
     params: RequestParamDefaults,
   ): Promise<AgentModelParams> {
-    const existing = await this.repo.findOne({
+    const normalizedProvider = provider.toLowerCase();
+    await this.repo
+      .createQueryBuilder()
+      .insert()
+      .into(AgentModelParams)
+      .values({
+        id: randomUUID(),
+        user_id: userId,
+        agent_id: agentId,
+        provider: normalizedProvider,
+        auth_type: authType,
+        model_name: modelName,
+        params,
+      })
+      .orUpdate(['params', 'updated_at'], ['agent_id', 'provider', 'auth_type', 'model_name'])
+      .setParameter('updated_at', new Date().toISOString())
+      .execute();
+    this.cache.invalidateModelParams(agentId);
+    // The QueryBuilder's INSERT … ON CONFLICT path doesn't return the row
+    // shape we need (Postgres' RETURNING is partial when ON CONFLICT
+    // triggers an UPDATE that doesn't actually change every column), so
+    // re-fetch via the route's unique index. One round-trip; the cache was
+    // just invalidated so callers see the fresh value on their next
+    // list()/get().
+    const row = await this.repo.findOneOrFail({
       where: {
         agent_id: agentId,
-        provider: provider.toLowerCase(),
+        provider: normalizedProvider,
         auth_type: authType,
         model_name: modelName,
       },
     });
-    if (existing) {
-      existing.params = params;
-      const saved = await this.repo.save(existing);
-      this.cache.invalidateModelParams(agentId);
-      return saved;
-    }
-    const row = this.repo.create({
-      id: randomUUID(),
-      user_id: userId,
-      agent_id: agentId,
-      provider: provider.toLowerCase(),
-      auth_type: authType,
-      model_name: modelName,
-      params,
-    });
-    const saved = await this.repo.save(row);
-    this.cache.invalidateModelParams(agentId);
-    return saved;
+    return row;
   }
 
   /**

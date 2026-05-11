@@ -13,10 +13,13 @@ describe('AgentModelParamsService', () => {
   let repo: {
     find: jest.Mock;
     findOne: jest.Mock;
+    findOneOrFail: jest.Mock;
     save: jest.Mock;
     create: jest.Mock;
     delete: jest.Mock;
+    createQueryBuilder: jest.Mock;
   };
+  let qbExecute: jest.Mock;
   let cache: {
     getModelParams: jest.Mock;
     setModelParams: jest.Mock;
@@ -24,12 +27,26 @@ describe('AgentModelParamsService', () => {
   };
 
   beforeEach(async () => {
+    // QueryBuilder mock for the atomic INSERT … ON CONFLICT path. The
+    // service builds a fluent chain (.insert().into().values().orUpdate()
+    // .setParameter().execute()), so every link returns the same object.
+    qbExecute = jest.fn().mockResolvedValue(undefined);
+    const qbChain: Record<string, jest.Mock> = {};
+    qbChain.insert = jest.fn(() => qbChain);
+    qbChain.into = jest.fn(() => qbChain);
+    qbChain.values = jest.fn(() => qbChain);
+    qbChain.orUpdate = jest.fn(() => qbChain);
+    qbChain.setParameter = jest.fn(() => qbChain);
+    qbChain.execute = qbExecute;
+
     repo = {
       find: jest.fn(),
       findOne: jest.fn(),
+      findOneOrFail: jest.fn(),
       save: jest.fn(),
       create: jest.fn((entity) => entity as AgentModelParams),
       delete: jest.fn(),
+      createQueryBuilder: jest.fn(() => qbChain),
     };
     cache = {
       getModelParams: jest.fn().mockReturnValue(null),
@@ -111,21 +128,27 @@ describe('AgentModelParamsService', () => {
   });
 
   describe('set', () => {
-    it('updates the existing row when one is present, invalidates cache', async () => {
-      const existing = {
-        params: { thinking: { type: 'enabled' } },
-      } as AgentModelParams;
-      repo.findOne.mockResolvedValueOnce(existing);
-      repo.save.mockResolvedValueOnce({
-        ...existing,
+    it('runs the atomic INSERT ... ON CONFLICT upsert, invalidates the cache, then re-fetches the canonical row', async () => {
+      const saved = {
+        id: 'p1',
+        provider: 'deepseek',
+        auth_type: 'api_key',
+        model_name: 'deepseek-v4',
         params: { thinking: { type: 'disabled' } },
-      } as AgentModelParams);
+      } as unknown as AgentModelParams;
+      repo.findOneOrFail.mockResolvedValueOnce(saved);
 
       const result = await service.set('agent-1', 'user-1', 'DeepSeek', 'api_key', 'deepseek-v4', {
         thinking: { type: 'disabled' },
       });
 
-      expect(repo.findOne).toHaveBeenCalledWith({
+      // QueryBuilder upsert ran (concurrent-safe — no findOne+save race).
+      expect(repo.createQueryBuilder).toHaveBeenCalled();
+      expect(qbExecute).toHaveBeenCalled();
+      expect(cache.invalidateModelParams).toHaveBeenCalledWith('agent-1');
+      // Provider is lowercased on its way in so case differences between
+      // save and lookup don't break the unique-index key.
+      expect(repo.findOneOrFail).toHaveBeenCalledWith({
         where: {
           agent_id: 'agent-1',
           provider: 'deepseek',
@@ -133,24 +156,7 @@ describe('AgentModelParamsService', () => {
           model_name: 'deepseek-v4',
         },
       });
-      expect(existing.params).toEqual({ thinking: { type: 'disabled' } });
-      expect(cache.invalidateModelParams).toHaveBeenCalledWith('agent-1');
-      expect(result.params).toEqual({ thinking: { type: 'disabled' } });
-    });
-
-    it('inserts a new row when none exists', async () => {
-      repo.findOne.mockResolvedValueOnce(null);
-      repo.save.mockImplementation(async (row) => row as AgentModelParams);
-
-      const result = await service.set('agent-1', 'user-1', 'DeepSeek', 'api_key', 'deepseek-v4', {
-        thinking: { type: 'disabled' },
-      });
-
-      expect(repo.create).toHaveBeenCalled();
-      expect(repo.save).toHaveBeenCalled();
-      expect(result.provider).toBe('deepseek');
-      expect(result.params).toEqual({ thinking: { type: 'disabled' } });
-      expect(cache.invalidateModelParams).toHaveBeenCalledWith('agent-1');
+      expect(result).toBe(saved);
     });
   });
 

@@ -237,7 +237,12 @@ export class AgentDuplicationService {
             id: uuidv4(),
             user_id: p.user_id,
             agent_id: newAgentId,
-            provider: p.provider,
+            // Same `custom:<uuid>` remap as user_providers / tier_assignments
+            // / specificity_assignments above. Without this, a params row
+            // configured for `custom:<old-uuid>` would point to the source
+            // agent's custom provider after duplication, breaking the
+            // per-route lookup for the new agent.
+            provider: this.remapCustomProviderRef(p.provider, customProviderIdMap),
             auth_type: p.auth_type,
             model_name: p.model_name,
             params: p.params,
