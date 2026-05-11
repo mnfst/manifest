@@ -207,7 +207,16 @@ function toAnthropicUsage(usage: unknown): JsonRecord {
   const u = isRecord(usage) ? usage : {};
   const promptTokens = typeof u.prompt_tokens === 'number' ? u.prompt_tokens : 0;
   const outputTokens = typeof u.completion_tokens === 'number' ? u.completion_tokens : 0;
-  const cacheRead = typeof u.cache_read_tokens === 'number' ? u.cache_read_tokens : 0;
+  const promptDetails = isRecord(u.prompt_tokens_details) ? u.prompt_tokens_details : undefined;
+  // OpenAI-compat providers (OpenAI chat-completions, DeepSeek, Z.AI, MiniMax, etc.)
+  // report cached input under nested `prompt_tokens_details.cached_tokens` instead
+  // of the top-level Anthropic-converted key — fall back to it.
+  const cacheRead =
+    typeof u.cache_read_tokens === 'number'
+      ? u.cache_read_tokens
+      : typeof promptDetails?.cached_tokens === 'number'
+        ? promptDetails.cached_tokens
+        : 0;
   const cacheCreation = typeof u.cache_creation_tokens === 'number' ? u.cache_creation_tokens : 0;
   // Chat-shape prompt_tokens is the full input total (uncached + cache reads +
   // cache creation). Anthropic Messages' input_tokens is the uncached portion

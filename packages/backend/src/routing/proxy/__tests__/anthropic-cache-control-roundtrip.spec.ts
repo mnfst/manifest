@@ -167,5 +167,37 @@ describe('issue #1871: cache_control round-trip through /v1/messages', () => {
         cache_creation_tokens: 0,
       });
     });
+
+    it('carries OpenAI-compat nested cached_tokens through the messages conversion', () => {
+      // OpenAI / DeepSeek / Z.AI / MiniMax / Mistral report cached input via
+      // nested prompt_tokens_details.cached_tokens, not the top-level Anthropic
+      // key. When /v1/messages routes to such a provider, the conversion must
+      // still surface the cache count.
+      const openAiChatResponse = {
+        id: 'cc_2',
+        model: 'gpt-4o-mini',
+        choices: [{ message: { content: 'pong' }, finish_reason: 'stop' }],
+        usage: {
+          prompt_tokens: 100,
+          completion_tokens: 5,
+          prompt_tokens_details: { cached_tokens: 40 },
+        },
+      };
+      const messagesResponse = chatCompletionsResponseToMessages(openAiChatResponse, 'gpt-4o-mini');
+      expect(messagesResponse.usage).toEqual({
+        input_tokens: 60, // 100 total - 40 cached
+        output_tokens: 5,
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 40,
+      });
+
+      const streamUsage = parseUsageObject(messagesResponse.usage);
+      expect(streamUsage).toEqual({
+        prompt_tokens: 100,
+        completion_tokens: 5,
+        cache_read_tokens: 40,
+        cache_creation_tokens: 0,
+      });
+    });
   });
 });
