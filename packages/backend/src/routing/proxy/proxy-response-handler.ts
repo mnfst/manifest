@@ -7,9 +7,9 @@ import { ForwardResult } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ProviderClient } from './provider-client';
 import {
-  extractUsageFromSse,
   initSseHeaders,
   parseUsageObject,
+  pipePassthrough,
   pipeStream,
   StreamUsage,
 } from './stream-writer';
@@ -331,21 +331,14 @@ export async function handleStreamResponse(
       onThinkingBlocks,
     );
     // Anthropic Messages inbound + Anthropic upstream: forward the upstream
-    // SSE bytes unchanged so Anthropic-only content blocks
-    // (`server_tool_use`, `web_search_tool_result`, etc.) survive. Run the
-    // transformer purely for its side effects — thinking-block cache via
-    // callback, usage tally read from the OpenAI-shape chunks it emits.
+    // SSE bytes byte-for-byte so Anthropic SSE framing (`event:` headers,
+    // multi-line `data:` payloads, blank-line separators) reaches the
+    // client intact, and Anthropic-only content blocks (`server_tool_use`,
+    // `web_search_tool_result`, etc.) are not lost to translation. The
+    // transformer runs purely as a tap — thinking-block cache via callback
+    // and OpenAI-shape usage parsed off its return value by pipePassthrough.
     if (apiMode === 'messages') {
-      let captured: StreamUsage | null = null;
-      const result = await pipeStream(forward.response.body!, res, (chunk) => {
-        const tapped = anthropicTransformer(chunk);
-        if (tapped) {
-          const usage = extractUsageFromSse(tapped);
-          if (usage) captured = usage;
-        }
-        return chunk;
-      });
-      return result ?? captured;
+      return pipePassthrough(forward.response.body!, res, anthropicTransformer);
     }
     return pipeStream(
       forward.response.body!,

@@ -30,17 +30,20 @@ function makeMeta(overrides: Partial<RoutingMeta> = {}): RoutingMeta {
 }
 
 function mockResponse(): {
-  res: Record<string, jest.Mock>;
+  res: Record<string, jest.Mock> & { writableEnded?: boolean };
   headers: Record<string, string>;
 } {
   const headers: Record<string, string> = {};
-  const res: Record<string, jest.Mock> = {
+  const res: Record<string, jest.Mock> & { writableEnded?: boolean } = {
     status: jest.fn().mockReturnThis(),
     setHeader: jest.fn((k: string, v: string) => {
       headers[k] = v;
     }),
     json: jest.fn(),
+    write: jest.fn(),
+    end: jest.fn(),
   };
+  res.writableEnded = false;
   return { res, headers };
 }
 
@@ -491,8 +494,9 @@ describe('proxy-response-handler', () => {
 
     // These tests verify the branching logic (which adapter is used).
     // Full streaming is tested in stream-writer.spec.ts.
-    // We mock pipeStream to avoid needing real ReadableStreams.
+    // We mock pipeStream + pipePassthrough to avoid needing real ReadableStreams.
     let pipeStreamSpy: jest.SpyInstance;
+    let pipePassthroughSpy: jest.SpyInstance;
     let initSseHeadersSpy: jest.SpyInstance;
 
     beforeEach(() => {
@@ -500,11 +504,13 @@ describe('proxy-response-handler', () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const streamWriter = require('../stream-writer');
       pipeStreamSpy = jest.spyOn(streamWriter, 'pipeStream').mockResolvedValue(null);
+      pipePassthroughSpy = jest.spyOn(streamWriter, 'pipePassthrough').mockResolvedValue(null);
       initSseHeadersSpy = jest.spyOn(streamWriter, 'initSseHeaders').mockImplementation(() => {});
     });
 
     afterEach(() => {
       pipeStreamSpy?.mockRestore();
+      pipePassthroughSpy?.mockRestore();
       initSseHeadersSpy?.mockRestore();
     });
 
@@ -571,29 +577,13 @@ describe('proxy-response-handler', () => {
       );
     });
 
-    it('apiMode=messages + Anthropic upstream pipes raw SSE through and reads usage from the tap (issue #1886)', async () => {
+    it('apiMode=messages + Anthropic upstream dispatches to pipePassthrough with the Anthropic transformer as tap (issue #1886)', async () => {
       const { res } = mockResponse();
       const forward = mockForward({ isAnthropic: true });
-      // The tap emits an OpenAI-format usage chunk (what
-      // createAnthropicStreamTransformer would do on a real message_delta).
-      const tap = jest
-        .fn()
-        .mockReturnValue('data: {"usage":{"input_tokens":10,"output_tokens":3}}\n\n');
+      const tap = jest.fn();
       const client = mockProviderClient();
       client.createAnthropicStreamTransformer.mockReturnValue(tap);
       const meta = makeMeta();
-
-      // Drive the handler's transform inside the pipeStream mock so the
-      // closure has the chance to capture usage before the await resolves.
-      let writtenToClient: string | null | undefined;
-      pipeStreamSpy.mockImplementation(
-        async (_b: unknown, _r: unknown, transform?: (c: string) => string | null) => {
-          writtenToClient = transform!(
-            'event: message_delta\ndata: {"usage":{"output_tokens":3}}\n\n',
-          );
-          return null;
-        },
-      );
 
       const usage = await handleStreamResponse(
         res as any,
@@ -607,105 +597,45 @@ describe('proxy-response-handler', () => {
         'messages',
       );
 
-      // Pass-through: the client sees the original Anthropic SSE bytes.
-      expect(writtenToClient).toBe('event: message_delta\ndata: {"usage":{"output_tokens":3}}\n\n');
-      // Tap fired for side-effect parsing.
-      expect(tap).toHaveBeenCalledWith(
-        'event: message_delta\ndata: {"usage":{"output_tokens":3}}\n\n',
+      // Dispatched to pipePassthrough, not pipeStream. Tap is the Anthropic
+      // stream transformer so thinking-block extraction + OpenAI-shape
+      // usage parsing still happen as a side effect.
+      expect(pipePassthroughSpy).toHaveBeenCalledWith(forward.response.body, res, tap);
+      expect(pipeStreamSpy).not.toHaveBeenCalled();
+      expect(usage).toBeNull();
+    });
+
+    it('apiMode=messages + Anthropic upstream returns the usage that pipePassthrough captured', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isAnthropic: true });
+      const client = mockProviderClient();
+      client.createAnthropicStreamTransformer.mockReturnValue(jest.fn());
+      const meta = makeMeta();
+      pipePassthroughSpy.mockResolvedValue({
+        prompt_tokens: 58,
+        completion_tokens: 12,
+        cache_read_tokens: 5,
+        cache_creation_tokens: 3,
+      });
+
+      const usage = await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
       );
-      // Usage came from the tap's OpenAI-shape chunk, not the Anthropic
-      // event written to the client.
+
       expect(usage).toEqual({
-        prompt_tokens: 10,
-        completion_tokens: 3,
-        cache_read_tokens: undefined,
-        cache_creation_tokens: 0,
+        prompt_tokens: 58,
+        completion_tokens: 12,
+        cache_read_tokens: 5,
+        cache_creation_tokens: 3,
       });
-    });
-
-    it('apiMode=messages + Anthropic upstream returns pipeStream usage when it is non-null', async () => {
-      const { res } = mockResponse();
-      const forward = mockForward({ isAnthropic: true });
-      const client = mockProviderClient();
-      client.createAnthropicStreamTransformer.mockReturnValue(() => null);
-      const meta = makeMeta();
-      pipeStreamSpy.mockResolvedValue({
-        prompt_tokens: 7,
-        completion_tokens: 2,
-      });
-
-      const usage = await handleStreamResponse(
-        res as any,
-        forward as any,
-        meta,
-        {},
-        client as any,
-        undefined,
-        undefined,
-        undefined,
-        'messages',
-      );
-
-      expect(usage).toEqual({ prompt_tokens: 7, completion_tokens: 2 });
-    });
-
-    it('apiMode=messages + Anthropic upstream returns null usage when the tap never emits a usage chunk', async () => {
-      const { res } = mockResponse();
-      const forward = mockForward({ isAnthropic: true });
-      const tap = jest.fn().mockReturnValue(null);
-      const client = mockProviderClient();
-      client.createAnthropicStreamTransformer.mockReturnValue(tap);
-      const meta = makeMeta();
-      let writtenToClient: string | null | undefined;
-      pipeStreamSpy.mockImplementation(
-        async (_b: unknown, _r: unknown, transform?: (c: string) => string | null) => {
-          writtenToClient = transform!('data: {"type":"ping"}\n\n');
-          return null;
-        },
-      );
-
-      const usage = await handleStreamResponse(
-        res as any,
-        forward as any,
-        meta,
-        {},
-        client as any,
-        undefined,
-        undefined,
-        undefined,
-        'messages',
-      );
-
-      expect(writtenToClient).toBe('data: {"type":"ping"}\n\n');
-      expect(usage).toBeNull();
-    });
-
-    it('apiMode=messages + Anthropic upstream ignores tap chunks with no usage field', async () => {
-      const { res } = mockResponse();
-      const forward = mockForward({ isAnthropic: true });
-      const tap = jest.fn().mockReturnValue('data: {"choices":[{"delta":{"content":"x"}}]}\n\n');
-      const client = mockProviderClient();
-      client.createAnthropicStreamTransformer.mockReturnValue(tap);
-      const meta = makeMeta();
-      pipeStreamSpy.mockImplementation(
-        async (_b: unknown, _r: unknown, transform?: (c: string) => string | null) => {
-          transform!('data: {"type":"content_block_delta"}\n\n');
-          return null;
-        },
-      );
-
-      const usage = await handleStreamResponse(
-        res as any,
-        forward as any,
-        meta,
-        {},
-        client as any,
-        undefined,
-        undefined,
-        undefined,
-        'messages',
-      );
-      expect(usage).toBeNull();
     });
 
     it('should use ChatGPT adapter for ChatGPT responses', async () => {
