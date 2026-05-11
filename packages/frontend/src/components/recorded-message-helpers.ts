@@ -129,7 +129,13 @@ export function estimateMessageTokens(message: {
   const argsText = calls
     .map((c) => {
       const a = c.function?.arguments;
-      return typeof a === 'string' ? a : a == null ? '' : JSON.stringify(a);
+      if (typeof a === 'string') return a;
+      if (a == null) return '';
+      try {
+        return JSON.stringify(a);
+      } catch {
+        return String(a);
+      }
     })
     .join('');
   return estimateTokens(content + argsText);

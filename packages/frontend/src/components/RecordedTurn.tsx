@@ -60,8 +60,6 @@ interface DetectContentProps {
   raw: string;
   renderMode: 'rendered' | 'raw';
   searchQuery?: string;
-  /** When true, don't render the XML tag chip row (caller renders it outside). */
-  suppressXmlChips?: boolean;
 }
 
 /** Highlight all occurrences of `needle` in a string as <mark> elements. */
@@ -91,7 +89,6 @@ function highlightMatches(haystack: string, needle: string): JSX.Element {
 
 const DetectContent: Component<DetectContentProps> = (props) => {
   const kind = createMemo(() => detectContentKind(props.raw));
-  const tags = createMemo(() => (kind() === 'xml' ? extractAllXmlTagNames(props.raw) : []));
 
   return (
     <Show
@@ -102,17 +99,6 @@ const DetectContent: Component<DetectContentProps> = (props) => {
         <CodeBlock code={props.raw} language="json" />
       </Show>
       <Show when={kind() === 'xml'}>
-        <Show when={!props.suppressXmlChips && tags().length > 0}>
-          <div class="recorded-modal__xml-chip-row" role="list" aria-label="XML tags">
-            <For each={tags()}>
-              {(tag) => (
-                <span class="recorded-modal__xml-chip" role="listitem">
-                  &lt;{tag}&gt;
-                </span>
-              )}
-            </For>
-          </div>
-        </Show>
         <CodeBlock code={props.raw} language="xml" />
       </Show>
       <Show when={kind() === 'markdown' || kind() === 'text'}>
@@ -218,7 +204,6 @@ const RecordedTurn: Component<Props> = (props) => {
               raw={contentText()}
               renderMode={props.renderMode}
               searchQuery={props.searchQuery}
-              suppressXmlChips
             />
           </Show>
           <Show when={toolCalls().length > 0}>

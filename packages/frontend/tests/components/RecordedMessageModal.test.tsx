@@ -298,4 +298,178 @@ describe("RecordedMessageModal (drawer)", () => {
     }
     expect(document.body.textContent).toContain("No turns match the current filters.");
   });
+
+  it("renders XML chips above the turn block when content is XML", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            messages: [
+              {
+                role: "user",
+                content: "<doc><title>hi</title><body>world</body></doc>",
+              },
+            ],
+          },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 50,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-x" onClose={vi.fn()} />);
+    await vi.waitFor(() => {
+      expect(document.querySelector(".recorded-modal__xml-chip-row")).not.toBeNull();
+    });
+    const chips = Array.from(document.querySelectorAll(".recorded-modal__xml-chip")).map(
+      (c) => c.textContent,
+    );
+    expect(chips.some((c) => c?.includes("doc"))).toBe(true);
+  });
+
+  it("renders a tool calls block when the assistant turn carries tool_calls", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            messages: [
+              { role: "user", content: "hi" },
+              {
+                role: "assistant",
+                content: "",
+                tool_calls: [
+                  {
+                    id: "call_1",
+                    type: "function",
+                    function: { name: "lookup", arguments: '{"q":"x"}' },
+                  },
+                ],
+              },
+            ],
+          },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 100,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-tools" onClose={vi.fn()} />);
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain("lookup");
+    });
+  });
+
+  it("surfaces tool message metadata (name + tool_call_id) on the turn header", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            messages: [
+              { role: "user", content: "hi" },
+              {
+                role: "tool",
+                name: "lookup",
+                tool_call_id: "call_xyz",
+                content: "result payload",
+              },
+            ],
+          },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 80,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-tool" onClose={vi.fn()} />);
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain("lookup");
+      expect(document.body.textContent).toContain("tool_call_id: call_xyz");
+    });
+  });
+
+  it("handles tool call arguments that are not valid JSON (string), objects, and circular refs", async () => {
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            messages: [
+              {
+                role: "assistant",
+                content: "",
+                tool_calls: [
+                  { id: "c1", type: "function", function: { name: "a", arguments: "not json {" } },
+                  { id: "c2", type: "function", function: { name: "b", arguments: { x: 1 } } },
+                  { id: "c3", type: "function", function: { name: "c", arguments: circular } },
+                ],
+              },
+            ],
+          },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 100,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-tc" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(document.body.textContent).toContain("not json {"));
+  });
+
+  it("renders JSON-shaped turn content via the json CodeBlock branch", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            messages: [{ role: "user", content: '{"q":"hello","n":3}' }],
+          },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 50,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-json" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q('[data-testid="code-json"]')).not.toBeNull());
+  });
+
+  it("switches to raw rendering mode when the render toggle is clicked", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() =>
+      expect(q(".recorded-drawer__render-toggle")).not.toBeNull(),
+    );
+    const toggle = q(".recorded-drawer__render-toggle") as HTMLElement;
+    expect(toggle.textContent?.trim()).toBe("Rendered");
+    fireEvent.click(toggle);
+    await vi.waitFor(() => {
+      expect(q(".recorded-drawer__render-toggle")?.textContent?.trim()).toBe("Raw");
+      expect(document.querySelector('[data-testid="code-plaintext"]')).not.toBeNull();
+    });
+  });
+
+  it("toggles the cap on a long turn via the expand button", async () => {
+    const longContent = "x".repeat(3000);
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            messages: [{ role: "user", content: longContent }],
+          },
+          response_body: { type: "json", body: { choices: [] } },
+          response_headers: {},
+          size_bytes: 3100,
+          created_at: "",
+        },
+      }),
+    );
+    render(() => <RecordedMessageModal open={true} messageId="msg-long" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(findButton("Expand to full height")).toBeDefined());
+    fireEvent.click(findButton("Expand to full height")!);
+    await vi.waitFor(() => expect(findButton("Collapse back")).toBeDefined());
+  });
 });
