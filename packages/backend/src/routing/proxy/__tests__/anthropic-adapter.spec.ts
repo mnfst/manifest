@@ -185,6 +185,77 @@ describe('Anthropic Adapter', () => {
       expect(tools[1].cache_control).toEqual({ type: 'ephemeral' });
     });
 
+    it('re-emits stashed Anthropic server tools with their type tag and drops their function-shaped duplicates (issue #1886)', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Search' }],
+        // Function-shaped duplicates that toChatTools would have emitted for
+        // the server tools, plus a real custom tool.
+        tools: [
+          { type: 'function', function: { name: 'web_search' } },
+          { type: 'function', function: { name: 'bash' } },
+          {
+            type: 'function',
+            function: {
+              name: 'my_custom',
+              description: 'do thing',
+              parameters: { type: 'object' },
+            },
+          },
+        ],
+        _anthropicServerTools: [
+          { type: 'web_search_20250305', name: 'web_search' },
+          { type: 'bash_20250124', name: 'bash' },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools).toHaveLength(3);
+      // Server tools first, with type tag intact and no input_schema.
+      expect(tools[0]).toMatchObject({ type: 'web_search_20250305', name: 'web_search' });
+      expect(tools[0].input_schema).toBeUndefined();
+      expect(tools[1]).toMatchObject({ type: 'bash_20250124', name: 'bash' });
+      expect(tools[1].input_schema).toBeUndefined();
+      // Custom tool keeps input_schema. cache_control breakpoint lands on
+      // the last (custom) tool.
+      expect(tools[2].name).toBe('my_custom');
+      expect(tools[2].input_schema).toEqual({ type: 'object' });
+      expect(tools[2].cache_control).toEqual({ type: 'ephemeral' });
+      // Server-tool entries don't get a cache_control breakpoint.
+      expect(tools[0].cache_control).toBeUndefined();
+      expect(tools[1].cache_control).toBeUndefined();
+    });
+
+    it('emits stashed server tools even when no custom tools are present', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'x' }],
+        tools: [{ type: 'function', function: { name: 'web_search' } }],
+        _anthropicServerTools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools).toEqual([
+        {
+          type: 'web_search_20250305',
+          name: 'web_search',
+          cache_control: { type: 'ephemeral' },
+        },
+      ]);
+    });
+
+    it('omits cache_control on stashed server tools when injectCacheControl is false', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'x' }],
+        tools: [{ type: 'function', function: { name: 'web_search' } }],
+        _anthropicServerTools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
+        injectCacheControl: false,
+      });
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools).toEqual([{ type: 'web_search_20250305', name: 'web_search' }]);
+    });
+
     it('converts tool_calls in assistant messages to tool_use blocks', () => {
       const body = {
         messages: [

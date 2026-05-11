@@ -1,6 +1,7 @@
 import {
   chatCompletionsResponseToMessages,
   createMessagesStreamTransformer,
+  extractAnthropicServerTools,
   messagesToChatCompletionsRequest,
 } from '../anthropic-messages-adapter';
 
@@ -230,6 +231,44 @@ describe('Anthropic Messages adapter', () => {
       expect(ignoredNamed.tool_choice).toBeUndefined();
     });
 
+    it('stashes Anthropic server tools and still exposes them to the scorer (issue #1886)', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [{ role: 'user', content: 'x' }],
+        tools: [
+          { type: 'web_search_20250305', name: 'web_search' },
+          { type: 'bash_20250124', name: 'bash' },
+          { name: 'my_custom', description: 'c', input_schema: { type: 'object' } },
+          { type: 'custom', name: 'explicit_custom', input_schema: { type: 'object' } },
+        ],
+      });
+
+      // chatBody.tools keeps all four — the scorer reads tool count and
+      // function.name and must keep seeing server tools for tier / specificity.
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools).toHaveLength(4);
+      expect(tools.map((t) => (t.function as Record<string, unknown>).name)).toEqual([
+        'web_search',
+        'bash',
+        'my_custom',
+        'explicit_custom',
+      ]);
+
+      // Originals are stashed so toAnthropicRequest can re-emit them with the
+      // `type` tag intact.
+      expect(result._anthropicServerTools).toEqual([
+        { type: 'web_search_20250305', name: 'web_search' },
+        { type: 'bash_20250124', name: 'bash' },
+      ]);
+    });
+
+    it('omits the stash when no server tools are present', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [{ role: 'user', content: 'x' }],
+        tools: [{ name: 'plain', input_schema: { type: 'object' } }],
+      });
+      expect(result._anthropicServerTools).toBeUndefined();
+    });
+
     it('forwards Anthropic-native thinking and top_k onto chatBody', () => {
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],
@@ -329,6 +368,28 @@ describe('Anthropic Messages adapter', () => {
         messages: ['nope', null, { role: 'user', content: 'ok' }],
       } as Record<string, unknown>);
       expect(result.messages).toEqual([{ role: 'user', content: 'ok' }]);
+    });
+  });
+
+  describe('extractAnthropicServerTools', () => {
+    it('returns tools whose type is a non-custom string', () => {
+      expect(
+        extractAnthropicServerTools([
+          { type: 'web_search_20250305', name: 'web_search' },
+          { type: 'custom', name: 'c1' },
+          { name: 'c2' },
+          { type: 'text_editor_20250728', name: 'str_replace_editor' },
+          'not-a-record',
+        ]),
+      ).toEqual([
+        { type: 'web_search_20250305', name: 'web_search' },
+        { type: 'text_editor_20250728', name: 'str_replace_editor' },
+      ]);
+    });
+
+    it('returns an empty array when no server tools are present', () => {
+      expect(extractAnthropicServerTools([{ type: 'custom', name: 'c' }])).toEqual([]);
+      expect(extractAnthropicServerTools([])).toEqual([]);
     });
   });
 

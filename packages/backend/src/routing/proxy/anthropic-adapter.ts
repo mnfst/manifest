@@ -186,10 +186,30 @@ export function toAnthropicRequest(
   };
   if (systemBlocks.length > 0) result.system = systemBlocks;
 
-  const tools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
-  if (tools) {
-    if (shouldCache) tools[tools.length - 1].cache_control = CACHE;
-    result.tools = tools;
+  // Re-emit Anthropic server tools (web_search_*, bash_*, text_editor_*, etc.)
+  // unchanged when the inbound request was Anthropic Messages and stashed them
+  // on the body. The OpenAI tool shape can't represent a server tool's `type`
+  // tag, so convertTools would produce nameless customs that Anthropic rejects
+  // (issue #1886). Drop function-shaped entries whose name collides with a
+  // stashed server tool, then prepend the originals.
+  const stashedServerTools = Array.isArray(body._anthropicServerTools)
+    ? (body._anthropicServerTools as Array<Record<string, unknown>>)
+    : [];
+  const serverToolNames = new Set<string>();
+  for (const t of stashedServerTools) {
+    if (typeof t.name === 'string') serverToolNames.add(t.name);
+  }
+  const convertedTools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
+  const customTools: AnthropicTool[] = convertedTools
+    ? convertedTools.filter((t) => !serverToolNames.has(t.name))
+    : [];
+  const combinedTools: AnthropicTool[] = [
+    ...stashedServerTools.map((t) => ({ ...t }) as unknown as AnthropicTool),
+    ...customTools,
+  ];
+  if (combinedTools.length > 0) {
+    if (shouldCache) combinedTools[combinedTools.length - 1].cache_control = CACHE;
+    result.tools = combinedTools;
   }
 
   if (body.temperature !== undefined) result.temperature = body.temperature;
