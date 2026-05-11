@@ -1111,8 +1111,11 @@ describe("MessageLog", () => {
       await vi.waitFor(() => {
         expect(document.body.textContent).toContain("Recorded message");
       });
-      // Wait for the modal's own createResource to resolve (footer renders
-      // only after `data()?.recording` is truthy).
+      // Open the overflow menu so the delete affordance is in the DOM.
+      await vi.waitFor(() => {
+        expect(document.querySelector(".recorded-drawer__overflow-btn")).not.toBeNull();
+      });
+      fireEvent.click(document.querySelector(".recorded-drawer__overflow-btn") as HTMLElement);
       await vi.waitFor(() => {
         const btn = Array.from(document.querySelectorAll("button")).find(
           (b) => b.textContent?.trim() === "Delete recording",
@@ -1121,7 +1124,6 @@ describe("MessageLog", () => {
       });
       // Snapshot getMessages call count before delete
       const callsBeforeDelete = mockGetMessages.mock.calls.length;
-      // Find and click "Delete recording" in the modal footer
       const deleteBtn = Array.from(document.querySelectorAll("button")).find(
         (b) => b.textContent?.trim() === "Delete recording",
       ) as HTMLButtonElement;

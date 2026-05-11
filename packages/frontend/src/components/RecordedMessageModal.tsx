@@ -1,16 +1,42 @@
-import { createResource, createSignal, For, Show, type Component, type JSX } from 'solid-js';
+import {
+  Show,
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  on,
+  type Component,
+} from 'solid-js';
 import { Portal } from 'solid-js/web';
-import CodeBlock from './CodeBlock.jsx';
+import { useFocusTrap } from '../services/use-focus-trap.js';
+import { buildTurnPreview, estimateMessageTokens } from './recorded-message-helpers.js';
+import RecordedOutline, { type OutlineRow } from './RecordedOutline.jsx';
+import RecordedEssentials from './RecordedEssentials.jsx';
+import {
+  DrawerHeader,
+  DrawerMetrics,
+  DrawerActionBar,
+  DrawerTabs,
+} from './RecordedDrawerChrome.jsx';
+import { prettyJson } from './RecordedResponseTab.jsx';
+import { RecordedTabContent } from './RecordedTabContent.jsx';
+import {
+  coerceContentToText,
+  countMatches,
+  detectRequestBodyFormat,
+  extractAssistantReply,
+  extractRequestMessages,
+  extractRequestTools,
+  normalizeRole,
+  type Role,
+} from './recorded-message-helpers.js';
+import { createRecordedDrawerState } from './recorded-drawer-state.js';
 import {
   deleteMessageRecording,
   getMessageDetails,
   type MessageDetailResponse,
-  type MessageRecording,
 } from '../services/api.js';
-import { formatTime, formatNumber, sortedHeaderEntries } from '../services/formatters.js';
 import { toast } from '../services/toast-store.js';
-
-type ResponseBody = MessageRecording['response_body'];
 
 interface Props {
   open: boolean;
@@ -19,510 +45,175 @@ interface Props {
   onDeleted?: (id: string) => void;
 }
 
-function CloseIcon(): JSX.Element {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  );
-}
+const requestMessages = (d: MessageDetailResponse) =>
+  extractRequestMessages(d.recording?.request_body);
+const requestTools = (d: MessageDetailResponse) => extractRequestTools(d.recording?.request_body);
 
-function prettyJson(value: unknown): string {
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
-}
-
-function formatArgs(args: unknown): string {
-  if (args == null) return '';
-  if (typeof args === 'string') {
-    try {
-      return JSON.stringify(JSON.parse(args), null, 2);
-    } catch {
-      return args;
-    }
-  }
-  return prettyJson(args);
-}
-
-function Field(props: { label: string; value: unknown; mono?: boolean }): JSX.Element {
-  return (
-    <Show when={props.value !== undefined && props.value !== null && props.value !== ''}>
-      <div class="recorded-modal__kv-row">
-        <span class="recorded-modal__kv-label">{props.label}</span>
-        <span class="recorded-modal__kv-value" classList={{ 'recorded-modal__mono': !!props.mono }}>
-          {String(props.value)}
-        </span>
-      </div>
-    </Show>
-  );
-}
-
-function HeadersTable(props: { headers: Record<string, string> | null | undefined }): JSX.Element {
-  const entries = () => sortedHeaderEntries(props.headers);
-  return (
-    <Show
-      when={entries().length > 0}
-      fallback={<div class="recorded-modal__empty">No headers captured.</div>}
-    >
-      <div class="recorded-modal__headers">
-        <For each={entries()}>
-          {([k, v]) => (
-            <div class="recorded-modal__header-row">
-              <span class="recorded-modal__header-key">{k}</span>
-              <span class="recorded-modal__header-val">{v}</span>
-            </div>
-          )}
-        </For>
-      </div>
-    </Show>
-  );
-}
-
-interface MessagePart {
-  type?: string;
-  text?: string;
-  image_url?: { url?: string } | string;
-}
-
-function MessageContent(props: { content: unknown }): JSX.Element {
-  const content = props.content;
-  if (typeof content === 'string') {
-    return <div class="recorded-modal__turn-text">{content}</div>;
-  }
-  if (Array.isArray(content)) {
-    return (
-      <For each={content as MessagePart[]}>
-        {(part) => {
-          if (part.type === 'text' && typeof part.text === 'string') {
-            return <div class="recorded-modal__turn-text">{part.text}</div>;
-          }
-          if (part.type === 'image_url') {
-            const url = typeof part.image_url === 'string' ? part.image_url : part.image_url?.url;
-            return (
-              <div class="recorded-modal__turn-part">
-                <span class="recorded-modal__pill">image</span>
-                <span class="recorded-modal__turn-inline">{url ?? '—'}</span>
-              </div>
-            );
-          }
-          if (typeof part.text === 'string') {
-            return <div class="recorded-modal__turn-text">{part.text}</div>;
-          }
-          return <CodeBlock code={prettyJson(part)} language="json" />;
-        }}
-      </For>
-    );
-  }
-  if (content == null || content === '') {
-    return <div class="recorded-modal__muted">(empty)</div>;
-  }
-  return <CodeBlock code={prettyJson(content)} language="json" />;
-}
-
-interface ToolCall {
-  id?: string;
-  type?: string;
-  function?: { name?: string; arguments?: unknown };
-}
-
-function ToolCallsBlock(props: { calls: ToolCall[] }): JSX.Element {
-  return (
-    <div class="recorded-modal__tool-calls">
-      <For each={props.calls}>
-        {(call) => (
-          <div class="recorded-modal__tool-call">
-            <div class="recorded-modal__tool-head">
-              <span class="recorded-modal__pill recorded-modal__pill--tool">tool call</span>
-              <span class="recorded-modal__mono">{call.function?.name ?? 'unknown'}</span>
-              <Show when={call.id}>
-                <span class="recorded-modal__muted recorded-modal__mono">({call.id})</span>
-              </Show>
-            </div>
-            <Show when={call.function?.arguments !== undefined && call.function?.arguments !== ''}>
-              <pre class="recorded-modal__pre recorded-modal__pre--tight">
-                {formatArgs(call.function?.arguments)}
-              </pre>
-            </Show>
-          </div>
-        )}
-      </For>
-    </div>
-  );
-}
-
-interface ChatMessage {
-  role?: string;
-  content?: unknown;
-  name?: string;
-  tool_call_id?: string;
-  tool_calls?: ToolCall[];
-}
-
-function ChatTurns(props: { messages: ChatMessage[] }): JSX.Element {
-  return (
-    <div class="recorded-modal__turns">
-      <For each={props.messages}>
-        {(msg) => {
-          const role = msg.role ?? 'unknown';
-          return (
-            <div class="recorded-modal__turn" data-role={role}>
-              <div class="recorded-modal__turn-header">
-                <span class={`recorded-modal__role recorded-modal__role--${role}`}>{role}</span>
-                <Show when={msg.name}>
-                  <span class="recorded-modal__muted recorded-modal__mono">{msg.name}</span>
-                </Show>
-                <Show when={msg.tool_call_id}>
-                  <span class="recorded-modal__muted recorded-modal__mono">
-                    tool_call_id: {msg.tool_call_id}
-                  </span>
-                </Show>
-              </div>
-              <div class="recorded-modal__turn-body">
-                <MessageContent content={msg.content} />
-                <Show when={msg.tool_calls && msg.tool_calls.length > 0}>
-                  <ToolCallsBlock calls={msg.tool_calls!} />
-                </Show>
-              </div>
-            </div>
-          );
-        }}
-      </For>
-    </div>
-  );
-}
-
-interface ToolDef {
-  type?: string;
-  function?: { name?: string; description?: string };
-}
-
-function ToolsList(props: { tools: ToolDef[] }): JSX.Element {
-  return (
-    <div class="recorded-modal__tools">
-      <For each={props.tools}>
-        {(tool) => (
-          <div class="recorded-modal__tool-def">
-            <span class="recorded-modal__mono">{tool.function?.name ?? 'unknown'}</span>
-            <Show when={tool.function?.description}>
-              <span class="recorded-modal__muted">{tool.function?.description}</span>
-            </Show>
-          </div>
-        )}
-      </For>
-    </div>
-  );
-}
-
-interface ChatCompletionRequest {
-  model?: string;
-  stream?: boolean;
-  temperature?: number;
-  max_tokens?: number;
-  top_p?: number;
-  messages?: ChatMessage[];
-  tools?: ToolDef[];
-}
-
-function isChatCompletionRequest(body: unknown): body is ChatCompletionRequest {
-  return (
-    !!body &&
-    typeof body === 'object' &&
-    !Array.isArray(body) &&
-    Array.isArray((body as ChatCompletionRequest).messages)
-  );
-}
-
-interface ChatChoice {
-  index?: number;
-  message?: ChatMessage;
-  finish_reason?: string;
-}
-
-interface ChatUsage {
-  prompt_tokens?: number;
-  completion_tokens?: number;
-  total_tokens?: number;
-  cache_read_tokens?: number;
-  cache_creation_tokens?: number;
-}
-
-interface ChatCompletionResponse {
-  id?: string;
-  model?: string;
-  created?: number;
-  choices?: ChatChoice[];
-  usage?: ChatUsage;
-}
-
-function isChatCompletionResponse(body: unknown): body is ChatCompletionResponse {
-  return (
-    !!body &&
-    typeof body === 'object' &&
-    !Array.isArray(body) &&
-    Array.isArray((body as ChatCompletionResponse).choices)
-  );
-}
-
-function formatCreatedEpoch(epoch: number | undefined): string | undefined {
-  if (!epoch) return undefined;
-  return new Date(epoch * 1000).toISOString().replace('T', ' ').replace('Z', ' UTC');
-}
-
-function UsagePills(props: { usage: ChatUsage }): JSX.Element {
-  const u = props.usage;
-  return (
-    <div class="recorded-modal__usage">
-      <Show when={u.prompt_tokens != null}>
-        <span class="recorded-modal__usage-pill">
-          <span class="recorded-modal__usage-label">input</span>
-          <span class="recorded-modal__usage-value">{formatNumber(u.prompt_tokens!)}</span>
-        </span>
-      </Show>
-      <Show when={u.completion_tokens != null}>
-        <span class="recorded-modal__usage-pill">
-          <span class="recorded-modal__usage-label">output</span>
-          <span class="recorded-modal__usage-value">{formatNumber(u.completion_tokens!)}</span>
-        </span>
-      </Show>
-      <Show when={(u.cache_read_tokens ?? 0) > 0}>
-        <span class="recorded-modal__usage-pill">
-          <span class="recorded-modal__usage-label">cache read</span>
-          <span class="recorded-modal__usage-value">{formatNumber(u.cache_read_tokens!)}</span>
-        </span>
-      </Show>
-      <Show when={(u.cache_creation_tokens ?? 0) > 0}>
-        <span class="recorded-modal__usage-pill">
-          <span class="recorded-modal__usage-label">cache write</span>
-          <span class="recorded-modal__usage-value">{formatNumber(u.cache_creation_tokens!)}</span>
-        </span>
-      </Show>
-      <Show when={u.total_tokens != null}>
-        <span class="recorded-modal__usage-pill recorded-modal__usage-pill--total">
-          <span class="recorded-modal__usage-label">total</span>
-          <span class="recorded-modal__usage-value">{formatNumber(u.total_tokens!)}</span>
-        </span>
-      </Show>
-    </div>
-  );
-}
-
-function SubSection(props: { title: string; children: JSX.Element }): JSX.Element {
-  return (
-    <div class="recorded-modal__subsection">
-      <div class="recorded-modal__subtitle">{props.title}</div>
-      {props.children}
-    </div>
-  );
-}
-
-function ChatRequestBody(props: { body: ChatCompletionRequest }): JSX.Element {
-  return (
-    <>
-      <SubSection title="Parameters">
-        <div class="recorded-modal__kv">
-          <Field label="Model" value={props.body.model} mono />
-          <Field
-            label="Streaming"
-            value={props.body.stream !== undefined ? (props.body.stream ? 'yes' : 'no') : undefined}
-          />
-          <Field label="Temperature" value={props.body.temperature} />
-          <Field label="Top P" value={props.body.top_p} />
-          <Field label="Max tokens" value={props.body.max_tokens} />
-        </div>
-      </SubSection>
-      <Show when={props.body.messages && props.body.messages.length > 0}>
-        <SubSection title={`Conversation (${props.body.messages!.length})`}>
-          <ChatTurns messages={props.body.messages!} />
-        </SubSection>
-      </Show>
-      <Show when={props.body.tools && props.body.tools.length > 0}>
-        <SubSection title={`Tools available (${props.body.tools!.length})`}>
-          <ToolsList tools={props.body.tools!} />
-        </SubSection>
-      </Show>
-    </>
-  );
-}
-
-function RequestView(props: {
-  body: Record<string, unknown> | null;
-  headers: Record<string, string> | null | undefined;
-}): JSX.Element {
-  return (
-    <div class="recorded-modal__section">
-      <div class="recorded-modal__section-title">Request</div>
-      <Show
-        when={props.body}
-        fallback={<div class="recorded-modal__empty">No request body captured.</div>}
-      >
-        <Show
-          when={isChatCompletionRequest(props.body)}
-          fallback={
-            <SubSection title="Body">
-              <CodeBlock code={prettyJson(props.body)} language="json" />
-            </SubSection>
-          }
-        >
-          <ChatRequestBody body={props.body as ChatCompletionRequest} />
-        </Show>
-      </Show>
-      <SubSection title="Headers">
-        <HeadersTable headers={props.headers} />
-      </SubSection>
-    </div>
-  );
-}
-
-function ChatResponseBody(props: { body: ChatCompletionResponse }): JSX.Element {
-  const firstChoice = () => props.body.choices?.[0];
-  const assistant = () => firstChoice()?.message;
-  return (
-    <>
-      <SubSection title="Summary">
-        <div class="recorded-modal__kv">
-          <Field label="Model" value={props.body.model} mono />
-          <Field label="ID" value={props.body.id} mono />
-          <Field label="Created" value={formatCreatedEpoch(props.body.created)} />
-          <Field label="Finish reason" value={firstChoice()?.finish_reason} />
-          <Field label="Choices" value={props.body.choices?.length} />
-        </div>
-      </SubSection>
-      <Show when={assistant()}>
-        <SubSection title="Reply">
-          <div class="recorded-modal__reply">
-            <MessageContent content={assistant()!.content} />
-            <Show when={assistant()!.tool_calls && assistant()!.tool_calls!.length > 0}>
-              <ToolCallsBlock calls={assistant()!.tool_calls!} />
-            </Show>
-          </div>
-        </SubSection>
-      </Show>
-      <Show when={props.body.choices && props.body.choices.length > 1}>
-        <SubSection title="Other choices">
-          <For each={props.body.choices!.slice(1)}>
-            {(c) => (
-              <div class="recorded-modal__turn">
-                <div class="recorded-modal__turn-header">
-                  <span class="recorded-modal__muted">
-                    #{c.index ?? '?'} &middot; {c.finish_reason ?? ''}
-                  </span>
-                </div>
-                <div class="recorded-modal__turn-body">
-                  <MessageContent content={c.message?.content} />
-                </div>
-              </div>
-            )}
-          </For>
-        </SubSection>
-      </Show>
-      <Show when={props.body.usage}>
-        <SubSection title="Usage">
-          <UsagePills usage={props.body.usage!} />
-        </SubSection>
-      </Show>
-    </>
-  );
-}
-
-function ResponseView(props: {
-  responseBody: ResponseBody;
-  headers: Record<string, string> | null | undefined;
-}): JSX.Element {
-  return (
-    <div class="recorded-modal__section">
-      <div class="recorded-modal__section-title">Response</div>
-      <Show
-        when={props.responseBody}
-        fallback={
-          <>
-            <div class="recorded-modal__empty">
-              Body not captured &mdash; the upstream call may have failed before completion.
-            </div>
-            <SubSection title="Headers">
-              <HeadersTable headers={props.headers} />
-            </SubSection>
-          </>
-        }
-      >
-        {(() => {
-          const rb = props.responseBody!;
-          if (rb.type === 'stream') {
-            return (
-              <>
-                <div class="recorded-modal__muted">
-                  Streaming response &mdash; raw Server-Sent Events below.
-                </div>
-                <pre class="recorded-modal__pre">{rb.raw_sse ?? ''}</pre>
-              </>
-            );
-          }
-          if (!isChatCompletionResponse(rb.body)) {
-            return (
-              <SubSection title="Body">
-                <CodeBlock code={prettyJson(rb.body)} language="json" />
-              </SubSection>
-            );
-          }
-          return <ChatResponseBody body={rb.body} />;
-        })()}
-      </Show>
-      <SubSection title="Headers">
-        <HeadersTable headers={props.headers} />
-      </SubSection>
-    </div>
-  );
-}
-
-function BodyPanel(props: { data: MessageDetailResponse }): JSX.Element {
-  const rec = () => props.data.recording;
-  return (
-    <>
-      <RequestView
-        body={rec()?.request_body ?? null}
-        headers={props.data.message.request_headers}
-      />
-      <ResponseView responseBody={rec()?.response_body ?? null} headers={rec()?.response_headers} />
-    </>
-  );
+/** Don't hijack '/' when the user is typing in any editable field. */
+function isFocusInEditable(): boolean {
+  const el = document.activeElement as HTMLElement | null;
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
 }
 
 const RecordedMessageModal: Component<Props> = (props) => {
-  const [confirmingDelete, setConfirmingDelete] = createSignal(false);
-  const [deleting, setDeleting] = createSignal(false);
-
   const [data, { refetch }] = createResource(
     () => (props.open && props.messageId ? props.messageId : null),
     (id) => (id ? getMessageDetails(id) : Promise.resolve(null)),
   );
 
+  const state = createRecordedDrawerState(
+    () => data(),
+    () => props.open,
+  );
+
   const handleDelete = async () => {
     const id = props.messageId;
-    if (!id || deleting()) return;
-    setDeleting(true);
+    if (!id || state.deleting()) return;
+    state.setDeleting(true);
     try {
       await deleteMessageRecording(id);
       toast.success('Recording deleted.');
       props.onDeleted?.(id);
-      setConfirmingDelete(false);
+      state.setConfirmingDelete(false);
       props.onClose();
     } catch {
-      // fetchMutate already surfaces an error toast before rethrowing
+      /* fetchMutate already surfaces an error toast */
     } finally {
-      setDeleting(false);
+      state.setDeleting(false);
+    }
+  };
+
+  const copyToClipboard = async (payload: unknown, label: string) => {
+    if (payload == null) {
+      toast.error(`${label} is not captured on this recording.`);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(prettyJson(payload));
+      toast.success(`${label} copied to clipboard.`);
+    } catch {
+      toast.error('Clipboard write blocked by the browser.');
+    }
+  };
+
+  const messages = () => {
+    const d = data();
+    return d ? requestMessages(d) : [];
+  };
+
+  const lastUserMessage = createMemo(() => {
+    const ms = messages();
+    for (let i = ms.length - 1; i >= 0; i--) {
+      if (normalizeRole(ms[i]!.role) === 'user') return { msg: ms[i]!, index: i };
+    }
+    return null;
+  });
+
+  const assistantReply = createMemo(() => {
+    const d = data();
+    return d ? extractAssistantReply(d.recording?.response_body ?? null) : null;
+  });
+
+  // Only the OpenAI chat-completion shape carries an inline `messages[]`
+  // that the rail + Essentials can render meaningfully. For Claude / Gemini
+  // / unknown / empty bodies we collapse the chrome so the user sees a
+  // single "use the Raw tab" hint in the main pane instead of three
+  // stacked empty states.
+  const isOpenAIFormat = createMemo(() => {
+    const d = data();
+    if (!d?.recording?.request_body) return false;
+    return detectRequestBodyFormat(d.recording.request_body) === 'openai';
+  });
+
+  const lastAssistantTurnIndex = createMemo(() => {
+    const ms = messages();
+    for (let i = ms.length - 1; i >= 0; i--) {
+      if (normalizeRole(ms[i]!.role) === 'assistant') return i;
+    }
+    return null;
+  });
+
+  // Derived per-turn data that only changes with the recording itself — the
+  // lowered content string is the expensive part (tens of KB each on
+  // OpenClaw recordings), so memoising it here means a search keystroke
+  // only rescans, never re-lowercases.
+  const turnCorpus = createMemo(() =>
+    messages().map((m, i) => ({
+      index: i,
+      role: normalizeRole(m.role),
+      rawRole: m.role,
+      preview: buildTurnPreview(m),
+      tokens: estimateMessageTokens(m),
+      lowered: coerceContentToText(m.content).toLowerCase(),
+    })),
+  );
+
+  const outlineRows = createMemo((): OutlineRow[] => {
+    const q = state.searchQuery().trim().toLowerCase();
+    return turnCorpus().map((t) => ({
+      index: t.index,
+      role: t.role,
+      roleLabel: t.role === 'unknown' ? (t.rawRole ?? 'unknown') : t.role,
+      preview: t.preview,
+      tokens: t.tokens,
+      matchCount: q ? countMatches(t.lowered, q) : undefined,
+    }));
+  });
+
+  const jumpTo = (index: number) => {
+    state.expandTurn(index);
+    state.setActiveTurnIndex(index);
+    state.setActiveTab('conversation');
+    queueMicrotask(() => {
+      const el = document.getElementById(`recorded-turn-${index}`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const jumpLastUser = () => {
+    const found = lastUserMessage();
+    if (found) jumpTo(found.index);
+  };
+  const jumpLastAssistant = () => {
+    const i = lastAssistantTurnIndex();
+    if (i != null) jumpTo(i);
+  };
+  const jumpFirstUser = () => {
+    const i = messages().findIndex((m) => normalizeRole(m.role) === 'user');
+    if (i >= 0) jumpTo(i);
+  };
+
+  // Focus the drawer container when it opens so keyboard events (Esc, '/')
+  // reach it without the user having to click first. The focus trap also
+  // restores focus to the previously-active element on close.
+  const [drawerElSignal, setDrawerEl] = createSignal<HTMLDivElement | undefined>();
+  let drawerEl: HTMLDivElement | undefined;
+  useFocusTrap(drawerElSignal, () => props.open, { initialFocus: () => drawerElSignal() });
+  createEffect(
+    on(
+      () => props.open,
+      (open) => {
+        if (!open) return;
+        queueMicrotask(() => drawerEl?.focus());
+      },
+    ),
+  );
+
+  const onDrawerKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      // OverflowMenu's own handler catches Esc while it's open — by the time
+      // an Escape reaches the drawer the menu has either closed or wasn't
+      // open to begin with, so Esc here always means "close the drawer".
+      props.onClose();
+      return;
+    }
+    if (e.key === '/' && !isFocusInEditable()) {
+      e.preventDefault();
+      const input = document.getElementById('recorded-drawer-search') as HTMLInputElement | null;
+      input?.focus();
+      input?.select();
     }
   };
 
@@ -530,107 +221,114 @@ const RecordedMessageModal: Component<Props> = (props) => {
     <Portal>
       <Show when={props.open}>
         <div
-          class="modal-overlay"
+          class="modal-overlay recorded-drawer__overlay"
           onClick={(e) => {
             if (e.target === e.currentTarget) props.onClose();
           }}
           onKeyDown={(e) => {
+            // Belt-and-suspenders: the drawer container has its own Esc
+            // handler (fires when the drawer has focus), but we also catch
+            // it here so overlay-level events — and tests that dispatch
+            // keydown on the overlay — still close the drawer.
             if (e.key === 'Escape') props.onClose();
           }}
         >
           <div
-            class="modal-card recorded-modal__card"
+            class="recorded-drawer"
             role="dialog"
             aria-modal="true"
-            aria-labelledby="recorded-modal-title"
+            aria-labelledby="recorded-drawer-title"
+            tabindex="-1"
+            ref={(el) => {
+              drawerEl = el;
+              setDrawerEl(el);
+            }}
+            onKeyDown={onDrawerKeyDown}
           >
-            <div class="recorded-modal__header">
-              <div>
-                <h3 id="recorded-modal-title" class="recorded-modal__title">
-                  Recorded message
-                </h3>
-                <Show when={data()}>
-                  <div class="recorded-modal__subheader">
-                    <span>{formatTime(data()!.message.timestamp)}</span>
-                    <Show when={data()!.message.model}>
-                      <span class="recorded-modal__sep" aria-hidden="true">
-                        &middot;
-                      </span>
-                      <span>{data()!.message.model}</span>
-                    </Show>
+            <DrawerHeader data={data()} onClose={props.onClose} />
+
+            <Show when={data() && !data.loading && !data.error}>
+              <DrawerMetrics message={data()!.message} recording={data()!.recording} />
+              <DrawerActionBar
+                hasRequestBody={!!data()!.recording?.request_body}
+                hasResponseBody={!!data()!.recording?.response_body}
+                onCopyRequest={() => copyToClipboard(data()!.recording?.request_body, 'Request')}
+                onCopyResponse={() => copyToClipboard(data()!.recording?.response_body, 'Response')}
+                overflowOpen={state.overflowOpen()}
+                onToggleOverflow={() => state.setOverflowOpen((v) => !v)}
+                confirmingDelete={state.confirmingDelete()}
+                onStartDelete={() => state.setConfirmingDelete(true)}
+                onCancelDelete={() => state.setConfirmingDelete(false)}
+                onConfirmDelete={handleDelete}
+                deleting={state.deleting()}
+                hasRecording={!!data()!.recording}
+              />
+              <Show when={isOpenAIFormat()}>
+                <RecordedEssentials
+                  lastUser={lastUserMessage()?.msg ?? null}
+                  assistantReply={assistantReply()}
+                  onJumpToLastUser={jumpLastUser}
+                  onJumpToAssistant={jumpLastAssistant}
+                />
+              </Show>
+            </Show>
+
+            <div class="recorded-drawer__layout">
+              <Show when={data() && !data.loading && !data.error && isOpenAIFormat()}>
+                <RecordedOutline
+                  rows={outlineRows()}
+                  activeIndex={state.activeTurnIndex()}
+                  visibleRoles={state.visibleRoles()}
+                  searchQuery={state.searchQuery()}
+                  onSearch={state.setSearchQuery}
+                  onJump={jumpTo}
+                  onToggleRole={state.toggleRole}
+                  onJumpFirstUser={jumpFirstUser}
+                  onJumpLastUser={jumpLastUser}
+                  onJumpLastAssistant={jumpLastAssistant}
+                />
+              </Show>
+
+              <main class="recorded-drawer__main">
+                <Show when={data.loading}>
+                  <div class="recorded-modal__loader">Loading recording&hellip;</div>
+                </Show>
+                <Show when={data.error}>
+                  <div class="recorded-modal__error">
+                    Failed to load recording.{' '}
+                    <button type="button" class="recorded-modal__retry" onClick={() => refetch()}>
+                      Retry
+                    </button>
                   </div>
                 </Show>
-              </div>
-              <button
-                type="button"
-                class="recorded-modal__close"
-                onClick={props.onClose}
-                aria-label="Close"
-              >
-                <CloseIcon />
-              </button>
-            </div>
 
-            <div class="recorded-modal__body">
-              <Show when={data.loading}>
-                <div class="recorded-modal__loader">Loading recording&hellip;</div>
-              </Show>
-              <Show when={data.error}>
-                <div class="recorded-modal__error">
-                  Failed to load recording.{' '}
-                  <button
-                    type="button"
-                    class="recorded-modal__retry"
-                    /* v8 ignore next */
-                    onClick={() => refetch()}
-                  >
-                    Retry
-                  </button>
-                </div>
-              </Show>
-              <Show when={data() && !data.loading && !data.error}>
-                <BodyPanel data={data()!} />
-              </Show>
-            </div>
-
-            <div class="recorded-modal__footer">
-              <Show
-                when={confirmingDelete()}
-                fallback={
-                  <Show when={data()?.recording}>
-                    <button
-                      type="button"
-                      class="recorded-modal__delete-btn"
-                      onClick={() => setConfirmingDelete(true)}
-                    >
-                      Delete recording
-                    </button>
-                  </Show>
-                }
-              >
-                <span class="recorded-modal__confirm-text">
-                  Delete? The message stays in your log.
-                </span>
-                <button
-                  type="button"
-                  class="btn btn--ghost btn--sm"
-                  onClick={() => setConfirmingDelete(false)}
-                  disabled={deleting()}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  class="btn btn--danger btn--sm"
-                  onClick={handleDelete}
-                  disabled={deleting()}
-                >
-                  {deleting() ? <span class="spinner" /> : 'Confirm delete'}
-                </button>
-              </Show>
-              <button type="button" class="btn btn--outline btn--sm" onClick={props.onClose}>
-                Close
-              </button>
+                <Show when={data() && !data.loading && !data.error}>
+                  <DrawerTabs
+                    active={state.activeTab()}
+                    onChange={state.setActiveTab}
+                    renderMode={state.renderMode()}
+                    onToggleRenderMode={state.toggleRenderMode}
+                    counts={{
+                      conversation: messages().length,
+                      tools: requestTools(data()!).length,
+                    }}
+                  />
+                  <div class="recorded-drawer__tab-body">
+                    <RecordedTabContent
+                      tab={state.activeTab()}
+                      data={data()!}
+                      messages={messages()}
+                      rows={outlineRows()}
+                      visibleRoles={state.visibleRoles()}
+                      expandedTurns={state.expandedTurns()}
+                      activeTurnIndex={state.activeTurnIndex()}
+                      renderMode={state.renderMode()}
+                      searchQuery={state.searchQuery()}
+                      onToggleTurn={state.toggleTurn}
+                    />
+                  </div>
+                </Show>
+              </main>
             </div>
           </div>
         </div>
