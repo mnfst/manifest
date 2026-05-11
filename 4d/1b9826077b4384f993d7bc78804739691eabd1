@@ -1,0 +1,46 @@
+packages/backend/src/common/utils/cost-calculator.spec.ts
+  s_d84e1018f6416e::t_f77d566b700c5a 216-280
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_d84e1018f6416e::t_80abbef05c32d5 148
+  s_d84e1018f6416e::t_bfd71710e88aca 599-613
+  s_d84e1018f6416e::t_3cd07439dd3834 22
+  s_d84e1018f6416e::t_a88e091d746ff0 406
+  s_d84e1018f6416e::t_667d441d1d325a 483
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_d84e1018f6416e::t_6449dc7151f19b 654,665
+  s_d84e1018f6416e::t_452e7440e2d1a6 44,55
+  s_d84e1018f6416e::t_0768ee39a873b9 1345,1356
+  s_d84e1018f6416e::t_c037b00823a408 1407-1553
+  s_d84e1018f6416e::t_71bf659ba28631 1079,1090
+.changeset/opencode-go-cost.md
+  s_d84e1018f6416e::t_5325533510e590 1-5
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.routes.spec.ts
+  s_d84e1018f6416e::t_46c6e340a6b74a 50,61
+packages/backend/src/model-discovery/opencode-go-catalog.service.ts
+  s_d84e1018f6416e::t_081b4afd6eeb84 10-15,26-35,40-41,48,72,82-96,107,109,127,133-164,169,172-184
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_d84e1018f6416e::t_ce94df95502919 1947
+  s_d84e1018f6416e::t_28a30aa5a787af 157
+  s_d84e1018f6416e::t_f6262ca0fb2902 1911
+packages/backend/src/model-discovery/opencode-go-catalog.service.spec.ts
+  s_d84e1018f6416e::t_3f053ec0bb901d 9,24-46
+  s_d84e1018f6416e::t_30e0d8e6b19175 113-218
+packages/backend/src/common/utils/cost-calculator.ts
+  s_d84e1018f6416e::t_f04b03e767fb56 9-13,16-21,28-31,37-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "4d1b9826077b4384f993d7bc78804739691eabd1",
+  "prompts": {},
+  "sessions": {
+    "s_d84e1018f6416e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "648aca91-1560-4e10-8a1b-a8ad3e04a4ed",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
