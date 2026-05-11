@@ -1,0 +1,81 @@
+packages/backend/src/analytics/controllers/costs.controller.ts
+  s_7470a053279dd3::t_78b97ec8783cb1 25,28-31
+packages/frontend/src/services/api/messages.ts
+  s_7470a053279dd3::t_5ade995e7c77b5 112
+packages/frontend/src/pages/MessageLog.tsx
+  s_7470a053279dd3::t_11bfc4fff3ed24 60
+  s_7470a053279dd3::t_df866e2b3e6eb9 194-195
+  s_7470a053279dd3::t_da292a7c4b51e5 210
+  s_7470a053279dd3::t_32eb7dbdd43863 37
+  s_7470a053279dd3::t_0239c10bcecc1e 260-264,266-267
+  s_7470a053279dd3::t_4829d24d5e63cf 265
+  s_7470a053279dd3::t_34f204ac709c86 157-159,166,177
+packages/backend/src/common/dto/range-query.dto.spec.ts
+  s_7470a053279dd3::t_4a393171d25600 37-50
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_7470a053279dd3::t_f423e68b13049e 42,58
+  s_7470a053279dd3::t_28dc3190cc6ac8 122,135,139-145,162
+  s_7470a053279dd3::t_ddf534acb41db8 85-91,105
+  s_7470a053279dd3::t_0abf567e33fac5 7
+packages/frontend/src/pages/Overview.tsx
+  s_7470a053279dd3::t_90b090f09bc30e 282-287
+  s_7470a053279dd3::t_b42c280d31b677 38
+  s_7470a053279dd3::t_c7c2005132e6a2 102
+  s_7470a053279dd3::t_7ce0b2499fd0fc 191-197
+packages/backend/src/analytics/controllers/tokens.controller.spec.ts
+  s_7470a053279dd3::t_1973d7b835d8ad 64,71-85
+packages/backend/src/analytics/controllers/messages.controller.spec.ts
+  s_7470a053279dd3::t_e53b783276fca0 79-80,95,109-110
+packages/backend/src/analytics/controllers/messages.controller.ts
+  s_7470a053279dd3::t_dd7251c604fab8 43
+.changeset/tier-filter-dashboard.md
+  s_7470a053279dd3::t_358e4727a1bcca 1-5
+packages/backend/src/analytics/services/query-helpers.ts
+  s_7470a053279dd3::t_082fa584c42790 42-56
+packages/backend/src/analytics/dto/messages-query.dto.spec.ts
+  s_7470a053279dd3::t_af42ab688fd46b 74-87
+packages/backend/src/analytics/controllers/costs.controller.spec.ts
+  s_7470a053279dd3::t_d3bdb984dda07f 67,74-90
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_7470a053279dd3::t_d60696194f3a21 152,159
+  s_7470a053279dd3::t_99f63ca0d09ce0 6-11
+  s_7470a053279dd3::t_1b75c9d561aa05 38-43,46-53,59-64,68-75,81-87,99,101-108
+packages/backend/src/analytics/controllers/overview.controller.spec.ts
+  s_7470a053279dd3::t_ab98839ffcdca5 220-226
+  s_7470a053279dd3::t_4031aaa10fa241 75-82,90-97,104-110,117-131,133-141,145-182
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_7470a053279dd3::t_65ed47bbe9330d 299,310
+  s_7470a053279dd3::t_6f4006b5b76963 53
+  s_7470a053279dd3::t_49014625ae1940 6-11
+  s_7470a053279dd3::t_aa6b28f56164da 115,124
+packages/frontend/src/services/api/analytics.ts
+  s_7470a053279dd3::t_52be7e77fc7024 3-8
+packages/backend/src/analytics/controllers/tokens.controller.ts
+  s_7470a053279dd3::t_1a85a700e46db9 25,28-30
+packages/backend/src/common/dto/range-query.dto.ts
+  s_7470a053279dd3::t_b13be92259d71f 2,12-15
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_7470a053279dd3::t_d7b1f7736731e4 6
+  s_7470a053279dd3::t_2ed4a947c3c7b4 184-221
+packages/backend/src/analytics/dto/messages-query.dto.ts
+  s_7470a053279dd3::t_8262a90315a717 3
+  s_7470a053279dd3::t_1f3d5bcb7069bd 59-62
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_7470a053279dd3::t_d4a4f58ff8e68c 31,37-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "85d75718fe9302151926973afdd9ab408d2d0482",
+  "prompts": {},
+  "sessions": {
+    "s_7470a053279dd3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26f2dea6-8b27-4e0b-839f-21397f8061b9",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
