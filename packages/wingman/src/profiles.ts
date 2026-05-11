@@ -9,6 +9,12 @@ import { HERMES_SYSTEM } from './templates/hermes-system';
 
 export type ProfileMode = 'agent' | 'sdk' | 'raw';
 export type ProfileLang = 'typescript' | 'python' | 'bash';
+/**
+ * Which Manifest entry point the profile targets. Defaults to chat completions
+ * for back-compat. `messages` targets `/v1/messages` (Anthropic Messages API)
+ * so Anthropic-SDK clients can be tested against the proxy.
+ */
+export type ProfileApiMode = 'chat_completions' | 'messages';
 
 export interface ProfileParams {
   baseUrl: string;
@@ -43,9 +49,20 @@ export interface Profile {
    * the TypeScript SDK profiles can do this — Python needs Pyodide.
    */
   executable?: boolean;
+  /**
+   * Manifest entry point this profile hits. Omitting defaults to
+   * `chat_completions` (the `/v1/chat/completions` path). Set to `messages`
+   * for Anthropic-shape clients that hit `/v1/messages`.
+   */
+  apiMode?: ProfileApiMode;
   headers: (params: ProfileParams) => Record<string, string>;
   body: (params: ProfileParams) => Record<string, unknown>;
   code: (params: ProfileParams, lang: ProfileLang) => string;
+}
+
+/** Returns the proxy path for a profile, defaulting to chat completions. */
+export function profilePath(profile: Pick<Profile, 'apiMode'>): string {
+  return profile.apiMode === 'messages' ? '/v1/messages' : '/v1/chat/completions';
 }
 
 function messages(params: ProfileParams) {
@@ -60,6 +77,38 @@ function messages(params: ProfileParams) {
 function jsonBody(body: unknown, indent = 2): string {
   return JSON.stringify(body, null, indent);
 }
+
+function anthropicBody(params: ProfileParams): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    model: params.model,
+    max_tokens: params.maxTokens ?? 1024,
+    messages: [{ role: 'user', content: params.userMessage }],
+  };
+  if (params.systemPrompt.trim()) {
+    body.system = params.systemPrompt;
+  }
+  if (params.temperature !== undefined) {
+    body.temperature = params.temperature;
+  }
+  return body;
+}
+
+const anthropicSdkHeaders = {
+  // Mirror the stainless fingerprint @anthropic-ai/sdk sends. Anthropic doesn't
+  // require these for forwarding; they make Manifest's request log look like
+  // what a real SDK client would produce.
+  'User-Agent': 'Anthropic/JS 0.40.1',
+  'X-Stainless-Lang': 'js',
+  'X-Stainless-Package-Version': '0.40.1',
+  'X-Stainless-OS': 'Linux',
+  'X-Stainless-Arch': 'x64',
+  'X-Stainless-Runtime': 'node',
+  'X-Stainless-Runtime-Version': 'v22.17.1',
+  'X-Stainless-Retry-Count': '0',
+  'anthropic-version': '2023-06-01',
+  'accept-language': '*',
+  'sec-fetch-mode': 'cors',
+};
 
 const stainlessJs = {
   'User-Agent': 'OpenAI/JS 6.26.0',
@@ -139,6 +188,50 @@ model:
   default: ${p.model}
 EOF
 hermes chat -q '${p.userMessage.replace(/'/g, "'\\''")}'`,
+  },
+  {
+    id: 'anthropic-sdk',
+    label: 'Anthropic SDK',
+    mode: 'sdk',
+    category: 'app',
+    blurb: 'Official Anthropic client (TypeScript or Python). Targets /v1/messages.',
+    icon: '/icons/providers/anthropic.svg',
+    langs: ['typescript', 'python'],
+    defaultLang: 'typescript',
+    headersLocked: true,
+    apiMode: 'messages',
+    headers: () => ({ ...anthropicSdkHeaders }),
+    body: anthropicBody,
+    code: (p, lang) => {
+      if (lang === 'python') {
+        return `from anthropic import Anthropic
+
+client = Anthropic(
+    base_url="${p.baseUrl}",
+    api_key="${p.apiKey || 'mnfst_YOUR_KEY'}",
+)
+
+response = client.messages.create(
+    model="${p.model}",
+    max_tokens=${p.maxTokens ?? 1024},
+    ${p.systemPrompt.trim() ? `system=${JSON.stringify(p.systemPrompt)},\n    ` : ''}messages=[{"role": "user", "content": ${JSON.stringify(p.userMessage)}}],
+)
+print(response.content[0].text)`;
+      }
+      return `import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  baseURL: "${p.baseUrl}",
+  apiKey: "${p.apiKey || 'mnfst_YOUR_KEY'}",
+});
+
+const response = await client.messages.create({
+  model: "${p.model}",
+  max_tokens: ${p.maxTokens ?? 1024},
+  ${p.systemPrompt.trim() ? `system: ${JSON.stringify(p.systemPrompt)},\n  ` : ''}messages: [{ role: "user", content: ${JSON.stringify(p.userMessage)} }],
+});
+console.log(response.content[0].type === "text" ? response.content[0].text : "");`;
+    },
   },
   {
     id: 'openai-sdk',
