@@ -110,7 +110,6 @@ export class ResolveService {
         confidence: result.confidence,
         score: result.score,
         reason: result.reason,
-        param_defaults: assignment.param_defaults,
       };
     }
 
@@ -121,7 +120,6 @@ export class ResolveService {
       confidence: result.confidence,
       score: result.score,
       reason: result.reason,
-      param_defaults: assignment.param_defaults,
     };
   }
 
@@ -145,7 +143,6 @@ export class ResolveService {
       confidence: 1,
       score: 0,
       reason,
-      param_defaults: assignment.param_defaults,
     };
   }
 
@@ -267,7 +264,6 @@ export class ResolveService {
       score: 0,
       reason: 'specificity',
       specificity_category: detected.category,
-      param_defaults: assignment.param_defaults,
     };
   }
 

@@ -61,6 +61,7 @@ describe('AgentDuplicationService', () => {
       const customProviderRepo = makeRepoMock('CustomProvider');
       const tierRepo = makeRepoMock('TierAssignment');
       const specRepo = makeRepoMock('SpecificityAssignment');
+      const modelParamsRepo = makeRepoMock('AgentModelParams');
       const manager = {
         getRepository: (entity: { name: string }) => {
           switch (entity.name) {
@@ -76,6 +77,8 @@ describe('AgentDuplicationService', () => {
               return tierRepo;
             case 'SpecificityAssignment':
               return specRepo;
+            case 'AgentModelParams':
+              return modelParamsRepo;
             default:
               throw new Error(`Unexpected entity ${entity.name}`);
           }
@@ -273,6 +276,7 @@ describe('AgentDuplicationService', () => {
         customProviders: 1,
         tierAssignments: 1,
         specificityAssignments: 1,
+        modelParams: 0,
       });
 
       expect(insertedRows['Agent']).toHaveLength(1);
@@ -591,11 +595,13 @@ describe('AgentDuplicationService', () => {
         customProviders: 0,
         tierAssignments: 0,
         specificityAssignments: 0,
+        modelParams: 0,
       });
       expect(insertedRows['UserProvider']).toBeUndefined();
       expect(insertedRows['CustomProvider']).toBeUndefined();
       expect(insertedRows['TierAssignment']).toBeUndefined();
       expect(insertedRows['SpecificityAssignment']).toBeUndefined();
+      expect(insertedRows['AgentModelParams']).toBeUndefined();
     });
   });
 });
