@@ -20,6 +20,7 @@ describe('ProviderModelFetcherService', () => {
       'openai',
       'openai-subscription',
       'deepseek',
+      'groq',
       'mistral',
       'moonshot',
       'xai',
@@ -457,6 +458,60 @@ describe('ProviderModelFetcherService', () => {
       'https://open.bigmodel.cn/api/paas/v4/models',
       expect.any(Object),
     );
+  });
+
+  /* ── Groq provider ── */
+
+  describe('groq provider', () => {
+    it('should parse Groq models and filter non-chat entries', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'llama-3.3-70b-versatile' },
+            { id: 'llama-3.1-8b-instant' },
+            { id: 'whisper-large-v3' },
+            { id: 'whisper-large-v3-turbo' },
+            { id: 'meta-llama/llama-prompt-guard-2-86m' },
+            { id: 'openai/gpt-oss-20b' },
+            { id: 'openai/gpt-oss-safeguard-20b' },
+            { id: 'compound-beta' },
+            { id: 'compound-mini' },
+            { id: 'groq/compound' },
+            { id: 'groq/compound-mini' },
+            { id: 'canopylabs/orpheus-v1-english' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('groq', 'gsk_test');
+      // whisper filtered by universal filter; prompt-guard, orpheus and
+      // every compound variant (start-of-string, slash-prefixed, hyphen-
+      // prefixed) filtered by groq-specific filter. gpt-oss-safeguard-20b
+      // is a real chat model and must NOT be filtered.
+      expect(result.map((m) => m.id)).toEqual([
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
+        'openai/gpt-oss-20b',
+        'openai/gpt-oss-safeguard-20b',
+      ]);
+    });
+
+    it('should hit the Groq models endpoint with bearer auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+
+      await service.fetch('groq', 'gsk_test_key');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.groq.com/openai/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer gsk_test_key' },
+        }),
+      );
+    });
   });
 
   /* ── OpenAI-compatible providers use same parser ── */

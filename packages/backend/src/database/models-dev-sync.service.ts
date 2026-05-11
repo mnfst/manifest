@@ -18,6 +18,7 @@ const PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
   qwen: 'alibaba',
   zai: 'zai',
   copilot: 'github-copilot',
+  groq: 'groq',
 };
 
 const SUPPORTED_PROVIDERS = new Set(Object.keys(PROVIDER_ID_MAP));

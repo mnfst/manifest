@@ -149,6 +149,26 @@ const MOCK_API_RESPONSE = {
       },
     },
   },
+  groq: {
+    id: 'groq',
+    name: 'Groq',
+    models: {
+      'llama-3.3-70b-versatile': {
+        id: 'llama-3.3-70b-versatile',
+        name: 'Llama 3.3 70B Versatile',
+        cost: { input: 0.59, output: 0.79 },
+        limit: { context: 128000 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'qwen/qwen3-32b': {
+        id: 'qwen/qwen3-32b',
+        name: 'Qwen3 32B (Groq)',
+        cost: { input: 0.29, output: 0.59 },
+        limit: { context: 131072 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
   'unknown-provider': {
     id: 'unknown-provider',
     name: 'Unknown',
@@ -182,8 +202,8 @@ describe('ModelsDevSyncService', () => {
         'https://models.dev/api.json',
         expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
-      // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1, mistral: 6, xai: 3 = 14
-      expect(count).toBe(14);
+      // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1, mistral: 6, xai: 3, groq: 2 = 16
+      expect(count).toBe(16);
     });
 
     it('should filter out non-text-output models', async () => {
@@ -254,6 +274,18 @@ describe('ModelsDevSyncService', () => {
       expect(model).not.toBeNull();
       expect(model!.name).toBe('Gemini 2.5 Pro');
       expect(model!.inputPricePerToken).toBe(1.25 / 1_000_000);
+    });
+
+    it('should find Groq models, including slash-prefixed model IDs', () => {
+      const flat = service.lookupModel('groq', 'llama-3.3-70b-versatile');
+      expect(flat).not.toBeNull();
+      expect(flat!.name).toBe('Llama 3.3 70B Versatile');
+      expect(flat!.inputPricePerToken).toBe(0.59 / 1_000_000);
+
+      const prefixed = service.lookupModel('groq', 'qwen/qwen3-32b');
+      expect(prefixed).not.toBeNull();
+      expect(prefixed!.name).toBe('Qwen3 32B (Groq)');
+      expect(prefixed!.inputPricePerToken).toBe(0.29 / 1_000_000);
     });
 
     it('should return null for unknown model', () => {

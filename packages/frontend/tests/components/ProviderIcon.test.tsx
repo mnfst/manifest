@@ -7,6 +7,7 @@ const KNOWN_PROVIDERS = [
   "anthropic",
   "copilot",
   "gemini",
+  "groq",
   "deepseek",
   "mistral",
   "xai",

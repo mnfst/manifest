@@ -425,17 +425,17 @@ describe("Overview", () => {
     };
 
     it("renders custom provider icon in recent messages", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        const img = container.querySelector('img[alt="Groq"]');
+        const img = container.querySelector('img[alt="Cerebras"]');
         expect(img).not.toBeNull();
       });
     });
 
     it("strips custom prefix from model name display", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
@@ -445,11 +445,11 @@ describe("Overview", () => {
     });
 
     it("renders custom provider icon in cost by model table", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        const imgs = container.querySelectorAll('img[alt="Groq"]');
+        const imgs = container.querySelectorAll('img[alt="Cerebras"]');
         // At least one in recent messages and one in cost by model
         expect(imgs.length).toBeGreaterThanOrEqual(2);
       });
