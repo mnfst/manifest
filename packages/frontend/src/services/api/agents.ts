@@ -67,6 +67,7 @@ export interface DuplicateAgentPreview {
     customProviders: number;
     tierAssignments: number;
     specificityAssignments: number;
+    modelParams: number;
   };
   suggested_name: string;
 }
