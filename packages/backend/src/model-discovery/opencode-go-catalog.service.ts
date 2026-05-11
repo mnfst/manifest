@@ -46,6 +46,13 @@ export class OpencodeGoCatalogService implements OnModuleInit {
   private cache: { entries: OpencodeGoCatalogEntry[]; expiresAt: number } | null = null;
   private lastGood: OpencodeGoCatalogEntry[] | null = null;
   private costByModelId = new Map<string, number>();
+  /**
+   * In-flight fetch promise — concurrent callers (e.g. the onModuleInit
+   * warmup plus the first proxy request) share the same fetch instead of
+   * each issuing their own. Cleared once the fetch settles so the next call
+   * after cache expiry re-fetches normally.
+   */
+  private inflight: Promise<OpencodeGoCatalogEntry[]> | null = null;
 
   /**
    * Warm the catalog in the background at boot so the per-request cost index
@@ -66,7 +73,18 @@ export class OpencodeGoCatalogService implements OnModuleInit {
     if (this.cache && this.cache.expiresAt > now) {
       return this.cache.entries;
     }
+    if (this.inflight) {
+      // A concurrent caller (typically the onModuleInit warmup) is already
+      // fetching. Share its result so we don't issue a duplicate request.
+      return this.inflight;
+    }
+    this.inflight = this.fetchAndCache(now).finally(() => {
+      this.inflight = null;
+    });
+    return this.inflight;
+  }
 
+  private async fetchAndCache(now: number): Promise<OpencodeGoCatalogEntry[]> {
     try {
       const response = await fetch(CATALOG_URL, {
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
@@ -197,6 +215,7 @@ export class OpencodeGoCatalogService implements OnModuleInit {
     this.cache = null;
     this.lastGood = null;
     this.costByModelId = new Map();
+    this.inflight = null;
   }
 }
 

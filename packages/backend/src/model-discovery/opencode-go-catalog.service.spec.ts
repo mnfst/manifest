@@ -205,6 +205,19 @@ describe('OpencodeGoCatalogService', () => {
       expect(service.getCostPerRequest('does-not-exist')).toBeNull();
     });
 
+    it('coalesces concurrent list() calls into a single fetch', async () => {
+      let resolveFetch!: (r: Response) => void;
+      fetchSpy.mockImplementation(() => new Promise<Response>((res) => (resolveFetch = res)));
+
+      const a = service.list();
+      const b = service.list();
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+      resolveFetch({ ok: true, status: 200, text: async () => SAMPLE_MDX } as Response);
+      const [ra, rb] = await Promise.all([a, b]);
+      expect(ra).toBe(rb);
+    });
+
     it('warms the catalog via onModuleInit so the cost index is ready before the first proxy call', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
