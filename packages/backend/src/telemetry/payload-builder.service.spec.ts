@@ -7,6 +7,7 @@ import { PayloadBuilderService } from './payload-builder.service';
 interface ProviderRow {
   provider: string | null;
   count: string;
+  cost?: string | null;
 }
 interface BucketRow {
   bucket: string | null;
@@ -21,6 +22,7 @@ interface TotalsRow {
   total: string;
   input_tokens: string | null;
   output_tokens: string | null;
+  cost?: string | null;
 }
 
 interface MockData {
@@ -173,6 +175,83 @@ describe('PayloadBuilderService', () => {
     expect(payload.messages_total).toBe(0);
     expect(payload.tokens_input_total).toBe(0);
     expect(payload.tokens_output_total).toBe(0);
+  });
+
+  it('emits cost_usd_total = 0 and cost_usd_by_provider = {} when no cost data', async () => {
+    const service = await makeService({
+      providers: [{ provider: 'anthropic', count: '3' }],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.cost_usd_total).toBe(0);
+    expect(payload.cost_usd_by_provider).toEqual({});
+  });
+
+  it('sums cost_usd_total from totals.cost and rounds to cents', async () => {
+    const service = await makeService({
+      totals: {
+        total: '10',
+        input_tokens: '0',
+        output_tokens: '0',
+        cost: '12.345678',
+      },
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.cost_usd_total).toBe(12.35);
+  });
+
+  it('buckets cost_usd_by_provider with the same canonicalization as messages', async () => {
+    const service = await makeService({
+      providers: [
+        { provider: 'anthropic', count: '10', cost: '5.4321' },
+        { provider: 'openai', count: '5', cost: '2.1' },
+      ],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.cost_usd_by_provider).toEqual({ anthropic: 5.43, openai: 2.1 });
+  });
+
+  it('collapses custom provider costs into a single "custom" bucket', async () => {
+    const service = await makeService({
+      providers: [
+        { provider: 'anthropic', count: '2', cost: '1.00' },
+        { provider: 'my-self-hosted-vllm', count: '4', cost: '0.50' },
+        { provider: 'another-custom', count: '1', cost: '0.25' },
+      ],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.cost_usd_by_provider).toEqual({ anthropic: 1, custom: 0.75 });
+  });
+
+  it('skips zero and null costs from cost_usd_by_provider', async () => {
+    const service = await makeService({
+      providers: [
+        { provider: 'ollama', count: '100', cost: '0' },
+        { provider: 'anthropic', count: '3', cost: '1.50' },
+        { provider: 'openai', count: '1', cost: null },
+      ],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.cost_usd_by_provider).toEqual({ anthropic: 1.5 });
+  });
+
+  it('drops cost_usd_by_provider buckets that round to 0 after rounding', async () => {
+    const service = await makeService({
+      providers: [{ provider: 'anthropic', count: '1', cost: '0.001' }],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.cost_usd_by_provider).toEqual({});
   });
 
   it('returns messages_by_tier grouped across the 4 canonical tiers', async () => {
