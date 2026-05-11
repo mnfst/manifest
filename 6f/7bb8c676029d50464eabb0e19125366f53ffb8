@@ -1,0 +1,25 @@
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_32fb28dbc8b5dc::t_fef1da53b9d7c3 192-221,225-228,230-243,259-260
+  s_32fb28dbc8b5dc::t_544f91d2064804 222-224,229,244-258
+.changeset/fix-deepseek-reasoning-content-aggregators.md
+  s_32fb28dbc8b5dc::t_75ba98ece2e0c8 1-5
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_32fb28dbc8b5dc::t_4cafcc628c6b02 106-115,118-124,128-136
+  s_32fb28dbc8b5dc::t_666581fcf56bfb 105,116-117,125,137-138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "6f7bb8c676029d50464eabb0e19125366f53ffb8",
+  "prompts": {},
+  "sessions": {
+    "s_32fb28dbc8b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2ca7a845-975a-4c85-b570-d14b84c16fa9",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": null
+    }
+  }
+}
