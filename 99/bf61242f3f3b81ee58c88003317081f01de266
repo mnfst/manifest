@@ -1,0 +1,23 @@
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_32fb28dbc8b5dc::t_666581fcf56bfb 105-114,117-121
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_32fb28dbc8b5dc::t_fef1da53b9d7c3 192-249
+.changeset/fix-deepseek-reasoning-content-aggregators.md
+  s_32fb28dbc8b5dc::t_75ba98ece2e0c8 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "99bf61242f3f3b81ee58c88003317081f01de266",
+  "prompts": {},
+  "sessions": {
+    "s_32fb28dbc8b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2ca7a845-975a-4c85-b570-d14b84c16fa9",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
