@@ -1,5 +1,6 @@
 import {
   applyAnthropicMessagesMutations,
+  extractThinkingBlocksFromMessagesResponse,
   toAnthropicRequest,
   fromAnthropicResponse,
   transformAnthropicStreamChunk,
@@ -2092,6 +2093,26 @@ describe('Anthropic Adapter', () => {
       expect(content[1]).toMatchObject({ type: 'tool_use', id: 'call_1' });
     });
 
+    it('does not duplicate thinking blocks the client already echoed', () => {
+      // Native Messages clients echo signed thinking blocks back to satisfy
+      // Anthropic's signature chain. Replaying a cached copy on top would
+      // duplicate signed blocks and the upstream would reject the request.
+      const cached = [{ type: 'thinking' as const, thinking: 'old', signature: 'sigA' }];
+      const echoed = {
+        role: 'assistant',
+        content: [
+          { type: 'thinking', thinking: 'echoed', signature: 'sigA' },
+          { type: 'tool_use', id: 'call_1', name: 'web_search', input: { q: 'cats' } },
+        ],
+      };
+      const result = applyAnthropicMessagesMutations(
+        { messages: [{ role: 'user', content: 'find cats' }, echoed] },
+        { thinkingLookup: () => cached },
+      );
+      const messages = result.messages as Array<Record<string, unknown>>;
+      expect(messages[1].content).toEqual(echoed.content);
+    });
+
     it('does not touch messages when thinkingLookup returns nothing', () => {
       const inboundMessages = [
         { role: 'user', content: 'hi' },
@@ -2166,6 +2187,64 @@ describe('Anthropic Adapter', () => {
         thinking: { type: 'enabled', budget_tokens: 1024 },
         metadata: { user_id: 'u' },
         tool_choice: { type: 'auto' },
+      });
+    });
+  });
+
+  describe('extractThinkingBlocksFromMessagesResponse', () => {
+    it('returns undefined when there is no content array', () => {
+      expect(extractThinkingBlocksFromMessagesResponse({})).toBeUndefined();
+      expect(extractThinkingBlocksFromMessagesResponse({ content: 'string' })).toBeUndefined();
+    });
+
+    it('returns undefined when there are thinking blocks but no tool_use', () => {
+      expect(
+        extractThinkingBlocksFromMessagesResponse({
+          content: [{ type: 'thinking', thinking: 't', signature: 's' }],
+        }),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when there is a tool_use but no thinking blocks', () => {
+      expect(
+        extractThinkingBlocksFromMessagesResponse({
+          content: [{ type: 'tool_use', id: 'toolu_1', name: 'x', input: {} }],
+        }),
+      ).toBeUndefined();
+    });
+
+    it('collects thinking blocks and keys them by the first tool_use id', () => {
+      expect(
+        extractThinkingBlocksFromMessagesResponse({
+          content: [
+            { type: 'thinking', thinking: 'reason 1', signature: 'a' },
+            { type: 'redacted_thinking', data: 'opaque' },
+            { type: 'tool_use', id: 'toolu_first', name: 'x', input: {} },
+            { type: 'tool_use', id: 'toolu_second', name: 'y', input: {} },
+            { type: 'text', text: 'narration' },
+          ],
+        }),
+      ).toEqual({
+        firstToolUseId: 'toolu_first',
+        blocks: [
+          { type: 'thinking', thinking: 'reason 1', signature: 'a' },
+          { type: 'redacted_thinking', data: 'opaque' },
+        ],
+      });
+    });
+
+    it('ignores tool_use blocks without a string id', () => {
+      expect(
+        extractThinkingBlocksFromMessagesResponse({
+          content: [
+            { type: 'thinking', thinking: 't', signature: 's' },
+            { type: 'tool_use', name: 'no_id' },
+            { type: 'tool_use', id: 'toolu_real', name: 'x', input: {} },
+          ],
+        }),
+      ).toEqual({
+        firstToolUseId: 'toolu_real',
+        blocks: [{ type: 'thinking', thinking: 't', signature: 's' }],
       });
     });
   });

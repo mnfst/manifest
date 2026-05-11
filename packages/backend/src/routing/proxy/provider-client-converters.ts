@@ -6,6 +6,7 @@ import {
 } from './google-adapter';
 import {
   applyAnthropicMessagesMutations,
+  extractThinkingBlocksFromMessagesResponse,
   toAnthropicRequest,
   fromAnthropicResponse,
   transformAnthropicStreamChunk,
@@ -69,6 +70,7 @@ export function createAnthropicTransformer(
 // Re-export adapter functions used by ProviderClient.forward()
 export {
   applyAnthropicMessagesMutations,
+  extractThinkingBlocksFromMessagesResponse,
   toGoogleRequest,
   toAnthropicRequest,
   toResponsesRequest,

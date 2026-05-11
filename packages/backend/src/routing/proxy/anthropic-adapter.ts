@@ -216,6 +216,35 @@ export function toAnthropicRequest(
 }
 
 /**
+ * Walk a native Anthropic Messages response body and pull out extended-thinking
+ * blocks keyed by the first `tool_use` id, for the thinking-block cache. The
+ * body itself is not mutated — used by the messages-passthrough response path
+ * where we forward Anthropic content blocks unchanged (so `server_tool_use` /
+ * `web_search_tool_result` and other Anthropic-only block types survive).
+ */
+export function extractThinkingBlocksFromMessagesResponse(
+  body: Record<string, unknown>,
+): ExtractedThinkingBlocks | undefined {
+  const content = body.content;
+  if (!Array.isArray(content)) return undefined;
+  let firstToolUseId: string | null = null;
+  const blocks: ThinkingBlock[] = [];
+  for (const block of content as Array<Record<string, unknown>>) {
+    if (block.type === 'thinking' || block.type === 'redacted_thinking') {
+      blocks.push(block as ThinkingBlock);
+    } else if (
+      block.type === 'tool_use' &&
+      firstToolUseId === null &&
+      typeof block.id === 'string'
+    ) {
+      firstToolUseId = block.id;
+    }
+  }
+  if (blocks.length === 0 || firstToolUseId === null) return undefined;
+  return { firstToolUseId, blocks };
+}
+
+/**
  * Apply additive mutations to a body that is ALREADY in Anthropic Messages
  * shape (inbound `POST /v1/messages` forwarded to an Anthropic upstream).
  * Bypasses the lossy OpenAI round-trip used by `toAnthropicRequest`: server
@@ -283,6 +312,15 @@ export function applyAnthropicMessagesMutations(
       const content = m.content as ContentBlock[];
       const firstToolUse = content.find((b) => b.type === 'tool_use');
       if (!firstToolUse || typeof firstToolUse.id !== 'string') return m;
+      // Native Messages clients may already echo the previous assistant's
+      // signed thinking blocks before the tool_use block. Prepending the
+      // cached copy in that case would duplicate signed blocks and the
+      // upstream would reject the conversation. Only replay when the turn
+      // is missing the thinking prelude.
+      const alreadyHasThinking = content.some(
+        (b) => b.type === 'thinking' || b.type === 'redacted_thinking',
+      );
+      if (alreadyHasThinking) return m;
       const cached = thinkingLookup(firstToolUse.id);
       if (!cached || cached.length === 0) return m;
       return { ...m, content: [...(cached as ContentBlock[]), ...content] };
