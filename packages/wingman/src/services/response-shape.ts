@@ -45,11 +45,14 @@ export function extractUsage(json: unknown): { in?: number; out?: number; total?
   const anthropicInput = num(u.input_tokens);
   const anthropicTotal =
     anthropicInput !== undefined ? anthropicInput + cacheRead + cacheCreation : undefined;
-  return {
-    in: num(u.prompt_tokens) ?? anthropicTotal,
-    out: num(u.completion_tokens) ?? num(u.output_tokens),
-    total: num(u.total_tokens),
-  };
+  const inTokens = num(u.prompt_tokens) ?? anthropicTotal;
+  const outTokens = num(u.completion_tokens) ?? num(u.output_tokens);
+  // The Messages API doesn't report total_tokens; derive it so the UI's token
+  // chip (gated on `total`) still shows for Anthropic responses.
+  const total =
+    num(u.total_tokens) ??
+    (inTokens !== undefined && outTokens !== undefined ? inTokens + outTokens : undefined);
+  return { in: inTokens, out: outTokens, total };
 }
 
 export function extractModel(json: unknown): string | null {

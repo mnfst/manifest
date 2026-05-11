@@ -204,11 +204,15 @@ hermes chat -q '${p.userMessage.replace(/'/g, "'\\''")}'`,
     body: anthropicBody,
     code: (p, lang) => {
       if (lang === 'python') {
+        // Anthropic's SDK has two auth options: api_key (sends X-Api-Key) and
+        // auth_token (sends Authorization: Bearer). Manifest's proxy reads
+        // Authorization, so use auth_token — api_key wouldn't reach the
+        // AgentKeyAuthGuard at all.
         return `from anthropic import Anthropic
 
 client = Anthropic(
     base_url="${p.baseUrl}",
-    api_key="${p.apiKey || 'mnfst_YOUR_KEY'}",
+    auth_token="${p.apiKey || 'mnfst_YOUR_KEY'}",
 )
 
 response = client.messages.create(
@@ -220,9 +224,11 @@ print(response.content[0].text)`;
       }
       return `import Anthropic from "@anthropic-ai/sdk";
 
+// Manifest accepts the API key via Authorization: Bearer. The Anthropic SDK's
+// apiKey option maps to X-Api-Key — use authToken instead to hit Bearer.
 const client = new Anthropic({
   baseURL: "${p.baseUrl}",
-  apiKey: "${p.apiKey || 'mnfst_YOUR_KEY'}",
+  authToken: "${p.apiKey || 'mnfst_YOUR_KEY'}",
 });
 
 const response = await client.messages.create({
