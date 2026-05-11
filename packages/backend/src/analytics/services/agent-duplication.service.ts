@@ -21,6 +21,7 @@ export interface DuplicateAgentSummary {
   customProviders: number;
   tierAssignments: number;
   specificityAssignments: number;
+  modelParams: number;
 }
 
 export interface DuplicateAgentResult {
@@ -66,18 +67,18 @@ export class AgentDuplicationService {
     const source = await this.findOwnedAgent(userId, sourceName);
     if (!source) throw new NotFoundException(`Agent "${sourceName}" not found`);
 
-    const [providers, customProviders, tierAssignments, specificityAssignments] = await Promise.all(
-      [
+    const [providers, customProviders, tierAssignments, specificityAssignments, modelParams] =
+      await Promise.all([
         this.dataSource.getRepository(UserProvider).count({ where: { agent_id: source.id } }),
         this.dataSource.getRepository(CustomProvider).count({ where: { agent_id: source.id } }),
         this.dataSource.getRepository(TierAssignment).count({ where: { agent_id: source.id } }),
         this.dataSource
           .getRepository(SpecificityAssignment)
           .count({ where: { agent_id: source.id } }),
-      ],
-    );
+        this.dataSource.getRepository(AgentModelParams).count({ where: { agent_id: source.id } }),
+      ]);
 
-    return { providers, customProviders, tierAssignments, specificityAssignments };
+    return { providers, customProviders, tierAssignments, specificityAssignments, modelParams };
   }
 
   async suggestName(userId: string, sourceName: string): Promise<string> {

@@ -42,13 +42,20 @@ describe('AgentsController', () => {
       agentName: 'bot-copy',
       displayName: 'bot-copy',
       apiKey: 'mnfst_new',
-      copied: { providers: 1, customProviders: 0, tierAssignments: 2, specificityAssignments: 0 },
+      copied: {
+        providers: 1,
+        customProviders: 0,
+        tierAssignments: 2,
+        specificityAssignments: 0,
+        modelParams: 0,
+      },
     });
     mockGetCopySummary = jest.fn().mockResolvedValue({
       providers: 1,
       customProviders: 0,
       tierAssignments: 2,
       specificityAssignments: 0,
+      modelParams: 0,
     });
     mockSuggestName = jest.fn().mockResolvedValue('bot-copy');
 
@@ -473,7 +480,13 @@ describe('AgentsController', () => {
     const result = await controller.getDuplicatePreview(user as never, 'bot-1');
 
     expect(result).toEqual({
-      copied: { providers: 1, customProviders: 0, tierAssignments: 2, specificityAssignments: 0 },
+      copied: {
+        providers: 1,
+        customProviders: 0,
+        tierAssignments: 2,
+        specificityAssignments: 0,
+        modelParams: 0,
+      },
       suggested_name: 'bot-copy',
     });
     expect(mockGetCopySummary).toHaveBeenCalledWith('u1', 'bot-1');

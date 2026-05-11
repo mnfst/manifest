@@ -124,6 +124,7 @@ describe('AgentDuplicationService', () => {
         CustomProvider: 1,
         TierAssignment: 4,
         SpecificityAssignment: 2,
+        AgentModelParams: 5,
       };
 
       const result = await service.getCopySummary('user-1', 'source-agent');
@@ -132,6 +133,7 @@ describe('AgentDuplicationService', () => {
         customProviders: 1,
         tierAssignments: 4,
         specificityAssignments: 2,
+        modelParams: 5,
       });
     });
 
