@@ -347,6 +347,35 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
+    // Snapshot lookup must use the same normalized model id as the forward.
+    // Anthropic strips dots (claude-sonnet-4.6 -> claude-sonnet-4-6); using
+    // route.model would key the snapshot off a different row than the wire,
+    // letting metadata drift from what was actually sent.
+    it('snapshot lookup uses the normalized model id for Anthropic so it matches the forward', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('anthropic', 'api_key', 'claude-sonnet-4.6'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      expect(modelParamsService.get).toHaveBeenCalledWith(
+        'agent-1',
+        'anthropic',
+        'api_key',
+        'claude-sonnet-4-6',
+      );
+    });
+
     it('passes the inbound body through unchanged so the per-attempt merge can re-merge each fallback', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',

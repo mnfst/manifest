@@ -200,7 +200,7 @@ export class ProxyService {
       agentId,
       route.provider,
       route.authType,
-      route.model,
+      primaryModel,
     );
     const primaryRequestParams = snapshotRequestParams({
       body: routingBody as Record<string, unknown>,
@@ -522,7 +522,7 @@ export class ProxyService {
             args.paramMergeContext.agentId,
             primaryProvider,
             primaryAuth as 'api_key' | 'subscription' | 'local',
-            resolved.route.model,
+            primaryModel,
           )
         : null;
     const exhaustedRequestParams = snapshotRequestParams({
