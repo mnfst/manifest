@@ -105,9 +105,11 @@ describe("validateSubscriptionKey", () => {
     });
   });
 
-  it("returns invalid when token is too short", () => {
-    const anthropic = getProvider("anthropic")!;
-    expect(validateSubscriptionKey(anthropic, "short")).toEqual({
+  it("returns invalid when token is too short (no subscription prefix configured)", () => {
+    // Pick a provider without a SUBSCRIPTION_PREFIXES entry so the length
+    // check fires before any prefix gate would.
+    const deepseek = getProvider("deepseek")!;
+    expect(validateSubscriptionKey(deepseek, "short")).toEqual({
       valid: false,
       error: "Token is too short (minimum 10 characters)",
     });
@@ -163,6 +165,40 @@ describe("validateSubscriptionKey", () => {
     const deepseek = getProvider("deepseek")!;
     expect(validateSubscriptionKey(deepseek, "some-valid-token-here")).toEqual({
       valid: true,
+    });
+  });
+
+  it("rejects a MiniMax subscription token without the sk-cp- prefix", () => {
+    const minimax = getProvider("minimax")!;
+    expect(validateSubscriptionKey(minimax, "sk-api-some-long-enough-token")).toEqual({
+      valid: false,
+      error: 'MiniMax subscription tokens start with "sk-cp-"',
+    });
+  });
+
+  it("accepts a valid MiniMax sk-cp- Coding Plan token", () => {
+    const minimax = getProvider("minimax")!;
+    expect(validateSubscriptionKey(minimax, "sk-cp-" + "a".repeat(40))).toEqual({
+      valid: true,
+    });
+  });
+
+  it("rejects a MiniMax Coding Plan token shorter than the provider's minKeyLength", () => {
+    const minimax = getProvider("minimax")!;
+    // sk-cp- prefix (6) + 4 chars = 10 total: passes the generic 10-char floor
+    // but should fail MiniMax's stricter 30-char minimum.
+    expect(validateSubscriptionKey(minimax, "sk-cp-1234")).toEqual({
+      valid: false,
+      error: "Token is too short (minimum 30 characters)",
+    });
+  });
+
+  it("exposes the MiniMax Coding Plan token alternative on the provider def", () => {
+    const minimax = getProvider("minimax")!;
+    expect(minimax.subscriptionTokenAlternative).toEqual({
+      prefix: "sk-cp-",
+      placeholder: "sk-cp-...",
+      dividerLabel: expect.stringContaining("Coding Plan token"),
     });
   });
 });

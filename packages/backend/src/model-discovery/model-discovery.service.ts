@@ -13,6 +13,7 @@ import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
+import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
 import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import {
@@ -80,6 +81,13 @@ export class ModelDiscoveryService {
           if (lowerProvider === 'minimax' && blob.u) {
             endpointOverride = blob.u;
           }
+        }
+        // Pasted MiniMax Coding Plan tokens (sk-cp-) have no OAuth blob, so
+        // discovery has no resource URL to use. Fall back to the persisted
+        // region column so CN tokens discover models against the CN host
+        // instead of incorrectly probing api.minimax.io.
+        if (lowerProvider === 'minimax' && !endpointOverride && provider.region === 'cn') {
+          endpointOverride = `${MINIMAX_BASE_URLS.cn}/anthropic`;
         }
       } else if (lowerProvider === 'copilot' && this.copilotTokenService) {
         try {

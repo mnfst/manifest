@@ -54,6 +54,7 @@ import { buildProviderExtraHeaders } from './provider-hooks';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
+import { MINIMAX_BASE_URLS } from '../oauth/minimax-oauth-helpers';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 import {
@@ -343,6 +344,21 @@ export class ProxyFallbackService {
       forwardModel = forwardModel.substring('copilot/'.length);
     }
 
+    // Strip the "minimax/" prefix for MiniMax subscription routes. Vendor-
+    // prefixed model IDs can come in from OpenRouter pricing fallbacks
+    // (e.g. `minimax/MiniMax-M2.7`), and when we set a custom endpoint below
+    // for the CN region the request would otherwise reach MiniMax with the
+    // prefix intact and 404. The provider-endpoint resolver normally strips
+    // it for `minimax-subscription`, but a `customEndpoint` short-circuits
+    // that and ProviderClient.stripModelPrefix leaves `custom` keys alone.
+    if (
+      provider.toLowerCase() === 'minimax' &&
+      authType === 'subscription' &&
+      forwardModel.toLowerCase().startsWith('minimax/')
+    ) {
+      forwardModel = forwardModel.substring('minimax/'.length);
+    }
+
     if (CustomProviderService.isCustom(provider)) {
       const cpId = CustomProviderService.extractId(provider);
       const cp = await this.customProviderRepo.findOne({ where: { id: cpId } });
@@ -352,12 +368,25 @@ export class ProxyFallbackService {
       }
     } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
       customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
-    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax' && resourceUrl) {
-      const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
-      if (minimaxBaseUrl) {
-        customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
-      } else {
-        this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
+    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax') {
+      // OAuth-issued tokens carry the chosen region inside the JSON blob's
+      // resource_url (resourceUrl). Pasted Coding Plan tokens (`sk-cp-`)
+      // don't — for those we read the persisted region column. We only
+      // build a custom endpoint when the region is CN; global already
+      // matches the built-in `minimax-subscription` endpoint base URL, and
+      // overriding it would shift the route through the `custom` endpoint
+      // key, which preserves vendor-prefixed model IDs that this provider
+      // would otherwise strip and reject.
+      if (resourceUrl) {
+        const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
+        if (minimaxBaseUrl) {
+          customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
+        } else {
+          this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
+        }
+      } else if (providerRegion === 'cn') {
+        const regionBaseUrl = `${MINIMAX_BASE_URLS.cn}/anthropic`;
+        customEndpoint = buildEndpointOverride(regionBaseUrl, 'minimax-subscription');
       }
     }
 

@@ -985,7 +985,7 @@ describe('ProviderSelectModal', () => {
       expect(toast.success).toHaveBeenCalledWith('Anthropic connected');
     });
 
-    it('shows validation error for short subscription token', () => {
+    it('shows validation error for invalid subscription token prefix', () => {
       render(() => (
         <ProviderSelectModal
           providers={[]}
@@ -1000,7 +1000,9 @@ describe('ProviderSelectModal', () => {
       fireEvent.input(input, { target: { value: 'short' } });
       fireEvent.click(screen.getByText('Connect'));
 
-      expect(screen.getByText('Token is too short (minimum 10 characters)')).toBeDefined();
+      expect(
+        screen.getByText('Anthropic subscription tokens start with "sk-ant-oat"'),
+      ).toBeDefined();
       expect(mockConnectProvider).not.toHaveBeenCalled();
     });
 
