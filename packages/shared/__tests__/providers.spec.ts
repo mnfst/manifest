@@ -73,6 +73,15 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(SHARED_PROVIDER_BY_ID.get('alibaba')).toBeUndefined();
     expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get('alibaba')?.id).toBe('qwen');
   });
+
+  it('groq has no openRouter prefixes (native /models is authoritative)', () => {
+    // Mapping OpenRouter's `groq/*` prefix here would surface OR-cached
+    // models that the user can't actually call (e.g. compound-*) and would
+    // render them with the OpenRouter logo instead of the Groq one.
+    const groq = SHARED_PROVIDER_BY_ID.get('groq');
+    expect(groq).toBeDefined();
+    expect(groq!.openRouterPrefixes).toEqual([]);
+  });
 });
 
 describe('LOCAL_SERVER_HINTS', () => {

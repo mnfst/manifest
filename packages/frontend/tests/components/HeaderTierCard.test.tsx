@@ -27,6 +27,7 @@ vi.mock("../../src/services/routing-utils.js", () => ({
   inferProviderFromModel: (m: string) => {
     if (m.startsWith("gpt")) return "openai";
     if (m.startsWith("claude")) return "anthropic";
+    if (/^[a-z][\w-]*\//.test(m)) return "openrouter";
     return undefined;
   },
   pricePerM: (n: number) => `$${(n * 1_000_000).toFixed(2)}`,
@@ -37,6 +38,8 @@ vi.mock("../../src/services/providers.js", () => ({
   PROVIDERS: [
     { id: "openai", name: "OpenAI" },
     { id: "anthropic", name: "Anthropic" },
+    { id: "groq", name: "Groq" },
+    { id: "openrouter", name: "OpenRouter" },
   ],
 }));
 
@@ -748,6 +751,55 @@ describe("HeaderTierCard", () => {
     // The chip still renders the model — meaning providerIdForModel resolved
     // (and effectiveAuth lookup followed) without crashing.
     expect(container.querySelector(".routing-card__main")?.textContent).toBe("GPT-4o");
+  });
+
+  it("uses the model provider over prefix inference for Groq openai-prefixed models", () => {
+    const tierMissingProv = {
+      ...baseTier,
+      override_route: {
+        provider: "" as unknown as string,
+        authType: "api_key" as const,
+        model: "openai/gpt-oss-120b",
+      },
+    };
+    const groqModels: AvailableModel[] = [
+      {
+        model_name: "openai/gpt-oss-120b",
+        provider: "groq",
+        auth_type: "api_key",
+        input_price_per_token: 0.00000015,
+        output_price_per_token: 0.0000006,
+        context_window: 131072,
+        capability_reasoning: true,
+        capability_code: true,
+        quality_score: 9,
+        display_name: "GPT OSS 120B",
+      },
+    ];
+    const groqProviders: RoutingProvider[] = [
+      {
+        id: "p-groq",
+        provider: "groq",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        connected_at: "2025-01-01",
+      },
+    ];
+    const { container } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={tierMissingProv}
+        models={groqModels}
+        customProviders={customProviders}
+        connectedProviders={groqProviders}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={vi.fn()}
+      />
+    ));
+    expect(container.querySelector(".routing-card__main")?.textContent).toBe("GPT OSS 120B");
+    expect(container.querySelector('[data-testid="provider-icon-groq"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="provider-icon-openrouter"]')).toBeNull();
   });
 
   it("infers providerId via the model-prefix path when no DB match exists", () => {

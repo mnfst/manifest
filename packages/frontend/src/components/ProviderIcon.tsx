@@ -107,6 +107,26 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── Groq ─────────────────────────────────────── */
+    case 'groq':
+      // Source: https://groq.com/favicon.svg (lightning bolt mark on the
+      // brand orange #F43E01 square).
+      return (
+        <svg
+          style={s}
+          viewBox="0 0 33 33"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path fill="#F43E01" d="M.54.39h32v32h-32z" />
+          <path
+            fill="#fff"
+            d="m18.445 4.406-9.468 13.74 7.341.665-1.69 9.578 9.469-13.74-7.342-.664 1.69-9.579Z"
+          />
+        </svg>
+      );
+
     /* ── GitHub Copilot ─────────────────────────────── */
     case 'copilot':
       return (

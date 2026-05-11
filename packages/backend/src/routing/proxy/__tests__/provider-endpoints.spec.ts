@@ -152,6 +152,21 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(PROVIDER_ENDPOINTS['zai'].format).toBe('openai');
   });
 
+  it('groq uses OpenAI-compatible format at api.groq.com/openai', () => {
+    const ep = PROVIDER_ENDPOINTS['groq'];
+    expect(ep.baseUrl).toBe('https://api.groq.com/openai');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('llama-3.3-70b-versatile')).toBe('/v1/chat/completions');
+  });
+
+  it('groq uses Bearer auth headers', () => {
+    const headers = PROVIDER_ENDPOINTS['groq'].buildHeaders('gsk_test_key');
+    expect(headers).toEqual({
+      Authorization: 'Bearer gsk_test_key',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('qwen uses DashScope compatible-mode endpoint', () => {
     const ep = PROVIDER_ENDPOINTS['qwen'];
     expect(ep.baseUrl).toBe('https://dashscope.aliyuncs.com/compatible-mode');
