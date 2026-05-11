@@ -1,0 +1,40 @@
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_ba10c1ee330272::t_0429fe6d571c5e 1084-1123,1127-1128
+  s_ba10c1ee330272::t_d6ab6a267bfa16 1124-1126
+  s_ba10c1ee330272::t_70990c5779dfbe 1129-1195
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_ba10c1ee330272::t_35a583e966de9d 1278-1279,1296,1303-1304,1308-1325
+  s_ba10c1ee330272::t_349ac165ed9917 78-79
+  s_ba10c1ee330272::t_48237e3df22986 224-225
+  s_ba10c1ee330272::t_2fd432617462e9 1271-1277,1280-1295,1297-1302,1305-1307,1326
+packages/frontend/tests/pages/RoutingDefaultTierSection.test.tsx
+  s_ba10c1ee330272::t_52d98b22faff9b 38-40
+  s_ba10c1ee330272::t_b2c33d62357298 85-86
+packages/frontend/tests/pages/RoutingSpecificitySection.test.tsx
+  s_ba10c1ee330272::t_c1df93cb5082b5 117-118
+  s_ba10c1ee330272::t_299a12a8e7b2c6 59-60
+packages/frontend/tests/components/FallbackList.test.tsx
+  s_ba10c1ee330272::t_ef0c005604b4bb 1063-1064,1066,1079-1090
+packages/frontend/tests/pages/RoutingHeaderTiersSection.test.tsx
+  s_ba10c1ee330272::t_d34e8a0a9cb7e2 161-162
+  s_ba10c1ee330272::t_8c7657cdb8b78c 32-33
+packages/frontend/tests/pages/Routing.test.tsx
+  s_ba10c1ee330272::t_502517a9d81eba 1197-1213
+  s_ba10c1ee330272::t_df6e952e7e71cf 1236-1251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "30b76b9b7fcb8344fba68f3df5e5134505a00d3b",
+  "prompts": {},
+  "sessions": {
+    "s_ba10c1ee330272": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c9a5343-e4c0-42d8-bba9-ef88ea021798",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
