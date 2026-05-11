@@ -8,6 +8,7 @@ import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
+import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 
 /**
  * Locks the route-aware behavior of ProxyFallbackService.tryFallbacks:
@@ -67,6 +68,13 @@ describe('ProxyFallbackService.tryFallbacks — route-aware path', () => {
       getByModel: jest.fn().mockReturnValue(null),
     } as unknown as jest.Mocked<ModelPricingCacheService>;
 
+    const modelParamsService = {
+      get: jest.fn().mockResolvedValue(null),
+      list: jest.fn().mockResolvedValue([]),
+      set: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as AgentModelParamsService;
+
     service = new ProxyFallbackService(
       providerKeyService,
       customProviderRepo,
@@ -75,6 +83,7 @@ describe('ProxyFallbackService.tryFallbacks — route-aware path', () => {
       providerClient,
       copilotToken,
       pricingCache,
+      modelParamsService,
     );
   });
 

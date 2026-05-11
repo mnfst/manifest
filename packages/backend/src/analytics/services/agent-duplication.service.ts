@@ -9,6 +9,7 @@ import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
+import { AgentModelParams } from '../../entities/agent-model-params.entity';
 import { hashKey, keyPrefix } from '../../common/utils/hash.util';
 import { encrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { sqlNow } from '../../common/utils/postgres-sql';
@@ -223,11 +224,35 @@ export class AgentDuplicationService {
         );
       }
 
+      // Per-route model params travel with the agent — duplicating an agent
+      // without copying these would silently reset the new agent's DeepSeek
+      // thinking-mode (and any future per-model knob) back to the provider's
+      // natural default, surprising the user.
+      const modelParams = await manager
+        .getRepository(AgentModelParams)
+        .find({ where: { agent_id: source.id } });
+      if (modelParams.length > 0) {
+        await manager.getRepository(AgentModelParams).insert(
+          modelParams.map((p) => ({
+            id: uuidv4(),
+            user_id: p.user_id,
+            agent_id: newAgentId,
+            provider: p.provider,
+            auth_type: p.auth_type,
+            model_name: p.model_name,
+            params: p.params,
+            created_at: now,
+            updated_at: now,
+          })),
+        );
+      }
+
       return {
         providers: providers.length,
         customProviders: customProviders.length,
         tierAssignments: tiers.length,
         specificityAssignments: specificity.length,
+        modelParams: modelParams.length,
       };
     });
 

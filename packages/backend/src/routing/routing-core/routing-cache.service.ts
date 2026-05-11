@@ -4,6 +4,7 @@ import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { HeaderTier } from '../../entities/header-tier.entity';
+import { AgentModelParams } from '../../entities/agent-model-params.entity';
 
 const TTL_MS = 120_000; // 2 minutes
 const MAX_ENTRIES = 5_000;
@@ -45,6 +46,7 @@ export class RoutingCacheService {
   private readonly providerKeys = new Map<string, CachedEntry<CachedProviderKey[]>>();
   private readonly specificity = new Map<string, CachedEntry<SpecificityAssignment[]>>();
   private readonly headerTiers = new Map<string, CachedEntry<HeaderTier[]>>();
+  private readonly modelParams = new Map<string, CachedEntry<AgentModelParams[]>>();
 
   getTiers(agentId: string): TierAssignment[] | null {
     return getOrExpire(this.tiers, agentId) ?? null;
@@ -103,12 +105,25 @@ export class RoutingCacheService {
     setWithEviction(this.headerTiers, agentId, data);
   }
 
+  getModelParams(agentId: string): AgentModelParams[] | null {
+    return getOrExpire(this.modelParams, agentId) ?? null;
+  }
+
+  setModelParams(agentId: string, data: AgentModelParams[]): void {
+    setWithEviction(this.modelParams, agentId, data);
+  }
+
+  invalidateModelParams(agentId: string): void {
+    this.modelParams.delete(agentId);
+  }
+
   invalidateAgent(agentId: string): void {
     this.tiers.delete(agentId);
     this.providers.delete(agentId);
     this.customProviders.delete(agentId);
     this.specificity.delete(agentId);
     this.headerTiers.delete(agentId);
+    this.modelParams.delete(agentId);
     const prefix = `${agentId}:`;
     const toDelete = [...this.providerKeys.keys()].filter((k) => k.startsWith(prefix));
     for (const k of toDelete) this.providerKeys.delete(k);
