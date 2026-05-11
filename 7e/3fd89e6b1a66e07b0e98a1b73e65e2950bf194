@@ -1,0 +1,23 @@
+packages/backend/src/model-discovery/opencode-go-catalog.service.ts
+  s_d84e1018f6416e::t_cf7bba450e2941 76-85,87
+  s_d84e1018f6416e::t_abe2ac8cc14607 218
+  s_d84e1018f6416e::t_e3e0d380b9b048 49-55
+packages/backend/src/model-discovery/opencode-go-catalog.service.spec.ts
+  s_d84e1018f6416e::t_a48e6943163ba7 208-209,211-220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "7e3fd89e6b1a66e07b0e98a1b73e65e2950bf194",
+  "prompts": {},
+  "sessions": {
+    "s_d84e1018f6416e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "648aca91-1560-4e10-8a1b-a8ad3e04a4ed",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
