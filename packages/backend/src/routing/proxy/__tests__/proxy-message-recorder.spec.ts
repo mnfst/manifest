@@ -1536,6 +1536,37 @@ describe('ProxyMessageRecorder OpenCode Go subscription cost', () => {
     expect(getCostPerRequestMock).not.toHaveBeenCalled();
   });
 
+  it('records the catalog cost when the provider is stored under an alias (e.g. "opencodego")', async () => {
+    await recorder.recordSuccessMessage(
+      ctx,
+      'glm-5.1',
+      'standard',
+      'scored',
+      { prompt_tokens: 700, completion_tokens: 150 },
+      { provider: 'opencodego', authType: 'subscription' },
+    );
+
+    expect(getCostPerRequestMock).toHaveBeenCalledWith('glm-5.1');
+    expect(insertMock.mock.calls[0][0]).toMatchObject({
+      cost_usd: 0.01364,
+      auth_type: 'subscription',
+    });
+  });
+
+  it('records $0 when provider is null and authType is subscription (defensive)', async () => {
+    await recorder.recordSuccessMessage(
+      ctx,
+      'glm-5.1',
+      'standard',
+      'scored',
+      { prompt_tokens: 100, completion_tokens: 50 },
+      { provider: undefined, authType: 'subscription' },
+    );
+
+    expect(getCostPerRequestMock).not.toHaveBeenCalled();
+    expect(insertMock.mock.calls[0][0]).toMatchObject({ cost_usd: 0 });
+  });
+
   it('does not consult the catalog for other providers on subscription auth', async () => {
     await recorder.recordSuccessMessage(
       ctx,

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 
 export interface OpencodeGoCatalogEntry {
   /** Bare model ID as listed in the docs (e.g. "glm-5.1"). */
@@ -41,11 +41,25 @@ export const OPENCODE_GO_BUDGET_5H_USD = 12;
  * table (for per-request cost) and cache the merged result in memory.
  */
 @Injectable()
-export class OpencodeGoCatalogService {
+export class OpencodeGoCatalogService implements OnModuleInit {
   private readonly logger = new Logger(OpencodeGoCatalogService.name);
   private cache: { entries: OpencodeGoCatalogEntry[]; expiresAt: number } | null = null;
   private lastGood: OpencodeGoCatalogEntry[] | null = null;
   private costByModelId = new Map<string, number>();
+
+  /**
+   * Warm the catalog in the background at boot so the per-request cost index
+   * is populated before the proxy hot path runs. Discovery typically warms it
+   * on its own, but a cold process restart can record OpenCode Go calls
+   * against an empty index — the recorder treats a missing entry as $0,
+   * which is the original bug. Fire-and-forget; failures fall through to the
+   * existing fetch-on-demand path in `list()`.
+   */
+  onModuleInit(): void {
+    void this.list().catch(() => {
+      // `list()` already logs failures and arms the error-backoff window.
+    });
+  }
 
   async list(): Promise<OpencodeGoCatalogEntry[]> {
     const now = Date.now();

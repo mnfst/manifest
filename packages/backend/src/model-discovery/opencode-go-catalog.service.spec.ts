@@ -205,6 +205,28 @@ describe('OpencodeGoCatalogService', () => {
       expect(service.getCostPerRequest('does-not-exist')).toBeNull();
     });
 
+    it('warms the catalog via onModuleInit so the cost index is ready before the first proxy call', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => SAMPLE_MDX,
+      } as Response);
+      service.onModuleInit();
+      // onModuleInit is fire-and-forget; flush the pending list() promise.
+      await new Promise((r) => setImmediate(r));
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(service.getCostPerRequest('glm-5.1')).not.toBeNull();
+    });
+
+    it('onModuleInit failure is swallowed and leaves the cost index empty', async () => {
+      fetchSpy.mockRejectedValue(new Error('boom'));
+      service.onModuleInit();
+      await new Promise((r) => setImmediate(r));
+      // No throw, no crash — recorder will record $0 for that one call and
+      // catalog will retry after the error-backoff window.
+      expect(service.getCostPerRequest('glm-5.1')).toBeNull();
+    });
+
     it('is cleared by resetCache()', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,

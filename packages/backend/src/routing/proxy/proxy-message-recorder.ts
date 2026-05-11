@@ -20,6 +20,7 @@ import { TierService } from '../routing-core/tier.service';
 import { SpecificityService } from '../routing-core/specificity.service';
 import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
+import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
 export interface HeaderTierRef {
   headerTierId?: string | null;
@@ -600,6 +601,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
    * Resolve the per-request USD cost for subscription providers that bill
    * against a dollar quota (today: OpenCode Go). Returns `null` for every
    * other provider, leaving the existing "subscription → $0" path intact.
+   * Canonicalizes the provider through the registry so aliases (e.g.
+   * `opencodego`, `OpenCode-Go`) resolve identically.
    */
   private perRequestSubscriptionCost(
     provider: string | null | undefined,
@@ -607,7 +610,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     model: string | null | undefined,
   ): number | null {
     if (authType !== 'subscription') return null;
-    if (provider !== 'opencode-go') return null;
+    if (!provider) return null;
+    const canonical = PROVIDER_BY_ID_OR_ALIAS.get(provider.toLowerCase())?.id;
+    if (canonical !== 'opencode-go') return null;
     return this.opencodeGoCatalog.getCostPerRequest(model);
   }
 
