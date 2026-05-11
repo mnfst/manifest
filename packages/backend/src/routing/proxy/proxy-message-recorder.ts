@@ -19,6 +19,7 @@ import { computeBaselineCost, collectRoutedModelIds } from '../../common/utils/b
 import { TierService } from '../routing-core/tier.service';
 import { SpecificityService } from '../routing-core/specificity.service';
 import { HeaderTierService } from '../header-tiers/header-tier.service';
+import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 
 export interface HeaderTierRef {
   headerTierId?: string | null;
@@ -144,6 +145,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly tierService: TierService,
     private readonly specificityService: SpecificityService,
     private readonly headerTierService: HeaderTierService,
+    private readonly opencodeGoCatalog: OpencodeGoCatalogService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -401,6 +403,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model,
       pricing: usage ? this.pricingCache.getByModel(model) : undefined,
       isSubscription: authType === 'subscription',
+      perRequestCostUsd: this.perRequestSubscriptionCost(provider, authType, model),
     });
 
     const baseline = await this.computeBaseline(ctx.agentId, inputTokens, outputTokens);
@@ -477,6 +480,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model,
       pricing: this.pricingCache.getByModel(model),
       isSubscription: authType === 'subscription',
+      perRequestCostUsd: this.perRequestSubscriptionCost(provider, authType, model),
     });
 
     const baseline = await this.computeBaseline(
@@ -590,6 +594,21 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       },
     );
     if (wrote) this.eventBus.emit(ctx.userId);
+  }
+
+  /**
+   * Resolve the per-request USD cost for subscription providers that bill
+   * against a dollar quota (today: OpenCode Go). Returns `null` for every
+   * other provider, leaving the existing "subscription → $0" path intact.
+   */
+  private perRequestSubscriptionCost(
+    provider: string | null | undefined,
+    authType: string | null | undefined,
+    model: string | null | undefined,
+  ): number | null {
+    if (authType !== 'subscription') return null;
+    if (provider !== 'opencode-go') return null;
+    return this.opencodeGoCatalog.getCostPerRequest(model);
   }
 
   private async computeBaseline(

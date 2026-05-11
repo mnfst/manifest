@@ -1,4 +1,4 @@
-import { OpencodeGoCatalogService } from './opencode-go-catalog.service';
+import { OPENCODE_GO_BUDGET_5H_USD, OpencodeGoCatalogService } from './opencode-go-catalog.service';
 
 const BT = String.fromCharCode(96);
 const OAI = BT + 'https://opencode.ai/zen/go/v1/chat/completions' + BT;
@@ -6,12 +6,7 @@ const ANT = BT + 'https://opencode.ai/zen/go/v1/messages' + BT;
 const OAI_SDK = BT + '@ai-sdk/openai-compatible' + BT;
 const ANT_SDK = BT + '@ai-sdk/anthropic' + BT;
 
-const SAMPLE_MDX = [
-  '---',
-  'title: Go',
-  'description: Low cost subscription for open coding models.',
-  '---',
-  '',
+const ENDPOINTS_TABLE = [
   '## Endpoints',
   '',
   '| Model        | Model ID     | Endpoint                                         | AI SDK Package              |',
@@ -24,6 +19,31 @@ const SAMPLE_MDX = [
   `| MiniMax M2.7 | minimax-m2.7 | ${ANT} | ${ANT_SDK} |`,
   `| MiniMax M2.5 | minimax-m2.5 | ${ANT} | ${ANT_SDK} |`,
   '',
+].join('\n');
+
+const LIMITS_TABLE = [
+  '## Usage limits',
+  '',
+  '| Model              | requests per 5 hour | requests per week | requests per month |',
+  '| ------------------ | ------------------- | ----------------- | ------------------ |',
+  '| GLM-5.1            | 880                 | 2,150             | 4,300              |',
+  '| GLM-5              | 1,150               | 2,880             | 5,750              |',
+  '| Kimi K2.5          | 1,850               | 4,630             | 9,250              |',
+  '| MiMo-V2-Pro        | 1,290               | 3,225             | 6,450              |',
+  '| MiMo-V2-Omni (≤ 256K) | 2,150            | 5,450             | 10,900             |',
+  '| MiniMax M2.7       | 3,400               | 8,500             | 17,000             |',
+  '| MiniMax M2.5       | 6,300               | 15,900            | 31,800             |',
+  '',
+].join('\n');
+
+const SAMPLE_MDX = [
+  '---',
+  'title: Go',
+  'description: Low cost subscription for open coding models.',
+  '---',
+  '',
+  LIMITS_TABLE,
+  ENDPOINTS_TABLE,
 ].join('\n');
 
 describe('OpencodeGoCatalogService', () => {
@@ -89,6 +109,112 @@ describe('OpencodeGoCatalogService', () => {
       const entries = service.parse(doubled);
       const ids = entries.map((e) => e.id);
       expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it('attaches per-request cost derived from the Usage Limits table', () => {
+      const entries = service.parse(SAMPLE_MDX);
+      const cost = Object.fromEntries(entries.map((e) => [e.id, e.costPerRequestUsd]));
+      // $12 / 880 = ~0.01364
+      expect(cost['glm-5.1']).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 880, 12);
+      // $12 / 1150 = ~0.01043
+      expect(cost['glm-5']).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 1150, 12);
+      // Comma-grouped number — $12 / 6300 = ~0.00190
+      expect(cost['minimax-m2.5']).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 6300, 12);
+    });
+
+    it('matches names across tables when the limits row has a parenthesized suffix', () => {
+      const entries = service.parse(SAMPLE_MDX);
+      const omni = entries.find((e) => e.id === 'mimo-v2-omni');
+      expect(omni).toBeDefined();
+      // "MiMo-V2-Omni" (endpoints) ↔ "MiMo-V2-Omni (≤ 256K)" (limits)
+      expect(omni?.costPerRequestUsd).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 2150, 12);
+    });
+
+    it('leaves cost null when the Usage Limits table omits a model', () => {
+      const onlyEndpoints = ENDPOINTS_TABLE;
+      const entries = service.parse(onlyEndpoints);
+      expect(entries.every((e) => e.costPerRequestUsd === null)).toBe(true);
+    });
+
+    it('ignores Usage Limits rows whose request count is zero or non-positive', () => {
+      const broken = [
+        '| Bogus | 0 | 0 | 0 |',
+        '| GLM-5.1 | 880 | 2,150 | 4,300 |',
+        ENDPOINTS_TABLE,
+      ].join('\n');
+      const entries = service.parse(broken);
+      const glm = entries.find((e) => e.id === 'glm-5.1');
+      expect(glm?.costPerRequestUsd).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 880, 12);
+    });
+
+    it('uses the first occurrence when the limits table contains duplicates', () => {
+      const dupLimits = [
+        '| GLM-5.1 | 880 | 2,150 | 4,300 |',
+        '| GLM-5.1 | 1 | 1 | 1 |',
+        ENDPOINTS_TABLE,
+      ].join('\n');
+      const entries = service.parse(dupLimits);
+      const glm = entries.find((e) => e.id === 'glm-5.1');
+      // First occurrence (880) wins, not the bogus second row.
+      expect(glm?.costPerRequestUsd).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 880, 12);
+    });
+  });
+
+  describe('getCostPerRequest', () => {
+    it('returns null before list() has populated the cache', () => {
+      expect(service.getCostPerRequest('glm-5.1')).toBeNull();
+    });
+
+    it('returns null for null or empty input', () => {
+      expect(service.getCostPerRequest(null)).toBeNull();
+      expect(service.getCostPerRequest(undefined)).toBeNull();
+      expect(service.getCostPerRequest('')).toBeNull();
+    });
+
+    it('resolves both bare and "opencode-go/" prefixed model IDs after list()', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => SAMPLE_MDX,
+      } as Response);
+      await service.list();
+      const bare = service.getCostPerRequest('glm-5.1');
+      const prefixed = service.getCostPerRequest('opencode-go/glm-5.1');
+      expect(bare).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 880, 12);
+      expect(prefixed).toBe(bare);
+    });
+
+    it('returns null for a known model with no published limit', async () => {
+      const endpointsOnly = ['---', 'title: Go', '---', '', ENDPOINTS_TABLE].join('\n');
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => endpointsOnly,
+      } as Response);
+      await service.list();
+      expect(service.getCostPerRequest('glm-5.1')).toBeNull();
+    });
+
+    it('returns null for an unknown model id', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => SAMPLE_MDX,
+      } as Response);
+      await service.list();
+      expect(service.getCostPerRequest('does-not-exist')).toBeNull();
+    });
+
+    it('is cleared by resetCache()', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => SAMPLE_MDX,
+      } as Response);
+      await service.list();
+      expect(service.getCostPerRequest('glm-5.1')).not.toBeNull();
+      service.resetCache();
+      expect(service.getCostPerRequest('glm-5.1')).toBeNull();
     });
   });
 
