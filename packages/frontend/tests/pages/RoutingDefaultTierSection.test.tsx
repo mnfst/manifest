@@ -35,6 +35,9 @@ vi.mock("../../src/pages/RoutingTierCard.js", () => ({
       props.connectedProviders,
       props.persistParamDefaults,
       props.onParamDefaultsSaved,
+      props.onPinKey,
+      props.getModelParams,
+      props.setModelParams,
     ];
     void _read;
     return (
@@ -79,6 +82,8 @@ function makeProps(
     complexityEnabled: () => false,
     togglingComplexity: () => false,
     onToggleComplexity: vi.fn(),
+    getModelParams: () => null,
+    setModelParams: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
 }

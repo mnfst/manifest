@@ -75,6 +75,8 @@ vi.mock("../../src/components/FallbackList.js", () => ({
       props.primaryDragging,
       props.persistFallbacks,
       props.persistClearFallbacks,
+      props.getModelParams,
+      props.setModelParams,
     ];
     void _read;
     return (
@@ -219,6 +221,8 @@ function makeProps(overrides: Partial<Parameters<typeof RoutingTierCard>[0]> = {
     onAddFallback: vi.fn(),
     getFallbacksFor: () => baseTier.fallback_routes!.map((r) => r.model),
     connectedProviders: () => activeProviders,
+    getModelParams: () => null,
+    setModelParams: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   } as Parameters<typeof RoutingTierCard>[0];
 }
@@ -1263,5 +1267,61 @@ describe("providerIdForModel route-provider attribution", () => {
       { ...baseModel, model_name: "anything", provider: "openai" },
     ]);
     expect(id).toBe("openai");
+  });
+
+  // Exercise the affordance JSX with a provider that has a registered param
+  // spec (deepseek). Solid lazily evaluates each JSX prop expression, so the
+  // affordance Show block's inner attributes (provider, authType, model,
+  // slotLabel, getParams, setParams) only fire when the child renders. With
+  // openai (no specs) the child returns null and those attributes stay
+  // unevaluated — a deepseek tier triggers them all.
+  it("renders the params affordance on the primary chip and forwards saves through setModelParams", async () => {
+    const setModelParams = vi.fn().mockResolvedValue(undefined);
+    const deepseekTier = {
+      ...baseTier,
+      override_route: { provider: "deepseek", authType: "api_key" as const, model: "deepseek-v4" },
+    };
+    const deepseekModels = [
+      {
+        ...models[0],
+        model_name: "deepseek-v4",
+        provider: "DeepSeek",
+        auth_type: "api_key" as const,
+        display_name: "DeepSeek V4",
+      },
+    ];
+    const deepseekProviders = [
+      { provider: "deepseek", auth_type: "api_key" as const, is_active: true } as any,
+    ];
+    const { container, getByRole } = render(() => (
+      <RoutingTierCard
+        {...makeProps({
+          tier: () => deepseekTier,
+          models: () => deepseekModels,
+          activeProviders: () => deepseekProviders,
+          connectedProviders: () => deepseekProviders,
+          getModelParams: () => null,
+          setModelParams,
+        })}
+      />
+    ));
+    const btn = container.querySelector(
+      '[aria-label="Configure model parameters for DeepSeek V4"]',
+    ) as HTMLButtonElement;
+    expect(btn).not.toBeNull();
+    fireEvent.click(btn);
+    const toggle = await waitFor(() =>
+      getByRole("button", { name: /Thinking mode/ }),
+    );
+    fireEvent.click(toggle);
+    fireEvent.click(getByRole("button", { name: "Save" }));
+    await waitFor(() => {
+      expect(setModelParams).toHaveBeenCalledWith(
+        "deepseek",
+        "api_key",
+        "deepseek-v4",
+        { thinking: { type: "disabled" } },
+      );
+    });
   });
 });

@@ -1060,10 +1060,10 @@ describe("FallbackList", () => {
       keyLabel: null,
     };
 
-    it("renders the params affordance on a fallback row whose provider consumes a known param key", () => {
-      const setModelParams = vi.fn();
+    it("renders the params affordance on a fallback row and forwards saves through setModelParams", async () => {
+      const setModelParams = vi.fn().mockResolvedValue(undefined);
       const getModelParams = vi.fn().mockReturnValue(null);
-      const { container } = render(() => (
+      const { container, getByRole } = render(() => (
         <FallbackList
           {...defaultProps}
           fallbacks={["deepseek-v4-flash"]}
@@ -1076,6 +1076,18 @@ describe("FallbackList", () => {
         container.querySelectorAll<HTMLButtonElement>("button"),
       ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"));
       expect(btn).toBeDefined();
+      // Open dialog and save to evaluate the parent's `setParams={...}` JSX
+      // attribute (Solid lazily reads child props — `setParams` only fires
+      // when the affordance calls it on save).
+      fireEvent.click(btn!);
+      const toggle = await waitFor(() =>
+        getByRole("button", { name: /Thinking mode/ }),
+      );
+      fireEvent.click(toggle);
+      fireEvent.click(getByRole("button", { name: "Save" }));
+      await waitFor(() => {
+        expect(setModelParams).toHaveBeenCalled();
+      });
     });
 
     it("does NOT render the affordance when the row's provider has no known param key", () => {

@@ -1194,6 +1194,23 @@ describe("Routing page", () => {
   // those calls reach the new /model-params endpoint and that the local cache
   // updates without a refetch.
   it("setModelParams on the Default Tier Section calls the new endpoint and updates the cache", async () => {
+    // Seed the cache with a stale row for the same route + a sibling row for
+    // a different route so the de-dupe filter both removes the match (lines
+    // covering provider/authType/model comparison) and keeps the non-match.
+    mockListModelParams.mockResolvedValue([
+      {
+        provider: "DeepSeek",
+        authType: "api_key",
+        model: "deepseek-v4",
+        params: { thinking: { type: "enabled" } },
+      },
+      {
+        provider: "openai",
+        authType: "api_key",
+        model: "gpt-4o",
+        params: { thinking: { type: "enabled" } },
+      },
+    ]);
     mockSetModelParams.mockResolvedValue({
       provider: "deepseek",
       authType: "api_key",
@@ -1216,6 +1233,22 @@ describe("Routing page", () => {
   });
 
   it("setModelParams with null deletes via the new endpoint", async () => {
+    // Seed two rows so the delete-path filter callback both excludes the
+    // match (case-insensitive provider compare) and retains the sibling.
+    mockListModelParams.mockResolvedValue([
+      {
+        provider: "DeepSeek",
+        authType: "api_key",
+        model: "deepseek-v4",
+        params: { thinking: { type: "disabled" } },
+      },
+      {
+        provider: "anthropic",
+        authType: "api_key",
+        model: "claude-3-5-sonnet",
+        params: { thinking: { type: "disabled" } },
+      },
+    ]);
     mockDeleteModelParams.mockResolvedValue({ ok: true });
     render(() => <Routing />);
     await waitFor(() => {
