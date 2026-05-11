@@ -1046,7 +1046,7 @@ describe("FallbackList", () => {
     });
   });
 
-  describe("per-row params button", () => {
+  describe("per-row params affordance", () => {
     const deepseekRoute = {
       provider: "deepseek",
       authType: "api_key" as const,
@@ -1060,35 +1060,41 @@ describe("FallbackList", () => {
       keyLabel: null,
     };
 
-    it("renders the params button on a fallback row whose provider consumes a known param key", () => {
-      const onConfigureParams = vi.fn();
+    it("renders the params affordance on a fallback row whose provider consumes a known param key", () => {
+      const setModelParams = vi.fn();
+      const getModelParams = vi.fn().mockReturnValue(null);
       const { container } = render(() => (
         <FallbackList
           {...defaultProps}
           fallbacks={["deepseek-v4-flash"]}
           fallbackRoutes={[deepseekRoute] as any}
-          onConfigureParams={onConfigureParams}
+          getModelParams={getModelParams}
+          setModelParams={setModelParams}
         />
       ));
-      const btn = container.querySelector(".fallback-list__params") as HTMLButtonElement | null;
-      expect(btn).not.toBeNull();
-      fireEvent.click(btn!);
-      expect(onConfigureParams).toHaveBeenCalledTimes(1);
+      const btn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button"),
+      ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"));
+      expect(btn).toBeDefined();
     });
 
-    it("does NOT render the params button when the row's provider has no known param key", () => {
+    it("does NOT render the affordance when the row's provider has no known param key", () => {
       const { container } = render(() => (
         <FallbackList
           {...defaultProps}
           fallbacks={["gpt-4o"]}
           fallbackRoutes={[openaiRoute] as any}
-          onConfigureParams={vi.fn()}
+          getModelParams={vi.fn().mockReturnValue(null)}
+          setModelParams={vi.fn()}
         />
       ));
-      expect(container.querySelector(".fallback-list__params")).toBeNull();
+      const btn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button"),
+      ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"));
+      expect(btn).toBeUndefined();
     });
 
-    it("does NOT render the params button when onConfigureParams is undefined", () => {
+    it("does NOT render the affordance when the params callbacks are undefined", () => {
       const { container } = render(() => (
         <FallbackList
           {...defaultProps}
@@ -1096,30 +1102,46 @@ describe("FallbackList", () => {
           fallbackRoutes={[deepseekRoute] as any}
         />
       ));
-      expect(container.querySelector(".fallback-list__params")).toBeNull();
+      const btn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button"),
+      ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"));
+      expect(btn).toBeUndefined();
     });
 
-    it("renders the params button when fallbackRoutes is null and provider is derived from the models list", () => {
+    it("renders the affordance on the legacy path when both the model catalog AND a matching connected provider supply the auth_type", () => {
       // Legacy / pre-backfill data path: structured routes are not available
       // yet, but the row's provider can still be resolved via the model
-      // catalog. Visibility must follow the resolved provider, not require
-      // an explicit ModelRoute.
-      const onConfigureParams = vi.fn();
+      // catalog AND the connected providers list. The affordance needs
+      // `authType` to call /model-params, so both signals are required.
       const modelsWithDeepseek = [
         ...models,
         { model_name: "deepseek-v4-flash", provider: "DeepSeek" },
+      ] as any[];
+      const connectedProvidersWithDeepseek = [
+        {
+          id: "p-ds",
+          provider: "deepseek",
+          auth_type: "api_key",
+          is_active: true,
+          has_api_key: true,
+          connected_at: "2025-01-01",
+        },
       ] as any[];
       const { container } = render(() => (
         <FallbackList
           {...defaultProps}
           models={modelsWithDeepseek}
+          connectedProviders={connectedProvidersWithDeepseek}
           fallbacks={["deepseek-v4-flash"]}
           fallbackRoutes={null}
-          onConfigureParams={onConfigureParams}
+          getModelParams={vi.fn().mockReturnValue(null)}
+          setModelParams={vi.fn()}
         />
       ));
-      const btn = container.querySelector(".fallback-list__params") as HTMLButtonElement | null;
-      expect(btn).not.toBeNull();
+      const btn = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button"),
+      ).find((b) => b.getAttribute("aria-label")?.startsWith("Configure model parameters"));
+      expect(btn).toBeDefined();
     });
   });
 });

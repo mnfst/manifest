@@ -164,18 +164,14 @@ export function toggleComplexity(agentName: string) {
 /* -- Routing: Tier Assignments -- */
 
 /**
- * Per-assignment outbound request body parameters merged into the provider
+ * Per-route outbound request body parameters merged into the provider
  * request before forwarding. Today's only knob is DeepSeek's `thinking`
- * toggle. New keys land here as we add support for more provider-specific
- * params (`reasoning_effort`, `safety`, custom-provider params, …).
- *
- * Stored at the assignment level (one per tier per agent), so the same
- * defaults apply to the primary model AND every fallback in that tier.
- * Multi-key compatible: switching pinned key does not affect params.
+ * toggle; new keys (`reasoning_effort`, `safety`, custom-provider params)
+ * land here as their UI ships. Storage is per-(agent, route) on the
+ * `agent_model_params` table — see `services/api/model-params.ts` for the
+ * CRUD client.
  */
-export interface RequestParamDefaults {
-  thinking?: { type: 'enabled' | 'disabled' };
-}
+export type { RequestParamDefaults } from 'manifest-shared';
 
 export interface TierAssignment {
   id: string;
@@ -184,7 +180,6 @@ export interface TierAssignment {
   override_route: ModelRoute | null;
   auto_assigned_route: ModelRoute | null;
   fallback_routes: ModelRoute[] | null;
-  param_defaults: RequestParamDefaults | null;
   updated_at: string;
 }
 
@@ -229,21 +224,6 @@ export function resetTier(agentName: string, tier: string) {
 
 export function resetAllTiers(agentName: string) {
   return fetchMutate(routingPath(agentName, 'tiers/reset-all'), { method: 'POST' });
-}
-
-export function setTierParamDefaults(
-  agentName: string,
-  tier: string,
-  paramDefaults: RequestParamDefaults | null,
-) {
-  return fetchMutate<TierAssignment>(
-    routingPath(agentName, `tiers/${encodeURIComponent(tier)}/params`),
-    {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paramDefaults }),
-    },
-  );
 }
 
 /* -- Routing: Fallbacks -- */
