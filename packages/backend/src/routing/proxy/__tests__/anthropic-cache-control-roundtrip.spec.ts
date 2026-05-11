@@ -1,0 +1,171 @@
+/**
+ * Regression for issue #1871: end-to-end cache_control round-trip through the
+ * /v1/messages proxy path.
+ *
+ * The bug: when apiMode='messages', the response double-converts
+ * Anthropic → chat-completions → Anthropic Messages. The second conversion
+ * (`toAnthropicUsage`) was hardcoding `cache_creation_input_tokens: 0`, and the
+ * recorder's `parseUsageObject` Anthropic branch was reading cache reads from
+ * the OpenAI-style `input_tokens_details.cached_tokens` instead of Anthropic's
+ * top-level `cache_read_input_tokens`. Net effect: client responses lost cache
+ * creation, and `agent_messages` rows recorded `cache_creation_tokens: 0` AND
+ * `cache_read_tokens: 0` even when Anthropic actually created/served the cache.
+ */
+import { fromAnthropicResponse, toAnthropicRequest } from '../anthropic-adapter';
+import {
+  chatCompletionsResponseToMessages,
+  messagesToChatCompletionsRequest,
+} from '../anthropic-messages-adapter';
+import { parseUsageObject } from '../stream-writer';
+
+describe('issue #1871: cache_control round-trip through /v1/messages', () => {
+  describe('request path', () => {
+    it('re-injects ephemeral cache_control on the last system block when an Anthropic Messages body round-trips through the chat-completions adapter', () => {
+      const padding = 'background context follows '.repeat(1000);
+      const inbound = {
+        model: 'claude-haiku-4-5',
+        max_tokens: 32,
+        system: [{ type: 'text', text: padding, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: 'Say pong.' }],
+      };
+
+      const chatBody = messagesToChatCompletionsRequest(inbound);
+      const wireBody = toAnthropicRequest(chatBody, 'claude-haiku-4-5', {
+        injectCacheControl: true,
+      });
+
+      const system = wireBody.system as Array<{ cache_control?: unknown }>;
+      expect(system).toHaveLength(1);
+      expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('re-injects cache_control on the last tool definition as well', () => {
+      const padding = 'background context follows '.repeat(1000);
+      const inbound = {
+        model: 'claude-haiku-4-5',
+        max_tokens: 32,
+        system: [{ type: 'text', text: padding }],
+        messages: [{ role: 'user', content: 'Say pong.' }],
+        tools: [
+          {
+            name: 'search',
+            description: 'Search the web',
+            input_schema: { type: 'object', properties: {} },
+          },
+        ],
+      };
+
+      const chatBody = messagesToChatCompletionsRequest(inbound);
+      const wireBody = toAnthropicRequest(chatBody, 'claude-haiku-4-5', {
+        injectCacheControl: true,
+      });
+
+      const tools = wireBody.tools as Array<{ cache_control?: unknown }>;
+      expect(tools[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+  });
+
+  describe('response path', () => {
+    const cacheCreatingAnthropicResponse = {
+      id: 'msg_1',
+      type: 'message',
+      role: 'assistant',
+      content: [{ type: 'text', text: 'pong' }],
+      model: 'claude-haiku-4-5-20251001',
+      stop_reason: 'end_turn',
+      usage: {
+        input_tokens: 7,
+        output_tokens: 2,
+        cache_creation_input_tokens: 3006,
+        cache_read_input_tokens: 0,
+      },
+    };
+
+    const cacheHitAnthropicResponse = {
+      id: 'msg_2',
+      type: 'message',
+      role: 'assistant',
+      content: [{ type: 'text', text: 'pong' }],
+      model: 'claude-haiku-4-5-20251001',
+      stop_reason: 'end_turn',
+      usage: {
+        input_tokens: 7,
+        output_tokens: 2,
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 3006,
+      },
+    };
+
+    it('preserves cache_creation_input_tokens through the chat → messages conversion (client-visible response)', () => {
+      const chatResponse = fromAnthropicResponse(
+        cacheCreatingAnthropicResponse,
+        'claude-haiku-4-5-20251001',
+      );
+      const clientResponse = chatCompletionsResponseToMessages(
+        chatResponse,
+        'claude-haiku-4-5-20251001',
+      );
+      expect(clientResponse.usage).toEqual({
+        // 7 uncached + 3006 cache creation = 3013 chat-shape total;
+        // Anthropic shape splits them back out, so input_tokens stays 7.
+        input_tokens: 7,
+        output_tokens: 2,
+        cache_creation_input_tokens: 3006,
+        cache_read_input_tokens: 0,
+      });
+    });
+
+    it('preserves cache_read_input_tokens through the chat → messages conversion (client-visible response)', () => {
+      const chatResponse = fromAnthropicResponse(
+        cacheHitAnthropicResponse,
+        'claude-haiku-4-5-20251001',
+      );
+      const clientResponse = chatCompletionsResponseToMessages(
+        chatResponse,
+        'claude-haiku-4-5-20251001',
+      );
+      expect(clientResponse.usage).toEqual({
+        input_tokens: 7,
+        output_tokens: 2,
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 3006,
+      });
+    });
+
+    it('recovers cache_creation_tokens for DB recording after the Messages-shape conversion', () => {
+      const chatResponse = fromAnthropicResponse(
+        cacheCreatingAnthropicResponse,
+        'claude-haiku-4-5-20251001',
+      );
+      const messagesResponse = chatCompletionsResponseToMessages(
+        chatResponse,
+        'claude-haiku-4-5-20251001',
+      );
+      const streamUsage = parseUsageObject(messagesResponse.usage);
+      expect(streamUsage).toEqual({
+        prompt_tokens: 3013, // uncached + cache creation, recovered by parser
+        completion_tokens: 2,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 3006,
+      });
+    });
+
+    it('recovers cache_read_tokens for DB recording after the Messages-shape conversion', () => {
+      const chatResponse = fromAnthropicResponse(
+        cacheHitAnthropicResponse,
+        'claude-haiku-4-5-20251001',
+      );
+      const messagesResponse = chatCompletionsResponseToMessages(
+        chatResponse,
+        'claude-haiku-4-5-20251001',
+      );
+      const streamUsage = parseUsageObject(messagesResponse.usage);
+      expect(streamUsage).toEqual({
+        prompt_tokens: 3013,
+        completion_tokens: 2,
+        cache_read_tokens: 3006,
+        cache_creation_tokens: 0,
+      });
+    });
+  });
+});

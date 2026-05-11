@@ -339,7 +339,12 @@ describe('Anthropic Messages adapter', () => {
           id: 'cc_1',
           model: 'gpt-4o-mini',
           choices: [{ message: { content: 'hello there' }, finish_reason: 'stop' }],
-          usage: { prompt_tokens: 4, completion_tokens: 2, cache_read_tokens: 1 },
+          usage: {
+            prompt_tokens: 4,
+            completion_tokens: 2,
+            cache_read_tokens: 1,
+            cache_creation_tokens: 2,
+          },
         },
         'gpt-4o-mini',
       );
@@ -353,9 +358,10 @@ describe('Anthropic Messages adapter', () => {
         stop_reason: 'end_turn',
         stop_sequence: null,
         usage: {
-          input_tokens: 4,
+          // Anthropic's input_tokens excludes cache (= 4 - 1 - 2).
+          input_tokens: 1,
           output_tokens: 2,
-          cache_creation_input_tokens: 0,
+          cache_creation_input_tokens: 2,
           cache_read_input_tokens: 1,
         },
       });

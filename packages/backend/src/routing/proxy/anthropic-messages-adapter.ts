@@ -205,13 +205,19 @@ function toAnthropicStopReason(finishReason: unknown): string {
 
 function toAnthropicUsage(usage: unknown): JsonRecord {
   const u = isRecord(usage) ? usage : {};
-  const inputTokens = typeof u.prompt_tokens === 'number' ? u.prompt_tokens : 0;
+  const promptTokens = typeof u.prompt_tokens === 'number' ? u.prompt_tokens : 0;
   const outputTokens = typeof u.completion_tokens === 'number' ? u.completion_tokens : 0;
   const cacheRead = typeof u.cache_read_tokens === 'number' ? u.cache_read_tokens : 0;
+  const cacheCreation = typeof u.cache_creation_tokens === 'number' ? u.cache_creation_tokens : 0;
+  // Chat-shape prompt_tokens is the full input total (uncached + cache reads +
+  // cache creation). Anthropic Messages' input_tokens is the uncached portion
+  // only, with cache_read_input_tokens / cache_creation_input_tokens reported
+  // separately. Subtract so the round-trip matches Anthropic's native shape.
+  const inputTokens = Math.max(0, promptTokens - cacheRead - cacheCreation);
   return {
     input_tokens: inputTokens,
     output_tokens: outputTokens,
-    cache_creation_input_tokens: 0,
+    cache_creation_input_tokens: cacheCreation,
     cache_read_input_tokens: cacheRead,
   };
 }
