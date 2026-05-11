@@ -227,6 +227,32 @@ describe('OpencodeGoCatalogService', () => {
       expect(service.getCostPerRequest('glm-5.1')).toBeNull();
     });
 
+    it('returns null from resolve for null input without ever hitting list()', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => SAMPLE_MDX,
+      } as Response);
+      const result = await service.resolveCostPerRequest(null);
+      expect(result).toBeNull();
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it('resolves the cost after awaiting list() when the index is still cold', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => SAMPLE_MDX,
+      } as Response);
+      // No onModuleInit, no prior list() — costByModelId is empty.
+      const cost = await service.resolveCostPerRequest('glm-5.1');
+      expect(cost).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 880, 12);
+      // A second resolution should not re-fetch (cache is warm now).
+      const again = await service.resolveCostPerRequest('glm-5.1');
+      expect(again).toBe(cost);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('is cleared by resetCache()', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,

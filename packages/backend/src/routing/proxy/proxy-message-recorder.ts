@@ -404,7 +404,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model,
       pricing: usage ? this.pricingCache.getByModel(model) : undefined,
       isSubscription: authType === 'subscription',
-      perRequestCostUsd: this.perRequestSubscriptionCost(provider, authType, model),
+      perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
     });
 
     const baseline = await this.computeBaseline(ctx.agentId, inputTokens, outputTokens);
@@ -481,7 +481,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model,
       pricing: this.pricingCache.getByModel(model),
       isSubscription: authType === 'subscription',
-      perRequestCostUsd: this.perRequestSubscriptionCost(provider, authType, model),
+      perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
     });
 
     const baseline = await this.computeBaseline(
@@ -602,18 +602,20 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
    * against a dollar quota (today: OpenCode Go). Returns `null` for every
    * other provider, leaving the existing "subscription → $0" path intact.
    * Canonicalizes the provider through the registry so aliases (e.g.
-   * `opencodego`, `OpenCode-Go`) resolve identically.
+   * `opencodego`, `OpenCode-Go`) resolve identically. Awaits the catalog
+   * `list()` once if its in-memory index is still cold so the first request
+   * after a process restart doesn't undercount as $0.
    */
-  private perRequestSubscriptionCost(
+  private async perRequestSubscriptionCost(
     provider: string | null | undefined,
     authType: string | null | undefined,
     model: string | null | undefined,
-  ): number | null {
+  ): Promise<number | null> {
     if (authType !== 'subscription') return null;
     if (!provider) return null;
     const canonical = PROVIDER_BY_ID_OR_ALIAS.get(provider.toLowerCase())?.id;
     if (canonical !== 'opencode-go') return null;
-    return this.opencodeGoCatalog.getCostPerRequest(model);
+    return this.opencodeGoCatalog.resolveCostPerRequest(model);
   }
 
   private async computeBaseline(

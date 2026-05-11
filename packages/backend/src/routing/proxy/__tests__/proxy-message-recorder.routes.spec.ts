@@ -47,7 +47,10 @@ describe('ProxyMessageRecorder.recordFailedFallbacks — per-failure auth_type',
     const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
     const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
     const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
-    const opencodeGoCatalog = { getCostPerRequest: jest.fn().mockReturnValue(null) } as never;
+    const opencodeGoCatalog = {
+      getCostPerRequest: jest.fn().mockReturnValue(null),
+      resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+    } as never;
     recorder = new ProxyMessageRecorder(
       repo,
       pricingCache,

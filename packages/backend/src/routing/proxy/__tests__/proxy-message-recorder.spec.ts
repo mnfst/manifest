@@ -41,7 +41,10 @@ describe('ProxyMessageRecorder', () => {
     const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
     const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
     const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
-    const opencodeGoCatalog = { getCostPerRequest: jest.fn().mockReturnValue(null) } as never;
+    const opencodeGoCatalog = {
+      getCostPerRequest: jest.fn().mockReturnValue(null),
+      resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+    } as never;
     recorder = new ProxyMessageRecorder(
       repo,
       pricingCache,
@@ -651,7 +654,10 @@ describe('ProxyMessageRecorder', () => {
       const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
       const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
       const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
-      const opencodeGoCatalog = { getCostPerRequest: jest.fn().mockReturnValue(null) } as never;
+      const opencodeGoCatalog = {
+        getCostPerRequest: jest.fn().mockReturnValue(null),
+        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+      } as never;
       recorder = new ProxyMessageRecorder(
         repo,
         pricingCache,
@@ -1076,7 +1082,10 @@ describe('ProxyMessageRecorder', () => {
       const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
       const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
       const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
-      const opencodeGoCatalog = { getCostPerRequest: jest.fn().mockReturnValue(null) } as never;
+      const opencodeGoCatalog = {
+        getCostPerRequest: jest.fn().mockReturnValue(null),
+        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+      } as never;
       recorder = new ProxyMessageRecorder(
         repo,
         pricingCache,
@@ -1342,7 +1351,10 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
     const mockTierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
     const mockSpecificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
     const mockHeaderTierService = { list: jest.fn().mockResolvedValue([]) } as never;
-    const mockOpencodeGoCatalog = { getCostPerRequest: jest.fn().mockReturnValue(null) } as never;
+    const mockOpencodeGoCatalog = {
+      getCostPerRequest: jest.fn().mockReturnValue(null),
+      resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+    } as never;
     const recorder = new ProxyMessageRecorder(
       messageRepo,
       pricingCache,
@@ -1445,8 +1457,11 @@ describe('ProxyMessageRecorder OpenCode Go subscription cost', () => {
     const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
     const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
     const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
-    getCostPerRequestMock = jest.fn().mockReturnValue(0.01364);
-    const opencodeGoCatalog = { getCostPerRequest: getCostPerRequestMock } as never;
+    getCostPerRequestMock = jest.fn().mockResolvedValue(0.01364);
+    const opencodeGoCatalog = {
+      getCostPerRequest: jest.fn().mockReturnValue(0.01364),
+      resolveCostPerRequest: getCostPerRequestMock,
+    } as never;
     recorder = new ProxyMessageRecorder(
       repo,
       pricingCache,
@@ -1506,7 +1521,7 @@ describe('ProxyMessageRecorder OpenCode Go subscription cost', () => {
   });
 
   it('falls back to $0 when the catalog has no cost for the model (cold-start safety)', async () => {
-    getCostPerRequestMock.mockReturnValueOnce(null);
+    getCostPerRequestMock.mockResolvedValueOnce(null);
     await recorder.recordSuccessMessage(
       ctx,
       'glm-5.1',

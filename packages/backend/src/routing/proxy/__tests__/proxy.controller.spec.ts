@@ -154,7 +154,10 @@ describe('ProxyController', () => {
       { getTiers: jest.fn().mockResolvedValue([]) } as never,
       { getAssignments: jest.fn().mockResolvedValue([]) } as never,
       { list: jest.fn().mockResolvedValue([]) } as never,
-      { getCostPerRequest: jest.fn().mockReturnValue(null) } as never,
+      {
+        getCostPerRequest: jest.fn().mockReturnValue(null),
+        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+      } as never,
     );
     controller = new ProxyController(
       proxyService as never,
@@ -1908,7 +1911,10 @@ describe('ProxyController', () => {
         { getTiers: jest.fn().mockResolvedValue([]) } as never,
         { getAssignments: jest.fn().mockResolvedValue([]) } as never,
         { list: jest.fn().mockResolvedValue([]) } as never,
-        { getCostPerRequest: jest.fn().mockReturnValue(null) } as never,
+        {
+          getCostPerRequest: jest.fn().mockReturnValue(null),
+          resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+        } as never,
       );
 
       const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
@@ -1944,7 +1950,10 @@ describe('ProxyController', () => {
         { getTiers: jest.fn().mockResolvedValue([]) } as never,
         { getAssignments: jest.fn().mockResolvedValue([]) } as never,
         { list: jest.fn().mockResolvedValue([]) } as never,
-        { getCostPerRequest: jest.fn().mockReturnValue(null) } as never,
+        {
+          getCostPerRequest: jest.fn().mockReturnValue(null),
+          resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+        } as never,
       );
 
       timedRecorder.onModuleDestroy();

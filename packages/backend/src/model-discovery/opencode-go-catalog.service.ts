@@ -109,6 +109,22 @@ export class OpencodeGoCatalogService implements OnModuleInit {
   }
 
   /**
+   * Same as `getCostPerRequest`, but if the in-memory index is empty (cold
+   * process — `onModuleInit` warmup hasn't resolved yet) waits on the
+   * already-running `list()` call before reading. `list()` caches on both
+   * success and failure, so this is "fetch at most once per cache window",
+   * not per call. Returns `null` if the docs still don't publish a limit
+   * for the model after warming.
+   */
+  async resolveCostPerRequest(modelId: string | null | undefined): Promise<number | null> {
+    if (!modelId) return null;
+    if (this.costByModelId.size === 0) {
+      await this.list();
+    }
+    return this.getCostPerRequest(modelId);
+  }
+
+  /**
    * Set a short error-backoff cache so repeated calls during an outage do not
    * hammer the network, then return the last-known-good list (or []).
    */
