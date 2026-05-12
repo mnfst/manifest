@@ -1,9 +1,11 @@
 import { Controller, Get, Module, Post } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { INestApplication } from '@nestjs/common';
+import type { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import {
   HOSTED_WINGMAN_ORIGIN,
+  applyPrivateNetworkAllow,
   buildDevAllowedOrigins,
   createCorsOriginHandler,
 } from '../src/cors-csp-config';
@@ -36,6 +38,10 @@ async function buildDevApp(): Promise<INestApplication> {
   const allowedOrigins = buildDevAllowedOrigins({
     configuredOrigin: 'http://localhost:3000',
     wingmanPort: 3002,
+  });
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    applyPrivateNetworkAllow(req, allowedOrigins, (name, value) => res.setHeader(name, value));
+    next();
   });
   app.enableCors({
     origin: createCorsOriginHandler(allowedOrigins),
@@ -99,5 +105,22 @@ describe('CORS — development', () => {
       .set('Origin', 'https://evil.example.com')
       .set('Access-Control-Request-Method', 'POST');
     expect(res.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
+  it('echoes Access-Control-Allow-Private-Network for PNA preflight from a listed origin', async () => {
+    const res = await request(app.getHttpServer())
+      .options('/api/v1/health')
+      .set('Origin', HOSTED_WINGMAN_ORIGIN)
+      .set('Access-Control-Request-Method', 'GET')
+      .set('Access-Control-Request-Private-Network', 'true');
+    expect(res.headers['access-control-allow-private-network']).toBe('true');
+  });
+
+  it('does not echo Allow-Private-Network when the request header is missing', async () => {
+    const res = await request(app.getHttpServer())
+      .options('/api/v1/health')
+      .set('Origin', HOSTED_WINGMAN_ORIGIN)
+      .set('Access-Control-Request-Method', 'GET');
+    expect(res.headers['access-control-allow-private-network']).toBeUndefined();
   });
 });

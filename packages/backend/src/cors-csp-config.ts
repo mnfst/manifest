@@ -54,3 +54,34 @@ export function createCorsOriginHandler(allowedOrigins: string[]): CorsOriginHan
     callback(null, false);
   };
 }
+
+// Chrome's Private Network Access blocks public HTTPS origins (e.g. the
+// hosted Wingman SPA at https://wingman.manifest.build) from reaching
+// loopback addresses unless the server echoes back
+// `Access-Control-Allow-Private-Network: true` on the preflight. Only
+// echo for origins that already passed the CORS allow-list so this
+// header isn't a free pass for arbitrary callers.
+//
+// Shape kept narrow on purpose: takes only the request fields read and
+// a setHeader callback so it composes with Express middleware and unit
+// tests without dragging in `Request` / `Response` types.
+export interface PnaRequest {
+  method: string;
+  headers: {
+    origin?: string | string[];
+    'access-control-request-private-network'?: string | string[];
+  };
+}
+
+export function applyPrivateNetworkAllow(
+  req: PnaRequest,
+  allowedOrigins: string[],
+  setHeader: (name: string, value: string) => void,
+): void {
+  if (req.method !== 'OPTIONS') return;
+  const pnaHeader = req.headers['access-control-request-private-network'];
+  if (pnaHeader !== 'true') return;
+  const origin = req.headers.origin;
+  if (typeof origin !== 'string' || !allowedOrigins.includes(origin)) return;
+  setHeader('Access-Control-Allow-Private-Network', 'true');
+}

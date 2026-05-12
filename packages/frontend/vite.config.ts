@@ -38,9 +38,19 @@ export default defineConfig(({ command }) => ({
   ],
   server: {
     port: 3000,
+    // Disable Vite's built-in CORS handler. Otherwise it short-circuits
+    // OPTIONS preflights for proxied paths (e.g. `/api`, `/v1`) and
+    // strips the backend's headers — including
+    // `Access-Control-Allow-Private-Network`, which Chrome's Private
+    // Network Access enforcement now requires when the hosted Wingman
+    // SPA (https://wingman.manifest.build) calls into a loopback dev
+    // backend. The dashboard itself is same-origin, so it doesn't need
+    // Vite's CORS at all.
+    cors: false,
     proxy: {
       '/api': `http://localhost:${process.env.VITE_BACKEND_PORT || '3001'}`,
       '/otlp': `http://localhost:${process.env.VITE_BACKEND_PORT || '3001'}`,
+      '/v1': `http://localhost:${process.env.VITE_BACKEND_PORT || '3001'}`,
     },
   },
   build: {

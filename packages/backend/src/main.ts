@@ -7,7 +7,12 @@ import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
 import { SpaFallbackFilter } from './common/filters/spa-fallback.filter';
 import { httpErrorLogger } from './common/middleware/http-error-logger.middleware';
-import { buildDevAllowedOrigins, buildFrameSrc, createCorsOriginHandler } from './cors-csp-config';
+import {
+  applyPrivateNetworkAllow,
+  buildDevAllowedOrigins,
+  buildFrameSrc,
+  createCorsOriginHandler,
+} from './cors-csp-config';
 
 export async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -79,6 +84,13 @@ export async function bootstrap() {
     const allowedOrigins = buildDevAllowedOrigins({
       configuredOrigin,
       wingmanPort,
+    });
+    // PNA preflight must answer before the cors middleware ends the
+    // OPTIONS response. Registering this `app.use` first puts it ahead
+    // of the cors handler in the express middleware chain.
+    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+      applyPrivateNetworkAllow(req, allowedOrigins, (name, value) => res.setHeader(name, value));
+      next();
     });
     app.enableCors({
       origin: createCorsOriginHandler(allowedOrigins),
