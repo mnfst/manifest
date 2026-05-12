@@ -670,5 +670,58 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('max_tokens', 2048);
       expect(result).not.toHaveProperty('max_completion_tokens');
     });
+
+    /* ── Copilot: max_tokens → max_completion_tokens (mnfst/manifest#1849) ── */
+
+    it('should convert max_tokens to max_completion_tokens for Copilot GPT-5', () => {
+      const body = { messages: [{ role: 'user', content: 'hi' }], max_tokens: 4096 };
+
+      const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-5');
+
+      expect(result).toHaveProperty('max_completion_tokens', 4096);
+      expect(result).not.toHaveProperty('max_tokens');
+    });
+
+    it('should convert max_tokens to max_completion_tokens for Copilot o-series', () => {
+      const body = { messages: [], max_tokens: 2048 };
+
+      const result = sanitizeOpenAiBody(body, 'copilot', 'o3-mini');
+
+      expect(result).toHaveProperty('max_completion_tokens', 2048);
+      expect(result).not.toHaveProperty('max_tokens');
+    });
+
+    it('should preserve max_completion_tokens unchanged for Copilot GPT-5 family', () => {
+      const body = { messages: [], max_completion_tokens: 1024 };
+
+      const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-5.2');
+
+      expect(result).toHaveProperty('max_completion_tokens', 1024);
+      expect(result).not.toHaveProperty('max_tokens');
+    });
+
+    it('should NOT convert max_tokens for Copilot GPT-4 family (legacy field still accepted)', () => {
+      const body = { messages: [], max_tokens: 4096 };
+
+      const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-4o');
+
+      expect(result).toHaveProperty('max_tokens', 4096);
+      expect(result).not.toHaveProperty('max_completion_tokens');
+    });
+
+    it('should still strip OPENAI_ONLY_FIELDS for Copilot GPT-5', () => {
+      const body = {
+        messages: [],
+        max_tokens: 4096,
+        store: true,
+        service_tier: 'auto',
+      };
+
+      const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-5');
+
+      expect(result).toHaveProperty('max_completion_tokens', 4096);
+      expect(result).not.toHaveProperty('store');
+      expect(result).not.toHaveProperty('service_tier');
+    });
   });
 });

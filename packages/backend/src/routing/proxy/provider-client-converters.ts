@@ -102,6 +102,21 @@ const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
  */
 const OPENAI_MAX_COMPLETION_TOKENS_RE = /^(o\d|gpt-5)/i;
 
+/**
+ * Endpoints that ultimately hit OpenAI infrastructure and therefore need
+ * `max_tokens` rewritten to `max_completion_tokens` for o-series / GPT-5+.
+ * Copilot belongs here because GitHub Copilot proxies these models to OpenAI
+ * (issue mnfst/manifest#1849).
+ */
+const OPENAI_MAX_COMPLETION_TOKENS_ENDPOINTS = new Set(['openai', 'copilot']);
+
+function usesOpenAiMaxCompletionTokens(endpointKey: string, bareModel: string): boolean {
+  return (
+    OPENAI_MAX_COMPLETION_TOKENS_ENDPOINTS.has(endpointKey) &&
+    OPENAI_MAX_COMPLETION_TOKENS_RE.test(bareModel)
+  );
+}
+
 function supportsReasoningContent(endpointKey: string, model: string): boolean {
   if (endpointKey === 'deepseek') return true;
   if (endpointKey === 'openrouter') return model.toLowerCase().startsWith('deepseek/');
@@ -240,14 +255,11 @@ export function sanitizeOpenAiBody(
 ): Record<string, unknown> {
   const passthroughTopLevel = PASSTHROUGH_PROVIDERS.has(endpointKey);
 
-  // For OpenAI models that require max_completion_tokens, convert before passthrough.
   // Strip vendor prefix (e.g., "openai/gpt-5" → "gpt-5") before matching.
   const bareForRegex = model.includes('/') ? model.substring(model.indexOf('/') + 1) : model;
+  const needsMaxCompletionTokens = usesOpenAiMaxCompletionTokens(endpointKey, bareForRegex);
   const convertMaxTokens =
-    endpointKey === 'openai' &&
-    OPENAI_MAX_COMPLETION_TOKENS_RE.test(bareForRegex) &&
-    'max_tokens' in body &&
-    !('max_completion_tokens' in body);
+    needsMaxCompletionTokens && 'max_tokens' in body && !('max_completion_tokens' in body);
 
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(body)) {
@@ -255,19 +267,27 @@ export function sanitizeOpenAiBody(
       cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model);
       continue;
     }
+    // Rewrite max_tokens → max_completion_tokens for OpenAI-backed endpoints that
+    // require it (native OpenAI + Copilot for o-series / GPT-5+). Applies in both
+    // passthrough and non-passthrough branches.
+    if (convertMaxTokens && key === 'max_tokens') {
+      cleaned['max_completion_tokens'] = value;
+      continue;
+    }
     if (passthroughTopLevel) {
-      // Convert max_tokens → max_completion_tokens for newer OpenAI models
-      if (convertMaxTokens && key === 'max_tokens') {
-        cleaned['max_completion_tokens'] = value;
-        continue;
-      }
       cleaned[key] = value;
       continue;
     }
     if (OPENAI_ONLY_FIELDS.has(key)) continue;
     if (key === 'max_completion_tokens') {
-      // Convert to max_tokens unless already set
-      if (!('max_tokens' in body)) cleaned['max_tokens'] = value;
+      // Preserve max_completion_tokens for endpoints that require it; otherwise
+      // downconvert to max_tokens for OpenAI-compatible providers that only know
+      // the legacy field name.
+      if (needsMaxCompletionTokens) {
+        cleaned[key] = value;
+      } else if (!('max_tokens' in body)) {
+        cleaned['max_tokens'] = value;
+      }
       continue;
     }
     cleaned[key] = value;

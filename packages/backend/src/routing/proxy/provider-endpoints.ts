@@ -189,6 +189,20 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: () => '/chat/completions',
     format: 'openai',
   },
+  // Codex variants (e.g. gpt-5-codex, gpt-5.2-codex, gpt-5.3-codex) only accept
+  // /responses on Copilot — /chat/completions returns "Unsupported API for model".
+  'copilot-responses': {
+    baseUrl: 'https://api.githubcopilot.com',
+    buildHeaders: (apiKey: string) => ({
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'Editor-Version': COPILOT_EDITOR_VERSION,
+      'Editor-Plugin-Version': COPILOT_PLUGIN_VERSION,
+      'Copilot-Integration-Id': 'vscode-chat',
+    }),
+    buildPath: () => '/responses',
+    format: 'chatgpt',
+  },
   openrouter: {
     baseUrl: 'https://openrouter.ai',
     buildHeaders: (apiKey: string) => ({
