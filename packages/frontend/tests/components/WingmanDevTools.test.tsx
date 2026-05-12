@@ -66,14 +66,14 @@ describe("WingmanDevTools", () => {
     expect(localStorage.getItem(STORAGE_OPEN)).toBe("0");
   });
 
-  it("derives the iframe src from the current port + 1", () => {
+  it("points the iframe at the hosted Wingman with a pre-filled baseUrl", () => {
     localStorage.setItem(STORAGE_OPEN, "1");
     const { container } = render(() => <WingmanDevTools />);
     const iframe = container.querySelector(
       ".wingman-drawer__frame",
     ) as HTMLIFrameElement;
     expect(iframe).not.toBeNull();
-    expect(iframe.src).toContain("localhost:11097");
+    expect(iframe.src.startsWith("https://wingman.manifest.build/")).toBe(true);
     expect(iframe.src).toContain(
       "baseUrl=" + encodeURIComponent("http://localhost:11096"),
     );
@@ -87,25 +87,6 @@ describe("WingmanDevTools", () => {
       ".wingman-drawer__frame",
     ) as HTMLIFrameElement;
     expect(iframe.src.startsWith("http://wingman.test:5555/")).toBe(true);
-  });
-
-  it("maps Vite frontend port :3000 to wingman :3002", () => {
-    Object.defineProperty(window, "location", {
-      value: {
-        ...window.location,
-        protocol: "http:",
-        hostname: "localhost",
-        port: "3000",
-        origin: "http://localhost:3000",
-      },
-      writable: true,
-    });
-    localStorage.setItem(STORAGE_OPEN, "1");
-    const { container } = render(() => <WingmanDevTools />);
-    const iframe = container.querySelector(
-      ".wingman-drawer__frame",
-    ) as HTMLIFrameElement;
-    expect(iframe.src).toContain("localhost:3002");
   });
 
   it("clamps the stored height to the allowed range", () => {

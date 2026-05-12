@@ -18,15 +18,14 @@ const manifestVersion = (() => {
 export default defineConfig(({ command }) => ({
   define: {
     __MANIFEST_VERSION__: JSON.stringify(manifestVersion),
-    // Wingman and the orange "Dev" header badge are dev-only affordances.
-    // They ship only when Vite runs in dev mode (`vite serve`). Any
-    // production build — Docker self-hosted, Railway cloud, anything else
-    // — gets `__DEV_MODE__ = false`, so esbuild dead-code-eliminates the
-    // FAB, drawer, and badge.
+    // The Wingman drawer and the orange "Dev" header badge are dev-only
+    // affordances. They ship only when Vite runs in dev mode
+    // (`vite serve`). Any production build — Docker self-hosted, Railway
+    // cloud, anything else — gets `__DEV_MODE__ = false`, so esbuild
+    // dead-code-eliminates the FAB, drawer, and badge.
     __DEV_MODE__: JSON.stringify(command === 'serve'),
-    // Optional build-time override; otherwise the dashboard derives the URL
-    // at runtime from the current port (`port + 1`, or `:3002` when the Vite
-    // dev frontend is running on `:3000`).
+    // Optional build-time override for the Wingman drawer; otherwise it
+    // points at the hosted SPA at https://wingman.manifest.build.
     __WINGMAN_URL__: JSON.stringify(process.env.VITE_WINGMAN_URL || ''),
   },
   plugins: [
