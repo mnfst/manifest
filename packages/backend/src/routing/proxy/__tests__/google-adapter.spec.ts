@@ -149,6 +149,69 @@ describe('Google Adapter', () => {
       expect(props.config.properties).toEqual({ key: { type: 'string' } });
     });
 
+    it('strips both $ref and the non-standard dollar-less ref variant', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'List cities' }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'list_cities',
+              parameters: {
+                type: 'object',
+                properties: {
+                  cities: { type: 'array', items: { ref: '#/definitions/City' } },
+                  neighbors: { type: 'array', items: { $ref: '#/definitions/City' } },
+                },
+              },
+            },
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.5-flash');
+
+      const tools = result.tools as Array<{
+        functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
+      }>;
+      const props = tools[0].functionDeclarations[0].parameters.properties as Record<
+        string,
+        Record<string, { ref?: string; $ref?: string }>
+      >;
+
+      expect(props.cities.items).not.toHaveProperty('ref');
+      expect(props.neighbors.items).not.toHaveProperty('$ref');
+    });
+
+    it('preserves a user property literally named "ref"', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'lookup' }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'lookup',
+              parameters: {
+                type: 'object',
+                properties: { ref: { type: 'string', description: 'reference id' } },
+              },
+            },
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.5-flash');
+
+      const tools = result.tools as Array<{
+        functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
+      }>;
+      const props = tools[0].functionDeclarations[0].parameters.properties as Record<
+        string,
+        Record<string, unknown>
+      >;
+
+      expect(props).toHaveProperty('ref');
+      expect(props.ref.type).toBe('string');
+    });
+
     it('preserves property names that collide with unsupported schema keywords', () => {
       const body = {
         messages: [{ role: 'user', content: 'Do something' }],
