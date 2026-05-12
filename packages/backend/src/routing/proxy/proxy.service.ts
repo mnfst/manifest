@@ -259,6 +259,7 @@ export class ProxyService {
           isGoogle: forward.isGoogle,
           isAnthropic: forward.isAnthropic,
           isChatGpt: forward.isChatGpt,
+          isResponses: forward.isResponses,
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
         this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
@@ -282,6 +283,7 @@ export class ProxyService {
         isGoogle: forward.isGoogle,
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
+        isResponses: forward.isResponses,
       };
       const fallbackResult = await this.tryFallbackChain({
         agentId,
@@ -519,6 +521,7 @@ export class ProxyService {
         isGoogle: forward.isGoogle,
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
+        isResponses: forward.isResponses,
       },
       meta: this.buildBaseMeta(resolved, primaryModel, {
         request_params: exhaustedRequestParams,
