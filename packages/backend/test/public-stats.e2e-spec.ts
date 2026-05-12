@@ -29,6 +29,13 @@ beforeAll(async () => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
     ['ps-msg-3', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 150, 75, 'claude-opus-4-6', 'ok'],
   );
+
+  // Tag the seeded agent so the agent-tokens endpoint has a recognised
+  // (category, platform) pair to aggregate the seeded messages under.
+  await ds.query(
+    `UPDATE agents SET agent_category = $1, agent_platform = $2 WHERE id = $3`,
+    ['personal', 'openclaw', 'test-agent-001'],
+  );
 });
 
 afterAll(async () => {
@@ -72,5 +79,39 @@ describe('GET /api/v1/public/free-models', () => {
     expect(Array.isArray(res.body.models)).toBe(true);
     expect(res.body).toHaveProperty('total_models');
     expect(res.body).toHaveProperty('cached_at');
+  });
+});
+
+describe('GET /api/v1/public/agent-tokens', () => {
+  it('aggregates tokens by (category, platform) without auth', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/public/agent-tokens')
+      .expect(200);
+
+    expect(res.body).toHaveProperty('agents');
+    expect(Array.isArray(res.body.agents)).toBe(true);
+    expect(res.body).toHaveProperty('cached_at');
+
+    const group = res.body.agents.find(
+      (g: { agent_category: string; agent_platform: string }) =>
+        g.agent_category === 'personal' && g.agent_platform === 'openclaw',
+    );
+    expect(group).toBeDefined();
+    expect(group.category_label).toBe('Personal AI Agent');
+    expect(group.platform_label).toBe('OpenClaw');
+    // seeded messages: 150 + 300 + 225 = 675 tokens across two models
+    expect(group.total_tokens).toBeGreaterThanOrEqual(675);
+    expect(Array.isArray(group.models)).toBe(true);
+    expect(group.models.length).toBeGreaterThanOrEqual(2);
+
+    const modelNames = group.models.map((m: { model: string }) => m.model);
+    expect(modelNames).toContain('gpt-4o');
+    expect(modelNames).toContain('claude-opus-4-6');
+
+    for (const m of group.models) {
+      expect(m).toHaveProperty('total_tokens');
+      expect(m).toHaveProperty('daily');
+      expect(Array.isArray(m.daily)).toBe(true);
+    }
   });
 });

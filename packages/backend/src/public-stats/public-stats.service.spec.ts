@@ -614,4 +614,476 @@ describe('PublicStatsService', () => {
       expect(result[0].models[0].auth_type).toBeNull();
     });
   });
+
+  describe('getAgentDailyTokens', () => {
+    function setupAgentQuery(rows: unknown) {
+      const qb = mockQueryBuilder(rows);
+      qb.innerJoin = jest.fn().mockReturnValue(qb);
+      qb.addGroupBy = jest.fn().mockReturnValue(qb);
+      mockRepo.createQueryBuilder.mockReturnValueOnce(qb);
+      return qb;
+    }
+
+    it('groups tokens by (category, platform) and model with daily breakdown', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-06',
+          tokens: '500000',
+          auth_type: 'api_key',
+          cost: '0.50',
+        },
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '600000',
+          auth_type: 'api_key',
+          cost: '0.60',
+        },
+        {
+          agent_category: 'coding',
+          agent_platform: 'claude-code',
+          model: 'claude-opus',
+          date: '2026-04-07',
+          tokens: '1000000',
+          auth_type: 'api_key',
+          cost: '1.00',
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result).toHaveLength(2);
+      expect(result[0].agent_category).toBe('personal');
+      expect(result[0].agent_platform).toBe('openclaw');
+      expect(result[0].category_label).toBe('Personal AI Agent');
+      expect(result[0].platform_label).toBe('OpenClaw');
+      expect(result[0].total_tokens).toBe(1100000);
+      expect(result[0].models).toHaveLength(1);
+      expect(result[0].models[0].model).toBe('gpt-4o');
+      expect(result[0].models[0].auth_type).toBe('api_key');
+      expect(result[0].models[0].total_cost).toBeCloseTo(1.1);
+      expect(result[0].models[0].daily).toEqual([
+        { date: '2026-04-06', tokens: 500000 },
+        { date: '2026-04-07', tokens: 600000 },
+      ]);
+      expect(result[1].agent_category).toBe('coding');
+      expect(result[1].agent_platform).toBe('claude-code');
+      expect(result[1].category_label).toBe('Coding Assistant');
+      expect(result[1].platform_label).toBe('Claude Code');
+      expect(result[1].total_tokens).toBe(1000000);
+    });
+
+    it('sorts agent groups by total tokens descending', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '100',
+          auth_type: null,
+          cost: null,
+        },
+        {
+          agent_category: 'coding',
+          agent_platform: 'claude-code',
+          model: 'claude-opus',
+          date: '2026-04-07',
+          tokens: '9999',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result[0].agent_platform).toBe('claude-code');
+      expect(result[1].agent_platform).toBe('openclaw');
+    });
+
+    it('sorts models within an agent group by total tokens descending', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '100',
+          auth_type: null,
+          cost: null,
+        },
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o-mini',
+          date: '2026-04-07',
+          tokens: '9000',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result[0].models[0].model).toBe('gpt-4o-mini');
+      expect(result[0].models[1].model).toBe('gpt-4o');
+    });
+
+    it('returns empty array when no data', async () => {
+      setupAgentQuery([]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result).toEqual([]);
+    });
+
+    it('excludes custom models', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'custom:abc/gpt-4o',
+          date: '2026-04-07',
+          tokens: '1000',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result).toEqual([]);
+    });
+
+    it("excludes 'other' platform", async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'other',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '1000',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result).toEqual([]);
+    });
+
+    it('excludes rows with NULL category', async () => {
+      setupAgentQuery([
+        {
+          agent_category: null,
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '1000',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result).toEqual([]);
+    });
+
+    it('excludes rows with NULL platform', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: null,
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '1000',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result).toEqual([]);
+    });
+
+    it('excludes unknown category values', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'mystery',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '1000',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result).toEqual([]);
+    });
+
+    it('excludes unknown platform values', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'mystery-platform',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '1000',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result).toEqual([]);
+    });
+
+    it('handles null tokens', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: null,
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result[0].total_tokens).toBe(0);
+      expect(result[0].models[0].daily[0].tokens).toBe(0);
+    });
+
+    it('sorts daily entries chronologically', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '200',
+          auth_type: null,
+          cost: null,
+        },
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-05',
+          tokens: '100',
+          auth_type: null,
+          cost: null,
+        },
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-06',
+          tokens: '150',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      const dates = result[0].models[0].daily.map((d) => d.date);
+      expect(dates).toEqual(['2026-04-05', '2026-04-06', '2026-04-07']);
+    });
+
+    it('applies 30-day cutoff', async () => {
+      const qb = setupAgentQuery([]);
+
+      await service.getAgentDailyTokens();
+
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        'at.timestamp >= :cutoff30d',
+        expect.objectContaining({ cutoff30d: expect.any(String) }),
+      );
+    });
+
+    it('aggregates multiple models under the same agent group', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '500',
+          auth_type: null,
+          cost: null,
+        },
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o-mini',
+          date: '2026-04-07',
+          tokens: '300',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].agent_platform).toBe('openclaw');
+      expect(result[0].total_tokens).toBe(800);
+      expect(result[0].models).toHaveLength(2);
+    });
+
+    it('separates same model with different auth_types', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'coding',
+          agent_platform: 'claude-code',
+          model: 'claude-sonnet',
+          date: '2026-04-07',
+          tokens: '3000',
+          auth_type: 'api_key',
+          cost: '0.45',
+        },
+        {
+          agent_category: 'coding',
+          agent_platform: 'claude-code',
+          model: 'claude-sonnet',
+          date: '2026-04-07',
+          tokens: '2000',
+          auth_type: 'subscription',
+          cost: '0',
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].models).toHaveLength(2);
+      const apiKeyModel = result[0].models.find((m) => m.auth_type === 'api_key');
+      const subModel = result[0].models.find((m) => m.auth_type === 'subscription');
+      expect(apiKeyModel).toBeDefined();
+      expect(apiKeyModel!.total_tokens).toBe(3000);
+      expect(apiKeyModel!.total_cost).toBeCloseTo(0.45);
+      expect(subModel).toBeDefined();
+      expect(subModel!.total_tokens).toBe(2000);
+      expect(subModel!.total_cost).toBe(0);
+    });
+
+    it('returns null total_cost when all costs are null', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '1000',
+          auth_type: 'api_key',
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result[0].models[0].total_cost).toBeNull();
+    });
+
+    it('sums cost correctly across multiple days', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-06',
+          tokens: '500',
+          auth_type: 'api_key',
+          cost: '0.10',
+        },
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '500',
+          auth_type: 'api_key',
+          cost: '0.20',
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result[0].models[0].total_cost).toBeCloseTo(0.3);
+    });
+
+    it('includes auth_type as null when not set', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'personal',
+          agent_platform: 'openclaw',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '1000',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      expect(result[0].models[0].auth_type).toBeNull();
+    });
+
+    it('attaches human-readable labels for every supported platform', async () => {
+      setupAgentQuery([
+        {
+          agent_category: 'app',
+          agent_platform: 'openai-sdk',
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '100',
+          auth_type: null,
+          cost: null,
+        },
+        {
+          agent_category: 'app',
+          agent_platform: 'anthropic-sdk',
+          model: 'claude-opus',
+          date: '2026-04-07',
+          tokens: '50',
+          auth_type: null,
+          cost: null,
+        },
+        {
+          agent_category: 'app',
+          agent_platform: 'vercel-ai-sdk',
+          model: 'gpt-4o-mini',
+          date: '2026-04-07',
+          tokens: '25',
+          auth_type: null,
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getAgentDailyTokens();
+
+      const byPlatform = Object.fromEntries(result.map((g) => [g.agent_platform, g.platform_label]));
+      expect(byPlatform['openai-sdk']).toBe('OpenAI SDK');
+      expect(byPlatform['anthropic-sdk']).toBe('Anthropic SDK');
+      expect(byPlatform['vercel-ai-sdk']).toBe('Vercel AI SDK');
+      result.forEach((g) => expect(g.category_label).toBe('App AI SDK'));
+    });
+  });
 });
