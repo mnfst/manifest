@@ -142,6 +142,25 @@ function toChatTools(tools: unknown[]): JsonRecord[] {
   }));
 }
 
+// Anthropic server tools (web_search_*, bash_*, text_editor_*, computer_*,
+// code_execution_*, etc.) declare themselves with a versioned `type` tag and
+// no `input_schema` — Anthropic resolves the schema server-side from `type`.
+// The OpenAI chat_completions tool shape has no analogue, so a naive
+// translation drops the `type` and re-emits them as nameless custom tools,
+// which Anthropic then rejects with `tools.N.custom.input_schema: Field
+// required` (issue #1886). Stash the originals on chatBody and have
+// toAnthropicRequest re-emit them unchanged when the upstream is Anthropic.
+export function extractAnthropicServerTools(tools: unknown[]): JsonRecord[] {
+  const out: JsonRecord[] = [];
+  for (const tool of tools) {
+    if (!isRecord(tool)) continue;
+    if (typeof tool.type === 'string' && tool.type !== 'custom') {
+      out.push(tool);
+    }
+  }
+  return out;
+}
+
 function toChatToolChoice(choice: unknown): unknown {
   if (!isRecord(choice)) return undefined;
   if (choice.type === 'auto') return 'auto';
@@ -185,7 +204,11 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   if (body.thinking !== undefined) chatBody.thinking = body.thinking;
   if (body.top_k !== undefined) chatBody.top_k = body.top_k;
 
-  if (Array.isArray(body.tools)) chatBody.tools = toChatTools(body.tools);
+  if (Array.isArray(body.tools)) {
+    chatBody.tools = toChatTools(body.tools);
+    const serverTools = extractAnthropicServerTools(body.tools);
+    if (serverTools.length > 0) chatBody._anthropicServerTools = serverTools;
+  }
   const toolChoice = toChatToolChoice(body.tool_choice);
   if (toolChoice !== undefined) chatBody.tool_choice = toolChoice;
 

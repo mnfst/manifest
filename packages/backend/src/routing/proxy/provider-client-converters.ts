@@ -293,6 +293,11 @@ export function sanitizeOpenAiBody(
 
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(body)) {
+    // Strip Manifest-internal fields stashed by inbound adapters (e.g.
+    // `_anthropicServerTools` from anthropic-messages-adapter). These are
+    // only consumed by toAnthropicRequest; OpenAI-compatible upstreams
+    // would reject the unknown parameter.
+    if (key.startsWith('_anthropic')) continue;
     if (key === 'messages') {
       cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model);
       continue;

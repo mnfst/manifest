@@ -20,6 +20,20 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('stream_options');
     });
 
+    it('strips Manifest-internal _anthropic* stash fields on every provider (issue #1886)', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        model: 'gpt-4o',
+        _anthropicServerTools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      };
+
+      const openai = sanitizeOpenAiBody(body, 'openai', 'gpt-4o');
+      expect(openai).not.toHaveProperty('_anthropicServerTools');
+
+      const groq = sanitizeOpenAiBody(body, 'groq', 'llama-3');
+      expect(groq).not.toHaveProperty('_anthropicServerTools');
+    });
+
     it('should strip OpenAI-only fields for non-passthrough providers', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
