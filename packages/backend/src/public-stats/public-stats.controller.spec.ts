@@ -4,6 +4,7 @@ import type {
   UsageStats,
   FreeModel,
   ProviderDailyTokens,
+  AgentDailyTokens,
 } from './public-stats.service';
 import type { FreeModelsService } from '../free-models/free-models.service';
 
@@ -11,6 +12,7 @@ const mockService: Record<string, jest.Mock> = {
   getUsageStats: jest.fn(),
   getFreeModels: jest.fn(),
   getProviderDailyTokens: jest.fn(),
+  getAgentDailyTokens: jest.fn(),
 };
 
 const mockFreeModelsService: Record<string, jest.Mock> = {
@@ -270,6 +272,120 @@ describe('PublicStatsController', () => {
     });
   });
 
+  describe('getAgentTokens', () => {
+    const AGENT_FIXTURE: AgentDailyTokens[] = [
+      {
+        agent_category: 'personal',
+        agent_platform: 'openclaw',
+        category_label: 'Personal AI Agent',
+        platform_label: 'OpenClaw',
+        total_tokens: 1100000,
+        models: [
+          {
+            model: 'gpt-4o',
+            auth_type: 'api_key',
+            total_tokens: 1100000,
+            total_cost: 1.1,
+            daily: [
+              { date: '2026-04-06', tokens: 500000 },
+              { date: '2026-04-07', tokens: 600000 },
+            ],
+          },
+        ],
+      },
+    ];
+
+    it('fetches agent tokens on first call', async () => {
+      mockService.getAgentDailyTokens.mockResolvedValue(AGENT_FIXTURE);
+
+      const result = await controller.getAgentTokens();
+
+      expect(result.agents).toHaveLength(1);
+      expect(result.agents[0].agent_category).toBe('personal');
+      expect(result.agents[0].agent_platform).toBe('openclaw');
+      expect(result.cached_at).toBeDefined();
+      expect(mockService.getAgentDailyTokens).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns cached within TTL', async () => {
+      mockService.getAgentDailyTokens.mockResolvedValue(AGENT_FIXTURE);
+      await controller.getAgentTokens();
+
+      const result = await controller.getAgentTokens();
+
+      expect(result.agents).toHaveLength(1);
+      expect(mockService.getAgentDailyTokens).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-fetches after TTL expires', async () => {
+      mockService.getAgentDailyTokens.mockResolvedValue(AGENT_FIXTURE);
+      await controller.getAgentTokens();
+
+      const realDateNow = Date.now;
+      Date.now = () => realDateNow() + 86_400_001;
+
+      const updated: AgentDailyTokens[] = [];
+      mockService.getAgentDailyTokens.mockResolvedValue(updated);
+
+      const result = await controller.getAgentTokens();
+
+      expect(result.agents).toEqual([]);
+      Date.now = realDateNow;
+    });
+
+    it('returns fallback when service fails on first call', async () => {
+      mockService.getAgentDailyTokens.mockRejectedValue(new Error('fail'));
+
+      const result = await controller.getAgentTokens();
+
+      expect(result.agents).toEqual([]);
+    });
+
+    it('returns stale cache on error after previous success', async () => {
+      mockService.getAgentDailyTokens.mockResolvedValue(AGENT_FIXTURE);
+      await controller.getAgentTokens();
+
+      const realDateNow = Date.now;
+      Date.now = () => realDateNow() + 86_400_001;
+      mockService.getAgentDailyTokens.mockRejectedValue(new Error('fail'));
+
+      const result = await controller.getAgentTokens();
+
+      expect(result.agents).toHaveLength(1);
+      Date.now = realDateNow;
+    });
+
+    it('deduplicates concurrent requests', async () => {
+      let resolve!: (v: AgentDailyTokens[]) => void;
+      mockService.getAgentDailyTokens.mockReturnValue(
+        new Promise<AgentDailyTokens[]>((r) => {
+          resolve = r;
+        }),
+      );
+
+      const p1 = controller.getAgentTokens();
+      const p2 = controller.getAgentTokens();
+
+      resolve(AGENT_FIXTURE);
+      const [r1, r2] = await Promise.all([p1, p2]);
+
+      expect(r1.agents).toHaveLength(1);
+      expect(r2.agents).toHaveLength(1);
+      expect(mockService.getAgentDailyTokens).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears inflight lock after error', async () => {
+      mockService.getAgentDailyTokens.mockRejectedValueOnce(new Error('fail'));
+      await controller.getAgentTokens();
+
+      mockService.getAgentDailyTokens.mockResolvedValue(AGENT_FIXTURE);
+      const result = await controller.getAgentTokens();
+
+      expect(result.agents).toHaveLength(1);
+      expect(mockService.getAgentDailyTokens).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('getFreeProviders', () => {
     beforeEach(() => {
       mockFreeModelsService.getAll.mockReset();
@@ -376,6 +492,16 @@ describe('PublicStatsController', () => {
       expect(mockService.getProviderDailyTokens).not.toHaveBeenCalled();
     });
 
+    it('returns 404 from getAgentTokens without calling the service', async () => {
+      await controller.getAgentTokens().then(
+        () => {
+          throw new Error('expected NotFoundException');
+        },
+        (err) => expectNotFound(err),
+      );
+      expect(mockService.getAgentDailyTokens).not.toHaveBeenCalled();
+    });
+
     it('returns 404 from getFreeProviders without calling the service', () => {
       try {
         controller.getFreeProviders();
@@ -442,6 +568,14 @@ describe('PublicStatsController', () => {
       const result = await controller.getProviderTokens();
 
       expect(result.providers).toEqual([]);
+    });
+
+    it('handles string rejection in agent tokens', async () => {
+      mockService.getAgentDailyTokens.mockRejectedValue('string error');
+
+      const result = await controller.getAgentTokens();
+
+      expect(result.agents).toEqual([]);
     });
   });
 
