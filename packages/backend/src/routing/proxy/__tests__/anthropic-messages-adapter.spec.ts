@@ -594,6 +594,98 @@ describe('Anthropic Messages adapter', () => {
       expect(sse).toContain('"stop_reason":"tool_use"');
     });
 
+    it('translates DeepSeek-style delta.reasoning_content into a leading thinking block', () => {
+      // Without this, Claude clients lose the reasoning trace and the next turn
+      // gets rejected by DeepSeek: "The `reasoning_content` in the thinking
+      // mode must be passed back to the API."
+      const t = createMessagesStreamTransformer('deepseek-v4-flash');
+      const sse = flushChunks(t, [
+        'data: {"choices":[{"delta":{"reasoning_content":"Let me think "}}]}\n\n',
+        'data: {"choices":[{"delta":{"reasoning_content":"step by step."}}]}\n\n',
+        'data: {"choices":[{"delta":{"content":"42"}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n',
+      ]);
+
+      const events = sse
+        .split('\n\n')
+        .filter(Boolean)
+        .map((block) => {
+          const [eventLine, dataLine] = block.split('\n');
+          return {
+            event: eventLine!.replace('event: ', ''),
+            data: JSON.parse(dataLine!.replace('data: ', '')),
+          };
+        });
+
+      expect(events.map((e) => e.event)).toEqual([
+        'message_start',
+        'content_block_start',
+        'content_block_delta',
+        'content_block_delta',
+        'content_block_stop',
+        'content_block_start',
+        'content_block_delta',
+        'content_block_stop',
+        'message_delta',
+        'message_stop',
+      ]);
+      expect(events[1].data).toEqual({
+        type: 'content_block_start',
+        index: 0,
+        content_block: { type: 'thinking', thinking: '' },
+      });
+      expect(events[2].data.delta).toEqual({ type: 'thinking_delta', thinking: 'Let me think ' });
+      expect(events[3].data.delta).toEqual({ type: 'thinking_delta', thinking: 'step by step.' });
+      expect(events[4].data).toEqual({ type: 'content_block_stop', index: 0 });
+      expect(events[5].data).toEqual({
+        type: 'content_block_start',
+        index: 1,
+        content_block: { type: 'text', text: '' },
+      });
+      expect(events[6].data.delta).toEqual({ type: 'text_delta', text: '42' });
+    });
+
+    it('closes the thinking block on finalize when the stream emits only reasoning_content', () => {
+      const t = createMessagesStreamTransformer('deepseek-v4-flash');
+      const sse = flushChunks(t, [
+        'data: {"choices":[{"delta":{"reasoning_content":"hmm"}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n',
+      ]);
+      expect(sse).toContain(
+        'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
+      );
+      expect(sse).toContain('"delta":{"type":"thinking_delta","thinking":"hmm"}');
+      expect(sse).toContain(
+        'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
+      );
+    });
+
+    it('closes the thinking block before opening a tool_use block', () => {
+      const t = createMessagesStreamTransformer('deepseek-v4-flash');
+      const sse = flushChunks(t, [
+        'data: {"choices":[{"delta":{"reasoning_content":"plan"}}]}\n\n',
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"tc_1","function":{"name":"search","arguments":"{}"}}]}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}\n\n',
+      ]);
+      const order = sse.match(/event: (\w+)/g)!.map((s) => s.replace('event: ', ''));
+      // thinking block must be stopped before the tool_use block starts
+      const thinkingStopAt = order.findIndex(
+        (_, i) =>
+          order[i] === 'content_block_stop' &&
+          // first stop in the stream corresponds to the thinking block
+          order.slice(0, i).filter((e) => e === 'content_block_stop').length === 0,
+      );
+      const toolStartAt = order.findIndex(
+        (e, i) =>
+          e === 'content_block_start' &&
+          order.slice(0, i).filter((x) => x === 'content_block_start').length === 1,
+      );
+      expect(thinkingStopAt).toBeGreaterThan(-1);
+      expect(toolStartAt).toBeGreaterThan(thinkingStopAt);
+      expect(sse).toContain('"content_block":{"type":"tool_use"');
+      expect(sse).toContain('"index":1'); // tool_use gets index 1, after thinking@0
+    });
+
     it('finalize is idempotent — second call returns null', () => {
       const t = createMessagesStreamTransformer('m');
       t.transform('data: {"choices":[{"delta":{"content":"x"},"finish_reason":"stop"}]}\n\n');

@@ -319,6 +319,8 @@ interface StreamState {
   messageId: string;
   model: string;
   startedMessage: boolean;
+  thinkingIndex: number | null;
+  thinkingOpened: boolean;
   textIndex: number | null;
   textOpened: boolean;
   toolCalls: Map<number, { id: string; index: number; argBuffer: string; opened: boolean }>;
@@ -337,6 +339,8 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
     messageId: `msg_${randomUUID().replace(/-/g, '')}`,
     model,
     startedMessage: false,
+    thinkingIndex: null,
+    thinkingOpened: false,
     textIndex: null,
     textOpened: false,
     toolCalls: new Map(),
@@ -376,7 +380,33 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     if (!choice) continue;
     const delta = isRecord(choice.delta) ? choice.delta : {};
 
+    // DeepSeek (and other thinking-mode providers) stream reasoning as
+    // `delta.reasoning_content` separately from `delta.content`. Surface it as
+    // an Anthropic `thinking` content block so clients can echo it back on the
+    // next turn — the upstream rejects follow-ups that don't return the trace.
+    if (typeof delta.reasoning_content === 'string' && delta.reasoning_content.length > 0) {
+      if (state.thinkingIndex === null) {
+        state.thinkingIndex = nextBlockIndex(state);
+        events.push(
+          formatMessagesEvent('content_block_start', {
+            type: 'content_block_start',
+            index: state.thinkingIndex,
+            content_block: { type: 'thinking', thinking: '' },
+          }),
+        );
+        state.thinkingOpened = true;
+      }
+      events.push(
+        formatMessagesEvent('content_block_delta', {
+          type: 'content_block_delta',
+          index: state.thinkingIndex,
+          delta: { type: 'thinking_delta', thinking: delta.reasoning_content },
+        }),
+      );
+    }
+
     if (typeof delta.content === 'string' && delta.content.length > 0) {
+      closeThinkingBlock(state, events);
       if (state.textIndex === null) {
         state.textIndex = nextBlockIndex(state);
         events.push(
@@ -398,6 +428,7 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     }
 
     if (Array.isArray(delta.tool_calls)) {
+      closeThinkingBlock(state, events);
       for (const call of delta.tool_calls) {
         if (!isRecord(call)) continue;
         const callIndex = typeof call.index === 'number' ? call.index : 0;
@@ -452,7 +483,22 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
 }
 
 function nextBlockIndex(state: StreamState): number {
-  return (state.textIndex !== null ? 1 : 0) + state.toolCalls.size;
+  return (
+    (state.thinkingIndex !== null ? 1 : 0) +
+    (state.textIndex !== null ? 1 : 0) +
+    state.toolCalls.size
+  );
+}
+
+function closeThinkingBlock(state: StreamState, events: string[]): void {
+  if (!state.thinkingOpened || state.thinkingIndex === null) return;
+  events.push(
+    formatMessagesEvent('content_block_stop', {
+      type: 'content_block_stop',
+      index: state.thinkingIndex,
+    }),
+  );
+  state.thinkingOpened = false;
 }
 
 function buildMessageStartEvent(state: StreamState, data: JsonRecord): string {
@@ -475,6 +521,8 @@ function buildMessageStartEvent(state: StreamState, data: JsonRecord): string {
 function closeStream(state: StreamState): string[] {
   if (state.endedMessage) return [];
   const events: string[] = [];
+
+  closeThinkingBlock(state, events);
 
   if (state.textOpened && state.textIndex !== null) {
     events.push(
