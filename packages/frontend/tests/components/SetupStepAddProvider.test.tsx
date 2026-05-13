@@ -46,15 +46,16 @@ describe("SetupStepAddProvider", () => {
     expect(activeBtn!.textContent).toBe("Agents");
   });
 
-  it("shows OpenClaw, Hermes, Nanobot, Craft, and Claude Code tabs inside Agents", () => {
+  it("shows OpenClaw, Hermes, Nanobot, Craft, Claude Code, and OpenCode tabs inside Agents", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const agentTabs = container.querySelectorAll(".panel__tab");
-    expect(agentTabs).toHaveLength(5);
+    expect(agentTabs).toHaveLength(6);
     expect(agentTabs[0].textContent).toContain("OpenClaw");
     expect(agentTabs[1].textContent).toContain("Hermes Agent");
     expect(agentTabs[2].textContent).toContain("Nanobot");
     expect(agentTabs[3].textContent).toContain("Craft Agent");
     expect(agentTabs[4].textContent).toContain("Claude Code");
+    expect(agentTabs[5].textContent).toContain("OpenCode");
   });
 
   it("shows Nanobot setup when Nanobot tab clicked", () => {
@@ -79,6 +80,14 @@ describe("SetupStepAddProvider", () => {
     fireEvent.click(agentTabs[3]); // Craft Agent
     expect(container.textContent).toContain("Manifest provider preset");
     expect(container.textContent).toContain("mnfst_YOUR_KEY");
+  });
+
+  it("shows OpenCode setup when OpenCode tab clicked", () => {
+    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
+    const agentTabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(agentTabs[5]); // OpenCode
+    expect(container.textContent).toContain("~/.config/opencode/opencode.json");
+    expect(container.textContent).toContain('"model": "manifest/auto"');
   });
 
   it("defaults to OpenClaw agent tab", () => {
@@ -344,6 +353,22 @@ describe("SetupStepAddProvider", () => {
         <SetupStepAddProvider {...defaultProps} platform="claude-code" />
       ));
       expect(screen.getByText("Connect Claude Code to Manifest")).toBeDefined();
+    });
+
+    it("shows OpenCodeSetup directly when platform is opencode", () => {
+      const { container } = render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="opencode" />
+      ));
+      expect(container.textContent).toContain("~/.config/opencode/opencode.json");
+      expect(container.textContent).toContain('"model": "manifest/auto"');
+      expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
+    });
+
+    it("shows correct heading for opencode", () => {
+      render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="opencode" />
+      ));
+      expect(screen.getByText("Connect OpenCode to Manifest")).toBeDefined();
     });
 
     it("shows OpenAI SDK snippet when platform is openai-sdk", () => {
