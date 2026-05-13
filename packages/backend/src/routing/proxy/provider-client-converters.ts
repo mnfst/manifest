@@ -118,38 +118,41 @@ function usesOpenAiMaxCompletionTokens(endpointKey: string, bareModel: string): 
 }
 
 /**
- * Endpoints that either forward directly to DeepSeek (native, OpenCode Go) or
- * tolerate `reasoning_content` as a passthrough on `deepseek-*` slugs
- * (OpenRouter, custom proxies). Restricting the substring match to this set
- * prevents false positives on strict OpenAI-compatible hosts that happen to
- * serve a DeepSeek-derived community slug (e.g. `deepseek-r1-distill-*` on
- * Mistral or native OpenAI) and would reject the unknown message field.
+ * Endpoints that tolerate `reasoning_content` for at least one model family.
+ * Restricting model-family matching to this set prevents false positives on
+ * strict OpenAI-compatible hosts that happen to serve a reasoning-derived
+ * community slug and would reject the unknown message field.
  */
-const DEEPSEEK_AWARE_ENDPOINTS = new Set(['openrouter', 'opencode-go', 'custom']);
+const REASONING_CONTENT_AWARE_ENDPOINTS = new Set(['openrouter', 'opencode-go', 'custom']);
+
+const OPENCODE_GO_REASONING_MODEL_FAMILY_RE =
+  /^(?:deepseek|kimi|glm|qwen|minimax|mimo)(?:[-_.\d]|$)/i;
 
 /**
- * DeepSeek's thinking-mode API rejects follow-up turns that don't echo back the
- * previous assistant's `reasoning_content` ("The `reasoning_content` in the
- * thinking mode must be passed back to the API"). Preserve it for:
+ * Some reasoning APIs reject follow-up turns that don't echo back the previous
+ * assistant's `reasoning_content`. Preserve it for:
  *  - the native `deepseek` endpoint (always)
+ *  - OpenCode Go's known reasoning model families
  *  - aggregator/proxy endpoints whose `deepseek-*` slugs forward to a DeepSeek
- *    engine (OpenRouter `deepseek/*`, OpenCode Go `deepseek-*` — issue #1862 —
- *    and user-supplied custom providers).
+ *    engine (OpenRouter `deepseek/*` and user-supplied custom providers).
  * Strict OpenAI-compatible endpoints (Mistral, native OpenAI, etc.) keep
  * stripping the field even if a community fine-tune slug contains "deepseek".
  */
 function supportsReasoningContent(endpointKey: string, model: string): boolean {
   if (endpointKey === 'deepseek') return true;
-  if (!DEEPSEEK_AWARE_ENDPOINTS.has(endpointKey)) return false;
+  if (!REASONING_CONTENT_AWARE_ENDPOINTS.has(endpointKey)) return false;
   // Bare model id after stripping any vendor/aggregator prefix:
   //   "deepseek/r1"             → "r1"            — OpenRouter, not deepseek-family
   //   "openrouter" + "deepseek/deepseek-r1" → "deepseek-r1" ✓
-  //   "opencode-go/deepseek-v4-pro" → "deepseek-v4-pro" ✓
+  //   "opencode-go/kimi-k2.6" → "kimi-k2.6" ✓
   //   "custom:<uuid>/deepseek-reasoner" → "deepseek-reasoner" ✓
   // (proxy-fallback.service strips "custom:<uuid>/" before forward, so in
   // practice the custom path passes the already-bare model — both shapes
   // are handled.)
   const bare = model.toLowerCase().split('/').pop() ?? '';
+  if (endpointKey === 'opencode-go') {
+    return OPENCODE_GO_REASONING_MODEL_FAMILY_RE.test(bare);
+  }
   return bare.includes('deepseek');
 }
 

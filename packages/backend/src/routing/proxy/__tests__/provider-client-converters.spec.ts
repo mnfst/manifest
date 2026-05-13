@@ -221,12 +221,46 @@ describe('provider-client-converters', () => {
       expect(messages[1]).toHaveProperty('reasoning_content', 'I considered...');
     });
 
-    it('should strip reasoning_content for opencode-go non-deepseek models', () => {
+    it('should preserve reasoning_content for opencode-go reasoning model families', () => {
+      const body = {
+        messages: [
+          { role: 'user', content: 'x' },
+          {
+            role: 'assistant',
+            content: '',
+            reasoning_content: 'thinking',
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'foo', arguments: '{}' },
+              },
+            ],
+          },
+          { role: 'tool', tool_call_id: 'call_1', content: '{}' },
+        ],
+      };
+
+      for (const model of [
+        'opencode-go/kimi-k2.6',
+        'opencode-go/glm-5.1',
+        'opencode-go/qwen3.6-plus',
+        'opencode-go/minimax-m2.7',
+        'opencode-go/mimo-v2.5',
+      ]) {
+        const result = sanitizeOpenAiBody(body, 'opencode-go', model);
+        const messages = result.messages as any[];
+
+        expect(messages[1]).toHaveProperty('reasoning_content', 'thinking');
+      }
+    });
+
+    it('should strip reasoning_content for unknown opencode-go model families', () => {
       const body = {
         messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
       };
 
-      const result = sanitizeOpenAiBody(body, 'opencode-go', 'opencode-go/glm-5.1');
+      const result = sanitizeOpenAiBody(body, 'opencode-go', 'opencode-go/claude-sonnet-4');
       const messages = result.messages as any[];
 
       expect(messages[0]).not.toHaveProperty('reasoning_content');
