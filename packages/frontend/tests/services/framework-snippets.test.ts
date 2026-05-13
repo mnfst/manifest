@@ -304,14 +304,16 @@ describe("getNanobotConfigSnippet", () => {
     const parsed = JSON.parse(snippet);
     expect(parsed).toEqual({
       providers: {
-        manifest: {
+        custom: {
           apiKey: "mnfst_key",
           apiBase: "http://localhost:38240/v1",
+          extraHeaders: null,
+          extraBody: null,
         },
       },
       agents: {
         defaults: {
-          provider: "manifest",
+          provider: "custom",
           model: "auto",
         },
       },
