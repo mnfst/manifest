@@ -110,14 +110,14 @@ describe('chatgpt-helpers', () => {
       expect(convertContent('hi', 'assistant')).toEqual([{ type: 'output_text', text: 'hi' }]);
     });
 
-    it('renames "text" parts to input_text/output_text but leaves other parts alone', () => {
+    it('renames user text and image_url parts to Responses content parts', () => {
       const parts = [
         { type: 'text', text: 'hello' },
         { type: 'image_url', image_url: { url: 'x' } },
       ];
       expect(convertContent(parts, 'user')).toEqual([
         { type: 'input_text', text: 'hello' },
-        { type: 'image_url', image_url: { url: 'x' } },
+        { type: 'input_image', image_url: 'x' },
       ]);
     });
 
