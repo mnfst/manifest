@@ -422,6 +422,7 @@ describe('Anthropic Messages adapter', () => {
           { type: 'custom', name: 'c1' },
           { type: 'advisor_20260301', name: 'advisor' },
           { type: 'mcp_toolset', name: 'mcp' },
+          { type: 'mcp_toolset_future', name: 'future_mcp' },
           { name: 'c2' },
           { type: 'text_editor_20250728', name: 'str_replace_editor' },
           'not-a-record',

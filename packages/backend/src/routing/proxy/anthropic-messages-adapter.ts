@@ -20,7 +20,6 @@ const ANTHROPIC_SERVER_TOOL_PREFIXES = [
   'bash_',
   'code_execution_',
   'computer_',
-  'mcp_toolset',
   'memory_',
   'text_editor_',
   'tool_search_tool_',
@@ -28,12 +27,17 @@ const ANTHROPIC_SERVER_TOOL_PREFIXES = [
   'web_search_',
 ] as const;
 
+const ANTHROPIC_SERVER_TOOL_TYPES = ['mcp_toolset'] as const;
+
 function isRecord(value: unknown): value is JsonRecord {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
 function isAnthropicServerToolType(type: string): boolean {
-  return ANTHROPIC_SERVER_TOOL_PREFIXES.some((prefix) => type.startsWith(prefix));
+  return (
+    ANTHROPIC_SERVER_TOOL_TYPES.includes(type as (typeof ANTHROPIC_SERVER_TOOL_TYPES)[number]) ||
+    ANTHROPIC_SERVER_TOOL_PREFIXES.some((prefix) => type.startsWith(prefix))
+  );
 }
 
 function safeJsonStringify(value: unknown): string {
