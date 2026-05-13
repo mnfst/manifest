@@ -116,8 +116,12 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
 
   const switchButton = () => (
     <button
-      class="routing-switch"
-      classList={{ 'routing-switch--on': props.complexityEnabled() }}
+      type="button"
+      role="switch"
+      aria-checked={props.complexityEnabled()}
+      class={() =>
+        `routing-switch${props.complexityEnabled() ? ' routing-switch--on' : ''}`
+      }
       disabled={props.togglingComplexity()}
       onClick={() => props.onToggleComplexity()}
     >
