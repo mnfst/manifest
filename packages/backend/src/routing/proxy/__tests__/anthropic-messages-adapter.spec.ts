@@ -4,6 +4,7 @@ import {
   extractAnthropicServerTools,
   messagesToChatCompletionsRequest,
 } from '../anthropic-messages-adapter';
+import { toAnthropicRequest } from '../anthropic-adapter';
 
 describe('Anthropic Messages adapter', () => {
   describe('messagesToChatCompletionsRequest', () => {
@@ -261,6 +262,45 @@ describe('Anthropic Messages adapter', () => {
       ]);
     });
 
+    it('treats unknown non-custom tool types as custom tools with a safe empty schema (issue #1897)', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [{ role: 'user', content: 'x' }],
+        tools: [{ type: 'advisor_20260301', name: 'advisor', description: 'Plan the task' }],
+      });
+
+      expect(result._anthropicServerTools).toBeUndefined();
+      expect(result.tools).toEqual([
+        {
+          type: 'function',
+          function: {
+            name: 'advisor',
+            description: 'Plan the task',
+            parameters: { type: 'object', properties: {}, additionalProperties: false },
+          },
+        },
+      ]);
+    });
+
+    it('round-trips unknown typed tools back to Anthropic as custom tools (issue #1897)', () => {
+      const chatBody = messagesToChatCompletionsRequest({
+        messages: [{ role: 'user', content: 'x' }],
+        tools: [
+          { type: 'web_search_20250305', name: 'web_search' },
+          { type: 'advisor_20260301', name: 'advisor' },
+        ],
+      });
+
+      const anthropicBody = toAnthropicRequest(chatBody, 'claude-sonnet-4-20250514');
+      const tools = anthropicBody.tools as Array<Record<string, unknown>>;
+
+      expect(tools[0]).toMatchObject({ type: 'web_search_20250305', name: 'web_search' });
+      expect(tools[1]).toEqual({
+        name: 'advisor',
+        input_schema: { type: 'object', properties: {}, additionalProperties: false },
+        cache_control: { type: 'ephemeral' },
+      });
+    });
+
     it('omits the stash when no server tools are present', () => {
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],
@@ -372,11 +412,12 @@ describe('Anthropic Messages adapter', () => {
   });
 
   describe('extractAnthropicServerTools', () => {
-    it('returns tools whose type is a non-custom string', () => {
+    it('returns tools whose type matches a known Anthropic server-tool prefix', () => {
       expect(
         extractAnthropicServerTools([
           { type: 'web_search_20250305', name: 'web_search' },
           { type: 'custom', name: 'c1' },
+          { type: 'advisor_20260301', name: 'advisor' },
           { name: 'c2' },
           { type: 'text_editor_20250728', name: 'str_replace_editor' },
           'not-a-record',

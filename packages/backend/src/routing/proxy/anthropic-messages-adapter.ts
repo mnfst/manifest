@@ -10,8 +10,29 @@ import { OpenAIMessage } from './proxy-types';
 
 type JsonRecord = Record<string, unknown>;
 
+const DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA = {
+  type: 'object',
+  properties: {},
+  additionalProperties: false,
+} as const;
+
+const ANTHROPIC_SERVER_TOOL_PREFIXES = [
+  'bash_',
+  'code_execution_',
+  'computer_',
+  'memory_',
+  'text_editor_',
+  'tool_search_tool_',
+  'web_fetch_',
+  'web_search_',
+] as const;
+
 function isRecord(value: unknown): value is JsonRecord {
   return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isAnthropicServerToolType(type: string): boolean {
+  return ANTHROPIC_SERVER_TOOL_PREFIXES.some((prefix) => type.startsWith(prefix));
 }
 
 function safeJsonStringify(value: unknown): string {
@@ -137,7 +158,13 @@ function toChatTools(tools: unknown[]): JsonRecord[] {
     function: {
       name: typeof tool.name === 'string' ? tool.name : 'unknown',
       ...(typeof tool.description === 'string' && { description: tool.description }),
-      ...(tool.input_schema !== undefined && { parameters: tool.input_schema }),
+      ...(tool.input_schema !== undefined
+        ? { parameters: tool.input_schema }
+        : typeof tool.type === 'string' &&
+            tool.type !== 'custom' &&
+            !isAnthropicServerToolType(tool.type)
+          ? { parameters: DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA }
+          : {}),
     },
   }));
 }
@@ -154,7 +181,7 @@ export function extractAnthropicServerTools(tools: unknown[]): JsonRecord[] {
   const out: JsonRecord[] = [];
   for (const tool of tools) {
     if (!isRecord(tool)) continue;
-    if (typeof tool.type === 'string' && tool.type !== 'custom') {
+    if (typeof tool.type === 'string' && isAnthropicServerToolType(tool.type)) {
       out.push(tool);
     }
   }
