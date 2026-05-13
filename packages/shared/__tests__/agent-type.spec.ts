@@ -15,6 +15,7 @@ describe('agent-type', () => {
       'openclaw',
       'hermes',
       'nanobot',
+      'craft',
       'claude-code',
       'openai-sdk',
       'anthropic-sdk',

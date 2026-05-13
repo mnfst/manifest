@@ -46,14 +46,15 @@ describe("SetupStepAddProvider", () => {
     expect(activeBtn!.textContent).toBe("Agents");
   });
 
-  it("shows OpenClaw, Hermes, Nanobot, and Claude Code tabs inside Agents", () => {
+  it("shows OpenClaw, Hermes, Nanobot, Craft, and Claude Code tabs inside Agents", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const agentTabs = container.querySelectorAll(".panel__tab");
-    expect(agentTabs).toHaveLength(4);
+    expect(agentTabs).toHaveLength(5);
     expect(agentTabs[0].textContent).toContain("OpenClaw");
     expect(agentTabs[1].textContent).toContain("Hermes Agent");
     expect(agentTabs[2].textContent).toContain("Nanobot");
-    expect(agentTabs[3].textContent).toContain("Claude Code");
+    expect(agentTabs[3].textContent).toContain("Craft Agent");
+    expect(agentTabs[4].textContent).toContain("Claude Code");
   });
 
   it("shows Nanobot setup when Nanobot tab clicked", () => {
@@ -67,9 +68,17 @@ describe("SetupStepAddProvider", () => {
   it("shows Claude Code setup when Claude Code tab clicked", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const agentTabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(agentTabs[3]); // Claude Code
+    fireEvent.click(agentTabs[4]); // Claude Code
     expect(container.textContent).toContain("ANTHROPIC_BASE_URL");
     expect(container.textContent).toContain("ANTHROPIC_AUTH_TOKEN");
+  });
+
+  it("shows Craft setup when Craft Agent tab clicked", () => {
+    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
+    const agentTabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(agentTabs[3]); // Craft Agent
+    expect(container.textContent).toContain("Manifest provider preset");
+    expect(container.textContent).toContain("mnfst_YOUR_KEY");
   });
 
   it("defaults to OpenClaw agent tab", () => {
@@ -301,6 +310,23 @@ describe("SetupStepAddProvider", () => {
         <SetupStepAddProvider {...defaultProps} platform="nanobot" />
       ));
       expect(screen.getByText("Connect your Nanobot agent to Manifest")).toBeDefined();
+    });
+
+    it("shows CraftAgentSetup directly when platform is craft", () => {
+      const { container } = render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="craft" />
+      ));
+      expect(container.textContent).toContain("Manifest provider preset");
+      expect(container.textContent).toContain("mnfst_YOUR_KEY");
+      // No top-level Agents/Toolkits tabs in filtered mode.
+      expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
+    });
+
+    it("shows correct heading for craft", () => {
+      render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="craft" />
+      ));
+      expect(screen.getByText("Connect your Craft agent to Manifest")).toBeDefined();
     });
 
     it("shows ClaudeCodeSetup directly when platform is claude-code", () => {
