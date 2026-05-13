@@ -52,9 +52,9 @@ const NanobotSetup: Component<Props> = (props) => {
   return (
     <div class="setup-agents-card">
       <p class="setup-method__hint">
-        Add this block to <code class="setup-model-hint__code">~/.nanobot/config.json</code> —
-        Nanobot uses its built-in <code class="setup-model-hint__code">custom</code> provider for
-        Manifest, so you should merge these keys into your existing config.
+        Edit <code class="setup-model-hint__code">~/.nanobot/config.json</code> by updating the
+        existing <code class="setup-model-hint__code">agents.defaults</code> values first, then add
+        the <code class="setup-model-hint__code">custom</code> provider block below.
       </p>
 
       <div class="setup-cli-block">

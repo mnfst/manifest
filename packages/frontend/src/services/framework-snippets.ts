@@ -359,16 +359,16 @@ export function getClaudeCodeSettingsSnippet(baseUrl: string, apiKey: string): s
  */
 export function getNanobotConfigSnippet(baseUrl: string, apiKey: string): string {
   return `{
-  "providers": {
-    "custom": {
-      "apiKey": "${apiKey}",
-      "apiBase": "${baseUrl}"
-    }
-  },
   "agents": {
     "defaults": {
       "provider": "custom",
       "model": "auto"
+    }
+  },
+  "providers": {
+    "custom": {
+      "apiKey": "${apiKey}",
+      "apiBase": "${baseUrl}"
     }
   }
 }`;

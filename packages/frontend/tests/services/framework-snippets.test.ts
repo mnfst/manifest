@@ -303,16 +303,16 @@ describe("getNanobotConfigSnippet", () => {
     // Strict-parse to make sure it's valid JSON and shaped correctly.
     const parsed = JSON.parse(snippet);
     expect(parsed).toEqual({
-      providers: {
-        custom: {
-          apiKey: "mnfst_key",
-          apiBase: "http://localhost:38240/v1",
-        },
-      },
       agents: {
         defaults: {
           provider: "custom",
           model: "auto",
+        },
+      },
+      providers: {
+        custom: {
+          apiKey: "mnfst_key",
+          apiBase: "http://localhost:38240/v1",
         },
       },
     });
