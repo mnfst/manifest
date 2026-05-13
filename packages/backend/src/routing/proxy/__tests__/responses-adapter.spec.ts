@@ -853,5 +853,171 @@ describe('Responses adapter', () => {
       const response = completed.data.response as Record<string, unknown>;
       expect(response.model).toBe('deepseek-v4-flash');
     });
+
+    it('emits the function_call lifecycle when upstream streams tool_calls', () => {
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+
+      // First delta carries id + name + opening arg fragment.
+      const first = t.transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [
+                  {
+                    index: 0,
+                    id: 'call_abc',
+                    type: 'function',
+                    function: { name: 'shell', arguments: '{"cmd":' },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      );
+      // Subsequent deltas only carry argument fragments.
+      const second = t.transform(
+        JSON.stringify({
+          choices: [
+            { delta: { tool_calls: [{ index: 0, function: { arguments: '["ls"]' } }] } },
+          ],
+        }),
+      );
+      const third = t.transform(
+        JSON.stringify({
+          choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: '}' } }] } }],
+        }),
+      );
+      const stop = t.transform(
+        JSON.stringify({
+          choices: [{ delta: {}, finish_reason: 'tool_calls' }],
+          usage: { prompt_tokens: 3, completion_tokens: 5, total_tokens: 8 },
+        }),
+      );
+      const tail = t.finalize();
+
+      const combined = [first, second, third, stop, tail]
+        .filter((s): s is string => !!s)
+        .join('');
+      const events = parseEventStream(combined);
+
+      expect(events.map((e) => e.event)).toEqual([
+        'response.created',
+        'response.in_progress',
+        'response.output_item.added',
+        'response.function_call_arguments.delta',
+        'response.function_call_arguments.delta',
+        'response.function_call_arguments.delta',
+        'response.function_call_arguments.done',
+        'response.output_item.done',
+        'response.completed',
+      ]);
+
+      const added = events.find((e) => e.event === 'response.output_item.added')!;
+      const addedItem = added.data.item as Record<string, unknown>;
+      expect(addedItem.type).toBe('function_call');
+      expect(addedItem.call_id).toBe('call_abc');
+      expect(addedItem.name).toBe('shell');
+      expect(addedItem.arguments).toBe('');
+
+      const argDeltas = events
+        .filter((e) => e.event === 'response.function_call_arguments.delta')
+        .map((e) => e.data.delta as string);
+      expect(argDeltas).toEqual(['{"cmd":', '["ls"]', '}']);
+
+      const argsDone = events.find((e) => e.event === 'response.function_call_arguments.done')!;
+      expect(argsDone.data.arguments).toBe('{"cmd":["ls"]}');
+
+      const itemDone = events.find((e) => e.event === 'response.output_item.done')!;
+      const doneItem = itemDone.data.item as Record<string, unknown>;
+      expect(doneItem.type).toBe('function_call');
+      expect(doneItem.arguments).toBe('{"cmd":["ls"]}');
+      expect(doneItem.status).toBe('completed');
+
+      const completed = events.find((e) => e.event === 'response.completed')!;
+      const response = completed.data.response as Record<string, unknown>;
+      const output = response.output as Array<Record<string, unknown>>;
+      expect(output).toHaveLength(1);
+      expect(output[0].type).toBe('function_call');
+      expect(output[0].arguments).toBe('{"cmd":["ls"]}');
+      const usage = response.usage as Record<string, number>;
+      expect(usage.input_tokens).toBe(3);
+      expect(usage.output_tokens).toBe(5);
+    });
+
+    it('handles text + parallel tool_calls in a single stream', () => {
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+
+      // Text first, then two parallel tool calls.
+      const e1 = t.transform(
+        JSON.stringify({ choices: [{ delta: { content: 'thinking...' } }] }),
+      );
+      const e2 = t.transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [
+                  { index: 0, id: 'call_a', function: { name: 'fa', arguments: '{}' } },
+                  { index: 1, id: 'call_b', function: { name: 'fb', arguments: '{"x":1}' } },
+                ],
+              },
+            },
+          ],
+        }),
+      );
+      const tail = t.finalize();
+
+      const combined = [e1, e2, tail].filter((s): s is string => !!s).join('');
+      const events = parseEventStream(combined);
+
+      // Text gets output_index 0 (it opened first), tool calls get 1 and 2.
+      const addedEvents = events.filter((e) => e.event === 'response.output_item.added');
+      expect(addedEvents).toHaveLength(3);
+      expect(addedEvents.map((e) => e.data.output_index)).toEqual([0, 1, 2]);
+
+      const completed = events.find((e) => e.event === 'response.completed')!;
+      const response = completed.data.response as Record<string, unknown>;
+      const output = response.output as Array<Record<string, unknown>>;
+      expect(output).toHaveLength(3);
+      expect(output[0].type).toBe('message');
+      expect(output[1].type).toBe('function_call');
+      expect((output[1] as { call_id: string }).call_id).toBe('call_a');
+      expect(output[2].type).toBe('function_call');
+      expect((output[2] as { call_id: string }).call_id).toBe('call_b');
+    });
+
+    it('defers output_item.added until both id and name are known', () => {
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+
+      // First delta: id only, no name yet.
+      const e1 = t.transform(
+        JSON.stringify({
+          choices: [{ delta: { tool_calls: [{ index: 0, id: 'call_x' }] } }],
+        }),
+      );
+      // Second delta: name arrives.
+      const e2 = t.transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: { tool_calls: [{ index: 0, function: { name: 'shell', arguments: '{}' } }] },
+            },
+          ],
+        }),
+      );
+      const tail = t.finalize();
+
+      const combined = [e1, e2, tail].filter((s): s is string => !!s).join('');
+      const events = parseEventStream(combined);
+
+      // Exactly one output_item.added should fire, on the second delta.
+      const addedEvents = events.filter((e) => e.event === 'response.output_item.added');
+      expect(addedEvents).toHaveLength(1);
+      const addedItem = addedEvents[0].data.item as Record<string, unknown>;
+      expect(addedItem.call_id).toBe('call_x');
+      expect(addedItem.name).toBe('shell');
+    });
   });
 });

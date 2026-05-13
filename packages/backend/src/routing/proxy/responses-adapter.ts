@@ -531,16 +531,32 @@ export interface ChatToResponsesTransformer {
  * Other agent platforms keep the legacy delta-only encoder
  * (`chatCompletionStreamChunkToResponses`) for backwards compatibility.
  */
+interface ToolCallState {
+  output_index: number;
+  item_id: string;
+  call_id: string;
+  name: string;
+  args: string;
+  added: boolean;
+  done: boolean;
+}
+
 export function createStrictChatToResponsesTransformer(model: string): ChatToResponsesTransformer {
   const responseId = `resp_${randomUUID().replace(/-/g, '')}`;
   const messageId = `msg_${randomUUID().replace(/-/g, '')}`;
   const createdAt = Math.floor(Date.now() / 1000);
   let started = false;
   let itemOpened = false;
+  let textOutputIndex: number | null = null;
   let finalized = false;
   let accumulatedText = '';
   let lastUsage: unknown = null;
   let upstreamModel: string = model;
+  // chat/completions streams a tool call as multiple deltas keyed by
+  // tool_calls[*].index. We accumulate per-index state and re-emit the
+  // Responses-API function-call lifecycle so codex can dispatch the tool.
+  const toolCalls = new Map<number, ToolCallState>();
+  let nextOutputIndex = 0;
 
   const buildResponseEnvelope = (
     status: 'in_progress' | 'completed',
@@ -604,16 +620,17 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
         ensureStarted();
         if (itemOpened) return;
         itemOpened = true;
+        textOutputIndex = nextOutputIndex++;
         events.push(
           formatResponsesEvent('response.output_item.added', {
             type: 'response.output_item.added',
-            output_index: 0,
+            output_index: textOutputIndex,
             item: messageItem('', 'in_progress'),
           }),
           formatResponsesEvent('response.content_part.added', {
             type: 'response.content_part.added',
             item_id: messageId,
-            output_index: 0,
+            output_index: textOutputIndex,
             content_index: 0,
             part: { type: 'output_text', text: '', annotations: [] },
           }),
@@ -641,12 +658,77 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
             formatResponsesEvent('response.output_text.delta', {
               type: 'response.output_text.delta',
               item_id: messageId,
-              output_index: 0,
+              output_index: textOutputIndex ?? 0,
               content_index: 0,
               delta: delta.content,
               logprobs: [],
             }),
           );
+        }
+
+        if (Array.isArray(delta.tool_calls)) {
+          for (const tc of delta.tool_calls) {
+            if (!isRecord(tc)) continue;
+            // chat/completions keys tool call streaming by `index` (the slot
+            // within tool_calls[]); id/name typically only appear on the first
+            // delta. Allocate per-slot state lazily.
+            const slot = typeof tc.index === 'number' ? tc.index : toolCalls.size;
+            let state = toolCalls.get(slot);
+            const fn = isRecord(tc.function) ? tc.function : {};
+            if (!state) {
+              ensureStarted();
+              state = {
+                output_index: nextOutputIndex++,
+                item_id: `fc_${randomUUID().replace(/-/g, '')}`,
+                call_id: typeof tc.id === 'string' ? tc.id : '',
+                name: typeof fn.name === 'string' ? fn.name : '',
+                args: '',
+                added: false,
+                done: false,
+              };
+              toolCalls.set(slot, state);
+            } else {
+              if (!state.call_id && typeof tc.id === 'string') state.call_id = tc.id;
+              if (!state.name && typeof fn.name === 'string') state.name = fn.name;
+            }
+
+            // Defer `response.output_item.added` until we have both call_id
+            // and name. Some providers split the initial header across two
+            // deltas (id first, then name) — codex requires both fields on
+            // the `added` event or it rejects the stream.
+            if (!state.added && state.call_id && state.name) {
+              state.added = true;
+              events.push(
+                formatResponsesEvent('response.output_item.added', {
+                  type: 'response.output_item.added',
+                  output_index: state.output_index,
+                  item: {
+                    type: 'function_call',
+                    id: state.item_id,
+                    call_id: state.call_id,
+                    name: state.name,
+                    arguments: '',
+                  },
+                }),
+              );
+            }
+
+            if (state.added && typeof fn.arguments === 'string' && fn.arguments.length > 0) {
+              state.args += fn.arguments;
+              events.push(
+                formatResponsesEvent('response.function_call_arguments.delta', {
+                  type: 'response.function_call_arguments.delta',
+                  item_id: state.item_id,
+                  output_index: state.output_index,
+                  delta: fn.arguments,
+                }),
+              );
+            } else if (!state.added && typeof fn.arguments === 'string' && fn.arguments.length > 0) {
+              // Header still incomplete — accumulate args so we can replay
+              // them once `added` fires.
+              state.args += fn.arguments;
+            }
+          }
         }
         // finish_reason is intentionally ignored here — terminal events are
         // emitted by finalize() once the upstream stream actually closes,
@@ -682,11 +764,12 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
       }
 
       if (itemOpened) {
+        const textIdx = textOutputIndex ?? 0;
         events.push(
           formatResponsesEvent('response.output_text.done', {
             type: 'response.output_text.done',
             item_id: messageId,
-            output_index: 0,
+            output_index: textIdx,
             content_index: 0,
             text: accumulatedText,
             logprobs: [],
@@ -694,19 +777,98 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
           formatResponsesEvent('response.content_part.done', {
             type: 'response.content_part.done',
             item_id: messageId,
-            output_index: 0,
+            output_index: textIdx,
             content_index: 0,
             part: { type: 'output_text', text: accumulatedText, annotations: [] },
           }),
           formatResponsesEvent('response.output_item.done', {
             type: 'response.output_item.done',
-            output_index: 0,
+            output_index: textIdx,
             item: messageItem(accumulatedText, 'completed'),
           }),
         );
       }
 
-      const finalOutput = accumulatedText ? [messageItem(accumulatedText, 'completed')] : [];
+      // Close out every accumulated function_call. Even if the header never
+      // completed (no name/call_id), surface what we have so codex can fail
+      // loudly rather than silently dropping the call.
+      for (const state of [...toolCalls.values()].sort((a, b) => a.output_index - b.output_index)) {
+        if (!state.added) {
+          // Header was never complete — synthesize a best-effort placeholder
+          // so the lifecycle stays well-formed.
+          state.added = true;
+          events.push(
+            formatResponsesEvent('response.output_item.added', {
+              type: 'response.output_item.added',
+              output_index: state.output_index,
+              item: {
+                type: 'function_call',
+                id: state.item_id,
+                call_id: state.call_id || state.item_id,
+                name: state.name || 'unknown',
+                arguments: '',
+              },
+            }),
+          );
+          if (state.args) {
+            events.push(
+              formatResponsesEvent('response.function_call_arguments.delta', {
+                type: 'response.function_call_arguments.delta',
+                item_id: state.item_id,
+                output_index: state.output_index,
+                delta: state.args,
+              }),
+            );
+          }
+        }
+        if (!state.done) {
+          state.done = true;
+          events.push(
+            formatResponsesEvent('response.function_call_arguments.done', {
+              type: 'response.function_call_arguments.done',
+              item_id: state.item_id,
+              output_index: state.output_index,
+              arguments: state.args,
+            }),
+            formatResponsesEvent('response.output_item.done', {
+              type: 'response.output_item.done',
+              output_index: state.output_index,
+              item: {
+                type: 'function_call',
+                id: state.item_id,
+                call_id: state.call_id || state.item_id,
+                name: state.name || 'unknown',
+                arguments: state.args,
+                status: 'completed',
+              },
+            }),
+          );
+        }
+      }
+
+      const ordered: { idx: number; item: JsonRecord }[] = [];
+      if (accumulatedText) {
+        ordered.push({
+          idx: textOutputIndex ?? 0,
+          item: messageItem(accumulatedText, 'completed'),
+        });
+      }
+      for (const state of toolCalls.values()) {
+        ordered.push({
+          idx: state.output_index,
+          item: {
+            type: 'function_call',
+            id: state.item_id,
+            call_id: state.call_id || state.item_id,
+            name: state.name || 'unknown',
+            arguments: state.args,
+            status: 'completed',
+          },
+        });
+      }
+      ordered.sort((a, b) => a.idx - b.idx);
+      const finalOutput = ordered.map((entry) => entry.item);
+
       events.push(
         formatResponsesEvent('response.completed', {
           type: 'response.completed',
