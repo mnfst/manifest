@@ -182,6 +182,20 @@ describe('filterNonChatModels', () => {
       expect(result).toHaveLength(2);
     });
 
+    it('keeps canonical flash-lite-preview aliases without a date suffix', () => {
+      // Issue #1814: gemini-3.1-flash-lite-preview is the live, non-deprecated
+      // preview alias. Only the dated snapshot variants are deprecated.
+      const models = [
+        makeModel('gemini-3.1-flash-lite-preview'),
+        makeModel('gemini-3-flash-lite-preview'),
+      ];
+      const result = filterNonChatModels(models, 'gemini');
+      expect(result.map((m) => m.id)).toEqual([
+        'gemini-3.1-flash-lite-preview',
+        'gemini-3-flash-lite-preview',
+      ]);
+    });
+
     it('keeps gemini-image models but filters robotics models', () => {
       const models = [
         makeModel('gemini-2.5-flash-image'),
