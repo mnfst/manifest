@@ -18,25 +18,27 @@ describe("NanobotSetup", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the config.json instruction with highlighted path and command", () => {
+  it("renders the config.json instruction with highlighted path and keys", () => {
     const { container } = render(() => <NanobotSetup {...baseProps} />);
     const codes = container.querySelectorAll(".setup-model-hint__code");
     const labels = Array.from(codes).map((c) => c.textContent);
     expect(labels).toContain("~/.nanobot/config.json");
-    expect(labels).toContain("nanobot");
+    expect(labels).toContain("agents.defaults");
+    expect(labels).toContain("custom");
   });
 
-  it("renders the JSON config with manifest provider and apiBase", () => {
+  it("renders the JSON config with custom provider and apiBase", () => {
     const { container } = render(() => <NanobotSetup {...baseProps} />);
     const text = container.textContent ?? "";
-    expect(text).toContain('"providers"');
-    expect(text).toContain('"manifest"');
-    expect(text).toContain("apiKey");
-    expect(text).toContain("apiBase");
     expect(text).toContain('"agents"');
     expect(text).toContain('"defaults"');
+    expect(text).toContain('"provider"');
+    expect(text).toContain('"custom"');
     expect(text).toContain('"model"');
     expect(text).toContain('"auto"');
+    expect(text).toContain('"providers"');
+    expect(text).toContain("apiKey");
+    expect(text).toContain("apiBase");
   });
 
   it("emits the baseUrl verbatim into the JSON (no /v1 stripping)", () => {
