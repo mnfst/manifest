@@ -51,10 +51,29 @@ export function convertContent(content: unknown, role: string): unknown {
 
   if (!Array.isArray(content)) return content;
 
-  return (content as { type?: string; text?: string }[]).map((part) => {
+  return content.map((part) => {
+    if (!isObjectRecord(part)) return part;
     if (part.type === 'text') return { ...part, type: partType };
+    if (part.type === 'image_url' && role !== 'assistant') {
+      const imageUrl = extractImageUrl(part.image_url);
+      if (imageUrl) {
+        return { type: 'input_image', image_url: imageUrl, ...extractImageDetail(part) };
+      }
+    }
     return part;
   });
+}
+
+function extractImageUrl(imageUrl: unknown): string | null {
+  if (typeof imageUrl === 'string') return imageUrl;
+  if (!isObjectRecord(imageUrl) || typeof imageUrl.url !== 'string') return null;
+  return imageUrl.url;
+}
+
+function extractImageDetail(part: Record<string, unknown>): { detail?: string } {
+  const nested = isObjectRecord(part.image_url) ? part.image_url.detail : undefined;
+  const detail = typeof part.detail === 'string' ? part.detail : nested;
+  return typeof detail === 'string' ? { detail } : {};
 }
 
 export function extractInstructions(messages: OpenAIMessage[]): string {
