@@ -362,9 +362,7 @@ export function getNanobotConfigSnippet(baseUrl: string, apiKey: string): string
   "providers": {
     "custom": {
       "apiKey": "${apiKey}",
-      "apiBase": "${baseUrl}",
-      "extraHeaders": null,
-      "extraBody": null
+      "apiBase": "${baseUrl}"
     }
   },
   "agents": {

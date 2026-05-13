@@ -307,8 +307,6 @@ describe("getNanobotConfigSnippet", () => {
         custom: {
           apiKey: "mnfst_key",
           apiBase: "http://localhost:38240/v1",
-          extraHeaders: null,
-          extraBody: null,
         },
       },
       agents: {
