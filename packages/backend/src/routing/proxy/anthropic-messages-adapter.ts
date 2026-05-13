@@ -40,6 +40,30 @@ function isAnthropicServerToolType(type: string): boolean {
   );
 }
 
+function normalizeOpenAiFunctionSchema(schema: unknown): unknown {
+  if (schema === null || schema === undefined || typeof schema !== 'object') {
+    return schema;
+  }
+
+  if (Array.isArray(schema)) {
+    return schema.map((item) => normalizeOpenAiFunctionSchema(item));
+  }
+
+  const result: JsonRecord = {};
+  for (const [key, value] of Object.entries(schema)) {
+    result[key] = normalizeOpenAiFunctionSchema(value);
+  }
+
+  const type = result.type;
+  const isArraySchema =
+    type === 'array' || (Array.isArray(type) && type.some((item) => item === 'array'));
+  if (isArraySchema && result.items === undefined) {
+    result.items = {};
+  }
+
+  return result;
+}
+
 function safeJsonStringify(value: unknown): string {
   try {
     return typeof value === 'string' ? value : JSON.stringify(value ?? '');
@@ -164,7 +188,7 @@ function toChatTools(tools: unknown[]): JsonRecord[] {
       name: typeof tool.name === 'string' ? tool.name : 'unknown',
       ...(typeof tool.description === 'string' && { description: tool.description }),
       ...(tool.input_schema !== undefined
-        ? { parameters: tool.input_schema }
+        ? { parameters: normalizeOpenAiFunctionSchema(tool.input_schema) }
         : typeof tool.type === 'string' &&
             tool.type !== 'custom' &&
             !isAnthropicServerToolType(tool.type)
