@@ -97,7 +97,7 @@ describe('GET /api/v1/public/agent-tokens', () => {
         g.agent_category === 'personal' && g.agent_platform === 'openclaw',
     );
     expect(group).toBeDefined();
-    expect(group.category_label).toBe('Personal AI Agent');
+    expect(group.category_label).toBe('AI agents');
     expect(group.platform_label).toBe('OpenClaw');
     // seeded messages: 150 + 300 + 225 = 675 tokens across two models
     expect(group.total_tokens).toBeGreaterThanOrEqual(675);

@@ -39,7 +39,7 @@ const STREAM_WARMUP_MS = 15_000;
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
 
 /**
- * Roles excluded from scoring. Personal AI agents (OpenClaw, Hermes, and
+ * Roles excluded from scoring. AI agents (OpenClaw, Hermes, and
  * similar tools) inject a large, keyword-rich system prompt with every
  * request. Scoring it inflates every request to the most expensive tier.
  * We strip these before the scorer sees them, but forward the full
