@@ -71,7 +71,14 @@ function responseInputItemToMessage(item: JsonRecord): OpenAIMessage[] {
     ];
   }
 
-  const role = typeof item.role === 'string' ? item.role : 'user';
+  const rawRole = typeof item.role === 'string' ? item.role : 'user';
+  // OpenAI Responses-API emits role "developer" for what chat/completions
+  // calls "system" (newer name, identical semantics). Most upstream providers
+  // — DeepSeek, MiniMax, Z.AI, and others on the OpenAI-compat surface —
+  // still reject any role outside {system,user,assistant,tool}, so we
+  // normalize before forwarding. Codex always wires its instructions as a
+  // developer message, so without this step every codex turn 400s upstream.
+  const role = rawRole === 'developer' ? 'system' : rawRole;
   return [{ role, content: toChatContent(item.content, role) }];
 }
 
@@ -117,9 +124,17 @@ export function toChatCompletionsRequest(body: JsonRecord): JsonRecord {
 }
 
 function toChatTools(tools: unknown[]): JsonRecord[] {
-  return tools.filter(isRecord).map((tool) => {
-    if (tool.type !== 'function') return tool;
-    return {
+  // The Responses API exposes OpenAI-hosted tools (`web_search`,
+  // `file_search`, `computer_use_preview`, `code_interpreter`, ...) that only
+  // OpenAI's own backend can resolve. Codex always advertises a handful of
+  // them per turn, but non-OpenAI chat/completions upstreams (DeepSeek,
+  // MiniMax, Z.AI, Anthropic-compat, etc.) reject any tool whose `type` is
+  // not `function`. Drop the hosted ones silently — the caller-defined
+  // function tools that follow continue to work.
+  return tools
+    .filter(isRecord)
+    .filter((tool) => tool.type === 'function')
+    .map((tool) => ({
       type: 'function',
       function: {
         name: tool.name,
@@ -127,8 +142,7 @@ function toChatTools(tools: unknown[]): JsonRecord[] {
         ...(tool.parameters !== undefined && { parameters: tool.parameters }),
         ...(tool.strict !== undefined && { strict: tool.strict }),
       },
-    };
-  });
+    }));
 }
 
 function toChatToolChoice(toolChoice: unknown): unknown {

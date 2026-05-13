@@ -100,8 +100,58 @@ describe('Responses adapter', () => {
         },
         { role: 'tool', tool_call_id: 'call_1', content: '{"ok":true}' },
       ]);
-      expect(result.tools).toEqual([{ type: 'web_search_preview' }]);
+      // Hosted Responses-API tools (web_search, file_search, computer_use,
+      // ...) only resolve inside OpenAI's own backend. Manifest fans the
+      // request out to chat/completions upstreams that reject any tool whose
+      // type isn't `function`, so we drop these silently.
+      expect(result.tools).toEqual([]);
       expect(result.tool_choice).toBe('auto');
+    });
+
+    it('normalizes Responses-API "developer" role to chat-completions "system"', () => {
+      // Codex always wires its instructions as a developer message; DeepSeek,
+      // MiniMax, Z.AI, and most other OpenAI-compat upstreams only accept
+      // {system,user,assistant,tool}, so leaving the role untranslated would
+      // 400 every codex turn.
+      const result = toChatCompletionsRequest({
+        input: [
+          { role: 'developer', content: [{ type: 'input_text', text: 'You are helpful.' }] },
+          { role: 'user', content: 'Hi' },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        { role: 'system', content: 'You are helpful.' },
+        { role: 'user', content: 'Hi' },
+      ]);
+    });
+
+    it('drops non-function hosted tools while keeping caller-defined function tools', () => {
+      const result = toChatCompletionsRequest({
+        input: 'Hi',
+        tools: [
+          { type: 'web_search' },
+          { type: 'file_search' },
+          { type: 'computer_use_preview' },
+          {
+            type: 'function',
+            name: 'lookup',
+            description: 'Lookup data',
+            parameters: { type: 'object' },
+          },
+        ],
+      });
+
+      expect(result.tools).toEqual([
+        {
+          type: 'function',
+          function: {
+            name: 'lookup',
+            description: 'Lookup data',
+            parameters: { type: 'object' },
+          },
+        },
+      ]);
     });
 
     it('uses safe defaults for malformed input items', () => {
