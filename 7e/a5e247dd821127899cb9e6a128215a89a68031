@@ -1,0 +1,19 @@
+packages/frontend/tests/components/NanobotSetup.test.tsx
+  s_38570e892fce3e::t_5dc0a09b6cd18c 21,26-27,30,35-36,39-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "7ea5e247dd821127899cb9e6a128215a89a68031",
+  "prompts": {},
+  "sessions": {
+    "s_38570e892fce3e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "67454911-921e-4286-b03f-2de491ab5921",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
