@@ -374,6 +374,28 @@ export function getNanobotConfigSnippet(baseUrl: string, apiKey: string): string
 }`;
 }
 
+/**
+ * The TOML block to paste into ~/.codex/config.toml. Codex CLI speaks the
+ * Responses API; the proxy's /v1/responses route normalizes role + tool
+ * shape and re-emits Responses-API SSE events even when the upstream is a
+ * plain chat/completions backend. `wire_api = "responses"` keeps Codex
+ * pinned to that route. The API key is read from $OPENAI_API_KEY at run
+ * time per `env_key`, so the secret never lives on disk.
+ */
+export function getCodexConfigSnippet(baseUrl: string, apiKey: string): string {
+  return `model = "auto"
+model_provider = "manifest"
+
+[model_providers.manifest]
+name = "Manifest"
+base_url = "${baseUrl}"
+env_key = "OPENAI_API_KEY"
+wire_api = "responses"
+
+# Then export the key so codex can authenticate:
+#   export OPENAI_API_KEY="${apiKey}"`;
+}
+
 export function getOpenClawDisableSnippet(model: string): string {
   return `openclaw config unset models.providers.manifest
 openclaw config unset agents.defaults.models.manifest/auto
