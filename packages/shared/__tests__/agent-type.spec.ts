@@ -17,6 +17,7 @@ describe('agent-type', () => {
       'nanobot',
       'craft',
       'claude-code',
+      'opencode',
       'openai-sdk',
       'anthropic-sdk',
       'vercel-ai-sdk',
@@ -55,10 +56,13 @@ describe('agent-type', () => {
     }
   });
 
-  it('places claude-code under coding only, not personal or app', () => {
+  it('places coding assistants under coding only, not personal or app', () => {
     expect(PLATFORMS_BY_CATEGORY.coding).toContain('claude-code');
+    expect(PLATFORMS_BY_CATEGORY.coding).toContain('opencode');
     expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('claude-code');
+    expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('opencode');
     expect(PLATFORMS_BY_CATEGORY.app).not.toContain('claude-code');
+    expect(PLATFORMS_BY_CATEGORY.app).not.toContain('opencode');
   });
 
   it('keeps "other" available in every category for the unknown-platform fallback', () => {
@@ -114,6 +118,7 @@ describe('agent-type', () => {
       expect(platformIcon('hermes', 'personal')).toBe(PLATFORM_ICONS.hermes);
       expect(platformIcon('nanobot', 'personal')).toBe(PLATFORM_ICONS.nanobot);
       expect(platformIcon('claude-code', 'coding')).toBe(PLATFORM_ICONS['claude-code']);
+      expect(platformIcon('opencode', 'coding')).toBe(PLATFORM_ICONS.opencode);
       expect(platformIcon('openai-sdk', 'app')).toBe(PLATFORM_ICONS['openai-sdk']);
       expect(platformIcon('anthropic-sdk', 'app')).toBe(PLATFORM_ICONS['anthropic-sdk']);
       expect(platformIcon('vercel-ai-sdk', 'app')).toBe(PLATFORM_ICONS['vercel-ai-sdk']);
@@ -126,12 +131,17 @@ describe('agent-type', () => {
       expect(platformIcon('claude-code', 'coding')).toBe('/icons/providers/claude-code.svg');
     });
 
+    it('opencode resolves to the providers/opencode.svg mark', () => {
+      expect(platformIcon('opencode', 'coding')).toBe('/icons/providers/opencode.svg');
+    });
+
     it('returns the platform icon regardless of the category passed (icon is keyed by platform)', () => {
       // Even if the caller passes an inconsistent (platform, category) pair —
       // e.g. a stale row in the DB — we still resolve to the registered icon
       // for the platform. Only "other" branches on category.
       expect(platformIcon('claude-code', 'personal')).toBe(PLATFORM_ICONS['claude-code']);
       expect(platformIcon('claude-code', null)).toBe(PLATFORM_ICONS['claude-code']);
+      expect(platformIcon('opencode', 'personal')).toBe(PLATFORM_ICONS.opencode);
       expect(platformIcon('openclaw', 'coding')).toBe(PLATFORM_ICONS.openclaw);
     });
 

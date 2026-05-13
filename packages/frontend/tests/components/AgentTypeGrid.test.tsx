@@ -18,12 +18,13 @@ vi.mock("manifest-shared", () => ({
     langchain: "LangChain",
     curl: "cURL",
     "claude-code": "Claude Code",
+    opencode: "OpenCode",
     other: "Other",
   },
   PLATFORMS_BY_CATEGORY: {
     personal: ["openclaw", "hermes", "nanobot", "craft", "other"],
     app: ["openai-sdk", "vercel-ai-sdk", "langchain", "other"],
-    coding: ["claude-code", "other"],
+    coding: ["claude-code", "opencode", "other"],
   },
   PLATFORM_ICONS: {
     openclaw: "/icons/openclaw.png",
@@ -34,6 +35,7 @@ vi.mock("manifest-shared", () => ({
     "vercel-ai-sdk": "/icons/vercel.svg",
     langchain: "/icons/langchain.svg",
     "claude-code": "/icons/providers/claude-code.svg",
+    opencode: "/icons/providers/opencode.svg",
   },
 }));
 
@@ -63,7 +65,7 @@ describe("AgentTypeGrid", () => {
   it("renders all platform options from all three categories", () => {
     const { container } = render(() => <AgentTypeGrid {...defaultProps} />);
     const options = container.querySelectorAll(".agent-type-select__option");
-    expect(options).toHaveLength(11);
+    expect(options).toHaveLength(12);
   });
 
   it("renders three columns", () => {
@@ -111,6 +113,22 @@ describe("AgentTypeGrid", () => {
     expect(onPlatformChange).toHaveBeenCalledWith("claude-code");
   });
 
+  it("selecting OpenCode routes to coding/opencode", () => {
+    const onCategoryChange = vi.fn();
+    const onPlatformChange = vi.fn();
+    const { container } = render(() => (
+      <AgentTypeGrid
+        {...defaultProps}
+        onCategoryChange={onCategoryChange}
+        onPlatformChange={onPlatformChange}
+      />
+    ));
+    const options = container.querySelectorAll(".agent-type-select__option");
+    fireEvent.click(options[10]); // OpenCode (coding column, second item)
+    expect(onCategoryChange).toHaveBeenCalledWith("coding");
+    expect(onPlatformChange).toHaveBeenCalledWith("opencode");
+  });
+
   it("shows platform icons", () => {
     const { container } = render(() => <AgentTypeGrid {...defaultProps} />);
     const icons = container.querySelectorAll(".agent-type-select__option-icon");
@@ -138,8 +156,8 @@ describe("AgentTypeGrid", () => {
   it("uses other.svg for coding Other (not the personal-agent variant)", () => {
     const { container } = render(() => <AgentTypeGrid {...defaultProps} />);
     const options = container.querySelectorAll(".agent-type-select__option");
-    // coding/Other is at index 10 (5 personal + 4 app + 1 coding before it)
-    const icon = options[10].querySelector(".agent-type-select__option-icon");
+    // coding/Other is at index 11 (5 personal + 4 app + 2 coding before it)
+    const icon = options[11].querySelector(".agent-type-select__option-icon");
     expect(icon!.getAttribute("src")).toBe("/icons/other.svg");
   });
 
@@ -148,6 +166,13 @@ describe("AgentTypeGrid", () => {
     const options = container.querySelectorAll(".agent-type-select__option");
     const icon = options[9].querySelector(".agent-type-select__option-icon");
     expect(icon!.getAttribute("src")).toBe("/icons/providers/claude-code.svg");
+  });
+
+  it("renders the OpenCode icon in the coding column", () => {
+    const { container } = render(() => <AgentTypeGrid {...defaultProps} />);
+    const options = container.querySelectorAll(".agent-type-select__option");
+    const icon = options[10].querySelector(".agent-type-select__option-icon");
+    expect(icon!.getAttribute("src")).toBe("/icons/providers/opencode.svg");
   });
 
   it("disables buttons when disabled prop is true", () => {

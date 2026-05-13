@@ -79,6 +79,7 @@
 .dark .setup-modal__platform-icon[src*='openai'],
 .dark .setup-modal__platform-icon[src*='anthropic'],
 .dark .setup-modal__platform-icon[src*='vercel'],
+.dark .setup-modal__platform-icon[src*='opencode'],
 .dark .setup-modal__platform-icon[src*='other'] {
   filter: invert(1);
 }

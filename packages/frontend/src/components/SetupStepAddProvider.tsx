@@ -5,10 +5,11 @@ import HermesSetup from './HermesSetup.jsx';
 import NanobotSetup from './NanobotSetup.jsx';
 import CraftAgentSetup from './CraftAgentSetup.jsx';
 import ClaudeCodeSetup from './ClaudeCodeSetup.jsx';
+import OpenCodeSetup from './OpenCodeSetup.jsx';
 import type { ToolkitId } from '../services/framework-snippets.js';
 
 type SetupTab = 'toolkits' | 'agents';
-type AgentId = 'openclaw' | 'hermes' | 'nanobot' | 'craft' | 'claude-code';
+type AgentId = 'openclaw' | 'hermes' | 'nanobot' | 'craft' | 'claude-code' | 'opencode';
 
 interface Props {
   apiKey: string | null;
@@ -52,7 +53,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                 ? 'Connect your Craft agent to Manifest'
                 : props.platform === 'claude-code'
                   ? 'Connect Claude Code to Manifest'
-                  : 'Connect your agent to Manifest'}
+                  : props.platform === 'opencode'
+                    ? 'Connect OpenCode to Manifest'
+                    : 'Connect your agent to Manifest'}
       </h3>
 
       {/* Platform-filtered mode: show only relevant content */}
@@ -72,6 +75,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           </Match>
           <Match when={props.platform === 'claude-code'}>
             <ClaudeCodeSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'opencode'}>
+            <OpenCodeSetup {...snippetProps()} />
           </Match>
           <Match when={toolkitId()}>
             <FrameworkSnippets
@@ -199,6 +205,22 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                 />
                 Claude Code
               </button>
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'opencode' }}
+                onClick={() => setActiveAgent('opencode')}
+                role="tab"
+                aria-selected={activeAgent() === 'opencode'}
+              >
+                <img
+                  src="/icons/providers/opencode.svg"
+                  alt=""
+                  class="panel__tab-icon"
+                  width="16"
+                  height="16"
+                />
+                OpenCode
+              </button>
             </div>
           </div>
 
@@ -217,6 +239,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
             </Match>
             <Match when={activeAgent() === 'claude-code'}>
               <ClaudeCodeSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'opencode'}>
+              <OpenCodeSetup {...snippetProps()} />
             </Match>
           </Switch>
         </Show>
