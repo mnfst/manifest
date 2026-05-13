@@ -21,6 +21,7 @@ import {
   getSnippetForToolkit,
   getLangForToolkit,
   getOpenClawWizardSnippet,
+  getCraftAgentConfigSnippet,
 } from "../../src/services/framework-snippets";
 
 describe("FRAMEWORK_TABS", () => {
@@ -71,6 +72,15 @@ describe("TOOLKIT_TABS", () => {
     expect(TOOLKIT_TABS[2].icon).toBe("/icons/vercel.svg");
     expect(TOOLKIT_TABS[3].icon).toBe("/icons/langchain.png");
     expect(TOOLKIT_TABS[4].icon).toBeUndefined();
+  });
+
+  it("renders Craft config JSON", () => {
+    const snippet = getCraftAgentConfigSnippet("http://localhost:3001/v1", "mnfst_key");
+    expect(snippet).toContain('"providers"');
+    expect(snippet).toContain('"manifest"');
+    expect(snippet).toContain('"apiBase": "http://localhost:3001/v1"');
+    expect(snippet).toContain('"apiKey": "mnfst_key"');
+    expect(snippet).toContain('"model": "auto"');
   });
 });
 

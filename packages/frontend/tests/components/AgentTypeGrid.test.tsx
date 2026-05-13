@@ -19,7 +19,7 @@ vi.mock("manifest-shared", () => ({
     other: "Other",
   },
   PLATFORMS_BY_CATEGORY: {
-    personal: ["openclaw", "hermes", "other"],
+    personal: ["openclaw", "hermes", "nanobot", "craft", "other"],
     app: ["openai-sdk", "vercel-ai-sdk", "langchain", "other"],
     coding: ["claude-code", "other"],
   },
@@ -59,7 +59,7 @@ describe("AgentTypeGrid", () => {
   it("renders all platform options from all three categories", () => {
     const { container } = render(() => <AgentTypeGrid {...defaultProps} />);
     const options = container.querySelectorAll(".agent-type-select__option");
-    expect(options).toHaveLength(9);
+    expect(options).toHaveLength(11);
   });
 
   it("renders three columns", () => {
@@ -86,7 +86,7 @@ describe("AgentTypeGrid", () => {
       />
     ));
     const options = container.querySelectorAll(".agent-type-select__option");
-    fireEvent.click(options[3]); // OpenAI SDK (app category)
+    fireEvent.click(options[5]); // OpenAI SDK (app category)
     expect(onCategoryChange).toHaveBeenCalledWith("app");
     expect(onPlatformChange).toHaveBeenCalledWith("openai-sdk");
   });
@@ -102,7 +102,7 @@ describe("AgentTypeGrid", () => {
       />
     ));
     const options = container.querySelectorAll(".agent-type-select__option");
-    fireEvent.click(options[7]); // Claude Code (coding column, first item)
+    fireEvent.click(options[9]); // Claude Code (coding column, first item)
     expect(onCategoryChange).toHaveBeenCalledWith("coding");
     expect(onPlatformChange).toHaveBeenCalledWith("claude-code");
   });
@@ -117,29 +117,32 @@ describe("AgentTypeGrid", () => {
   it("uses other-agent.svg for personal Other", () => {
     const { container } = render(() => <AgentTypeGrid {...defaultProps} />);
     const options = container.querySelectorAll(".agent-type-select__option");
-    const icon = options[2].querySelector(".agent-type-select__option-icon");
+    const icon = options[4].querySelector(".agent-type-select__option-icon");
     expect(icon!.getAttribute("src")).toBe("/icons/other-agent.svg");
   });
 
   it("uses other.svg for app Other", () => {
-    const { container } = render(() => <AgentTypeGrid {...defaultProps} />);
-    const options = container.querySelectorAll(".agent-type-select__option");
-    const icon = options[6].querySelector(".agent-type-select__option-icon");
+    const { container } = render(() => (
+      <AgentTypeGrid {...defaultProps} category="app" platform="other" />
+    ));
+    const selected = container.querySelector(".agent-type-select__option--selected");
+    const icon = selected?.querySelector(".agent-type-select__option-icon");
+    expect(selected?.textContent).toContain("Other");
     expect(icon!.getAttribute("src")).toBe("/icons/other.svg");
   });
 
   it("uses other.svg for coding Other (not the personal-agent variant)", () => {
     const { container } = render(() => <AgentTypeGrid {...defaultProps} />);
     const options = container.querySelectorAll(".agent-type-select__option");
-    // coding/Other is at index 8 (3 personal + 4 app + 1 claude-code)
-    const icon = options[8].querySelector(".agent-type-select__option-icon");
+    // coding/Other is at index 10 (3 personal + 4 app + 3 coding before it)
+    const icon = options[10].querySelector(".agent-type-select__option-icon");
     expect(icon!.getAttribute("src")).toBe("/icons/other.svg");
   });
 
   it("renders the official Claude Code icon in the coding column", () => {
     const { container } = render(() => <AgentTypeGrid {...defaultProps} />);
     const options = container.querySelectorAll(".agent-type-select__option");
-    const icon = options[7].querySelector(".agent-type-select__option-icon");
+    const icon = options[9].querySelector(".agent-type-select__option-icon");
     expect(icon!.getAttribute("src")).toBe("/icons/providers/claude-code.svg");
   });
 
@@ -175,9 +178,7 @@ describe("AgentTypeGrid", () => {
     ));
     const selected = container.querySelectorAll(".agent-type-select__option--selected");
     expect(selected).toHaveLength(1);
-    // app Other is at index 6
-    const options = container.querySelectorAll(".agent-type-select__option");
-    expect(options[6].classList.contains("agent-type-select__option--selected")).toBe(true);
+    expect(selected[0].textContent).toContain("Other");
   });
 
   it("selects coding Claude Code correctly", () => {
@@ -190,7 +191,6 @@ describe("AgentTypeGrid", () => {
     ));
     const selected = container.querySelectorAll(".agent-type-select__option--selected");
     expect(selected).toHaveLength(1);
-    const options = container.querySelectorAll(".agent-type-select__option");
-    expect(options[7].classList.contains("agent-type-select__option--selected")).toBe(true);
+    expect(selected[0].textContent).toContain("Claude Code");
   });
 });

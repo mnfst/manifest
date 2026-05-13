@@ -13,6 +13,7 @@ export const FRAMEWORK_TABS: FrameworkTab[] = [
 ];
 
 export type ToolkitId = 'openai-sdk' | 'anthropic-sdk' | 'vercel-ai-sdk' | 'langchain' | 'curl';
+export type CraftConfigId = 'craft';
 export type OpenAILangId = 'python' | 'typescript';
 export type OpenAIApiId = 'responses' | 'chat-completions';
 
@@ -513,4 +514,25 @@ export function getLangForToolkit(id: ToolkitId, openaiLang?: OpenAILangId): str
 
 export function getOpenClawWizardSnippet(): string {
   return 'openclaw onboard';
+}
+
+export function getCraftAgentConfigSnippet(baseUrl: string, apiKey: string): string {
+  return JSON.stringify(
+    {
+      agents: {
+        defaults: {
+          model: 'auto',
+        },
+      },
+      providers: {
+        manifest: {
+          apiBase: baseUrl,
+          apiKey,
+          model: 'auto',
+        },
+      },
+    },
+    null,
+    2,
+  );
 }
