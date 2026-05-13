@@ -14,6 +14,7 @@ describe('agent-type', () => {
     expect(AGENT_PLATFORMS).toEqual([
       'openclaw',
       'hermes',
+      'nanobot',
       'claude-code',
       'openai-sdk',
       'anthropic-sdk',
@@ -110,6 +111,7 @@ describe('agent-type', () => {
     it('returns the registered icon for known platforms', () => {
       expect(platformIcon('openclaw', 'personal')).toBe(PLATFORM_ICONS.openclaw);
       expect(platformIcon('hermes', 'personal')).toBe(PLATFORM_ICONS.hermes);
+      expect(platformIcon('nanobot', 'personal')).toBe(PLATFORM_ICONS.nanobot);
       expect(platformIcon('claude-code', 'coding')).toBe(PLATFORM_ICONS['claude-code']);
       expect(platformIcon('openai-sdk', 'app')).toBe(PLATFORM_ICONS['openai-sdk']);
       expect(platformIcon('anthropic-sdk', 'app')).toBe(PLATFORM_ICONS['anthropic-sdk']);

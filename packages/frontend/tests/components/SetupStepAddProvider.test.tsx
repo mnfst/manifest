@@ -46,19 +46,28 @@ describe("SetupStepAddProvider", () => {
     expect(activeBtn!.textContent).toBe("Agents");
   });
 
-  it("shows OpenClaw, Hermes, and Claude Code tabs inside Agents", () => {
+  it("shows OpenClaw, Hermes, Nanobot, and Claude Code tabs inside Agents", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const agentTabs = container.querySelectorAll(".panel__tab");
-    expect(agentTabs).toHaveLength(3);
+    expect(agentTabs).toHaveLength(4);
     expect(agentTabs[0].textContent).toContain("OpenClaw");
     expect(agentTabs[1].textContent).toContain("Hermes Agent");
-    expect(agentTabs[2].textContent).toContain("Claude Code");
+    expect(agentTabs[2].textContent).toContain("Nanobot");
+    expect(agentTabs[3].textContent).toContain("Claude Code");
+  });
+
+  it("shows Nanobot setup when Nanobot tab clicked", () => {
+    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
+    const agentTabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(agentTabs[2]); // Nanobot
+    expect(container.textContent).toContain("~/.nanobot/config.json");
+    expect(container.textContent).toContain("apiBase");
   });
 
   it("shows Claude Code setup when Claude Code tab clicked", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const agentTabs = container.querySelectorAll(".panel__tab");
-    fireEvent.click(agentTabs[2]); // Claude Code
+    fireEvent.click(agentTabs[3]); // Claude Code
     expect(container.textContent).toContain("ANTHROPIC_BASE_URL");
     expect(container.textContent).toContain("ANTHROPIC_AUTH_TOKEN");
   });
@@ -275,6 +284,23 @@ describe("SetupStepAddProvider", () => {
         <SetupStepAddProvider {...defaultProps} platform="hermes" />
       ));
       expect(screen.getByText("Connect your Hermes agent to Manifest")).toBeDefined();
+    });
+
+    it("shows NanobotSetup directly when platform is nanobot", () => {
+      const { container } = render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="nanobot" />
+      ));
+      expect(container.textContent).toContain("~/.nanobot/config.json");
+      expect(container.textContent).toContain("apiBase");
+      // No top-level Agents/Toolkits tabs in filtered mode.
+      expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
+    });
+
+    it("shows correct heading for nanobot", () => {
+      render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="nanobot" />
+      ));
+      expect(screen.getByText("Connect your Nanobot agent to Manifest")).toBeDefined();
     });
 
     it("shows ClaudeCodeSetup directly when platform is claude-code", () => {
