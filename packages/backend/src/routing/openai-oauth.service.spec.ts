@@ -82,8 +82,8 @@ describe('OpenaiOauthService', () => {
       const stateParam = new URL(url).searchParams.get('state')!;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pending = (service as any).pending as Map<string, { expiresAt: number }>;
-      pending.get(stateParam)!.expiresAt = Date.now() - 1000;
+      const pending = (service as any).pending as { peek(k: string): { expiresAt: number } };
+      pending.peek(stateParam)!.expiresAt = Date.now() - 1000;
 
       await service.generateAuthorizationUrl('agent-2', 'user-2');
       expect(service.getPendingCount()).toBe(1);
@@ -138,8 +138,8 @@ describe('OpenaiOauthService', () => {
       const state = new URL(url).searchParams.get('state')!;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pending = (service as any).pending as Map<string, { expiresAt: number }>;
-      pending.get(state)!.expiresAt = Date.now() - 1;
+      const pending = (service as any).pending as { peek(k: string): { expiresAt: number } };
+      pending.peek(state)!.expiresAt = Date.now() - 1;
 
       await expect(service.exchangeCode(state, 'code')).rejects.toThrow('OAuth state expired');
       expect(service.getPendingCount()).toBe(0);
@@ -383,20 +383,16 @@ describe('OpenaiOauthService', () => {
     });
 
     it('shuts down callback server after last exchange completes', async () => {
-      await service.generateAuthorizationUrl('agent-1', 'user-1');
+      const firstUrl = await service.generateAuthorizationUrl('agent-1', 'user-1');
+      const firstState = new URL(firstUrl).searchParams.get('state')!;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const server = (service as any).callbackServer;
 
       const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
 
-      // Remove extra pending entries so only one remains
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pending = (service as any).pending as Map<string, unknown>;
-      const keys = [...pending.keys()];
-      for (const k of keys) {
-        if (k !== state) pending.delete(k);
-      }
+      // Remove the unrelated pending entry so only one remains.
+      service.clearPendingState(firstState);
 
       fetchMock.mockResolvedValueOnce({
         ok: true,

@@ -7,6 +7,7 @@ import type { ProviderKeyService } from '../../routing-core/provider-key.service
 import type { TierService } from '../../routing-core/tier.service';
 import type { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import type { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import type { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
 import type { SessionMomentumService } from '../session-momentum.service';
 import type { LimitCheckService } from '../../../notifications/services/limit-check.service';
 import type { ProxyFallbackService } from '../proxy-fallback.service';
@@ -41,6 +42,7 @@ describe('ProxyService — orchestration', () => {
   let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let openaiOauth: jest.Mocked<Pick<OpenaiOauthService, 'unwrapToken'>>;
   let minimaxOauth: jest.Mocked<Pick<MinimaxOauthService, 'unwrapToken'>>;
+  let anthropicOauth: jest.Mocked<Pick<AnthropicOauthService, 'unwrapToken'>>;
   let momentum: jest.Mocked<
     Pick<
       SessionMomentumService,
@@ -70,6 +72,7 @@ describe('ProxyService — orchestration', () => {
     tierService = { getTiers: jest.fn().mockResolvedValue([]) };
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     minimaxOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
+    anthropicOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     momentum = {
       recordTier: jest.fn(),
       recordCategory: jest.fn(),
@@ -93,6 +96,7 @@ describe('ProxyService — orchestration', () => {
       tierService as unknown as TierService,
       openaiOauth as unknown as OpenaiOauthService,
       minimaxOauth as unknown as MinimaxOauthService,
+      anthropicOauth as unknown as AnthropicOauthService,
       momentum as unknown as SessionMomentumService,
       limitCheck as unknown as LimitCheckService,
       fallbackService as unknown as ProxyFallbackService,

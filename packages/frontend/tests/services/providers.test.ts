@@ -278,11 +278,13 @@ describe("PROVIDERS", () => {
     expect(openai.subscriptionAuthMode).toBe("popup_oauth");
   });
 
-  it("Anthropic supports subscription", () => {
+  it("Anthropic supports subscription via paste-code OAuth", () => {
     const anthropic = PROVIDERS.find((p) => p.id === "anthropic")!;
     expect(anthropic.supportsSubscription).toBe(true);
     expect(anthropic.subscriptionLabel).toBe("Claude Max / Pro subscription");
-    expect(anthropic.subscriptionAuthMode).toBe("token");
+    expect(anthropic.subscriptionAuthMode).toBe("popup_paste");
+    expect(anthropic.subscriptionCommand).toBeUndefined();
+    expect(anthropic.subscriptionKeyPlaceholder).toBeUndefined();
   });
 
   it("GitHub Copilot is subscription-only", () => {

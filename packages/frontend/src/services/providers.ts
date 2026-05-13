@@ -31,7 +31,7 @@ export interface ProviderDef {
   /** Provider uses GitHub device login instead of token paste. */
   deviceLogin?: boolean;
   /** UI auth mode for subscription flows. */
-  subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
+  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
   /** Provider is subscription-only and should not appear in the API Keys tab. */
   subscriptionOnly?: boolean;
   /** External URL the user should open to sign in and retrieve their token (token mode). */
@@ -64,7 +64,7 @@ interface ProviderUIOverlay {
   subscriptionCredentialKind?: 'setup-token' | 'api-key';
   subscriptionCommand?: string;
   deviceLogin?: boolean;
-  subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
+  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
   subscriptionOnly?: boolean;
   subscriptionSignInUrl?: string;
   subscriptionSignInLabel?: string;
@@ -85,9 +85,7 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Claude Opus 4, Sonnet 4.5, Haiku',
     supportsSubscription: true,
     subscriptionLabel: 'Claude Max / Pro subscription',
-    subscriptionAuthMode: 'token',
-    subscriptionKeyPlaceholder: 'Paste your setup-token',
-    subscriptionCommand: 'claude setup-token',
+    subscriptionAuthMode: 'popup_paste',
     models: [],
   },
   deepseek: {

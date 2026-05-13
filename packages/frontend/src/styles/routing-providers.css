@@ -460,6 +460,55 @@
   border-color: hsl(var(--destructive) / 0.3);
 }
 
+/* AnthropicOAuthDetailView layout. Stacks primary OAuth above the
+   manual CLI fallback, with full-width buttons so nothing crashes
+   into the section divider. */
+.anthropic-detail__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.anthropic-detail__btn {
+  /* Override provider-detail__action's float so buttons stay block-level. */
+  width: 100%;
+  float: none;
+  margin: 0;
+}
+
+.anthropic-detail__alt {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.anthropic-detail__alt-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+}
+
+.anthropic-detail__alt-divider::before,
+.anthropic-detail__alt-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: hsl(var(--border));
+}
+
+.anthropic-detail__alt-hint {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  margin: 0;
+}
+
 .provider-detail__disconnect:hover {
   background: hsl(var(--destructive) / 0.08);
 }
