@@ -459,7 +459,18 @@ export class ProviderService {
     });
 
     if (otherActive.some((record) => isManifestUsableProvider(record))) {
-      // Provider is still available via the other auth type — skip override clearing
+      // Same provider id still has an active connection via another auth type.
+      // Provider-wide cleanup would remove the sibling's assignments; instead
+      // strip only routes bound to the auth leg we disconnected, then refresh
+      // auto-assigned models (they prefer subscription when present).
+      if (authType) {
+        await this.clearTierAndSpecificityRoutesForDisconnectedAuth(
+          agentId,
+          provider,
+          authType,
+        );
+      }
+      await this.autoAssign.recalculate(agentId);
       this.routingCache.invalidateAgent(agentId);
       return { notifications: [] };
     }
@@ -586,6 +597,69 @@ export class ProviderService {
       }
     }
     this.routingCache.invalidateAgent(agentId);
+  }
+
+  /**
+   * Removes tier/specificity overrides and fallbacks that target a single
+   * (provider, authType) pair when that auth leg was disconnected but another
+   * auth type for the same provider remains connected.
+   */
+  private async clearTierAndSpecificityRoutesForDisconnectedAuth(
+    agentId: string,
+    provider: string,
+    disconnectedAuthType: AuthType,
+  ): Promise<void> {
+    const providerLower = provider.toLowerCase();
+    const matchesDisconnectedAuth = (route: { provider: string; authType: AuthType } | null) =>
+      !!route &&
+      route.provider.toLowerCase() === providerLower &&
+      route.authType === disconnectedAuthType;
+
+    const now = new Date().toISOString();
+
+    const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
+    const tiersToSave: TierAssignment[] = [];
+    for (const tier of allTiers) {
+      let mutated = false;
+      if (matchesDisconnectedAuth(tier.override_route)) {
+        tier.override_route = null;
+        mutated = true;
+      }
+      if (tier.fallback_routes && tier.fallback_routes.length > 0) {
+        const filtered = tier.fallback_routes.filter((r) => !matchesDisconnectedAuth(r));
+        if (filtered.length !== tier.fallback_routes.length) {
+          tier.fallback_routes = filtered.length > 0 ? filtered : null;
+          mutated = true;
+        }
+      }
+      if (mutated) {
+        tier.updated_at = now;
+        tiersToSave.push(tier);
+      }
+    }
+    if (tiersToSave.length > 0) await this.tierRepo.save(tiersToSave);
+
+    const specs = await this.specificityRepo.find({ where: { agent_id: agentId } });
+    const specToSave: SpecificityAssignment[] = [];
+    for (const row of specs) {
+      let changed = false;
+      if (matchesDisconnectedAuth(row.override_route)) {
+        row.override_route = null;
+        changed = true;
+      }
+      if (row.fallback_routes && row.fallback_routes.length > 0) {
+        const filtered = row.fallback_routes.filter((r) => !matchesDisconnectedAuth(r));
+        if (filtered.length !== row.fallback_routes.length) {
+          row.fallback_routes = filtered.length > 0 ? filtered : null;
+          changed = true;
+        }
+      }
+      if (changed) {
+        row.updated_at = now;
+        specToSave.push(row);
+      }
+    }
+    if (specToSave.length > 0) await this.specificityRepo.save(specToSave);
   }
 
   /**
