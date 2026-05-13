@@ -304,6 +304,46 @@ describe('Anthropic Messages adapter', () => {
       });
     });
 
+    it('adds missing array items in Anthropic tool schemas before OpenAI forwarding', () => {
+      const inputSchema = {
+        type: 'object',
+        properties: {
+          codebase_context: {
+            anyOf: [{ type: 'string' }, { type: 'object' }, { type: 'array' }],
+          },
+          existing_items: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+      };
+      const result = messagesToChatCompletionsRequest({
+        messages: [{ role: 'user', content: 'x' }],
+        tools: [
+          {
+            name: 'mcp__revenuecat__create-paywall-ai',
+            description: 'Create a paywall',
+            input_schema: inputSchema,
+          },
+        ],
+      });
+
+      const tools = result.tools as Array<Record<string, Record<string, unknown>>>;
+      expect(tools[0].function.parameters).toEqual({
+        type: 'object',
+        properties: {
+          codebase_context: {
+            anyOf: [{ type: 'string' }, { type: 'object' }, { type: 'array', items: {} }],
+          },
+          existing_items: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+      });
+      expect(inputSchema.properties.codebase_context.anyOf[2]).toEqual({ type: 'array' });
+    });
+
     it('omits the stash when no server tools are present', () => {
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],
