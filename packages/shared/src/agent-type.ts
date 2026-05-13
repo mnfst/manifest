@@ -16,7 +16,7 @@ export const AGENT_PLATFORMS = [
 export type AgentPlatform = (typeof AGENT_PLATFORMS)[number];
 
 export const CATEGORY_LABELS: Readonly<Record<AgentCategory, string>> = {
-  personal: 'Personal AI Agent',
+  personal: 'AI agents',
   app: 'App AI SDK',
   coding: 'Coding Assistant',
 };
