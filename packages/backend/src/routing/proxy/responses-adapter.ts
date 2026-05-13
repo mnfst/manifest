@@ -499,6 +499,212 @@ function safeParse(data: string): JsonRecord | null {
   }
 }
 
+export interface ChatToResponsesTransformer {
+  /** Convert one upstream chat-completions SSE event into a (possibly multi-event) Responses SSE payload. */
+  transform(chatChunk: string): string | null;
+  /** Emit the closing lifecycle events that codex requires before treating the stream as complete. */
+  finalize(): string | null;
+}
+
+/**
+ * Strict OpenAI Responses-API SSE encoder used when the calling agent's
+ * platform is `codex`. Codex (Rust) refuses streams that skip the lifecycle
+ * envelope — `response.created` / `output_item.added` / `output_item.done` /
+ * `response.completed` with a populated `output[]`. This factory accumulates
+ * chat-completions deltas, owns the response/message identifiers, and emits
+ * the full event sequence so the codex client treats the stream as complete.
+ *
+ * Other agent platforms keep the legacy delta-only encoder
+ * (`chatCompletionStreamChunkToResponses`) for backwards compatibility.
+ */
+export function createStrictChatToResponsesTransformer(model: string): ChatToResponsesTransformer {
+  const responseId = `resp_${randomUUID().replace(/-/g, '')}`;
+  const messageId = `msg_${randomUUID().replace(/-/g, '')}`;
+  const createdAt = Math.floor(Date.now() / 1000);
+  let started = false;
+  let itemOpened = false;
+  let finalized = false;
+  let accumulatedText = '';
+  let lastUsage: unknown = null;
+  let upstreamModel: string = model;
+
+  const buildResponseEnvelope = (
+    status: 'in_progress' | 'completed',
+    output: JsonRecord[],
+  ): JsonRecord => ({
+    id: responseId,
+    object: 'response',
+    created_at: createdAt,
+    status,
+    ...(status === 'completed' ? { completed_at: Math.floor(Date.now() / 1000) } : {}),
+    error: null,
+    incomplete_details: null,
+    instructions: null,
+    max_output_tokens: null,
+    model: upstreamModel,
+    output,
+    parallel_tool_calls: true,
+    previous_response_id: null,
+    reasoning: { effort: null, summary: null },
+    store: false,
+    temperature: null,
+    text: { format: { type: 'text' } },
+    tool_choice: 'auto',
+    tools: [],
+    top_p: null,
+    truncation: 'disabled',
+    usage: status === 'completed' ? toResponsesUsage(lastUsage) : null,
+    user: null,
+    metadata: {},
+  });
+
+  const messageItem = (text: string, status: 'in_progress' | 'completed'): JsonRecord => ({
+    id: messageId,
+    type: 'message',
+    status,
+    role: 'assistant',
+    content: text ? [{ type: 'output_text', text, annotations: [] }] : [],
+  });
+
+  return {
+    transform(chatChunk: string): string | null {
+      const payloads = extractDataPayloads(chatChunk);
+      const events: string[] = [];
+
+      const ensureStarted = () => {
+        if (started) return;
+        started = true;
+        events.push(
+          formatResponsesEvent('response.created', {
+            type: 'response.created',
+            response: buildResponseEnvelope('in_progress', []),
+          }),
+          formatResponsesEvent('response.in_progress', {
+            type: 'response.in_progress',
+            response: buildResponseEnvelope('in_progress', []),
+          }),
+        );
+      };
+
+      const ensureItemOpened = () => {
+        ensureStarted();
+        if (itemOpened) return;
+        itemOpened = true;
+        events.push(
+          formatResponsesEvent('response.output_item.added', {
+            type: 'response.output_item.added',
+            output_index: 0,
+            item: messageItem('', 'in_progress'),
+          }),
+          formatResponsesEvent('response.content_part.added', {
+            type: 'response.content_part.added',
+            item_id: messageId,
+            output_index: 0,
+            content_index: 0,
+            part: { type: 'output_text', text: '', annotations: [] },
+          }),
+        );
+      };
+
+      for (const payload of payloads) {
+        if (payload === '[DONE]') continue;
+        const data = safeParse(payload);
+        if (!data) continue;
+
+        if (typeof data.model === 'string') upstreamModel = data.model;
+        if (isRecord(data.usage)) lastUsage = data.usage;
+
+        const choices = Array.isArray(data.choices) ? data.choices : [];
+        if (choices.length === 0) continue;
+
+        const choice = isRecord(choices[0]) ? choices[0] : null;
+        const delta = isRecord(choice?.delta) ? choice.delta : {};
+
+        if (typeof delta.content === 'string' && delta.content.length > 0) {
+          ensureItemOpened();
+          accumulatedText += delta.content;
+          events.push(
+            formatResponsesEvent('response.output_text.delta', {
+              type: 'response.output_text.delta',
+              item_id: messageId,
+              output_index: 0,
+              content_index: 0,
+              delta: delta.content,
+              logprobs: [],
+            }),
+          );
+        }
+        // finish_reason is intentionally ignored here — terminal events are
+        // emitted by finalize() once the upstream stream actually closes,
+        // so usage chunks that arrive after finish_reason still get folded
+        // into the final response.completed envelope.
+      }
+
+      return events.length > 0 ? events.join('') : null;
+    },
+
+    finalize(): string | null {
+      if (finalized) return null;
+      finalized = true;
+
+      const events: string[] = [];
+
+      if (!started) {
+        events.push(
+          formatResponsesEvent('response.created', {
+            type: 'response.created',
+            response: buildResponseEnvelope('in_progress', []),
+          }),
+          formatResponsesEvent('response.in_progress', {
+            type: 'response.in_progress',
+            response: buildResponseEnvelope('in_progress', []),
+          }),
+          formatResponsesEvent('response.completed', {
+            type: 'response.completed',
+            response: buildResponseEnvelope('completed', []),
+          }),
+        );
+        return events.join('');
+      }
+
+      if (itemOpened) {
+        events.push(
+          formatResponsesEvent('response.output_text.done', {
+            type: 'response.output_text.done',
+            item_id: messageId,
+            output_index: 0,
+            content_index: 0,
+            text: accumulatedText,
+            logprobs: [],
+          }),
+          formatResponsesEvent('response.content_part.done', {
+            type: 'response.content_part.done',
+            item_id: messageId,
+            output_index: 0,
+            content_index: 0,
+            part: { type: 'output_text', text: accumulatedText, annotations: [] },
+          }),
+          formatResponsesEvent('response.output_item.done', {
+            type: 'response.output_item.done',
+            output_index: 0,
+            item: messageItem(accumulatedText, 'completed'),
+          }),
+        );
+      }
+
+      const finalOutput = accumulatedText ? [messageItem(accumulatedText, 'completed')] : [];
+      events.push(
+        formatResponsesEvent('response.completed', {
+          type: 'response.completed',
+          response: buildResponseEnvelope('completed', finalOutput),
+        }),
+      );
+
+      return events.join('');
+    },
+  };
+}
+
 export function chatCompletionStreamChunkToResponses(chunk: string): string | null {
   const payloads = extractDataPayloads(chunk);
   const events: string[] = [];

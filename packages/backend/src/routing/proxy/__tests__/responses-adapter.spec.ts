@@ -1,6 +1,7 @@
 import {
   chatCompletionStreamChunkToResponses,
   collectResponsesSseResponse,
+  createStrictChatToResponsesTransformer,
   fromChatCompletionResponse,
   toChatCompletionsRequest,
   toNativeResponsesRequest,
@@ -648,6 +649,159 @@ describe('Responses adapter', () => {
       expect(chatCompletionStreamChunkToResponses('')).toBeNull();
       expect(chatCompletionStreamChunkToResponses('data: not-json\n\n')).toBeNull();
       expect(chatCompletionStreamChunkToResponses('{"choices":[]}')).toBeNull();
+    });
+  });
+
+  describe('createStrictChatToResponsesTransformer (codex path)', () => {
+    function parseEventStream(sse: string): { event: string; data: Record<string, unknown> }[] {
+      const out: { event: string; data: Record<string, unknown> }[] = [];
+      for (const block of sse.split('\n\n')) {
+        if (!block.trim()) continue;
+        let event = '';
+        let dataLine = '';
+        for (const line of block.split('\n')) {
+          if (line.startsWith('event: ')) event = line.slice(7).trim();
+          else if (line.startsWith('data: ')) dataLine = line.slice(6);
+        }
+        if (!event || !dataLine) continue;
+        out.push({ event, data: JSON.parse(dataLine) as Record<string, unknown> });
+      }
+      return out;
+    }
+
+    it('emits the full Responses-API lifecycle that codex requires', () => {
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+
+      const first = t.transform(
+        JSON.stringify({
+          model: 'gpt-4o',
+          choices: [{ delta: { content: 'Hi' }, finish_reason: null }],
+        }),
+      );
+      const second = t.transform(
+        JSON.stringify({
+          choices: [{ delta: { content: ' there' }, finish_reason: null }],
+        }),
+      );
+      const usageOnly = t.transform(
+        JSON.stringify({
+          choices: [{ delta: {}, finish_reason: 'stop' }],
+          usage: { prompt_tokens: 5, completion_tokens: 2, total_tokens: 7 },
+        }),
+      );
+      const tail = t.finalize();
+
+      const combined = [first, second, usageOnly, tail].filter((s): s is string => !!s).join('');
+      const events = parseEventStream(combined);
+
+      const eventNames = events.map((e) => e.event);
+      expect(eventNames).toEqual([
+        'response.created',
+        'response.in_progress',
+        'response.output_item.added',
+        'response.content_part.added',
+        'response.output_text.delta',
+        'response.output_text.delta',
+        'response.output_text.done',
+        'response.content_part.done',
+        'response.output_item.done',
+        'response.completed',
+      ]);
+
+      const deltas = events
+        .filter((e) => e.event === 'response.output_text.delta')
+        .map((e) => e.data.delta as string);
+      expect(deltas).toEqual(['Hi', ' there']);
+
+      const textDone = events.find((e) => e.event === 'response.output_text.done')!;
+      expect(textDone.data.text).toBe('Hi there');
+
+      const itemDone = events.find((e) => e.event === 'response.output_item.done')!;
+      const itemDoneItem = itemDone.data.item as Record<string, unknown>;
+      expect(itemDoneItem.status).toBe('completed');
+      expect(itemDoneItem.role).toBe('assistant');
+      expect(itemDoneItem.content).toEqual([
+        { type: 'output_text', text: 'Hi there', annotations: [] },
+      ]);
+
+      const completed = events.find((e) => e.event === 'response.completed')!;
+      const response = completed.data.response as Record<string, unknown>;
+      expect(response.status).toBe('completed');
+      const output = response.output as Array<Record<string, unknown>>;
+      expect(output).toHaveLength(1);
+      expect((output[0].content as Array<{ text: string }>)[0].text).toBe('Hi there');
+      const usage = response.usage as Record<string, number>;
+      expect(usage.input_tokens).toBe(5);
+      expect(usage.output_tokens).toBe(2);
+    });
+
+    it('finalize alone emits a minimal but valid envelope when upstream sent nothing', () => {
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+      const tail = t.finalize();
+      const events = parseEventStream(tail ?? '');
+      expect(events.map((e) => e.event)).toEqual([
+        'response.created',
+        'response.in_progress',
+        'response.completed',
+      ]);
+      const completed = events.find((e) => e.event === 'response.completed')!;
+      const response = completed.data.response as Record<string, unknown>;
+      expect(response.status).toBe('completed');
+      expect(response.output).toEqual([]);
+    });
+
+    it('uses stable response and message ids across the whole stream', () => {
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+      const events = parseEventStream(
+        [
+          t.transform(JSON.stringify({ choices: [{ delta: { content: 'a' } }] })),
+          t.transform(JSON.stringify({ choices: [{ delta: { content: 'b' } }] })),
+          t.finalize(),
+        ]
+          .filter((s): s is string => !!s)
+          .join(''),
+      );
+
+      const responseIds = new Set<string>();
+      const messageIds = new Set<string>();
+      for (const e of events) {
+        if (e.data.response) {
+          responseIds.add((e.data.response as { id: string }).id);
+        }
+        if (e.data.item_id) messageIds.add(e.data.item_id as string);
+        if (e.data.item) messageIds.add((e.data.item as { id: string }).id);
+      }
+      expect(responseIds.size).toBe(1);
+      expect(messageIds.size).toBe(1);
+    });
+
+    it('does not emit completed twice if finalize is called more than once', () => {
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+      t.transform(JSON.stringify({ choices: [{ delta: { content: 'x' } }] }));
+      const first = t.finalize();
+      const second = t.finalize();
+      expect(first).not.toBeNull();
+      expect(second).toBeNull();
+    });
+
+    it('picks up the upstream model string for the response envelope', () => {
+      const t = createStrictChatToResponsesTransformer('auto');
+      const events = parseEventStream(
+        [
+          t.transform(
+            JSON.stringify({
+              model: 'deepseek-v4-flash',
+              choices: [{ delta: { content: 'ok' } }],
+            }),
+          ),
+          t.finalize(),
+        ]
+          .filter((s): s is string => !!s)
+          .join(''),
+      );
+      const completed = events.find((e) => e.event === 'response.completed')!;
+      const response = completed.data.response as Record<string, unknown>;
+      expect(response.model).toBe('deepseek-v4-flash');
     });
   });
 });

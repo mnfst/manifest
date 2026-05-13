@@ -158,6 +158,34 @@ describe('AgentKeyAuthGuard', () => {
       agentId: 'agent-1',
       agentName: 'test-agent',
       userId: 'user-1',
+      agentPlatform: null,
+    });
+  });
+
+  it('propagates the agent_platform field into ingestionContext when set', async () => {
+    const token = 'mnfst_codex-agent-key';
+    mockGetMany.mockResolvedValue([
+      {
+        id: 'key-codex',
+        tenant_id: 'tenant-codex',
+        agent_id: 'agent-codex',
+        key_hash: hashKey(token),
+        expires_at: null,
+        agent: { name: 'codex-agent', agent_platform: 'codex' },
+        tenant: { name: 'user-codex' },
+      },
+    ]);
+
+    const { ctx, req } = makeContext({ authorization: `Bearer ${token}` });
+    const result = await guard.canActivate(ctx);
+
+    expect(result).toBe(true);
+    expect(req.ingestionContext).toEqual({
+      tenantId: 'tenant-codex',
+      agentId: 'agent-codex',
+      agentName: 'codex-agent',
+      userId: 'user-codex',
+      agentPlatform: 'codex',
     });
   });
 
@@ -184,6 +212,7 @@ describe('AgentKeyAuthGuard', () => {
       agentId: 'agent-2',
       agentName: 'test-agent-2',
       userId: 'user-2',
+      agentPlatform: null,
     });
   });
 
@@ -263,6 +292,7 @@ describe('AgentKeyAuthGuard', () => {
         agentId: 'dev-agent',
         agentName: 'demo-agent',
         userId: 'dev-user',
+        agentPlatform: null,
       });
       expect(mockFindOne).toHaveBeenCalledWith({
         where: { is_active: true },
@@ -286,6 +316,7 @@ describe('AgentKeyAuthGuard', () => {
         agentId: 'dev-agent',
         agentName: 'demo-agent',
         userId: 'dev-user',
+        agentPlatform: null,
       });
     });
 
