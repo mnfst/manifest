@@ -238,18 +238,20 @@ describe('Anthropic Messages adapter', () => {
         tools: [
           { type: 'web_search_20250305', name: 'web_search' },
           { type: 'bash_20250124', name: 'bash' },
+          { type: 'mcp_toolset', name: 'mcp' },
           { name: 'my_custom', description: 'c', input_schema: { type: 'object' } },
           { type: 'custom', name: 'explicit_custom', input_schema: { type: 'object' } },
         ],
       });
 
-      // chatBody.tools keeps all four — the scorer reads tool count and
+      // chatBody.tools keeps all five — the scorer reads tool count and
       // function.name and must keep seeing server tools for tier / specificity.
       const tools = result.tools as Array<Record<string, unknown>>;
-      expect(tools).toHaveLength(4);
+      expect(tools).toHaveLength(5);
       expect(tools.map((t) => (t.function as Record<string, unknown>).name)).toEqual([
         'web_search',
         'bash',
+        'mcp',
         'my_custom',
         'explicit_custom',
       ]);
@@ -259,6 +261,7 @@ describe('Anthropic Messages adapter', () => {
       expect(result._anthropicServerTools).toEqual([
         { type: 'web_search_20250305', name: 'web_search' },
         { type: 'bash_20250124', name: 'bash' },
+        { type: 'mcp_toolset', name: 'mcp' },
       ]);
     });
 
@@ -418,12 +421,14 @@ describe('Anthropic Messages adapter', () => {
           { type: 'web_search_20250305', name: 'web_search' },
           { type: 'custom', name: 'c1' },
           { type: 'advisor_20260301', name: 'advisor' },
+          { type: 'mcp_toolset', name: 'mcp' },
           { name: 'c2' },
           { type: 'text_editor_20250728', name: 'str_replace_editor' },
           'not-a-record',
         ]),
       ).toEqual([
         { type: 'web_search_20250305', name: 'web_search' },
+        { type: 'mcp_toolset', name: 'mcp' },
         { type: 'text_editor_20250728', name: 'str_replace_editor' },
       ]);
     });

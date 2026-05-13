@@ -20,6 +20,7 @@ const ANTHROPIC_SERVER_TOOL_PREFIXES = [
   'bash_',
   'code_execution_',
   'computer_',
+  'mcp_toolset',
   'memory_',
   'text_editor_',
   'tool_search_tool_',
