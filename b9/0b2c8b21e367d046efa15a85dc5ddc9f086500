@@ -1,0 +1,25 @@
+packages/frontend/src/services/framework-snippets.ts
+  s_38570e892fce3e::t_2932c6969ca60f 365-367
+  s_38570e892fce3e::t_05a2ca5b0d88e6 356-358,363,372
+packages/frontend/src/components/NanobotSetup.tsx
+  s_38570e892fce3e::t_bd8ee4309582e5 55-57
+packages/frontend/tests/services/framework-snippets.test.ts
+  s_38570e892fce3e::t_9ab98fa7cf3300 310-311
+  s_38570e892fce3e::t_29b579b7ec815d 307,316
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "b90b2c8b21e367d046efa15a85dc5ddc9f086500",
+  "prompts": {},
+  "sessions": {
+    "s_38570e892fce3e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "67454911-921e-4286-b03f-2de491ab5921",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

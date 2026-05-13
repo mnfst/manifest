@@ -1,0 +1,27 @@
+packages/frontend/src/pages/Login.tsx
+  b8be0324a8a3ea25 169
+packages/frontend/src/pages/Register.tsx
+  b8be0324a8a3ea25 188
+packages/frontend/tests/pages/Register.test.tsx
+  b8be0324a8a3ea25 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "ed2edc96dab60d3cc88b5aad2dd007aaa0759868",
+  "prompts": {
+    "b8be0324a8a3ea25": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "98a93dbf-757f-4087-ac55-3437d49886b8",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 40,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    }
+  }
+}

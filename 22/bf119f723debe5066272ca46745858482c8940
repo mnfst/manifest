@@ -1,0 +1,19 @@
+packages/frontend/src/services/framework-snippets.ts
+  s_38570e892fce3e::t_7cc4bdce9ced58 365
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "22bf119f723debe5066272ca46745858482c8940",
+  "prompts": {},
+  "sessions": {
+    "s_38570e892fce3e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "67454911-921e-4286-b03f-2de491ab5921",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

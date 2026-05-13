@@ -1,0 +1,27 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  164c3b7904092a82 110,339-343
+packages/backend/src/routing/proxy/provider-client.ts
+  164c3b7904092a82 48-52,64-65
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  164c3b7904092a82 108-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "90e9b92fc54b12f556e3d7b30f242662bd58fd86",
+  "prompts": {
+    "164c3b7904092a82": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d98a2dd4-1efd-47e1-a7e0-21430c6a11ad",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 7,
+      "total_deletions": 1,
+      "accepted_lines": 13,
+      "overriden_lines": 0
+    }
+  }
+}

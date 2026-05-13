@@ -1,0 +1,61 @@
+packages/frontend/src/styles/routing-providers.css
+  s_a262ed5011967a::t_1a536a7cc3a94a 834-835,839-840,844-845
+packages/frontend/src/services/providers.ts
+  s_a262ed5011967a::t_ac3deea79269d0 212-216
+  s_a262ed5011967a::t_93785653745665 274
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_a262ed5011967a::t_07b97c0df78a5f 37
+  s_a262ed5011967a::t_54928610795f6c 1442-1469
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_a262ed5011967a::t_5a69c72515c242 21
+packages/shared/src/providers.ts
+  s_a262ed5011967a::t_ec3b66a34cb39b 218-228
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_a262ed5011967a::t_d5e7cee2e5e429 436-440
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_a262ed5011967a::t_9e50f6c7f4d0d6 11
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_a262ed5011967a::t_1b8056dc8ad62b 329-360
+  s_a262ed5011967a::t_3d3d4cfaf0dd0a 109-110
+  s_a262ed5011967a::t_350d065bcb2c10 124-129
+.changeset/opencode-zen-provider.md
+  s_a262ed5011967a::t_600f2fda66009b 1-5
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_a262ed5011967a::t_faad1e79fc5b7d 223-232
+  s_a262ed5011967a::t_1a1a06f608cb57 55-59
+  s_a262ed5011967a::t_60b47aa46f3313 219,233
+  s_a262ed5011967a::t_16cffd8193d5a6 75
+packages/backend/src/routing/proxy/provider-client.ts
+  s_a262ed5011967a::t_b176c00a292018 63
+  s_a262ed5011967a::t_48fecbf994ebb1 184-191
+packages/backend/src/common/constants/providers.spec.ts
+  s_a262ed5011967a::t_d8a5774dd42c1f 88-97
+  s_a262ed5011967a::t_cf1c035bee1998 147-152
+packages/shared/__tests__/provider-inference.spec.ts
+  s_a262ed5011967a::t_5eba4d8f5cbedc 42-44
+packages/shared/src/provider-inference.ts
+  s_a262ed5011967a::t_e221e667e18ca4 19
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_a262ed5011967a::t_96efed6c3d2d2a 990-1042
+  s_a262ed5011967a::t_9b2bd9bca6b6ae 2067
+packages/frontend/tests/services/providers.test.ts
+  s_a262ed5011967a::t_b6c6d05cf08155 373-386
+packages/frontend/src/components/ProviderIcon.tsx
+  s_a262ed5011967a::t_7b2a6f410d43db 345-375
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "50e7ecd248ec809651f71770b1ee3afae736cd61",
+  "prompts": {},
+  "sessions": {
+    "s_a262ed5011967a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0eb42318-4571-4021-8d89-13a025a2e5fe",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

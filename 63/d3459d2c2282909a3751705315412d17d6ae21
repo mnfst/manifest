@@ -1,0 +1,25 @@
+packages/frontend/src/services/providers.ts
+  164c3b7904092a82 125-129,257
+packages/frontend/src/services/provider-api-key-urls.ts
+  164c3b7904092a82 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "63d3459d2c2282909a3751705315412d17d6ae21",
+  "prompts": {
+    "164c3b7904092a82": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d98a2dd4-1efd-47e1-a7e0-21430c6a11ad",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 2672,
+      "overriden_lines": 0
+    }
+  }
+}

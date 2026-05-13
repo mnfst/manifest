@@ -1,0 +1,35 @@
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  23b4a1fefec6f521 207-214,216-219,221-222
+packages/backend/src/routing/oauth/minimax-oauth.service.spec.ts
+  23b4a1fefec6f521 126-147
+packages/backend/src/routing/oauth/minimax-oauth-helpers.spec.ts
+  23b4a1fefec6f521 15,116-121,123-152
+packages/backend/src/routing/oauth/minimax-oauth.service.ts
+  23b4a1fefec6f521 16,127,141
+.changeset/minimax-verification-uri-fix.md
+  23b4a1fefec6f521 1-5
+packages/backend/src/routing/oauth/minimax-oauth-helpers.ts
+  23b4a1fefec6f521 37-59
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  23b4a1fefec6f521 1387,1404,1436,1458,1490,1526,1558,1597,1631,1748
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "022529ad9e1721843c846edde47624e2a3e7d1c0",
+  "prompts": {
+    "23b4a1fefec6f521": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a1b3d8cc-a8a6-4757-8817-476ebe6cabb6",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 122,
+      "total_deletions": 177,
+      "accepted_lines": 115,
+      "overriden_lines": 1
+    }
+  }
+}

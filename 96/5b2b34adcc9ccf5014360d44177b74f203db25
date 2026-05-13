@@ -1,0 +1,23 @@
+packages/shared/src/providers.ts
+  164c3b7904092a82 84-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "965b2b34adcc9ccf5014360d44177b74f203db25",
+  "prompts": {
+    "164c3b7904092a82": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d98a2dd4-1efd-47e1-a7e0-21430c6a11ad",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 3588,
+      "total_deletions": 9003,
+      "accepted_lines": 11,
+      "overriden_lines": 0
+    }
+  }
+}

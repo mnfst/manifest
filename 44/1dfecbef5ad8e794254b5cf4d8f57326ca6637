@@ -1,0 +1,21 @@
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  s_6ea530aa44f956::t_a1411dfd165592 162
+packages/shared/src/agent-type.ts
+  s_6ea530aa44f956::t_231c77fddf2e30 46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "441dfecbef5ad8e794254b5cf4d8f57326ca6637",
+  "prompts": {},
+  "sessions": {
+    "s_6ea530aa44f956": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "511781cd-ffc6-442e-bd0d-e7ae98228adc",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

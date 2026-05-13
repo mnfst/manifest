@@ -1,0 +1,25 @@
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  23b4a1fefec6f521 143-149,151-158,165-169,173,227-234,236-237
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  23b4a1fefec6f521 1387-1392,1404-1407,1411-1441,1445-1450,1473-1478,1498,1514-1519,1535,1552-1557,1576,1593-1598,1614,1632-1637,1659,1677-1682,1700,1792-1797,1822
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "9301ac08b48f086e5f494658f3b48af859cf021e",
+  "prompts": {
+    "23b4a1fefec6f521": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a1b3d8cc-a8a6-4757-8817-476ebe6cabb6",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 130,
+      "total_deletions": 42,
+      "accepted_lines": 127,
+      "overriden_lines": 1
+    }
+  }
+}

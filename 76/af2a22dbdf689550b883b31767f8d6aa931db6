@@ -1,0 +1,35 @@
+packages/backend/src/routing/proxy/proxy.service.ts
+  35731f73fad91a4a 17,170-188,191
+packages/frontend/src/pages/RoutingTierCard.tsx
+  35731f73fad91a4a 9-13,136-146
+packages/shared/__tests__/thinking-defaults.spec.ts
+  35731f73fad91a4a 3,72-94
+packages/shared/src/thinking-defaults.ts
+  35731f73fad91a4a 1-2,73-91
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  35731f73fad91a4a 384-405,407-430,432-433
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  35731f73fad91a4a 1112-1140
+packages/shared/src/index.ts
+  35731f73fad91a4a 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "76af2a22dbdf689550b883b31767f8d6aa931db6",
+  "prompts": {
+    "35731f73fad91a4a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "69cd6dd8-f498-435e-a221-a7ed5154b467",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 168,
+      "total_deletions": 9,
+      "accepted_lines": 160,
+      "overriden_lines": 2
+    }
+  }
+}

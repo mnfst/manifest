@@ -1,0 +1,47 @@
+packages/backend/src/routing/proxy/stream-writer.ts
+  d71bed364de619b3 134,237-240,242-249
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  d71bed364de619b3 255-302
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  d71bed364de619b3 1-129,131-246,248-477
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  d71bed364de619b3 193-223
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  d71bed364de619b3 500-505,563-568,609-699,1129-1160
+CLAUDE.md
+  d71bed364de619b3 336-337
+packages/backend/src/routing/proxy/proxy.controller.ts
+  d71bed364de619b3 74-81
+packages/backend/src/routing/proxy/proxy-types.ts
+  d71bed364de619b3 19
+packages/backend/src/routing/proxy/provider-client.ts
+  d71bed364de619b3 201-206
+.changeset/anthropic-messages-endpoint.md
+  d71bed364de619b3 1-5
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  d71bed364de619b3 16-19,270-272,274-278,285-296,298-301,314-322,325-333,336-337,391-395
+packages/backend/src/routing/proxy/proxy.service.ts
+  d71bed364de619b3 34,112-117
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  d71bed364de619b3 1-467
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "ab9f0cb3a0a13a1d7d0589949ae373f176111108",
+  "prompts": {
+    "d71bed364de619b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e0f3390-4f98-46d3-a40d-1adf2ff0c86e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 1360,
+      "total_deletions": 129,
+      "accepted_lines": 1251,
+      "overriden_lines": 2
+    }
+  }
+}

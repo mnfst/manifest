@@ -1,0 +1,27 @@
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_21712ae965afee::t_8493387a43118f 208,211-216,220
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  s_21712ae965afee::t_2b20f55fe863e9 342-347,361-362,364
+packages/backend/src/routing/proxy/__tests__/anthropic-cache-control-roundtrip.spec.ts
+  s_21712ae965afee::t_346b26b948f5fc 1-27,29-171
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_21712ae965afee::t_9ba5a5ad12ca65 46-66,73
+.changeset/fix-messages-cache-token-roundtrip.md
+  s_21712ae965afee::t_a10ccd9fb2fba8 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "f21584a4a5b7471d50cc0dc00a931f2ec54a3503",
+  "prompts": {},
+  "sessions": {
+    "s_21712ae965afee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87749cca-9d25-4b20-8a11-9623a50b919a",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

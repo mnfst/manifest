@@ -1,0 +1,168 @@
+packages/backend/src/routing/oauth/codeassist-client.service.ts
+  ai_agent 63-65
+  s_706915655668dc::t_f1ff0639bd568c 1-62,66-109
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_706915655668dc::t_e816bd58b323aa 125-137
+packages/shared/src/subscription/index.ts
+  s_706915655668dc::t_6b25ff5aa2871d 7
+packages/frontend/tests/services/api/oauth.test.ts
+  s_706915655668dc::t_d917dcd8ea9753 82-155
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_706915655668dc::t_b51e6afc339d81 230-251
+packages/backend/src/routing/oauth/gemini-oauth.controller.ts
+  s_706915655668dc::t_fca102306a8659 1-136
+packages/backend/src/model-discovery/model-fallback.ts
+  s_706915655668dc::t_c27ec3725873a0 231
+  s_706915655668dc::t_ec6f8ee0fff619 243-248
+  s_706915655668dc::t_7015de22ae9e67 6-10
+packages/frontend/src/services/providers.ts
+  s_706915655668dc::t_a8d7349c7621b4 123-125
+packages/shared/__tests__/subscription.spec.ts
+  s_706915655668dc::t_3999597e840766 22
+  s_706915655668dc::t_df9a1c0aaea22d 208-214
+  s_706915655668dc::t_bc00a7cb9e7a74 220-244
+  s_706915655668dc::t_2b44c1dd53fd95 7
+  s_706915655668dc::t_b61e1d0d605378 163
+  s_706915655668dc::t_26472d58264025 122-139
+packages/backend/src/routing/oauth/oauth.module.ts
+  s_706915655668dc::t_382f6af95d54d0 9-11,15-23
+packages/shared/src/index.ts
+  s_706915655668dc::t_e550ed89ef742f 63
+packages/backend/src/routing/oauth/codeassist-envelope.spec.ts
+  s_706915655668dc::t_27de9094a437a5 2-81
+  ai_agent 1
+packages/backend/src/routing/oauth/gemini-oauth.service.ts
+  s_706915655668dc::t_1d936beedf562d 5,7
+  s_706915655668dc::t_f37c9d9c181fee 24
+  s_706915655668dc::t_340061b1e636a0 50-60
+  s_706915655668dc::t_527a9c791170e0 1-4,6,8-23,25-49,61
+packages/frontend/src/services/api/oauth.ts
+  s_706915655668dc::t_03dd678da54b3b 73-104
+  s_706915655668dc::t_43381a12744300 52-72
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  ai_agent 1641-1646,1659-1661,1695-1698,1741-1744
+  s_706915655668dc::t_ad6656095b3f21 1640,1647-1658,1662-1694,1699-1740,1745-1795
+packages/shared/src/subscription/configs.ts
+  s_706915655668dc::t_d0ae7f1050d157 110-113
+  s_706915655668dc::t_18a5ba84e5ad36 115
+  s_706915655668dc::t_3b284ddd36a079 103-109,116-121
+  ai_agent 114
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_706915655668dc::t_2730b145046c7c 339,360-392
+  s_706915655668dc::t_2cb4f9afb62635 340-359
+  s_706915655668dc::t_04ac275729dbdd 8
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_706915655668dc::t_3fb340b752cdc5 202,204
+  s_706915655668dc::t_87677190e423f1 16-23,34-40
+  s_706915655668dc::t_7814b9cf7d7454 189-201,203,205
+packages/shared/src/subscription/types.ts
+  s_706915655668dc::t_452bec6dbe2e0b 15-24
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_706915655668dc::t_f1848b40ef77d3 1606,1608,1612-1623,1642,1652,1657-1681,1692-1696,1715-1735
+  s_706915655668dc::t_4e6e9c6f1e4fc8 1840
+  s_706915655668dc::t_cbe4718db6aea6 1607,1609-1611
+  s_706915655668dc::t_9112376f69d103 1683-1684,1688
+  s_706915655668dc::t_858adc9bbcf7c5 1682,1685-1687,1689-1691
+  s_706915655668dc::t_b7d92d8c6f61cb 2047-2050,2069,2088,2093-2116,2126,2136,2146-2149,2154-2161
+  ai_agent 1624-1641,1643-1651,1653-1656,1697-1714,2051-2068,2070-2087,2089-2092,2117-2125,2127-2135,2137-2145,2150-2153
+  s_706915655668dc::t_657818585dcb67 2209
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_706915655668dc::t_bc41e04d0c8acd 240
+  s_706915655668dc::t_e03e479b916f1a 298-308
+  s_706915655668dc::t_443d5d5973e42f 194,218-220
+  s_706915655668dc::t_b9bfc666b57f8f 165,170-174
+packages/backend/src/routing/gemini-oauth.controller.spec.ts
+  s_706915655668dc::t_8236e9cd06605a 1-222,226-228,232-287
+  ai_agent 223-225,229-231
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_706915655668dc::t_614fbc3f2ee405 37
+  s_706915655668dc::t_b2e300fed174eb 53-61
+packages/shared/src/subscription/helpers.ts
+  s_706915655668dc::t_ef1e6e206e4791 27-31
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_706915655668dc::t_87ba87d4366740 466-470
+packages/backend/src/routing/oauth/codeassist-client.service.spec.ts
+  ai_agent 93,113
+  s_706915655668dc::t_db5117fc8460f7 1-92,94-112,114-195
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_706915655668dc::t_f07ddf143ccb52 8
+  s_706915655668dc::t_3b1da7f4f04b49 111
+  s_706915655668dc::t_953b985b1b7441 395
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_706915655668dc::t_a04ce012408669 832-840
+packages/backend/src/routing/proxy/provider-hooks.ts
+  s_706915655668dc::t_63a10f55f35cd0 19-22
+packages/frontend/src/components/OAuthDetailView.tsx
+  s_706915655668dc::t_d0488c6cbfca8e 3
+  s_706915655668dc::t_703cbe4725fc24 75
+  s_706915655668dc::t_441f5848943559 25-26,32
+  s_706915655668dc::t_3288e089f9a8d2 89-91
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.routes.spec.ts
+  s_706915655668dc::t_7ad17e830ac286 60-63
+  s_706915655668dc::t_e26628d1183b76 34
+  s_706915655668dc::t_1c580a25dda342 8
+  s_706915655668dc::t_b1a4acf03d0d75 81
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_706915655668dc::t_dea0117b6973c6 2337-2429
+.changeset/slick-carrots-swim.md
+  s_706915655668dc::t_e1a8bf9b27dfb8 1,3
+  s_706915655668dc::t_ed3682b9016633 2,4-9
+packages/backend/src/routing/oauth/codeassist-envelope.ts
+  s_706915655668dc::t_191b4fec78886a 1-42
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_706915655668dc::t_af68c72d189bc2 303,305
+  s_706915655668dc::t_9b95b07d5d06c6 26-29
+  s_706915655668dc::t_b122c6a516ae41 374-375
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_706915655668dc::t_d6fa58e716403a 10
+  s_706915655668dc::t_6ae37dc6676b6e 45
+  s_706915655668dc::t_f095923a8f9c6b 75
+  s_706915655668dc::t_4bd776c7562e73 99
+packages/backend/src/routing/proxy/provider-client.ts
+  s_706915655668dc::t_1fd10e44bca668 208
+  s_706915655668dc::t_d87085f8de542e 156
+  s_706915655668dc::t_74a62c737ce8a2 222-226,228-231,235,239
+  s_706915655668dc::t_752f34c186076b 232-234
+  s_706915655668dc::t_74b7792459e428 35-40
+  s_706915655668dc::t_a7b696c1bdc5ce 115
+  s_706915655668dc::t_936bf459ba95c3 310
+  s_706915655668dc::t_a69445c577f6b6 131
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_706915655668dc::t_e8aa9fea92fedf 44
+  s_706915655668dc::t_d7d5d85bf92c87 91
+  s_706915655668dc::t_6f48977ced2fe8 201
+  s_706915655668dc::t_8440cbf5041d49 367-372,387
+  s_706915655668dc::t_0df4552a664a30 408,420-435
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_706915655668dc::t_b82c35146c61b0 50-55
+packages/backend/src/routing/oauth/gemini-oauth.service.spec.ts
+  s_706915655668dc::t_3d4b8ecaedf94f 1-47,54-384
+  ai_agent 48-53
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_706915655668dc::t_32167aa035bd41 48-51
+  s_706915655668dc::t_8c9bf792360365 22
+  s_706915655668dc::t_0e515feff5f097 11
+  s_706915655668dc::t_0bc46bda172bcc 69
+  s_706915655668dc::t_67af50c3b8396c 811,834,850,868,883,902,917
+  s_706915655668dc::t_4a751882c3d6b9 925-927,934-1036
+  ai_agent 928-933
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  ai_agent 294-302,304-312,314-322,324-332,334-337,356-364,375-383,386-394,397-400,416-424
+  s_706915655668dc::t_92c0633f02c714 289-293,303,313,323,333,338-355,365-374,384-385,395-396,401-415,425-450
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "9769efbb2b7c7accfea50feaebbee7de4a4fda34",
+  "prompts": {},
+  "sessions": {
+    "s_706915655668dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6270679-6fa5-4c36-aef1-ae57b393f96b",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+packages/backend/src/routing/model-params.controller.ts
+  s_ba10c1ee330272::t_42aaccbb075ec9 86-90,95-97,109
+  s_ba10c1ee330272::t_cba250c99acd57 2
+packages/shared/src/provider-params-spec.ts
+  s_ba10c1ee330272::t_1af4fa1b5e8094 1-103
+packages/shared/__tests__/thinking-defaults.spec.ts
+  s_ba10c1ee330272::t_70769fb849666c 1,4,12
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_ba10c1ee330272::t_30b93e1c963485 1-92
+packages/shared/src/index.ts
+  s_ba10c1ee330272::t_861ca12984ab38 31,33-40
+packages/shared/src/thinking-defaults.ts
+  s_ba10c1ee330272::t_3409c963c80af0 1-2,4-8,12-17,19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "440161099fc81ddfaff062790718b26a7519c706",
+  "prompts": {},
+  "sessions": {
+    "s_ba10c1ee330272": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c9a5343-e4c0-42d8-bba9-ef88ea021798",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+packages/frontend/src/styles/wizard.css
+  d71bed364de619b3 661
+packages/frontend/src/styles/agents.css
+  d71bed364de619b3 189,468,476
+packages/frontend/src/styles/modals.css
+  d71bed364de619b3 80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "f8d316efa10cf5e1f6396a7a3fb17fef4c180805",
+  "prompts": {
+    "d71bed364de619b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e0f3390-4f98-46d3-a40d-1adf2ff0c86e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 0,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  }
+}

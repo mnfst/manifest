@@ -1,0 +1,23 @@
+packages/frontend/src/pages/Routing.tsx
+  ai_agent 56-57
+  s_b970ffa4b91350::t_668f39cb38ce72 430-440
+packages/frontend/tests/pages/Routing.test.tsx
+  s_b970ffa4b91350::t_082718de531421 291-295,313-317,321-326,329
+  s_b970ffa4b91350::t_d4ff4d12ece6c5 641-644,651-654,657,660,662-665
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "c340aff69ed58c062d4fb1cd45b21bb757a1f0e7",
+  "prompts": {},
+  "sessions": {
+    "s_b970ffa4b91350": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "08aba76f-94e6-4d75-86fc-c6884c5ba244",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

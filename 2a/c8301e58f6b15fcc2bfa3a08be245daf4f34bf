@@ -1,0 +1,19 @@
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_22a8fe3f5b9216::t_d85694be828345 1057,1059-1064
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "2ac8301e58f6b15fcc2bfa3a08be245daf4f34bf",
+  "prompts": {},
+  "sessions": {
+    "s_22a8fe3f5b9216": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a8764602-5a55-4b34-bd2e-c4e8f3f0da86",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

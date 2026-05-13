@@ -1,0 +1,37 @@
+packages/backend/src/routing/routing-core/tier.service.ts
+  s_97fc54a80bf173::t_c600bbb587da01 239-250
+  s_97fc54a80bf173::t_3563d298eb432d 287-292
+packages/frontend/src/pages/RoutingActions.tsx
+  s_97fc54a80bf173::t_08f11ea72b2af5 224
+.changeset/issue-1790-fallback-third-item.md
+  s_97fc54a80bf173::t_74771569608d66 5-11
+  s_97fc54a80bf173::t_a80f31fb6a31ce 1-4
+packages/backend/src/routing/header-tiers/header-tier.service.ts
+  s_97fc54a80bf173::t_dfbe49f7e3fd0e 222-225
+  s_97fc54a80bf173::t_a8b7baac80c42b 250-255
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_97fc54a80bf173::t_49c7b35b25d406 432,438-468
+packages/backend/src/routing/routing-core/__tests__/tier.service.spec.ts
+  s_97fc54a80bf173::t_46e6bafcfd4312 490,501-539
+packages/backend/src/routing/routing-core/__tests__/specificity.service.spec.ts
+  s_97fc54a80bf173::t_c793272a4df6a7 300,308-336
+packages/backend/src/routing/routing-core/specificity.service.ts
+  s_97fc54a80bf173::t_dc37b7e6e4ca55 211-216
+  s_97fc54a80bf173::t_90bbe2274c2f95 183-186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "30d19abdbe4269213af76932bcf09f97f5c5e5b3",
+  "prompts": {},
+  "sessions": {
+    "s_97fc54a80bf173": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce1ea4f7-3d3e-46a0-a3ca-e6effc678199",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

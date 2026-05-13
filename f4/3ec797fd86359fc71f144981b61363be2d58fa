@@ -1,0 +1,77 @@
+packages/backend/src/routing/provider.controller.ts
+  s_0532288abc1015::t_10e16a7dd7676b 31
+  s_0532288abc1015::t_2e875c1e3348b7 99,102-107,109-113
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_0532288abc1015::t_59c023206881a0 468-493
+  s_0532288abc1015::t_437d808d598387 514
+  s_0532288abc1015::t_2280d9567be95d 494,513
+  s_0532288abc1015::t_370eedc785fb96 437-467,495-512,515
+packages/frontend/src/services/provider-utils.ts
+  s_0532288abc1015::t_c601aebd8f7000 35
+  s_0532288abc1015::t_9e3fe291ec802d 63-72
+  s_0532288abc1015::t_176a65a557ae46 73-76
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_0532288abc1015::t_6ee3909d45530e 11,18
+  s_0532288abc1015::t_388591348f8f3c 64-68
+  s_0532288abc1015::t_95923d7d365ae0 223-244,246,248-251,255-258,281
+  s_0532288abc1015::t_0132be3082ce68 48-63,69-78
+  s_0532288abc1015::t_6356b1e9e2f46e 253-254,259-280,282-291
+packages/frontend/tests/services/providers.test.ts
+  s_0532288abc1015::t_06afbb5be23e08 201
+  s_0532288abc1015::t_1a0f0ef303afc9 186-195
+  s_0532288abc1015::t_a45a0e5c560e36 108-112
+  s_0532288abc1015::t_8234cbd289e96f 170-185,196-200,202-203
+packages/frontend/src/services/providers.ts
+  s_0532288abc1015::t_eab4e56231cb32 79-81,83
+  s_0532288abc1015::t_766e3b0d45b70d 82
+  s_0532288abc1015::t_4c659d2c8819d4 169
+  s_0532288abc1015::t_8e07d45c5fc7eb 35-43,45
+  s_0532288abc1015::t_e989f913ae6042 44
+  s_0532288abc1015::t_a14d61760be98f 166-168,170
+.changeset/minimax-coding-plan-token.md
+  s_0532288abc1015::t_473f40f8169f04 1-4
+  s_0532288abc1015::t_68b9745bd52644 5
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_0532288abc1015::t_383ba7482a4b11 1256-1298
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_0532288abc1015::t_dbec30f8a5767e 374-379,387-388
+  s_0532288abc1015::t_16a365ee7f57b3 371-373,380-386,389
+  s_0532288abc1015::t_c3ba1566392063 347-361
+  s_0532288abc1015::t_2b4f983498505b 57
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_0532288abc1015::t_4af19a1a2319d4 129-143
+  s_0532288abc1015::t_aea794f21c46ab 1-71,73-128,144-159
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_0532288abc1015::t_1706a71a731429 298-308,310-313
+  s_0532288abc1015::t_3925f48b414a28 19
+packages/backend/src/routing/provider.controller.spec.ts
+  s_0532288abc1015::t_0aa01dcf84b981 378-432
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_0532288abc1015::t_2ea8f7186fc561 85-91
+  s_0532288abc1015::t_36a1457970a69e 16
+packages/frontend/src/services/api/routing.ts
+  s_0532288abc1015::t_260f10b015775d 51-57
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_0532288abc1015::t_5c577800ce060f 363-364,381-439,441-452,454-456
+  s_0532288abc1015::t_de0cf0066856ef 365-380
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_0532288abc1015::t_8033032889422b 988,1003-1005
+packages/frontend/src/styles/routing-providers.css
+  s_0532288abc1015::t_2b30a52143a8ef 434-483
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "f43ec797fd86359fc71f144981b61363be2d58fa",
+  "prompts": {},
+  "sessions": {
+    "s_0532288abc1015": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7485d65c-ede6-43e2-af95-9f4cee261fbc",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_5f213b95d994a0::t_8d523c24ebbb10 219-234,240-246
+  s_5f213b95d994a0::t_7b2ae816a530ef 315-323
+  ai_agent 235-239
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_5f213b95d994a0::t_e93e3a06301817 73
+  s_5f213b95d994a0::t_58ada6927d26f3 9
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_5f213b95d994a0::t_7e132a0c4dd9bc 3
+  s_5f213b95d994a0::t_f7d0da1b5e05c8 2193-2250
+  s_5f213b95d994a0::t_515d6e5c9ae233 2096-2115
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_5f213b95d994a0::t_43d4af452b51b5 406-417
+  s_5f213b95d994a0::t_ce17a198d510a0 30-33
+  s_5f213b95d994a0::t_e4d3c1542cb8df 333-349
+  s_5f213b95d994a0::t_20def7ee18c742 9-15
+  s_5f213b95d994a0::t_8c1b06012a9693 439-442
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  ai_agent 611
+  s_5f213b95d994a0::t_7e06ceae8cf116 1045-1134
+  s_5f213b95d994a0::t_b87f75ccea7dd3 577-581,586-588,591-593,612-617
+  s_5f213b95d994a0::t_79d8d190807296 574-576,582-585,589-590,594-610,618-651,653-658,660-661,663-678,680-682,684-691,693-710
+  s_5f213b95d994a0::t_a3c9121b3295e3 652,659,662,679,683,692
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "ca6e1c878fe5c49db67eaf578e1fb8a888d8c59d",
+  "prompts": {},
+  "sessions": {
+    "s_5f213b95d994a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "00ae8a9e-c449-4c4a-9e3c-e8de2e6889b7",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

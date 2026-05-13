@@ -1,0 +1,19 @@
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_21712ae965afee::t_31951ec3da726e 1-250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "62545b90157049261795924bb79fafd03613b4b8",
+  "prompts": {},
+  "sessions": {
+    "s_21712ae965afee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87749cca-9d25-4b20-8a11-9623a50b919a",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

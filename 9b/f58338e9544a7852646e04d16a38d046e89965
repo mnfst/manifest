@@ -1,0 +1,33 @@
+packages/backend/src/model-discovery/known-model-prices.ts
+  2d9a0877828cbf38 10-14,34-77
+packages/shared/src/providers.ts
+  2d9a0877828cbf38 87-93
+packages/shared/__tests__/providers.spec.ts
+  2d9a0877828cbf38 76-84
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  2d9a0877828cbf38 477-479,486-488,493
+packages/backend/src/model-discovery/known-model-prices.spec.ts
+  2d9a0877828cbf38 52-80
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  2d9a0877828cbf38 110-118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "9bf58338e9544a7852646e04d16a38d046e89965",
+  "prompts": {
+    "2d9a0877828cbf38": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6959824a-a408-4272-be14-2cd8f7c33357",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 110,
+      "total_deletions": 3,
+      "accepted_lines": 110,
+      "overriden_lines": 0
+    }
+  }
+}

@@ -1,0 +1,61 @@
+packages/frontend/tests/services/api/specificity.test.ts
+  s_b970ffa4b91350::t_c403ff168430b1 58-130
+packages/backend/src/routing/dto/routing.dto.ts
+  s_b970ffa4b91350::t_c403ff168430b1 5,185-196
+packages/backend/src/routing/routing-core/__tests__/tier.service.spec.ts
+  s_b970ffa4b91350::t_c403ff168430b1 365-445
+packages/frontend/tests/pages/Routing.test.tsx
+  s_b970ffa4b91350::t_c403ff168430b1 19-20,37-38,270-271,288-314,336-344,405-420,1181-1237
+packages/frontend/src/pages/RoutingDefaultTierSection.tsx
+  s_b970ffa4b91350::t_c403ff168430b1 6,42-47,79-80,109-110
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_b970ffa4b91350::t_c403ff168430b1 1-131
+packages/backend/src/routing/__tests__/specificity.controller.spec.ts
+  s_b970ffa4b91350::t_c403ff168430b1 20,34,199-236
+packages/frontend/src/services/api/specificity.ts
+  s_b970ffa4b91350::t_c403ff168430b1 2,12,89-100
+packages/backend/src/routing/routing-core/__tests__/specificity.service.spec.ts
+  s_b970ffa4b91350::t_c403ff168430b1 232-308
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_b970ffa4b91350::t_c403ff168430b1 1205-1356
+packages/backend/src/routing/tier.controller.spec.ts
+  s_b970ffa4b91350::t_c403ff168430b1 31,132-160
+packages/frontend/tests/services/routing.test.ts
+  s_b970ffa4b91350::t_c403ff168430b1 9,169-209
+.changeset/restore-model-params-dialog.md
+  s_b970ffa4b91350::t_c403ff168430b1 1-7
+packages/frontend/src/services/api/routing.ts
+  s_b970ffa4b91350::t_c403ff168430b1 166-179,187,234-246
+packages/frontend/tests/pages/RoutingSpecificitySection.test.tsx
+  s_b970ffa4b91350::t_c403ff168430b1 57-58
+packages/backend/src/routing/routing-core/tier.service.ts
+  s_b970ffa4b91350::t_c403ff168430b1 11,193-240
+packages/frontend/tests/pages/RoutingDefaultTierSection.test.tsx
+  s_b970ffa4b91350::t_c403ff168430b1 36-37
+packages/backend/src/routing/routing-core/specificity.service.ts
+  s_b970ffa4b91350::t_c403ff168430b1 5,146-186
+packages/frontend/src/pages/RoutingTierCard.tsx
+  s_b970ffa4b91350::t_c403ff168430b1 15,18,24,108-124,150-166,503-538,650-670
+packages/backend/src/routing/tier.controller.ts
+  s_b970ffa4b91350::t_c403ff168430b1 8,19-24,124-133
+packages/backend/src/routing/specificity.controller.ts
+  s_b970ffa4b91350::t_c403ff168430b1 8,16,115-129
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_b970ffa4b91350::t_c403ff168430b1 1-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "3f1e82bdb02e70cd230f1b5611d29eccc993748c",
+  "prompts": {},
+  "sessions": {
+    "s_b970ffa4b91350": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "08aba76f-94e6-4d75-86fc-c6884c5ba244",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

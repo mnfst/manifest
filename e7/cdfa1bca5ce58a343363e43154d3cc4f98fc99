@@ -1,0 +1,23 @@
+packages/backend/src/routing/proxy/__tests__/google-adapter.spec.ts
+  s_a644ec79b78c58::t_1470dd84ef4233 152-214
+packages/backend/src/routing/proxy/google-adapter.ts
+  s_a644ec79b78c58::t_320424e79c0537 53-56
+.changeset/fix-issue-1858-strip-ref-keyword.md
+  s_a644ec79b78c58::t_7c9e7b5f897d93 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "e7cdfa1bca5ce58a343363e43154d3cc4f98fc99",
+  "prompts": {},
+  "sessions": {
+    "s_a644ec79b78c58": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1e2f585-6069-4c04-a5a6-a1dee7d38852",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

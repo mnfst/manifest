@@ -1,0 +1,25 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  164c3b7904092a82 48-52,64-65,74-77
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  164c3b7904092a82 1334,1917-1930
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "fa413153a39219f5c48032590440df1d6e74e8bc",
+  "prompts": {
+    "164c3b7904092a82": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d98a2dd4-1efd-47e1-a7e0-21430c6a11ad",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 19,
+      "total_deletions": 5,
+      "accepted_lines": 19,
+      "overriden_lines": 0
+    }
+  }
+}

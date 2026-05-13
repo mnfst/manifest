@@ -1,0 +1,31 @@
+packages/frontend/src/pages/FreeModels.tsx
+  8ad8df53c7ee7fde 74
+packages/backend/src/database/models-dev-sync.service.ts
+  8ad8df53c7ee7fde 21
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  8ad8df53c7ee7fde 480-481,489-490
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  8ad8df53c7ee7fde 152-171,205-206,279-290
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  8ad8df53c7ee7fde 111-115,120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "8d71565dd0054094ec1fd66cf0714e29d5e44014",
+  "prompts": {
+    "8ad8df53c7ee7fde": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1630f45f-d729-462e-955c-37237a3e9a1d",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 46,
+      "total_deletions": 8,
+      "accepted_lines": 46,
+      "overriden_lines": 0
+    }
+  }
+}

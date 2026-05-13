@@ -1,0 +1,23 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_a644ec79b78c58::t_00c047cf9e2c5b 113-116,118
+.changeset/fix-issue-1814-flash-lite-preview.md
+  s_a644ec79b78c58::t_65436e586c779a 1-5
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_a644ec79b78c58::t_194207d0940bde 185-198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "bbcfa509fd772523f420754411f9cdd607608a69",
+  "prompts": {},
+  "sessions": {
+    "s_a644ec79b78c58": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1e2f585-6069-4c04-a5a6-a1dee7d38852",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

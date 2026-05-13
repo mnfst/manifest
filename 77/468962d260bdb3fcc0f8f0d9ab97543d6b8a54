@@ -1,0 +1,78 @@
+packages/frontend/src/services/api/model-params.ts
+  s_ba10c1ee330272::t_a48a994a0d54f2 1-50
+packages/frontend/src/pages/Routing.tsx
+  s_ba10c1ee330272::t_ed9d291fd5f020 76-134
+  s_ba10c1ee330272::t_f242f214e48228 470-471
+  s_ba10c1ee330272::t_54d89186f14d97 516-517
+  s_ba10c1ee330272::t_bd604abbd1bf76 530-531
+  s_ba10c1ee330272::t_a212109801d175 28-33,36
+packages/frontend/src/pages/RoutingSpecificitySection.tsx
+  s_ba10c1ee330272::t_03fc4a5b14d8ea 162-177
+  s_ba10c1ee330272::t_c1998a762d10f3 271-272
+packages/frontend/src/services/api.ts
+  s_ba10c1ee330272::t_c6e8bc812e0615 10
+packages/frontend/src/services/api/specificity.ts
+  s_ba10c1ee330272::t_9a6fc833819ccc 2
+packages/frontend/src/components/FallbackList.tsx
+  s_ba10c1ee330272::t_d9d7bfe76b4bf2 5,9,24
+  s_ba10c1ee330272::t_fcac1818fa310c 408-409,411-412,415-422
+  s_ba10c1ee330272::t_18e1bab5d53cbb 58-75
+packages/frontend/src/services/api/routing.ts
+  s_ba10c1ee330272::t_ea97821b637544 167,169-172,174
+packages/frontend/src/pages/RoutingTierCard.tsx
+  s_ba10c1ee330272::t_48e98966691bbb 15
+  s_ba10c1ee330272::t_fe17eba819d3be 563-564
+  s_ba10c1ee330272::t_198b60e03ac110 108-110,112-116,118-119,121-126
+  s_ba10c1ee330272::t_a8f1de63578f8e 488-497,499
+.changeset/agent-model-params-frontend.md
+  s_ba10c1ee330272::t_1c874016aac289 1-5
+packages/frontend/src/pages/RoutingDefaultTierSection.tsx
+  s_ba10c1ee330272::t_2ec5096fe9a008 42-61
+  s_ba10c1ee330272::t_3cc4e0c8942081 94-95
+  s_ba10c1ee330272::t_fcc738fef54b86 124-125
+packages/frontend/tests/components/FallbackList.test.tsx
+  s_ba10c1ee330272::t_d1e28d5c6bab2f 1111,1114-1115,1120-1129,1134
+  s_ba10c1ee330272::t_ca4364016a7adc 1049,1063-1065,1071-1072,1075-1078,1081,1087-1088,1091-1094,1097,1105-1108,1137-1138,1141-1144
+packages/frontend/tests/components/ModelParamsAffordance.test.tsx
+  s_ba10c1ee330272::t_e362be17b916db 1-157
+packages/frontend/tests/services/api/model-params.test.ts
+  s_ba10c1ee330272::t_56207fbc654b4a 1-20,23-25,27-86
+  s_ba10c1ee330272::t_c917e9ddb7bb2b 21-22,26
+packages/frontend/src/components/HeaderTierCard.tsx
+  s_ba10c1ee330272::t_a1434c359b4d61 53-70
+  s_ba10c1ee330272::t_95975243ce892b 320-328,330-338
+  s_ba10c1ee330272::t_11e96f9fe37c5e 389-390
+  s_ba10c1ee330272::t_a281700eb2f6b4 359
+  s_ba10c1ee330272::t_4155f74f6ac7e6 7
+  s_ba10c1ee330272::t_1e6a610c397638 22
+packages/frontend/src/components/ModelParamsAffordance.tsx
+  s_ba10c1ee330272::t_7eef1e68a5b52f 1-20,22-119
+packages/frontend/tests/pages/Routing.test.tsx
+  s_ba10c1ee330272::t_6f33ada659752d 19-21,38-42
+  s_ba10c1ee330272::t_c8f144e1206fd7 343-346,349-353
+  s_ba10c1ee330272::t_9d0046f3611f4e 510
+  s_ba10c1ee330272::t_f4fb0a918e4db9 417-419,426
+  s_ba10c1ee330272::t_7f0a1256aab52b 1192-1201,1209-1213,1218-1219,1225-1231,1234-1239,1247,1251
+  s_ba10c1ee330272::t_37c4ad1df346cb 274-275
+  s_ba10c1ee330272::t_081f4f42db321a 296-299,302,311-314,316-317
+packages/frontend/src/pages/RoutingHeaderTiersSection.tsx
+  s_ba10c1ee330272::t_64d4ba64e04800 32-42
+  s_ba10c1ee330272::t_cc002a06c2de30 17
+  s_ba10c1ee330272::t_d5db677b26c852 185-186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "77468962d260bdb3fcc0f8f0d9ab97543d6b8a54",
+  "prompts": {},
+  "sessions": {
+    "s_ba10c1ee330272": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c9a5343-e4c0-42d8-bba9-ef88ea021798",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

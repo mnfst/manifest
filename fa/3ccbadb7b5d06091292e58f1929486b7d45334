@@ -1,0 +1,29 @@
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  35731f73fad91a4a 4-38,111,214,259,297,309-316
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  35731f73fad91a4a 123-223
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  35731f73fad91a4a 289,307-314,335-341,363-365,368,386-388,391,416-417,420
+packages/backend/src/routing/proxy/proxy.service.ts
+  35731f73fad91a4a 14-15,158-168,174-175,185,195-196,203,248-249,256,364,411
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "fa3ccbadb7b5d06091292e58f1929486b7d45334",
+  "prompts": {
+    "35731f73fad91a4a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "69cd6dd8-f498-435e-a221-a7ed5154b467",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 207,
+      "total_deletions": 124,
+      "accepted_lines": 200,
+      "overriden_lines": 4
+    }
+  }
+}

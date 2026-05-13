@@ -1,0 +1,25 @@
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_ba10c1ee330272::t_6d1a3392b64ab4 70-71,78-79,81
+  s_ba10c1ee330272::t_498c28506d636a 24
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_ba10c1ee330272::t_b71e56b74a2990 127,136
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  ai_agent 45-51,483-489
+  s_ba10c1ee330272::t_14924481f69599 58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "6046015f62d6d5567b0167e03991ef24273d4eea",
+  "prompts": {},
+  "sessions": {
+    "s_ba10c1ee330272": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c9a5343-e4c0-42d8-bba9-ef88ea021798",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
