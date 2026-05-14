@@ -32,6 +32,17 @@ export interface ProviderDef {
   deviceLogin?: boolean;
   /** UI auth mode for subscription flows. */
   subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
+  /**
+   * Optional secondary subscription path. Lets a provider expose a pasted-token
+   * shortcut alongside its primary OAuth/device-code flow — currently used so
+   * MiniMax users can connect their Coding Plan via an `sk-cp-` token without
+   * going through the device-code popup.
+   */
+  subscriptionTokenAlternative?: {
+    prefix: string;
+    placeholder: string;
+    dividerLabel: string;
+  };
   /** Provider is subscription-only and should not appear in the API Keys tab. */
   subscriptionOnly?: boolean;
   /** External URL the user should open to sign in and retrieve their token (token mode). */
@@ -65,6 +76,11 @@ interface ProviderUIOverlay {
   subscriptionCommand?: string;
   deviceLogin?: boolean;
   subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
+  subscriptionTokenAlternative?: {
+    prefix: string;
+    placeholder: string;
+    dividerLabel: string;
+  };
   subscriptionOnly?: boolean;
   subscriptionSignInUrl?: string;
   subscriptionSignInLabel?: string;
@@ -145,6 +161,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     supportsSubscription: true,
     subscriptionLabel: 'MiniMax Coding Plan',
     subscriptionAuthMode: 'device_code',
+    subscriptionTokenAlternative: {
+      prefix: 'sk-cp-',
+      placeholder: 'sk-cp-...',
+      dividerLabel: 'Or paste your Coding Plan token',
+    },
     models: [],
   },
   mistral: {

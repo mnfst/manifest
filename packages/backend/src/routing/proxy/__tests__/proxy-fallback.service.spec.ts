@@ -441,6 +441,85 @@ describe('ProxyFallbackService', () => {
         authType: 'subscription',
       });
     });
+
+    it('falls back to providerRegion=cn for pasted minimax subscription tokens', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'minimax',
+        apiKey: 'sk-cp-cn-token',
+        model: 'MiniMax-M2.5',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'cn',
+        // resourceUrl is intentionally absent — paste-token path has no OAuth blob
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customEndpoint: expect.objectContaining({
+            baseUrl: 'https://api.minimaxi.com/anthropic',
+            format: 'anthropic',
+          }),
+        }),
+      );
+    });
+
+    it('strips the minimax/ vendor prefix on subscription routes (custom endpoint or not)', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'minimax',
+        apiKey: 'sk-cp-cn-token',
+        model: 'minimax/MiniMax-M2.7',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'cn',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'MiniMax-M2.7',
+        }),
+      );
+    });
+
+    it('does NOT override the endpoint for global region (built-in minimax-subscription already targets api.minimax.io)', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'minimax',
+        apiKey: 'sk-cp-global-token',
+        model: 'MiniMax-M2.5',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'global',
+      });
+
+      const call = providerClient.forward.mock.calls[0][0];
+      expect(call.customEndpoint).toBeUndefined();
+    });
   });
 
   describe('tryFallbacks', () => {

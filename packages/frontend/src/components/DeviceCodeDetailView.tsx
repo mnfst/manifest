@@ -8,12 +8,14 @@ import {
 } from 'solid-js';
 import type { ProviderDef } from '../services/providers.js';
 import {
+  connectProvider,
   disconnectProvider,
   pollMinimaxOAuth,
   startMinimaxOAuth,
   type AuthType,
   type MinimaxOAuthRegion,
 } from '../services/api.js';
+import { validateSubscriptionKey } from '../services/provider-utils.js';
 import { toast } from '../services/toast-store.js';
 
 interface Props {
@@ -43,6 +45,37 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [flow, setFlow] = createSignal<DeviceCodeFlow | null>(null);
   const [statusMessage, setStatusMessage] = createSignal<string | null>(null);
   const [selectedRegion, setSelectedRegion] = createSignal<MinimaxOAuthRegion>('global');
+  const [altToken, setAltToken] = createSignal('');
+  const [altError, setAltError] = createSignal<string | null>(null);
+
+  const handleAltConnect = async () => {
+    const trimmed = altToken().replace(/\s/g, '');
+    const result = validateSubscriptionKey(props.provDef, trimmed);
+    if (!result.valid) {
+      setAltError(result.error!);
+      return;
+    }
+    props.setBusy(true);
+    try {
+      await connectProvider(props.agentName, {
+        provider: props.provId,
+        apiKey: trimmed,
+        authType: 'subscription',
+        // Region is OAuth-flow state, but a pasted Coding Plan token still
+        // needs to route to the right MiniMax host (api.minimax.io vs
+        // api.minimaxi.com). Stick the picker's current value on the row so
+        // the proxy fallback honors CN tokens.
+        region: selectedRegion(),
+      });
+      toast.success(`${props.provDef.name} subscription connected`);
+      props.onUpdate();
+      props.onClose();
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      props.setBusy(false);
+    }
+  };
   let pollTimer: number | undefined;
   let isDisposed = false;
   let activeFlowGeneration = 0;
@@ -187,35 +220,75 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
           when={flow()}
           fallback={
             <>
-              <p class="provider-detail__hint">
-                Choose your MiniMax region, then open the authorization page in your browser to sign
-                in and approve access.
-              </p>
-              <div class="provider-detail__field" style="margin-top: 12px;">
-                <label class="provider-detail__label" for="minimax-region">
-                  Region
-                </label>
-                <select
-                  id="minimax-region"
-                  class="provider-detail__input"
-                  value={selectedRegion()}
+              <div class="subscription-detail__primary">
+                <p class="provider-detail__hint" style="margin-bottom: 0;">
+                  Choose your MiniMax region, then open the authorization page in your browser to
+                  sign in and approve access.
+                </p>
+                <div class="provider-detail__field">
+                  <label class="provider-detail__label" for="minimax-region">
+                    Region
+                  </label>
+                  <select
+                    id="minimax-region"
+                    class="provider-detail__input"
+                    value={selectedRegion()}
+                    disabled={props.busy()}
+                    onChange={(e) => setSelectedRegion(e.currentTarget.value as MinimaxOAuthRegion)}
+                  >
+                    <option value="global">Global (api.minimax.io)</option>
+                    <option value="cn">China Mainland (api.minimaxi.com)</option>
+                  </select>
+                </div>
+                <button
+                  class="btn btn--primary subscription-detail__btn"
                   disabled={props.busy()}
-                  onChange={(e) => setSelectedRegion(e.currentTarget.value as MinimaxOAuthRegion)}
+                  onClick={handleStart}
                 >
-                  <option value="global">Global (api.minimax.io)</option>
-                  <option value="cn">China Mainland (api.minimaxi.com)</option>
-                </select>
+                  <Show when={!props.busy()} fallback={<span class="spinner" />}>
+                    Connect with {props.provDef.name}
+                  </Show>
+                </button>
               </div>
-              <button
-                class="btn btn--primary provider-detail__action"
-                style="margin-top: 12px;"
-                disabled={props.busy()}
-                onClick={handleStart}
-              >
-                <Show when={!props.busy()} fallback={<span class="spinner" />}>
-                  Connect with {props.provDef.name}
-                </Show>
-              </button>
+              <Show when={props.provDef.subscriptionTokenAlternative}>
+                {(alt) => (
+                  <div class="subscription-detail__alt">
+                    <div class="subscription-detail__alt-divider">
+                      <span>{alt().dividerLabel}</span>
+                    </div>
+                    <input
+                      id="minimax-alt-token"
+                      class="provider-detail__input provider-detail__input--masked"
+                      classList={{ 'provider-detail__input--error': !!altError() }}
+                      type="text"
+                      autocomplete="off"
+                      placeholder={alt().placeholder}
+                      aria-label={`${props.provDef.name} Coding Plan token`}
+                      value={altToken()}
+                      disabled={props.busy()}
+                      onInput={(e) => {
+                        setAltToken(e.currentTarget.value);
+                        setAltError(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleAltConnect();
+                      }}
+                    />
+                    <Show when={altError()}>
+                      <div class="provider-detail__error">{altError()}</div>
+                    </Show>
+                    <button
+                      class="btn btn--outline subscription-detail__btn"
+                      disabled={props.busy() || !altToken().trim()}
+                      onClick={handleAltConnect}
+                    >
+                      <Show when={!props.busy()} fallback={<span class="spinner" />}>
+                        Connect with token
+                      </Show>
+                    </button>
+                  </div>
+                )}
+              </Show>
             </>
           }
         >

@@ -1079,7 +1079,9 @@ describe('PublicStatsService', () => {
 
       const result = await service.getAgentDailyTokens();
 
-      const byPlatform = Object.fromEntries(result.map((g) => [g.agent_platform, g.platform_label]));
+      const byPlatform = Object.fromEntries(
+        result.map((g) => [g.agent_platform, g.platform_label]),
+      );
       expect(byPlatform['openai-sdk']).toBe('OpenAI SDK');
       expect(byPlatform['anthropic-sdk']).toBe('Anthropic SDK');
       expect(byPlatform['vercel-ai-sdk']).toBe('Vercel AI SDK');

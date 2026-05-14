@@ -16,6 +16,7 @@ import {
 import type { AuthType } from 'manifest-shared';
 import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
+import { isMinimaxRegion } from '../oauth/minimax-oauth-helpers';
 
 const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
@@ -294,6 +295,22 @@ export class ProviderService {
     existing: UserProvider | null,
   ): Promise<string | null> {
     const lower = provider.toLowerCase();
+
+    // MiniMax subscription stores region so the proxy can route pasted-token
+    // (sk-cp-) connections to the right base URL. OAuth-issued tokens already
+    // encode the region in the resource_url blob field, but the paste path
+    // has no blob — without this column the proxy falls back to global and
+    // CN tokens 401 against the wrong host.
+    if (lower === 'minimax' && authType === 'subscription') {
+      if (requestedRegion === undefined) {
+        return isMinimaxRegion(existing?.region ?? undefined) ? (existing!.region as string) : null;
+      }
+      if (!isMinimaxRegion(requestedRegion)) {
+        throw new BadRequestException('MiniMax subscription region must be one of: global, cn');
+      }
+      return requestedRegion;
+    }
+
     const isQwenProvider = lower === 'qwen' || lower === 'alibaba';
     if (!isQwenProvider || authType !== 'api_key') return null;
 

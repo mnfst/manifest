@@ -48,7 +48,13 @@ export function getProviders(agentName: string) {
 
 export function connectProvider(
   agentName: string,
-  data: { provider: string; apiKey?: string; authType?: AuthType; label?: string },
+  data: {
+    provider: string;
+    apiKey?: string;
+    authType?: AuthType;
+    label?: string;
+    region?: string;
+  },
 ) {
   return fetchMutate<{
     id: string;
