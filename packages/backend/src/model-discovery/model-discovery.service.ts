@@ -175,7 +175,7 @@ export class ModelDiscoveryService {
     }));
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).
-    // Personal AI agents (OpenClaw, Hermes, SDK-based agents) almost always
+    // AI agents (OpenClaw, Hermes, SDK-based agents) almost always
     // include tools in every request, so models without tool calling are
     // unusable. Only filter when models.dev has data — if no entry exists we
     // keep the model (we don't know its capabilities).

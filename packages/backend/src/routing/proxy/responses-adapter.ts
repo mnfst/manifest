@@ -182,6 +182,8 @@ export function toNativeResponsesRequest(
   }
   if (opts?.inputList) {
     request.input = toNativeResponsesInput(body.input);
+  } else if (body.input !== undefined) {
+    request.input = normalizeNativeResponsesInput(body.input);
   }
   if (
     opts?.defaultInstructions &&
@@ -190,6 +192,18 @@ export function toNativeResponsesRequest(
     request.instructions = DEFAULT_INSTRUCTIONS;
   }
   return request;
+}
+
+function normalizeNativeResponsesInput(input: unknown): unknown {
+  if (!Array.isArray(input)) return input;
+
+  return input.map((item) => {
+    if (!isRecord(item)) return item;
+    if (item.type === 'function_call' || item.type === 'function_call_output') return item;
+
+    const role = typeof item.role === 'string' ? item.role : 'user';
+    return { ...item, content: toNativeResponsesContent(item.content, role) };
+  });
 }
 
 function toNativeResponsesInput(input: unknown): unknown {
@@ -221,8 +235,26 @@ function toNativeResponsesContent(content: unknown, role: string): unknown {
     if (typeof part.text === 'string' && (part.type === 'text' || part.type === undefined)) {
       return { ...part, type: partType };
     }
+    if (part.type === 'image_url' && role !== 'assistant') {
+      const imageUrl = extractImageUrl(part.image_url);
+      if (imageUrl) {
+        return { type: 'input_image', image_url: imageUrl, ...extractImageDetail(part) };
+      }
+    }
     return part;
   });
+}
+
+function extractImageUrl(imageUrl: unknown): string | null {
+  if (typeof imageUrl === 'string') return imageUrl;
+  if (!isRecord(imageUrl) || typeof imageUrl.url !== 'string') return null;
+  return imageUrl.url;
+}
+
+function extractImageDetail(part: JsonRecord): { detail?: string } {
+  const nested = isRecord(part.image_url) ? part.image_url.detail : undefined;
+  const detail = typeof part.detail === 'string' ? part.detail : nested;
+  return typeof detail === 'string' ? { detail } : {};
 }
 
 export function fromChatCompletionResponse(body: JsonRecord, model: string): JsonRecord {

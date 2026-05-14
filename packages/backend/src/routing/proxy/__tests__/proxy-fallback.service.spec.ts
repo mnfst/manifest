@@ -8,6 +8,7 @@ import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { CustomProvider } from '../../../entities/custom-provider.entity';
 import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
@@ -18,6 +19,7 @@ describe('ProxyFallbackService', () => {
   let customProviderRepo: jest.Mocked<Repository<CustomProvider>>;
   let openaiOauth: jest.Mocked<OpenaiOauthService>;
   let minimaxOauth: jest.Mocked<MinimaxOauthService>;
+  let anthropicOauth: jest.Mocked<AnthropicOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
@@ -43,6 +45,10 @@ describe('ProxyFallbackService', () => {
       unwrapToken: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<MinimaxOauthService>;
 
+    anthropicOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<AnthropicOauthService>;
+
     providerClient = {
       forward: jest.fn(),
     } as unknown as jest.Mocked<ProviderClient>;
@@ -60,6 +66,7 @@ describe('ProxyFallbackService', () => {
       customProviderRepo,
       openaiOauth,
       minimaxOauth,
+      anthropicOauth,
       providerClient,
       copilotToken,
       pricingCache,
@@ -880,6 +887,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('access-token');
@@ -902,6 +910,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('mm-token');
@@ -917,6 +926,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('sk-key');
@@ -934,25 +944,63 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('blob');
     });
 
-    it('does not unwrap for non-OpenAI/MiniMax subscription', async () => {
+    it('unwraps Anthropic subscription token via the OAuth blob path', async () => {
+      anthropicOauth.unwrapToken.mockResolvedValue('access-claude');
+
       const result = await resolveApiKey(
         'anthropic',
-        'sk-ant',
+        'blob',
         'subscription',
         'agent-1',
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
-      expect(result.apiKey).toBe('sk-ant');
+      expect(result.apiKey).toBe('access-claude');
+      expect(anthropicOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
+    });
+
+    it('returns the original key when Anthropic unwrap returns null', async () => {
+      anthropicOauth.unwrapToken.mockResolvedValue(null);
+
+      const result = await resolveApiKey(
+        'anthropic',
+        'sk-ant-legacy',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+      );
+
+      expect(result.apiKey).toBe('sk-ant-legacy');
+    });
+
+    it('does not unwrap for non-OAuth subscription providers (e.g. Qwen)', async () => {
+      const result = await resolveApiKey(
+        'qwen',
+        'qwen-key',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+      );
+
+      expect(result.apiKey).toBe('qwen-key');
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
     });
 
     it('returns original key when MiniMax unwrap returns null', async () => {
@@ -966,6 +1014,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('blob');
@@ -980,12 +1029,14 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('zai-sub-key');
       expect(result.resourceUrl).toBeUndefined();
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
     });
   });
 });

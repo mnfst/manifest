@@ -4,7 +4,10 @@ export type AgentCategory = (typeof AGENT_CATEGORIES)[number];
 export const AGENT_PLATFORMS = [
   'openclaw',
   'hermes',
+  'nanobot',
+  'craft',
   'claude-code',
+  'opencode',
   'openai-sdk',
   'anthropic-sdk',
   'vercel-ai-sdk',
@@ -15,7 +18,7 @@ export const AGENT_PLATFORMS = [
 export type AgentPlatform = (typeof AGENT_PLATFORMS)[number];
 
 export const CATEGORY_LABELS: Readonly<Record<AgentCategory, string>> = {
-  personal: 'Personal AI Agent',
+  personal: 'AI agents',
   app: 'App AI SDK',
   coding: 'Coding Assistant',
 };
@@ -23,7 +26,10 @@ export const CATEGORY_LABELS: Readonly<Record<AgentCategory, string>> = {
 export const PLATFORM_LABELS: Readonly<Record<AgentPlatform, string>> = {
   openclaw: 'OpenClaw',
   hermes: 'Hermes Agent',
+  nanobot: 'Nanobot',
+  craft: 'Craft Agent',
   'claude-code': 'Claude Code',
+  opencode: 'OpenCode',
   'openai-sdk': 'OpenAI SDK',
   'anthropic-sdk': 'Anthropic SDK',
   'vercel-ai-sdk': 'Vercel AI SDK',
@@ -33,15 +39,18 @@ export const PLATFORM_LABELS: Readonly<Record<AgentPlatform, string>> = {
 };
 
 export const PLATFORMS_BY_CATEGORY: Readonly<Record<AgentCategory, readonly AgentPlatform[]>> = {
-  personal: ['openclaw', 'hermes', 'other'],
+  personal: ['openclaw', 'hermes', 'nanobot', 'craft', 'other'],
   app: ['openai-sdk', 'anthropic-sdk', 'vercel-ai-sdk', 'langchain', 'other'],
-  coding: ['claude-code', 'other'],
+  coding: ['claude-code', 'opencode', 'other'],
 };
 
 export const PLATFORM_ICONS: Readonly<Partial<Record<AgentPlatform, string>>> = {
   openclaw: '/icons/openclaw.png',
   hermes: '/icons/hermes.png',
+  nanobot: '/icons/nanobot.png',
+  craft: '/icons/craft.png',
   'claude-code': '/icons/providers/claude-code.svg',
+  opencode: '/icons/providers/opencode.svg',
   'openai-sdk': '/icons/providers/openai.svg',
   'anthropic-sdk': '/icons/providers/anthropic.svg',
   'vercel-ai-sdk': '/icons/vercel.svg',

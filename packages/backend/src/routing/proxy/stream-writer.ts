@@ -43,13 +43,34 @@ export function parseUsageObject(usage: unknown): StreamUsage | null {
   }
 
   if (typeof u.input_tokens === 'number') {
+    const completion = typeof u.output_tokens === 'number' ? u.output_tokens : 0;
+    // Anthropic Messages reports caches in dedicated top-level fields, and
+    // `input_tokens` is the uncached portion only. Sum the cache pieces back
+    // in so the recorder stores the full total under `agent_messages.input_tokens`.
+    if (
+      typeof u.cache_read_input_tokens === 'number' ||
+      typeof u.cache_creation_input_tokens === 'number'
+    ) {
+      const cacheRead =
+        typeof u.cache_read_input_tokens === 'number' ? u.cache_read_input_tokens : 0;
+      const cacheCreation =
+        typeof u.cache_creation_input_tokens === 'number' ? u.cache_creation_input_tokens : 0;
+      return {
+        prompt_tokens: u.input_tokens + cacheRead + cacheCreation,
+        completion_tokens: completion,
+        cache_read_tokens: cacheRead,
+        cache_creation_tokens: cacheCreation,
+      };
+    }
+    // OpenAI Responses API shape: `input_tokens` already includes cached tokens;
+    // cache reads surface under `input_tokens_details.cached_tokens`.
     const inputDetails =
       typeof u.input_tokens_details === 'object' && u.input_tokens_details !== null
         ? (u.input_tokens_details as Record<string, unknown>)
         : undefined;
     return {
       prompt_tokens: u.input_tokens,
-      completion_tokens: typeof u.output_tokens === 'number' ? u.output_tokens : 0,
+      completion_tokens: completion,
       cache_read_tokens:
         typeof inputDetails?.cached_tokens === 'number' ? inputDetails.cached_tokens : undefined,
       cache_creation_tokens: 0,

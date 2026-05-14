@@ -10,8 +10,58 @@ import { OpenAIMessage } from './proxy-types';
 
 type JsonRecord = Record<string, unknown>;
 
+const DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA = {
+  type: 'object',
+  properties: {},
+  additionalProperties: false,
+} as const;
+
+const ANTHROPIC_SERVER_TOOL_PREFIXES = [
+  'bash_',
+  'code_execution_',
+  'computer_',
+  'memory_',
+  'text_editor_',
+  'tool_search_tool_',
+  'web_fetch_',
+  'web_search_',
+] as const;
+
+const ANTHROPIC_SERVER_TOOL_TYPES = ['mcp_toolset'] as const;
+
 function isRecord(value: unknown): value is JsonRecord {
   return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isAnthropicServerToolType(type: string): boolean {
+  return (
+    ANTHROPIC_SERVER_TOOL_TYPES.includes(type as (typeof ANTHROPIC_SERVER_TOOL_TYPES)[number]) ||
+    ANTHROPIC_SERVER_TOOL_PREFIXES.some((prefix) => type.startsWith(prefix))
+  );
+}
+
+function normalizeOpenAiFunctionSchema(schema: unknown): unknown {
+  if (schema === null || schema === undefined || typeof schema !== 'object') {
+    return schema;
+  }
+
+  if (Array.isArray(schema)) {
+    return schema.map((item) => normalizeOpenAiFunctionSchema(item));
+  }
+
+  const result: JsonRecord = {};
+  for (const [key, value] of Object.entries(schema)) {
+    result[key] = normalizeOpenAiFunctionSchema(value);
+  }
+
+  const type = result.type;
+  const isArraySchema =
+    type === 'array' || (Array.isArray(type) && type.some((item) => item === 'array'));
+  if (isArraySchema && result.items === undefined) {
+    result.items = {};
+  }
+
+  return result;
 }
 
 function safeJsonStringify(value: unknown): string {
@@ -137,9 +187,34 @@ function toChatTools(tools: unknown[]): JsonRecord[] {
     function: {
       name: typeof tool.name === 'string' ? tool.name : 'unknown',
       ...(typeof tool.description === 'string' && { description: tool.description }),
-      ...(tool.input_schema !== undefined && { parameters: tool.input_schema }),
+      ...(tool.input_schema !== undefined
+        ? { parameters: normalizeOpenAiFunctionSchema(tool.input_schema) }
+        : typeof tool.type === 'string' &&
+            tool.type !== 'custom' &&
+            !isAnthropicServerToolType(tool.type)
+          ? { parameters: DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA }
+          : {}),
     },
   }));
+}
+
+// Anthropic server tools (web_search_*, bash_*, text_editor_*, computer_*,
+// code_execution_*, etc.) declare themselves with a versioned `type` tag and
+// no `input_schema` — Anthropic resolves the schema server-side from `type`.
+// The OpenAI chat_completions tool shape has no analogue, so a naive
+// translation drops the `type` and re-emits them as nameless custom tools,
+// which Anthropic then rejects with `tools.N.custom.input_schema: Field
+// required` (issue #1886). Stash the originals on chatBody and have
+// toAnthropicRequest re-emit them unchanged when the upstream is Anthropic.
+export function extractAnthropicServerTools(tools: unknown[]): JsonRecord[] {
+  const out: JsonRecord[] = [];
+  for (const tool of tools) {
+    if (!isRecord(tool)) continue;
+    if (typeof tool.type === 'string' && isAnthropicServerToolType(tool.type)) {
+      out.push(tool);
+    }
+  }
+  return out;
 }
 
 function toChatToolChoice(choice: unknown): unknown {
@@ -185,7 +260,11 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   if (body.thinking !== undefined) chatBody.thinking = body.thinking;
   if (body.top_k !== undefined) chatBody.top_k = body.top_k;
 
-  if (Array.isArray(body.tools)) chatBody.tools = toChatTools(body.tools);
+  if (Array.isArray(body.tools)) {
+    chatBody.tools = toChatTools(body.tools);
+    const serverTools = extractAnthropicServerTools(body.tools);
+    if (serverTools.length > 0) chatBody._anthropicServerTools = serverTools;
+  }
   const toolChoice = toChatToolChoice(body.tool_choice);
   if (toolChoice !== undefined) chatBody.tool_choice = toolChoice;
 
@@ -205,13 +284,28 @@ function toAnthropicStopReason(finishReason: unknown): string {
 
 function toAnthropicUsage(usage: unknown): JsonRecord {
   const u = isRecord(usage) ? usage : {};
-  const inputTokens = typeof u.prompt_tokens === 'number' ? u.prompt_tokens : 0;
+  const promptTokens = typeof u.prompt_tokens === 'number' ? u.prompt_tokens : 0;
   const outputTokens = typeof u.completion_tokens === 'number' ? u.completion_tokens : 0;
-  const cacheRead = typeof u.cache_read_tokens === 'number' ? u.cache_read_tokens : 0;
+  const promptDetails = isRecord(u.prompt_tokens_details) ? u.prompt_tokens_details : undefined;
+  // OpenAI-compat providers (OpenAI chat-completions, DeepSeek, Z.AI, MiniMax, etc.)
+  // report cached input under nested `prompt_tokens_details.cached_tokens` instead
+  // of the top-level Anthropic-converted key — fall back to it.
+  const cacheRead =
+    typeof u.cache_read_tokens === 'number'
+      ? u.cache_read_tokens
+      : typeof promptDetails?.cached_tokens === 'number'
+        ? promptDetails.cached_tokens
+        : 0;
+  const cacheCreation = typeof u.cache_creation_tokens === 'number' ? u.cache_creation_tokens : 0;
+  // Chat-shape prompt_tokens is the full input total (uncached + cache reads +
+  // cache creation). Anthropic Messages' input_tokens is the uncached portion
+  // only, with cache_read_input_tokens / cache_creation_input_tokens reported
+  // separately. Subtract so the round-trip matches Anthropic's native shape.
+  const inputTokens = Math.max(0, promptTokens - cacheRead - cacheCreation);
   return {
     input_tokens: inputTokens,
     output_tokens: outputTokens,
-    cache_creation_input_tokens: 0,
+    cache_creation_input_tokens: cacheCreation,
     cache_read_input_tokens: cacheRead,
   };
 }

@@ -49,3 +49,37 @@ export function pollMinimaxOAuth(flowId: string) {
     flowId,
   });
 }
+
+export interface AnthropicOAuthAuthorizeResponse {
+  url: string;
+  state: string;
+}
+
+export function startAnthropicOAuth(agentName: string) {
+  return fetchMutate<AnthropicOAuthAuthorizeResponse>(
+    `/oauth/anthropic/authorize?agentName=${encodeURIComponent(agentName)}`,
+    { method: 'POST' },
+  );
+}
+
+export function submitAnthropicOAuth(agentName: string, code: string, state: string) {
+  return fetchMutate<{ ok: boolean }>(
+    `/oauth/anthropic/exchange?agentName=${encodeURIComponent(agentName)}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ code, state }),
+      headers: { 'Content-Type': 'application/json' },
+    },
+  );
+}
+
+export function getAnthropicOAuthPending(agentName: string) {
+  return fetchJson<{ state: string | null }>(`/oauth/anthropic/pending`, { agentName });
+}
+
+export function revokeAnthropicOAuth(agentName: string) {
+  return fetchMutate<{ ok: boolean }>(
+    `/oauth/anthropic/revoke?agentName=${encodeURIComponent(agentName)}`,
+    { method: 'POST' },
+  );
+}

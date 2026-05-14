@@ -1,13 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { randomBytes, createHash } from 'crypto';
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
 import { ProviderService } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
-import { PendingOAuth, OAuthTokenBlob, oauthDoneHtml } from './openai-oauth.types';
+import { PendingOAuth } from './openai-oauth.types';
+import {
+  generatePkce,
+  generateState,
+  oauthDoneHtml,
+  parseOAuthTokenBlob,
+  PendingStore,
+  serializeOAuthTokenBlob,
+  type OAuthTokenBlob,
+} from './core';
 
-export { PendingOAuth, OAuthTokenBlob, oauthDoneHtml };
+export { PendingOAuth };
+export { oauthDoneHtml, type OAuthTokenBlob };
 
 const DEFAULT_CLIENT_ID = 'app_EMoamEEZ73f0CkXaXp7hrann';
 const AUTHORIZE_URL = 'https://auth.openai.com/oauth/authorize';
@@ -21,8 +30,7 @@ const STATE_TTL_MS = 10 * 60 * 1000;
 @Injectable()
 export class OpenaiOauthService {
   private readonly logger = new Logger(OpenaiOauthService.name);
-  /** In-memory pending OAuth flows (not safe behind a load balancer). */
-  private readonly pending = new Map<string, PendingOAuth>();
+  private readonly pending = new PendingStore<PendingOAuth>(STATE_TTL_MS);
   private callbackServer: Server | null = null;
   private serverReady: Promise<void> | null = null;
   private readonly clientId: string;
@@ -46,20 +54,16 @@ export class OpenaiOauthService {
     userId: string,
     backendUrl?: string,
   ): Promise<string> {
-    this.cleanupExpired();
-    const state = randomBytes(32).toString('hex');
-    const verifier = randomBytes(32).toString('base64url');
-    const challenge = createHash('sha256').update(verifier).digest('base64url');
-    // Validate the redirect target now (at storage time) instead of trusting
-    // it on the way out. The callback server only ever redirects to
-    // localhost-shaped origins, so anything else is dropped here.
+    const state = generateState();
+    const { verifier, challenge } = generatePkce();
+    // Validate the redirect target now (at storage time) so a forged Host
+    // header can't redirect the OAuth flow on the way out.
     const safeBackendUrl = backendUrl && this.isAllowedRedirectOrigin(backendUrl) ? backendUrl : '';
     this.pending.set(state, {
       verifier,
       agentId,
       userId,
       backendUrl: safeBackendUrl,
-      expiresAt: Date.now() + STATE_TTL_MS,
     });
     if (this.useCallbackServer) {
       await this.ensureCallbackServer();
@@ -77,7 +81,7 @@ export class OpenaiOauthService {
   }
 
   async exchangeCode(state: string, code: string): Promise<void> {
-    const pending = this.pending.get(state);
+    const pending = this.pending.peek(state);
     if (!pending) throw new Error('Invalid or expired OAuth state');
     if (pending.expiresAt < Date.now()) {
       this.pending.delete(state);
@@ -114,7 +118,7 @@ export class OpenaiOauthService {
       pending.agentId,
       pending.userId,
       'openai',
-      JSON.stringify(blob),
+      serializeOAuthTokenBlob(blob),
       'subscription',
     );
     try {
@@ -156,13 +160,8 @@ export class OpenaiOauthService {
 
   /** Parse an OAuth blob and return a valid access token, refreshing if expired. */
   async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
-    let blob: OAuthTokenBlob;
-    try {
-      blob = JSON.parse(rawValue) as OAuthTokenBlob;
-    } catch {
-      return null;
-    }
-    if (!blob.t || !blob.r || !blob.e) return null;
+    const blob = parseOAuthTokenBlob(rawValue);
+    if (!blob) return null;
     if (Date.now() < blob.e - 60_000) return blob.t;
     try {
       const refreshed = await this.refreshAccessToken(blob.r);
@@ -170,7 +169,7 @@ export class OpenaiOauthService {
         agentId,
         userId,
         'openai',
-        JSON.stringify(refreshed),
+        serializeOAuthTokenBlob(refreshed),
         'subscription',
       );
       this.logger.log(`OpenAI OAuth token refreshed for agent=${agentId}`);
@@ -202,7 +201,7 @@ export class OpenaiOauthService {
 
   /** Returns the number of pending OAuth states (for testing). */
   getPendingCount(): number {
-    return this.pending.size;
+    return this.pending.size();
   }
 
   /** Remove a pending OAuth state. */
@@ -251,7 +250,7 @@ export class OpenaiOauthService {
     const code = url.searchParams.get('code') ?? '';
     const state = url.searchParams.get('state') ?? '';
     const error = url.searchParams.get('error');
-    const appUrl = this.pending.get(state)?.backendUrl || '';
+    const appUrl = this.pending.peek(state)?.backendUrl || '';
     if (error) {
       const desc = url.searchParams.get('error_description') ?? error;
       this.logger.error(`OAuth callback error from provider: ${desc}`);
@@ -290,18 +289,11 @@ export class OpenaiOauthService {
   }
 
   private shutdownCallbackServerIfIdle(): void {
-    if (this.pending.size === 0 && this.callbackServer) {
+    if (this.pending.isEmpty() && this.callbackServer) {
       this.callbackServer.close();
       this.callbackServer = null;
       this.serverReady = null;
       this.logger.log('OAuth callback server shut down (no pending flows)');
-    }
-  }
-
-  private cleanupExpired(): void {
-    const now = Date.now();
-    for (const [key, val] of this.pending) {
-      if (val.expiresAt < now) this.pending.delete(key);
     }
   }
 }
