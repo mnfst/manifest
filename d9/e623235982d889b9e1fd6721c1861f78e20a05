@@ -1,0 +1,49 @@
+packages/frontend/src/components/SetupModal.tsx
+  s_bb6d20e442790c::t_1c8ce4d7df1575 46,63-65
+packages/frontend/src/components/Sidebar.tsx
+  s_bb6d20e442790c::t_83aed474aa0be3 5-10,23-33
+packages/frontend/src/styles/wizard.css
+  s_bb6d20e442790c::t_ed7ef6b83d777b 818-888
+packages/frontend/src/components/Header.tsx
+  s_bb6d20e442790c::t_ce41b7d0485dfd 227-229
+  s_bb6d20e442790c::t_9c037e06b8ef01 16-22,223-226,230-238
+.changeset/mobile-dashboard-phone.md
+  s_bb6d20e442790c::t_3819fc60f6863f 1-4
+  s_bb6d20e442790c::t_c253e3d1718b18 5
+packages/frontend/src/styles/modals.css
+  s_bb6d20e442790c::t_0d1713626221ec 75-82,357-445
+packages/frontend/src/App.tsx
+  s_bb6d20e442790c::t_46f28fa7c8c57f 45-49
+  s_bb6d20e442790c::t_d95609324cf50c 2-9,27,34,36-37,50-59,62
+  s_bb6d20e442790c::t_5c3f0add69a5d0 31-33,35
+  s_bb6d20e442790c::t_f1c516b1181388 60
+packages/frontend/tests/components/App.test.tsx
+  s_bb6d20e442790c::t_b21642eb3c9589 2-6,9,13-26,30-34,49,77-81,85-115
+packages/frontend/src/styles/theme.css
+  s_bb6d20e442790c::t_87267d8b100d77 1274
+  s_bb6d20e442790c::t_c6dda6925352ad 1185-1217,1266,1276,1278-1281,1301-1303,1305-1307,1313-1315,1318-1319,1322-1323,1338-1342,1345-1359,1364-1382,1386-1427,1431-1439,1447-1448
+  s_bb6d20e442790c::t_b78b998ae591c2 1343-1344,1383-1385
+  s_bb6d20e442790c::t_fe44d518c5d93d 1451-1455
+  s_bb6d20e442790c::t_26851bddaeb589 869-873,1222-1265,1267-1272,1277,1282-1293,1295-1299,1304,1308-1312,1316-1317,1320-1321,1324-1325,1440-1443
+  s_bb6d20e442790c::t_b6698a47430883 1273,1294
+packages/frontend/src/components/AgentTypeSelect.tsx
+  s_bb6d20e442790c::t_c264fe4bc7811b 80-82
+packages/frontend/src/styles/agent-type-select.css
+  s_bb6d20e442790c::t_f56f030fdcbf09 49-52,156-200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "d9e623235982d889b9e1fd6721c1861f78e20a05",
+  "prompts": {},
+  "sessions": {
+    "s_bb6d20e442790c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e259e-1987-7933-b90c-1d97896d0479",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
