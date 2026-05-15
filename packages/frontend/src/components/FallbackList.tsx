@@ -61,22 +61,17 @@ interface FallbackListProps {
   onConfigureParams?: () => void;
 }
 
-const FallbackAlternateRouteIcon: Component<{ size: number; class?: string }> = (p) => (
+const FallbackUndoIcon: Component<{ size: 20 | 16; class?: string }> = (p) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={p.size}
     height={p.size}
     class={p.class}
+    fill="currentColor"
     viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
     aria-hidden="true"
   >
-    <path d="M4 18h8a6 6 0 1 0 0-12h9" />
-    <path d="M18 4l3 2-3 2" />
+    <path d="M9 10h6c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H9V4L3 9l6 5z" />
   </svg>
 );
 
@@ -487,7 +482,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
         when={props.fallbacks.length > 0}
         fallback={
           <div class="fallback-list__empty">
-            <FallbackAlternateRouteIcon size={20} class="fallback-list__empty-icon" />
+            <FallbackUndoIcon size={20} class="fallback-list__empty-icon" />
             <span class="fallback-list__empty-title">No fallbacks</span>
             <span class="fallback-list__empty-desc">
               Add fallback models to guarantee a response if the provider fails.
@@ -501,7 +496,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                 <span class="spinner" />
               ) : (
                 <>
-                  <FallbackAlternateRouteIcon size={16} />
+                  <FallbackUndoIcon size={16} />
                   Add fallback
                 </>
               )}
@@ -519,7 +514,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
               <span class="spinner" />
             ) : (
               <>
-                <FallbackAlternateRouteIcon size={16} />
+                <FallbackUndoIcon size={16} />
                 Add fallback
               </>
             )}
