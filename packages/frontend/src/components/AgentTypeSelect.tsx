@@ -77,6 +77,9 @@ const AgentTypeSelect: Component<Props> = (props) => {
             class="agent-type-select__trigger-icon"
           />
         </Show>
+        <span class="agent-type-select__trigger-label">
+          {props.platform ? PLATFORM_LABELS[props.platform] : 'Select'}
+        </span>
         <svg
           class="agent-type-select__caret"
           xmlns="http://www.w3.org/2000/svg"
