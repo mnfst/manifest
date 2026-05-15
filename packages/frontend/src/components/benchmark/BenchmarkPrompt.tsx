@@ -10,9 +10,6 @@ interface Props {
   headersSlot?: JSX.Element;
 }
 
-// Soft cap on the textarea height so a long prompt doesn't push the model
-// columns off-screen on a small laptop. The "8 lines" target is by design;
-// past that the textarea scrolls internally.
 const MAX_PROMPT_LINES = 8;
 const PROMPT_LINE_HEIGHT_PX = 22;
 
@@ -33,10 +30,6 @@ const BenchmarkPrompt: Component<Props> = (props) => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    // Don't fire mid-IME composition (Japanese / Chinese / Korean users
-    // press Enter to confirm a candidate; without this they'd submit on
-    // every confirm). `keyCode === 229` is the legacy fallback browsers
-    // emit while composing.
     const composing =
       (event as KeyboardEvent & { isComposing?: boolean }).isComposing || event.keyCode === 229;
     if (composing) return;
@@ -58,36 +51,78 @@ const BenchmarkPrompt: Component<Props> = (props) => {
   };
 
   return (
-    <form
-      class="benchmark-prompt"
-      onSubmit={(event) => {
-        event.preventDefault();
-        submit();
-      }}
-    >
-      <textarea
-        ref={setRef}
-        class="benchmark-prompt__textarea"
-        placeholder="Type a prompt and send it to every model at once…"
-        value={props.value}
-        rows={1}
-        disabled={props.disabled && !props.running}
-        onInput={(event) => {
-          props.onChange(event.currentTarget.value);
-          autoGrow();
+    <div class="benchmark-prompt-wrapper">
+      <form
+        class="benchmark-prompt"
+        onSubmit={(event) => {
+          event.preventDefault();
+          submit();
         }}
-        onKeyDown={handleKeyDown}
-        aria-label="Benchmark prompt"
-      />
-      <Show when={props.headersSlot}>{props.headersSlot}</Show>
-      <button
-        type="submit"
-        class="benchmark-prompt__send"
-        disabled={props.disabled || props.value.trim().length === 0}
       >
-        {props.running ? 'Running…' : 'Send'}
-      </button>
-    </form>
+        <textarea
+          ref={setRef}
+          class="benchmark-prompt__textarea"
+          placeholder="Send a prompt to compare models..."
+          value={props.value}
+          rows={1}
+          disabled={props.disabled && !props.running}
+          onInput={(event) => {
+            props.onChange(event.currentTarget.value);
+            autoGrow();
+          }}
+          onKeyDown={handleKeyDown}
+          aria-label="Benchmark prompt"
+        />
+        <div class="benchmark-prompt__toolbar">
+          <div class="benchmark-prompt__toolbar-left">
+            <Show when={props.headersSlot}>{props.headersSlot}</Show>
+          </div>
+          <button
+            type="submit"
+            class="benchmark-prompt__send"
+            disabled={props.disabled || props.value.trim().length === 0}
+            aria-label={props.running ? 'Running' : 'Send prompt'}
+          >
+            <Show
+              when={!props.running}
+              fallback={
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="6"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-dasharray="28"
+                    stroke-dashoffset="8"
+                  >
+                    <animateTransform
+                      attributeName="transform"
+                      type="rotate"
+                      from="0 8 8"
+                      to="360 8 8"
+                      dur="0.8s"
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+                </svg>
+              }
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path
+                  d="M8 3L8 13M8 3L4 7M8 3L12 7"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  fill="none"
+                />
+              </svg>
+            </Show>
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

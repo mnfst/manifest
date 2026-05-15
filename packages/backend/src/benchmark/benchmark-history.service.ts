@@ -151,6 +151,7 @@ export class BenchmarkHistoryService {
         createdAt: r.created_at,
         modelCount: models.length,
         models,
+        starred: r.starred,
       };
     });
   }
@@ -179,6 +180,7 @@ export class BenchmarkHistoryService {
       createdAt: run.created_at,
       modelCount: columns.length,
       models: columns.map((c) => c.display_name ?? c.model),
+      starred: run.starred,
       columns: columns.map((c): BenchmarkHistoryColumn => {
         const hasMetrics =
           c.status === 'success' &&
@@ -207,6 +209,14 @@ export class BenchmarkHistoryService {
         };
       }),
     };
+  }
+
+  async toggleStar(userId: string, runId: string): Promise<boolean> {
+    const run = await this.runRepo.findOne({ where: { id: runId, user_id: userId } });
+    if (!run) throw new NotFoundException(`Benchmark run "${runId}" not found`);
+    run.starred = !run.starred;
+    await this.runRepo.save(run);
+    return run.starred;
   }
 
   private async pruneOldRuns(userId: string, agentId: string): Promise<void> {

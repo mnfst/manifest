@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import type {
   BenchmarkHistoryRunDetail,
   BenchmarkHistoryRunSummary,
@@ -45,5 +45,14 @@ export class BenchmarkController {
   ): Promise<BenchmarkHistoryRunDetail> {
     const agent = await this.resolveAgent.resolve(user.id, query.agentName);
     return this.historyService.getRun(user.id, params.runId, agent.id);
+  }
+
+  @Patch('runs/:runId/star')
+  async toggleStar(
+    @CurrentUser() user: AuthUser,
+    @Param() params: RunIdParamDto,
+  ): Promise<{ starred: boolean }> {
+    const starred = await this.historyService.toggleStar(user.id, params.runId);
+    return { starred };
   }
 }

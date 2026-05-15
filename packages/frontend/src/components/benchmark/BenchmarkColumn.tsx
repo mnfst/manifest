@@ -2,24 +2,21 @@ import { For, Show, type Component } from 'solid-js';
 import type { BenchmarkColumn as ColumnData } from '../../services/benchmark-store.js';
 import { formatCost, formatDuration, formatNumber } from '../../services/formatters.js';
 import { providerIcon } from '../ProviderIcon.jsx';
-import { resolveProviderId, inferProviderFromModel } from '../../services/routing-utils.js';
+import { resolveProviderId } from '../../services/routing-utils.js';
 import MarkdownContent from './MarkdownContent.jsx';
 
 interface Props {
   column: ColumnData;
   isCheapest: boolean;
   isFastest: boolean;
+  readOnly?: boolean;
   onRemove: (id: string) => void;
   onChangeModel: (id: string) => void;
   onRetry: (id: string) => void;
 }
 
 function providerIdFor(column: ColumnData): string {
-  return (
-    inferProviderFromModel(column.model) ??
-    resolveProviderId(column.provider) ??
-    column.provider.toLowerCase()
-  );
+  return resolveProviderId(column.provider) ?? column.provider.toLowerCase();
 }
 
 const BenchmarkColumn: Component<Props> = (props) => {
@@ -32,25 +29,55 @@ const BenchmarkColumn: Component<Props> = (props) => {
       aria-label={`Response from ${props.column.displayName}`}
     >
       <header class="benchmark-column__header">
-        <button
-          type="button"
-          class="benchmark-column__title"
-          onClick={() => props.onChangeModel(props.column.id)}
-          title="Change model"
+        <Show
+          when={!props.readOnly}
+          fallback={
+            <div class="benchmark-column__title benchmark-column__title--readonly">
+              <span class="benchmark-column__title-left">
+                <span class="benchmark-column__icon">
+                  {providerIcon(providerIdFor(props.column), 18)}
+                </span>
+                <span class="benchmark-column__name">{props.column.displayName}</span>
+              </span>
+            </div>
+          }
         >
-          <span class="benchmark-column__icon">
-            {providerIcon(providerIdFor(props.column), 18)}
-          </span>
-          <span class="benchmark-column__name">{props.column.displayName}</span>
-        </button>
-        <button
-          type="button"
-          class="benchmark-column__remove"
-          aria-label={`Remove ${props.column.displayName}`}
-          onClick={() => props.onRemove(props.column.id)}
-        >
-          ×
-        </button>
+          <button
+            type="button"
+            class="benchmark-column__title"
+            onClick={() => props.onChangeModel(props.column.id)}
+            title="Change model"
+          >
+            <span class="benchmark-column__title-left">
+              <span class="benchmark-column__icon">
+                {providerIcon(providerIdFor(props.column), 18)}
+              </span>
+              <span class="benchmark-column__name">{props.column.displayName}</span>
+            </span>
+            <span class="benchmark-column__edit-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
+                <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
+              </svg>
+            </span>
+          </button>
+        </Show>
+        <Show when={!props.readOnly}>
+          <button
+            type="button"
+            class="benchmark-column__remove"
+            aria-label={`Remove ${props.column.displayName}`}
+            onClick={() => props.onRemove(props.column.id)}
+          >
+            ×
+          </button>
+        </Show>
       </header>
 
       <div class="benchmark-column__body">
@@ -69,8 +96,24 @@ const BenchmarkColumn: Component<Props> = (props) => {
         </Show>
         <Show when={props.column.status === 'error'}>
           <div class="benchmark-column__error" role="alert">
-            <p>{props.column.error}</p>
-            <button type="button" onClick={() => props.onRetry(props.column.id)}>
+            <span class="benchmark-column__error-text">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M11 7h2v6h-2zm0 8h2v2h-2z" />
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2M5 19V5h14v14z" />
+              </svg>
+              {props.column.error}
+            </span>
+            <button
+              type="button"
+              class="btn btn--sm btn--primary"
+              onClick={() => props.onRetry(props.column.id)}
+            >
               Retry
             </button>
           </div>

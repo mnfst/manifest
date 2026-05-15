@@ -59,3 +59,13 @@ export function getBenchmarkRun(
     agentName,
   });
 }
+
+export async function toggleBenchmarkRunStar(runId: string): Promise<boolean> {
+  const res = await fetch(`/api/v1/benchmark/runs/${encodeURIComponent(runId)}/star`, {
+    method: 'PATCH',
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error('Failed to toggle star');
+  const data = (await res.json()) as { starred: boolean };
+  return data.starred;
+}

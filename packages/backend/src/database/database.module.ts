@@ -91,6 +91,7 @@ import { AddAgentSoftDelete1782200000000 } from './migrations/1782200000000-AddA
 import { AddModelRouteColumns1783000000000 } from './migrations/1783000000000-AddModelRouteColumns';
 import { DropLegacyRoutingColumns1784000000000 } from './migrations/1784000000000-DropLegacyRoutingColumns';
 import { AddBenchmarkHistory1785000000000 } from './migrations/1785000000000-AddBenchmarkHistory';
+import { AddBenchmarkRunStarred1786000000000 } from './migrations/1786000000000-AddBenchmarkRunStarred';
 
 const entities = [
   AgentMessage,
@@ -183,6 +184,7 @@ const migrations = [
   AddModelRouteColumns1783000000000,
   DropLegacyRoutingColumns1784000000000,
   AddBenchmarkHistory1785000000000,
+  AddBenchmarkRunStarred1786000000000,
 ];
 
 @Module({

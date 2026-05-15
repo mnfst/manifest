@@ -33,6 +33,7 @@ export interface BenchmarkHistoryRunSummary {
   createdAt: string;
   modelCount: number;
   models: string[];
+  starred: boolean;
 }
 
 export interface BenchmarkHistoryRunDetail extends BenchmarkHistoryRunSummary {

@@ -7,15 +7,25 @@ import {
   formatTrend,
 } from '../../services/formatters.js';
 import { getProvider } from '../../services/provider-utils.js';
-import { inferProviderFromModel, resolveProviderId } from '../../services/routing-utils.js';
+import { resolveProviderId } from '../../services/routing-utils.js';
 import { providerIcon } from '../ProviderIcon.jsx';
 
+const WinnerBadge: Component = () => (
+  <span class="benchmark-summary__winner-icon">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path d="M19 9.09V6c0-.55-.45-1-1-1h-3.09L12.7 2.79a.996.996 0 0 0-1.41 0L9.08 5H5.99c-.55 0-1 .45-1 1v3.09L2.78 11.3a.996.996 0 0 0 0 1.41l2.21 2.21v3.09c0 .55.45 1 1 1h3.09l2.21 2.21c.2.2.45.29.71.29s.51-.1.71-.29l2.21-2.21h3.09c.55 0 1-.45 1-1v-3.09l2.21-2.21a.996.996 0 0 0 0-1.41l-2.21-2.21Zm-8 6.33-2.71-2.71L9.7 11.3l1.29 1.29 3.29-3.29 1.41 1.41-4.71 4.71Z" />
+    </svg>
+  </span>
+);
+
 function providerIdFor(col: BenchmarkColumn): string {
-  return (
-    inferProviderFromModel(col.model) ??
-    resolveProviderId(col.provider) ??
-    col.provider.toLowerCase()
-  );
+  return resolveProviderId(col.provider) ?? col.provider.toLowerCase();
 }
 
 interface Props {
@@ -109,20 +119,29 @@ const BenchmarkSummaryTable: Component<Props> = (props) => {
                       <span class="benchmark-summary__provider-name">{providerName}</span>
                     </td>
                     <th scope="row">{col.displayName}</th>
-                    <td classList={{ 'benchmark-summary__winner': cost.isWinner }}>
+                    <td>
                       <span class="benchmark-summary__value">{cost.display}</span>
+                      <Show when={cost.isWinner}>
+                        <WinnerBadge />
+                      </Show>
                       <Show when={cost.delta}>
                         <span class="benchmark-summary__delta">{cost.delta}</span>
                       </Show>
                     </td>
-                    <td classList={{ 'benchmark-summary__winner': output.isWinner }}>
+                    <td>
                       <span class="benchmark-summary__value">{output.display}</span>
+                      <Show when={output.isWinner}>
+                        <WinnerBadge />
+                      </Show>
                       <Show when={output.delta}>
                         <span class="benchmark-summary__delta">{output.delta}</span>
                       </Show>
                     </td>
-                    <td classList={{ 'benchmark-summary__winner': duration.isWinner }}>
+                    <td>
                       <span class="benchmark-summary__value">{duration.display}</span>
+                      <Show when={duration.isWinner}>
+                        <WinnerBadge />
+                      </Show>
                       <Show when={duration.delta}>
                         <span class="benchmark-summary__delta">{duration.delta}</span>
                       </Show>

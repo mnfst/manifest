@@ -23,6 +23,9 @@ export class BenchmarkRun {
   @Column('text')
   prompt!: string;
 
+  @Column('boolean', { default: false })
+  starred!: boolean;
+
   @Column(timestampType(), { default: timestampDefault() })
   created_at!: string;
 

@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createRoot, createSignal } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import type { AuthType, AvailableModel, RoutingProvider } from './api.js';
 import { runBenchmark, type BenchmarkHistoryRunDetail, type BenchmarkRunResult } from './api.js';
@@ -32,7 +32,7 @@ export interface BenchmarkStore {
     authType: AuthType,
     displayName: string,
   ) => void;
-  runAll: (options?: RunOptions) => Promise<void>;
+  runAll: (options?: RunOptions) => string | undefined;
   retryColumn: (id: string, options?: RunOptions) => Promise<void>;
   cancelColumn: (id: string) => void;
   cancelAll: () => void;
@@ -40,6 +40,7 @@ export interface BenchmarkStore {
   isAnyRunning: () => boolean;
   pickDefaults: (available: AvailableModel[], connected: RoutingProvider[]) => void;
   loadHistoryRun: (detail: BenchmarkHistoryRunDetail) => void;
+  reset: () => void;
 }
 
 export const MAX_COLUMNS = 6;
@@ -227,14 +228,15 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     }
   };
 
-  const runAll: BenchmarkStore['runAll'] = async (options) => {
+  const runAll: BenchmarkStore['runAll'] = (options) => {
     const promptText = prompt().trim();
-    if (!promptText || columns.length === 0) return;
+    if (!promptText || columns.length === 0) return undefined;
     setHistory((prev) => (prev[0] === promptText ? prev : [promptText, ...prev].slice(0, 20)));
     const runId = newRunId();
-    await Promise.allSettled(
+    void Promise.allSettled(
       columns.map((c, i) => runSingle(c.id, promptText, runId, i, options?.requestHeaders)),
     );
+    return runId;
   };
 
   const retryColumn: BenchmarkStore['retryColumn'] = async (id, options) => {
@@ -379,6 +381,12 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     );
   };
 
+  const reset: BenchmarkStore['reset'] = () => {
+    cancelAll();
+    setColumns([]);
+    setPrompt('');
+  };
+
   return {
     get columns() {
       return columns;
@@ -396,5 +404,23 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     isAnyRunning,
     pickDefaults,
     loadHistoryRun,
+    reset,
   };
+}
+
+/**
+ * Cache stores by agent name so they survive navigation.
+ * Signals are kept alive via createRoot (no owner disposal on unmount).
+ */
+const storeCache = new Map<string, BenchmarkStore>();
+
+export function getOrCreateBenchmarkStore(agentName: string): BenchmarkStore {
+  let store = storeCache.get(agentName);
+  if (!store) {
+    createRoot(() => {
+      store = createBenchmarkStore(agentName);
+      storeCache.set(agentName, store!);
+    });
+  }
+  return store!;
 }
