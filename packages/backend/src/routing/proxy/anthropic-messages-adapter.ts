@@ -331,6 +331,12 @@ interface StreamState {
   // Monotonic counter — block indices must keep increasing across the whole
   // stream, including across reopens of the same kind.
   nextBlockIndexCounter: number;
+  // Reasoning_content that arrived while a tool_use was in-progress. Splitting
+  // a single OpenAI tool_call across two Anthropic tool_use blocks would break
+  // input-JSON reassembly on the client, so we defer the reasoning until the
+  // tool_use closes naturally (next text content or finalize) and then flush
+  // it as a self-contained thinking block.
+  deferredReasoning: string;
   finalUsage: JsonRecord | null;
   stopReason: string | null;
   endedMessage: boolean;
@@ -352,6 +358,7 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
     textOpened: false,
     toolCalls: new Map(),
     nextBlockIndexCounter: 0,
+    deferredReasoning: '',
     finalUsage: null,
     stopReason: null,
     endedMessage: false,
@@ -393,31 +400,37 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     // an Anthropic `thinking` content block so clients can echo it back on the
     // next turn — the upstream rejects follow-ups that don't return the trace.
     // Reasoning can also arrive *after* text or a tool_use has already started
-    // (providers don't guarantee reasoning is fully flushed before content),
-    // so close any in-progress block first and reopen thinking at a fresh
-    // index — Anthropic's SSE spec only allows one open content block at a
-    // time, and a stopped block must not receive more deltas.
+    // (providers don't guarantee reasoning is fully flushed before content).
+    // For text we close it and reopen a fresh thinking block — splitting text
+    // across blocks is fine because each Anthropic text block is independent.
+    // For an in-progress tool_use we instead BUFFER the reasoning: splitting a
+    // single OpenAI tool_call across two Anthropic tool_use blocks would break
+    // input-JSON reassembly on the client (each block must carry a complete
+    // input). The buffer is flushed when the tool_use eventually closes.
     if (typeof delta.reasoning_content === 'string' && delta.reasoning_content.length > 0) {
-      closeTextBlock(state, events);
-      closeOpenToolCalls(state, events);
-      if (!state.thinkingOpened) {
-        state.thinkingIndex = nextBlockIndex(state);
+      if (hasOpenToolCall(state)) {
+        state.deferredReasoning += delta.reasoning_content;
+      } else {
+        closeTextBlock(state, events);
+        if (!state.thinkingOpened) {
+          state.thinkingIndex = nextBlockIndex(state);
+          events.push(
+            formatMessagesEvent('content_block_start', {
+              type: 'content_block_start',
+              index: state.thinkingIndex,
+              content_block: { type: 'thinking', thinking: '' },
+            }),
+          );
+          state.thinkingOpened = true;
+        }
         events.push(
-          formatMessagesEvent('content_block_start', {
-            type: 'content_block_start',
+          formatMessagesEvent('content_block_delta', {
+            type: 'content_block_delta',
             index: state.thinkingIndex,
-            content_block: { type: 'thinking', thinking: '' },
+            delta: { type: 'thinking_delta', thinking: delta.reasoning_content },
           }),
         );
-        state.thinkingOpened = true;
       }
-      events.push(
-        formatMessagesEvent('content_block_delta', {
-          type: 'content_block_delta',
-          index: state.thinkingIndex,
-          delta: { type: 'thinking_delta', thinking: delta.reasoning_content },
-        }),
-      );
     }
 
     if (typeof delta.content === 'string' && delta.content.length > 0) {
@@ -529,7 +542,15 @@ function closeTextBlock(state: StreamState, events: string[]): void {
   state.textOpened = false;
 }
 
+function hasOpenToolCall(state: StreamState): boolean {
+  for (const entry of state.toolCalls.values()) {
+    if (entry.opened) return true;
+  }
+  return false;
+}
+
 function closeOpenToolCalls(state: StreamState, events: string[]): void {
+  let closedAny = false;
   for (const entry of state.toolCalls.values()) {
     if (!entry.opened) continue;
     events.push(
@@ -539,6 +560,37 @@ function closeOpenToolCalls(state: StreamState, events: string[]): void {
       }),
     );
     entry.opened = false;
+    closedAny = true;
+  }
+  // If reasoning_content arrived while the tool_use was streaming, we
+  // buffered it instead of splitting the tool_use. Now that the tool_use
+  // is done, flush the buffer as a self-contained thinking block at a fresh
+  // monotonic index. Self-contained (start+delta+stop in one go) so the
+  // surrounding state machine doesn't have to track a fresh in-progress
+  // thinking block here.
+  if (closedAny && state.deferredReasoning.length > 0) {
+    const idx = nextBlockIndex(state);
+    events.push(
+      formatMessagesEvent('content_block_start', {
+        type: 'content_block_start',
+        index: idx,
+        content_block: { type: 'thinking', thinking: '' },
+      }),
+    );
+    events.push(
+      formatMessagesEvent('content_block_delta', {
+        type: 'content_block_delta',
+        index: idx,
+        delta: { type: 'thinking_delta', thinking: state.deferredReasoning },
+      }),
+    );
+    events.push(
+      formatMessagesEvent('content_block_stop', {
+        type: 'content_block_stop',
+        index: idx,
+      }),
+    );
+    state.deferredReasoning = '';
   }
 }
 

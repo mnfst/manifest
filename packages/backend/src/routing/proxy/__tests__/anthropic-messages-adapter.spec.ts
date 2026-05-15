@@ -786,11 +786,13 @@ describe('Anthropic Messages adapter', () => {
       expect(events[9].data).toEqual({ type: 'content_block_stop', index: 2 });
     });
 
-    it('closes an in-progress tool_use before opening a new thinking block on late reasoning_content', () => {
-      // After a tool_use block has been started, a late reasoning_content chunk
-      // must (a) stop the tool_use block, then (b) reopen thinking at a fresh
-      // index. A second reasoning chunk in a row must not re-close the already
-      // stopped tool_use — the continue-on-closed branch of closeOpenToolCalls.
+    it('defers reasoning_content arriving during a tool_use and flushes it as a thinking block after the tool_use closes', () => {
+      // After a tool_use block has been started, late reasoning_content chunks
+      // are *buffered* rather than splitting the tool_use across two Anthropic
+      // blocks (each Anthropic tool_use block must carry its own complete
+      // input JSON — splitting would break client-side reassembly). The
+      // accumulated reasoning is emitted as a self-contained thinking block
+      // once the tool_use closes (here, on finalize via finish_reason).
       const t = createMessagesStreamTransformer('deepseek-v4-flash');
       const sse = flushChunks(t, [
         'data: {"choices":[{"delta":{"reasoning_content":"plan A"}}]}\n\n',
@@ -818,11 +820,10 @@ describe('Anthropic Messages adapter', () => {
         'content_block_stop', // thinking@0 closed by tool_use
         'content_block_start', // tool_use@1
         'content_block_delta', // input_json_delta
-        'content_block_stop', // tool_use@1 closed by late reasoning
-        'content_block_start', // thinking@2
-        'content_block_delta', // thinking_delta "plan B"
-        'content_block_delta', // thinking_delta " continued" (no second tool_use stop)
-        'content_block_stop', // thinking@2 closed on finalize
+        'content_block_stop', // tool_use@1 closed on finalize
+        'content_block_start', // thinking@2 — deferred reasoning flush
+        'content_block_delta', // single combined "plan B continued" delta
+        'content_block_stop', // thinking@2 closed
         'message_delta',
         'message_stop',
       ]);
@@ -831,12 +832,90 @@ describe('Anthropic Messages adapter', () => {
       expect(events[7].data).toMatchObject({ index: 2, content_block: { type: 'thinking' } });
       expect(events[8].data).toMatchObject({
         index: 2,
-        delta: { type: 'thinking_delta', thinking: 'plan B' },
+        delta: { type: 'thinking_delta', thinking: 'plan B continued' },
+      });
+      expect(events[9].data).toEqual({ type: 'content_block_stop', index: 2 });
+    });
+
+    it('keeps a fragmented tool_call on a single tool_use block when reasoning_content interleaves between arg chunks', () => {
+      // Regression for #1907 review: with the previous logic, late
+      // reasoning_content closed the in-progress tool_use, then the next
+      // tool_call delta for the same `index` re-emitted `content_block_start`
+      // against the same (already stopped) tool_use index, breaking
+      // monotonicity. We now buffer the reasoning so the tool_use stays open
+      // and accumulates all its arg chunks into a single Anthropic block —
+      // the only shape where the client can reassemble the input JSON.
+      const t = createMessagesStreamTransformer('deepseek-v4-flash');
+      const sse = flushChunks(t, [
+        'data: {"choices":[{"delta":{"reasoning_content":"plan"}}]}\n\n',
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"tc_1","function":{"name":"search","arguments":"{\\"q\\":"}}]}}]}\n\n',
+        'data: {"choices":[{"delta":{"reasoning_content":"late"}}]}\n\n',
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"1}"}}]}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}\n\n',
+      ]);
+
+      const events = sse
+        .split('\n\n')
+        .filter(Boolean)
+        .map((block) => {
+          const [eventLine, dataLine] = block.split('\n');
+          return {
+            event: eventLine!.replace('event: ', ''),
+            data: JSON.parse(dataLine!.replace('data: ', '')),
+          };
+        });
+
+      expect(events.map((e) => e.event)).toEqual([
+        'message_start',
+        'content_block_start', // thinking@0
+        'content_block_delta', // thinking_delta "plan"
+        'content_block_stop', // thinking@0 stopped before tool_use opens
+        'content_block_start', // tool_use@1
+        'content_block_delta', // input_json_delta "{\"q\":"
+        'content_block_delta', // input_json_delta "1}" — same block, no reopen at @1
+        'content_block_stop', // tool_use@1 stopped on finalize
+        'content_block_start', // thinking@2 — deferred "late"
+        'content_block_delta', // thinking_delta "late"
+        'content_block_stop', // thinking@2 stopped
+        'message_delta',
+        'message_stop',
+      ]);
+
+      // tool_use stays at index 1 across both arg chunks.
+      expect(events[4].data).toMatchObject({
+        index: 1,
+        content_block: { type: 'tool_use', id: 'tc_1', name: 'search' },
+      });
+      expect(events[5].data).toMatchObject({
+        index: 1,
+        delta: { type: 'input_json_delta', partial_json: '{"q":' },
+      });
+      expect(events[6].data).toMatchObject({
+        index: 1,
+        delta: { type: 'input_json_delta', partial_json: '1}' },
+      });
+      expect(events[7].data).toEqual({ type: 'content_block_stop', index: 1 });
+
+      // Deferred reasoning is flushed at a fresh monotonic index (2).
+      expect(events[8].data).toMatchObject({
+        index: 2,
+        content_block: { type: 'thinking' },
       });
       expect(events[9].data).toMatchObject({
         index: 2,
-        delta: { type: 'thinking_delta', thinking: ' continued' },
+        delta: { type: 'thinking_delta', thinking: 'late' },
       });
+      expect(events[10].data).toEqual({ type: 'content_block_stop', index: 2 });
+
+      // Indices are strictly monotonic — no reuse of a stopped block index.
+      const blockIndices = events
+        .filter((e) => e.event === 'content_block_start')
+        .map((e) => e.data.index);
+      expect(blockIndices).toEqual([0, 1, 2]);
+
+      // stop_reason still propagates from the upstream finish_reason.
+      const messageDelta = events.find((e) => e.event === 'message_delta');
+      expect(messageDelta?.data.delta.stop_reason).toBe('tool_use');
     });
 
     it('finalize is idempotent — second call returns null', () => {
