@@ -212,11 +212,19 @@ export class BenchmarkHistoryService {
   }
 
   async toggleStar(userId: string, runId: string): Promise<boolean> {
-    const run = await this.runRepo.findOne({ where: { id: runId, user_id: userId } });
-    if (!run) throw new NotFoundException(`Benchmark run "${runId}" not found`);
-    run.starred = !run.starred;
-    await this.runRepo.save(run);
-    return run.starred;
+    const result = await this.runRepo
+      .createQueryBuilder()
+      .update(BenchmarkRun)
+      .set({ starred: () => 'NOT starred' })
+      .where('id = :runId AND user_id = :userId', { runId, userId })
+      .returning('starred')
+      .execute();
+
+    if (result.affected === 0) {
+      throw new NotFoundException(`Benchmark run "${runId}" not found`);
+    }
+
+    return result.raw[0].starred;
   }
 
   private async pruneOldRuns(userId: string, agentId: string): Promise<void> {

@@ -391,7 +391,7 @@
   cursor: pointer;
   font-family: var(--font-mono);
   font-size: 12px;
-  color: #020817;
+  color: hsl(var(--foreground));
   user-select: none;
   transition: background var(--transition-fast, 120ms ease);
 }
@@ -418,7 +418,7 @@
   margin: 0;
   font-family: var(--font-mono);
   font-size: 12px;
-  color: #020817;
+  color: hsl(var(--foreground));
 }
 
 .benchmark-column__headers-list dt {
@@ -427,7 +427,7 @@
 }
 
 .benchmark-column__headers-list dd {
-  color: #020817;
+  color: hsl(var(--foreground));
   margin: 0;
   word-break: break-all;
 }
