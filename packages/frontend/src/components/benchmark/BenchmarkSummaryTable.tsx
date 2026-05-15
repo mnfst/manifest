@@ -14,8 +14,8 @@ const WinnerBadge: Component = () => (
   <span class="benchmark-summary__winner-icon">
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="14"
-      height="14"
+      width="18"
+      height="18"
       fill="currentColor"
       viewBox="0 0 24 24"
     >

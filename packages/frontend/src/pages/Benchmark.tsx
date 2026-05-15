@@ -90,31 +90,29 @@ function findDisplayName(
   return match?.display_name ?? modelName;
 }
 
-function findWinners(columns: readonly ColumnData[]): { cheapestId?: string; fastestId?: string } {
+function findWinners(columns: readonly ColumnData[]): {
+  cheapestCost?: number;
+  fastestDuration?: number;
+} {
   const success = columns.filter((c) => c.status === 'success' && c.metrics);
   if (success.length < 2) return {};
 
-  let cheapestId: string | undefined;
   let cheapestCost = Number.POSITIVE_INFINITY;
   for (const c of success) {
     const cost = c.metrics?.cost;
-    if (cost != null && cost < cheapestCost) {
-      cheapestCost = cost;
-      cheapestId = c.id;
-    }
+    if (cost != null && cost < cheapestCost) cheapestCost = cost;
   }
 
-  let fastestId: string | undefined;
   let fastestDuration = Number.POSITIVE_INFINITY;
   for (const c of success) {
     const dur = c.metrics?.durationMs ?? Number.POSITIVE_INFINITY;
-    if (dur < fastestDuration) {
-      fastestDuration = dur;
-      fastestId = c.id;
-    }
+    if (dur < fastestDuration) fastestDuration = dur;
   }
 
-  return { cheapestId, fastestId };
+  return {
+    cheapestCost: cheapestCost < Number.POSITIVE_INFINITY ? cheapestCost : undefined,
+    fastestDuration: fastestDuration < Number.POSITIVE_INFINITY ? fastestDuration : undefined,
+  };
 }
 
 const Benchmark: Component = () => {
@@ -343,6 +341,7 @@ const Benchmark: Component = () => {
     // If clicking on the live (currently running) run, just show live columns
     if (runId === liveRunId()) {
       setViewingHistory(null);
+      setCompletedResults(null);
       setActiveRunId(runId);
       setSearchParams({ run: runId });
       return;
@@ -441,8 +440,13 @@ const Benchmark: Component = () => {
             {(col) => (
               <BenchmarkColumn
                 column={col}
-                isCheapest={winners().cheapestId === col.id}
-                isFastest={winners().fastestId === col.id}
+                isCheapest={
+                  col.metrics?.cost != null && col.metrics.cost === winners().cheapestCost
+                }
+                isFastest={
+                  col.metrics?.durationMs != null &&
+                  col.metrics.durationMs === winners().fastestDuration
+                }
                 readOnly={!!viewingHistory() || !hasConnectedProviders()}
                 onRemove={viewingHistory() ? () => {} : store.removeColumn}
                 onChangeModel={viewingHistory() ? () => {} : setPickerForColumn}

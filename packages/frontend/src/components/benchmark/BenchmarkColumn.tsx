@@ -1,4 +1,4 @@
-import { For, Show, type Component } from 'solid-js';
+import { createSignal, For, Show, type Component } from 'solid-js';
 import type { BenchmarkColumn as ColumnData } from '../../services/benchmark-store.js';
 import { formatCost, formatDuration, formatNumber } from '../../services/formatters.js';
 import { providerIcon } from '../ProviderIcon.jsx';
@@ -109,13 +109,15 @@ const BenchmarkColumn: Component<Props> = (props) => {
               </svg>
               {props.column.error}
             </span>
-            <button
-              type="button"
-              class="btn btn--sm btn--primary"
-              onClick={() => props.onRetry(props.column.id)}
-            >
-              Retry
-            </button>
+            <Show when={!props.readOnly}>
+              <button
+                type="button"
+                class="btn btn--sm btn--primary"
+                onClick={() => props.onRetry(props.column.id)}
+              >
+                Retry
+              </button>
+            </Show>
           </div>
         </Show>
       </div>
@@ -123,16 +125,26 @@ const BenchmarkColumn: Component<Props> = (props) => {
       <footer class="benchmark-column__metrics" aria-label="Response metrics">
         <div class="benchmark-column__metric">
           <span class="benchmark-column__metric-label">Cost</span>
-          <span class="benchmark-column__metric-value">
-            {props.column.metrics?.cost != null
-              ? (formatCost(props.column.metrics.cost) ?? metricsDash)
-              : metricsDash}
-          </span>
-          <Show when={props.isCheapest && props.column.status === 'success'}>
-            <span class="benchmark-column__win-chip benchmark-column__win-chip--cost">
-              Cheapest
+          <span class="benchmark-column__metric-value-row">
+            <span class="benchmark-column__metric-value">
+              {props.column.metrics?.cost != null
+                ? (formatCost(props.column.metrics.cost) ?? metricsDash)
+                : metricsDash}
             </span>
-          </Show>
+            <Show when={props.isCheapest && props.column.status === 'success'}>
+              <span class="benchmark-column__win-badge" title="Cheapest model for this request">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M19 9.09V6c0-.55-.45-1-1-1h-3.09L12.7 2.79a.996.996 0 0 0-1.41 0L9.08 5H5.99c-.55 0-1 .45-1 1v3.09L2.78 11.3a.996.996 0 0 0 0 1.41l2.21 2.21v3.09c0 .55.45 1 1 1h3.09l2.21 2.21c.2.2.45.29.71.29s.51-.1.71-.29l2.21-2.21h3.09c.55 0 1-.45 1-1v-3.09l2.21-2.21a.996.996 0 0 0 0-1.41l-2.21-2.21Zm-8 6.33-2.71-2.71L9.7 11.3l1.29 1.29 3.29-3.29 1.41 1.41-4.71 4.71Z" />
+                </svg>
+              </span>
+            </Show>
+          </span>
         </div>
         <div class="benchmark-column__metric">
           <span class="benchmark-column__metric-label">Output</span>
@@ -142,31 +154,66 @@ const BenchmarkColumn: Component<Props> = (props) => {
         </div>
         <div class="benchmark-column__metric">
           <span class="benchmark-column__metric-label">Duration</span>
-          <span class="benchmark-column__metric-value">
-            {props.column.metrics ? formatDuration(props.column.metrics.durationMs) : metricsDash}
-          </span>
-          <Show when={props.isFastest && props.column.status === 'success'}>
-            <span class="benchmark-column__win-chip benchmark-column__win-chip--speed">
-              Fastest
+          <span class="benchmark-column__metric-value-row">
+            <span class="benchmark-column__metric-value">
+              {props.column.metrics ? formatDuration(props.column.metrics.durationMs) : metricsDash}
             </span>
-          </Show>
+            <Show when={props.isFastest && props.column.status === 'success'}>
+              <span class="benchmark-column__win-badge" title="Fastest model for this request">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M19 9.09V6c0-.55-.45-1-1-1h-3.09L12.7 2.79a.996.996 0 0 0-1.41 0L9.08 5H5.99c-.55 0-1 .45-1 1v3.09L2.78 11.3a.996.996 0 0 0 0 1.41l2.21 2.21v3.09c0 .55.45 1 1 1h3.09l2.21 2.21c.2.2.45.29.71.29s.51-.1.71-.29l2.21-2.21h3.09c.55 0 1-.45 1-1v-3.09l2.21-2.21a.996.996 0 0 0 0-1.41l-2.21-2.21Zm-8 6.33-2.71-2.71L9.7 11.3l1.29 1.29 3.29-3.29 1.41 1.41-4.71 4.71Z" />
+                </svg>
+              </span>
+            </Show>
+          </span>
         </div>
       </footer>
 
       <Show when={props.column.headers && Object.keys(props.column.headers).length > 0}>
-        <details class="benchmark-column__headers">
-          <summary>Response headers</summary>
-          <dl>
-            <For each={Object.entries(props.column.headers ?? {})}>
-              {([k, v]) => (
-                <>
-                  <dt>{k}</dt>
-                  <dd>{v}</dd>
-                </>
-              )}
-            </For>
-          </dl>
-        </details>
+        {(() => {
+          const [open, setOpen] = createSignal(false);
+          return (
+            <div class="benchmark-column__headers">
+              <button
+                type="button"
+                class="benchmark-column__headers-toggle"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open()}
+              >
+                <span>Response headers</span>
+                <svg
+                  class="benchmark-column__headers-caret"
+                  classList={{ 'benchmark-column__headers-caret--open': open() }}
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M17.35 8H6.65c-.64 0-.99.76-.56 1.24l5.35 6.11c.3.34.83.34 1.13 0l5.35-6.11C18.34 8.76 18 8 17.36 8Z" />
+                </svg>
+              </button>
+              <Show when={open()}>
+                <dl class="benchmark-column__headers-list">
+                  <For each={Object.entries(props.column.headers ?? {})}>
+                    {([k, v]) => (
+                      <>
+                        <dt>{k}</dt>
+                        <dd>{v}</dd>
+                      </>
+                    )}
+                  </For>
+                </dl>
+              </Show>
+            </div>
+          );
+        })()}
       </Show>
     </section>
   );

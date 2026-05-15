@@ -362,55 +362,72 @@
   font-variant-numeric: tabular-nums;
 }
 
-.benchmark-column__win-chip {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 1px 6px;
-  border-radius: 999px;
-  margin-top: 2px;
-  font-weight: 500;
+.benchmark-column__metric-value-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.benchmark-column__win-chip--cost {
-  background: hsl(var(--success) / 0.15);
-  color: hsl(var(--success));
-}
-
-.benchmark-column__win-chip--speed {
-  background: hsl(var(--chart-1) / 0.18);
-  color: hsl(var(--chart-1));
+.benchmark-column__win-badge {
+  display: inline-flex;
+  align-items: center;
+  color: #5ecfca;
+  cursor: default;
 }
 
 .benchmark-column__headers {
   border-top: 1px solid hsl(var(--border));
-  padding: 8px 12px;
-  font-size: 12px;
   background: hsl(var(--card));
 }
 
-.benchmark-column__headers summary {
+.benchmark-column__headers-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
   cursor: pointer;
-  color: hsl(var(--muted-foreground));
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #020817;
   user-select: none;
+  transition: background var(--transition-fast, 120ms ease);
 }
 
-.benchmark-column__headers dl {
+.benchmark-column__headers-toggle:hover {
+  background: hsl(var(--accent));
+}
+
+.benchmark-column__headers-caret {
+  color: hsl(var(--muted-foreground));
+  transition: transform 150ms ease;
+  transform: rotate(-90deg);
+}
+
+.benchmark-column__headers-caret--open {
+  transform: rotate(0deg);
+}
+
+.benchmark-column__headers-list {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2px 12px;
-  margin: 8px 0 0;
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  font-size: 11px;
+  gap: 4px 16px;
+  padding: 8px 12px 10px;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #020817;
 }
 
-.benchmark-column__headers dt {
+.benchmark-column__headers-list dt {
   color: hsl(var(--muted-foreground));
   font-weight: 500;
 }
 
-.benchmark-column__headers dd {
-  color: hsl(var(--card-foreground));
+.benchmark-column__headers-list dd {
+  color: #020817;
   margin: 0;
   word-break: break-all;
 }
@@ -597,6 +614,7 @@
 }
 
 .benchmark-prompt--info {
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px 10px 20px;
@@ -1220,9 +1238,11 @@
   transition: all var(--transition-fast, 120ms ease);
 }
 
-.benchmark-recent__more:hover {
+.benchmark-recent__more:hover,
+.benchmark-recent__more:focus-visible {
   background: hsl(var(--muted));
   color: hsl(var(--foreground));
+  opacity: 1;
 }
 
 .benchmark-recent__menu-backdrop {
