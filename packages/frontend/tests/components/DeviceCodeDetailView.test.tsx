@@ -7,6 +7,7 @@ vi.mock("../../src/services/api.js", () => ({
   disconnectProvider: vi.fn(),
   pollMinimaxOAuth: vi.fn(),
   startMinimaxOAuth: vi.fn(),
+  renameProviderKey: vi.fn(),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -14,10 +15,10 @@ vi.mock("../../src/services/toast-store.js", () => ({
 }));
 
 import DeviceCodeDetailView from "../../src/components/DeviceCodeDetailView";
-import { connectProvider } from "../../src/services/api.js";
+import { connectProvider, disconnectProvider, renameProviderKey } from "../../src/services/api.js";
 import { toast } from "../../src/services/toast-store.js";
 import { getProvider } from "../../src/services/provider-utils";
-import type { AuthType } from "../../src/services/api.js";
+import type { AuthType, RoutingProvider } from "../../src/services/api.js";
 
 const mockConnectProvider = connectProvider as ReturnType<typeof vi.fn>;
 const mockToast = toast as {
@@ -155,5 +156,124 @@ describe("DeviceCodeDetailView — MiniMax Coding Plan token alternative", () =>
     expect(
       screen.queryByText('MiniMax subscription tokens start with "sk-cp-"'),
     ).toBeNull();
+  });
+});
+
+const mockDisconnectProvider = disconnectProvider as ReturnType<typeof vi.fn>;
+const mockRenameProviderKey = renameProviderKey as ReturnType<typeof vi.fn>;
+
+function makeKey(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
+  return {
+    id: "key-1",
+    provider: "minimax",
+    auth_type: "subscription",
+    is_active: true,
+    has_api_key: true,
+    key_prefix: null,
+    label: "Account 1",
+    priority: 1,
+    region: null,
+    connected_at: "2025-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+function renderMultiKeyMinimax(keys: RoutingProvider[]) {
+  const provDef = getProvider("minimax")!;
+  const [busy, setBusy] = createSignal(false);
+  const [authType] = createSignal<AuthType>("subscription");
+  const onBack = vi.fn();
+  const onUpdate = vi.fn();
+  const onClose = vi.fn();
+  const result = render(() => (
+    <DeviceCodeDetailView
+      provDef={provDef}
+      provId="minimax"
+      agentName="test-agent"
+      connected={() => true}
+      selectedAuthType={authType}
+      busy={busy}
+      setBusy={setBusy}
+      onBack={onBack}
+      onUpdate={onUpdate}
+      onClose={onClose}
+      activeKeys={() => keys}
+    />
+  ));
+  return { ...result, onBack, onUpdate, onClose };
+}
+
+describe("DeviceCodeDetailView — multi-key", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("renders multi-key list when activeKeys has 2+ items", () => {
+    const keys = [
+      makeKey({ id: "k1", label: "Work" }),
+      makeKey({ id: "k2", label: "Personal" }),
+    ];
+    renderMultiKeyMinimax(keys);
+    expect(screen.getByText("Accounts")).toBeDefined();
+    expect(screen.getByText("Work")).toBeDefined();
+    expect(screen.getByText("Personal")).toBeDefined();
+  });
+
+  it("rename flow: clicking Rename shows input and saving calls renameProviderKey", async () => {
+    mockRenameProviderKey.mockResolvedValue({ id: "k1", label: "New", priority: 1 });
+    const keys = [
+      makeKey({ id: "k1", label: "Old" }),
+      makeKey({ id: "k2", label: "Other" }),
+    ];
+    const { onUpdate } = renderMultiKeyMinimax(keys);
+
+    const renameButtons = screen.getAllByText("Rename");
+    fireEvent.click(renameButtons[0]);
+
+    const input = screen.getByLabelText("Rename Old");
+    fireEvent.input(input, { target: { value: "New" } });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(mockRenameProviderKey).toHaveBeenCalledWith(
+        "test-agent",
+        "minimax",
+        "Old",
+        "New",
+        "subscription",
+      );
+    });
+    expect(mockToast.success).toHaveBeenCalledWith('Renamed to "New"');
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it("delete individual key calls disconnectProvider with label", async () => {
+    mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+    const keys = [
+      makeKey({ id: "k1", label: "Primary" }),
+      makeKey({ id: "k2", label: "Secondary" }),
+    ];
+    const { onUpdate } = renderMultiKeyMinimax(keys);
+
+    fireEvent.click(screen.getByLabelText("Delete account Primary"));
+
+    await waitFor(() => {
+      expect(mockDisconnectProvider).toHaveBeenCalledWith(
+        "test-agent",
+        "minimax",
+        "subscription",
+        "Primary",
+      );
+    });
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it("shows Disconnect all button in multi-key mode", () => {
+    const keys = [
+      makeKey({ id: "k1", label: "A" }),
+      makeKey({ id: "k2", label: "B" }),
+    ];
+    renderMultiKeyMinimax(keys);
+    expect(screen.getByText("Disconnect all")).toBeDefined();
   });
 });

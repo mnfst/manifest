@@ -7,6 +7,7 @@ const mockSubmitAnthropicOAuth = vi.fn();
 const mockRevokeAnthropicOAuth = vi.fn();
 const mockGetAnthropicOAuthPending = vi.fn();
 const mockDisconnectProvider = vi.fn();
+const mockRenameProviderKey = vi.fn();
 const mockToastError = vi.fn();
 const mockToastSuccess = vi.fn();
 
@@ -16,6 +17,7 @@ vi.mock('../../src/services/api.js', () => ({
   revokeAnthropicOAuth: (...args: unknown[]) => mockRevokeAnthropicOAuth(...args),
   getAnthropicOAuthPending: (...args: unknown[]) => mockGetAnthropicOAuthPending(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
+  renameProviderKey: (...args: unknown[]) => mockRenameProviderKey(...args),
 }));
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -27,6 +29,7 @@ vi.mock('../../src/services/toast-store.js', () => ({
 
 import AnthropicOAuthDetailView from '../../src/components/AnthropicOAuthDetailView';
 import type { ProviderDef } from '../../src/services/providers.js';
+import type { RoutingProvider } from '../../src/services/api.js';
 
 const provDef: ProviderDef = {
   id: 'anthropic',
@@ -314,5 +317,120 @@ describe('AnthropicOAuthDetailView', () => {
     fireEvent.click(screen.getByText('Sign in with Claude'));
     await waitFor(() => expect(mockStartAnthropicOAuth).toHaveBeenCalled());
     expect(screen.getByText('Sign in with Claude')).toBeDefined();
+  });
+});
+
+function makeKey(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
+  return {
+    id: 'key-1',
+    provider: 'anthropic',
+    auth_type: 'subscription',
+    is_active: true,
+    has_api_key: true,
+    key_prefix: null,
+    label: 'Account 1',
+    priority: 1,
+    region: null,
+    connected_at: '2025-01-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+function renderMultiKeyView(keys: RoutingProvider[]) {
+  const [busy, setBusy] = createSignal(false);
+  const onBack = vi.fn();
+  const onUpdate = vi.fn();
+  const onClose = vi.fn();
+  const result = render(() => (
+    <AnthropicOAuthDetailView
+      provDef={provDef}
+      provId="anthropic"
+      agentName="test-agent"
+      connected={() => true}
+      selectedAuthType={() => 'subscription'}
+      busy={busy}
+      setBusy={setBusy}
+      onBack={onBack}
+      onUpdate={onUpdate}
+      onClose={onClose}
+      activeKeys={() => keys}
+    />
+  ));
+  return { ...result, onBack, onUpdate, onClose };
+}
+
+describe('AnthropicOAuthDetailView — multi-key', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetAnthropicOAuthPending.mockResolvedValue({ state: null });
+  });
+
+  it('renders the multi-key list when activeKeys has 2+ items', () => {
+    const keys = [
+      makeKey({ id: 'k1', label: 'Work' }),
+      makeKey({ id: 'k2', label: 'Personal' }),
+    ];
+    renderMultiKeyView(keys);
+    expect(screen.getByText('Accounts')).toBeDefined();
+    expect(screen.getByText('Work')).toBeDefined();
+    expect(screen.getByText('Personal')).toBeDefined();
+  });
+
+  it('rename flow: clicking Rename shows input and saving calls renameProviderKey', async () => {
+    mockRenameProviderKey.mockResolvedValue({ id: 'k1', label: 'New', priority: 1 });
+    const keys = [
+      makeKey({ id: 'k1', label: 'Old' }),
+      makeKey({ id: 'k2', label: 'Other' }),
+    ];
+    const { onUpdate } = renderMultiKeyView(keys);
+
+    const renameButtons = screen.getAllByText('Rename');
+    fireEvent.click(renameButtons[0]);
+
+    const input = screen.getByLabelText('Rename Old');
+    fireEvent.input(input, { target: { value: 'New' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => {
+      expect(mockRenameProviderKey).toHaveBeenCalledWith(
+        'test-agent',
+        'anthropic',
+        'Old',
+        'New',
+        'subscription',
+      );
+    });
+    expect(mockToastSuccess).toHaveBeenCalledWith('Renamed to "New"');
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('delete individual key calls disconnectProvider with label', async () => {
+    mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+    const keys = [
+      makeKey({ id: 'k1', label: 'Primary' }),
+      makeKey({ id: 'k2', label: 'Secondary' }),
+    ];
+    const { onUpdate } = renderMultiKeyView(keys);
+
+    fireEvent.click(screen.getByLabelText('Delete account Primary'));
+
+    await waitFor(() => {
+      expect(mockDisconnectProvider).toHaveBeenCalledWith(
+        'test-agent',
+        'anthropic',
+        'subscription',
+        'Primary',
+      );
+    });
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('shows "Disconnect all" button in multi-key mode', () => {
+    const keys = [
+      makeKey({ id: 'k1', label: 'A' }),
+      makeKey({ id: 'k2', label: 'B' }),
+    ];
+    renderMultiKeyView(keys);
+    expect(screen.getByText('Disconnect all')).toBeDefined();
   });
 });

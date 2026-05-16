@@ -1,0 +1,243 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
+import { createSignal } from 'solid-js';
+
+const mockGetOpenaiOAuthUrl = vi.fn();
+const mockSubmitOpenaiOAuthCallback = vi.fn();
+const mockRevokeOpenaiOAuth = vi.fn();
+const mockDisconnectProvider = vi.fn();
+const mockRenameProviderKey = vi.fn();
+const mockToastError = vi.fn();
+const mockToastSuccess = vi.fn();
+
+vi.mock('../../src/services/api.js', () => ({
+  getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+  submitOpenaiOAuthCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
+  revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+  disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
+  renameProviderKey: (...args: unknown[]) => mockRenameProviderKey(...args),
+}));
+
+vi.mock('../../src/services/toast-store.js', () => ({
+  toast: {
+    error: (...args: unknown[]) => mockToastError(...args),
+    success: (...args: unknown[]) => mockToastSuccess(...args),
+  },
+}));
+
+vi.mock('../../src/services/oauth-popup.js', () => ({
+  monitorOAuthPopup: vi.fn(),
+}));
+
+import OAuthDetailView from '../../src/components/OAuthDetailView';
+import type { ProviderDef } from '../../src/services/providers.js';
+import type { RoutingProvider } from '../../src/services/api.js';
+
+const provDef: ProviderDef = {
+  id: 'openai',
+  name: 'OpenAI',
+  color: '#10a37f',
+  initial: 'O',
+  subtitle: '',
+  models: [],
+  keyPrefix: 'sk-',
+  minKeyLength: 20,
+  keyPlaceholder: '',
+  supportsSubscription: true,
+  subscriptionLabel: 'ChatGPT Plus subscription',
+  subscriptionAuthMode: 'oauth',
+};
+
+function makeKey(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
+  return {
+    id: 'key-1',
+    provider: 'openai',
+    auth_type: 'subscription',
+    is_active: true,
+    has_api_key: true,
+    key_prefix: null,
+    label: 'Account 1',
+    priority: 1,
+    region: null,
+    connected_at: '2025-01-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+function renderView(opts: {
+  connected?: boolean;
+  activeKeys?: RoutingProvider[];
+  addKeyOpen?: boolean;
+} = {}) {
+  const [busy, setBusy] = createSignal(false);
+  const [addKeyOpen, setAddKeyOpen] = createSignal(opts.addKeyOpen ?? false);
+  const onBack = vi.fn();
+  const onUpdate = vi.fn();
+  const onClose = vi.fn();
+  const keys = opts.activeKeys ?? [];
+  const result = render(() => (
+    <OAuthDetailView
+      provDef={provDef}
+      provId="openai"
+      agentName="test-agent"
+      connected={() => opts.connected ?? false}
+      selectedAuthType={() => 'subscription'}
+      busy={busy}
+      setBusy={setBusy}
+      onBack={onBack}
+      onUpdate={onUpdate}
+      onClose={onClose}
+      addKeyOpen={addKeyOpen}
+      setAddKeyOpen={setAddKeyOpen}
+      activeKeys={() => keys}
+    />
+  ));
+  return { ...result, onBack, onUpdate, onClose, setAddKeyOpen };
+}
+
+describe('OAuthDetailView', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('shows "Log in with" button when not connected', () => {
+    renderView();
+    expect(screen.getByText('Log in with OpenAI')).toBeDefined();
+  });
+
+  it('shows "Connected via" text and Disconnect button for single-key connected state', () => {
+    renderView({ connected: true, activeKeys: [makeKey()] });
+    expect(screen.getByText(/Connected via ChatGPT Plus subscription/)).toBeDefined();
+    expect(screen.getByText('Disconnect')).toBeDefined();
+  });
+
+  it('shows "Accounts" label and lists both keys in multi-key mode', () => {
+    const keys = [
+      makeKey({ id: 'k1', label: 'Work account' }),
+      makeKey({ id: 'k2', label: 'Personal account' }),
+    ];
+    renderView({ connected: true, activeKeys: keys });
+    expect(screen.getByText('Accounts')).toBeDefined();
+    expect(screen.getByText('Work account')).toBeDefined();
+    expect(screen.getByText('Personal account')).toBeDefined();
+  });
+
+  it('shows "Disconnect all" button in multi-key mode', () => {
+    const keys = [
+      makeKey({ id: 'k1', label: 'A' }),
+      makeKey({ id: 'k2', label: 'B' }),
+    ];
+    renderView({ connected: true, activeKeys: keys });
+    expect(screen.getByText('Disconnect all')).toBeDefined();
+  });
+
+  it('clicking Rename shows input and saving calls renameProviderKey', async () => {
+    mockRenameProviderKey.mockResolvedValue({ id: 'k1', label: 'New name', priority: 1 });
+    const keys = [
+      makeKey({ id: 'k1', label: 'Old name' }),
+      makeKey({ id: 'k2', label: 'Other' }),
+    ];
+    const { onUpdate } = renderView({ connected: true, activeKeys: keys });
+
+    const renameButtons = screen.getAllByText('Rename');
+    fireEvent.click(renameButtons[0]);
+
+    const input = screen.getByLabelText('Rename Old name');
+    fireEvent.input(input, { target: { value: 'New name' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => {
+      expect(mockRenameProviderKey).toHaveBeenCalledWith(
+        'test-agent',
+        'openai',
+        'Old name',
+        'New name',
+        'subscription',
+      );
+    });
+    expect(mockToastSuccess).toHaveBeenCalledWith('Renamed to "New name"');
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('clicking delete on a key calls disconnectProvider with label', async () => {
+    mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+    const keys = [
+      makeKey({ id: 'k1', label: 'Primary' }),
+      makeKey({ id: 'k2', label: 'Secondary' }),
+    ];
+    const { onUpdate } = renderView({ connected: true, activeKeys: keys });
+
+    fireEvent.click(screen.getByLabelText('Delete account Primary'));
+
+    await waitFor(() => {
+      expect(mockDisconnectProvider).toHaveBeenCalledWith(
+        'test-agent',
+        'openai',
+        'subscription',
+        'Primary',
+      );
+    });
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('addKeyOpen effect triggers getOpenaiOAuthUrl when connected', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ connected: true, activeKeys: [makeKey()], addKeyOpen: true });
+
+    await waitFor(() => {
+      expect(mockGetOpenaiOAuthUrl).toHaveBeenCalledWith('test-agent');
+    });
+  });
+
+  it('shows popup-blocked toast when window.open returns null', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue(null);
+
+    renderView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith(expect.stringMatching(/Popup was blocked/));
+    });
+  });
+
+  it('Disconnect all calls disconnectProvider without label', async () => {
+    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
+    mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+    const keys = [
+      makeKey({ id: 'k1', label: 'A' }),
+      makeKey({ id: 'k2', label: 'B' }),
+    ];
+    const { onBack, onUpdate } = renderView({ connected: true, activeKeys: keys });
+
+    fireEvent.click(screen.getByText('Disconnect all'));
+
+    await waitFor(() => {
+      expect(mockDisconnectProvider).toHaveBeenCalledWith(
+        'test-agent',
+        'openai',
+        'subscription',
+      );
+    });
+    expect(onBack).toHaveBeenCalled();
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('commitRename cancels if new label is same as old', async () => {
+    const keys = [
+      makeKey({ id: 'k1', label: 'Same' }),
+      makeKey({ id: 'k2', label: 'Other' }),
+    ];
+    renderView({ connected: true, activeKeys: keys });
+
+    const renameButtons = screen.getAllByText('Rename');
+    fireEvent.click(renameButtons[0]);
+
+    // Don't change the value, just submit
+    fireEvent.click(screen.getByText('Save'));
+
+    expect(mockRenameProviderKey).not.toHaveBeenCalled();
+  });
+});
