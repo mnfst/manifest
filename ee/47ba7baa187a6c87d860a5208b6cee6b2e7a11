@@ -1,0 +1,26 @@
+.changeset/strip-haiku-adaptive-thinking.md
+  s_556110b1ffa8da::t_7b7fe16daac47e 5
+  s_556110b1ffa8da::t_41f3a8cbdb1274 1-4
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_556110b1ffa8da::t_52af5f30e681e6 41,43,53
+  s_556110b1ffa8da::t_6a34d06a7586c5 35-40,42,44-52,54-56,256-258
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_556110b1ffa8da::t_0c8af53f589cc5 125-132,134-159
+  s_556110b1ffa8da::t_7a14231bba2252 133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "ee47ba7baa187a6c87d860a5208b6cee6b2e7a11",
+  "prompts": {},
+  "sessions": {
+    "s_556110b1ffa8da": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e31a6-bffa-72d1-b399-d8091c4154bf",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
