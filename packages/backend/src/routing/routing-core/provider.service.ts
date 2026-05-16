@@ -834,4 +834,28 @@ export class ProviderService {
     if (active.length === 0) return 0;
     return Math.max(...active.map((r) => r.priority)) + 1;
   }
+
+  /**
+   * Returns a unique label for a new OAuth key. If no row exists yet for this
+   * (agent, provider, subscription) tuple, returns undefined so the caller
+   * falls through to the legacy single-key upsert (creating "Default"). When
+   * a "Default" row already exists, returns "Key 2", "Key 3", etc.
+   */
+  async nextOAuthLabel(agentId: string, provider: string): Promise<string | undefined> {
+    const existing = await this.providerRepo.find({
+      where: {
+        agent_id: agentId,
+        provider,
+        auth_type: 'subscription' as AuthType,
+        is_active: true,
+      },
+    });
+    if (existing.length === 0) return undefined;
+    const lower = new Set(existing.map((r) => r.label.toLowerCase()));
+    for (let n = existing.length + 1; n < 100; n++) {
+      const candidate = `Key ${n}`;
+      if (!lower.has(candidate.toLowerCase())) return candidate;
+    }
+    return `Key ${existing.length + 1}`;
+  }
 }

@@ -134,7 +134,7 @@ describe('AnthropicOAuthDetailView', () => {
     });
     expect(mockToastSuccess).toHaveBeenCalledWith('Anthropic subscription connected');
     expect(onUpdate).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('rejects input that does not look like an authorization code', () => {

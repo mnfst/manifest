@@ -86,7 +86,7 @@ describe("DeviceCodeDetailView — MiniMax Coding Plan token alternative", () =>
     });
     expect(mockToast.success).toHaveBeenCalledWith("MiniMax subscription connected");
     expect(props.onUpdate).toHaveBeenCalled();
-    expect(props.onClose).toHaveBeenCalled();
+    expect(props.onClose).not.toHaveBeenCalled();
   });
 
   it("forwards the selected CN region with the pasted token", async () => {

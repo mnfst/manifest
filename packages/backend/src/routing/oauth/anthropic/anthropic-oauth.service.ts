@@ -121,12 +121,15 @@ export class AnthropicOauthService {
       e: Date.now() + data.expires_in * 1000,
     };
 
+    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'anthropic');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
       'anthropic',
       serializeOAuthTokenBlob(blob),
       'subscription',
+      undefined,
+      label,
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);

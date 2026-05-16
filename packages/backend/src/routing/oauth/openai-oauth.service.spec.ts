@@ -25,17 +25,15 @@ function createConfig(nodeEnv = 'production'): ConfigService {
   } as unknown as ConfigService;
 }
 
-function createProviderService(): {
-  svc: ProviderService;
-  upsertProvider: jest.Mock;
-  recalculateTiers: jest.Mock;
-} {
+function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
+  const nextOAuthLabel = jest.fn().mockResolvedValue(undefined);
   return {
-    svc: { upsertProvider, recalculateTiers } as unknown as ProviderService,
+    svc: { upsertProvider, recalculateTiers, nextOAuthLabel } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
+    nextOAuthLabel,
   };
 }
 
@@ -144,6 +142,8 @@ describe('OpenaiOauthService', () => {
         'openai',
         expect.stringContaining('"t":"access-1"'),
         'subscription',
+        undefined,
+        undefined,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
       expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1');

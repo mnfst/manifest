@@ -34,6 +34,7 @@ describe('OpenaiOauthService', () => {
     providerService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
+      nextOAuthLabel: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<ProviderService>;
 
     configService = {
@@ -117,6 +118,8 @@ describe('OpenaiOauthService', () => {
         'openai',
         expect.any(String),
         'subscription',
+        undefined,
+        undefined,
       );
 
       const storedBlob: OAuthTokenBlob = JSON.parse(

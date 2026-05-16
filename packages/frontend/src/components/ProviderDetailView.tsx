@@ -374,6 +374,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           onBack={props.onBack}
           onUpdate={props.onUpdate}
           onClose={props.onClose}
+          addKeyOpen={addKeyOpen}
+          setAddKeyOpen={setAddKeyOpen}
+          activeKeys={activeKeys}
         />
       </Show>
 
@@ -390,6 +393,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           onBack={props.onBack}
           onUpdate={props.onUpdate}
           onClose={props.onClose}
+          addKeyOpen={addKeyOpen}
+          setAddKeyOpen={setAddKeyOpen}
+          activeKeys={activeKeys}
         />
       </Show>
 
@@ -406,6 +412,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           onBack={props.onBack}
           onUpdate={props.onUpdate}
           onClose={props.onClose}
+          addKeyOpen={addKeyOpen}
+          setAddKeyOpen={setAddKeyOpen}
+          activeKeys={activeKeys}
         />
       </Show>
 

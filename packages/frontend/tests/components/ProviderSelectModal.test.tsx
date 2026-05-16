@@ -1439,7 +1439,7 @@ describe('ProviderSelectModal', () => {
       vi.restoreAllMocks();
     });
 
-    it('closes the modal when MiniMax approval succeeds', async () => {
+    it('stays open when MiniMax approval succeeds', async () => {
       vi.useFakeTimers();
       vi.spyOn(window, 'open').mockReturnValue({
         close: vi.fn(),
@@ -1470,7 +1470,7 @@ describe('ProviderSelectModal', () => {
       await waitFor(() => {
         expect(toast.success).toHaveBeenCalledWith('MiniMax subscription connected');
         expect(onUpdate).toHaveBeenCalled();
-        expect(onClose).toHaveBeenCalled();
+        expect(onClose).not.toHaveBeenCalled();
       });
 
       vi.useRealTimers();
@@ -1984,7 +1984,7 @@ describe('ProviderSelectModal', () => {
       });
       expect(mockPopup.close).toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });
@@ -2084,7 +2084,7 @@ describe('ProviderSelectModal', () => {
         expect(toast.success).toHaveBeenCalledWith('OpenAI subscription connected');
       });
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });
@@ -2124,7 +2124,7 @@ describe('ProviderSelectModal', () => {
         expect(toast.success).toHaveBeenCalledWith('OpenAI subscription connected');
       });
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });
@@ -2161,7 +2161,7 @@ describe('ProviderSelectModal', () => {
       });
       expect(mockPopup.close).toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });
