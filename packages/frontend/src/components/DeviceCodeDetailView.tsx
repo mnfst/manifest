@@ -63,7 +63,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
   // When "Add another key" is clicked in the header, launch a new device code flow.
   createEffect(() => {
-    if (props.addKeyOpen?.() && props.connected()) {
+    if (props.addKeyOpen?.() && props.connected() && !props.busy()) {
       props.setAddKeyOpen?.(false);
       void handleStart();
     }

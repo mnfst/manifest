@@ -49,7 +49,7 @@ const OAuthDetailView: Component<Props> = (props) => {
 
   // When "Add another key" is clicked in the header, launch a new OAuth popup.
   createEffect(() => {
-    if (props.addKeyOpen?.() && props.connected()) {
+    if (props.addKeyOpen?.() && props.connected() && !props.busy()) {
       props.setAddKeyOpen?.(false);
       void handleOAuthLogin();
     }
