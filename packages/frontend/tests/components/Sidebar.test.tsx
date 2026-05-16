@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
-import { render, screen } from "@solidjs/testing-library";
+import { fireEvent, render, screen } from "@solidjs/testing-library";
 
 let mockAgentName: string | null = "test-agent";
 let mockPathname = "/agents/test-agent";
@@ -107,6 +107,25 @@ describe("Sidebar with agent", () => {
     const nav = container.querySelector("nav.sidebar");
     expect(nav).not.toBeNull();
     expect(nav?.getAttribute("aria-label")).toBe("Agent navigation");
+  });
+
+  it("applies the mobile open class", () => {
+    const { container } = render(() => <Sidebar mobileOpen />);
+    const nav = container.querySelector("nav.sidebar");
+    expect(nav?.classList.contains("sidebar--mobile-open")).toBe(true);
+  });
+
+  it("calls onNavigate when a sidebar link is clicked", async () => {
+    const onNavigate = vi.fn();
+    const { container } = render(() => <Sidebar onNavigate={onNavigate} />);
+    const link = container.querySelector("a.sidebar__link");
+
+    expect(link).not.toBeNull();
+    link!.addEventListener("click", (event) => event.preventDefault(), { once: true });
+
+    await fireEvent.click(link!);
+
+    expect(onNavigate).toHaveBeenCalledTimes(1);
   });
 
   it("shows feedback hint text", () => {

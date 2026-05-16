@@ -118,6 +118,29 @@ describe("Header", () => {
     await fireEvent.click(document.body);
     expect(screen.queryByText("Alice")).toBeNull();
   });
+
+  it("renders the closed mobile navigation toggle", () => {
+    render(() => <Header showMobileNavToggle mobileNavOpen={false} />);
+
+    const toggle = screen.getByLabelText("Open navigation menu");
+    expect(toggle.getAttribute("aria-controls")).toBe("agent-navigation");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("renders the open mobile navigation toggle and handles clicks", async () => {
+    const onMobileNavToggle = vi.fn();
+
+    render(() => (
+      <Header showMobileNavToggle mobileNavOpen onMobileNavToggle={onMobileNavToggle} />
+    ));
+
+    const toggle = screen.getByLabelText("Close navigation menu");
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+    await fireEvent.click(toggle);
+
+    expect(onMobileNavToggle).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("Header - GitHub star button", () => {
