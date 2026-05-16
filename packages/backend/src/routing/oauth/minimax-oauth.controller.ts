@@ -3,12 +3,14 @@ import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 import { isMinimaxRegion, MinimaxOauthService } from './minimax-oauth.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
+import { ProviderService } from '../routing-core/provider.service';
 
 @Controller('api/v1/oauth/minimax')
 export class MinimaxOauthController {
   constructor(
     private readonly oauthService: MinimaxOauthService,
     private readonly resolveAgent: ResolveAgentService,
+    private readonly providerService: ProviderService,
   ) {}
 
   @Post('start')
@@ -48,5 +50,25 @@ export class MinimaxOauthController {
       const message = err instanceof Error ? err.message : 'Failed to poll MiniMax OAuth';
       throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);
     }
+  }
+
+  @Post('revoke')
+  async revoke(
+    @Query('agentName') agentName: string,
+    @Query('label') label: string | undefined,
+    @CurrentUser() user: AuthUser,
+  ) {
+    if (!agentName) {
+      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
+    }
+    const agent = await this.resolveAgent.resolve(user.id, agentName);
+    const keyLabel = label?.trim() || undefined;
+    const { notifications } = await this.providerService.removeProvider(
+      agent.id,
+      'minimax',
+      'subscription',
+      keyLabel,
+    );
+    return { ok: true, notifications };
   }
 }

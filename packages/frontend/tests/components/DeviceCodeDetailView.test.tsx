@@ -6,6 +6,7 @@ vi.mock("../../src/services/api.js", () => ({
   connectProvider: vi.fn(),
   disconnectProvider: vi.fn(),
   pollMinimaxOAuth: vi.fn(),
+  revokeMinimaxOAuth: vi.fn(),
   startMinimaxOAuth: vi.fn(),
   renameProviderKey: vi.fn(),
 }));
@@ -15,7 +16,12 @@ vi.mock("../../src/services/toast-store.js", () => ({
 }));
 
 import DeviceCodeDetailView from "../../src/components/DeviceCodeDetailView";
-import { connectProvider, disconnectProvider, renameProviderKey } from "../../src/services/api.js";
+import {
+  connectProvider,
+  disconnectProvider,
+  renameProviderKey,
+  revokeMinimaxOAuth,
+} from "../../src/services/api.js";
 import { toast } from "../../src/services/toast-store.js";
 import { getProvider } from "../../src/services/provider-utils";
 import type { AuthType, RoutingProvider } from "../../src/services/api.js";
@@ -160,6 +166,7 @@ describe("DeviceCodeDetailView — MiniMax Coding Plan token alternative", () =>
 });
 
 const mockDisconnectProvider = disconnectProvider as ReturnType<typeof vi.fn>;
+const mockRevokeMinimaxOAuth = revokeMinimaxOAuth as ReturnType<typeof vi.fn>;
 const mockRenameProviderKey = renameProviderKey as ReturnType<typeof vi.fn>;
 
 function makeKey(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
@@ -247,8 +254,8 @@ describe("DeviceCodeDetailView — multi-key", () => {
     expect(onUpdate).toHaveBeenCalled();
   });
 
-  it("delete individual key calls disconnectProvider with label", async () => {
-    mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+  it("delete individual key calls revokeMinimaxOAuth with label", async () => {
+    mockRevokeMinimaxOAuth.mockResolvedValue({ ok: true, notifications: [] });
     const keys = [
       makeKey({ id: "k1", label: "Primary" }),
       makeKey({ id: "k2", label: "Secondary" }),
@@ -258,13 +265,9 @@ describe("DeviceCodeDetailView — multi-key", () => {
     fireEvent.click(screen.getByLabelText("Delete account Primary"));
 
     await waitFor(() => {
-      expect(mockDisconnectProvider).toHaveBeenCalledWith(
-        "test-agent",
-        "minimax",
-        "subscription",
-        "Primary",
-      );
+      expect(mockRevokeMinimaxOAuth).toHaveBeenCalledWith("test-agent", "Primary");
     });
+    expect(mockDisconnectProvider).not.toHaveBeenCalled();
     expect(onUpdate).toHaveBeenCalled();
   });
 
@@ -277,8 +280,9 @@ describe("DeviceCodeDetailView — multi-key", () => {
     expect(screen.getByText("Disconnect all")).toBeDefined();
   });
 
-  it("handleDeleteKey surfaces notifications from disconnectProvider", async () => {
-    mockDisconnectProvider.mockResolvedValue({
+  it("handleDeleteKey surfaces notifications from revokeMinimaxOAuth", async () => {
+    mockRevokeMinimaxOAuth.mockResolvedValue({
+      ok: true,
       notifications: ["Key still shared with another agent"],
     });
     const keys = [
@@ -294,8 +298,8 @@ describe("DeviceCodeDetailView — multi-key", () => {
     });
   });
 
-  it("handleDeleteKey catch branch when disconnectProvider fails", async () => {
-    mockDisconnectProvider.mockRejectedValue(new Error("network"));
+  it("handleDeleteKey catch branch when revokeMinimaxOAuth fails", async () => {
+    mockRevokeMinimaxOAuth.mockRejectedValue(new Error("network"));
     const keys = [
       makeKey({ id: "k1", label: "Primary" }),
       makeKey({ id: "k2", label: "Secondary" }),
@@ -305,7 +309,7 @@ describe("DeviceCodeDetailView — multi-key", () => {
     fireEvent.click(screen.getByLabelText("Delete account Primary"));
 
     await waitFor(() => {
-      expect(mockDisconnectProvider).toHaveBeenCalled();
+      expect(mockRevokeMinimaxOAuth).toHaveBeenCalledWith("test-agent", "Primary");
     });
     expect(onUpdate).not.toHaveBeenCalled();
   });

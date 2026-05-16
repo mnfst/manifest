@@ -11,9 +11,9 @@ import {
 import type { ProviderDef } from '../services/providers.js';
 import {
   connectProvider,
-  disconnectProvider,
   pollMinimaxOAuth,
   renameProviderKey,
+  revokeMinimaxOAuth,
   startMinimaxOAuth,
   type AuthType,
   type MinimaxOAuthRegion,
@@ -119,11 +119,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      const result = await disconnectProvider(
-        props.agentName,
-        props.provId,
-        props.selectedAuthType(),
-      );
+      const result = await revokeMinimaxOAuth(props.agentName);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -141,12 +137,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const handleDeleteKey = async (label: string) => {
     props.setBusy(true);
     try {
-      const result = await disconnectProvider(
-        props.agentName,
-        props.provId,
-        props.selectedAuthType(),
-        label,
-      );
+      const result = await revokeMinimaxOAuth(props.agentName, label);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);

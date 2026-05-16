@@ -52,6 +52,15 @@ export function pollMinimaxOAuth(flowId: string) {
   });
 }
 
+export function revokeMinimaxOAuth(agentName: string, label?: string) {
+  const params = new URLSearchParams({ agentName });
+  if (label) params.set('label', label);
+  return fetchMutate<{ ok: boolean; notifications?: string[] }>(
+    `/oauth/minimax/revoke?${params.toString()}`,
+    { method: 'POST' },
+  );
+}
+
 export interface AnthropicOAuthAuthorizeResponse {
   url: string;
   state: string;
@@ -79,9 +88,11 @@ export function getAnthropicOAuthPending(agentName: string) {
   return fetchJson<{ state: string | null }>(`/oauth/anthropic/pending`, { agentName });
 }
 
-export function revokeAnthropicOAuth(agentName: string) {
-  return fetchMutate<{ ok: boolean }>(
-    `/oauth/anthropic/revoke?agentName=${encodeURIComponent(agentName)}`,
+export function revokeAnthropicOAuth(agentName: string, label?: string) {
+  const params = new URLSearchParams({ agentName });
+  if (label) params.set('label', label);
+  return fetchMutate<{ ok: boolean; notifications?: string[] }>(
+    `/oauth/anthropic/revoke?${params.toString()}`,
     { method: 'POST' },
   );
 }

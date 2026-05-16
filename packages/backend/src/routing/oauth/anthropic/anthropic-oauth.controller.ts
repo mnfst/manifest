@@ -83,12 +83,22 @@ export class AnthropicOauthController {
 
   /** Disconnect the Anthropic subscription provider for an agent. */
   @Post('revoke')
-  async revoke(@Query('agentName') agentName: string, @CurrentUser() user: AuthUser) {
+  async revoke(
+    @Query('agentName') agentName: string,
+    @Query('label') label: string | undefined,
+    @CurrentUser() user: AuthUser,
+  ) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
     const agent = await this.resolveAgent.resolve(user.id, agentName);
-    await this.providerService.removeProvider(agent.id, 'anthropic', 'subscription');
-    return { ok: true };
+    const keyLabel = label?.trim() || undefined;
+    const { notifications } = await this.providerService.removeProvider(
+      agent.id,
+      'anthropic',
+      'subscription',
+      keyLabel,
+    );
+    return { ok: true, notifications };
   }
 }

@@ -88,6 +88,22 @@ describe('oauth API client', () => {
     expect(url).toContain('flowId=flow-1');
   });
 
+  it('revokeMinimaxOAuth POSTs with the encoded agent name in the URL', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeMinimaxOAuth('my agent');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/minimax/revoke?agentName=my+agent');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('revokeMinimaxOAuth includes the encoded key label when provided', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeMinimaxOAuth('my agent', 'Key 2');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/minimax/revoke?agentName=my+agent&label=Key+2');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
   it('startAnthropicOAuth POSTs the encoded agent name and returns the auth URL + state', async () => {
     const fetchMock = setupFetch({ url: 'https://claude.ai/oauth/authorize?state=s', state: 's' });
     const out = await oauth.startAnthropicOAuth('my agent');
@@ -124,7 +140,15 @@ describe('oauth API client', () => {
     const fetchMock = setupFetch({ ok: true });
     await oauth.revokeAnthropicOAuth('my agent');
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/api/v1/oauth/anthropic/revoke?agentName=my%20agent');
+    expect(url).toContain('/api/v1/oauth/anthropic/revoke?agentName=my+agent');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('revokeAnthropicOAuth includes the encoded key label when provided', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeAnthropicOAuth('my agent', 'Key 2');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/anthropic/revoke?agentName=my+agent&label=Key+2');
     expect((init as RequestInit).method).toBe('POST');
   });
 });
