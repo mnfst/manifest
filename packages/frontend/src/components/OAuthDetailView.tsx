@@ -12,7 +12,6 @@ import {
   getOpenaiOAuthUrl,
   submitOpenaiOAuthCallback,
   revokeOpenaiOAuth,
-  disconnectProvider,
   renameProviderKey,
   type AuthType,
   type RoutingProvider,
@@ -115,12 +114,7 @@ const OAuthDetailView: Component<Props> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      await revokeOpenaiOAuth(props.agentName).catch(() => {});
-      const result = await disconnectProvider(
-        props.agentName,
-        props.provId,
-        props.selectedAuthType(),
-      );
+      const result = await revokeOpenaiOAuth(props.agentName);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -138,12 +132,7 @@ const OAuthDetailView: Component<Props> = (props) => {
   const handleDeleteKey = async (label: string) => {
     props.setBusy(true);
     try {
-      const result = await disconnectProvider(
-        props.agentName,
-        props.provId,
-        props.selectedAuthType(),
-        label,
-      );
+      const result = await revokeOpenaiOAuth(props.agentName, label);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);

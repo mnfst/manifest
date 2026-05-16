@@ -30,9 +30,11 @@ export function submitOpenaiOAuthCallback(code: string, state: string) {
   });
 }
 
-export function revokeOpenaiOAuth(agentName: string) {
-  return fetchMutate<{ ok: boolean }>(
-    `/oauth/openai/revoke?agentName=${encodeURIComponent(agentName)}`,
+export function revokeOpenaiOAuth(agentName: string, label?: string) {
+  const params = new URLSearchParams({ agentName });
+  if (label) params.set('label', label);
+  return fetchMutate<{ ok: boolean; notifications?: string[] }>(
+    `/oauth/openai/revoke?${params.toString()}`,
     { method: 'POST' },
   );
 }

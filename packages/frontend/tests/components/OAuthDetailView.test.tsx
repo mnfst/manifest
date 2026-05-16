@@ -159,8 +159,8 @@ describe('OAuthDetailView', () => {
     expect(onUpdate).toHaveBeenCalled();
   });
 
-  it('clicking delete on a key calls disconnectProvider with label', async () => {
-    mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+  it('clicking delete on a key revokes the matching labeled OAuth token', async () => {
+    mockRevokeOpenaiOAuth.mockResolvedValue({ notifications: [] });
     const keys = [
       makeKey({ id: 'k1', label: 'Primary' }),
       makeKey({ id: 'k2', label: 'Secondary' }),
@@ -170,13 +170,9 @@ describe('OAuthDetailView', () => {
     fireEvent.click(screen.getByLabelText('Delete account Primary'));
 
     await waitFor(() => {
-      expect(mockDisconnectProvider).toHaveBeenCalledWith(
-        'test-agent',
-        'openai',
-        'subscription',
-        'Primary',
-      );
+      expect(mockRevokeOpenaiOAuth).toHaveBeenCalledWith('test-agent', 'Primary');
     });
+    expect(mockDisconnectProvider).not.toHaveBeenCalled();
     expect(onUpdate).toHaveBeenCalled();
   });
 
@@ -203,9 +199,8 @@ describe('OAuthDetailView', () => {
     });
   });
 
-  it('Disconnect all calls disconnectProvider without label', async () => {
-    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
-    mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+  it('Disconnect all revokes all OpenAI OAuth tokens', async () => {
+    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true, notifications: [] });
     const keys = [
       makeKey({ id: 'k1', label: 'A' }),
       makeKey({ id: 'k2', label: 'B' }),
@@ -215,12 +210,9 @@ describe('OAuthDetailView', () => {
     fireEvent.click(screen.getByText('Disconnect all'));
 
     await waitFor(() => {
-      expect(mockDisconnectProvider).toHaveBeenCalledWith(
-        'test-agent',
-        'openai',
-        'subscription',
-      );
+      expect(mockRevokeOpenaiOAuth).toHaveBeenCalledWith('test-agent');
     });
+    expect(mockDisconnectProvider).not.toHaveBeenCalled();
     expect(onBack).toHaveBeenCalled();
     expect(onUpdate).toHaveBeenCalled();
   });
@@ -340,9 +332,8 @@ describe('OAuthDetailView', () => {
     });
   });
 
-  it('handleDisconnect calls revokeOpenaiOAuth and disconnectProvider (single-key)', async () => {
-    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
-    mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+  it('handleDisconnect calls revokeOpenaiOAuth (single-key)', async () => {
+    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true, notifications: [] });
 
     const { onBack, onUpdate } = renderView({ connected: true, activeKeys: [makeKey()] });
     fireEvent.click(screen.getByText('Disconnect'));
@@ -350,20 +341,14 @@ describe('OAuthDetailView', () => {
     await waitFor(() => {
       expect(mockRevokeOpenaiOAuth).toHaveBeenCalledWith('test-agent');
     });
-    await waitFor(() => {
-      expect(mockDisconnectProvider).toHaveBeenCalledWith(
-        'test-agent',
-        'openai',
-        'subscription',
-      );
-    });
+    expect(mockDisconnectProvider).not.toHaveBeenCalled();
     expect(onBack).toHaveBeenCalled();
     expect(onUpdate).toHaveBeenCalled();
   });
 
-  it('handleDisconnect surfaces notifications from disconnectProvider', async () => {
-    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
-    mockDisconnectProvider.mockResolvedValue({
+  it('handleDisconnect surfaces notifications from revokeOpenaiOAuth', async () => {
+    mockRevokeOpenaiOAuth.mockResolvedValue({
+      ok: true,
       notifications: ['Shared subscription warning'],
     });
 
@@ -376,21 +361,21 @@ describe('OAuthDetailView', () => {
     expect(onBack).toHaveBeenCalled();
   });
 
-  it('handleDisconnect catch branch when disconnectProvider fails', async () => {
-    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
-    mockDisconnectProvider.mockRejectedValue(new Error('network'));
+  it('handleDisconnect catch branch when revokeOpenaiOAuth fails', async () => {
+    mockRevokeOpenaiOAuth.mockRejectedValue(new Error('network'));
 
     const { onBack } = renderView({ connected: true, activeKeys: [makeKey()] });
     fireEvent.click(screen.getByText('Disconnect'));
 
     await waitFor(() => {
-      expect(mockDisconnectProvider).toHaveBeenCalled();
+      expect(mockRevokeOpenaiOAuth).toHaveBeenCalled();
     });
     expect(onBack).not.toHaveBeenCalled();
   });
 
-  it('handleDeleteKey surfaces notifications from disconnectProvider', async () => {
-    mockDisconnectProvider.mockResolvedValue({
+  it('handleDeleteKey surfaces notifications from revokeOpenaiOAuth', async () => {
+    mockRevokeOpenaiOAuth.mockResolvedValue({
+      ok: true,
       notifications: ['Key removal warning'],
     });
     const keys = [
@@ -406,8 +391,8 @@ describe('OAuthDetailView', () => {
     });
   });
 
-  it('handleDeleteKey catch branch when disconnectProvider fails', async () => {
-    mockDisconnectProvider.mockRejectedValue(new Error('network'));
+  it('handleDeleteKey catch branch when revokeOpenaiOAuth fails', async () => {
+    mockRevokeOpenaiOAuth.mockRejectedValue(new Error('network'));
     const keys = [
       makeKey({ id: 'k1', label: 'Primary' }),
       makeKey({ id: 'k2', label: 'Secondary' }),
@@ -417,7 +402,7 @@ describe('OAuthDetailView', () => {
     fireEvent.click(screen.getByLabelText('Delete account Primary'));
 
     await waitFor(() => {
-      expect(mockDisconnectProvider).toHaveBeenCalled();
+      expect(mockRevokeOpenaiOAuth).toHaveBeenCalled();
     });
     expect(onUpdate).not.toHaveBeenCalled();
   });

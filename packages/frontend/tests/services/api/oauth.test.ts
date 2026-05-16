@@ -38,7 +38,15 @@ describe('oauth API client', () => {
     const fetchMock = setupFetch({ ok: true });
     await oauth.revokeOpenaiOAuth('my agent');
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/api/v1/oauth/openai/revoke?agentName=my%20agent');
+    expect(url).toContain('/api/v1/oauth/openai/revoke?agentName=my+agent');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('revokeOpenaiOAuth includes the encoded key label when provided', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeOpenaiOAuth('my agent', 'Key 2');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/openai/revoke?agentName=my+agent&label=Key+2');
     expect((init as RequestInit).method).toBe('POST');
   });
 
