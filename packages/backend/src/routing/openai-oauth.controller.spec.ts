@@ -1,4 +1,4 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OpenaiOauthController } from './oauth/openai-oauth.controller';
 import { OpenaiOauthService } from './oauth/openai-oauth.service';
@@ -223,6 +223,18 @@ describe('OpenaiOauthController', () => {
         'Key 2',
       );
       expect(result).toEqual({ ok: true, notifications: [] });
+    });
+
+    it('rejects repeated label query parameters', async () => {
+      await expect(
+        controller.revoke('my-agent', ['Key 1', 'Key 2'], { id: 'user-1' } as never),
+      ).rejects.toMatchObject({
+        message: 'label query parameter must be a string',
+        status: HttpStatus.BAD_REQUEST,
+      });
+      expect(resolveAgent.resolve).not.toHaveBeenCalled();
+      expect(providerKeyService.getProviderKeys).not.toHaveBeenCalled();
+      expect(providerService.removeProvider).not.toHaveBeenCalled();
     });
 
     it('returns ok even when no stored token exists', async () => {

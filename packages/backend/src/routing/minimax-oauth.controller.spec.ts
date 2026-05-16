@@ -124,4 +124,15 @@ describe('MinimaxOauthController', () => {
     );
     expect(result).toEqual({ ok: true, notifications: [] });
   });
+
+  it('rejects repeated revoke label query parameters', async () => {
+    await expect(
+      controller.revoke('my-agent', ['Key 1', 'Key 2'], { id: 'user-1' } as never),
+    ).rejects.toMatchObject({
+      message: 'label query parameter must be a string',
+      status: HttpStatus.BAD_REQUEST,
+    });
+    expect(resolveAgent.resolve).not.toHaveBeenCalled();
+    expect(providerService.removeProvider).not.toHaveBeenCalled();
+  });
 });

@@ -13,6 +13,7 @@ import { AuthUser } from '../../../auth/auth.instance';
 import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
 import { ProviderService } from '../../routing-core/provider.service';
 import { AnthropicOauthService } from './anthropic-oauth.service';
+import { optionalTrimmedStringQuery } from '../query-params';
 
 @Controller('api/v1/oauth/anthropic')
 export class AnthropicOauthController {
@@ -85,14 +86,14 @@ export class AnthropicOauthController {
   @Post('revoke')
   async revoke(
     @Query('agentName') agentName: string,
-    @Query('label') label: string | undefined,
+    @Query('label') label: string | string[] | undefined,
     @CurrentUser() user: AuthUser,
   ) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
+    const keyLabel = optionalTrimmedStringQuery(label, 'label');
     const agent = await this.resolveAgent.resolve(user.id, agentName);
-    const keyLabel = label?.trim() || undefined;
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
       'anthropic',

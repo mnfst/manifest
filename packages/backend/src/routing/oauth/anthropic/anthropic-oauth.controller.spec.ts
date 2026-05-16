@@ -135,5 +135,15 @@ describe('AnthropicOauthController', () => {
         'Key 2',
       );
     });
+
+    it('rejects repeated label query parameters', async () => {
+      const { ctrl, resolveAgent, providerService } = build();
+      await expect(ctrl.revoke('agent', ['Key 1', 'Key 2'], user)).rejects.toMatchObject({
+        message: 'label query parameter must be a string',
+        status: 400,
+      });
+      expect(resolveAgent.resolve).not.toHaveBeenCalled();
+      expect(providerService.removeProvider).not.toHaveBeenCalled();
+    });
   });
 });
