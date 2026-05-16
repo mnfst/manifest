@@ -454,4 +454,36 @@ describe('ProviderService — route-only cleanup paths', () => {
       ).rejects.toThrow('MiniMax subscription region must be one of: global, cn');
     });
   });
+
+  describe('nextOAuthLabel', () => {
+    it('returns undefined when no subscription rows exist', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBeUndefined();
+    });
+
+    it('returns "Key 2" when one subscription row exists', async () => {
+      providerRepo.find.mockResolvedValue([{ label: 'Default', is_active: true }]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBe('Key 2');
+    });
+
+    it('skips existing labels', async () => {
+      providerRepo.find.mockResolvedValue([
+        { label: 'Default', is_active: true },
+        { label: 'Key 2', is_active: true },
+      ]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBe('Key 3');
+    });
+
+    it('is case-insensitive when checking existing labels', async () => {
+      providerRepo.find.mockResolvedValue([
+        { label: 'Default', is_active: true },
+        { label: 'key 2', is_active: true },
+      ]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBe('Key 3');
+    });
+  });
 });
