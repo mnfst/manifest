@@ -114,12 +114,15 @@ export class OpenaiOauthService {
       r: data.refresh_token,
       e: Date.now() + data.expires_in * 1000,
     };
+    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'openai');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
       'openai',
       serializeOAuthTokenBlob(blob),
       'subscription',
+      undefined,
+      label,
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);

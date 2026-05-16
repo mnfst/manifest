@@ -1439,7 +1439,7 @@ describe('ProviderSelectModal', () => {
       vi.restoreAllMocks();
     });
 
-    it('closes the modal when MiniMax approval succeeds', async () => {
+    it('stays open when MiniMax approval succeeds', async () => {
       vi.useFakeTimers();
       vi.spyOn(window, 'open').mockReturnValue({
         close: vi.fn(),
@@ -1470,7 +1470,7 @@ describe('ProviderSelectModal', () => {
       await waitFor(() => {
         expect(toast.success).toHaveBeenCalledWith('MiniMax subscription connected');
         expect(onUpdate).toHaveBeenCalled();
-        expect(onClose).toHaveBeenCalled();
+        expect(onClose).not.toHaveBeenCalled();
       });
 
       vi.useRealTimers();
@@ -1880,7 +1880,7 @@ describe('ProviderSelectModal', () => {
       expect(onSwitches.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('disconnects OpenAI OAuth subscription and revokes token', async () => {
+    it('disconnects OpenAI OAuth subscription through the revoke endpoint', async () => {
       const subProvider: RoutingProvider = {
         id: 'p-openai-sub',
         provider: 'openai',
@@ -1903,12 +1903,12 @@ describe('ProviderSelectModal', () => {
 
       await waitFor(() => {
         expect(mockRevokeOpenaiOAuth).toHaveBeenCalledWith('test-agent');
-        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'openai', 'subscription');
       });
+      expect(mockDisconnectProvider).not.toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
     });
 
-    it('still disconnects when token revocation fails', async () => {
+    it('does not call generic disconnect when OpenAI revoke request fails', async () => {
       mockRevokeOpenaiOAuth.mockRejectedValue(new Error('revoke failed'));
       const subProvider: RoutingProvider = {
         id: 'p-openai-sub',
@@ -1931,9 +1931,10 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'openai', 'subscription');
+        expect(mockRevokeOpenaiOAuth).toHaveBeenCalledWith('test-agent');
       });
-      expect(onUpdate).toHaveBeenCalled();
+      expect(mockDisconnectProvider).not.toHaveBeenCalled();
+      expect(onUpdate).not.toHaveBeenCalled();
     });
 
     it('shows popup blocked error when window.open returns null', async () => {
@@ -1984,7 +1985,7 @@ describe('ProviderSelectModal', () => {
       });
       expect(mockPopup.close).toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });
@@ -2084,7 +2085,7 @@ describe('ProviderSelectModal', () => {
         expect(toast.success).toHaveBeenCalledWith('OpenAI subscription connected');
       });
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });
@@ -2124,7 +2125,7 @@ describe('ProviderSelectModal', () => {
         expect(toast.success).toHaveBeenCalledWith('OpenAI subscription connected');
       });
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });
@@ -2161,7 +2162,7 @@ describe('ProviderSelectModal', () => {
       });
       expect(mockPopup.close).toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });

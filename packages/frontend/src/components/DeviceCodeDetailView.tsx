@@ -1,5 +1,7 @@
 import {
+  createEffect,
   createSignal,
+  For,
   onCleanup,
   Show,
   type Accessor,
@@ -11,9 +13,11 @@ import {
   connectProvider,
   disconnectProvider,
   pollMinimaxOAuth,
+  renameProviderKey,
   startMinimaxOAuth,
   type AuthType,
   type MinimaxOAuthRegion,
+  type RoutingProvider,
 } from '../services/api.js';
 import { validateSubscriptionKey } from '../services/provider-utils.js';
 import { toast } from '../services/toast-store.js';
@@ -29,7 +33,12 @@ interface Props {
   onBack: () => void;
   onUpdate: () => void;
   onClose: () => void;
+  addKeyOpen?: Accessor<boolean>;
+  setAddKeyOpen?: Setter<boolean>;
+  activeKeys?: Accessor<RoutingProvider[]>;
 }
+
+const MAX_LABEL_LENGTH = 50;
 
 interface DeviceCodeFlow {
   flowId: string;
@@ -47,6 +56,18 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [selectedRegion, setSelectedRegion] = createSignal<MinimaxOAuthRegion>('global');
   const [altToken, setAltToken] = createSignal('');
   const [altError, setAltError] = createSignal<string | null>(null);
+  const [renamingId, setRenamingId] = createSignal<string | null>(null);
+  const [renameValue, setRenameValue] = createSignal('');
+
+  const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
+
+  // When "Add another key" is clicked in the header, launch a new device code flow.
+  createEffect(() => {
+    if (props.addKeyOpen?.() && props.connected() && !props.busy()) {
+      props.setAddKeyOpen?.(false);
+      void handleStart();
+    }
+  });
 
   const handleAltConnect = async () => {
     const trimmed = altToken().replace(/\s/g, '');
@@ -69,7 +90,6 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
       });
       toast.success(`${props.provDef.name} subscription connected`);
       props.onUpdate();
-      props.onClose();
     } catch {
       // error toast from fetchMutate
     } finally {
@@ -118,6 +138,58 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     }
   };
 
+  const handleDeleteKey = async (label: string) => {
+    props.setBusy(true);
+    try {
+      const result = await disconnectProvider(
+        props.agentName,
+        props.provId,
+        props.selectedAuthType(),
+        label,
+      );
+      if (result?.notifications?.length) {
+        for (const msg of result.notifications) {
+          toast.error(msg);
+        }
+      }
+      props.onUpdate();
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      props.setBusy(false);
+    }
+  };
+
+  const startRename = (k: RoutingProvider) => {
+    setRenamingId(k.id);
+    setRenameValue(k.label);
+  };
+
+  const commitRename = async (k: RoutingProvider) => {
+    const newLabel = renameValue().trim();
+    if (!newLabel || newLabel === k.label) {
+      setRenamingId(null);
+      return;
+    }
+    props.setBusy(true);
+    try {
+      await renameProviderKey(
+        props.agentName,
+        props.provId,
+        k.label,
+        newLabel,
+        props.selectedAuthType(),
+      );
+      toast.success(`Renamed to "${newLabel}"`);
+      setRenamingId(null);
+      props.onUpdate();
+    } catch {
+      // toast handled upstream
+    } finally {
+      props.setBusy(false);
+    }
+  };
+
   const runPoll = async (flowGeneration = activeFlowGeneration) => {
     if (isDisposed || flowGeneration !== activeFlowGeneration) return;
     const current = flow();
@@ -143,7 +215,6 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         clearPollTimer();
         toast.success(`${props.provDef.name} subscription connected`);
         props.onUpdate();
-        props.onClose();
         return;
       }
 
@@ -306,20 +377,123 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         </Show>
       </Show>
       <Show when={props.connected()}>
-        <div class="provider-detail__field">
-          <span class="provider-detail__no-key">
-            Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
-          </span>
-        </div>
-        <button
-          class="btn btn--outline provider-detail__action provider-detail__disconnect"
-          disabled={props.busy()}
-          onClick={handleDisconnect}
-        >
-          <Show when={!props.busy()} fallback={<span class="spinner" />}>
-            Disconnect
-          </Show>
-        </button>
+        {/* Multi-key list */}
+        <Show when={isMultiKey()}>
+          <div class="provider-detail__field">
+            <label class="provider-detail__label">Accounts</label>
+            <ul
+              role="list"
+              aria-label={`Accounts for ${props.provDef.name}`}
+              style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"
+            >
+              <For each={props.activeKeys!()}>
+                {(k) => (
+                  <li style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--muted) / 0.3);">
+                    <Show
+                      when={renamingId() === k.id}
+                      fallback={
+                        <>
+                          <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 500; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                              {k.label}
+                            </div>
+                            <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                              Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
+                            </div>
+                          </div>
+                          <button
+                            class="btn btn--outline btn--sm"
+                            style="flex-shrink: 0;"
+                            disabled={props.busy()}
+                            onClick={() => startRename(k)}
+                          >
+                            Rename
+                          </button>
+                          <button
+                            class="provider-detail__disconnect-icon"
+                            disabled={props.busy()}
+                            onClick={() => handleDeleteKey(k.label)}
+                            aria-label={`Delete account ${k.label}`}
+                            title="Delete account"
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M3 6h18" />
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                          </button>
+                        </>
+                      }
+                    >
+                      <input
+                        class="provider-detail__input"
+                        type="text"
+                        maxlength={MAX_LABEL_LENGTH}
+                        aria-label={`Rename ${k.label}`}
+                        value={renameValue()}
+                        onInput={(e) => setRenameValue(e.currentTarget.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') commitRename(k);
+                          if (e.key === 'Escape') setRenamingId(null);
+                        }}
+                      />
+                      <button
+                        class="btn btn--primary btn--sm"
+                        disabled={props.busy()}
+                        onClick={() => commitRename(k)}
+                      >
+                        Save
+                      </button>
+                      <button
+                        class="btn btn--outline btn--sm"
+                        disabled={props.busy()}
+                        onClick={() => setRenamingId(null)}
+                      >
+                        Cancel
+                      </button>
+                    </Show>
+                  </li>
+                )}
+              </For>
+            </ul>
+          </div>
+          <button
+            class="btn btn--outline provider-detail__action provider-detail__disconnect"
+            disabled={props.busy()}
+            onClick={handleDisconnect}
+          >
+            <Show when={!props.busy()} fallback={<span class="spinner" />}>
+              Disconnect all
+            </Show>
+          </button>
+        </Show>
+        {/* Single key — original view */}
+        <Show when={!isMultiKey()}>
+          <div class="provider-detail__field">
+            <span class="provider-detail__no-key">
+              Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
+            </span>
+          </div>
+          <button
+            class="btn btn--outline provider-detail__action provider-detail__disconnect"
+            disabled={props.busy()}
+            onClick={handleDisconnect}
+          >
+            <Show when={!props.busy()} fallback={<span class="spinner" />}>
+              Disconnect
+            </Show>
+          </button>
+        </Show>
       </Show>
     </>
   );
