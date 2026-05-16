@@ -276,4 +276,112 @@ describe("DeviceCodeDetailView — multi-key", () => {
     renderMultiKeyMinimax(keys);
     expect(screen.getByText("Disconnect all")).toBeDefined();
   });
+
+  it("handleDeleteKey surfaces notifications from disconnectProvider", async () => {
+    mockDisconnectProvider.mockResolvedValue({
+      notifications: ["Key still shared with another agent"],
+    });
+    const keys = [
+      makeKey({ id: "k1", label: "Primary" }),
+      makeKey({ id: "k2", label: "Secondary" }),
+    ];
+    renderMultiKeyMinimax(keys);
+
+    fireEvent.click(screen.getByLabelText("Delete account Primary"));
+
+    await waitFor(() => {
+      expect(mockToast.error).toHaveBeenCalledWith("Key still shared with another agent");
+    });
+  });
+
+  it("handleDeleteKey catch branch when disconnectProvider fails", async () => {
+    mockDisconnectProvider.mockRejectedValue(new Error("network"));
+    const keys = [
+      makeKey({ id: "k1", label: "Primary" }),
+      makeKey({ id: "k2", label: "Secondary" }),
+    ];
+    const { onUpdate } = renderMultiKeyMinimax(keys);
+
+    fireEvent.click(screen.getByLabelText("Delete account Primary"));
+
+    await waitFor(() => {
+      expect(mockDisconnectProvider).toHaveBeenCalled();
+    });
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
+  it("commitRename catch branch when renameProviderKey fails", async () => {
+    mockRenameProviderKey.mockRejectedValue(new Error("network"));
+    const keys = [
+      makeKey({ id: "k1", label: "Old" }),
+      makeKey({ id: "k2", label: "Other" }),
+    ];
+    const { onUpdate } = renderMultiKeyMinimax(keys);
+
+    const renameButtons = screen.getAllByText("Rename");
+    fireEvent.click(renameButtons[0]);
+
+    const input = screen.getByLabelText("Rename Old");
+    fireEvent.input(input, { target: { value: "New" } });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(mockRenameProviderKey).toHaveBeenCalled();
+    });
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+});
+
+function renderConnectedWithAddKeyOpen() {
+  const provDef = getProvider("minimax")!;
+  const [busy, setBusy] = createSignal(false);
+  const [authType] = createSignal<AuthType>("subscription");
+  const [addKeyOpen, setAddKeyOpen] = createSignal(true);
+  const onBack = vi.fn();
+  const onUpdate = vi.fn();
+  const onClose = vi.fn();
+  const keys = [makeKey()];
+  const result = render(() => (
+    <DeviceCodeDetailView
+      provDef={provDef}
+      provId="minimax"
+      agentName="test-agent"
+      connected={() => true}
+      selectedAuthType={authType}
+      busy={busy}
+      setBusy={setBusy}
+      onBack={onBack}
+      onUpdate={onUpdate}
+      onClose={onClose}
+      addKeyOpen={addKeyOpen}
+      setAddKeyOpen={setAddKeyOpen}
+      activeKeys={() => keys}
+    />
+  ));
+  return { ...result, onBack, onUpdate, onClose, setAddKeyOpen };
+}
+
+describe("DeviceCodeDetailView — addKeyOpen effect", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("auto-launches handleStart when addKeyOpen is true and connected", async () => {
+    const startMinimaxOAuth = (await import("../../src/services/api.js")).startMinimaxOAuth as ReturnType<typeof vi.fn>;
+    startMinimaxOAuth.mockResolvedValue({
+      flowId: "f1",
+      userCode: "ABCD-1234",
+      verificationUri: "https://minimax.io/verify",
+      expiresAt: Date.now() + 60000,
+      pollIntervalMs: 2000,
+    });
+    const openSpy = vi.spyOn(window, "open").mockReturnValue({ closed: false, opener: null, location: { replace: vi.fn() } } as unknown as Window);
+
+    renderConnectedWithAddKeyOpen();
+
+    await waitFor(() => {
+      expect(startMinimaxOAuth).toHaveBeenCalledWith("test-agent", "global");
+    });
+    openSpy.mockRestore();
+  });
 });

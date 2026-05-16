@@ -433,4 +433,103 @@ describe('AnthropicOAuthDetailView — multi-key', () => {
     renderMultiKeyView(keys);
     expect(screen.getByText('Disconnect all')).toBeDefined();
   });
+
+  it('handleDeleteKey surfaces notifications from disconnectProvider', async () => {
+    mockDisconnectProvider.mockResolvedValue({
+      notifications: ['Key still in use by another agent'],
+    });
+    const keys = [
+      makeKey({ id: 'k1', label: 'Primary' }),
+      makeKey({ id: 'k2', label: 'Secondary' }),
+    ];
+    renderMultiKeyView(keys);
+
+    fireEvent.click(screen.getByLabelText('Delete account Primary'));
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith('Key still in use by another agent');
+    });
+  });
+
+  it('handleDeleteKey catch branch when disconnectProvider fails', async () => {
+    mockDisconnectProvider.mockRejectedValue(new Error('network'));
+    const keys = [
+      makeKey({ id: 'k1', label: 'Primary' }),
+      makeKey({ id: 'k2', label: 'Secondary' }),
+    ];
+    const { onUpdate } = renderMultiKeyView(keys);
+
+    fireEvent.click(screen.getByLabelText('Delete account Primary'));
+
+    await waitFor(() => {
+      expect(mockDisconnectProvider).toHaveBeenCalled();
+    });
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
+  it('commitRename catch branch when renameProviderKey fails', async () => {
+    mockRenameProviderKey.mockRejectedValue(new Error('network'));
+    const keys = [
+      makeKey({ id: 'k1', label: 'Old' }),
+      makeKey({ id: 'k2', label: 'Other' }),
+    ];
+    const { onUpdate } = renderMultiKeyView(keys);
+
+    const renameButtons = screen.getAllByText('Rename');
+    fireEvent.click(renameButtons[0]);
+
+    const input = screen.getByLabelText('Rename Old');
+    fireEvent.input(input, { target: { value: 'New' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => {
+      expect(mockRenameProviderKey).toHaveBeenCalled();
+    });
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+});
+
+function renderViewWithAddKeyOpen() {
+  const [busy, setBusy] = createSignal(false);
+  const [addKeyOpen, setAddKeyOpen] = createSignal(true);
+  const onBack = vi.fn();
+  const onUpdate = vi.fn();
+  const onClose = vi.fn();
+  const keys = [makeKey()];
+  const result = render(() => (
+    <AnthropicOAuthDetailView
+      provDef={provDef}
+      provId="anthropic"
+      agentName="test-agent"
+      connected={() => true}
+      selectedAuthType={() => 'subscription'}
+      busy={busy}
+      setBusy={setBusy}
+      onBack={onBack}
+      onUpdate={onUpdate}
+      onClose={onClose}
+      addKeyOpen={addKeyOpen}
+      setAddKeyOpen={setAddKeyOpen}
+      activeKeys={() => keys}
+    />
+  ));
+  return { ...result, onBack, onUpdate, onClose, setAddKeyOpen };
+}
+
+describe('AnthropicOAuthDetailView — addKeyOpen effect', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetAnthropicOAuthPending.mockResolvedValue({ state: null });
+  });
+
+  it('auto-launches handleSignIn when addKeyOpen is true and connected', async () => {
+    mockStartAnthropicOAuth.mockResolvedValue({ url: 'https://x', state: 'abc' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderViewWithAddKeyOpen();
+
+    await waitFor(() => {
+      expect(mockStartAnthropicOAuth).toHaveBeenCalledWith('test-agent');
+    });
+  });
 });

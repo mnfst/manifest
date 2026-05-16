@@ -240,4 +240,230 @@ describe('OAuthDetailView', () => {
 
     expect(mockRenameProviderKey).not.toHaveBeenCalled();
   });
+
+  it('handlePasteSubmit exchanges a valid callback URL', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    mockSubmitOpenaiOAuthCallback.mockResolvedValue({ ok: true });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const { onUpdate } = renderView();
+    // Click login to open popup and show the paste input
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+    await waitFor(() => expect(mockGetOpenaiOAuthUrl).toHaveBeenCalled());
+
+    // Now the paste input should be visible
+    const input = await waitFor(() => screen.getByPlaceholderText(/localhost:1455/));
+    fireEvent.input(input, {
+      target: { value: 'http://localhost:1455/auth/callback?code=abc123&state=xyz789' },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(mockSubmitOpenaiOAuthCallback).toHaveBeenCalledWith('abc123', 'xyz789');
+    });
+    expect(mockToastSuccess).toHaveBeenCalledWith('OpenAI subscription connected');
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('handlePasteSubmit shows error when URL is missing code or state', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+    await waitFor(() => expect(mockGetOpenaiOAuthUrl).toHaveBeenCalled());
+
+    const input = await waitFor(() => screen.getByPlaceholderText(/localhost:1455/));
+    fireEvent.input(input, {
+      target: { value: 'http://localhost:1455/auth/callback?code=abc123' },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/URL is missing the authorization code/)).toBeDefined();
+    });
+    expect(mockSubmitOpenaiOAuthCallback).not.toHaveBeenCalled();
+  });
+
+  it('handlePasteSubmit shows error when exchange fails', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    mockSubmitOpenaiOAuthCallback.mockRejectedValue(new Error('expired'));
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+    await waitFor(() => expect(mockGetOpenaiOAuthUrl).toHaveBeenCalled());
+
+    const input = await waitFor(() => screen.getByPlaceholderText(/localhost:1455/));
+    fireEvent.input(input, {
+      target: { value: 'http://localhost:1455/auth/callback?code=abc&state=xyz' },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to exchange token/)).toBeDefined();
+    });
+  });
+
+  it('handlePasteSubmit does nothing when input is empty', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+    await waitFor(() => expect(mockGetOpenaiOAuthUrl).toHaveBeenCalled());
+
+    const input = await waitFor(() => screen.getByPlaceholderText(/localhost:1455/));
+    fireEvent.input(input, { target: { value: '   ' } });
+    fireEvent.click(screen.getByText('Connect'));
+
+    expect(mockSubmitOpenaiOAuthCallback).not.toHaveBeenCalled();
+  });
+
+  it('handlePasteSubmit submits on Enter key', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    mockSubmitOpenaiOAuthCallback.mockResolvedValue({ ok: true });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+    await waitFor(() => expect(mockGetOpenaiOAuthUrl).toHaveBeenCalled());
+
+    const input = await waitFor(() => screen.getByPlaceholderText(/localhost:1455/));
+    fireEvent.input(input, {
+      target: { value: 'http://localhost:1455/auth/callback?code=abc&state=xyz' },
+    });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(mockSubmitOpenaiOAuthCallback).toHaveBeenCalledWith('abc', 'xyz');
+    });
+  });
+
+  it('handleDisconnect calls revokeOpenaiOAuth and disconnectProvider (single-key)', async () => {
+    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
+    mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+
+    const { onBack, onUpdate } = renderView({ connected: true, activeKeys: [makeKey()] });
+    fireEvent.click(screen.getByText('Disconnect'));
+
+    await waitFor(() => {
+      expect(mockRevokeOpenaiOAuth).toHaveBeenCalledWith('test-agent');
+    });
+    await waitFor(() => {
+      expect(mockDisconnectProvider).toHaveBeenCalledWith(
+        'test-agent',
+        'openai',
+        'subscription',
+      );
+    });
+    expect(onBack).toHaveBeenCalled();
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('handleDisconnect surfaces notifications from disconnectProvider', async () => {
+    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
+    mockDisconnectProvider.mockResolvedValue({
+      notifications: ['Shared subscription warning'],
+    });
+
+    const { onBack } = renderView({ connected: true, activeKeys: [makeKey()] });
+    fireEvent.click(screen.getByText('Disconnect'));
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith('Shared subscription warning');
+    });
+    expect(onBack).toHaveBeenCalled();
+  });
+
+  it('handleDisconnect catch branch when disconnectProvider fails', async () => {
+    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
+    mockDisconnectProvider.mockRejectedValue(new Error('network'));
+
+    const { onBack } = renderView({ connected: true, activeKeys: [makeKey()] });
+    fireEvent.click(screen.getByText('Disconnect'));
+
+    await waitFor(() => {
+      expect(mockDisconnectProvider).toHaveBeenCalled();
+    });
+    expect(onBack).not.toHaveBeenCalled();
+  });
+
+  it('handleDeleteKey surfaces notifications from disconnectProvider', async () => {
+    mockDisconnectProvider.mockResolvedValue({
+      notifications: ['Key removal warning'],
+    });
+    const keys = [
+      makeKey({ id: 'k1', label: 'Primary' }),
+      makeKey({ id: 'k2', label: 'Secondary' }),
+    ];
+    renderView({ connected: true, activeKeys: keys });
+
+    fireEvent.click(screen.getByLabelText('Delete account Primary'));
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith('Key removal warning');
+    });
+  });
+
+  it('handleDeleteKey catch branch when disconnectProvider fails', async () => {
+    mockDisconnectProvider.mockRejectedValue(new Error('network'));
+    const keys = [
+      makeKey({ id: 'k1', label: 'Primary' }),
+      makeKey({ id: 'k2', label: 'Secondary' }),
+    ];
+    const { onUpdate } = renderView({ connected: true, activeKeys: keys });
+
+    fireEvent.click(screen.getByLabelText('Delete account Primary'));
+
+    await waitFor(() => {
+      expect(mockDisconnectProvider).toHaveBeenCalled();
+    });
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
+  it('commitRename catch branch when renameProviderKey fails', async () => {
+    mockRenameProviderKey.mockRejectedValue(new Error('network'));
+    const keys = [
+      makeKey({ id: 'k1', label: 'Old name' }),
+      makeKey({ id: 'k2', label: 'Other' }),
+    ];
+    const { onUpdate } = renderView({ connected: true, activeKeys: keys });
+
+    const renameButtons = screen.getAllByText('Rename');
+    fireEvent.click(renameButtons[0]);
+
+    const input = screen.getByLabelText('Rename Old name');
+    fireEvent.input(input, { target: { value: 'New name' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => {
+      expect(mockRenameProviderKey).toHaveBeenCalled();
+    });
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
+  it('pasteError is shown and cleared on new input', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+    await waitFor(() => expect(mockGetOpenaiOAuthUrl).toHaveBeenCalled());
+
+    const input = await waitFor(() => screen.getByPlaceholderText(/localhost:1455/));
+    // Submit invalid URL to trigger error
+    fireEvent.input(input, {
+      target: { value: 'http://localhost:1455/auth/callback?code=abc' },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/URL is missing the authorization code/)).toBeDefined();
+    });
+
+    // Typing again should clear the error
+    fireEvent.input(input, { target: { value: 'http://other' } });
+    expect(screen.queryByText(/URL is missing the authorization code/)).toBeNull();
+  });
 });
