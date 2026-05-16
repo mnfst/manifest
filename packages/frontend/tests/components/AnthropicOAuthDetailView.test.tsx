@@ -274,8 +274,8 @@ describe('AnthropicOAuthDetailView', () => {
   });
 
   it('surfaces server-side notifications when disconnect returns them', async () => {
-    mockRevokeAnthropicOAuth.mockResolvedValue({ ok: true });
-    mockDisconnectProvider.mockResolvedValue({
+    mockRevokeAnthropicOAuth.mockResolvedValue({
+      ok: true,
       notifications: ['Subscription is shared with another agent'],
     });
 
@@ -288,26 +288,25 @@ describe('AnthropicOAuthDetailView', () => {
     expect(onBack).toHaveBeenCalled();
   });
 
-  it('continues with disconnect when revoke fails (best-effort cleanup)', async () => {
+  it('does not call generic disconnect when revoke request fails', async () => {
     mockRevokeAnthropicOAuth.mockRejectedValue(new Error('revoke failed'));
-    mockDisconnectProvider.mockResolvedValue({ ok: true });
 
     const { onBack, onUpdate } = renderView(true);
     fireEvent.click(screen.getByText('Disconnect'));
 
-    await waitFor(() => expect(mockDisconnectProvider).toHaveBeenCalled());
-    expect(onBack).toHaveBeenCalled();
-    expect(onUpdate).toHaveBeenCalled();
+    await waitFor(() => expect(mockRevokeAnthropicOAuth).toHaveBeenCalledWith('test-agent'));
+    expect(mockDisconnectProvider).not.toHaveBeenCalled();
+    expect(onBack).not.toHaveBeenCalled();
+    expect(onUpdate).not.toHaveBeenCalled();
   });
 
-  it('does not throw when disconnect itself fails', async () => {
-    mockRevokeAnthropicOAuth.mockResolvedValue({ ok: true });
-    mockDisconnectProvider.mockRejectedValue(new Error('network'));
+  it('does not navigate back when revoke request fails', async () => {
+    mockRevokeAnthropicOAuth.mockRejectedValue(new Error('network'));
 
     const { onBack } = renderView(true);
     fireEvent.click(screen.getByText('Disconnect'));
 
-    await waitFor(() => expect(mockDisconnectProvider).toHaveBeenCalled());
+    await waitFor(() => expect(mockRevokeAnthropicOAuth).toHaveBeenCalledWith('test-agent'));
     expect(onBack).not.toHaveBeenCalled();
   });
 
@@ -404,8 +403,8 @@ describe('AnthropicOAuthDetailView — multi-key', () => {
     expect(onUpdate).toHaveBeenCalled();
   });
 
-  it('delete individual key calls disconnectProvider with label', async () => {
-    mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+  it('delete individual key calls revokeAnthropicOAuth with label', async () => {
+    mockRevokeAnthropicOAuth.mockResolvedValue({ ok: true, notifications: [] });
     const keys = [
       makeKey({ id: 'k1', label: 'Primary' }),
       makeKey({ id: 'k2', label: 'Secondary' }),
@@ -415,13 +414,9 @@ describe('AnthropicOAuthDetailView — multi-key', () => {
     fireEvent.click(screen.getByLabelText('Delete account Primary'));
 
     await waitFor(() => {
-      expect(mockDisconnectProvider).toHaveBeenCalledWith(
-        'test-agent',
-        'anthropic',
-        'subscription',
-        'Primary',
-      );
+      expect(mockRevokeAnthropicOAuth).toHaveBeenCalledWith('test-agent', 'Primary');
     });
+    expect(mockDisconnectProvider).not.toHaveBeenCalled();
     expect(onUpdate).toHaveBeenCalled();
   });
 
@@ -434,8 +429,9 @@ describe('AnthropicOAuthDetailView — multi-key', () => {
     expect(screen.getByText('Disconnect all')).toBeDefined();
   });
 
-  it('handleDeleteKey surfaces notifications from disconnectProvider', async () => {
-    mockDisconnectProvider.mockResolvedValue({
+  it('handleDeleteKey surfaces notifications from revokeAnthropicOAuth', async () => {
+    mockRevokeAnthropicOAuth.mockResolvedValue({
+      ok: true,
       notifications: ['Key still in use by another agent'],
     });
     const keys = [
@@ -451,8 +447,8 @@ describe('AnthropicOAuthDetailView — multi-key', () => {
     });
   });
 
-  it('handleDeleteKey catch branch when disconnectProvider fails', async () => {
-    mockDisconnectProvider.mockRejectedValue(new Error('network'));
+  it('handleDeleteKey catch branch when revokeAnthropicOAuth fails', async () => {
+    mockRevokeAnthropicOAuth.mockRejectedValue(new Error('network'));
     const keys = [
       makeKey({ id: 'k1', label: 'Primary' }),
       makeKey({ id: 'k2', label: 'Secondary' }),
@@ -462,7 +458,7 @@ describe('AnthropicOAuthDetailView — multi-key', () => {
     fireEvent.click(screen.getByLabelText('Delete account Primary'));
 
     await waitFor(() => {
-      expect(mockDisconnectProvider).toHaveBeenCalled();
+      expect(mockRevokeAnthropicOAuth).toHaveBeenCalledWith('test-agent', 'Primary');
     });
     expect(onUpdate).not.toHaveBeenCalled();
   });

@@ -14,7 +14,6 @@ import {
   submitAnthropicOAuth,
   revokeAnthropicOAuth,
   getAnthropicOAuthPending,
-  disconnectProvider,
   renameProviderKey,
   type AuthType,
   type RoutingProvider,
@@ -140,12 +139,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      await revokeAnthropicOAuth(props.agentName).catch(() => {});
-      const result = await disconnectProvider(
-        props.agentName,
-        props.provId,
-        props.selectedAuthType(),
-      );
+      const result = await revokeAnthropicOAuth(props.agentName);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -163,12 +157,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
   const handleDeleteKey = async (label: string) => {
     props.setBusy(true);
     try {
-      const result = await disconnectProvider(
-        props.agentName,
-        props.provId,
-        props.selectedAuthType(),
-        label,
-      );
+      const result = await revokeAnthropicOAuth(props.agentName, label);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);

@@ -16,7 +16,7 @@ function build() {
     resolve: jest.fn().mockResolvedValue({ id: 'agent-1' }),
   } as unknown as ResolveAgentService;
   const providerService = {
-    removeProvider: jest.fn().mockResolvedValue(undefined),
+    removeProvider: jest.fn().mockResolvedValue({ notifications: [] }),
   } as unknown as ProviderService;
   return {
     ctrl: new AnthropicOauthController(oauth, resolveAgent, providerService),
@@ -105,17 +105,45 @@ describe('AnthropicOauthController', () => {
   describe('revoke', () => {
     it('rejects missing agentName', async () => {
       const { ctrl } = build();
-      await expect(ctrl.revoke('', user)).rejects.toBeInstanceOf(HttpException);
+      await expect(ctrl.revoke('', undefined, user)).rejects.toBeInstanceOf(HttpException);
     });
 
-    it('removes the subscription provider record for the agent', async () => {
+    it('removes all Anthropic subscription records for the agent', async () => {
       const { ctrl, providerService } = build();
-      await expect(ctrl.revoke('agent', user)).resolves.toEqual({ ok: true });
+      await expect(ctrl.revoke('agent', undefined, user)).resolves.toEqual({
+        ok: true,
+        notifications: [],
+      });
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-1',
         'anthropic',
         'subscription',
+        undefined,
       );
+    });
+
+    it('removes only the labeled Anthropic subscription record', async () => {
+      const { ctrl, providerService } = build();
+      await expect(ctrl.revoke('agent', 'Key 2', user)).resolves.toEqual({
+        ok: true,
+        notifications: [],
+      });
+      expect(providerService.removeProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'anthropic',
+        'subscription',
+        'Key 2',
+      );
+    });
+
+    it('rejects repeated label query parameters', async () => {
+      const { ctrl, resolveAgent, providerService } = build();
+      await expect(ctrl.revoke('agent', ['Key 1', 'Key 2'], user)).rejects.toMatchObject({
+        message: 'label query parameter must be a string',
+        status: 400,
+      });
+      expect(resolveAgent.resolve).not.toHaveBeenCalled();
+      expect(providerService.removeProvider).not.toHaveBeenCalled();
     });
   });
 });

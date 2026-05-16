@@ -34,6 +34,7 @@ const mockDisconnectProvider = vi.fn();
 const mockGetOpenaiOAuthUrl = vi.fn();
 const mockPollMinimaxOAuth = vi.fn();
 const mockRevokeOpenaiOAuth = vi.fn();
+const mockRevokeMinimaxOAuth = vi.fn();
 const mockStartMinimaxOAuth = vi.fn();
 const mockStartAnthropicOAuth = vi.fn();
 const mockSubmitAnthropicOAuth = vi.fn();
@@ -49,6 +50,7 @@ vi.mock('../../src/services/api.js', () => ({
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
   pollMinimaxOAuth: (...args: unknown[]) => mockPollMinimaxOAuth(...args),
   revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+  revokeMinimaxOAuth: (...args: unknown[]) => mockRevokeMinimaxOAuth(...args),
   startMinimaxOAuth: (...args: unknown[]) => mockStartMinimaxOAuth(...args),
   startAnthropicOAuth: (...args: unknown[]) => mockStartAnthropicOAuth(...args),
   submitAnthropicOAuth: (...args: unknown[]) => mockSubmitAnthropicOAuth(...args),
@@ -117,6 +119,8 @@ describe('ProviderSelectModal', () => {
       pollIntervalMs: 2000,
     });
     mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
+    mockRevokeAnthropicOAuth.mockResolvedValue({ ok: true, notifications: [] });
+    mockRevokeMinimaxOAuth.mockResolvedValue({ ok: true, notifications: [] });
     mockStartMinimaxOAuth.mockResolvedValue({
       flowId: 'flow-1',
       userCode: 'ABCD-1234',
@@ -1036,8 +1040,7 @@ describe('ProviderSelectModal', () => {
         connected_at: '2025-01-01',
         auth_type: 'subscription',
       };
-      mockRevokeAnthropicOAuth.mockResolvedValue({ ok: true });
-      mockDisconnectProvider.mockResolvedValue({ ok: true });
+      mockRevokeAnthropicOAuth.mockResolvedValue({ ok: true, notifications: [] });
 
       render(() => (
         <ProviderSelectModal
@@ -1053,16 +1056,7 @@ describe('ProviderSelectModal', () => {
       await waitFor(() => {
         expect(mockRevokeAnthropicOAuth).toHaveBeenCalledWith('test-agent');
       });
-      await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalled();
-      });
-      // Match the first three positional args; ignore any trailing trackers
-      // some test runners append (CI consistently sees a 4th `undefined`,
-      // local does not).
-      const [agent, provider, authType] = mockDisconnectProvider.mock.calls[0];
-      expect(agent).toBe('test-agent');
-      expect(provider).toBe('anthropic');
-      expect(authType).toBe('subscription');
+      expect(mockDisconnectProvider).not.toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
     });
 
@@ -1654,7 +1648,7 @@ describe('ProviderSelectModal', () => {
       expect(screen.getByText(/Connected via MiniMax Coding Plan/)).toBeDefined();
     });
 
-    it('disconnects MiniMax without revoking OpenAI OAuth', async () => {
+    it('disconnects MiniMax through its provider-specific cleanup endpoint', async () => {
       const subProvider: RoutingProvider = {
         id: 'p-minimax-sub',
         provider: 'minimax',
@@ -1677,17 +1671,15 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith(
-          'test-agent',
-          'minimax',
-          'subscription',
-        );
+        expect(mockRevokeMinimaxOAuth).toHaveBeenCalledWith('test-agent');
       });
+      expect(mockDisconnectProvider).not.toHaveBeenCalled();
       expect(mockRevokeOpenaiOAuth).not.toHaveBeenCalled();
     });
 
     it('shows MiniMax disconnect notifications as error toasts', async () => {
-      mockDisconnectProvider.mockResolvedValueOnce({
+      mockRevokeMinimaxOAuth.mockResolvedValueOnce({
+        ok: true,
         notifications: ['MiniMax tiers were recalculated.'],
       });
       const subProvider: RoutingProvider = {
