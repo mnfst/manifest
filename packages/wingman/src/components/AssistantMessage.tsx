@@ -1,5 +1,6 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import type { SendResult } from '../send';
+import { extractAssistantText, extractModel, extractUsage } from '../services/response-shape';
 import CodeView from './CodeView.jsx';
 
 interface Props {
@@ -26,37 +27,6 @@ function formatHeaders(headers: Record<string, string>): string {
 function prettyBody(body: string, json: unknown | null): string {
   if (json !== null) return JSON.stringify(json, null, 2);
   return body || '(empty body)';
-}
-
-function extractAssistantText(json: unknown): string | null {
-  if (!json || typeof json !== 'object') return null;
-  const root = json as Record<string, unknown>;
-  const choices = root.choices;
-  if (Array.isArray(choices) && choices.length > 0) {
-    const first = choices[0] as { message?: { content?: unknown }; text?: unknown } | undefined;
-    if (first?.message && typeof first.message.content === 'string') return first.message.content;
-    if (typeof first?.text === 'string') return first.text;
-  }
-  return null;
-}
-
-function extractUsage(json: unknown): { in?: number; out?: number; total?: number } | null {
-  if (!json || typeof json !== 'object') return null;
-  const usage = (json as Record<string, unknown>).usage;
-  if (!usage || typeof usage !== 'object') return null;
-  const u = usage as Record<string, unknown>;
-  const num = (v: unknown) => (typeof v === 'number' ? v : undefined);
-  return {
-    in: num(u.prompt_tokens) ?? num(u.input_tokens),
-    out: num(u.completion_tokens) ?? num(u.output_tokens),
-    total: num(u.total_tokens),
-  };
-}
-
-function extractModel(json: unknown): string | null {
-  if (!json || typeof json !== 'object') return null;
-  const m = (json as Record<string, unknown>).model;
-  return typeof m === 'string' ? m : null;
 }
 
 const StatusPill: Component<{ status: number; ok: boolean; statusText: string }> = (props) => {

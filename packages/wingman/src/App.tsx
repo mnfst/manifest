@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar.jsx';
 import Conversation from './components/Conversation.jsx';
 import Composer from './components/Composer.jsx';
 import { type HeaderEntry } from './components/HeaderEditor.jsx';
-import { PROFILES, PROFILE_BY_ID, type Profile, type ProfileLang } from './profiles';
+import { PROFILES, PROFILE_BY_ID, profilePath, type Profile, type ProfileLang } from './profiles';
 import { partitionHeaders, sendRequest, type SendResult } from './send';
 import {
   appendHistory,
@@ -15,6 +15,7 @@ import {
 } from './services/history';
 import { isExecutable, runUserCode } from './runners';
 import { buildMarkdownReport } from './services/gist';
+import { extractAssistantText } from './services/response-shape';
 import GistModal from './components/GistModal.jsx';
 
 const STORAGE = {
@@ -80,18 +81,6 @@ function defaultBaseUrl(): string {
     return `${protocol}//${hostname}:${port || '3001'}`;
   }
   return `${protocol}//${hostname}`;
-}
-
-function extractAssistantText(json: unknown): string | null {
-  if (!json || typeof json !== 'object') return null;
-  const root = json as Record<string, unknown>;
-  const choices = root.choices;
-  if (Array.isArray(choices) && choices.length > 0) {
-    const first = choices[0] as { message?: { content?: unknown }; text?: unknown } | undefined;
-    if (first?.message && typeof first.message.content === 'string') return first.message.content;
-    if (typeof first?.text === 'string') return first.text;
-  }
-  return null;
 }
 
 const App: Component = () => {
@@ -244,7 +233,7 @@ const App: Component = () => {
         next = out.result;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        const url = `${baseUrl().replace(/\/+$/, '')}/v1/chat/completions`;
+        const url = `${baseUrl().replace(/\/+$/, '')}${profilePath(profile())}`;
         next = {
           url,
           status: 0,
@@ -263,7 +252,7 @@ const App: Component = () => {
     } else {
       sentHeaders = recordFromEntries(headerEntries());
       const body = profile().body(params());
-      const url = `${baseUrl().replace(/\/+$/, '')}/v1/chat/completions`;
+      const url = `${baseUrl().replace(/\/+$/, '')}${profilePath(profile())}`;
       next = await sendRequest({ url, apiKey: apiKey(), headers: sentHeaders, body });
     }
 
@@ -318,7 +307,7 @@ const App: Component = () => {
     }
     setActiveHistoryId(entry.id);
     setResult({
-      url: `${entry.baseUrl.replace(/\/+$/, '')}/v1/chat/completions`,
+      url: `${entry.baseUrl.replace(/\/+$/, '')}${next ? profilePath(next) : '/v1/chat/completions'}`,
       status: entry.status,
       statusText: entry.statusText,
       ok: entry.ok,
