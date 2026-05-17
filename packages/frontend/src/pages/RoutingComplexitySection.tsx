@@ -76,9 +76,8 @@ const RoutingComplexitySection: Component<RoutingComplexitySectionProps> = (prop
       type="button"
       role="switch"
       aria-checked={props.complexityEnabled()}
-      class={() =>
-        `routing-switch${props.complexityEnabled() ? ' routing-switch--on' : ''}`
-      }
+      class="routing-switch"
+      classList={{ 'routing-switch--on': props.complexityEnabled() }}
       disabled={props.togglingComplexity()}
       onClick={() => props.onToggleComplexity()}
     >
