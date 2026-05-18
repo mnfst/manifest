@@ -98,6 +98,7 @@ import { AddRequestParamsColumn1786000000000 } from './migrations/1786000000000-
 import { AddAgentModelParams1787000000000 } from './migrations/1787000000000-AddAgentModelParams';
 import { AddBenchmarkHistory1788000000000 } from './migrations/1788000000000-AddBenchmarkHistory';
 import { RenameBenchmarkToPlayground1789000000000 } from './migrations/1789000000000-RenameBenchmarkToPlayground';
+import { AddOAuthPendingFlows1789100000000 } from './migrations/1789100000000-AddOAuthPendingFlows';
 
 const entities = [
   AgentMessage,
@@ -197,6 +198,7 @@ const migrations = [
   AddAgentModelParams1787000000000,
   AddBenchmarkHistory1788000000000,
   RenameBenchmarkToPlayground1789000000000,
+  AddOAuthPendingFlows1789100000000,
 ];
 
 @Module({

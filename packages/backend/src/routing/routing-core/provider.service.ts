@@ -13,7 +13,7 @@ import {
   isManifestUsableProvider,
   isSupportedSubscriptionProvider,
 } from '../../common/utils/subscription-support';
-import type { AuthType } from 'manifest-shared';
+import type { AuthType, ModelRoute } from 'manifest-shared';
 import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
 import { isMinimaxRegion } from '../oauth/minimax-oauth-helpers';
@@ -707,9 +707,7 @@ export class ProviderService {
     // provider's "Default" key doesn't accidentally rewrite another provider's
     // pinned label that happens to share the same string. Cubic flagged this
     // as P1 — keep it tight.
-    const routeMatchesKey = (
-      route: { provider: string; authType: string; keyLabel?: string | null } | null,
-    ): boolean => {
+    const routeMatchesKey = (route: ModelRoute | null): boolean => {
       if (!route) return false;
       if (!route.keyLabel) return false;
       if (route.keyLabel.toLowerCase() !== previousLower) return false;
@@ -717,7 +715,7 @@ export class ProviderService {
       if (route.authType !== authType) return false;
       return true;
     };
-    const replaceKeyLabel = <T extends { keyLabel?: string | null }>(route: T): T => ({
+    const replaceKeyLabel = (route: ModelRoute): ModelRoute => ({
       ...route,
       keyLabel: nextLabel ?? null,
     });
