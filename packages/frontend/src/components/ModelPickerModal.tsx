@@ -256,6 +256,12 @@ const ModelPickerModal: Component<Props> = (props) => {
   const isLocal = () => activeTab() === 'local';
   const isPaid = () => !isSub() && !isLocal();
 
+  // Resolve the routing-tier label for the subtitle. Callers outside the
+  // routing context (e.g. the Playground) pass a non-tier id, so there is no
+  // matching stage — render no subtitle instead of a bare "tier".
+  const tierLabel = () =>
+    [DEFAULT_STAGE, ...STAGES, ...SPECIFICITY_STAGES].find((s) => s.id === props.tierId)?.label;
+
   return (
     <div
       class="modal-overlay"
@@ -278,13 +284,9 @@ const ModelPickerModal: Component<Props> = (props) => {
             <div class="routing-modal__title" id="model-picker-title">
               Select a model
             </div>
-            <div class="routing-modal__subtitle">
-              {
-                [DEFAULT_STAGE, ...STAGES, ...SPECIFICITY_STAGES].find((s) => s.id === props.tierId)
-                  ?.label
-              }{' '}
-              tier
-            </div>
+            <Show when={tierLabel()}>
+              {(label) => <div class="routing-modal__subtitle">{label()} tier</div>}
+            </Show>
           </div>
           <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
             <svg
