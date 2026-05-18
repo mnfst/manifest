@@ -72,8 +72,8 @@ describe('MessagesQueryDto', () => {
     expect(flat.join('\n')).toMatch(/status must be one of/);
   });
 
-  it('accepts each known routing_tier value including benchmark', async () => {
-    for (const tier of ['simple', 'standard', 'complex', 'reasoning', 'benchmark']) {
+  it('accepts each known routing_tier value including playground', async () => {
+    for (const tier of ['simple', 'standard', 'complex', 'reasoning', 'playground']) {
       const dto = plainToInstance(MessagesQueryDto, { routing_tier: tier });
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);

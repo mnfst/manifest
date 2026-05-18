@@ -56,12 +56,12 @@ const Sidebar: Component = () => {
           Routing
         </A>
         <A
-          href={path('/benchmark')}
+          href={path('/playground')}
           class="sidebar__link"
-          classList={{ active: isActive('/benchmark') }}
-          aria-current={isActive('/benchmark') ? 'page' : undefined}
+          classList={{ active: isActive('/playground') }}
+          aria-current={isActive('/playground') ? 'page' : undefined}
         >
-          Benchmark
+          Playground
         </A>
         <A
           href={path('/limits')}

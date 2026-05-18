@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@solidjs/testing-library';
-import MarkdownContent from '../../src/components/benchmark/MarkdownContent';
+import MarkdownContent from '../../src/components/playground/MarkdownContent';
 
 describe('MarkdownContent', () => {
   it('renders headings, bold, and lists as HTML', () => {

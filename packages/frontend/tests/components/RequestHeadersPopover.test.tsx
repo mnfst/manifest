@@ -6,7 +6,7 @@ import RequestHeadersPopover, {
   isBlockedHeaderKey,
   toHeaderRecord,
   type HeaderEntry,
-} from '../../src/components/benchmark/RequestHeadersPopover';
+} from '../../src/components/playground/RequestHeadersPopover';
 
 describe('isBlockedHeaderKey', () => {
   it('flags Manifest-managed and transport-layer headers case-insensitively', () => {
@@ -49,7 +49,7 @@ describe('RequestHeadersPopover', () => {
     const { container } = render(() => (
       <RequestHeadersPopover open={false} entries={[]} onChange={() => {}} onClose={() => {}} />
     ));
-    expect(container.querySelector('.benchmark-headers')).toBeNull();
+    expect(container.querySelector('.playground-headers')).toBeNull();
   });
 
   it('adds a new blank row when "Add header" is clicked', () => {
@@ -77,11 +77,11 @@ describe('RequestHeadersPopover', () => {
         onClose={() => {}}
       />
     ));
-    expect(container.querySelector('.benchmark-headers__warning')?.textContent).toContain(
+    expect(container.querySelector('.playground-headers__warning')?.textContent).toContain(
       'Authorization',
     );
     expect(
-      container.querySelector('.benchmark-headers__row--blocked'),
+      container.querySelector('.playground-headers__row--blocked'),
     ).toBeDefined();
   });
 
@@ -95,7 +95,7 @@ describe('RequestHeadersPopover', () => {
         onClose={onClose}
       />
     ));
-    const backdrop = container.querySelector('.benchmark-headers__backdrop');
+    const backdrop = container.querySelector('.playground-headers__backdrop');
     fireEvent.click(backdrop!);
     expect(onClose).toHaveBeenCalled();
   });
@@ -131,7 +131,7 @@ describe('RequestHeadersPopover', () => {
         onClose={() => {}}
       />
     ));
-    const remove = container.querySelector('.benchmark-headers__remove') as HTMLElement;
+    const remove = container.querySelector('.playground-headers__remove') as HTMLElement;
     fireEvent.click(remove);
     expect(entries()).toHaveLength(1);
   });
@@ -148,7 +148,7 @@ describe('RequestHeadersPopover', () => {
         onClose={() => {}}
       />
     ));
-    const clear = container.querySelector('.benchmark-headers__clear') as HTMLElement;
+    const clear = container.querySelector('.playground-headers__clear') as HTMLElement;
     fireEvent.click(clear);
     expect(entries()).toEqual([]);
   });
@@ -168,7 +168,7 @@ describe('RequestHeadersPopover', () => {
       />
     ));
     const keyInputs = container.querySelectorAll(
-      '.benchmark-headers__input--key',
+      '.playground-headers__input--key',
     ) as NodeListOf<HTMLInputElement>;
     fireEvent.input(keyInputs[0]!, { target: { value: 'X-Other' } });
     expect(entries()[0]!.key).toBe('X-Other');
@@ -188,7 +188,7 @@ describe('RequestHeadersPopover', () => {
       />
     ));
     const valueInput = container.querySelector(
-      '.benchmark-headers__input--value',
+      '.playground-headers__input--value',
     ) as HTMLInputElement;
     fireEvent.input(valueInput, { target: { value: 'newval' } });
     expect(entries()[0]!.value).toBe('newval');
