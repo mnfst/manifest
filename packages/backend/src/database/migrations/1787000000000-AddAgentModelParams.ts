@@ -27,17 +27,17 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * migration.
  *
  * Conflict resolution: a given (agent, provider, auth_type, model_name) can
- * appear in multiple slots (e.g. as fallback in two tiers) and so can be
- * targeted by multiple INSERTs. Last-write-wins via `ON CONFLICT DO UPDATE`,
- * processed in a deterministic order: tier_assignments before
- * specificity_assignments, primary route before fallback routes, fallback
- * index ascending. Order is stable so re-running the migration on a freshly
- * restored dump produces the same result.
+ * appear in multiple slots (e.g. as fallback in two tiers). Postgres cannot
+ * `ON CONFLICT DO UPDATE` the same target row twice in one statement, so the
+ * source stream is de-duped before the INSERT. The selected row is stable:
+ * tier_assignments are processed before specificity_assignments, fallback
+ * routes win over primaries inside a source table, and later source row IDs
+ * break any remaining tie.
  *
- * After backfill, drops both `param_defaults` columns and their associated
- * runtime code paths (proxy filter, Manifest opinion layer) lose their
- * storage. The single-transaction wrap (TypeORM `migrationsRun: true`)
- * means a failure rolls back create+backfill+drop atomically.
+ * This migration intentionally keeps the legacy `param_defaults` columns.
+ * Railway runs migrations while the old deployment can still be serving
+ * traffic, so the expand step must remain backward-compatible. A later
+ * cleanup migration can drop those columns once the new code has been live.
  */
 export class AddAgentModelParams1787000000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -79,16 +79,15 @@ export class AddAgentModelParams1787000000000 implements MigrationInterface {
     // unifies them into a single flat stream of (agent, route, params)
     // tuples for the eventual INSERT.
     for (const sourceTable of ['tier_assignments', 'specificity_assignments']) {
-      // The deterministic ordering inside `combined` matches the doc: same
-      // table = primary first (slot_priority=0), then fallbacks by index
-      // (slot_priority=1+idx). `ORDER BY agent_id, slot_priority` in the
-      // INSERT ensures the ON CONFLICT path always sees rows in that order
-      // so last-write-wins is deterministic across reruns.
+      // `deduped` keeps one row per target route before the INSERT. This
+      // avoids Postgres' cardinality violation when the same model appears in
+      // multiple slots while preserving the old stable last-write behavior.
       await queryRunner.query(`
         WITH source_rows AS (
           SELECT
             t.user_id,
             t.agent_id,
+            t.id AS source_id,
             t.param_defaults,
             -- effective primary: override wins over auto-assigned
             COALESCE(t.override_route, t.auto_assigned_route) AS primary_route,
@@ -101,6 +100,7 @@ export class AddAgentModelParams1787000000000 implements MigrationInterface {
           SELECT
             s.user_id,
             s.agent_id,
+            s.source_id,
             s.param_defaults,
             (s.primary_route->>'provider') AS provider,
             (s.primary_route->>'authType') AS auth_type,
@@ -117,6 +117,7 @@ export class AddAgentModelParams1787000000000 implements MigrationInterface {
           SELECT
             s.user_id,
             s.agent_id,
+            s.source_id,
             s.param_defaults,
             (fr->>'provider') AS provider,
             (fr->>'authType') AS auth_type,
@@ -147,6 +148,7 @@ export class AddAgentModelParams1787000000000 implements MigrationInterface {
           SELECT
             user_id,
             agent_id,
+            source_id,
             param_defaults,
             LOWER(provider) AS provider,
             auth_type,
@@ -155,6 +157,20 @@ export class AddAgentModelParams1787000000000 implements MigrationInterface {
           FROM combined
           WHERE LOWER(provider) IN (${PROVIDERS_WITH_THINKING.map((p) => `'${p}'`).join(', ')})
             AND param_defaults ? 'thinking'
+        ),
+        deduped AS (
+          SELECT
+            user_id,
+            agent_id,
+            param_defaults,
+            provider,
+            auth_type,
+            model_name,
+            ROW_NUMBER() OVER (
+              PARTITION BY agent_id, provider, auth_type, model_name
+              ORDER BY slot_priority DESC, source_id DESC
+            ) AS route_rank
+          FROM compatible
         )
         INSERT INTO "agent_model_params" (
           "id",
@@ -180,37 +196,19 @@ export class AddAgentModelParams1787000000000 implements MigrationInterface {
           jsonb_build_object('thinking', param_defaults->'thinking'),
           now(),
           now()
-        FROM compatible
-        ORDER BY agent_id, slot_priority, model_name
+        FROM deduped
+        WHERE route_rank = 1
         ON CONFLICT (agent_id, provider, auth_type, model_name)
         DO UPDATE SET
           params = EXCLUDED.params,
           updated_at = now()
       `);
     }
-
-    // 3. Drop the legacy `param_defaults` columns --------------------------
-    // The new table is the single source of truth from here on.
-    await queryRunner.query(
-      `ALTER TABLE "tier_assignments" DROP COLUMN IF EXISTS "param_defaults"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "specificity_assignments" DROP COLUMN IF EXISTS "param_defaults"`,
-    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Restore the columns. Backfilling them from agent_model_params is not
-    // worth the complexity: by the time someone reverts, the runtime is
-    // reading the new table, and a future re-up will rebuild it from the
-    // primary route again. The legacy columns come back empty.
-    await queryRunner.query(
-      `ALTER TABLE "tier_assignments" ADD COLUMN IF NOT EXISTS "param_defaults" jsonb DEFAULT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "specificity_assignments" ADD COLUMN IF NOT EXISTS "param_defaults" jsonb DEFAULT NULL`,
-    );
-
+    // `up` is additive and leaves legacy columns in place, so rollback only
+    // needs to remove the new route-scoped table and indexes.
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_agent_model_params_agent"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_agent_model_params_route"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "agent_model_params"`);
