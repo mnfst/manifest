@@ -237,22 +237,32 @@ export class AnthropicOauthService {
 
 function describeTokenExchangeRequest(request: {
   grant_type: string;
-  code: string;
-  state: string;
-  client_id: string;
-  redirect_uri: string;
-  code_verifier: string;
+  code: unknown;
+  state: unknown;
+  client_id: unknown;
+  redirect_uri: unknown;
+  code_verifier: unknown;
 }) {
+  const codeLength = stringLength(request.code);
+  const stateLength = stringLength(request.state);
+  const codeVerifierLength = stringLength(request.code_verifier);
   return {
     grantType: request.grant_type,
-    hasCode: request.code.length > 0,
-    codeLength: request.code.length,
-    hasState: request.state.length > 0,
-    stateLength: request.state.length,
-    hasCodeVerifier: request.code_verifier.length > 0,
-    codeVerifierLength: request.code_verifier.length,
-    stateMatchesCodeVerifier: request.state === request.code_verifier,
-    hasClientId: request.client_id.length > 0,
-    hasRedirectUri: request.redirect_uri.length > 0,
+    hasCode: codeLength > 0,
+    codeLength,
+    hasState: stateLength > 0,
+    stateLength,
+    hasCodeVerifier: codeVerifierLength > 0,
+    codeVerifierLength,
+    stateMatchesCodeVerifier:
+      typeof request.state === 'string' &&
+      typeof request.code_verifier === 'string' &&
+      request.state === request.code_verifier,
+    hasClientId: stringLength(request.client_id) > 0,
+    hasRedirectUri: stringLength(request.redirect_uri) > 0,
   };
+}
+
+function stringLength(value: unknown): number {
+  return typeof value === 'string' ? value.length : 0;
 }

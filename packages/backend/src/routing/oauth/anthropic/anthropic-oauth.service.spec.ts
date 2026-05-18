@@ -258,6 +258,26 @@ describe('AnthropicOauthService', () => {
       );
     });
 
+    it('logs request shape without crashing when the pending verifier is missing', async () => {
+      fetchMock.mockResolvedValue(mockResponse(400, {}, 'invalid_request'));
+      const logger = { error: jest.fn(), log: jest.fn(), warn: jest.fn() };
+      (svc as unknown as { logger: typeof logger }).logger = logger;
+      jest.spyOn(pendingStore.svc, 'consume').mockResolvedValue({
+        provider: 'anthropic',
+        state: 'state-1',
+        verifier: undefined as unknown as string,
+        agentId: 'agent-1',
+        userId: 'user-1',
+        expiresAt: Date.now() + 60_000,
+      });
+
+      await expect(svc.exchangeCode('bad#state-1', undefined, 'agent-1', 'user-1')).rejects.toThrow(
+        'Token exchange failed',
+      );
+
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('"hasCodeVerifier":false'));
+    });
+
     it('stores an empty refresh token when Anthropic omits one in the response', async () => {
       // No refresh_token field — defensive fallback exercises the `?? ''`.
       fetchMock.mockResolvedValue(mockResponse(200, { access_token: 'a', expires_in: 60 }));
