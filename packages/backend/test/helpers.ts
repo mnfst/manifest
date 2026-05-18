@@ -26,8 +26,8 @@ import { EmailProviderConfig } from '../src/entities/email-provider-config.entit
 import { SpecificityAssignment } from '../src/entities/specificity-assignment.entity';
 import { HeaderTier } from '../src/entities/header-tier.entity';
 import { InstallMetadata } from '../src/entities/install-metadata.entity';
-import { BenchmarkRun } from '../src/entities/benchmark-run.entity';
-import { BenchmarkColumn } from '../src/entities/benchmark-column.entity';
+import { PlaygroundRun } from '../src/entities/playground-run.entity';
+import { PlaygroundColumn } from '../src/entities/playground-column.entity';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
@@ -35,7 +35,7 @@ import { NotificationsModule } from '../src/notifications/notifications.module';
 import { ModelPricesModule } from '../src/model-prices/model-prices.module';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { RoutingModule } from '../src/routing/routing.module';
-import { BenchmarkModule } from '../src/benchmark/benchmark.module';
+import { PlaygroundModule } from '../src/playground/playground.module';
 import { CommonModule } from '../src/common/common.module';
 import { PublicStatsModule } from '../src/public-stats/public-stats.module';
 import { SetupModule } from '../src/setup/setup.module';
@@ -46,7 +46,7 @@ export const TEST_TENANT_ID = 'test-tenant-001';
 export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
-const entities = [AgentMessage, LlmCall, ToolExecution, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig, SpecificityAssignment, HeaderTier, InstallMetadata, BenchmarkRun, BenchmarkColumn];
+const entities = [AgentMessage, LlmCall, ToolExecution, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig, SpecificityAssignment, HeaderTier, InstallMetadata, PlaygroundRun, PlaygroundColumn];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
 const OPENROUTER_MODELS_FIXTURE = {
   data: [
@@ -162,7 +162,7 @@ export async function createTestApp(): Promise<INestApplication> {
         NotificationsModule,
         ModelPricesModule,
         RoutingModule,
-        BenchmarkModule,
+        PlaygroundModule,
         PublicStatsModule,
         SetupModule,
       ],

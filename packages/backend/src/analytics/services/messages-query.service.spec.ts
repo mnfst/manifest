@@ -587,7 +587,7 @@ describe('MessagesQueryService', () => {
       range: '24h',
       userId: 'test-user',
       limit: 20,
-      routing_tier: 'benchmark',
+      routing_tier: 'playground',
     });
 
     expect(result.total_count).toBe(2);
@@ -595,7 +595,7 @@ describe('MessagesQueryService', () => {
       ([clause]) => typeof clause === 'string' && clause.includes('routing_tier'),
     );
     expect(tierCall).toBeDefined();
-    expect(tierCall?.[1]).toEqual({ tierFilter: 'benchmark' });
+    expect(tierCall?.[1]).toEqual({ tierFilter: 'playground' });
   });
 
   it('different routing_tier values produce different count cache keys', async () => {
@@ -608,7 +608,7 @@ describe('MessagesQueryService', () => {
       range: '24h',
       userId: 'test-user',
       limit: 20,
-      routing_tier: 'benchmark',
+      routing_tier: 'playground',
     });
 
     mockGetRawOne.mockResolvedValueOnce({ total: 11 });

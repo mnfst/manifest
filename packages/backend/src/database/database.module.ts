@@ -19,8 +19,8 @@ import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
-import { BenchmarkRun } from '../entities/benchmark-run.entity';
-import { BenchmarkColumn } from '../entities/benchmark-column.entity';
+import { PlaygroundRun } from '../entities/playground-run.entity';
+import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -90,7 +90,9 @@ import { RetuneSpecificityMiscategorizedIndex1782000000000 } from './migrations/
 import { AddAgentSoftDelete1782200000000 } from './migrations/1782200000000-AddAgentSoftDelete';
 import { AddModelRouteColumns1783000000000 } from './migrations/1783000000000-AddModelRouteColumns';
 import { DropLegacyRoutingColumns1784000000000 } from './migrations/1784000000000-DropLegacyRoutingColumns';
-import { AddBenchmarkHistory1785000000000 } from './migrations/1785000000000-AddBenchmarkHistory';
+import { AddPlaygroundHistory1785000000000 } from './migrations/1785000000000-AddPlaygroundHistory';
+import { AddPlaygroundRunStarred1786000000000 } from './migrations/1786000000000-AddPlaygroundRunStarred';
+import { AddPlaygroundRunBestColumn1787000000000 } from './migrations/1787000000000-AddPlaygroundRunBestColumn';
 
 const entities = [
   AgentMessage,
@@ -110,8 +112,8 @@ const entities = [
   SpecificityAssignment,
   HeaderTier,
   InstallMetadata,
-  BenchmarkRun,
-  BenchmarkColumn,
+  PlaygroundRun,
+  PlaygroundColumn,
 ];
 
 const migrations = [
@@ -182,7 +184,9 @@ const migrations = [
   AddAgentSoftDelete1782200000000,
   AddModelRouteColumns1783000000000,
   DropLegacyRoutingColumns1784000000000,
-  AddBenchmarkHistory1785000000000,
+  AddPlaygroundHistory1785000000000,
+  AddPlaygroundRunStarred1786000000000,
+  AddPlaygroundRunBestColumn1787000000000,
 ];
 
 @Module({
