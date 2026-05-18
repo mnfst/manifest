@@ -9,6 +9,7 @@ import type { IngestEventBusService } from '../common/services/ingest-event-bus.
 import type { PlaygroundHistoryService } from './playground-history.service';
 import type { Repository } from 'typeorm';
 import type { AgentMessage } from '../entities/agent-message.entity';
+import type { CustomProvider } from '../entities/custom-provider.entity';
 import type { RunPlaygroundDto } from './dto/run-playground.dto';
 
 const USER_ID = 'user-1';
@@ -144,6 +145,7 @@ interface Mocks {
   eventBus: { emit: jest.Mock };
   history: { saveColumn: jest.Mock };
   messageRepo: { insert: jest.Mock };
+  customProviderRepo: { findOne: jest.Mock };
 }
 
 function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService; mocks: Mocks } {
@@ -171,6 +173,7 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
     eventBus: { emit: jest.fn() },
     history: { saveColumn: jest.fn().mockResolvedValue('col-1') },
     messageRepo: { insert: jest.fn().mockResolvedValue(undefined) },
+    customProviderRepo: { findOne: jest.fn().mockResolvedValue(null) },
     ...mocks,
   };
   const service = new PlaygroundService(
@@ -181,6 +184,7 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
     full.eventBus as unknown as IngestEventBusService,
     full.history as unknown as PlaygroundHistoryService,
     full.messageRepo as unknown as Repository<AgentMessage>,
+    full.customProviderRepo as unknown as Repository<CustomProvider>,
   );
   return { service, mocks: full };
 }
@@ -234,6 +238,31 @@ describe('PlaygroundService.runStream', () => {
       status: 'success',
       content: 'hello',
     });
+  });
+
+  it('resolves a custom provider endpoint and forwards the raw (unprefixed) model name', async () => {
+    const { service, mocks } = buildService();
+    mocks.customProviderRepo.findOne.mockResolvedValue({
+      id: 'abc',
+      base_url: 'https://nebius.example/v1',
+      api_kind: 'openai',
+    });
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream(['data: {"choices":[{"delta":{"content":"OK"}}]}\n\n', 'data: [DONE]\n\n']),
+    );
+    const res = mockRes();
+
+    await service.runStream(
+      USER_ID,
+      makeDto({ provider: 'custom:abc', model: 'custom:abc/meta-llama/Llama-3.1-8B' }),
+      asRes(res),
+    );
+
+    const call = mocks.providerClient.forward.mock.calls[0][0] as Record<string, unknown>;
+    expect(call.provider).toBe('custom:abc');
+    expect(call.customEndpoint).toBeDefined();
+    // Prefix stripped — the custom endpoint expects the bare upstream model id.
+    expect(call.model).toBe('meta-llama/Llama-3.1-8B');
   });
 
   it('defaults all token counts to 0 when the stream reports no usage block', async () => {
