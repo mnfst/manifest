@@ -251,6 +251,26 @@ describe('BenchmarkService', () => {
     await expect(service.run(USER_ID, makeDto())).rejects.toThrow(/upstream blew up/);
   });
 
+  it('persists an error row + history column when the provider transport fails', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockRejectedValue(new Error('socket hang up'));
+
+    await expect(service.run(USER_ID, makeDto())).rejects.toBeInstanceOf(BadGatewayException);
+
+    expect(mocks.messageRepo.insert).toHaveBeenCalledTimes(1);
+    expect(mocks.messageRepo.insert.mock.calls[0][0]).toMatchObject({
+      status: 'error',
+      error_http_status: 502,
+      routing_tier: 'benchmark',
+    });
+    expect(mocks.history.saveColumn).toHaveBeenCalledTimes(1);
+    expect(mocks.history.saveColumn.mock.calls[0][0]).toMatchObject({
+      status: 'error',
+      errorMessage: 'Provider request failed: socket hang up',
+      metrics: null,
+    });
+  });
+
   it('wraps non-Error provider failures by stringifying them', async () => {
     const { service, mocks } = buildService();
     mocks.providerClient.forward.mockRejectedValue('weird-non-error');
@@ -291,7 +311,7 @@ describe('BenchmarkService', () => {
     expect(result.content).toBe('chatgpt normalized');
   });
 
-  it('throws BadGatewayException on a non-JSON provider response', async () => {
+  it('throws BadGatewayException on a non-JSON provider response and persists the failure', async () => {
     const { service, mocks } = buildService();
     mocks.providerClient.forward.mockResolvedValue({
       response: new Response('NOT JSON', {
@@ -303,6 +323,18 @@ describe('BenchmarkService', () => {
       isChatGpt: false,
     });
     await expect(service.run(USER_ID, makeDto())).rejects.toThrow(/non-JSON/);
+
+    // A 2xx body that fails to parse must still land an error row + column.
+    expect(mocks.messageRepo.insert).toHaveBeenCalledTimes(1);
+    expect(mocks.messageRepo.insert.mock.calls[0][0]).toMatchObject({
+      status: 'error',
+      error_http_status: 200,
+    });
+    expect(mocks.history.saveColumn).toHaveBeenCalledTimes(1);
+    expect(mocks.history.saveColumn.mock.calls[0][0]).toMatchObject({
+      status: 'error',
+      errorMessage: 'Provider returned a non-JSON response',
+    });
   });
 
   it('joins string + text-block parts when message content is an array', async () => {

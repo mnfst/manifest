@@ -23,6 +23,15 @@ marked.use({
   },
 });
 
+// Model output is untrusted. If a response injects `<a target="_blank">`,
+// the opened page can reach back via window.opener (reverse tabnabbing).
+// Force rel="noopener noreferrer" on any anchor that carries a target.
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'A' && node.hasAttribute('target')) {
+    node.setAttribute('rel', 'noopener noreferrer');
+  }
+});
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')

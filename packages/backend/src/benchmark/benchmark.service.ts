@@ -87,7 +87,19 @@ export class BenchmarkService {
       };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      throw new BadGatewayException(`Provider request failed: ${message}`);
+      const summary = `Provider request failed: ${message}`;
+      await this.persistFailure(
+        userId,
+        agent,
+        dto,
+        authType,
+        502,
+        message,
+        Date.now() - startedAt,
+        {},
+        summary,
+      );
+      throw new BadGatewayException(summary);
     }
     const durationMs = Date.now() - startedAt;
 
@@ -95,7 +107,8 @@ export class BenchmarkService {
     const bodyText = await rawResponse.text();
 
     if (!rawResponse.ok) {
-      await this.recordError(
+      const errorSummary = this.truncateError(bodyText, rawResponse.status);
+      await this.persistFailure(
         userId,
         agent,
         dto,
@@ -103,28 +116,30 @@ export class BenchmarkService {
         rawResponse.status,
         bodyText,
         durationMs,
-      );
-      const errorSummary = this.truncateError(bodyText, rawResponse.status);
-      await this.history.saveColumn({
-        userId,
-        agent,
-        runId: dto.runId,
-        prompt: derivePromptForHistory(dto),
-        model: dto.model,
-        provider: dto.provider,
-        authType,
-        displayName: null,
-        position: dto.position ?? 0,
-        status: 'error',
-        content: null,
         headers,
-        errorMessage: errorSummary,
-        metrics: null,
-      });
+        errorSummary,
+      );
       throw new BadGatewayException(errorSummary);
     }
 
-    const openaiBody = this.normalizeResponseBody(bodyText, dto.model, formatFlags);
+    let openaiBody: OpenAiBody;
+    try {
+      openaiBody = this.normalizeResponseBody(bodyText, dto.model, formatFlags);
+    } catch (err) {
+      const summary = err instanceof Error ? err.message : 'Provider returned a non-JSON response';
+      await this.persistFailure(
+        userId,
+        agent,
+        dto,
+        authType,
+        rawResponse.status,
+        bodyText,
+        durationMs,
+        headers,
+        summary,
+      );
+      throw err;
+    }
     const content = this.extractContent(openaiBody);
     const inputTokens = openaiBody.usage?.prompt_tokens ?? 0;
     const outputTokens = openaiBody.usage?.completion_tokens ?? 0;
@@ -249,6 +264,42 @@ export class BenchmarkService {
       duration_ms: metrics.durationMs,
     });
     this.eventBus.emit(userId);
+  }
+
+  /**
+   * Persist a failed attempt the way the HTTP-error path does: an
+   * `agent_messages` error row plus an `error` history column. Used for every
+   * failure mode (HTTP error, transport failure, non-JSON 2xx body) so a
+   * failed column always survives in the history drawer.
+   */
+  private async persistFailure(
+    userId: string,
+    agent: { id: string; tenant_id: string; name: string },
+    dto: RunBenchmarkDto,
+    authType: AuthType,
+    status: number,
+    errorBody: string,
+    durationMs: number,
+    headers: Record<string, string>,
+    errorSummary: string,
+  ): Promise<void> {
+    await this.recordError(userId, agent, dto, authType, status, errorBody, durationMs);
+    await this.history.saveColumn({
+      userId,
+      agent,
+      runId: dto.runId,
+      prompt: derivePromptForHistory(dto),
+      model: dto.model,
+      provider: dto.provider,
+      authType,
+      displayName: null,
+      position: dto.position ?? 0,
+      status: 'error',
+      content: null,
+      headers,
+      errorMessage: errorSummary,
+      metrics: null,
+    });
   }
 
   private async recordError(

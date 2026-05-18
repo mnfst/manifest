@@ -58,12 +58,25 @@ describe('RunBenchmarkDto', () => {
       expect(hasShape).toBe(true);
     });
 
-    it('fails when `messages: []` (empty arrays count as not-set per ArrayMinSize)', async () => {
+    it('fails when `messages: []` and no rawRequestBody (XOR treats [] as not-set)', async () => {
       const dto = toDto({ ...VALID_BASE, messages: [] });
       const errors = await validate(dto);
-      // Either ArrayMinSize OR the XOR constraint triggers — both are correct
-      // signals that an empty messages array is rejected.
-      expect(errors.length).toBeGreaterThan(0);
+      // No @ArrayMinSize anymore: an empty array alone is rejected by the XOR
+      // shape constraint (it requires messages.length > 0), not field rules.
+      const hasShape = errors.some((e) =>
+        Object.keys(e.constraints ?? {}).includes('BenchmarkPayloadShape'),
+      );
+      expect(hasShape).toBe(true);
+    });
+
+    it('passes the replay shape `messages: [] + rawRequestBody` (XOR picks raw)', async () => {
+      const dto = toDto({
+        ...VALID_BASE,
+        messages: [],
+        rawRequestBody: { messages: [{ role: 'user', content: 'replay' }] },
+      });
+      const errors = await validate(dto, { whitelist: true });
+      expect(errors).toHaveLength(0);
     });
 
     it('fails when `rawRequestBody` is an array (must be a plain object)', async () => {

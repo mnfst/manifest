@@ -1,6 +1,5 @@
 import {
   ArrayMaxSize,
-  ArrayMinSize,
   IsArray,
   IsIn,
   IsInt,
@@ -83,9 +82,12 @@ export class RunBenchmarkDto {
   @IsIn(AUTH_TYPES)
   authType?: 'api_key' | 'subscription' | 'local';
 
+  // No @ArrayMinSize: the BenchmarkPayloadShapeConstraint XOR already treats
+  // an empty `messages` array as "not provided" (it requires length > 0), so
+  // the documented replay shape `{ messages: [], rawRequestBody }` must pass
+  // field validation and be decided by the XOR, not rejected here.
   @IsOptional()
   @IsArray()
-  @ArrayMinSize(1)
   @ArrayMaxSize(50)
   @ValidateNested({ each: true })
   @Type(() => BenchmarkMessageDto)

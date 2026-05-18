@@ -72,6 +72,15 @@ describe('MarkdownContent', () => {
     expect(spy).toHaveBeenCalled();
   });
 
+  it('forces rel="noopener noreferrer" on links that carry a target', () => {
+    const { container } = render(() => (
+      <MarkdownContent text={'<a href="https://evil.example" target="_blank">x</a>'} />
+    ));
+    const a = container.querySelector('a');
+    expect(a?.getAttribute('target')).toBe('_blank');
+    expect(a?.getAttribute('rel')).toBe('noopener noreferrer');
+  });
+
   it('renders plain text without markdown gracefully', () => {
     const { container } = render(() => (
       <MarkdownContent text={'Just a plain sentence with no formatting.'} />
