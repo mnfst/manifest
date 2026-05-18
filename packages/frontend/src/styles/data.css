@@ -190,6 +190,10 @@
   background: hsl(var(--muted-foreground) / 0.1);
   color: hsl(var(--muted-foreground));
 }
+.tier-badge--benchmark {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
 
 /* Custom header-triggered tier badge — color comes from tier-color-* classes. */
 .tier-badge--custom {

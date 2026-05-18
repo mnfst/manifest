@@ -19,6 +19,7 @@ import { OtlpModule } from './otlp/otlp.module';
 import { ModelPricesModule } from './model-prices/model-prices.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { RoutingModule } from './routing/routing.module';
+import { BenchmarkModule } from './benchmark/benchmark.module';
 import { CommonModule } from './common/common.module';
 import { SseModule } from './sse/sse.module';
 import { GithubModule } from './github/github.module';
@@ -70,6 +71,7 @@ const serveStaticImports = frontendPath
     ModelPricesModule,
     NotificationsModule,
     RoutingModule,
+    BenchmarkModule,
     SseModule,
     GithubModule,
     PublicStatsModule,

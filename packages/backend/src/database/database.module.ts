@@ -20,6 +20,8 @@ import { SpecificityAssignment } from '../entities/specificity-assignment.entity
 import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
 import { AgentModelParams } from '../entities/agent-model-params.entity';
+import { BenchmarkRun } from '../entities/benchmark-run.entity';
+import { BenchmarkColumn } from '../entities/benchmark-column.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -94,6 +96,7 @@ import { AddProviderKeyLabelAndPriority1785000000000 } from './migrations/178500
 import { AddProviderKeyLabelToAgentMessages1785100000000 } from './migrations/1785100000000-AddProviderKeyLabelToAgentMessages';
 import { AddRequestParamsColumn1786000000000 } from './migrations/1786000000000-AddRequestParamsColumn';
 import { AddAgentModelParams1787000000000 } from './migrations/1787000000000-AddAgentModelParams';
+import { AddBenchmarkHistory1788000000000 } from './migrations/1788000000000-AddBenchmarkHistory';
 
 const entities = [
   AgentMessage,
@@ -114,6 +117,8 @@ const entities = [
   HeaderTier,
   InstallMetadata,
   AgentModelParams,
+  BenchmarkRun,
+  BenchmarkColumn,
 ];
 
 const migrations = [
@@ -189,6 +194,7 @@ const migrations = [
   AddProviderKeyLabelToAgentMessages1785100000000,
   AddRequestParamsColumn1786000000000,
   AddAgentModelParams1787000000000,
+  AddBenchmarkHistory1788000000000,
 ];
 
 @Module({

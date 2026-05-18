@@ -1012,4 +1012,41 @@ describe("MessageLog", () => {
       });
     });
   });
+
+  describe("Tier filter", () => {
+    it("renders a Tier select with Benchmark among the options", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const selects = container.querySelectorAll('[data-testid="select"]');
+        expect(selects.length).toBeGreaterThanOrEqual(2);
+      });
+      const selects = container.querySelectorAll('[data-testid="select"]');
+      // Second Select is the tier filter (first is providers).
+      const tierSelect = selects[1] as HTMLSelectElement;
+      expect(tierSelect.textContent).toContain("All tiers");
+      expect(tierSelect.textContent).toContain("Benchmark");
+      expect(tierSelect.textContent).toContain("Simple");
+    });
+
+    it("sends routing_tier in the query when a tier is selected", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelectorAll('[data-testid="select"]').length).toBeGreaterThanOrEqual(
+          2,
+        );
+      });
+      const tierSelect = container.querySelectorAll(
+        '[data-testid="select"]',
+      )[1] as HTMLSelectElement;
+      mockGetMessages.mockClear();
+      fireEvent.change(tierSelect, { target: { value: "benchmark" } });
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.routing_tier).toBe("benchmark");
+      });
+    });
+  });
 });
