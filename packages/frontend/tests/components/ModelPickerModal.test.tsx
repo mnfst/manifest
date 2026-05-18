@@ -201,6 +201,21 @@ describe("ModelPickerModal", () => {
     );
   });
 
+  it("omits the subtitle entirely when the tier id matches no stage (Playground)", () => {
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="playground:col-1"
+        models={baseModels}
+        tiers={[]}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    // No matching stage → render nothing rather than a misleading bare "tier".
+    expect(container.querySelector(".routing-modal__subtitle")).toBeNull();
+  });
+
   describe("per-group refresh button", () => {
     it("does not render group refresh buttons when agentName is missing", () => {
       const { container } = render(() => (
