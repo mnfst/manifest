@@ -331,12 +331,6 @@ interface StreamState {
   // Monotonic counter — block indices must keep increasing across the whole
   // stream, including across reopens of the same kind.
   nextBlockIndexCounter: number;
-  // Reasoning_content that arrived while a tool_use was in-progress. Splitting
-  // a single OpenAI tool_call across two Anthropic tool_use blocks would break
-  // input-JSON reassembly on the client, so we defer the reasoning until the
-  // tool_use closes naturally (next text content or finalize) and then flush
-  // it as a self-contained thinking block.
-  deferredReasoning: string;
   finalUsage: JsonRecord | null;
   stopReason: string | null;
   endedMessage: boolean;
@@ -358,7 +352,6 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
     textOpened: false,
     toolCalls: new Map(),
     nextBlockIndexCounter: 0,
-    deferredReasoning: '',
     finalUsage: null,
     stopReason: null,
     endedMessage: false,
@@ -403,14 +396,14 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     // (providers don't guarantee reasoning is fully flushed before content).
     // For text we close it and reopen a fresh thinking block — splitting text
     // across blocks is fine because each Anthropic text block is independent.
-    // For an in-progress tool_use we instead BUFFER the reasoning: splitting a
-    // single OpenAI tool_call across two Anthropic tool_use blocks would break
-    // input-JSON reassembly on the client (each block must carry a complete
-    // input). The buffer is flushed when the tool_use eventually closes.
+    // For an in-progress tool_use we DROP the late reasoning: Manifest's
+    // Anthropic-compat layer assumes thinking blocks precede tool_use and
+    // replays them in that shape on the next turn, so emitting a transcript
+    // like `thinking → tool_use → thinking` would produce a stream we can't
+    // safely replay. Keeping the tool_use block contiguous is the more
+    // defensible tradeoff than surfacing a fragment that breaks replay.
     if (typeof delta.reasoning_content === 'string' && delta.reasoning_content.length > 0) {
-      if (hasOpenToolCall(state)) {
-        state.deferredReasoning += delta.reasoning_content;
-      } else {
+      if (!hasOpenToolCall(state)) {
         closeTextBlock(state, events);
         if (!state.thinkingOpened) {
           state.thinkingIndex = nextBlockIndex(state);
@@ -431,6 +424,7 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
           }),
         );
       }
+      // else: silently drop reasoning_content arriving during an open tool_use.
     }
 
     if (typeof delta.content === 'string' && delta.content.length > 0) {
@@ -550,7 +544,6 @@ function hasOpenToolCall(state: StreamState): boolean {
 }
 
 function closeOpenToolCalls(state: StreamState, events: string[]): void {
-  let closedAny = false;
   for (const entry of state.toolCalls.values()) {
     if (!entry.opened) continue;
     events.push(
@@ -560,37 +553,6 @@ function closeOpenToolCalls(state: StreamState, events: string[]): void {
       }),
     );
     entry.opened = false;
-    closedAny = true;
-  }
-  // If reasoning_content arrived while the tool_use was streaming, we
-  // buffered it instead of splitting the tool_use. Now that the tool_use
-  // is done, flush the buffer as a self-contained thinking block at a fresh
-  // monotonic index. Self-contained (start+delta+stop in one go) so the
-  // surrounding state machine doesn't have to track a fresh in-progress
-  // thinking block here.
-  if (closedAny && state.deferredReasoning.length > 0) {
-    const idx = nextBlockIndex(state);
-    events.push(
-      formatMessagesEvent('content_block_start', {
-        type: 'content_block_start',
-        index: idx,
-        content_block: { type: 'thinking', thinking: '' },
-      }),
-    );
-    events.push(
-      formatMessagesEvent('content_block_delta', {
-        type: 'content_block_delta',
-        index: idx,
-        delta: { type: 'thinking_delta', thinking: state.deferredReasoning },
-      }),
-    );
-    events.push(
-      formatMessagesEvent('content_block_stop', {
-        type: 'content_block_stop',
-        index: idx,
-      }),
-    );
-    state.deferredReasoning = '';
   }
 }
 
