@@ -103,30 +103,19 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
       );
       return;
     }
+    const pastedState = raw.slice(raw.indexOf('#') + 1);
+    if (!pastedState) {
+      setError(
+        "That doesn't look like an authorization code. Make sure you copied the full string from the redirect page.",
+      );
+      return;
+    }
 
     props.setBusy(true);
     setError(null);
     try {
-      // The local `state` signal may have been lost (modal close). Hydrate
-      // from the backend so the user can finish without restarting the flow.
-      let authState = state();
-      if (!authState) {
-        try {
-          const pending = await getAnthropicOAuthPending(props.agentName);
-          if (pending.state) {
-            setState(pending.state);
-            authState = pending.state;
-          }
-        } catch {
-          // fall through to the error below
-        }
-      }
-      if (!authState) {
-        setError('Click "Sign in with Claude" first, then paste the authorization code.');
-        return;
-      }
-      const code = raw.slice(0, raw.indexOf('#'));
-      await submitAnthropicOAuth(props.agentName, code, authState);
+      const authState = state() ?? pastedState;
+      await submitAnthropicOAuth(props.agentName, raw, authState);
       toast.success(`${props.provDef.name} subscription connected`);
       props.onUpdate();
     } catch {

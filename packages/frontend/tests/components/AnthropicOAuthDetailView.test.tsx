@@ -131,7 +131,7 @@ describe('AnthropicOAuthDetailView', () => {
     await waitFor(() => {
       expect(mockSubmitAnthropicOAuth).toHaveBeenCalledWith(
         'test-agent',
-        'auth-code-123',
+        OAUTH_PAYLOAD,
         'state-xyz',
       );
     });
@@ -164,16 +164,14 @@ describe('AnthropicOAuthDetailView', () => {
     await waitFor(() => {
       expect(mockSubmitAnthropicOAuth).toHaveBeenCalledWith(
         'test-agent',
-        'fresh-code',
+        'fresh-code#persisted-state',
         'persisted-state',
       );
     });
   });
 
-  it('hydrates pending state at submit time when the local signal was lost', async () => {
-    mockGetAnthropicOAuthPending
-      .mockResolvedValueOnce({ state: null }) // onMount call
-      .mockResolvedValueOnce({ state: 'late-state' }); // submit call
+  it('uses the pasted state when the local signal was lost', async () => {
+    mockGetAnthropicOAuthPending.mockResolvedValue({ state: null });
     mockSubmitAnthropicOAuth.mockResolvedValue({ ok: true });
 
     renderView();
@@ -184,12 +182,17 @@ describe('AnthropicOAuthDetailView', () => {
     fireEvent.click(screen.getByText('Connect'));
 
     await waitFor(() => {
-      expect(mockSubmitAnthropicOAuth).toHaveBeenCalledWith('test-agent', 'code', 'late-state');
+      expect(mockSubmitAnthropicOAuth).toHaveBeenCalledWith(
+        'test-agent',
+        'code#whatever',
+        'whatever',
+      );
     });
   });
 
-  it('asks the user to sign in first when no pending state is available', async () => {
+  it('submits the full pasted payload even when no pending state hydrates locally', async () => {
     mockGetAnthropicOAuthPending.mockResolvedValue({ state: null });
+    mockSubmitAnthropicOAuth.mockResolvedValue({ ok: true });
 
     renderView();
     await waitFor(() => expect(mockGetAnthropicOAuthPending).toHaveBeenCalled());
@@ -199,8 +202,21 @@ describe('AnthropicOAuthDetailView', () => {
     fireEvent.click(screen.getByText('Connect'));
 
     await waitFor(() => {
-      expect(screen.getByText(/Click "Sign in with Claude" first/)).toBeDefined();
+      expect(mockSubmitAnthropicOAuth).toHaveBeenCalledWith(
+        'test-agent',
+        'orphan-code#orphan-state',
+        'orphan-state',
+      );
     });
+  });
+
+  it('rejects payloads missing the state suffix', () => {
+    renderView();
+    const codeInput = screen.getByLabelText('Anthropic authorization code');
+    fireEvent.input(codeInput, { target: { value: 'auth-code#' } });
+    fireEvent.click(screen.getByText('Connect'));
+
+    expect(screen.getByText(/doesn't look like an authorization code/)).toBeDefined();
     expect(mockSubmitAnthropicOAuth).not.toHaveBeenCalled();
   });
 
@@ -235,10 +251,9 @@ describe('AnthropicOAuthDetailView', () => {
     expect(mockGetAnthropicOAuthPending).not.toHaveBeenCalled();
   });
 
-  it('falls back gracefully when the late-arriving pending lookup throws', async () => {
-    mockGetAnthropicOAuthPending
-      .mockResolvedValueOnce({ state: null }) // onMount
-      .mockRejectedValueOnce(new Error('network')); // submit-time
+  it('does not need a submit-time pending lookup when the pasted payload contains state', async () => {
+    mockGetAnthropicOAuthPending.mockResolvedValue({ state: null });
+    mockSubmitAnthropicOAuth.mockResolvedValue({ ok: true });
 
     renderView();
     await waitFor(() => expect(mockGetAnthropicOAuthPending).toHaveBeenCalledTimes(1));
@@ -248,8 +263,13 @@ describe('AnthropicOAuthDetailView', () => {
     fireEvent.click(screen.getByText('Connect'));
 
     await waitFor(() => {
-      expect(screen.getByText(/Click "Sign in with Claude" first/)).toBeDefined();
+      expect(mockSubmitAnthropicOAuth).toHaveBeenCalledWith(
+        'test-agent',
+        'code#whatever',
+        'whatever',
+      );
     });
+    expect(mockGetAnthropicOAuthPending).toHaveBeenCalledTimes(1);
   });
 
   it('submits on Enter inside the paste input', async () => {
@@ -365,10 +385,7 @@ describe('AnthropicOAuthDetailView — multi-key', () => {
   });
 
   it('renders the multi-key list when activeKeys has 2+ items', () => {
-    const keys = [
-      makeKey({ id: 'k1', label: 'Work' }),
-      makeKey({ id: 'k2', label: 'Personal' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Work' }), makeKey({ id: 'k2', label: 'Personal' })];
     renderMultiKeyView(keys);
     expect(screen.getByText('Accounts')).toBeDefined();
     expect(screen.getByText('Work')).toBeDefined();
@@ -377,10 +394,7 @@ describe('AnthropicOAuthDetailView — multi-key', () => {
 
   it('rename flow: clicking Rename shows input and saving calls renameProviderKey', async () => {
     mockRenameProviderKey.mockResolvedValue({ id: 'k1', label: 'New', priority: 1 });
-    const keys = [
-      makeKey({ id: 'k1', label: 'Old' }),
-      makeKey({ id: 'k2', label: 'Other' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Old' }), makeKey({ id: 'k2', label: 'Other' })];
     const { onUpdate } = renderMultiKeyView(keys);
 
     const renameButtons = screen.getAllByText('Rename');
@@ -421,10 +435,7 @@ describe('AnthropicOAuthDetailView — multi-key', () => {
   });
 
   it('shows "Disconnect all" button in multi-key mode', () => {
-    const keys = [
-      makeKey({ id: 'k1', label: 'A' }),
-      makeKey({ id: 'k2', label: 'B' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'A' }), makeKey({ id: 'k2', label: 'B' })];
     renderMultiKeyView(keys);
     expect(screen.getByText('Disconnect all')).toBeDefined();
   });
@@ -465,10 +476,7 @@ describe('AnthropicOAuthDetailView — multi-key', () => {
 
   it('commitRename catch branch when renameProviderKey fails', async () => {
     mockRenameProviderKey.mockRejectedValue(new Error('network'));
-    const keys = [
-      makeKey({ id: 'k1', label: 'Old' }),
-      makeKey({ id: 'k2', label: 'Other' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Old' }), makeKey({ id: 'k2', label: 'Other' })];
     const { onUpdate } = renderMultiKeyView(keys);
 
     const renameButtons = screen.getAllByText('Rename');
