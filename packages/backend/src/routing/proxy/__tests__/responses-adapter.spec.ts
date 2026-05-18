@@ -101,10 +101,11 @@ describe('Responses adapter', () => {
         { role: 'tool', tool_call_id: 'call_1', content: '{"ok":true}' },
       ]);
       // Hosted Responses-API tools (web_search, file_search, computer_use,
-      // ...) only resolve inside OpenAI's own backend. Manifest fans the
-      // request out to chat/completions upstreams that reject any tool whose
-      // type isn't `function`, so we drop these silently.
-      expect(result.tools).toEqual([]);
+      // ...) pass through toChatTools unchanged — the chat-completions
+      // adapter's sanitizeOpenAiBody is responsible for dropping non-function
+      // entries before forwarding, so OpenAI-native Responses paths (which
+      // skip the sanitizer) can preserve them.
+      expect(result.tools).toEqual([{ type: 'web_search_preview' }]);
       expect(result.tool_choice).toBe('auto');
     });
 
@@ -126,7 +127,13 @@ describe('Responses adapter', () => {
       ]);
     });
 
-    it('drops non-function hosted tools while keeping caller-defined function tools', () => {
+    it('rewrites function-typed tools to chat-completions shape and passes hosted tools through unchanged', () => {
+      // toChatTools only does the Responses-API → chat-completions schema
+      // rewrite for function-typed tools. Hosted tools (web_search,
+      // file_search, computer_use_preview, ...) are passed through as-is so
+      // the OpenAI-native Responses paths (which skip the chat-completions
+      // sanitizer) can preserve them. provider-client-converters.spec covers
+      // the matching strip that runs only against chat-completions upstreams.
       const result = toChatCompletionsRequest({
         input: 'Hi',
         tools: [
@@ -143,6 +150,9 @@ describe('Responses adapter', () => {
       });
 
       expect(result.tools).toEqual([
+        { type: 'web_search' },
+        { type: 'file_search' },
+        { type: 'computer_use_preview' },
         {
           type: 'function',
           function: {

@@ -124,17 +124,19 @@ export function toChatCompletionsRequest(body: JsonRecord): JsonRecord {
 }
 
 function toChatTools(tools: unknown[]): JsonRecord[] {
-  // The Responses API exposes OpenAI-hosted tools (`web_search`,
-  // `file_search`, `computer_use_preview`, `code_interpreter`, ...) that only
-  // OpenAI's own backend can resolve. Codex always advertises a handful of
-  // them per turn, but non-OpenAI chat/completions upstreams (DeepSeek,
-  // MiniMax, Z.AI, Anthropic-compat, etc.) reject any tool whose `type` is
-  // not `function`. Drop the hosted ones silently — the caller-defined
-  // function tools that follow continue to work.
-  return tools
-    .filter(isRecord)
-    .filter((tool) => tool.type === 'function')
-    .map((tool) => ({
+  // Rewrite Responses-API tool entries (`{type:"function", name, description,
+  // parameters, strict}`) into chat-completions tool shape
+  // (`{type:"function", function:{...}}`). Hosted tools (`web_search`,
+  // `file_search`, `computer_use_preview`, `code_interpreter`, ...) pass
+  // through unchanged here; the chat-completions adapter's per-provider
+  // `sanitizeOpenAiBody` is responsible for dropping any tool whose `type`
+  // isn't `function` before forwarding, because chat-completions' wire
+  // schema rejects them. OpenAI-native Responses paths (via
+  // `toNativeResponsesRequest`) never call this function and keep hosted
+  // tools intact.
+  return tools.filter(isRecord).map((tool) => {
+    if (tool.type !== 'function') return tool;
+    return {
       type: 'function',
       function: {
         name: tool.name,
@@ -142,7 +144,8 @@ function toChatTools(tools: unknown[]): JsonRecord[] {
         ...(tool.parameters !== undefined && { parameters: tool.parameters }),
         ...(tool.strict !== undefined && { strict: tool.strict }),
       },
-    }));
+    };
+  });
 }
 
 function toChatToolChoice(toolChoice: unknown): unknown {

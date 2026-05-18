@@ -840,5 +840,74 @@ describe('provider-client-converters', () => {
       expect(result).not.toHaveProperty('store');
       expect(result).not.toHaveProperty('service_tier');
     });
+
+    /* ── tools[] hosted-tool filtering ── */
+
+    it('drops non-function entries from tools[] (chat-completions schema requirement)', () => {
+      // chat-completions' tools[] only accepts type:"function" entries. Hosted
+      // Responses-API tool types (web_search, file_search, computer_use_preview,
+      // code_interpreter, ...) get 400'd by every chat-completions endpoint —
+      // OpenAI's own /v1/chat/completions included — so the sanitizer drops
+      // them here, leaving toChatTools free to do schema rewrite only.
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        tools: [
+          { type: 'web_search' },
+          { type: 'file_search' },
+          { type: 'computer_use_preview' },
+          { type: 'code_interpreter' },
+          {
+            type: 'function',
+            function: {
+              name: 'lookup',
+              description: 'Lookup data',
+              parameters: { type: 'object' },
+            },
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat');
+      expect(result.tools).toEqual([
+        {
+          type: 'function',
+          function: {
+            name: 'lookup',
+            description: 'Lookup data',
+            parameters: { type: 'object' },
+          },
+        },
+      ]);
+    });
+
+    it('drops hosted tools even on passthrough providers (openai/openrouter)', () => {
+      // chat-completions schema rejects non-function tools regardless of
+      // vendor, so passthrough providers still need the filter — the
+      // Responses-API path is the right home for hosted tools, not
+      // chat-completions.
+      const body = {
+        messages: [],
+        tools: [{ type: 'web_search' }, { type: 'function', function: { name: 'lookup' } }],
+      };
+
+      const openai = sanitizeOpenAiBody(body, 'openai', 'gpt-4o');
+      const openrouter = sanitizeOpenAiBody(body, 'openrouter', 'openai/gpt-4o');
+
+      expect(openai.tools).toEqual([{ type: 'function', function: { name: 'lookup' } }]);
+      expect(openrouter.tools).toEqual([{ type: 'function', function: { name: 'lookup' } }]);
+    });
+
+    it('leaves tools untouched when the field is not an array', () => {
+      // Defensive: callers occasionally pass tools as undefined / null / "auto"
+      // (the latter is technically tool_choice but defends against typos).
+      // Sanitizer must not crash.
+      const body = {
+        messages: [],
+        tools: 'auto' as unknown,
+      };
+
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat');
+      expect(result.tools).toBe('auto');
+    });
   });
 });
