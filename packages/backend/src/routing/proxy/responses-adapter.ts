@@ -557,6 +557,11 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
   // Responses-API function-call lifecycle so codex can dispatch the tool.
   const toolCalls = new Map<number, ToolCallState>();
   let nextOutputIndex = 0;
+  // OpenAI's Responses streaming protocol stamps every event with a
+  // monotonically increasing sequence_number (zero-indexed). The Python SDK
+  // declares it as a required field on every ResponseStreamEvent variant,
+  // so strict pydantic consumers reject any event that omits it.
+  let sequenceNumber = 0;
 
   const buildResponseEnvelope = (
     status: 'in_progress' | 'completed',
@@ -596,6 +601,12 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
     content: text ? [{ type: 'output_text', text, annotations: [] }] : [],
   });
 
+  // Wrap formatResponsesEvent so every event auto-stamps sequence_number.
+  // Keeping the counter inside the transformer closure (instead of inside
+  // each call site) means we cannot accidentally skip or double-stamp.
+  const emit = (event: string, data: JsonRecord): string =>
+    formatResponsesEvent(event, { ...data, sequence_number: sequenceNumber++ });
+
   return {
     transform(chatChunk: string): string | null {
       const payloads = extractDataPayloads(chatChunk);
@@ -605,11 +616,11 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
         if (started) return;
         started = true;
         events.push(
-          formatResponsesEvent('response.created', {
+          emit('response.created', {
             type: 'response.created',
             response: buildResponseEnvelope('in_progress', []),
           }),
-          formatResponsesEvent('response.in_progress', {
+          emit('response.in_progress', {
             type: 'response.in_progress',
             response: buildResponseEnvelope('in_progress', []),
           }),
@@ -622,13 +633,13 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
         itemOpened = true;
         textOutputIndex = nextOutputIndex++;
         events.push(
-          formatResponsesEvent('response.output_item.added', {
+          emit('response.output_item.added', {
             type: 'response.output_item.added',
             response_id: responseId,
             output_index: textOutputIndex,
             item: messageItem('', 'in_progress'),
           }),
-          formatResponsesEvent('response.content_part.added', {
+          emit('response.content_part.added', {
             type: 'response.content_part.added',
             response_id: responseId,
             item_id: messageId,
@@ -657,7 +668,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
           ensureItemOpened();
           accumulatedText += delta.content;
           events.push(
-            formatResponsesEvent('response.output_text.delta', {
+            emit('response.output_text.delta', {
               type: 'response.output_text.delta',
               response_id: responseId,
               item_id: messageId,
@@ -702,7 +713,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
             if (!state.added && state.call_id && state.name) {
               state.added = true;
               events.push(
-                formatResponsesEvent('response.output_item.added', {
+                emit('response.output_item.added', {
                   type: 'response.output_item.added',
                   response_id: responseId,
                   output_index: state.output_index,
@@ -712,6 +723,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
                     call_id: state.call_id,
                     name: state.name,
                     arguments: '',
+                    status: 'in_progress',
                   },
                 }),
               );
@@ -722,7 +734,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
               // deltas.
               if (state.args.length > 0) {
                 events.push(
-                  formatResponsesEvent('response.function_call_arguments.delta', {
+                  emit('response.function_call_arguments.delta', {
                     type: 'response.function_call_arguments.delta',
                     response_id: responseId,
                     item_id: state.item_id,
@@ -737,7 +749,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
               state.args += fn.arguments;
               if (state.added) {
                 events.push(
-                  formatResponsesEvent('response.function_call_arguments.delta', {
+                  emit('response.function_call_arguments.delta', {
                     type: 'response.function_call_arguments.delta',
                     response_id: responseId,
                     item_id: state.item_id,
@@ -768,15 +780,15 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
 
       if (!started) {
         events.push(
-          formatResponsesEvent('response.created', {
+          emit('response.created', {
             type: 'response.created',
             response: buildResponseEnvelope('in_progress', []),
           }),
-          formatResponsesEvent('response.in_progress', {
+          emit('response.in_progress', {
             type: 'response.in_progress',
             response: buildResponseEnvelope('in_progress', []),
           }),
-          formatResponsesEvent('response.completed', {
+          emit('response.completed', {
             type: 'response.completed',
             response: buildResponseEnvelope('completed', []),
           }),
@@ -787,7 +799,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
       if (itemOpened) {
         const textIdx = textOutputIndex ?? 0;
         events.push(
-          formatResponsesEvent('response.output_text.done', {
+          emit('response.output_text.done', {
             type: 'response.output_text.done',
             response_id: responseId,
             item_id: messageId,
@@ -796,7 +808,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
             text: accumulatedText,
             logprobs: [],
           }),
-          formatResponsesEvent('response.content_part.done', {
+          emit('response.content_part.done', {
             type: 'response.content_part.done',
             response_id: responseId,
             item_id: messageId,
@@ -804,7 +816,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
             content_index: 0,
             part: { type: 'output_text', text: accumulatedText, annotations: [] },
           }),
-          formatResponsesEvent('response.output_item.done', {
+          emit('response.output_item.done', {
             type: 'response.output_item.done',
             response_id: responseId,
             output_index: textIdx,
@@ -824,7 +836,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
           // so the lifecycle stays well-formed.
           state.added = true;
           events.push(
-            formatResponsesEvent('response.output_item.added', {
+            emit('response.output_item.added', {
               type: 'response.output_item.added',
               response_id: responseId,
               output_index: state.output_index,
@@ -834,12 +846,13 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
                 call_id: finalCallId,
                 name: finalName,
                 arguments: '',
+                status: 'in_progress',
               },
             }),
           );
           if (state.args) {
             events.push(
-              formatResponsesEvent('response.function_call_arguments.delta', {
+              emit('response.function_call_arguments.delta', {
                 type: 'response.function_call_arguments.delta',
                 response_id: responseId,
                 item_id: state.item_id,
@@ -864,15 +877,16 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
             // string and the final `item` payload on the done event. SDK
             // consumers that only read one of the two shapes still get the
             // complete function-call back.
-            formatResponsesEvent('response.function_call_arguments.done', {
+            emit('response.function_call_arguments.done', {
               type: 'response.function_call_arguments.done',
               response_id: responseId,
               item_id: state.item_id,
               output_index: state.output_index,
+              name: finalName,
               arguments: state.args,
               item: finalItem,
             }),
-            formatResponsesEvent('response.output_item.done', {
+            emit('response.output_item.done', {
               type: 'response.output_item.done',
               response_id: responseId,
               output_index: state.output_index,
@@ -906,7 +920,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
       const finalOutput = ordered.map((entry) => entry.item);
 
       events.push(
-        formatResponsesEvent('response.completed', {
+        emit('response.completed', {
           type: 'response.completed',
           response: buildResponseEnvelope('completed', finalOutput),
         }),

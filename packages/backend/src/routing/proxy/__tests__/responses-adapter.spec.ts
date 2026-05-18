@@ -1160,5 +1160,106 @@ describe('Responses adapter', () => {
       const argsDone = events.find((e) => e.event === 'response.function_call_arguments.done')!;
       expect(argsDone.data.arguments).toBe('{"cmd":["ls"]}');
     });
+
+    it('stamps a monotonically increasing sequence_number on every emitted event', () => {
+      // OpenAI's Responses stream declares sequence_number as a required
+      // field on every ResponseStreamEvent variant in the Python SDK
+      // (openai-python/src/openai/types/responses/response_*.py). Strict
+      // pydantic-based consumers reject any event that omits it.
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+      const e1 = t.transform(JSON.stringify({ choices: [{ delta: { content: 'Hi' } }] }));
+      const e2 = t.transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [
+                  {
+                    index: 0,
+                    id: 'call_seq',
+                    function: { name: 'shell', arguments: '{}' },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      );
+      const tail = t.finalize();
+      const events = parseEventStream([e1, e2, tail].filter((s): s is string => !!s).join(''));
+
+      const sequenceNumbers = events.map((e) => e.data.sequence_number);
+      for (const n of sequenceNumbers) {
+        expect(typeof n).toBe('number');
+      }
+      expect(sequenceNumbers).toEqual(sequenceNumbers.map((_, idx) => idx));
+    });
+
+    it('emits a top-level name on response.function_call_arguments.done', () => {
+      // openai-python's ResponseFunctionCallArgumentsDoneEvent requires
+      // `name` alongside `arguments` and `item_id`. Without it strict
+      // consumers see an undefined function name.
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+      const e1 = t.transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [
+                  {
+                    index: 0,
+                    id: 'call_named',
+                    function: { name: 'shell', arguments: '{"cmd":["pwd"]}' },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      );
+      const tail = t.finalize();
+      const events = parseEventStream([e1, tail].filter((s): s is string => !!s).join(''));
+      const argsDone = events.find((e) => e.event === 'response.function_call_arguments.done')!;
+      expect(argsDone.data.name).toBe('shell');
+    });
+
+    it('marks the function_call output_item as in_progress when added', () => {
+      // Real Responses streams open a function_call item with
+      // status: "in_progress" and only flip to "completed" on output_item.done.
+      // The transformer previously omitted the field entirely on `added`.
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+      const e1 = t.transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [
+                  {
+                    index: 0,
+                    id: 'call_status',
+                    function: { name: 'shell', arguments: '{}' },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      );
+      const tail = t.finalize();
+      const events = parseEventStream([e1, tail].filter((s): s is string => !!s).join(''));
+      const fcAdded = events.find(
+        (e) =>
+          e.event === 'response.output_item.added' &&
+          (e.data.item as { type?: string })?.type === 'function_call',
+      )!;
+      expect((fcAdded.data.item as { status: string }).status).toBe('in_progress');
+
+      const fcDone = events.find(
+        (e) =>
+          e.event === 'response.output_item.done' &&
+          (e.data.item as { type?: string })?.type === 'function_call',
+      )!;
+      expect((fcDone.data.item as { status: string }).status).toBe('completed');
+    });
   });
 });
