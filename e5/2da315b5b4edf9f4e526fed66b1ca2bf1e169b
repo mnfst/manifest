@@ -1,0 +1,21 @@
+packages/shared/src/provider-params-spec.ts
+  s_2a89bb64d94650::t_5c1f61d7e304b1 65-68
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_2a89bb64d94650::t_6dc4b37e8f335f 36-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "e52da315b5b4edf9f4e526fed66b1ca2bf1e169b",
+  "prompts": {},
+  "sessions": {
+    "s_2a89bb64d94650": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3b03-cfb3-7333-9ad2-f7207827a195",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
