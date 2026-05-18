@@ -1,0 +1,26 @@
+packages/frontend/tests/services/api/agents.test.ts
+  s_e8a327dcc169c3::t_3cd6f3fb96a721 105-111
+packages/frontend/src/components/DuplicateAgentModal.tsx
+  s_e8a327dcc169c3::t_94ec34771a85a9 59-61
+packages/frontend/src/services/api/agents.ts
+  s_e8a327dcc169c3::t_4fa8dd268bb9a2 70
+packages/frontend/tests/components/DuplicateAgentModal.test.tsx
+  s_e8a327dcc169c3::t_933041b2669afc 37-43,49-55
+  s_e8a327dcc169c3::t_ed17836b6f125a 261
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "3c67b4930e858b1efe2b31117d34422aee32b3f3",
+  "prompts": {},
+  "sessions": {
+    "s_e8a327dcc169c3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8cd49272-33d1-4254-abcb-7379e17f26ca",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

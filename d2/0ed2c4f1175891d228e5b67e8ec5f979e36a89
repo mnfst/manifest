@@ -1,0 +1,56 @@
+packages/frontend/tests/pages/RoutingSpecificitySection.test.tsx
+  s_ba10c1ee330272::t_299a12a8e7b2c6 59-60
+  s_ba10c1ee330272::t_c1df93cb5082b5 117-118
+packages/frontend/tests/pages/RoutingDefaultTierSection.test.tsx
+  s_ba10c1ee330272::t_52d98b22faff9b 38-40
+  s_ba10c1ee330272::t_b2c33d62357298 85-86
+packages/frontend/tests/components/FallbackList.test.tsx
+  ec994516dee85e78 39
+  s_ff3ef56e742c11::t_65b6ee6165a27a 1048,1050-1062,1067-1070,1073-1074,1091-1092,1094-1098,1101-1102,1107-1108,1110-1116,1121,1158
+  s_ba10c1ee330272::t_ca4364016a7adc 1049,1065,1071-1072,1075-1078,1093,1099-1100,1103-1106,1109,1117-1120,1149-1150,1153-1156
+  s_ff3ef56e742c11::t_8e78a09f8853e3 1122,1124-1125,1128-1131,1142-1145,1147-1148,1151-1152,1157
+  s_ba10c1ee330272::t_d1e28d5c6bab2f 1123,1126-1127,1132-1141,1146,1159
+  s_ba10c1ee330272::t_ef0c005604b4bb 1063-1064,1066,1079-1090
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_ba10c1ee330272::t_0429fe6d571c5e 1084-1123,1127-1128
+  s_ba10c1ee330272::t_d6ab6a267bfa16 1124-1126
+  s_ba10c1ee330272::t_70990c5779dfbe 1129-1195
+packages/frontend/tests/pages/RoutingHeaderTiersSection.test.tsx
+  s_ba10c1ee330272::t_8c7657cdb8b78c 32-33
+  s_ba10c1ee330272::t_d34e8a0a9cb7e2 161-162
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_ba10c1ee330272::t_2fd432617462e9 1270,1271-1277,1280-1295,1297-1302,1305-1307,1326
+  s_ba10c1ee330272::t_349ac165ed9917 78-79
+  s_ba10c1ee330272::t_48237e3df22986 224-225
+  s_ba10c1ee330272::t_35a583e966de9d 1278-1279,1296,1303-1304,1308-1325
+packages/frontend/tests/pages/Routing.test.tsx
+  s_ba10c1ee330272::t_6f33ada659752d 19-22,38-46
+  42a3cee9fc1605ad 196-210,882-921,931-936,941-946
+  s_ba10c1ee330272::t_37c4ad1df346cb 274-275,278-279
+  s_ba10c1ee330272::t_081f4f42db321a 296-299,301-304,307,311-314,316-321,323-324
+  s_b970ffa4b91350::t_082718de531421 331-335,338-342,364-368,372-377,380-386,389
+  s_ba10c1ee330272::t_c8f144e1206fd7 343-346,349-355,358-362
+  s_ba10c1ee330272::t_f4fb0a918e4db9 417-419,426-428,435
+  s_ba10c1ee330272::t_9d0046f3611f4e 510,520
+  s_b970ffa4b91350::t_d4ff4d12ece6c5 709-712,743-746,749,752-757,759,762,764-767
+  s_b970ffa4b91350::t_ec87232b65ff89 713-742
+  s_ba10c1ee330272::t_7f0a1256aab52b 1192-1196,1214-1218,1221-1233,1235,1252,1257-1265,1267-1273,1279-1284,1286-1291,1203-1204,1209,1241-1242,1247
+  s_ba10c1ee330272::t_502517a9d81eba 1197-1199,1205,1208,1210-1211
+  s_ba10c1ee330272::t_df6e952e7e71cf 1200-1202,1206-1207,1212-1213,1236-1240,1243-1246,1248-1251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "d20ed2c4f1175891d228e5b67e8ec5f979e36a89",
+  "prompts": {},
+  "sessions": {
+    "s_ba10c1ee330272": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c9a5343-e4c0-42d8-bba9-ef88ea021798",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
