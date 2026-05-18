@@ -1,20 +1,24 @@
-import { providerParamDefault } from './provider-params-spec';
+import type { AuthType } from './auth-types';
+import { getProviderParamSpecs } from './provider-params-spec';
 
 /**
- * Two-state value for DeepSeek's `thinking.type` field. The wire shape is
- * curated in `RequestParamDefaults` (a discriminated `thinking: { type }`)
- * because OpenAI/Anthropic chat-completions don't share this knob — adding
- * a provider that consumes `thinking.type` is one entry in
- * `PROVIDER_PARAM_SPECS`, not a new wire schema.
+ * Two-state UI/storage value for DeepSeek's `thinking` field. Provider wire
+ * shapes are handled by `ProviderParamSpec.serialize` when needed.
  */
 export type ThinkingState = 'enabled' | 'disabled';
 
 /**
  * Thin alias preserved for callers that specifically want the thinking-key
- * default (dialog hint, snapshot fallback). Derives from
- * `PROVIDER_PARAM_SPECS` so adding a new provider that consumes `thinking`
- * is one entry in `provider-params-spec.ts`, not a parallel registry edit.
+ * default. Derives from `PROVIDER_PARAM_SPECS` so auth/model-specific
+ * behavior stays in the registry.
  */
-export function providerThinkingDefault(providerId: string | undefined): ThinkingState | undefined {
-  return providerParamDefault(providerId, 'thinking') as ThinkingState | undefined;
+export function providerThinkingDefault(
+  providerId: string | undefined,
+  authType: AuthType | undefined,
+  model?: string | undefined,
+): ThinkingState | undefined {
+  const value = getProviderParamSpecs(providerId, authType, model).find(
+    (spec) => spec.key === 'thinking',
+  )?.control.default;
+  return value === 'enabled' || value === 'disabled' ? value : undefined;
 }

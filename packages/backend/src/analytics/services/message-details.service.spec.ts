@@ -267,7 +267,7 @@ describe('MessageDetailsService', () => {
     // ships, but the JSONB column accepts any shape so future provider
     // models and user-defined custom params land here without a schema
     // migration; the projection just round-trips whatever is stored.
-    const params = { thinking: { type: 'disabled' } };
+    const params = { thinking: 'disabled' };
     msgQb.getOne.mockResolvedValue({ ...baseMessage, request_params: params });
     const result = await service.getDetails('msg-1', 'u1');
     expect(result.message.request_params).toEqual(params);
@@ -278,7 +278,7 @@ describe('MessageDetailsService', () => {
     // would break the future "users define their own custom-provider
     // params" UI. Anything the proxy stores has to come back through.
     const future = {
-      thinking: { type: 'enabled' },
+      thinking: 'enabled',
       reasoning_effort: 'high',
       custom_safety: { mode: 'permissive', threshold: 0.8 },
     };

@@ -42,8 +42,8 @@ interface Props {
 /**
  * Per-model "Parameters" affordance: a small gear/sliders button next to a
  * model row that opens the curated parameters dialog. Visibility is driven
- * by the route's provider — only providers Manifest knows how to talk about
- * (today: DeepSeek's `thinking`) render the button at all.
+ * by the route's provider/auth/model tuple — only routes with shared registry
+ * specs render the button at all.
  *
  * The component is intentionally dumb about persistence: it does not own
  * fetch or cache state. The parent (`Routing.tsx`) fetches the agent's full
@@ -55,7 +55,8 @@ const ModelParamsAffordance: Component<Props> = (props) => {
   const [dialogOpen, setDialogOpen] = createSignal(false);
 
   const supports = () =>
-    props.provider !== undefined && getProviderParamSpecs(props.provider).length > 0;
+    props.provider !== undefined &&
+    getProviderParamSpecs(props.provider, props.authType, props.model).length > 0;
 
   const current = () => {
     if (!props.provider || !props.authType) return null;
@@ -69,14 +70,16 @@ const ModelParamsAffordance: Component<Props> = (props) => {
       <button
         type="button"
         class="routing-card__chip-action"
-        classList={{ 'routing-card__chip-action--configured': configured() }}
+        classList={{
+          'routing-card__chip-action--configured': configured(),
+          'routing-card__chip-action--dialog-open': dialogOpen(),
+        }}
         onClick={(e) => {
           e.stopPropagation();
           setDialogOpen(true);
         }}
         disabled={props.disabled}
         aria-label={`Configure model parameters for ${props.slotLabel}`}
-        title="Model parameters"
       >
         <span class="routing-tooltip">Parameters</span>
         <svg
@@ -108,6 +111,8 @@ const ModelParamsAffordance: Component<Props> = (props) => {
           slotLabel={props.slotLabel}
           current={current()}
           provider={props.provider!}
+          authType={props.authType!}
+          model={props.model}
           onSave={(next) => props.setParams(props.provider!, props.authType!, props.model, next)}
           onClose={() => setDialogOpen(false)}
         />

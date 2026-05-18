@@ -1,37 +1,97 @@
 import { applyRequestParamDefaults } from '../src/request-params';
+import { getProviderParamSpecs, type ProviderParamSpec } from '../src/provider-params-spec';
+
+const thinkingSpec: ProviderParamSpec = {
+  key: 'thinking',
+  control: {
+    kind: 'toggle',
+    label: 'Thinking mode',
+    values: ['enabled', 'disabled'],
+    default: 'enabled',
+  },
+};
+
+const budgetSpec: ProviderParamSpec = {
+  key: 'budget_tokens',
+  control: {
+    kind: 'number',
+    label: 'Budget tokens',
+    min: 1024,
+    default: 2048,
+  },
+  serialize: (v) => ({ thinking: { type: 'enabled', budget_tokens: v } }),
+};
 
 describe('applyRequestParamDefaults', () => {
   it('returns the body unchanged when defaults are null or undefined', () => {
     const body: Record<string, unknown> = { messages: [], stream: true };
-    expect(applyRequestParamDefaults(body, null)).toBe(body);
-    expect(applyRequestParamDefaults(body, undefined)).toBe(body);
+    expect(applyRequestParamDefaults(body, null, [thinkingSpec])).toBe(body);
+    expect(applyRequestParamDefaults(body, undefined, [thinkingSpec])).toBe(body);
   });
 
   it('injects configured defaults when the body has no value for that key', () => {
     const body: Record<string, unknown> = { messages: [] };
-    const merged = applyRequestParamDefaults(body, { thinking: { type: 'disabled' } });
-    expect(merged.thinking).toEqual({ type: 'disabled' });
+    const merged = applyRequestParamDefaults(body, { thinking: 'disabled' }, [thinkingSpec]);
+    expect(merged.thinking).toEqual('disabled');
     expect(merged.messages).toEqual([]);
+  });
+
+  it('uses the spec serializer when a default needs a non-flat wire shape', () => {
+    const body: Record<string, unknown> = { messages: [] };
+    const merged = applyRequestParamDefaults(body, { budget_tokens: 4096 }, [budgetSpec]);
+    expect(merged.thinking).toEqual({ type: 'enabled', budget_tokens: 4096 });
   });
 
   it('lets the request body win by presence — even when the value is null', () => {
     const body: Record<string, unknown> = { messages: [], thinking: null };
-    const merged = applyRequestParamDefaults(body, { thinking: { type: 'disabled' } });
+    const merged = applyRequestParamDefaults(body, { thinking: 'disabled' }, [thinkingSpec]);
     expect(merged.thinking).toBeNull();
   });
 
   it('lets the request body win when it sets a different value', () => {
-    const body: Record<string, unknown> = { messages: [], thinking: { type: 'enabled' } };
-    const merged = applyRequestParamDefaults(body, { thinking: { type: 'disabled' } });
-    expect(merged.thinking).toEqual({ type: 'enabled' });
+    const body: Record<string, unknown> = { messages: [], thinking: 'enabled' };
+    const merged = applyRequestParamDefaults(body, { thinking: 'disabled' }, [thinkingSpec]);
+    expect(merged.thinking).toEqual('enabled');
+  });
+
+  it('lets a request body field override a serialized default fragment', () => {
+    const body: Record<string, unknown> = {
+      messages: [],
+      thinking: { type: 'adaptive' },
+    };
+    const merged = applyRequestParamDefaults(body, { budget_tokens: 4096 }, [budgetSpec]);
+    expect(merged.thinking).toEqual({ type: 'adaptive' });
+  });
+
+  it('ignores defaults with no matching spec entry', () => {
+    const body: Record<string, unknown> = { messages: [] };
+    const merged = applyRequestParamDefaults(body, { temperature: 0.7 }, [thinkingSpec]);
+    expect(merged).toEqual({ messages: [] });
+  });
+
+  it('merges Anthropic API-key scalar defaults through the real registry specs', () => {
+    const body: Record<string, unknown> = { messages: [] };
+    const specs = getProviderParamSpecs('anthropic', 'api_key', 'claude-sonnet-4-6');
+    const merged = applyRequestParamDefaults(
+      body,
+      { max_tokens: 2048, temperature: 0.4, top_p: 0.8, top_k: 40 },
+      specs,
+    );
+    expect(merged).toEqual({
+      max_tokens: 2048,
+      temperature: 0.4,
+      top_p: 0.8,
+      top_k: 40,
+      messages: [],
+    });
   });
 
   it('does not mutate the inputs', () => {
     const body: Record<string, unknown> = { messages: [] };
-    const defaults = { thinking: { type: 'disabled' as const } };
-    const merged = applyRequestParamDefaults(body, defaults);
+    const defaults = { thinking: 'disabled' };
+    const merged = applyRequestParamDefaults(body, defaults, [thinkingSpec]);
     expect(body).toEqual({ messages: [] });
-    expect(defaults).toEqual({ thinking: { type: 'disabled' } });
+    expect(defaults).toEqual({ thinking: 'disabled' });
     expect(merged).not.toBe(body);
   });
 });

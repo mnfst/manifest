@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import { PROVIDER_PARAM_SPECS } from 'manifest-shared';
 
 import ModelParamsDialog from '../../src/components/ModelParamsDialog';
 
@@ -7,20 +8,28 @@ const q = (sel: string) => document.querySelector(sel);
 
 describe('ModelParamsDialog', () => {
   // Dialog now reads which controls to render from
-  // `PROVIDER_PARAM_SPECS[provider]` in manifest-shared. DeepSeek's spec
-  // declares a single `thinking` toggle with default `enabled`, so these
-  // tests use `provider: 'deepseek'` instead of passing `providerDefault`
-  // directly — the dialog is fully driven by the spec.
+  // `PROVIDER_PARAM_SPECS[provider:authType]` in manifest-shared. DeepSeek's
+  // spec declares a single `thinking` toggle with default `enabled`, so
+  // these tests use the real route identity.
   const baseProps = {
     open: true,
     slotLabel: 'deepseek-v4-flash',
-    current: null as null | { thinking?: { type: 'enabled' | 'disabled' } },
+    current: null as null | Record<string, unknown>,
     provider: 'deepseek',
+    authType: 'api_key' as const,
+    model: 'deepseek-v4-flash',
     onClose: vi.fn(),
     onSave: vi.fn().mockResolvedValue(undefined),
   };
 
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    delete PROVIDER_PARAM_SPECS['test:api_key'];
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    delete PROVIDER_PARAM_SPECS['test:api_key'];
+  });
 
   it('renders nothing when closed', () => {
     render(() => <ModelParamsDialog {...baseProps} open={false} />);
@@ -36,9 +45,7 @@ describe('ModelParamsDialog', () => {
   });
 
   it('reflects the configured override when present', () => {
-    render(() => (
-      <ModelParamsDialog {...baseProps} current={{ thinking: { type: 'disabled' } }} />
-    ));
+    render(() => <ModelParamsDialog {...baseProps} current={{ thinking: 'disabled' }} />);
     const toggle = q('.model-params__toggle') as HTMLButtonElement;
     expect(toggle.getAttribute('aria-pressed')).toBe('false');
     expect(q('.provider-toggle__switch--on')).toBeNull();
@@ -61,7 +68,7 @@ describe('ModelParamsDialog', () => {
       <ModelParamsDialog
         {...baseProps}
         onSave={onSave}
-        current={{ thinking: { type: 'disabled' } }}
+        current={{ thinking: 'disabled' }}
       />
     ));
 
@@ -82,7 +89,7 @@ describe('ModelParamsDialog', () => {
     fireEvent.click(screen.getByText('Save'));
 
     await waitFor(() =>
-      expect(onSave).toHaveBeenCalledWith({ thinking: { type: 'disabled' } }),
+      expect(onSave).toHaveBeenCalledWith({ thinking: 'disabled' }),
     );
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
@@ -137,5 +144,106 @@ describe('ModelParamsDialog', () => {
     expect(onClose).not.toHaveBeenCalled();
     resolveSave!();
     await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  it('renders a select control from the registry and saves its UI value', async () => {
+    PROVIDER_PARAM_SPECS['test:api_key'] = {
+      base: [
+        {
+          key: 'reasoning_effort',
+          control: {
+            kind: 'select',
+            label: 'Reasoning effort',
+            values: ['low', 'medium', 'high'],
+            default: 'medium',
+          },
+        },
+      ],
+    };
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => <ModelParamsDialog {...baseProps} provider="test" onSave={onSave} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reasoning effort' }));
+    fireEvent.click(screen.getByRole('option', { name: 'high' }));
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ reasoning_effort: 'high' }));
+  });
+
+  it('renders a slider control and clamps numeric input to the configured range', async () => {
+    PROVIDER_PARAM_SPECS['test:api_key'] = {
+      base: [
+        {
+          key: 'temperature',
+          control: {
+            kind: 'slider',
+            label: 'Temperature',
+            min: 0,
+            max: 2,
+            step: 0.1,
+            default: 1,
+          },
+        },
+      ],
+    };
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => <ModelParamsDialog {...baseProps} provider="test" onSave={onSave} />);
+
+    const slider = screen.getByRole('slider', { name: 'Temperature' });
+    expect(document.querySelector('input[type="range"]')).toBeNull();
+    fireEvent.keyDown(slider, { key: 'End' });
+    fireEvent.click(screen.getByText('Save'));
+
+    expect(slider.getAttribute('style')).toContain('--model-params-slider-progress: 100%');
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 2 }));
+  });
+
+  it('renders Anthropic API-key scalar params from the real registry entry', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        provider="anthropic"
+        model="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
+
+    const temperatureSlider = screen.getByRole('slider', { name: 'Temperature' });
+    const topPSlider = screen.getByRole('slider', { name: 'Top P' });
+    fireEvent.input(screen.getByLabelText('Max tokens'), { target: { value: '2048' } });
+    fireEvent.input(screen.getByLabelText('Temperature value'), { target: { value: '0.4' } });
+    fireEvent.input(screen.getByLabelText('Top P value'), { target: { value: '0.8' } });
+    fireEvent.input(screen.getByLabelText('Top K'), { target: { value: '40' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    expect(temperatureSlider.getAttribute('style')).toContain('--model-params-slider-progress: 40%');
+    expect(topPSlider.getAttribute('style')).toContain('--model-params-slider-progress: 80%');
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith({
+        max_tokens: 2048,
+        temperature: 0.4,
+        top_p: 0.8,
+        top_k: 40,
+      }),
+    );
+  });
+
+  it('renders a number control and stores numbers instead of input strings', async () => {
+    PROVIDER_PARAM_SPECS['test:api_key'] = {
+      base: [
+        {
+          key: 'budget_tokens',
+          control: { kind: 'number', label: 'Budget tokens', min: 1024, max: 4096, default: 2048 },
+        },
+      ],
+    };
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => <ModelParamsDialog {...baseProps} provider="test" onSave={onSave} />);
+
+    fireEvent.input(screen.getByLabelText('Budget tokens'), { target: { value: '3072' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ budget_tokens: 3072 }));
   });
 });

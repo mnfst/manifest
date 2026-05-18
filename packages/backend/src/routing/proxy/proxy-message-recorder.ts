@@ -69,9 +69,9 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
   /**
-   * Snapshot of effective request body parameters (today: DeepSeek
-   * `thinking`) merged into the outbound provider request. `null` when no
-   * known params apply. Persisted to `agent_messages.request_params`.
+   * Snapshot of effective request body parameters merged into the outbound
+   * provider request. `null` when no known params apply. Persisted to
+   * `agent_messages.request_params`.
    */
   requestParams?: RequestParamDefaults | null;
 }
@@ -87,9 +87,9 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
   /**
-   * Snapshot of effective request body parameters (today: DeepSeek
-   * `thinking`) merged into the outbound provider request. `null` when no
-   * known params apply. Persisted to `agent_messages.request_params`.
+   * Snapshot of effective request body parameters merged into the outbound
+   * provider request. `null` when no known params apply. Persisted to
+   * `agent_messages.request_params`.
    */
   requestParams?: RequestParamDefaults | null;
 }

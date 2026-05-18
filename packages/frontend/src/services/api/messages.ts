@@ -70,10 +70,10 @@ export interface MessageDetailResponse {
     request_headers: Record<string, string> | null;
     /**
      * Per-message snapshot of effective model parameters merged into the
-     * outbound provider request (today: `{ thinking: { type: 'enabled' |
-     * 'disabled' } }` for DeepSeek; future provider knobs append here as
-     * keys are added to `RequestParamDefaults` in `manifest-shared`). The
-     * `unknown` value type lets the dashboard render arbitrary shapes
+     * outbound provider request (for example DeepSeek `thinking` or Anthropic
+     * generation controls). Future provider knobs append here through the
+     * shared provider-param registry. The `unknown` value type lets the dashboard
+     * render arbitrary shapes
      * (incl. forthcoming user-defined custom-provider params) without a
      * frontend release per knob.
      */

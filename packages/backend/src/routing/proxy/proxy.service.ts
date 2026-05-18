@@ -83,7 +83,7 @@ export interface RoutingMeta {
   primaryAuthType?: string;
   /**
    * Effective request body parameters for this attempt — the merged result
-   * of (1) client body keys in `REQUEST_PARAM_KEYS`, (2) the user's saved
+   * of (1) route-supported client body keys, (2) the user's saved
    * per-route params from `agent_model_params` for the attempt's
    * (provider, auth_type, model) tuple, and (3) the provider's natural
    * API default for any unset key. Persisted on
@@ -195,7 +195,7 @@ export class ProxyService {
     // Snapshot of which known param keys are *effectively in play* for the
     // primary attempt. Stored on every `agent_messages` row recorded for
     // this request so the dashboard can display the effective parameters
-    // (today: DeepSeek's `thinking` toggle) in the expanded message detail.
+    // in the expanded message detail.
     // Re-derived for fallback successes against the actual fallback
     // provider so the persisted snapshot matches what was sent on that row.
     const primaryModelParams = await this.modelParamsService.get(
@@ -208,6 +208,8 @@ export class ProxyService {
       body: routingBody as Record<string, unknown>,
       modelParams: primaryModelParams,
       provider: route.provider,
+      authType: route.authType,
+      model: primaryModel,
     });
 
     const forward = await this.fallbackService.tryForwardToProvider({
@@ -486,11 +488,15 @@ export class ProxyService {
             success.model,
           )
         : null;
-      const fallbackRequestParams = snapshotRequestParams({
-        body: body as Record<string, unknown>,
-        modelParams: fallbackModelParams,
-        provider: success.provider,
-      });
+      const fallbackRequestParams = success.authType
+        ? snapshotRequestParams({
+            body: body as Record<string, unknown>,
+            modelParams: fallbackModelParams,
+            provider: success.provider,
+            authType: success.authType,
+            model: success.model,
+          })
+        : null;
       return {
         forward: success.forward,
         meta: this.buildBaseMeta(resolved, success.model, {
@@ -530,11 +536,16 @@ export class ProxyService {
             primaryModel,
           )
         : null;
-    const exhaustedRequestParams = snapshotRequestParams({
-      body: body as Record<string, unknown>,
-      modelParams: primaryModelParams,
-      provider: primaryProvider ?? '',
-    });
+    const exhaustedRequestParams =
+      primaryProvider && primaryAuth
+        ? snapshotRequestParams({
+            body: body as Record<string, unknown>,
+            modelParams: primaryModelParams,
+            provider: primaryProvider,
+            authType: primaryAuth as AuthType,
+            model: primaryModel,
+          })
+        : null;
     return {
       forward: {
         response: rebuilt,

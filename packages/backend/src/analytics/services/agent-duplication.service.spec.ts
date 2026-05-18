@@ -266,7 +266,7 @@ describe('AgentDuplicationService', () => {
             provider: 'deepseek',
             auth_type: 'api_key',
             model_name: 'deepseek-v4',
-            params: { thinking: { type: 'disabled' } },
+            params: { thinking: 'disabled' },
           },
           // Custom-provider-keyed row exercises the remap path so a route
           // pointing to `custom:<old-uuid>` lands on the new agent's custom
@@ -278,7 +278,7 @@ describe('AgentDuplicationService', () => {
             provider: 'custom:cp1',
             auth_type: 'api_key',
             model_name: 'qwen-72b',
-            params: { thinking: { type: 'enabled' } },
+            params: { thinking: 'enabled' },
           },
         ],
       };
@@ -328,7 +328,7 @@ describe('AgentDuplicationService', () => {
       const deepseekRow = mpRows.find((r) => r['provider'] === 'deepseek')!;
       expect(deepseekRow['agent_id']).toBe(agentRow['id']);
       expect(deepseekRow['model_name']).toBe('deepseek-v4');
-      expect(deepseekRow['params']).toEqual({ thinking: { type: 'disabled' } });
+      expect(deepseekRow['params']).toEqual({ thinking: 'disabled' });
       const customRow = mpRows.find((r) => String(r['provider']).startsWith('custom:'))!;
       expect(customRow['provider']).toBe(`custom:${newCustomId}`);
       expect(customRow['agent_id']).toBe(agentRow['id']);

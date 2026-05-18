@@ -95,14 +95,14 @@ describe('AgentModelParamsService', () => {
           provider: 'DeepSeek',
           auth_type: 'api_key',
           model_name: 'deepseek-v4',
-          params: { thinking: { type: 'disabled' } },
+          params: { thinking: 'disabled' },
         } as unknown as AgentModelParams,
       ];
       repo.find.mockResolvedValueOnce(rows);
 
       const result = await service.get('agent-1', 'deepseek', 'api_key', 'deepseek-v4');
 
-      expect(result).toEqual({ thinking: { type: 'disabled' } });
+      expect(result).toEqual({ thinking: 'disabled' });
     });
 
     it('returns null when no row matches (steady state for most attempts)', async () => {
@@ -117,7 +117,7 @@ describe('AgentModelParamsService', () => {
           provider: 'openai',
           auth_type: 'subscription',
           model_name: 'gpt-4o',
-          params: { thinking: { type: 'enabled' } },
+          params: { thinking: 'enabled' },
         } as unknown as AgentModelParams,
       ];
       repo.find.mockResolvedValueOnce(rows);
@@ -134,12 +134,12 @@ describe('AgentModelParamsService', () => {
         provider: 'deepseek',
         auth_type: 'api_key',
         model_name: 'deepseek-v4',
-        params: { thinking: { type: 'disabled' } },
+        params: { thinking: 'disabled' },
       } as unknown as AgentModelParams;
       repo.findOneOrFail.mockResolvedValueOnce(saved);
 
       const result = await service.set('agent-1', 'user-1', 'DeepSeek', 'api_key', 'deepseek-v4', {
-        thinking: { type: 'disabled' },
+        thinking: 'disabled',
       });
 
       // QueryBuilder upsert ran (concurrent-safe — no findOne+save race).

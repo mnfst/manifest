@@ -56,7 +56,7 @@ export class AgentModelParamsService {
         r.auth_type === authType &&
         r.model_name === modelName,
     );
-    return match?.params ?? null;
+    return (match?.params as RequestParamDefaults | undefined) ?? null;
   }
 
   /**

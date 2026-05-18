@@ -2,23 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { AuthType, ModelRoute } from 'manifest-shared';
-import { applyRequestParamDefaults } from 'manifest-shared';
+import { applyRequestParamDefaults, getProviderParamSpecs } from 'manifest-shared';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
-
-/**
- * Context for the per-attempt param-defaults merge. Carries the agentId so
- * `applyParamMerge` can ask the model-params service for the configuration
- * that belongs to this attempt's (provider, auth_type, model) tuple — not
- * the primary route's. Storage is model-scoped on the new
- * `agent_model_params` table, so cross-provider leak is structurally
- * impossible; we no longer need a provider-keyed filter, and Manifest's
- * old tier-aware opinion layer is gone too (only the user's explicit
- * config and the provider's natural default participate).
- */
-export interface ParamMergeContext {
-  agentId: string;
-}
-
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
@@ -48,6 +33,21 @@ import {
 } from './proxy-transport';
 import type { SignatureLookup, ThinkingBlockLookup } from './proxy-types';
 import type { ProxyApiMode } from './proxy-types';
+
+/**
+ * Context for the per-attempt param-defaults merge. Carries the agentId so
+ * `applyParamMerge` can ask the model-params service for the configuration
+ * that belongs to this attempt's (provider, auth_type, model) tuple — not
+ * the primary route's. Storage is model-scoped on the new
+ * `agent_model_params` table, so cross-provider leak is structurally
+ * impossible; we no longer need a provider-keyed filter, and Manifest's
+ * old tier-aware opinion layer is gone too. The registry for the exact
+ * provider/auth/model route decides which saved UI values can become
+ * outbound wire fields.
+ */
+export interface ParamMergeContext {
+  agentId: string;
+}
 
 export interface FailedFallback {
   model: string;
@@ -97,13 +97,15 @@ export class ProxyFallbackService {
     model: string,
   ): Promise<Record<string, unknown>> {
     if (!ctx || !authType) return body;
+    const typedAuthType = authType as AuthType;
     const modelParams = await this.modelParamsService.get(
       ctx.agentId,
       provider,
-      authType as AuthType,
+      typedAuthType,
       model,
     );
-    return applyRequestParamDefaults(body, modelParams);
+    const specs = getProviderParamSpecs(provider, typedAuthType, model);
+    return applyRequestParamDefaults(body, modelParams, specs);
   }
 
   async tryFallbacks(
@@ -151,7 +153,7 @@ export class ProxyFallbackService {
       const requestedModel = fallbackModels[i];
       const route = useStructuredRoutes ? fallbackRoutes![i] : null;
       let provider: string | undefined;
-      let authType: AuthType;
+      let authType: AuthType | undefined;
       // Pinned key label: prefer the structured route's keyLabel. Each
       // fallback can be pinned to a specific provider key (e.g. "Work" vs
       // "Personal" Anthropic Console). When no route is supplied (legacy
@@ -186,6 +188,10 @@ export class ProxyFallbackService {
           provider,
           excludeAuth,
         )) as AuthType;
+      }
+      if (!provider || !authType) {
+        this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
+        continue;
       }
 
       const model = normalizeProviderModel(provider, requestedModel);

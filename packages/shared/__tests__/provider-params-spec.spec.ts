@@ -2,18 +2,67 @@ import {
   PROVIDER_PARAM_SPECS,
   getProviderParamSpecs,
   pickProviderCompatibleParams,
-  providerParamDefault,
-  providerSupportsParam,
 } from '../src/provider-params-spec';
 
 describe('provider-params-spec', () => {
+  afterEach(() => {
+    delete PROVIDER_PARAM_SPECS['unit:api_key'];
+  });
+
   describe('PROVIDER_PARAM_SPECS registry', () => {
+    it('declares Anthropic API-key scalar generation params with control shapes + defaults', () => {
+      const group = PROVIDER_PARAM_SPECS['anthropic:api_key'];
+      expect(group).toBeDefined();
+      expect(group.base.map((s) => [s.key, s.control])).toEqual([
+        [
+          'max_tokens',
+          {
+            kind: 'number',
+            label: 'Max tokens',
+            min: 1,
+            default: 4096,
+          },
+        ],
+        [
+          'temperature',
+          {
+            kind: 'slider',
+            label: 'Temperature',
+            min: 0,
+            max: 1,
+            step: 0.1,
+            default: 1,
+          },
+        ],
+        [
+          'top_p',
+          {
+            kind: 'slider',
+            label: 'Top P',
+            min: 0,
+            max: 1,
+            step: 0.01,
+            default: 1,
+          },
+        ],
+        [
+          'top_k',
+          {
+            kind: 'number',
+            label: 'Top K',
+            min: 0,
+            default: 0,
+          },
+        ],
+      ]);
+    });
+
     it('declares DeepSeek thinking with the right control shape + default', () => {
-      const specs = PROVIDER_PARAM_SPECS.deepseek;
-      expect(specs).toBeDefined();
-      expect(specs).toHaveLength(1);
-      expect(specs![0].key).toBe('thinking');
-      expect(specs![0].control).toEqual({
+      const group = PROVIDER_PARAM_SPECS['deepseek:api_key'];
+      expect(group).toBeDefined();
+      expect(group.base).toHaveLength(1);
+      expect(group.base[0].key).toBe('thinking');
+      expect(group.base[0].control).toEqual({
         kind: 'toggle',
         label: 'Thinking mode',
         values: ['enabled', 'disabled'],
@@ -24,75 +73,110 @@ describe('provider-params-spec', () => {
 
   describe('getProviderParamSpecs', () => {
     it('returns the provider entries case-insensitively', () => {
-      expect(getProviderParamSpecs('deepseek')).toHaveLength(1);
-      expect(getProviderParamSpecs('DeepSeek')).toHaveLength(1);
+      expect(getProviderParamSpecs('deepseek', 'api_key')).toHaveLength(1);
+      expect(getProviderParamSpecs('DeepSeek', 'api_key')).toHaveLength(1);
+      expect(getProviderParamSpecs('Anthropic', 'api_key')).toHaveLength(4);
     });
 
-    it('returns empty for unknown providers + missing input', () => {
-      expect(getProviderParamSpecs('openai')).toEqual([]);
-      expect(getProviderParamSpecs(undefined)).toEqual([]);
-      expect(getProviderParamSpecs('')).toEqual([]);
+    it('returns empty for unknown providers, missing input, and auth types with no entry', () => {
+      expect(getProviderParamSpecs('openai', 'api_key')).toEqual([]);
+      expect(getProviderParamSpecs('deepseek', 'subscription')).toEqual([]);
+      expect(getProviderParamSpecs('anthropic', 'subscription')).toEqual([]);
+      expect(getProviderParamSpecs(undefined, 'api_key')).toEqual([]);
+      expect(getProviderParamSpecs('deepseek', undefined)).toEqual([]);
+      expect(getProviderParamSpecs('', 'api_key')).toEqual([]);
     });
 
     it('returns empty for object prototype keys', () => {
-      expect(getProviderParamSpecs('__proto__')).toEqual([]);
-      expect(getProviderParamSpecs('constructor')).toEqual([]);
-    });
-  });
-
-  describe('providerSupportsParam', () => {
-    it('is true for declared (provider, key) pairs', () => {
-      expect(providerSupportsParam('deepseek', 'thinking')).toBe(true);
+      expect(getProviderParamSpecs('__proto__', 'api_key')).toEqual([]);
+      expect(getProviderParamSpecs('constructor', 'api_key')).toEqual([]);
     });
 
-    it('is false for providers whose spec does not declare the key', () => {
-      expect(providerSupportsParam('openai', 'thinking')).toBe(false);
-      expect(providerSupportsParam(undefined, 'thinking')).toBe(false);
-    });
-  });
+    it('uses a model override wholesale when one is declared', () => {
+      PROVIDER_PARAM_SPECS['unit:api_key'] = {
+        base: [
+          {
+            key: 'temperature',
+            control: { kind: 'slider', label: 'Temperature', min: 0, max: 2, default: 1 },
+          },
+        ],
+        byModel: {
+          'unit/special:model': [
+            {
+              key: 'reasoning_effort',
+              control: {
+                kind: 'select',
+                label: 'Reasoning effort',
+                values: ['low', 'medium', 'high'],
+                default: 'medium',
+              },
+            },
+          ],
+        },
+      };
 
-  describe('providerParamDefault', () => {
-    it('returns the control.default of the matching entry', () => {
-      expect(providerParamDefault('deepseek', 'thinking')).toBe('enabled');
-    });
-
-    it('returns undefined when the provider/key pair is not in the spec', () => {
-      expect(providerParamDefault('openai', 'thinking')).toBeUndefined();
-      expect(providerParamDefault(undefined, 'thinking')).toBeUndefined();
+      expect(
+        getProviderParamSpecs('unit', 'api_key', 'unit/special:model').map((s) => s.key),
+      ).toEqual(['reasoning_effort']);
+      expect(getProviderParamSpecs('unit', 'api_key', 'other-model').map((s) => s.key)).toEqual([
+        'temperature',
+      ]);
     });
   });
 
   describe('pickProviderCompatibleParams', () => {
     it('keeps keys the provider consumes', () => {
       expect(
-        pickProviderCompatibleParams('deepseek', { thinking: { type: 'disabled' } }),
-      ).toEqual({ thinking: { type: 'disabled' } });
+        pickProviderCompatibleParams('deepseek', 'api_key', 'deepseek-v4', {
+          thinking: 'disabled',
+        }),
+      ).toEqual({ thinking: 'disabled' });
+      expect(
+        pickProviderCompatibleParams('anthropic', 'api_key', 'claude-sonnet-4-6', {
+          max_tokens: 2048,
+          temperature: 0.4,
+          top_p: 0.8,
+          top_k: 40,
+          thinking: { type: 'enabled', budget_tokens: 1024 },
+        }),
+      ).toEqual({ max_tokens: 2048, temperature: 0.4, top_p: 0.8, top_k: 40 });
     });
 
-    it('drops keys the provider does not consume (e.g. thinking on OpenAI)', () => {
-      // Cast through unknown: the input shape is wider than the curated
-      // RequestParamDefaults at runtime — callers may hand us a stale blob
-      // and the function must trim it, not trust the static type.
+    it('drops keys the provider/auth/model route does not consume', () => {
       expect(
-        pickProviderCompatibleParams('openai', { thinking: { type: 'disabled' } }),
+        pickProviderCompatibleParams('openai', 'api_key', 'gpt-4o', {
+          thinking: 'disabled',
+        }),
+      ).toEqual({});
+      expect(
+        pickProviderCompatibleParams('deepseek', 'subscription', 'deepseek-v4', {
+          thinking: 'disabled',
+        }),
+      ).toEqual({});
+      expect(
+        pickProviderCompatibleParams('anthropic', 'subscription', 'claude-sonnet-4-6', {
+          temperature: 0.4,
+        }),
       ).toEqual({});
     });
 
     it('returns an empty object when the input has no keys at all', () => {
-      expect(pickProviderCompatibleParams('deepseek', {})).toEqual({});
+      expect(pickProviderCompatibleParams('deepseek', 'api_key', 'deepseek-v4', {})).toEqual({});
     });
 
     it('handles undefined provider + missing keys without crashing', () => {
-      expect(pickProviderCompatibleParams(undefined, { thinking: { type: 'enabled' } })).toEqual(
-        {},
-      );
+      expect(
+        pickProviderCompatibleParams(undefined, 'api_key', 'deepseek-v4', {
+          thinking: 'enabled',
+        }),
+      ).toEqual({});
     });
 
     it('does not mutate the input', () => {
-      const input = { thinking: { type: 'enabled' as const } };
-      const out = pickProviderCompatibleParams('deepseek', input);
+      const input = { thinking: 'enabled' };
+      const out = pickProviderCompatibleParams('deepseek', 'api_key', 'deepseek-v4', input);
       expect(out).not.toBe(input);
-      expect(input.thinking).toEqual({ type: 'enabled' });
+      expect(input.thinking).toEqual('enabled');
     });
   });
 });

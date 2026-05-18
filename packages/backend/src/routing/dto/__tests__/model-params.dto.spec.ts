@@ -5,47 +5,30 @@ import {
   DeleteModelParamsBodyDto,
   ModelParamsBodyDto,
   SetModelParamsBodyDto,
-  ThinkingParamsDto,
 } from '../model-params.dto';
 
 describe('model-params DTOs', () => {
-  describe('ThinkingParamsDto', () => {
-    it('accepts the two known values', () => {
-      for (const type of ['enabled', 'disabled']) {
-        const dto = plainToInstance(ThinkingParamsDto, { type });
-        expect(validateSync(dto)).toHaveLength(0);
-      }
-    });
-
-    it('rejects unknown values', () => {
-      const dto = plainToInstance(ThinkingParamsDto, { type: 'maybe' });
-      expect(validateSync(dto).length).toBeGreaterThan(0);
-    });
-  });
-
   describe('SetModelParamsBodyDto', () => {
-    it('accepts a well-formed body and constructs the nested ModelParamsBodyDto via @Type', () => {
+    it('accepts a well-formed body and preserves arbitrary params keys for registry validation', () => {
       const dto = plainToInstance(SetModelParamsBodyDto, {
         provider: 'deepseek',
         authType: 'api_key',
         model: 'deepseek-v4',
-        params: { thinking: { type: 'disabled' } },
+        params: { thinking: 'disabled', temperature: 0.7 },
       });
-      // `params` is constructed by @Type(() => ModelParamsBodyDto) — proves
-      // the factory function ran.
-      expect(dto.params).toBeInstanceOf(ModelParamsBodyDto);
-      expect(dto.params.thinking).toBeInstanceOf(ThinkingParamsDto);
+      expect(dto).toBeInstanceOf(ModelParamsBodyDto);
+      expect(dto.params).toEqual({ thinking: 'disabled', temperature: 0.7 });
       expect(validateSync(dto)).toHaveLength(0);
     });
 
-    it('rejects an invalid nested params payload', () => {
+    it('does not recurse into params values; the controller registry gate validates them', () => {
       const dto = plainToInstance(SetModelParamsBodyDto, {
         provider: 'deepseek',
         authType: 'api_key',
         model: 'deepseek-v4',
         params: { thinking: { type: 'bogus' } },
       });
-      expect(validateSync(dto).length).toBeGreaterThan(0);
+      expect(validateSync(dto)).toHaveLength(0);
     });
 
     it('rejects unknown authType values (limited to AUTH_TYPES)', () => {
@@ -53,7 +36,7 @@ describe('model-params DTOs', () => {
         provider: 'deepseek',
         authType: 'bogus',
         model: 'deepseek-v4',
-        params: { thinking: { type: 'disabled' } },
+        params: { thinking: 'disabled' },
       });
       expect(validateSync(dto).length).toBeGreaterThan(0);
     });

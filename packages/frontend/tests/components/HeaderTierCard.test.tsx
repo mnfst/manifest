@@ -1189,7 +1189,7 @@ describe("HeaderTierCard", () => {
         "deepseek",
         "api_key",
         "deepseek-v4",
-        { thinking: { type: "disabled" } },
+        { thinking: "disabled" },
       );
     });
   });

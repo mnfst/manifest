@@ -869,7 +869,7 @@ describe('MessageDetails', () => {
         ...detailsResponse,
         message: {
           ...detailsResponse.message,
-          request_params: { thinking: { type: 'disabled' } },
+          request_params: { thinking: 'disabled' },
         },
       };
       mockGetMessageDetails.mockResolvedValue(withParams);
@@ -885,12 +885,12 @@ describe('MessageDetails', () => {
       expect(titleButton!.textContent).toContain('1');
     });
 
-    it('expands on toggle and pretty-prints the thinking object value across multiple lines', async () => {
+    it('expands on toggle and pretty-prints object values across multiple lines', async () => {
       const withParams = {
         ...detailsResponse,
         message: {
           ...detailsResponse.message,
-          request_params: { thinking: { type: 'disabled' } },
+          request_params: { custom_policy: { type: 'disabled' } },
         },
       };
       mockGetMessageDetails.mockResolvedValue(withParams);
@@ -918,7 +918,7 @@ describe('MessageDetails', () => {
         ...detailsResponse,
         message: {
           ...detailsResponse.message,
-          request_params: { thinking: { type: 'enabled' } },
+          request_params: { thinking: 'enabled' },
         },
       };
       mockGetMessageDetails.mockResolvedValue(withParams);
@@ -941,7 +941,7 @@ describe('MessageDetails', () => {
         ...detailsResponse,
         message: {
           ...detailsResponse.message,
-          request_params: { thinking: { type: 'disabled' } },
+          request_params: { thinking: 'disabled' },
         },
       };
       mockGetMessageDetails.mockResolvedValue(withParams);
@@ -972,7 +972,7 @@ describe('MessageDetails', () => {
         message: {
           ...detailsResponse.message,
           request_headers: { 'a-first': '1' },
-          request_params: { thinking: { type: 'disabled' } },
+          request_params: { thinking: 'disabled' },
         },
       };
       mockGetMessageDetails.mockResolvedValue(withBoth);
@@ -994,7 +994,7 @@ describe('MessageDetails', () => {
         message: {
           ...detailsResponse.message,
           request_params: {
-            thinking: { type: 'enabled' },
+            thinking: 'enabled',
             reasoning_effort: 'high',
             // A user-defined custom-provider param — the JSONB column accepts
             // arbitrary keys so future custom-model UIs can land here without

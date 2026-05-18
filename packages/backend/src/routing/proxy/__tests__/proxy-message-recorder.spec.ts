@@ -1205,7 +1205,7 @@ describe('ProxyMessageRecorder', () => {
   // (the back-compat property: existing call sites that don't know about
   // this feature don't accidentally write garbage).
   describe('request_params persistence', () => {
-    const params = { thinking: { type: 'disabled' as const } };
+    const params = { thinking: 'disabled' };
 
     it('recordProviderError persists requestParams when supplied', async () => {
       await recorder.recordProviderError(ctx, 500, 'oops', { requestParams: params });
@@ -1278,7 +1278,7 @@ describe('ProxyMessageRecorder', () => {
       // point of the JSONB column. Test that with a multi-key fixture the
       // field round-trips byte-identically.
       const future = {
-        thinking: { type: 'enabled' },
+        thinking: 'enabled',
         reasoning_effort: 'high',
         custom_safety: { mode: 'permissive', threshold: 0.8 },
       } as never;

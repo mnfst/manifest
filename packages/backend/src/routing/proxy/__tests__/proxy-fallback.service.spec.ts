@@ -144,7 +144,7 @@ describe('ProxyFallbackService', () => {
         isAnthropic: false,
         isChatGpt: false,
       });
-      modelParamsService.get.mockResolvedValueOnce({ thinking: { type: 'disabled' } });
+      modelParamsService.get.mockResolvedValueOnce({ thinking: 'disabled' });
 
       await service.tryForwardToProvider({
         provider: 'deepseek',
@@ -165,7 +165,7 @@ describe('ProxyFallbackService', () => {
       );
       expect(providerClient.forward).toHaveBeenCalledWith(
         expect.objectContaining({
-          body: expect.objectContaining({ thinking: { type: 'disabled' } }),
+          body: expect.objectContaining({ thinking: 'disabled' }),
         }),
       );
     });
@@ -204,7 +204,7 @@ describe('ProxyFallbackService', () => {
         isAnthropic: false,
         isChatGpt: false,
       });
-      modelParamsService.get.mockResolvedValueOnce({ thinking: { type: 'disabled' } });
+      modelParamsService.get.mockResolvedValueOnce({ thinking: 'disabled' });
 
       await service.tryForwardToProvider({
         provider: 'deepseek',
@@ -212,7 +212,7 @@ describe('ProxyFallbackService', () => {
         model: 'deepseek-v4-flash',
         body: {
           messages: [{ role: 'user', content: 'hi' }],
-          thinking: { type: 'enabled' },
+          thinking: 'enabled',
         },
         stream: false,
         sessionKey: 'sess-1',
@@ -221,7 +221,7 @@ describe('ProxyFallbackService', () => {
       });
 
       const forwarded = providerClient.forward.mock.calls[0][0];
-      expect(forwarded.body.thinking).toEqual({ type: 'enabled' });
+      expect(forwarded.body.thinking).toEqual('enabled');
     });
 
     it('skips the lookup when paramMergeContext is omitted (e.g. legacy callers)', async () => {

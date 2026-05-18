@@ -1,5 +1,9 @@
 import { BadRequestException, Body, Controller, Delete, Get, Param, Put } from '@nestjs/common';
-import { pickProviderCompatibleParams, type RequestParamDefaults } from 'manifest-shared';
+import {
+  pickProviderCompatibleParams,
+  type AuthType,
+  type RequestParamDefaults,
+} from 'manifest-shared';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { AgentModelParamsService } from './routing-core/agent-model-params.service';
@@ -38,9 +42,9 @@ export class ModelParamsController {
    * remembers to do.
    *
    * Provider/key compatibility is enforced here, not in the DTO: the DTO
-   * validates only the shape of each known key, while this method checks
-   * the (provider, key) compatibility so an OpenAI route doesn't get a
-   * `thinking` payload it would silently drop at proxy time.
+   * preserves the params object while this method checks the
+   * (provider, auth_type, model, key) compatibility so an incompatible route
+   * does not save a payload it would silently drop at proxy time.
    */
   @Put(':agentName/model-params')
   async set(
@@ -49,7 +53,12 @@ export class ModelParamsController {
     @Body() body: SetModelParamsBodyDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const sanitized = this.assertCompatibleParams(body.provider, body.params);
+    const sanitized = this.assertCompatibleParams(
+      body.provider,
+      body.authType,
+      body.model,
+      body.params,
+    );
     const saved = await this.modelParamsService.set(
       agent.id,
       user.id,
@@ -98,6 +107,8 @@ export class ModelParamsController {
    */
   private assertCompatibleParams(
     provider: string,
+    authType: AuthType,
+    model: string,
     params: RequestParamDefaults,
   ): RequestParamDefaults {
     const keys = Object.keys(params).filter(
@@ -106,7 +117,7 @@ export class ModelParamsController {
     if (keys.length === 0) {
       throw new BadRequestException('params must contain at least one configurable field');
     }
-    const out = pickProviderCompatibleParams(provider, params);
+    const out = pickProviderCompatibleParams(provider, authType, model, params);
     if (Object.keys(out).length === 0) {
       throw new BadRequestException(
         `Provider "${provider}" does not consume any of the supplied params`,

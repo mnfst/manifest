@@ -37,7 +37,7 @@ describe('model-params API client', () => {
       provider: 'deepseek',
       authType: 'api_key',
       model: 'deepseek-v4',
-      params: { thinking: { type: 'disabled' } },
+      params: { thinking: 'disabled' },
     });
     const [url, init] = vi.mocked(fetch).mock.calls[0];
     expect(url).toContain('/api/v1/routing/demo/model-params');
@@ -46,7 +46,7 @@ describe('model-params API client', () => {
       provider: 'deepseek',
       authType: 'api_key',
       model: 'deepseek-v4',
-      params: { thinking: { type: 'disabled' } },
+      params: { thinking: 'disabled' },
     });
   });
 

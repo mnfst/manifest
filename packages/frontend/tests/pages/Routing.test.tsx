@@ -297,9 +297,9 @@ vi.mock("../../src/pages/RoutingDefaultTierSection.js", () => ({
                 provider: string,
                 authType: string,
                 model: string,
-                p: { thinking: { type: "enabled" | "disabled" } } | null,
+                p: { thinking: "enabled" | "disabled" } | null,
               ) => Promise<unknown>
-            )("deepseek", "api_key", "deepseek-v4", { thinking: { type: "disabled" } })
+            )("deepseek", "api_key", "deepseek-v4", { thinking: "disabled" })
           }
         >
           default-persist-params
@@ -312,7 +312,7 @@ vi.mock("../../src/pages/RoutingDefaultTierSection.js", () => ({
                 provider: string,
                 authType: string,
                 model: string,
-                p: { thinking: { type: "enabled" | "disabled" } } | null,
+                p: { thinking: "enabled" | "disabled" } | null,
               ) => Promise<unknown>
             )("deepseek", "api_key", "deepseek-v4", null)
           }
@@ -344,13 +344,13 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
       provider: string,
       authType: string,
       model: string,
-      paramDefaults: { thinking: { type: "enabled" | "disabled" } } | null,
+      paramDefaults: { thinking: "enabled" | "disabled" } | null,
     ) => Promise<unknown>;
     getModelParams?: (
       provider: string,
       authType: string,
       model: string,
-    ) => { thinking?: { type: "enabled" | "disabled" } } | null;
+    ) => { thinking?: "enabled" | "disabled" } | null;
   }) => (
     <div data-testid="spec-section">
       <button data-testid="spec-open" onClick={() => props.onDropdownOpen("coding")}>
@@ -415,7 +415,7 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
         data-testid="spec-persist-params"
         onClick={() =>
           props.setModelParams?.("deepseek", "api_key", "deepseek-v4", {
-            thinking: { type: "disabled" },
+            thinking: "disabled",
           })
         }
       >
@@ -1202,20 +1202,20 @@ describe("Routing page", () => {
         provider: "DeepSeek",
         authType: "api_key",
         model: "deepseek-v4",
-        params: { thinking: { type: "enabled" } },
+        params: { thinking: "enabled" },
       },
       {
         provider: "openai",
         authType: "api_key",
         model: "gpt-4o",
-        params: { thinking: { type: "enabled" } },
+        params: { thinking: "enabled" },
       },
     ]);
     mockSetModelParams.mockResolvedValue({
       provider: "deepseek",
       authType: "api_key",
       model: "deepseek-v4",
-      params: { thinking: { type: "disabled" } },
+      params: { thinking: "disabled" },
     });
     render(() => <Routing />);
     await waitFor(() => {
@@ -1227,7 +1227,7 @@ describe("Routing page", () => {
         provider: "deepseek",
         authType: "api_key",
         model: "deepseek-v4",
-        params: { thinking: { type: "disabled" } },
+        params: { thinking: "disabled" },
       });
     });
   });
@@ -1240,13 +1240,13 @@ describe("Routing page", () => {
         provider: "DeepSeek",
         authType: "api_key",
         model: "deepseek-v4",
-        params: { thinking: { type: "disabled" } },
+        params: { thinking: "disabled" },
       },
       {
         provider: "anthropic",
         authType: "api_key",
         model: "claude-3-5-sonnet",
-        params: { thinking: { type: "disabled" } },
+        params: { thinking: "disabled" },
       },
     ]);
     mockDeleteModelParams.mockResolvedValue({ ok: true });
@@ -1269,7 +1269,7 @@ describe("Routing page", () => {
       provider: "deepseek",
       authType: "api_key",
       model: "deepseek-v4",
-      params: { thinking: { type: "disabled" } },
+      params: { thinking: "disabled" },
     });
     render(() => <Routing />);
     await waitFor(() => {

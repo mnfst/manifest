@@ -3,7 +3,7 @@ import InfoTooltip from './InfoTooltip.jsx';
 
 const MODEL_PARAMS_TOOLTIP =
   'Provider-specific request parameters that affected this call — e.g. ' +
-  "DeepSeek's `thinking` toggle. The set is curated per provider today; " +
+  "DeepSeek's `thinking` toggle or Anthropic sampling controls. The set is curated per provider; " +
   'support for additional models and custom user-defined parameters lands ' +
   'here as it ships.';
 

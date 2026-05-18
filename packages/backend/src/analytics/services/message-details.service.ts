@@ -168,7 +168,7 @@ export class MessageDetailsService {
         feedback_tags: message.feedback_tags ? message.feedback_tags.split(',') : null,
         feedback_details: message.feedback_details,
         request_headers: message.request_headers,
-        request_params: message.request_params,
+        request_params: message.request_params as RequestParamDefaults | null,
         caller_attribution: message.caller_attribution,
         header_tier_id: message.header_tier_id,
         header_tier_name: message.header_tier_name,

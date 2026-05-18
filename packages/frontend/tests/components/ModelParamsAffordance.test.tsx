@@ -16,6 +16,7 @@ describe('ModelParamsAffordance', () => {
     ));
     const btn = container.querySelector('button[aria-label^="Configure model parameters"]');
     expect(btn).not.toBeNull();
+    expect(btn?.getAttribute('title')).toBeNull();
   });
 
   it('does NOT render the button when the provider has no known param key', () => {
@@ -67,7 +68,7 @@ describe('ModelParamsAffordance', () => {
         authType="api_key"
         model="deepseek-v4"
         slotLabel="deepseek-v4"
-        getParams={() => ({ thinking: { type: 'disabled' } })}
+        getParams={() => ({ thinking: 'disabled' })}
         setParams={vi.fn()}
       />
     ));
@@ -93,6 +94,7 @@ describe('ModelParamsAffordance', () => {
       'button[aria-label^="Configure model parameters"]',
     ) as HTMLButtonElement;
     fireEvent.click(btn);
+    expect(btn.classList.contains('routing-card__chip-action--dialog-open')).toBe(true);
 
     // Dialog mounts. Flip the thinking toggle to `disabled` (provider default
     // is `enabled` so the dialog seeded that), then save.
@@ -103,7 +105,7 @@ describe('ModelParamsAffordance', () => {
 
     await waitFor(() => {
       expect(setParams).toHaveBeenCalledWith('deepseek', 'api_key', 'deepseek-v4', {
-        thinking: { type: 'disabled' },
+        thinking: 'disabled',
       });
     });
   });
@@ -116,7 +118,7 @@ describe('ModelParamsAffordance', () => {
         authType="api_key"
         model="deepseek-v4"
         slotLabel="deepseek-v4"
-        getParams={() => ({ thinking: { type: 'disabled' } })}
+        getParams={() => ({ thinking: 'disabled' })}
         setParams={setParams}
       />
     ));

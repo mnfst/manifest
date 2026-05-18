@@ -171,13 +171,13 @@ export function toggleComplexity(agentName: string) {
 
 /**
  * Per-route outbound request body parameters merged into the provider
- * request before forwarding. Today's only knob is DeepSeek's `thinking`
- * toggle; new keys (`reasoning_effort`, `safety`, custom-provider params)
- * land here as their UI ships. Storage is per-(agent, route) on the
+ * request before forwarding. Current built-in keys include DeepSeek
+ * `thinking` and Anthropic generation controls; new keys land here as
+ * their UI ships. Storage is per-(agent, route) on the
  * `agent_model_params` table — see `services/api/model-params.ts` for the
  * CRUD client.
  */
-export type { RequestParamDefaults } from 'manifest-shared';
+export type { JsonValue, RequestParamDefaults } from 'manifest-shared';
 
 export interface TierAssignment {
   id: string;

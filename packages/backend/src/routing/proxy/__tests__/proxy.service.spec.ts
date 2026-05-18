@@ -334,7 +334,7 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      modelParamsService.get.mockResolvedValueOnce({ thinking: { type: 'enabled' } });
+      modelParamsService.get.mockResolvedValueOnce({ thinking: 'enabled' });
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: okResponse(),
         isGoogle: false,
@@ -400,15 +400,15 @@ describe('ProxyService — orchestration', () => {
         baseOpts({
           body: {
             messages: [{ role: 'user', content: 'hi' }],
-            thinking: { type: 'enabled' },
+            thinking: 'enabled',
           } as never,
         }),
       );
       // The body still carries the client-supplied thinking field — the
       // fallback service's merge respects that by presence.
-      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toEqual({
-        type: 'enabled',
-      });
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toEqual(
+        'enabled',
+      );
     });
 
     it('does not record momentum for non-scoring tiers (e.g. "default")', async () => {
@@ -435,8 +435,7 @@ describe('ProxyService — orchestration', () => {
     // tests pin (a) it gets populated for the primary provider on success,
     // (b) the snapshot is re-derived per provider so a fallback record
     // never carries another vendor's knob, and (c) providers without a
-    // known param key (today: anything that isn't DeepSeek for `thinking`)
-    // produce a null snapshot so existing rows stay clean.
+    // known param key produce a null snapshot so existing rows stay clean.
     it("populates meta.request_params with the provider's effective default for known keys (DeepSeek thinking enabled)", async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
@@ -456,7 +455,7 @@ describe('ProxyService — orchestration', () => {
       // No saved per-model params for this attempt, so the snapshot
       // records the provider's own natural API default. DeepSeek's
       // silent default is `enabled`.
-      expect(result.meta.request_params).toEqual({ thinking: { type: 'enabled' } });
+      expect(result.meta.request_params).toEqual({ thinking: 'enabled' });
     });
 
     it("snapshot reflects the user's stored override when present", async () => {
@@ -468,7 +467,7 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      modelParamsService.get.mockResolvedValueOnce({ thinking: { type: 'enabled' } });
+      modelParamsService.get.mockResolvedValueOnce({ thinking: 'enabled' });
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: okResponse(),
         isGoogle: false,
@@ -476,15 +475,14 @@ describe('ProxyService — orchestration', () => {
         isChatGpt: false,
       });
       const result = await svc.proxyRequest(baseOpts());
-      expect(result.meta.request_params).toEqual({ thinking: { type: 'enabled' } });
+      expect(result.meta.request_params).toEqual({ thinking: 'enabled' });
     });
 
-    it('snapshot is null when the provider has no known param keys (today: any non-DeepSeek provider)', async () => {
+    it('snapshot is null when the provider has no known param keys', async () => {
       // Forward-compat property: providers that never appear in the
-      // `PROVIDER_THINKING_DEFAULTS` registry produce a null snapshot,
-      // so the existing experience for OpenAI/Anthropic/Gemini/etc. rows
-      // stays unchanged. New providers light up by adding an entry to
-      // the registry — no proxy code needed.
+      // provider-param registry produce a null snapshot, so the existing
+      // experience for unsupported rows stays unchanged. New providers
+      // light up by adding an entry to the registry — no proxy code needed.
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),

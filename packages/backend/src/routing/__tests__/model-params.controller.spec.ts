@@ -47,7 +47,7 @@ describe('ModelParamsController', () => {
           provider: 'deepseek',
           auth_type: 'api_key',
           model_name: 'deepseek-v4',
-          params: { thinking: { type: 'disabled' } },
+          params: { thinking: 'disabled' },
         },
       ]);
 
@@ -58,7 +58,7 @@ describe('ModelParamsController', () => {
           provider: 'deepseek',
           authType: 'api_key',
           model: 'deepseek-v4',
-          params: { thinking: { type: 'disabled' } },
+          params: { thinking: 'disabled' },
         },
       ]);
     });
@@ -70,7 +70,7 @@ describe('ModelParamsController', () => {
         provider: 'deepseek',
         auth_type: 'api_key',
         model_name: 'deepseek-v4',
-        params: { thinking: { type: 'disabled' } },
+        params: { thinking: 'disabled' },
       });
 
       const result = await controller.set(
@@ -80,7 +80,7 @@ describe('ModelParamsController', () => {
           provider: 'deepseek',
           authType: 'api_key',
           model: 'deepseek-v4',
-          params: { thinking: { type: 'disabled' } },
+          params: { thinking: 'disabled' },
         },
       );
 
@@ -90,14 +90,53 @@ describe('ModelParamsController', () => {
         'deepseek',
         'api_key',
         'deepseek-v4',
-        { thinking: { type: 'disabled' } },
+        { thinking: 'disabled' },
       );
       expect(result).toEqual({
         provider: 'deepseek',
         authType: 'api_key',
         model: 'deepseek-v4',
-        params: { thinking: { type: 'disabled' } },
+        params: { thinking: 'disabled' },
       });
+    });
+
+    it('persists all Anthropic API-key scalar params', async () => {
+      service.set.mockImplementation(
+        async (_agentId, _userId, provider, authType, model, params) => ({
+          provider,
+          auth_type: authType,
+          model_name: model,
+          params,
+        }),
+      );
+
+      const paramDefaults = {
+        max_tokens: 1234,
+        temperature: 0.6,
+        top_p: 0.77,
+        top_k: 10,
+      };
+
+      const result = await controller.set(
+        mockUser,
+        { agentName: 'demo' },
+        {
+          provider: 'anthropic',
+          authType: 'api_key',
+          model: 'claude-opus-4-7',
+          params: paramDefaults,
+        },
+      );
+
+      expect(service.set).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        'anthropic',
+        'api_key',
+        'claude-opus-4-7',
+        paramDefaults,
+      );
+      expect(result.params).toEqual(paramDefaults);
     });
 
     it('strips keys the provider does not consume and persists only the compatible subset', async () => {
@@ -118,11 +157,11 @@ describe('ModelParamsController', () => {
           provider: 'deepseek',
           authType: 'api_key',
           model: 'deepseek-v4',
-          params: { thinking: { type: 'enabled' } },
+          params: { thinking: 'enabled' },
         },
       );
 
-      expect(out.params).toEqual({ thinking: { type: 'enabled' } });
+      expect(out.params).toEqual({ thinking: 'enabled' });
     });
 
     it('throws when the params payload contains no configurable keys at all', async () => {
@@ -149,7 +188,7 @@ describe('ModelParamsController', () => {
             provider: 'openai',
             authType: 'api_key',
             model: 'gpt-4o',
-            params: { thinking: { type: 'enabled' } },
+            params: { thinking: 'enabled' },
           },
         ),
       ).rejects.toBeInstanceOf(BadRequestException);
