@@ -97,7 +97,7 @@ describe('ChatGPT Adapter – toResponsesRequest', () => {
     expect(input[0].content[0].type).toBe('output_text');
   });
 
-  it('preserves non-text content part types', () => {
+  it('converts Chat Completions image_url parts to Responses input_image parts', () => {
     const body = {
       messages: [
         {
@@ -110,10 +110,13 @@ describe('ChatGPT Adapter – toResponsesRequest', () => {
       ],
     };
     const result = toResponsesRequest(body, 'gpt-5');
-    const input = result.input as { content: { type: string }[] }[];
+    const input = result.input as { content: Record<string, unknown>[] }[];
 
     expect(input[0].content[0].type).toBe('input_text');
-    expect(input[0].content[1].type).toBe('image_url');
+    expect(input[0].content[1]).toEqual({
+      type: 'input_image',
+      image_url: 'http://example.com/img.png',
+    });
   });
 
   it('filters system and developer messages from input array', () => {

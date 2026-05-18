@@ -16,6 +16,7 @@ import {
 import type { AuthType } from 'manifest-shared';
 import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
+import { isMinimaxRegion } from '../oauth/minimax-oauth-helpers';
 
 const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
@@ -294,6 +295,22 @@ export class ProviderService {
     existing: UserProvider | null,
   ): Promise<string | null> {
     const lower = provider.toLowerCase();
+
+    // MiniMax subscription stores region so the proxy can route pasted-token
+    // (sk-cp-) connections to the right base URL. OAuth-issued tokens already
+    // encode the region in the resource_url blob field, but the paste path
+    // has no blob — without this column the proxy falls back to global and
+    // CN tokens 401 against the wrong host.
+    if (lower === 'minimax' && authType === 'subscription') {
+      if (requestedRegion === undefined) {
+        return isMinimaxRegion(existing?.region ?? undefined) ? (existing!.region as string) : null;
+      }
+      if (!isMinimaxRegion(requestedRegion)) {
+        throw new BadRequestException('MiniMax subscription region must be one of: global, cn');
+      }
+      return requestedRegion;
+    }
+
     const isQwenProvider = lower === 'qwen' || lower === 'alibaba';
     if (!isQwenProvider || authType !== 'api_key') return null;
 
@@ -816,5 +833,29 @@ export class ProviderService {
     const active = existing.filter((r) => r.is_active);
     if (active.length === 0) return 0;
     return Math.max(...active.map((r) => r.priority)) + 1;
+  }
+
+  /**
+   * Returns a unique label for a new OAuth key. If no row exists yet for this
+   * (agent, provider, subscription) tuple, returns undefined so the caller
+   * falls through to the legacy single-key upsert (creating "Default"). When
+   * a "Default" row already exists, returns "Key 2", "Key 3", etc.
+   */
+  async nextOAuthLabel(agentId: string, provider: string): Promise<string | undefined> {
+    const existing = await this.providerRepo.find({
+      where: {
+        agent_id: agentId,
+        provider,
+        auth_type: 'subscription' as AuthType,
+        is_active: true,
+      },
+    });
+    if (existing.length === 0) return undefined;
+    const lower = new Set(existing.map((r) => r.label.toLowerCase()));
+    for (let n = existing.length + 1; n < 100; n++) {
+      const candidate = `Key ${n}`;
+      if (!lower.has(candidate.toLowerCase())) return candidate;
+    }
+    return `Key ${existing.length + 1}`;
   }
 }

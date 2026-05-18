@@ -30,9 +30,11 @@ export function submitOpenaiOAuthCallback(code: string, state: string) {
   });
 }
 
-export function revokeOpenaiOAuth(agentName: string) {
-  return fetchMutate<{ ok: boolean }>(
-    `/oauth/openai/revoke?agentName=${encodeURIComponent(agentName)}`,
+export function revokeOpenaiOAuth(agentName: string, label?: string) {
+  const params = new URLSearchParams({ agentName });
+  if (label) params.set('label', label);
+  return fetchMutate<{ ok: boolean; notifications?: string[] }>(
+    `/oauth/openai/revoke?${params.toString()}`,
     { method: 'POST' },
   );
 }
@@ -48,4 +50,49 @@ export function pollMinimaxOAuth(flowId: string) {
   return fetchJson<MinimaxOAuthPollResponse>(`/oauth/minimax/poll`, {
     flowId,
   });
+}
+
+export function revokeMinimaxOAuth(agentName: string, label?: string) {
+  const params = new URLSearchParams({ agentName });
+  if (label) params.set('label', label);
+  return fetchMutate<{ ok: boolean; notifications?: string[] }>(
+    `/oauth/minimax/revoke?${params.toString()}`,
+    { method: 'POST' },
+  );
+}
+
+export interface AnthropicOAuthAuthorizeResponse {
+  url: string;
+  state: string;
+}
+
+export function startAnthropicOAuth(agentName: string) {
+  return fetchMutate<AnthropicOAuthAuthorizeResponse>(
+    `/oauth/anthropic/authorize?agentName=${encodeURIComponent(agentName)}`,
+    { method: 'POST' },
+  );
+}
+
+export function submitAnthropicOAuth(agentName: string, code: string, state: string) {
+  return fetchMutate<{ ok: boolean }>(
+    `/oauth/anthropic/exchange?agentName=${encodeURIComponent(agentName)}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ code, state }),
+      headers: { 'Content-Type': 'application/json' },
+    },
+  );
+}
+
+export function getAnthropicOAuthPending(agentName: string) {
+  return fetchJson<{ state: string | null }>(`/oauth/anthropic/pending`, { agentName });
+}
+
+export function revokeAnthropicOAuth(agentName: string, label?: string) {
+  const params = new URLSearchParams({ agentName });
+  if (label) params.set('label', label);
+  return fetchMutate<{ ok: boolean; notifications?: string[] }>(
+    `/oauth/anthropic/revoke?${params.toString()}`,
+    { method: 'POST' },
+  );
 }

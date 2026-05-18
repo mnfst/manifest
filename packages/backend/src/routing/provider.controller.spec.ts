@@ -375,6 +375,61 @@ describe('ProviderController', () => {
       expect(mockOllamaSync.sync).toHaveBeenCalled();
       expect(mockProviderService.upsertProvider).toHaveBeenCalled();
     });
+
+    it('should accept region=cn for MiniMax subscription', async () => {
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: {
+          id: 'p1',
+          provider: 'minimax',
+          is_active: true,
+          auth_type: 'subscription',
+          region: 'cn',
+        },
+        isNew: true,
+      });
+
+      const result = await controller.upsertProvider(mockUser, mockAgentName, {
+        provider: 'minimax',
+        apiKey: 'sk-cp-abc123',
+        authType: 'subscription',
+        region: 'cn',
+      });
+
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+        'minimax',
+        'sk-cp-abc123',
+        'subscription',
+        'cn',
+        undefined,
+      );
+      expect(result.region).toBe('cn');
+    });
+
+    it('should reject invalid MiniMax subscription region', async () => {
+      await expect(
+        controller.upsertProvider(mockUser, mockAgentName, {
+          provider: 'minimax',
+          apiKey: 'sk-cp-abc',
+          authType: 'subscription',
+          region: 'us-east',
+        }),
+      ).rejects.toThrow('MiniMax subscription region must be one of: global, cn');
+    });
+
+    it('should reject region when MiniMax is connected with api_key auth', async () => {
+      await expect(
+        controller.upsertProvider(mockUser, mockAgentName, {
+          provider: 'minimax',
+          apiKey: 'sk-test',
+          authType: 'api_key',
+          region: 'cn',
+        }),
+      ).rejects.toThrow(
+        'region is only supported for Alibaba/Qwen providers and MiniMax subscriptions',
+      );
+    });
   });
 
   /* ── deactivateAllProviders ── */

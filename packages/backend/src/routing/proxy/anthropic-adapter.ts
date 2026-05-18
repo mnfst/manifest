@@ -32,6 +32,28 @@ interface AnthropicTool {
 }
 
 const CACHE = { type: 'ephemeral' } as const;
+const ANTHROPIC_PREFIX = 'anthropic/';
+
+function bareAnthropicModel(model: string): string {
+  return model.startsWith(ANTHROPIC_PREFIX) ? model.slice(ANTHROPIC_PREFIX.length) : model;
+}
+
+function isClaudeHaikuModel(model: string): boolean {
+  const bare = bareAnthropicModel(model).replace(/\./g, '-');
+  return bare.startsWith('claude-haiku-');
+}
+
+function shouldForwardAnthropicThinking(thinking: unknown, model: string): boolean {
+  if (
+    thinking &&
+    typeof thinking === 'object' &&
+    !Array.isArray(thinking) &&
+    (thinking as Record<string, unknown>).type === 'adaptive'
+  ) {
+    return !isClaudeHaikuModel(model);
+  }
+  return true;
+}
 
 /**
  * System prompt required by Anthropic's subscription OAuth API to unlock
@@ -203,7 +225,9 @@ export function toAnthropicRequest(
   // Anthropic-native fields forwarded when the inbound request originated as
   // Anthropic Messages (POST /v1/messages). Chat-completions clients won't
   // set these, so this is a no-op for the OpenAI-compat path.
-  if (body.thinking !== undefined) result.thinking = body.thinking;
+  if (body.thinking !== undefined && shouldForwardAnthropicThinking(body.thinking, _model)) {
+    result.thinking = body.thinking;
+  }
   // chat_completions `stop` accepts string OR string[]; Anthropic
   // `stop_sequences` is always an array. Wrap a bare string so a single
   // stop sequence isn't silently dropped.

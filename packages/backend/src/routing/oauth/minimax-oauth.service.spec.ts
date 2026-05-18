@@ -27,17 +27,15 @@ function createConfig(): ConfigService {
   return { get: () => undefined } as unknown as ConfigService;
 }
 
-function createProviderService(): {
-  svc: ProviderService;
-  upsertProvider: jest.Mock;
-  recalculateTiers: jest.Mock;
-} {
+function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
+  const nextOAuthLabel = jest.fn().mockResolvedValue(undefined);
   return {
-    svc: { upsertProvider, recalculateTiers } as unknown as ProviderService,
+    svc: { upsertProvider, recalculateTiers, nextOAuthLabel } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
+    nextOAuthLabel,
   };
 }
 
@@ -246,6 +244,8 @@ describe('MinimaxOauthService', () => {
         'minimax',
         expect.stringContaining('"t":"at"'),
         'subscription',
+        undefined,
+        undefined,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
       expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1');

@@ -1253,6 +1253,49 @@ describe('ModelDiscoveryService', () => {
       );
     });
 
+    it('routes pasted-token MiniMax CN subscription discovery to the CN host', async () => {
+      // Pasted sk-cp- token: not a JSON blob, region=cn stored alongside
+      mockDecrypt.mockReturnValue('sk-cp-cn-token');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'minimax',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'cn',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'minimax',
+        'sk-cp-cn-token',
+        'subscription',
+        'https://api.minimaxi.com/anthropic',
+      );
+    });
+
+    it('leaves discovery on the default host for pasted-token MiniMax global subscription', async () => {
+      mockDecrypt.mockReturnValue('sk-cp-global-token');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'minimax',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'global',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'minimax',
+        'sk-cp-global-token',
+        'subscription',
+        undefined,
+      );
+    });
+
     it('should fall back to subscription fallback when OpenAI token fetch returns empty', async () => {
       const blob = JSON.stringify({ t: 'expired-token', r: 'refresh', e: Date.now() - 1000 });
       mockDecrypt.mockReturnValue(blob);

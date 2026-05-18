@@ -1,5 +1,12 @@
 import { useLocation } from '@solidjs/router';
-import { onCleanup, onMount, Show, type ParentComponent } from 'solid-js';
+import {
+  createEffect,
+  createSignal,
+  onCleanup,
+  onMount,
+  Show,
+  type ParentComponent,
+} from 'solid-js';
 import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
@@ -17,8 +24,16 @@ const SseConnector: ParentComponent = (props) => {
 
 const App: ParentComponent = (props) => {
   const location = useLocation();
+  const [mobileNavOpen, setMobileNavOpen] = createSignal(false);
   const isAgentMode = () => location.pathname.startsWith('/agents/');
   const showSidebar = () => isAgentMode();
+
+  createEffect<string | undefined>((previousPath) => {
+    const currentPath = location.pathname;
+    if (currentPath === previousPath) return currentPath;
+    setMobileNavOpen(false);
+    return currentPath;
+  });
 
   return (
     <AuthGuard>
@@ -27,10 +42,24 @@ const App: ParentComponent = (props) => {
           <a href="#main-content" class="skip-link">
             Skip to main content
           </a>
-          <Header />
-          <div class="app-body">
+          <Header
+            showMobileNavToggle={showSidebar()}
+            mobileNavOpen={mobileNavOpen()}
+            onMobileNavToggle={() => setMobileNavOpen((open) => !open)}
+          />
+          <Show when={showSidebar()}>
+            <Show when={mobileNavOpen()}>
+              <button
+                type="button"
+                class="mobile-nav-backdrop"
+                aria-label="Close navigation menu"
+                onClick={() => setMobileNavOpen(false)}
+              />
+            </Show>
+          </Show>
+          <div class="app-body" classList={{ 'app-body--with-sidebar': showSidebar() }}>
             <Show when={showSidebar()}>
-              <Sidebar />
+              <Sidebar mobileOpen={mobileNavOpen()} onNavigate={() => setMobileNavOpen(false)} />
             </Show>
             <main
               id="main-content"

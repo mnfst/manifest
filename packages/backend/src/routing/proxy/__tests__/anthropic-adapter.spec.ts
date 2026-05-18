@@ -124,6 +124,41 @@ describe('Anthropic Adapter', () => {
       expect(result.stop_sequences).toEqual(['STOP', 'END']);
     });
 
+    it('strips adaptive thinking when routing to Claude Haiku 4.5', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        thinking: { type: 'adaptive' },
+      };
+
+      expect(toAnthropicRequest(body, 'claude-haiku-4-5-20251001').thinking).toBeUndefined();
+      expect(toAnthropicRequest(body, 'anthropic/claude-haiku-4.5').thinking).toBeUndefined();
+      expect(toAnthropicRequest(body, 'claude-haiku-4').thinking).toBeUndefined();
+    });
+
+    it('preserves extended thinking for Claude Haiku 4.5', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        thinking: { type: 'enabled', budget_tokens: 2048 },
+      };
+
+      const result = toAnthropicRequest(body, 'claude-haiku-4-5-20251001');
+      expect(result.thinking).toEqual({ type: 'enabled', budget_tokens: 2048 });
+    });
+
+    it('preserves adaptive thinking for adaptive-capable Claude models', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        thinking: { type: 'adaptive' },
+      };
+
+      expect(toAnthropicRequest(body, 'claude-sonnet-4-6').thinking).toEqual({
+        type: 'adaptive',
+      });
+      expect(toAnthropicRequest(body, 'claude-opus-4-6').thinking).toEqual({
+        type: 'adaptive',
+      });
+    });
+
     it('wraps a bare string `stop` value into stop_sequences (chat_completions accepts both shapes)', () => {
       // Cubic flagged: if a chat_completions client sends `stop: "END"`,
       // the previous code dropped it because it only handled arrays.

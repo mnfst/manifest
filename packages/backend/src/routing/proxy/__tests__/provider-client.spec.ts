@@ -951,6 +951,152 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('resolveEndpoint - Copilot Responses-only routing (mnfst/manifest#1849)', () => {
+    // GitHub Copilot serves Codex variants only at /responses; /chat/completions
+    // returns "Unsupported API for model". Mirrors the OpenAI Responses-only swap.
+    const copilotResponsesOnlyModels = [
+      'gpt-5-codex',
+      'gpt-5.2-codex',
+      'gpt-5.3-codex',
+      'gpt-5.1-codex-mini',
+    ];
+
+    it.each(copilotResponsesOnlyModels)(
+      'routes Copilot + Codex model %s to /responses with chatgpt format',
+      async (model) => {
+        mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+        const result = await client.forward({
+          provider: 'copilot',
+          apiKey: 'tid=abc',
+          model,
+          body,
+          stream: false,
+        });
+
+        const url = mockFetch.mock.calls[0][0] as string;
+        expect(url).toBe('https://api.githubcopilot.com/responses');
+        expect(result.isChatGpt).toBe(true);
+
+        // Copilot headers preserved (Editor-Version etc.).
+        const headers = mockFetch.mock.calls[0][1].headers;
+        expect(headers['Authorization']).toBe('Bearer tid=abc');
+        expect(headers['Copilot-Integration-Id']).toBe('vscode-chat');
+        expect(headers['Editor-Version']).toBeDefined();
+
+        // Body is Responses-API shape (input/store/instructions), not Chat Completions.
+        const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(Array.isArray(sentBody.input)).toBe(true);
+        expect(sentBody.store).toBe(false);
+        expect(sentBody.instructions).toBeDefined();
+        expect(sentBody.messages).toBeUndefined();
+        expect(sentBody.model).toBe(model);
+      },
+    );
+
+    it('leaves non-Codex Copilot models on /chat/completions', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'copilot',
+        apiKey: 'tid=abc',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.githubcopilot.com/chat/completions');
+      expect(result.isChatGpt).toBe(false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toBeDefined();
+      expect(sentBody.input).toBeUndefined();
+    });
+
+    it('forces upstream stream:true so the SSE collector can normalise the response', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'copilot',
+        apiKey: 'tid=abc',
+        model: 'gpt-5.3-codex',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+    });
+
+    it('overrides explicit stream:false from caller for copilot-responses', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'copilot',
+        apiKey: 'tid=abc',
+        model: 'gpt-5.3-codex',
+        body: { ...body, stream: false },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      // Forced upstream so handleNonStreamResponse's SSE collector remains
+      // the single source of truth — see mnfst/manifest#1849.
+      expect(sentBody.stream).toBe(true);
+    });
+
+    it('maps max_tokens to max_output_tokens for Copilot Codex requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'copilot',
+        apiKey: 'tid=abc',
+        model: 'gpt-5-codex',
+        body: { ...body, max_tokens: 2048 },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.max_output_tokens).toBe(2048);
+      expect(sentBody.max_tokens).toBeUndefined();
+    });
+
+    it('maps max_tokens to max_output_tokens for OpenAI Codex (api-key) requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-5.3-codex',
+        body: { ...body, max_tokens: 1024 },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.max_output_tokens).toBe(1024);
+      expect(sentBody.max_tokens).toBeUndefined();
+    });
+
+    it('does NOT map max_tokens to max_output_tokens for ChatGPT subscription', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5.3-codex',
+        body: { ...body, max_tokens: 1024 },
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      // ChatGPT subscription backend rejects max_output_tokens with
+      // `unsupported_parameter`; never forward it on this path.
+      expect(sentBody.max_output_tokens).toBeUndefined();
+    });
+  });
+
   describe('Z.ai subscription provider', () => {
     it('routes to Coding Plan endpoint with subscription authType', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));

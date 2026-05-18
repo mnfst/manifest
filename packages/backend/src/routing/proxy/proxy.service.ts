@@ -5,6 +5,7 @@ import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { TierService } from '../routing-core/tier.service';
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
+import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
 import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
@@ -39,7 +40,7 @@ const STREAM_WARMUP_MS = 15_000;
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
 
 /**
- * Roles excluded from scoring. Personal AI agents (OpenClaw, Hermes, and
+ * Roles excluded from scoring. AI agents (OpenClaw, Hermes, and
  * similar tools) inject a large, keyword-rich system prompt with every
  * request. Scoring it inflates every request to the most expensive tier.
  * We strip these before the scorer sees them, but forward the full
@@ -107,6 +108,7 @@ export class ProxyService {
     private readonly tierService: TierService,
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
+    private readonly anthropicOauth: AnthropicOauthService,
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
     private readonly fallbackService: ProxyFallbackService,
@@ -259,6 +261,7 @@ export class ProxyService {
           isGoogle: forward.isGoogle,
           isAnthropic: forward.isAnthropic,
           isChatGpt: forward.isChatGpt,
+          isResponses: forward.isResponses,
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
         this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
@@ -282,6 +285,7 @@ export class ProxyService {
         isGoogle: forward.isGoogle,
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
+        isResponses: forward.isResponses,
       };
       const fallbackResult = await this.tryFallbackChain({
         agentId,
@@ -390,6 +394,7 @@ export class ProxyService {
       userId,
       this.openaiOauth,
       this.minimaxOauth,
+      this.anthropicOauth,
     );
     const providerRegion = await this.providerKeyService.getProviderRegion(
       agentId,
@@ -519,6 +524,7 @@ export class ProxyService {
         isGoogle: forward.isGoogle,
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
+        isResponses: forward.isResponses,
       },
       meta: this.buildBaseMeta(resolved, primaryModel, {
         request_params: exhaustedRequestParams,

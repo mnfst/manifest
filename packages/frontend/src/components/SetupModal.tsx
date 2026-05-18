@@ -43,7 +43,7 @@ const SetupModal: Component<{
         }}
       >
         <div
-          class="modal-card"
+          class="modal-card setup-modal"
           style="max-width: 600px;"
           role="dialog"
           aria-modal="true"
@@ -60,7 +60,9 @@ const SetupModal: Component<{
                   class="setup-modal__platform-icon"
                 />
               </Show>
-              Set up agent: <em>{props.agentName}</em>
+              <span class="setup-modal__title-text">
+                Set up agent: <em>{props.agentName}</em>
+              </span>
             </div>
             <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
               <svg

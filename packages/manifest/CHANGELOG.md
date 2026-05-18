@@ -1,5 +1,32 @@
 # manifest
 
+## 6.3.0
+
+### Minor Changes
+
+- 74f6fb3: Add `GET /api/v1/public/agent-tokens` public endpoint. Mirrors the shape of `/provider-tokens` but groups daily-token usage by `(agent_category, agent_platform)` instead of by LLM provider, so the marketing site can show per-agent (OpenClaw, Claude Code, OpenAI SDK, etc.) charts alongside the existing per-provider ones. Excludes the `other` platform bucket and `custom:*` models server-side. Gated by `MANIFEST_PUBLIC_STATS` and cached for 24h, same posture as the rest of the public-stats endpoints.
+
+### Patch Changes
+
+- c1fe19a: Fix GitHub Copilot routing for GPT-5 Codex models. Copilot serves Codex variants (`gpt-5-codex`, `gpt-5.2-codex`, `gpt-5.3-codex`) only via `/responses`, so chat-completions requests now swap to that endpoint instead of returning "Unsupported API for model". Also rewrites `max_tokens` to `max_completion_tokens` for the GPT-5 / o-series family on Copilot, fixing the "Unsupported parameter: 'max_tokens'" error reported alongside.
+- 786dd76: Preserve Responses stream classification during stream warm-up.
+- ae56a30: fix(proxy): preserve Anthropic server tools through /v1/messages double-conversion (#1886)
+
+  Claude Code requests routed through `POST /v1/messages` to an Anthropic upstream
+  failed with `tools.N.custom.input_schema: Field required` because server tools
+  (web_search, bash, text_editor, computer, code_execution) lost their `type` tag
+  during the Anthropic → OpenAI → Anthropic translation and were re-emitted as
+  custom tools missing the required `input_schema`. Server tools are now stashed
+  on the translated body and re-emitted unchanged when the upstream is Anthropic.
+
+- d25320a: Preserve DeepSeek `reasoning_content` on every follow-up turn, regardless of which provider proxies it (OpenCode Go, custom providers, future aggregators). Fixes a hard failure on OpenCode Go's `deepseek-v4-pro` ("The reasoning_content in the thinking mode must be passed back to the API") — issue #1862.
+- e7cdfa1: Strip the non-standard `ref` JSON Schema keyword (no `$` prefix) from Google Gemini tool parameters. Some tool emitters drop the `$` prefix because Protobuf and similar parsers reject dollar-prefixed field names; without this fix Manifest forwarded `ref` verbatim and Google rejected the request with `Invalid JSON payload received. Unknown name "ref"`.
+- f21584a: Fix prompt-caching token counters on `/v1/messages`. `cache_control` markers always reached Anthropic (caching was working server-side), but the chat → Anthropic-Messages conversion in `toAnthropicUsage` hardcoded `cache_creation_input_tokens: 0`, and the `parseUsageObject` Anthropic branch read cache reads from the wrong key. Result: client responses lost cache creation counts, and `agent_messages` rows recorded `0` for both cache creation and cache reads even when Anthropic actually hit the cache.
+
+  Also fixes the recorder's duplicate-write detector, which summed `input_tokens + cache_read_tokens + cache_creation_tokens` when computing a row's total prompt tokens — `input_tokens` already stored the chat-shape total, so the sum double-counted caches and caused legitimate duplicates to bypass dedup. And `toAnthropicUsage` now reads OpenAI-compat nested `prompt_tokens_details.cached_tokens` as a fallback so `/v1/messages` requests routed to OpenAI / DeepSeek / Z.AI / MiniMax / Mistral surface their cached-input counts too.
+
+- 9f64594: Update MiniMax "Where to get an API key" link to point to the actual key page (`/user-center/basic-information/interface-key`) instead of the API docs overview.
+
 ## 6.2.2
 
 ### Patch Changes
