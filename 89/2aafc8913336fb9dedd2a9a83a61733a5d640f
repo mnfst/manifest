@@ -1,0 +1,59 @@
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_0634a66e772d8b::t_b2befc31ed7b8d 59
+  s_0634a66e772d8b::t_73815f5043496f 60,92,94-97
+  s_0634a66e772d8b::t_4dd326c98e1769 209
+  s_0634a66e772d8b::t_19238c5e9e4f98 7,26-27,50,57,61-65,85-90,100,130,134,210,213-214,223-225
+.changeset/fix-anthropic-oauth-pending-state.md
+  s_0634a66e772d8b::t_49ae3acb5bb17c 1-5
+packages/backend/src/routing/oauth/core/oauth-pending-flow.store.ts
+  s_0634a66e772d8b::t_9b64acdc33ec51 74
+  s_0634a66e772d8b::t_ee1302f407b56e 1-2,28-29,149-157
+  s_0634a66e772d8b::t_bf2be3800d3488 3-27,30-73,75-148,158-172
+packages/frontend/tests/components/AnthropicOAuthDetailView.test.tsx
+  s_0634a66e772d8b::t_c84089fe0f2815 134,167,185-187,189
+  s_0634a66e772d8b::t_ee4728abe29144 254-256,266-270,272
+  s_0634a66e772d8b::t_ef51e17d1528e5 173-174,188,193,195,205-209,211-219
+packages/backend/src/routing/oauth/core/index.ts
+  s_0634a66e772d8b::t_29d54b65cd7e69 8-12
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.ts
+  s_0634a66e772d8b::t_33f1d481354343 60,62,82
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_0634a66e772d8b::t_8d64641c877ed1 1036-1040
+packages/backend/src/routing/oauth/core/oauth-pending-flow.store.spec.ts
+  s_0634a66e772d8b::t_27815ae2c22d27 1-72,74-108,165
+  s_0634a66e772d8b::t_9b64acdc33ec51 73
+  s_0634a66e772d8b::t_b54100ebd23749 109-164
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_0634a66e772d8b::t_9a3fa61016f9b1 16,710,718
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.spec.ts
+  s_0634a66e772d8b::t_554cb6925530c1 65,93,95,100
+packages/frontend/src/components/AnthropicOAuthDetailView.tsx
+  s_0634a66e772d8b::t_27c83eb156f95f 118
+  s_0634a66e772d8b::t_ce7a748de0c749 106-112,117
+packages/backend/src/routing/oauth/oauth.module.ts
+  s_0634a66e772d8b::t_4e271060651b02 11,21
+packages/frontend/src/services/api/oauth.ts
+  s_0634a66e772d8b::t_64d3be9413d789 76,81
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_0634a66e772d8b::t_868c7952805356 149-153,205,227-239
+  s_0634a66e772d8b::t_0e1cc1093e7dba 5-9
+  s_0634a66e772d8b::t_9380a1800938ba 39-92,115,125-126
+  s_0634a66e772d8b::t_9bc31d681bd20b 337-341,346-352,355-357,360-362
+  s_0634a66e772d8b::t_6b62f56e3e839a 138-139,154,160-162,166-168,172,178,180-183,194,196,218,225-226,245-248,254-255,265-266
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.9",
+  "base_commit_sha": "892aafc8913336fb9dedd2a9a83a61733a5d640f",
+  "prompts": {},
+  "sessions": {
+    "s_0634a66e772d8b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3bb6-a1ac-7ec0-8ce9-65582e1d6175",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
