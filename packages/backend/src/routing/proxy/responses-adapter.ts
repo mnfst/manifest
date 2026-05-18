@@ -624,11 +624,13 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
         events.push(
           formatResponsesEvent('response.output_item.added', {
             type: 'response.output_item.added',
+            response_id: responseId,
             output_index: textOutputIndex,
             item: messageItem('', 'in_progress'),
           }),
           formatResponsesEvent('response.content_part.added', {
             type: 'response.content_part.added',
+            response_id: responseId,
             item_id: messageId,
             output_index: textOutputIndex,
             content_index: 0,
@@ -657,6 +659,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
           events.push(
             formatResponsesEvent('response.output_text.delta', {
               type: 'response.output_text.delta',
+              response_id: responseId,
               item_id: messageId,
               output_index: textOutputIndex ?? 0,
               content_index: 0,
@@ -701,6 +704,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
               events.push(
                 formatResponsesEvent('response.output_item.added', {
                   type: 'response.output_item.added',
+                  response_id: responseId,
                   output_index: state.output_index,
                   item: {
                     type: 'function_call',
@@ -711,22 +715,39 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
                   },
                 }),
               );
+              // Replay any argument fragments that arrived while the header
+              // was incomplete. Coalesced into a single delta so the SDK
+              // observes the same byte stream regardless of whether args led
+              // or trailed the id/name in the upstream chat-completions
+              // deltas.
+              if (state.args.length > 0) {
+                events.push(
+                  formatResponsesEvent('response.function_call_arguments.delta', {
+                    type: 'response.function_call_arguments.delta',
+                    response_id: responseId,
+                    item_id: state.item_id,
+                    output_index: state.output_index,
+                    delta: state.args,
+                  }),
+                );
+              }
             }
 
-            if (state.added && typeof fn.arguments === 'string' && fn.arguments.length > 0) {
+            if (typeof fn.arguments === 'string' && fn.arguments.length > 0) {
               state.args += fn.arguments;
-              events.push(
-                formatResponsesEvent('response.function_call_arguments.delta', {
-                  type: 'response.function_call_arguments.delta',
-                  item_id: state.item_id,
-                  output_index: state.output_index,
-                  delta: fn.arguments,
-                }),
-              );
-            } else if (!state.added && typeof fn.arguments === 'string' && fn.arguments.length > 0) {
-              // Header still incomplete — accumulate args so we can replay
-              // them once `added` fires.
-              state.args += fn.arguments;
+              if (state.added) {
+                events.push(
+                  formatResponsesEvent('response.function_call_arguments.delta', {
+                    type: 'response.function_call_arguments.delta',
+                    response_id: responseId,
+                    item_id: state.item_id,
+                    output_index: state.output_index,
+                    delta: fn.arguments,
+                  }),
+                );
+              }
+              // If header is still incomplete, args are accumulated in
+              // state.args above and will be replayed once `added` fires.
             }
           }
         }
@@ -768,6 +789,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
         events.push(
           formatResponsesEvent('response.output_text.done', {
             type: 'response.output_text.done',
+            response_id: responseId,
             item_id: messageId,
             output_index: textIdx,
             content_index: 0,
@@ -776,6 +798,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
           }),
           formatResponsesEvent('response.content_part.done', {
             type: 'response.content_part.done',
+            response_id: responseId,
             item_id: messageId,
             output_index: textIdx,
             content_index: 0,
@@ -783,6 +806,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
           }),
           formatResponsesEvent('response.output_item.done', {
             type: 'response.output_item.done',
+            response_id: responseId,
             output_index: textIdx,
             item: messageItem(accumulatedText, 'completed'),
           }),
@@ -793,6 +817,8 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
       // completed (no name/call_id), surface what we have so codex can fail
       // loudly rather than silently dropping the call.
       for (const state of [...toolCalls.values()].sort((a, b) => a.output_index - b.output_index)) {
+        const finalCallId = state.call_id || state.item_id;
+        const finalName = state.name || 'unknown';
         if (!state.added) {
           // Header was never complete — synthesize a best-effort placeholder
           // so the lifecycle stays well-formed.
@@ -800,12 +826,13 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
           events.push(
             formatResponsesEvent('response.output_item.added', {
               type: 'response.output_item.added',
+              response_id: responseId,
               output_index: state.output_index,
               item: {
                 type: 'function_call',
                 id: state.item_id,
-                call_id: state.call_id || state.item_id,
-                name: state.name || 'unknown',
+                call_id: finalCallId,
+                name: finalName,
                 arguments: '',
               },
             }),
@@ -814,6 +841,7 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
             events.push(
               formatResponsesEvent('response.function_call_arguments.delta', {
                 type: 'response.function_call_arguments.delta',
+                response_id: responseId,
                 item_id: state.item_id,
                 output_index: state.output_index,
                 delta: state.args,
@@ -823,24 +851,32 @@ export function createStrictChatToResponsesTransformer(model: string): ChatToRes
         }
         if (!state.done) {
           state.done = true;
+          const finalItem = {
+            type: 'function_call',
+            id: state.item_id,
+            call_id: finalCallId,
+            name: finalName,
+            arguments: state.args,
+            status: 'completed',
+          };
           events.push(
+            // OpenAI's Responses stream sends both the top-level `arguments`
+            // string and the final `item` payload on the done event. SDK
+            // consumers that only read one of the two shapes still get the
+            // complete function-call back.
             formatResponsesEvent('response.function_call_arguments.done', {
               type: 'response.function_call_arguments.done',
+              response_id: responseId,
               item_id: state.item_id,
               output_index: state.output_index,
               arguments: state.args,
+              item: finalItem,
             }),
             formatResponsesEvent('response.output_item.done', {
               type: 'response.output_item.done',
+              response_id: responseId,
               output_index: state.output_index,
-              item: {
-                type: 'function_call',
-                id: state.item_id,
-                call_id: state.call_id || state.item_id,
-                name: state.name || 'unknown',
-                arguments: state.args,
-                status: 'completed',
-              },
+              item: finalItem,
             }),
           );
         }

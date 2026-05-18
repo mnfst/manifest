@@ -879,9 +879,7 @@ describe('Responses adapter', () => {
       // Subsequent deltas only carry argument fragments.
       const second = t.transform(
         JSON.stringify({
-          choices: [
-            { delta: { tool_calls: [{ index: 0, function: { arguments: '["ls"]' } }] } },
-          ],
+          choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: '["ls"]' } }] } }],
         }),
       );
       const third = t.transform(
@@ -897,9 +895,7 @@ describe('Responses adapter', () => {
       );
       const tail = t.finalize();
 
-      const combined = [first, second, third, stop, tail]
-        .filter((s): s is string => !!s)
-        .join('');
+      const combined = [first, second, third, stop, tail].filter((s): s is string => !!s).join('');
       const events = parseEventStream(combined);
 
       expect(events.map((e) => e.event)).toEqual([
@@ -950,9 +946,7 @@ describe('Responses adapter', () => {
       const t = createStrictChatToResponsesTransformer('gpt-4o');
 
       // Text first, then two parallel tool calls.
-      const e1 = t.transform(
-        JSON.stringify({ choices: [{ delta: { content: 'thinking...' } }] }),
-      );
+      const e1 = t.transform(JSON.stringify({ choices: [{ delta: { content: 'thinking...' } }] }));
       const e2 = t.transform(
         JSON.stringify({
           choices: [
@@ -1018,6 +1012,153 @@ describe('Responses adapter', () => {
       const addedItem = addedEvents[0].data.item as Record<string, unknown>;
       expect(addedItem.call_id).toBe('call_x');
       expect(addedItem.name).toBe('shell');
+    });
+
+    it('stamps response_id on every output_item / function_call / output_text event', () => {
+      // OpenAI's Responses stream tags every per-item event with the parent
+      // response_id so SDK consumers can correlate streaming deltas without
+      // parsing the response.created envelope. Codex tolerates the omission
+      // today because it mainly consumes output_item.done, but skipping
+      // response_id leaves Manifest emitting a near-Responses stream with a
+      // small shape mismatch.
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+      const e1 = t.transform(JSON.stringify({ choices: [{ delta: { content: 'Hi' } }] }));
+      const e2 = t.transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [
+                  {
+                    index: 0,
+                    id: 'call_z',
+                    function: { name: 'shell', arguments: '{"cmd":[]}' },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      );
+      const tail = t.finalize();
+      const events = parseEventStream([e1, e2, tail].filter((s): s is string => !!s).join(''));
+
+      const created = events.find((e) => e.event === 'response.created')!;
+      const responseId = (created.data.response as { id: string }).id;
+
+      // Every event that targets a specific output item (rather than the
+      // overall response envelope) must carry response_id.
+      const eventsRequiringResponseId = [
+        'response.output_item.added',
+        'response.content_part.added',
+        'response.output_text.delta',
+        'response.output_text.done',
+        'response.content_part.done',
+        'response.output_item.done',
+        'response.function_call_arguments.delta',
+        'response.function_call_arguments.done',
+      ];
+      for (const eventType of eventsRequiringResponseId) {
+        const matching = events.filter((e) => e.event === eventType);
+        expect(matching.length).toBeGreaterThan(0);
+        for (const ev of matching) {
+          expect(ev.data.response_id).toBe(responseId);
+        }
+      }
+    });
+
+    it('emits function_call_arguments.done with both top-level arguments and a final item payload', () => {
+      // OpenAI's Responses stream ships the final function-call shape in two
+      // redundant fields on `done`: a top-level `arguments` string and a
+      // structured `item`. Codex consumes top-level today, but SDKs that
+      // prefer the structured form (or that look it up alongside
+      // output_item.done) need both shapes available.
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+      const e1 = t.transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [
+                  {
+                    index: 0,
+                    id: 'call_p',
+                    function: { name: 'shell', arguments: '{"cmd":["ls"]}' },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      );
+      const tail = t.finalize();
+      const events = parseEventStream([e1, tail].filter((s): s is string => !!s).join(''));
+
+      const argsDone = events.find((e) => e.event === 'response.function_call_arguments.done')!;
+      expect(argsDone.data.arguments).toBe('{"cmd":["ls"]}');
+      expect(argsDone.data.item).toEqual(
+        expect.objectContaining({
+          type: 'function_call',
+          call_id: 'call_p',
+          name: 'shell',
+          arguments: '{"cmd":["ls"]}',
+          status: 'completed',
+        }),
+      );
+    });
+
+    it('replays buffered argument fragments once output_item.added fires', () => {
+      // Some chat-completions providers ship an opening argument fragment
+      // before the function name has stabilized. The transformer buffers
+      // those fragments so the lifecycle stays well-formed, but the
+      // accumulated bytes must still be observable in the delta stream —
+      // not just in the final response.completed envelope — for SDKs that
+      // progressively render tool-call arguments.
+      const t = createStrictChatToResponsesTransformer('gpt-4o');
+
+      // First delta: args arrive, but no name yet (header incomplete).
+      const e1 = t.transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [{ index: 0, id: 'call_r', function: { arguments: '{"cmd":' } }],
+              },
+            },
+          ],
+        }),
+      );
+      // Second delta: name arrives — header now complete. The buffered
+      // `{"cmd":` must replay as a single delta before the new fragment
+      // from this chunk.
+      const e2 = t.transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [{ index: 0, function: { name: 'shell', arguments: '["ls"]}' } }],
+              },
+            },
+          ],
+        }),
+      );
+      const tail = t.finalize();
+
+      const events = parseEventStream([e1, e2, tail].filter((s): s is string => !!s).join(''));
+      const eventNames = events.map((e) => e.event);
+      const addedIdx = eventNames.indexOf('response.output_item.added');
+      expect(addedIdx).toBeGreaterThanOrEqual(0);
+
+      // The replay delta is the immediate successor of `added`; the new
+      // args from the same chunk follow as the next delta.
+      expect(events[addedIdx + 1].event).toBe('response.function_call_arguments.delta');
+      expect(events[addedIdx + 1].data.delta).toBe('{"cmd":');
+      expect(events[addedIdx + 2].event).toBe('response.function_call_arguments.delta');
+      expect(events[addedIdx + 2].data.delta).toBe('["ls"]}');
+
+      // Concatenated, the deltas reproduce the full arguments string.
+      const argsDone = events.find((e) => e.event === 'response.function_call_arguments.done')!;
+      expect(argsDone.data.arguments).toBe('{"cmd":["ls"]}');
     });
   });
 });
