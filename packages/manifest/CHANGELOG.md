@@ -1,5 +1,53 @@
 # manifest
 
+## 6.4.0
+
+### Minor Changes
+
+- 24832a3: Add Nanobot to the supported personal AI agents list. The setup screen renders a paste-ready `~/.nanobot/config.json` block that points the `manifest` provider at the Manifest endpoint and selects model `auto` by default.
+- d7dc183: Move request body defaults (today: DeepSeek's `thinking` toggle) from tier-scoped storage to per-route storage. Settings now travel with the model identity (`agent_id`, `provider`, `auth_type`, `model_name`) wherever the model appears — default tier primary, specificity fallback, header-tier primary, anywhere. **Behavior change:** Manifest no longer auto-disables DeepSeek's thinking mode on simple/standard/complex tiers. Users who never configured a value will see the provider's natural default (thinking enabled) instead of Manifest's previous cost-saving override. To get the old behavior back, configure thinking explicitly per-model from the Routing page once the frontend ships. Migration backfills the existing per-tier config to every compatible route in the assignment (primary + fallbacks) so no per-model setting is silently lost. Adds new endpoints `GET/PUT/DELETE /api/v1/routing/:agent/model-params` for the upcoming frontend.
+- 4cba5b3: Routing UI: every model row (primary chip, fallback row, header-tier primary, header-tier fallback) now exposes the per-model Parameters affordance for any provider whose API consumes a known knob (today: DeepSeek's `thinking`). Settings travel with the model identity wherever it appears — saving DeepSeek's thinking mode on one slot updates every other slot showing the same model. Closes the long-standing gap on the "custom" (header-tier) routing surface, which previously had no params support at all. Wires the new `GET/PUT/DELETE /api/v1/routing/:agent/model-params` endpoints shipped in the backend PR.
+- a8e907e: Add full OAuth flow for the Anthropic Claude Pro / Max subscription. Connecting
+  your Claude subscription is now a one-click "Sign in with Claude" → paste the
+  authorization code, instead of running `claude setup-token` in a separate
+  terminal. Tokens auto-refresh through the same blob/refresh path used by OpenAI.
+
+  Internally the OAuth code in `routing/oauth/` was split into shared `core/`
+  primitives (PKCE, token-blob storage, pending-state TTL, callback HTML) plus
+  per-provider files. The OpenAI service now delegates to the same primitives,
+  and a new `oauth/anthropic/` package implements the paste-code flow.
+
+### Patch Changes
+
+- a254c32: Add OpenCode to the Coding Assistant setup flow. The setup screen now renders a paste-ready OpenCode config block for the global or project config, registers Manifest as an OpenAI-compatible provider, and selects `manifest/auto` by default.
+- 6f52fdd: Normalize Chat Completions `image_url` parts to Responses API `input_image` parts before forwarding to `/v1/responses`.
+- bbcfa50: Stop filtering the canonical `gemini-3.1-flash-lite-preview` (and similar non-dated `flash-lite-preview` aliases) from Gemini model discovery. The previous regex was meant to drop deprecated dated snapshots like `gemini-2.5-flash-lite-preview-09-2025` but over-matched and removed live preview models too. Tightened to require a `-MM-YYYY` date suffix so dated snapshots still get filtered while canonical previews surface.
+- 91088e2: Fix "Add another key" button for OAuth subscription providers
+- cedeba2: Extract Wingman to a standalone hosted SPA at `wingman.manifest.build`.
+  The dashboard's bottom drawer stays dev-only (dead-code-eliminated from
+  production / self-hosted bundles) and now embeds the hosted build by
+  default. Contributors can still point it at a local Wingman with
+  `VITE_WINGMAN_URL`. Dev-mode CORS allow-lists the hosted origin so
+  contributors can use the hosted SPA against a local backend; production
+  never enables CORS, so nothing Wingman-related ships to self-hosted
+  deployments. The `packages/wingman/` workspace is removed; source moves
+  to https://github.com/mnfst/wingman.
+- abf3c15: Show a small "Last used" badge on the sign-in and sign-up pages so returning visitors can see at a glance which method (email or one of the social providers) they used last time. The hint is stored per-browser in `localStorage` and is best-effort: it falls back silently when storage is unavailable.
+- 9b4a586: Accept MiniMax Coding Plan `sk-cp-` tokens on the MiniMax subscription tile alongside the device-code OAuth flow. The region picker now applies to both paths, so CN Coding Plan tokens route to `api.minimaxi.com` for both model discovery and proxied requests. Closes #1467.
+- d9e6232: Improve the dashboard layout on phone-sized screens with a compact navigation drawer, tighter header chrome, and mobile-sized chart stats.
+- 828812c: Patch five high-severity Dependabot alerts in transitive dependencies.
+  - `fast-uri` 3.1.0 → 3.1.2 (path traversal + host confusion, dev-only via `@nestjs/schematics`).
+  - `kysely` 0.28.14 → 0.28.17 via `better-auth` 1.4 → 1.6 (JSON-path injection in `JSONPathBuilder`, runtime).
+  - `undici` 5.x → 6.25 via `@codecov/vite-plugin` 1 → 2 (HTTP smuggling + CRLF injection, dev/build only).
+
+  No behavior change. Better Auth bump is patch-compatible (1.4 → 1.6) — login, register, OAuth round-trips verified locally.
+
+- 7792ef8: Coerce unknown Anthropic Messages tool types to custom tools instead of forwarding unsupported server-tool tags, and normalize missing array `items` in forwarded tool schemas for OpenAI compatibility.
+- 504a7af: Route Anthropic and MiniMax subscription disconnects through provider-specific OAuth cleanup endpoints
+- 47d143c: Rename the personal agent category label to "AI agents".
+- ee47ba7: Strip adaptive thinking when Anthropic Messages requests are routed to Claude Haiku.
+- f4fb104: Preserve OpenCode Go reasoning content for known non-DeepSeek reasoning model families.
+
 ## 6.3.0
 
 ### Minor Changes
