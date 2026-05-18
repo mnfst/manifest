@@ -159,12 +159,23 @@ export interface RoutingSpecificitySectionProps {
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
   embedded?: boolean;
-  persistParamDefaults?: (
-    agentName: string,
-    category: string,
-    paramDefaults: RequestParamDefaults | null,
+  /**
+   * Read saved per-route params from the parent's loaded map. Threaded
+   * down to every model row so each affordance reflects the configured
+   * state without per-row fetches.
+   */
+  getModelParams?: (
+    provider: string,
+    authType: AuthType,
+    model: string,
+  ) => RequestParamDefaults | null;
+  /** Persist new params for a single route. */
+  setModelParams?: (
+    provider: string,
+    authType: AuthType,
+    model: string,
+    params: RequestParamDefaults | null,
   ) => Promise<unknown>;
-  onParamDefaultsSaved?: (category: string, paramDefaults: RequestParamDefaults | null) => void;
 }
 
 function toTierAssignment(a: SpecificityAssignment | undefined): TierAssignment | undefined {
@@ -257,8 +268,8 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 persistClearFallbacks={(_agentName, category) =>
                   clearSpecificityFallbacks(_agentName, category)
                 }
-                persistParamDefaults={props.persistParamDefaults}
-                onParamDefaultsSaved={props.onParamDefaultsSaved}
+                getModelParams={props.getModelParams}
+                setModelParams={props.setModelParams}
               />
             )}
           </For>

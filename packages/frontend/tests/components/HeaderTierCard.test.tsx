@@ -1081,4 +1081,116 @@ describe("HeaderTierCard", () => {
     ));
     expect(container.querySelector('[data-testid="auth-local"]')).not.toBeNull();
   });
+
+  // Cover the Show-gated ModelParamsAffordance render on the primary chip and
+  // the prop pass-through into the fallback list. The affordance only renders
+  // when both getModelParams + setModelParams are provided and the route's
+  // effective auth is not "local" (Ollama has no per-model knobs).
+  it("renders the ModelParamsAffordance on the primary chip when model-params props are provided", () => {
+    const tierDeepseek = {
+      ...baseTier,
+      override_route: {
+        provider: "deepseek",
+        authType: "api_key",
+        model: "deepseek-v4",
+      } as const,
+    };
+    const deepseekModels: AvailableModel[] = [
+      {
+        ...models[0],
+        model_name: "deepseek-v4",
+        provider: "deepseek",
+        auth_type: "api_key",
+        display_name: "DeepSeek V4",
+      },
+    ];
+    const deepseekProviders = [
+      { ...connectedProviders[0], provider: "deepseek", authType: "api_key" as const },
+    ];
+    const { container } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={tierDeepseek}
+        models={deepseekModels}
+        customProviders={[]}
+        connectedProviders={deepseekProviders}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={vi.fn()}
+        getModelParams={() => null}
+        setModelParams={vi.fn().mockResolvedValue(undefined)}
+      />
+    ));
+    expect(
+      container.querySelector(
+        '[aria-label="Configure model parameters for DeepSeek V4"]',
+      ),
+    ).not.toBeNull();
+  });
+
+  // Open the dialog and trigger a save so the parent's JSX `setParams={...}`
+  // getter is evaluated by the affordance (Solid props are lazy — `setParams`
+  // is only read when the affordance calls `props.setParams(...)` on save).
+  it("threads setModelParams through the affordance save flow", async () => {
+    const setModelParams = vi.fn().mockResolvedValue(undefined);
+    const tierDeepseek = {
+      ...baseTier,
+      override_route: {
+        provider: "deepseek",
+        authType: "api_key",
+        model: "deepseek-v4",
+      } as const,
+      fallback_routes: [
+        { provider: "deepseek", authType: "api_key", model: "deepseek-v4-flash" },
+      ] as any,
+    };
+    const deepseekModels: AvailableModel[] = [
+      {
+        ...models[0],
+        model_name: "deepseek-v4",
+        provider: "deepseek",
+        auth_type: "api_key",
+        display_name: "DeepSeek V4",
+      },
+      {
+        ...models[0],
+        model_name: "deepseek-v4-flash",
+        provider: "deepseek",
+        auth_type: "api_key",
+        display_name: "DeepSeek V4 Flash",
+      },
+    ];
+    const deepseekProviders = [
+      { ...connectedProviders[0], provider: "deepseek", authType: "api_key" as const },
+    ];
+    const { container, getByRole } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={tierDeepseek}
+        models={deepseekModels}
+        customProviders={[]}
+        connectedProviders={deepseekProviders}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={vi.fn()}
+        getModelParams={() => null}
+        setModelParams={setModelParams}
+      />
+    ));
+    const btn = container.querySelector(
+      '[aria-label="Configure model parameters for DeepSeek V4"]',
+    ) as HTMLButtonElement;
+    fireEvent.click(btn);
+    const toggle = await waitFor(() =>
+      getByRole("button", { name: /Thinking mode/ }),
+    );
+    fireEvent.click(toggle);
+    fireEvent.click(getByRole("button", { name: "Save" }));
+    await waitFor(() => {
+      expect(setModelParams).toHaveBeenCalledWith(
+        "deepseek",
+        "api_key",
+        "deepseek-v4",
+        { thinking: { type: "disabled" } },
+      );
+    });
+  });
 });

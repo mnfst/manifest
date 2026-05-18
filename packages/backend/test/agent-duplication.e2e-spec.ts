@@ -92,6 +92,7 @@ describe('Agent Duplication (e2e)', () => {
       customProviders: 1,
       tierAssignments: 1,
       specificityAssignments: 1,
+      modelParams: 0,
     });
     expect(res.body.suggested_name).toBe('test-agent-copy');
   });
@@ -117,6 +118,7 @@ describe('Agent Duplication (e2e)', () => {
       customProviders: 1,
       tierAssignments: 1,
       specificityAssignments: 1,
+      modelParams: 0,
     });
 
     const newAgent = await ds.getRepository(Agent).findOne({

@@ -56,26 +56,6 @@ describe('specificity API client', () => {
     expect((init as RequestInit).method).toBe('DELETE');
   });
 
-  it('setSpecificityParamDefaults PATCHes /params with the payload', async () => {
-    const fetchMock = setupFetch({});
-    await specificity.setSpecificityParamDefaults('demo', 'coding', {
-      thinking: { type: 'disabled' },
-    });
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/api/v1/routing/demo/specificity/coding/params');
-    expect((init as RequestInit).method).toBe('PATCH');
-    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
-      paramDefaults: { thinking: { type: 'disabled' } },
-    });
-  });
-
-  it('setSpecificityParamDefaults clears with null', async () => {
-    const fetchMock = setupFetch({});
-    await specificity.setSpecificityParamDefaults('demo', 'coding', null);
-    const [, init] = fetchMock.mock.calls[0];
-    expect(JSON.parse((init as RequestInit).body as string)).toEqual({ paramDefaults: null });
-  });
-
   it('setSpecificityFallbacks attaches routes when length matches', async () => {
     const fetchMock = setupFetch([]);
     await specificity.setSpecificityFallbacks('demo', 'coding', ['m'], [

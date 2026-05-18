@@ -1,41 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import type { AuthType, ModelRoute, RequestParamDefaults } from 'manifest-shared';
-import {
-  applyRequestParamDefaults,
-  filterParamDefaultsForProvider,
-  manifestThinkingParamDefaults,
-} from 'manifest-shared';
+import type { AuthType, ModelRoute } from 'manifest-shared';
+import { applyRequestParamDefaults } from 'manifest-shared';
+import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
 
 /**
- * Inputs needed to recompute the param-defaults merge per attempt. Threaded
- * through tryFallbacks/tryForwardToProvider so each iteration applies the
- * filter and Manifest opinion against the iteration's *own* provider —
- * otherwise a DeepSeek-shaped `thinking` field would leak onto an Anthropic
- * fallback target.
+ * Context for the per-attempt param-defaults merge. Carries the agentId so
+ * `applyParamMerge` can ask the model-params service for the configuration
+ * that belongs to this attempt's (provider, auth_type, model) tuple — not
+ * the primary route's. Storage is model-scoped on the new
+ * `agent_model_params` table, so cross-provider leak is structurally
+ * impossible; we no longer need a provider-keyed filter, and Manifest's
+ * old tier-aware opinion layer is gone too (only the user's explicit
+ * config and the provider's natural default participate).
  */
 export interface ParamMergeContext {
-  userDefaults: RequestParamDefaults | null | undefined;
-  tier: string | undefined;
-  isSpecificity: boolean;
+  agentId: string;
 }
 
-function applyParamMerge(
-  body: Record<string, unknown>,
-  ctx: ParamMergeContext | undefined,
-  provider: string,
-): Record<string, unknown> {
-  if (!ctx) return body;
-  const compatibleUser = filterParamDefaultsForProvider(ctx.userDefaults, provider);
-  const manifestDefaults = ctx.isSpecificity
-    ? null
-    : manifestThinkingParamDefaults(provider, ctx.tier);
-  return applyRequestParamDefaults(
-    applyRequestParamDefaults(body, compatibleUser),
-    manifestDefaults,
-  );
-}
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
@@ -93,7 +76,35 @@ export class ProxyFallbackService {
     private readonly providerClient: ProviderClient,
     private readonly copilotToken: CopilotTokenService,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly modelParamsService: AgentModelParamsService,
   ) {}
+
+  /**
+   * Per-attempt merge: look up the user's saved params for this
+   * (agent, provider, auth_type, model) tuple and fold them into the
+   * outbound body. Returns the original body unchanged when no config
+   * exists — the provider's natural default applies in that case.
+   *
+   * Async because the lookup may hit the database on a cache miss; the
+   * service caches the agent's full row set, so steady-state cost is a
+   * Map lookup, not a query.
+   */
+  private async applyParamMerge(
+    body: Record<string, unknown>,
+    ctx: ParamMergeContext | undefined,
+    provider: string,
+    authType: AuthType | string | undefined,
+    model: string,
+  ): Promise<Record<string, unknown>> {
+    if (!ctx || !authType) return body;
+    const modelParams = await this.modelParamsService.get(
+      ctx.agentId,
+      provider,
+      authType as AuthType,
+      model,
+    );
+    return applyRequestParamDefaults(body, modelParams);
+  }
 
   async tryFallbacks(
     agentId: string,
@@ -322,13 +333,26 @@ export class ProxyFallbackService {
       signatureLookup,
       thinkingLookup,
     } = opts;
-    // Recompute the param-defaults merge against *this* iteration's provider,
-    // not whatever the primary route happened to be. Without this, DeepSeek's
-    // `thinking` payload would leak into an Anthropic fallback request and
-    // 400 the upstream.
-    const body = applyParamMerge(opts.body, opts.paramMergeContext, provider);
+    // Per-attempt merge: ask the model-params service for this iteration's
+    // (provider, auth_type, model) config. Storage is model-scoped on the
+    // new agent_model_params table, so a primary OpenAI route with a
+    // DeepSeek fallback no longer needs the old per-provider filter —
+    // OpenAI's lookup returns null, DeepSeek's returns its own row.
+    const body = await this.applyParamMerge(
+      opts.body,
+      opts.paramMergeContext,
+      provider,
+      authType,
+      opts.model,
+    );
     const chatBody = opts.chatBody
-      ? applyParamMerge(opts.chatBody, opts.paramMergeContext, provider)
+      ? await this.applyParamMerge(
+          opts.chatBody,
+          opts.paramMergeContext,
+          provider,
+          authType,
+          opts.model,
+        )
       : undefined;
 
     const extraHeaders = buildProviderExtraHeaders(provider, opts.sessionKey);

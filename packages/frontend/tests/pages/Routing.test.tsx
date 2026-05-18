@@ -16,8 +16,9 @@ const mockGetPricingHealth = vi.fn();
 const mockRefreshPricing = vi.fn();
 const mockGetComplexityStatus = vi.fn();
 const mockToggleComplexity = vi.fn();
-const mockSetTierParamDefaults = vi.fn();
-const mockSetSpecificityParamDefaults = vi.fn();
+const mockListModelParams = vi.fn();
+const mockSetModelParams = vi.fn();
+const mockDeleteModelParams = vi.fn();
 
 vi.mock("../../src/services/api.js", () => ({
   getTierAssignments: (...args: unknown[]) => mockGetTierAssignments(...args),
@@ -34,8 +35,11 @@ vi.mock("../../src/services/api.js", () => ({
   toggleComplexity: (...args: unknown[]) => mockToggleComplexity(...args),
   setSpecificityFallbacks: (...args: unknown[]) => mockSetSpecificityFallbacks(...args),
   clearSpecificityFallbacks: (...args: unknown[]) => mockClearSpecificityFallbacks(...args),
-  setTierParamDefaults: (...args: unknown[]) => mockSetTierParamDefaults(...args),
-  setSpecificityParamDefaults: (...args: unknown[]) => mockSetSpecificityParamDefaults(...args),
+  listModelParams: (...args: unknown[]) => mockListModelParams(...args),
+  setModelParams: (...args: unknown[]) => mockSetModelParams(...args),
+  deleteModelParams: (...args: unknown[]) => mockDeleteModelParams(...args),
+  modelParamsKey: (provider: string, authType: string, model: string) =>
+    `${provider.toLowerCase()}::${authType}::${model}`,
   // Re-export types only — no runtime impact
 }));
 
@@ -267,8 +271,8 @@ vi.mock("../../src/pages/RoutingDefaultTierSection.js", () => ({
       props.getTier,
       props.complexityEnabled,
       props.togglingComplexity,
-      props.persistParamDefaults,
-      props.onParamDefaultsSaved,
+      props.getModelParams,
+      props.setModelParams,
     ];
     void _read;
     return (
@@ -289,12 +293,13 @@ vi.mock("../../src/pages/RoutingDefaultTierSection.js", () => ({
           data-testid="default-persist-params"
           onClick={() =>
             (
-              props.persistParamDefaults as (
-                agent: string,
-                tier: string,
+              props.setModelParams as (
+                provider: string,
+                authType: string,
+                model: string,
                 p: { thinking: { type: "enabled" | "disabled" } } | null,
               ) => Promise<unknown>
-            )("demo", "simple", { thinking: { type: "disabled" } })
+            )("deepseek", "api_key", "deepseek-v4", { thinking: { type: "disabled" } })
           }
         >
           default-persist-params
@@ -303,11 +308,13 @@ vi.mock("../../src/pages/RoutingDefaultTierSection.js", () => ({
           data-testid="default-saved-params"
           onClick={() =>
             (
-              props.onParamDefaultsSaved as (
-                tier: string,
+              props.setModelParams as (
+                provider: string,
+                authType: string,
+                model: string,
                 p: { thinking: { type: "enabled" | "disabled" } } | null,
-              ) => void
-            )("simple", { thinking: { type: "disabled" } })
+              ) => Promise<unknown>
+            )("deepseek", "api_key", "deepseek-v4", null)
           }
         >
           default-saved-params
@@ -333,15 +340,17 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
       label: string | null,
       authType?: string,
     ) => void;
-    persistParamDefaults?: (
-      agentName: string,
-      category: string,
+    setModelParams?: (
+      provider: string,
+      authType: string,
+      model: string,
       paramDefaults: { thinking: { type: "enabled" | "disabled" } } | null,
     ) => Promise<unknown>;
-    onParamDefaultsSaved?: (
-      category: string,
-      paramDefaults: { thinking: { type: "enabled" | "disabled" } } | null,
-    ) => void;
+    getModelParams?: (
+      provider: string,
+      authType: string,
+      model: string,
+    ) => { thinking?: { type: "enabled" | "disabled" } } | null;
   }) => (
     <div data-testid="spec-section">
       <button data-testid="spec-open" onClick={() => props.onDropdownOpen("coding")}>
@@ -405,16 +414,16 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
       <button
         data-testid="spec-persist-params"
         onClick={() =>
-          props.persistParamDefaults?.("demo", "coding", { thinking: { type: "disabled" } })
+          props.setModelParams?.("deepseek", "api_key", "deepseek-v4", {
+            thinking: { type: "disabled" },
+          })
         }
       >
         spec-persist-params
       </button>
       <button
         data-testid="spec-saved-params"
-        onClick={() =>
-          props.onParamDefaultsSaved?.("coding", { thinking: { type: "disabled" } })
-        }
+        onClick={() => props.getModelParams?.("deepseek", "api_key", "deepseek-v4")}
       >
         spec-saved-params
       </button>
@@ -498,6 +507,7 @@ beforeEach(() => {
   mockGetComplexityStatus.mockResolvedValue({ enabled: true });
   mockGetPricingHealth.mockResolvedValue({ model_count: 100, last_fetched_at: "2025-01-01" });
   mockToggleComplexity.mockResolvedValue({ enabled: false });
+  mockListModelParams.mockResolvedValue([]);
 });
 
 describe("Routing page", () => {
@@ -1179,14 +1189,33 @@ describe("Routing page", () => {
     expect(true).toBe(true);
   });
 
-  // Verify the per-tier and per-specificity Model Parameters wiring. Each
-  // Section's mock invokes the props handed down by Routing.tsx; the assertions
-  // confirm those handlers reach the right API helper and the right resource
-  // mutate (which keeps the icon's "configured" state in sync without a refetch).
-  it("persistParamDefaults on the Default Tier Section calls setTierParamDefaults", async () => {
-    mockSetTierParamDefaults.mockResolvedValue({
-      tier: "simple",
-      param_defaults: { thinking: { type: "disabled" } },
+  // Verify the per-model params wiring. Each Section's mock invokes the
+  // setModelParams handler handed down by Routing.tsx; the assertions confirm
+  // those calls reach the new /model-params endpoint and that the local cache
+  // updates without a refetch.
+  it("setModelParams on the Default Tier Section calls the new endpoint and updates the cache", async () => {
+    // Seed the cache with a stale row for the same route + a sibling row for
+    // a different route so the de-dupe filter both removes the match (lines
+    // covering provider/authType/model comparison) and keeps the non-match.
+    mockListModelParams.mockResolvedValue([
+      {
+        provider: "DeepSeek",
+        authType: "api_key",
+        model: "deepseek-v4",
+        params: { thinking: { type: "enabled" } },
+      },
+      {
+        provider: "openai",
+        authType: "api_key",
+        model: "gpt-4o",
+        params: { thinking: { type: "enabled" } },
+      },
+    ]);
+    mockSetModelParams.mockResolvedValue({
+      provider: "deepseek",
+      authType: "api_key",
+      model: "deepseek-v4",
+      params: { thinking: { type: "disabled" } },
     });
     render(() => <Routing />);
     await waitFor(() => {
@@ -1194,28 +1223,53 @@ describe("Routing page", () => {
     });
     fireEvent.click(screen.getByTestId("default-persist-params"));
     await waitFor(() => {
-      expect(mockSetTierParamDefaults).toHaveBeenCalledWith("demo", "simple", {
-        thinking: { type: "disabled" },
+      expect(mockSetModelParams).toHaveBeenCalledWith("demo", {
+        provider: "deepseek",
+        authType: "api_key",
+        model: "deepseek-v4",
+        params: { thinking: { type: "disabled" } },
       });
     });
   });
 
-  it("onParamDefaultsSaved on the Default Tier Section optimistically patches the cached tier row", async () => {
+  it("setModelParams with null deletes via the new endpoint", async () => {
+    // Seed two rows so the delete-path filter callback both excludes the
+    // match (case-insensitive provider compare) and retains the sibling.
+    mockListModelParams.mockResolvedValue([
+      {
+        provider: "DeepSeek",
+        authType: "api_key",
+        model: "deepseek-v4",
+        params: { thinking: { type: "disabled" } },
+      },
+      {
+        provider: "anthropic",
+        authType: "api_key",
+        model: "claude-3-5-sonnet",
+        params: { thinking: { type: "disabled" } },
+      },
+    ]);
+    mockDeleteModelParams.mockResolvedValue({ ok: true });
     render(() => <Routing />);
     await waitFor(() => {
       expect(screen.getByTestId("default-saved-params")).toBeDefined();
     });
-    // No assertion on resource state — the handler runs through `mutateTiers`
-    // which is internal to createResource. The point of this click is purely
-    // to drive the closure body so its lines stop counting as uncovered.
     fireEvent.click(screen.getByTestId("default-saved-params"));
-    expect(true).toBe(true);
+    await waitFor(() => {
+      expect(mockDeleteModelParams).toHaveBeenCalledWith("demo", {
+        provider: "deepseek",
+        authType: "api_key",
+        model: "deepseek-v4",
+      });
+    });
   });
 
-  it("persistParamDefaults on the Specificity Section calls setSpecificityParamDefaults", async () => {
-    mockSetSpecificityParamDefaults.mockResolvedValue({
-      category: "coding",
-      param_defaults: { thinking: { type: "disabled" } },
+  it("setModelParams on the Specificity Section calls the new endpoint", async () => {
+    mockSetModelParams.mockResolvedValue({
+      provider: "deepseek",
+      authType: "api_key",
+      model: "deepseek-v4",
+      params: { thinking: { type: "disabled" } },
     });
     render(() => <Routing />);
     await waitFor(() => {
@@ -1223,13 +1277,11 @@ describe("Routing page", () => {
     });
     fireEvent.click(screen.getByTestId("spec-persist-params"));
     await waitFor(() => {
-      expect(mockSetSpecificityParamDefaults).toHaveBeenCalledWith("demo", "coding", {
-        thinking: { type: "disabled" },
-      });
+      expect(mockSetModelParams).toHaveBeenCalled();
     });
   });
 
-  it("onParamDefaultsSaved on the Specificity Section runs the optimistic patcher", async () => {
+  it("getModelParams threads through to the Specificity Section without a fetch per surface", async () => {
     render(() => <Routing />);
     await waitFor(() => {
       expect(screen.getByTestId("spec-saved-params")).toBeDefined();
