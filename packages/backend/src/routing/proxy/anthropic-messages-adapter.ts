@@ -375,9 +375,18 @@ interface StreamState {
   messageId: string;
   model: string;
   startedMessage: boolean;
+  // Block-state fields track the *currently open* block of each kind. After a
+  // block is stopped, the *Opened flag flips back to false so a subsequent
+  // chunk of the same kind allocates a fresh index — supports providers that
+  // interleave reasoning_content with content or tool_calls.
+  thinkingIndex: number | null;
+  thinkingOpened: boolean;
   textIndex: number | null;
   textOpened: boolean;
   toolCalls: Map<number, { id: string; index: number; argBuffer: string; opened: boolean }>;
+  // Monotonic counter — block indices must keep increasing across the whole
+  // stream, including across reopens of the same kind.
+  nextBlockIndexCounter: number;
   finalUsage: JsonRecord | null;
   stopReason: string | null;
   endedMessage: boolean;
@@ -393,9 +402,12 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
     messageId: `msg_${randomUUID().replace(/-/g, '')}`,
     model,
     startedMessage: false,
+    thinkingIndex: null,
+    thinkingOpened: false,
     textIndex: null,
     textOpened: false,
     toolCalls: new Map(),
+    nextBlockIndexCounter: 0,
     finalUsage: null,
     stopReason: null,
     endedMessage: false,
@@ -432,8 +444,49 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     if (!choice) continue;
     const delta = isRecord(choice.delta) ? choice.delta : {};
 
+    // DeepSeek (and other thinking-mode providers) stream reasoning as
+    // `delta.reasoning_content` separately from `delta.content`. Surface it as
+    // an Anthropic `thinking` content block so clients can echo it back on the
+    // next turn — the upstream rejects follow-ups that don't return the trace.
+    // Reasoning can also arrive *after* text or a tool_use has already started
+    // (providers don't guarantee reasoning is fully flushed before content).
+    // For text we close it and reopen a fresh thinking block — splitting text
+    // across blocks is fine because each Anthropic text block is independent.
+    // For an in-progress tool_use we DROP the late reasoning: Manifest's
+    // Anthropic-compat layer assumes thinking blocks precede tool_use and
+    // replays them in that shape on the next turn, so emitting a transcript
+    // like `thinking → tool_use → thinking` would produce a stream we can't
+    // safely replay. Keeping the tool_use block contiguous is the more
+    // defensible tradeoff than surfacing a fragment that breaks replay.
+    if (typeof delta.reasoning_content === 'string' && delta.reasoning_content.length > 0) {
+      if (!hasOpenToolCall(state)) {
+        closeTextBlock(state, events);
+        if (!state.thinkingOpened) {
+          state.thinkingIndex = nextBlockIndex(state);
+          events.push(
+            formatMessagesEvent('content_block_start', {
+              type: 'content_block_start',
+              index: state.thinkingIndex,
+              content_block: { type: 'thinking', thinking: '' },
+            }),
+          );
+          state.thinkingOpened = true;
+        }
+        events.push(
+          formatMessagesEvent('content_block_delta', {
+            type: 'content_block_delta',
+            index: state.thinkingIndex,
+            delta: { type: 'thinking_delta', thinking: delta.reasoning_content },
+          }),
+        );
+      }
+      // else: silently drop reasoning_content arriving during an open tool_use.
+    }
+
     if (typeof delta.content === 'string' && delta.content.length > 0) {
-      if (state.textIndex === null) {
+      closeThinkingBlock(state, events);
+      closeOpenToolCalls(state, events);
+      if (!state.textOpened) {
         state.textIndex = nextBlockIndex(state);
         events.push(
           formatMessagesEvent('content_block_start', {
@@ -454,6 +507,8 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     }
 
     if (Array.isArray(delta.tool_calls)) {
+      closeThinkingBlock(state, events);
+      closeTextBlock(state, events);
       for (const call of delta.tool_calls) {
         if (!isRecord(call)) continue;
         const callIndex = typeof call.index === 'number' ? call.index : 0;
@@ -507,8 +562,54 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
   return events.length > 0 ? events.join('') : null;
 }
 
+// Monotonic — every kind of block (thinking/text/tool_use) consumes one slot
+// here, even on reopens. Anthropic's content_block_* events index from 0
+// upward; the index of a reopened block must keep climbing, not collide with
+// an earlier one that has already been stopped.
 function nextBlockIndex(state: StreamState): number {
-  return (state.textIndex !== null ? 1 : 0) + state.toolCalls.size;
+  return state.nextBlockIndexCounter++;
+}
+
+function closeThinkingBlock(state: StreamState, events: string[]): void {
+  if (!state.thinkingOpened || state.thinkingIndex === null) return;
+  events.push(
+    formatMessagesEvent('content_block_stop', {
+      type: 'content_block_stop',
+      index: state.thinkingIndex,
+    }),
+  );
+  state.thinkingOpened = false;
+}
+
+function closeTextBlock(state: StreamState, events: string[]): void {
+  if (!state.textOpened || state.textIndex === null) return;
+  events.push(
+    formatMessagesEvent('content_block_stop', {
+      type: 'content_block_stop',
+      index: state.textIndex,
+    }),
+  );
+  state.textOpened = false;
+}
+
+function hasOpenToolCall(state: StreamState): boolean {
+  for (const entry of state.toolCalls.values()) {
+    if (entry.opened) return true;
+  }
+  return false;
+}
+
+function closeOpenToolCalls(state: StreamState, events: string[]): void {
+  for (const entry of state.toolCalls.values()) {
+    if (!entry.opened) continue;
+    events.push(
+      formatMessagesEvent('content_block_stop', {
+        type: 'content_block_stop',
+        index: entry.index,
+      }),
+    );
+    entry.opened = false;
+  }
 }
 
 function buildMessageStartEvent(state: StreamState, data: JsonRecord): string {
@@ -532,23 +633,9 @@ function closeStream(state: StreamState): string[] {
   if (state.endedMessage) return [];
   const events: string[] = [];
 
-  if (state.textOpened && state.textIndex !== null) {
-    events.push(
-      formatMessagesEvent('content_block_stop', {
-        type: 'content_block_stop',
-        index: state.textIndex,
-      }),
-    );
-  }
-  for (const entry of state.toolCalls.values()) {
-    if (!entry.opened) continue;
-    events.push(
-      formatMessagesEvent('content_block_stop', {
-        type: 'content_block_stop',
-        index: entry.index,
-      }),
-    );
-  }
+  closeThinkingBlock(state, events);
+  closeTextBlock(state, events);
+  closeOpenToolCalls(state, events);
 
   events.push(
     formatMessagesEvent('message_delta', {
