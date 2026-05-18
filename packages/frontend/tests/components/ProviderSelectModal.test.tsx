@@ -34,7 +34,12 @@ const mockDisconnectProvider = vi.fn();
 const mockGetOpenaiOAuthUrl = vi.fn();
 const mockPollMinimaxOAuth = vi.fn();
 const mockRevokeOpenaiOAuth = vi.fn();
+const mockRevokeMinimaxOAuth = vi.fn();
 const mockStartMinimaxOAuth = vi.fn();
+const mockStartAnthropicOAuth = vi.fn();
+const mockSubmitAnthropicOAuth = vi.fn();
+const mockRevokeAnthropicOAuth = vi.fn();
+const mockGetAnthropicOAuthPending = vi.fn().mockResolvedValue({ state: null });
 const mockCreateCustomProvider = vi.fn();
 const mockUpdateCustomProvider = vi.fn();
 const mockDeleteCustomProvider = vi.fn();
@@ -45,7 +50,12 @@ vi.mock('../../src/services/api.js', () => ({
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
   pollMinimaxOAuth: (...args: unknown[]) => mockPollMinimaxOAuth(...args),
   revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+  revokeMinimaxOAuth: (...args: unknown[]) => mockRevokeMinimaxOAuth(...args),
   startMinimaxOAuth: (...args: unknown[]) => mockStartMinimaxOAuth(...args),
+  startAnthropicOAuth: (...args: unknown[]) => mockStartAnthropicOAuth(...args),
+  submitAnthropicOAuth: (...args: unknown[]) => mockSubmitAnthropicOAuth(...args),
+  revokeAnthropicOAuth: (...args: unknown[]) => mockRevokeAnthropicOAuth(...args),
+  getAnthropicOAuthPending: (...args: unknown[]) => mockGetAnthropicOAuthPending(...args),
   createCustomProvider: (...args: unknown[]) => mockCreateCustomProvider(...args),
   updateCustomProvider: (...args: unknown[]) => mockUpdateCustomProvider(...args),
   deleteCustomProvider: (...args: unknown[]) => mockDeleteCustomProvider(...args),
@@ -109,6 +119,8 @@ describe('ProviderSelectModal', () => {
       pollIntervalMs: 2000,
     });
     mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
+    mockRevokeAnthropicOAuth.mockResolvedValue({ ok: true, notifications: [] });
+    mockRevokeMinimaxOAuth.mockResolvedValue({ ok: true, notifications: [] });
     mockStartMinimaxOAuth.mockResolvedValue({
       flowId: 'flow-1',
       userCode: 'ABCD-1234',
@@ -913,7 +925,7 @@ describe('ProviderSelectModal', () => {
       expect(onSwitches.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('opens detail view for Anthropic (has subscriptionKeyPlaceholder)', () => {
+    it('opens detail view for Anthropic and shows the OAuth sign-in button', () => {
       render(() => (
         <ProviderSelectModal
           providers={[]}
@@ -924,9 +936,8 @@ describe('ProviderSelectModal', () => {
       ));
       fireEvent.click(screen.getByText('Anthropic'));
 
-      // Should open detail view with setup token input
-      expect(screen.getByLabelText('Anthropic setup token')).toBeDefined();
-      expect(screen.getByText('Connect')).toBeDefined();
+      // The detail view for Anthropic uses the paste-code OAuth flow.
+      expect(screen.getByText('Sign in with Claude')).toBeDefined();
     });
 
     it('does not show credits button for non-Anthropic providers', () => {
@@ -943,7 +954,7 @@ describe('ProviderSelectModal', () => {
       expect(screen.queryByText('Claim your credits on Claude')).toBeNull();
     });
 
-    it('shows terminal command in Anthropic subscription detail view', () => {
+    it('shows the OAuth sign-in button in Anthropic subscription detail view', () => {
       render(() => (
         <ProviderSelectModal
           providers={[]}
@@ -954,12 +965,18 @@ describe('ProviderSelectModal', () => {
       ));
       fireEvent.click(screen.getByText('Anthropic'));
 
-      expect(screen.getByText('claude setup-token')).toBeDefined();
-      expect(screen.getByText('Terminal')).toBeDefined();
+      expect(screen.getByText('Sign in with Claude')).toBeDefined();
     });
 
-    it('connects Anthropic subscription with setup-token', async () => {
-      const VALID_TOKEN = 'sk-ant-oat01-test-token-1234567890';
+    it('starts the Anthropic OAuth flow and renders the paste-code step', async () => {
+      mockStartAnthropicOAuth.mockResolvedValue({
+        url: 'https://claude.ai/oauth/authorize?state=abc',
+        state: 'abc',
+      });
+      const windowOpenSpy = vi
+        .spyOn(window, 'open')
+        .mockReturnValue({ closed: false } as unknown as Window);
+
       render(() => (
         <ProviderSelectModal
           providers={[]}
@@ -969,51 +986,62 @@ describe('ProviderSelectModal', () => {
         />
       ));
       fireEvent.click(screen.getByText('Anthropic'));
+      fireEvent.click(screen.getByText('Sign in with Claude'));
 
-      const input = screen.getByLabelText('Anthropic setup token');
-      fireEvent.input(input, { target: { value: VALID_TOKEN } });
+      await waitFor(() => {
+        expect(mockStartAnthropicOAuth).toHaveBeenCalledWith('test-agent');
+      });
+      await waitFor(() => {
+        expect(screen.getByLabelText('Anthropic authorization code')).toBeDefined();
+      });
+      windowOpenSpy.mockRestore();
+    });
+
+    it('exchanges a pasted authorization code for an OAuth token', async () => {
+      mockStartAnthropicOAuth.mockResolvedValue({
+        url: 'https://claude.ai/oauth/authorize?state=xyz',
+        state: 'xyz',
+      });
+      mockSubmitAnthropicOAuth.mockResolvedValue({ ok: true });
+      const windowOpenSpy = vi
+        .spyOn(window, 'open')
+        .mockReturnValue({ closed: false } as unknown as Window);
+
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText('Anthropic'));
+      fireEvent.click(screen.getByText('Sign in with Claude'));
+      const codeInput = await screen.findByLabelText('Anthropic authorization code');
+      fireEvent.input(codeInput, { target: { value: 'auth-code-123#xyz' } });
       fireEvent.click(screen.getByText('Connect'));
 
       await waitFor(() => {
-        expect(mockConnectProvider).toHaveBeenCalledWith('test-agent', {
-          provider: 'anthropic',
-          apiKey: VALID_TOKEN,
-          authType: 'subscription',
-        });
+        // The view strips the `#state` suffix before submitting; the state is
+        // provided alongside as the second arg.
+        expect(mockSubmitAnthropicOAuth).toHaveBeenCalledWith('test-agent', 'auth-code-123', 'xyz');
       });
-      expect(onUpdate).toHaveBeenCalled();
-      expect(toast.success).toHaveBeenCalledWith('Anthropic connected');
+      expect(toast.success).toHaveBeenCalledWith('Anthropic subscription connected');
+      windowOpenSpy.mockRestore();
     });
 
-    it('shows validation error for short subscription token', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
-
-      const input = screen.getByLabelText('Anthropic setup token');
-      fireEvent.input(input, { target: { value: 'short' } });
-      fireEvent.click(screen.getByText('Connect'));
-
-      expect(screen.getByText('Token is too short (minimum 10 characters)')).toBeDefined();
-      expect(mockConnectProvider).not.toHaveBeenCalled();
-    });
-
-    it('shows masked token for connected Anthropic subscription', () => {
+    it('disconnects an Anthropic OAuth subscription from the detail view', async () => {
       const subProvider: RoutingProvider = {
         id: 'p-sub',
         provider: 'anthropic',
         is_active: true,
         has_api_key: true,
-        key_prefix: 'skst-tok',
+        key_prefix: 'oauth',
         connected_at: '2025-01-01',
         auth_type: 'subscription',
       };
+      mockRevokeAnthropicOAuth.mockResolvedValue({ ok: true, notifications: [] });
+
       render(() => (
         <ProviderSelectModal
           providers={[subProvider]}
@@ -1023,40 +1051,12 @@ describe('ProviderSelectModal', () => {
         />
       ));
       fireEvent.click(screen.getByText('Anthropic'));
-
-      expect(screen.getByLabelText('Current setup token (masked)')).toBeDefined();
-      expect(screen.getByText('Change')).toBeDefined();
-    });
-
-    it('disconnects Anthropic subscription from detail view', async () => {
-      const subProvider: RoutingProvider = {
-        id: 'p-sub',
-        provider: 'anthropic',
-        is_active: true,
-        has_api_key: true,
-        key_prefix: 'skst-tok',
-        connected_at: '2025-01-01',
-        auth_type: 'subscription',
-      };
-      render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
-      fireEvent.click(screen.getByLabelText('Disconnect provider'));
+      fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith(
-          'test-agent',
-          'anthropic',
-          'subscription',
-          undefined,
-        );
+        expect(mockRevokeAnthropicOAuth).toHaveBeenCalledWith('test-agent');
       });
+      expect(mockDisconnectProvider).not.toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
     });
 
@@ -1087,23 +1087,14 @@ describe('ProviderSelectModal', () => {
       expect(screen.getByText(/Connect providers using your own API keys/)).toBeDefined();
     });
 
-    it('toggles on a subscription provider without subscriptionKeyPlaceholder via handleSubscriptionToggle', async () => {
-      // Create a subscription provider without subscriptionKeyPlaceholder
-      // Anthropic has subscriptionKeyPlaceholder so it opens detail view.
-      // We need to simulate a provider that uses the toggle directly.
-      // All subscription providers in PROVIDERS currently have subscriptionKeyPlaceholder,
-      // but the code path still triggers for providers without it — Anthropic has it,
-      // so clicking Anthropic opens detail. We test the subscription connect flow
-      // by checking the toggle switch and the handleSubscriptionToggle path.
-      // Since Anthropic is the only supportsSubscription provider and it has
-      // subscriptionKeyPlaceholder, the toggle path (handleSubscriptionToggle) is only
-      // reachable if a provider has supportsSubscription=true but no subscriptionKeyPlaceholder.
-      // However, isSubscriptionConnected and isSubscriptionWithToken are still exercised
-      // in the subscription tab rendering. Let's test those helpers via the list view.
+    it('shows toggle off when an Anthropic subscription record is inactive', async () => {
+      // Anthropic uses popup_paste mode; the connected signal collapses to
+      // `is_active`, so an inactive (revoked / disconnected) subscription
+      // row should show OFF in the list view regardless of has_api_key.
       const subProvider: RoutingProvider = {
-        id: 'p-sub-connected',
+        id: 'p-sub-inactive',
         provider: 'anthropic',
-        is_active: true,
+        is_active: false,
         has_api_key: false,
         connected_at: '2025-01-01',
         auth_type: 'subscription',
@@ -1116,11 +1107,6 @@ describe('ProviderSelectModal', () => {
           agentName="test-agent"
         />
       ));
-      // On subscription tab, Anthropic should show toggle as "on" when isSubscriptionConnected
-      // returns true. isSubscriptionConnected checks is_active (no has_api_key requirement).
-      // But subscriptionKeyPlaceholder is set → uses isSubscriptionWithToken for the connected() signal.
-      // isSubscriptionWithToken checks is_active && has_api_key → false here.
-      // So the toggle should be OFF (has_api_key is false).
       const onSwitches = container.querySelectorAll('.provider-toggle__switch--on');
       expect(onSwitches.length).toBe(0);
     });
@@ -1175,37 +1161,10 @@ describe('ProviderSelectModal', () => {
       expect(screen.getByText('Connect providers')).toBeDefined();
     });
 
-    it('shows CopyButton with subscription command in detail view', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
-      // The CopyButton receives the subscription command text
-      expect(screen.getByText('claude setup-token')).toBeDefined();
-    });
-
-    it('shows subscription placeholder in setup token input', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
-      const input = screen.getByLabelText('Anthropic setup token') as HTMLInputElement;
-      expect(input.getAttribute('placeholder')).toBe('Paste your setup-token');
-    });
-
     it('hides the "Get API key" link in Anthropic subscription mode', () => {
-      // Anthropic subscription uses setup-tokens from the CLI, not API keys from the
-      // dashboard, so the console.anthropic.com/settings/keys URL would be misleading.
+      // Anthropic subscription uses an OAuth flow, not an API key from the
+      // dashboard, so the console.anthropic.com/settings/keys URL would be
+      // misleading and is intentionally suppressed.
       const { container } = render(() => (
         <ProviderSelectModal
           providers={[]}
@@ -1219,42 +1178,6 @@ describe('ProviderSelectModal', () => {
         'a[href="https://console.anthropic.com/settings/keys"]',
       );
       expect(link).toBeNull();
-    });
-
-    it('updates token in subscription edit mode', async () => {
-      const subProvider: RoutingProvider = {
-        id: 'p-sub',
-        provider: 'anthropic',
-        is_active: true,
-        has_api_key: true,
-        key_prefix: 'skst-tok',
-        connected_at: '2025-01-01',
-        auth_type: 'subscription',
-      };
-      render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
-      fireEvent.click(screen.getByText('Change'));
-
-      const UPDATED_TOKEN = 'sk-ant-oat01-updated-token-value';
-      const input = screen.getByLabelText('New Anthropic setup token');
-      fireEvent.input(input, { target: { value: UPDATED_TOKEN } });
-      fireEvent.click(screen.getByText('Save'));
-
-      await waitFor(() => {
-        expect(mockConnectProvider).toHaveBeenCalledWith('test-agent', {
-          provider: 'anthropic',
-          apiKey: UPDATED_TOKEN,
-          authType: 'subscription',
-        });
-      });
-      expect(toast.success).toHaveBeenCalledWith('Anthropic token updated');
     });
 
     it('opens detail view for OAuth subscription provider (OpenAI)', () => {
@@ -1510,7 +1433,7 @@ describe('ProviderSelectModal', () => {
       vi.restoreAllMocks();
     });
 
-    it('closes the modal when MiniMax approval succeeds', async () => {
+    it('stays open when MiniMax approval succeeds', async () => {
       vi.useFakeTimers();
       vi.spyOn(window, 'open').mockReturnValue({
         close: vi.fn(),
@@ -1541,7 +1464,7 @@ describe('ProviderSelectModal', () => {
       await waitFor(() => {
         expect(toast.success).toHaveBeenCalledWith('MiniMax subscription connected');
         expect(onUpdate).toHaveBeenCalled();
-        expect(onClose).toHaveBeenCalled();
+        expect(onClose).not.toHaveBeenCalled();
       });
 
       vi.useRealTimers();
@@ -1725,7 +1648,7 @@ describe('ProviderSelectModal', () => {
       expect(screen.getByText(/Connected via MiniMax Coding Plan/)).toBeDefined();
     });
 
-    it('disconnects MiniMax without revoking OpenAI OAuth', async () => {
+    it('disconnects MiniMax through its provider-specific cleanup endpoint', async () => {
       const subProvider: RoutingProvider = {
         id: 'p-minimax-sub',
         provider: 'minimax',
@@ -1748,17 +1671,15 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith(
-          'test-agent',
-          'minimax',
-          'subscription',
-        );
+        expect(mockRevokeMinimaxOAuth).toHaveBeenCalledWith('test-agent');
       });
+      expect(mockDisconnectProvider).not.toHaveBeenCalled();
       expect(mockRevokeOpenaiOAuth).not.toHaveBeenCalled();
     });
 
     it('shows MiniMax disconnect notifications as error toasts', async () => {
-      mockDisconnectProvider.mockResolvedValueOnce({
+      mockRevokeMinimaxOAuth.mockResolvedValueOnce({
+        ok: true,
         notifications: ['MiniMax tiers were recalculated.'],
       });
       const subProvider: RoutingProvider = {
@@ -1951,7 +1872,7 @@ describe('ProviderSelectModal', () => {
       expect(onSwitches.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('disconnects OpenAI OAuth subscription and revokes token', async () => {
+    it('disconnects OpenAI OAuth subscription through the revoke endpoint', async () => {
       const subProvider: RoutingProvider = {
         id: 'p-openai-sub',
         provider: 'openai',
@@ -1974,12 +1895,12 @@ describe('ProviderSelectModal', () => {
 
       await waitFor(() => {
         expect(mockRevokeOpenaiOAuth).toHaveBeenCalledWith('test-agent');
-        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'openai', 'subscription');
       });
+      expect(mockDisconnectProvider).not.toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
     });
 
-    it('still disconnects when token revocation fails', async () => {
+    it('does not call generic disconnect when OpenAI revoke request fails', async () => {
       mockRevokeOpenaiOAuth.mockRejectedValue(new Error('revoke failed'));
       const subProvider: RoutingProvider = {
         id: 'p-openai-sub',
@@ -2002,9 +1923,10 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'openai', 'subscription');
+        expect(mockRevokeOpenaiOAuth).toHaveBeenCalledWith('test-agent');
       });
-      expect(onUpdate).toHaveBeenCalled();
+      expect(mockDisconnectProvider).not.toHaveBeenCalled();
+      expect(onUpdate).not.toHaveBeenCalled();
     });
 
     it('shows popup blocked error when window.open returns null', async () => {
@@ -2055,7 +1977,7 @@ describe('ProviderSelectModal', () => {
       });
       expect(mockPopup.close).toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });
@@ -2155,7 +2077,7 @@ describe('ProviderSelectModal', () => {
         expect(toast.success).toHaveBeenCalledWith('OpenAI subscription connected');
       });
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });
@@ -2195,7 +2117,7 @@ describe('ProviderSelectModal', () => {
         expect(toast.success).toHaveBeenCalledWith('OpenAI subscription connected');
       });
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });
@@ -2232,7 +2154,7 @@ describe('ProviderSelectModal', () => {
       });
       expect(mockPopup.close).toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
 
       vi.restoreAllMocks();
     });

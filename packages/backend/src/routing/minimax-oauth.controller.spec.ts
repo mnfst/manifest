@@ -2,11 +2,13 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { MinimaxOauthController } from './oauth/minimax-oauth.controller';
 import { MinimaxOauthService } from './oauth/minimax-oauth.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
+import { ProviderService } from './routing-core/provider.service';
 
 describe('MinimaxOauthController', () => {
   let controller: MinimaxOauthController;
   let oauthService: jest.Mocked<MinimaxOauthService>;
   let resolveAgent: jest.Mocked<ResolveAgentService>;
+  let providerService: jest.Mocked<ProviderService>;
 
   beforeEach(() => {
     oauthService = {
@@ -18,7 +20,11 @@ describe('MinimaxOauthController', () => {
       resolve: jest.fn(),
     } as unknown as jest.Mocked<ResolveAgentService>;
 
-    controller = new MinimaxOauthController(oauthService, resolveAgent);
+    providerService = {
+      removeProvider: jest.fn().mockResolvedValue({ notifications: [] }),
+    } as unknown as jest.Mocked<ProviderService>;
+
+    controller = new MinimaxOauthController(oauthService, resolveAgent, providerService);
   });
 
   it('starts MiniMax OAuth for the resolved agent', async () => {
@@ -82,5 +88,51 @@ describe('MinimaxOauthController', () => {
       message: 'MiniMax poll unavailable',
       status: HttpStatus.SERVICE_UNAVAILABLE,
     });
+  });
+
+  it('throws 400 when revoke agentName is missing', async () => {
+    await expect(controller.revoke('', undefined, { id: 'user-1' } as never)).rejects.toThrow(
+      HttpException,
+    );
+  });
+
+  it('removes all MiniMax subscription records for the resolved agent', async () => {
+    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+
+    const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
+
+    expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
+    expect(providerService.removeProvider).toHaveBeenCalledWith(
+      'agent-id-1',
+      'minimax',
+      'subscription',
+      undefined,
+    );
+    expect(result).toEqual({ ok: true, notifications: [] });
+  });
+
+  it('removes only the labeled MiniMax subscription record', async () => {
+    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+
+    const result = await controller.revoke('my-agent', 'Key 2', { id: 'user-1' } as never);
+
+    expect(providerService.removeProvider).toHaveBeenCalledWith(
+      'agent-id-1',
+      'minimax',
+      'subscription',
+      'Key 2',
+    );
+    expect(result).toEqual({ ok: true, notifications: [] });
+  });
+
+  it('rejects repeated revoke label query parameters', async () => {
+    await expect(
+      controller.revoke('my-agent', ['Key 1', 'Key 2'], { id: 'user-1' } as never),
+    ).rejects.toMatchObject({
+      message: 'label query parameter must be a string',
+      status: HttpStatus.BAD_REQUEST,
+    });
+    expect(resolveAgent.resolve).not.toHaveBeenCalled();
+    expect(providerService.removeProvider).not.toHaveBeenCalled();
   });
 });

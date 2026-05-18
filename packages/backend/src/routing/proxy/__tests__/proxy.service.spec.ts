@@ -7,6 +7,7 @@ import type { ProviderKeyService } from '../../routing-core/provider-key.service
 import type { TierService } from '../../routing-core/tier.service';
 import type { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import type { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import type { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
 import type { SessionMomentumService } from '../session-momentum.service';
 import type { LimitCheckService } from '../../../notifications/services/limit-check.service';
 import type { ProxyFallbackService } from '../proxy-fallback.service';
@@ -41,6 +42,7 @@ describe('ProxyService — orchestration', () => {
   let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let openaiOauth: jest.Mocked<Pick<OpenaiOauthService, 'unwrapToken'>>;
   let minimaxOauth: jest.Mocked<Pick<MinimaxOauthService, 'unwrapToken'>>;
+  let anthropicOauth: jest.Mocked<Pick<AnthropicOauthService, 'unwrapToken'>>;
   let momentum: jest.Mocked<
     Pick<
       SessionMomentumService,
@@ -70,6 +72,7 @@ describe('ProxyService — orchestration', () => {
     tierService = { getTiers: jest.fn().mockResolvedValue([]) };
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     minimaxOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
+    anthropicOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     momentum = {
       recordTier: jest.fn(),
       recordCategory: jest.fn(),
@@ -93,6 +96,7 @@ describe('ProxyService — orchestration', () => {
       tierService as unknown as TierService,
       openaiOauth as unknown as OpenaiOauthService,
       minimaxOauth as unknown as MinimaxOauthService,
+      anthropicOauth as unknown as AnthropicOauthService,
       momentum as unknown as SessionMomentumService,
       limitCheck as unknown as LimitCheckService,
       fallbackService as unknown as ProxyFallbackService,
@@ -858,6 +862,81 @@ describe('ProxyService — orchestration', () => {
         baseOpts({ body: { messages: [{ role: 'user', content: 'hi' }], stream: true } }),
       );
       expect(result.forward.response.status).toBe(502);
+    });
+    it('preserves isResponses on the peeked stream (warmup success path)', async () => {
+      const streamRes = new Response(new ReadableStream(), {
+        status: 200,
+        headers: { 'content-type': 'text/event-stream' },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: streamRes,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        isResponses: true,
+      });
+      mockedPeek.mockResolvedValue({ ok: true, stream: new ReadableStream() } as never);
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: { messages: [{ role: 'user', content: 'hi' }], stream: true } }),
+      );
+      expect(result.forward.isResponses).toBe(true);
+    });
+
+    it('preserves isResponses on the synthetic 502 forward (warmup failure, no fallbacks)', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      tierService.getTiers.mockResolvedValue([]);
+      const streamRes = new Response(new ReadableStream(), {
+        status: 200,
+        headers: { 'content-type': 'text/event-stream' },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: streamRes,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        isResponses: true,
+      });
+      mockedPeek.mockResolvedValue({
+        ok: false,
+        reason: 'closed',
+        message: 'closed before data',
+      } as never);
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: { messages: [{ role: 'user', content: 'hi' }], stream: true } }),
+      );
+      expect(result.forward.isResponses).toBe(true);
+    });
+
+    it('preserves isResponses on the rebuilt forward when fallbacks are exhausted', async () => {
+      const streamRes = new Response('upstream error', {
+        status: 500,
+        headers: { 'content-type': 'text/event-stream' },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: streamRes,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        isResponses: true,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: null,
+        failures: [{ model: 'claude', provider: 'anthropic', status: 500, error: 'upstream' }],
+      } as never);
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: { messages: [{ role: 'user', content: 'hi' }] } }),
+      );
+      expect(result.forward.isResponses).toBe(true);
     });
   });
 

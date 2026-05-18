@@ -177,17 +177,21 @@ describe('chatgpt-helpers converters', () => {
       expect(convertContent(objContent, 'user')).toBe(objContent);
     });
 
-    it('should remap text type parts in array content', () => {
+    it('should remap text and image_url parts in array content', () => {
       const result = convertContent(
         [
           { type: 'text', text: 'Hello' },
-          { type: 'image_url', image_url: { url: 'http://example.com' } },
+          { type: 'image_url', image_url: { url: 'http://example.com', detail: 'high' } },
         ],
         'user',
-      ) as { type: string }[];
+      ) as Record<string, unknown>[];
 
       expect(result[0].type).toBe('input_text');
-      expect(result[1].type).toBe('image_url');
+      expect(result[1]).toEqual({
+        type: 'input_image',
+        image_url: 'http://example.com',
+        detail: 'high',
+      });
     });
 
     it('should remap text type to output_text for assistant array content', () => {

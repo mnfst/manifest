@@ -20,6 +20,20 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('stream_options');
     });
 
+    it('strips Manifest-internal _anthropic* stash fields on every provider (issue #1886)', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        model: 'gpt-4o',
+        _anthropicServerTools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      };
+
+      const openai = sanitizeOpenAiBody(body, 'openai', 'gpt-4o');
+      expect(openai).not.toHaveProperty('_anthropicServerTools');
+
+      const groq = sanitizeOpenAiBody(body, 'groq', 'llama-3');
+      expect(groq).not.toHaveProperty('_anthropicServerTools');
+    });
+
     it('should strip OpenAI-only fields for non-passthrough providers', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
@@ -187,6 +201,109 @@ describe('provider-client-converters', () => {
       const messages = result.messages as any[];
 
       expect(messages[0]).not.toHaveProperty('reasoning_content');
+    });
+
+    it('should preserve reasoning_content for opencode-go deepseek models (issue #1862)', () => {
+      // OpenCode Go's subscription proxies forward DeepSeek requests to the
+      // upstream DeepSeek API, which enforces "reasoning_content must be
+      // passed back" on every thinking-mode follow-up turn.
+      const body = {
+        messages: [
+          { role: 'user', content: 'hello' },
+          { role: 'assistant', content: 'hi', reasoning_content: 'I considered...' },
+          { role: 'user', content: 'continue' },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'opencode-go', 'opencode-go/deepseek-v4-pro');
+      const messages = result.messages as any[];
+
+      expect(messages[1]).toHaveProperty('reasoning_content', 'I considered...');
+    });
+
+    it('should preserve reasoning_content for opencode-go reasoning model families', () => {
+      const body = {
+        messages: [
+          { role: 'user', content: 'x' },
+          {
+            role: 'assistant',
+            content: '',
+            reasoning_content: 'thinking',
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'foo', arguments: '{}' },
+              },
+            ],
+          },
+          { role: 'tool', tool_call_id: 'call_1', content: '{}' },
+        ],
+      };
+
+      for (const model of [
+        'opencode-go/kimi-k2.6',
+        'opencode-go/glm-5.1',
+        'opencode-go/qwen3.6-plus',
+        'opencode-go/minimax-m2.7',
+        'opencode-go/mimo-v2.5',
+      ]) {
+        const result = sanitizeOpenAiBody(body, 'opencode-go', model);
+        const messages = result.messages as any[];
+
+        expect(messages[1]).toHaveProperty('reasoning_content', 'thinking');
+      }
+    });
+
+    it('should strip reasoning_content for unknown opencode-go model families', () => {
+      const body = {
+        messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'opencode-go', 'opencode-go/claude-sonnet-4');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).not.toHaveProperty('reasoning_content');
+    });
+
+    it('should preserve reasoning_content for custom providers proxying DeepSeek', () => {
+      // proxy-fallback.service strips the "custom:<uuid>/" prefix before
+      // calling ProviderClient.forward, so in production sanitizeOpenAiBody
+      // sees the already-bare model id.
+      const body = {
+        messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'custom', 'deepseek-reasoner');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).toHaveProperty('reasoning_content', 'thought');
+    });
+
+    it('should match deepseek family models case-insensitively', () => {
+      const body = {
+        messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'opencode-go', 'opencode-go/DeepSeek-V4-Pro');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).toHaveProperty('reasoning_content', 'thought');
+    });
+
+    it('should strip reasoning_content for deepseek-derived slugs on strict OpenAI endpoints', () => {
+      // Community distillations carry the DeepSeek name but are hosted by
+      // providers that may not implement DeepSeek's echo contract and may
+      // reject unknown message fields. The endpoint allowlist excludes
+      // them — substring-match alone is not enough.
+      for (const endpointKey of ['mistral', 'anthropic', 'openai']) {
+        const body = {
+          messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
+        };
+        const result = sanitizeOpenAiBody(body, endpointKey, 'deepseek-r1-distill-llama-70b');
+        const messages = result.messages as any[];
+        expect(messages[0]).not.toHaveProperty('reasoning_content');
+      }
     });
 
     /* ── Message sanitization: reasoning_details ── */

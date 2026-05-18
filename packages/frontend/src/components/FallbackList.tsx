@@ -61,6 +61,20 @@ interface FallbackListProps {
   onConfigureParams?: () => void;
 }
 
+const FallbackUndoIcon: Component<{ size: 20 | 16; class?: string }> = (p) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={p.size}
+    height={p.size}
+    class={p.class}
+    fill="currentColor"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path d="M9 10h6c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H9V4L3 9l6 5z" />
+  </svg>
+);
+
 const FallbackList: Component<FallbackListProps> = (props) => {
   const [removingIndex, setRemovingIndex] = createSignal<number | null>(null);
   const [dragIndex, setDragIndex] = createSignal<number | null>(null);
@@ -468,17 +482,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
         when={props.fallbacks.length > 0}
         fallback={
           <div class="fallback-list__empty">
-            <svg
-              class="fallback-list__empty-icon"
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path d="M6 22h2V8h4L7 2 2 8h4zM19 2h-2v14h-4l5 6 5-6h-4z" />
-            </svg>
+            <FallbackUndoIcon size={20} class="fallback-list__empty-icon" />
             <span class="fallback-list__empty-title">No fallbacks</span>
             <span class="fallback-list__empty-desc">
               Add fallback models to guarantee a response if the provider fails.
@@ -492,16 +496,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                 <span class="spinner" />
               ) : (
                 <>
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="m7.12,20.57c.2.23.55.23.75,0l2.4-2.74c.28-.32.05-.83-.38-.83h-1.9V3.5c0-.28-.22-.5-.5-.5s-.5.22-.5.5v13.5h-1.9c-.43,0-.66.51-.38.83l2.4,2.74Z" />
-                    <path d="m14.1,7h1.9v13.5c0,.28.22.5.5.5s.5-.22.5-.5V7h1.9c.43,0,.66-.51.38-.83l-2.4-2.74c-.2-.23-.55-.23-.75,0l-2.4,2.74c-.28.32-.05.83.38.83Z" />
-                  </svg>
+                  <FallbackUndoIcon size={16} />
                   Add fallback
                 </>
               )}
@@ -519,16 +514,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
               <span class="spinner" />
             ) : (
               <>
-                <svg
-                  width="16"
-                  height="16"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path d="m7.12,20.57c.2.23.55.23.75,0l2.4-2.74c.28-.32.05-.83-.38-.83h-1.9V3.5c0-.28-.22-.5-.5-.5s-.5.22-.5.5v13.5h-1.9c-.43,0-.66.51-.38.83l2.4,2.74Z" />
-                  <path d="m14.1,7h1.9v13.5c0,.28.22.5.5.5s.5-.22.5-.5V7h1.9c.43,0,.66-.51.38-.83l-2.4-2.74c-.2-.23-.55-.23-.75,0l-2.4,2.74c-.28.32-.05.83.38.83Z" />
-                </svg>
+                <FallbackUndoIcon size={16} />
                 Add fallback
               </>
             )}

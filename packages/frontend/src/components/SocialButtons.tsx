@@ -1,5 +1,6 @@
 import { For, Show, type Component, type JSX } from 'solid-js';
 import { authClient } from '../services/auth-client.js';
+import { setLastAuthMethod } from '../services/last-auth-method.js';
 
 type Provider = 'google' | 'github' | 'discord';
 
@@ -10,6 +11,7 @@ const allProviders: { id: Provider; label: string }[] = [
 ];
 
 const handleSocialLogin = (provider: Provider) => {
+  setLastAuthMethod(provider);
   authClient.signIn.social({
     provider,
     callbackURL: '/',
@@ -50,7 +52,9 @@ const providerIcons: Record<Provider, () => JSX.Element> = {
   ),
 };
 
-const SocialButtons: Component<{ enabledProviders?: string[] }> = (props) => {
+const SocialButtons: Component<{ enabledProviders?: string[]; lastUsed?: string | null }> = (
+  props,
+) => {
   const visible = () => {
     if (!props.enabledProviders) return allProviders;
     return allProviders.filter((p) => props.enabledProviders!.includes(p.id));
@@ -66,7 +70,12 @@ const SocialButtons: Component<{ enabledProviders?: string[] }> = (props) => {
               onClick={() => handleSocialLogin(provider.id)}
             >
               <span class="auth-social-btn__icon">{providerIcons[provider.id]()}</span>
-              {provider.label}
+              <span class="auth-social-btn__label">{provider.label}</span>
+              <Show when={props.lastUsed === provider.id}>
+                <span class="auth-last-used" aria-label="Last used">
+                  Last used
+                </span>
+              </Show>
             </button>
           )}
         </For>

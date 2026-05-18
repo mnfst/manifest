@@ -50,6 +50,10 @@ const UNSUPPORTED_SCHEMA_FIELDS = new Set([
   '$schema',
   '$id',
   '$ref',
+  // Some tool emitters strip the `$` prefix to satisfy parsers that reject
+  // dollar-prefixed field names (Protobuf is one of them). Treat the
+  // dollar-less variant as equivalent so it doesn't leak through to Google.
+  'ref',
   '$defs',
   'definitions',
   'allOf',

@@ -86,11 +86,13 @@ export class ProxyMessageDedup {
         ) {
           return false;
         }
-        const totalPromptTokens =
-          (row.input_tokens ?? 0) + (row.cache_read_tokens ?? 0) + (row.cache_creation_tokens ?? 0);
+        // agent_messages.input_tokens already stores the chat-shape prompt_tokens
+        // (total input including cache reads + creation). Comparing the column
+        // directly avoids double-counting the cache portions which are reported
+        // separately in cache_read_tokens / cache_creation_tokens.
         const endTimeDelta = Math.abs(now - rowTime - durationMs);
         return (
-          totalPromptTokens === usage.prompt_tokens &&
+          (row.input_tokens ?? 0) === usage.prompt_tokens &&
           (row.output_tokens ?? 0) === usage.completion_tokens &&
           endTimeDelta <= SUCCESS_END_TIME_GRACE_MS
         );

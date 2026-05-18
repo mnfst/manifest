@@ -184,6 +184,40 @@ describe('Responses adapter', () => {
     ]);
   });
 
+  it('normalizes legacy image_url content parts in native Responses input lists', () => {
+    expect(
+      toNativeResponsesRequest(
+        {
+          input: [
+            {
+              role: 'user',
+              content: [
+                { type: 'input_text', text: 'look' },
+                {
+                  type: 'image_url',
+                  image_url: { url: 'https://example.test/image.png', detail: 'low' },
+                },
+              ],
+            },
+          ],
+        },
+        'gpt-5.4',
+      ).input,
+    ).toEqual([
+      {
+        role: 'user',
+        content: [
+          { type: 'input_text', text: 'look' },
+          {
+            type: 'input_image',
+            image_url: 'https://example.test/image.png',
+            detail: 'low',
+          },
+        ],
+      },
+    ]);
+  });
+
   it('can force streaming for native backends that always return SSE', () => {
     expect(
       toNativeResponsesRequest({ input: 'hi', stream: false }, 'gpt-5.4', {

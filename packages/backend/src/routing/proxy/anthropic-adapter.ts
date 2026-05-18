@@ -32,6 +32,28 @@ interface AnthropicTool {
 }
 
 const CACHE = { type: 'ephemeral' } as const;
+const ANTHROPIC_PREFIX = 'anthropic/';
+
+function bareAnthropicModel(model: string): string {
+  return model.startsWith(ANTHROPIC_PREFIX) ? model.slice(ANTHROPIC_PREFIX.length) : model;
+}
+
+function isClaudeHaikuModel(model: string): boolean {
+  const bare = bareAnthropicModel(model).replace(/\./g, '-');
+  return bare.startsWith('claude-haiku-');
+}
+
+function shouldForwardAnthropicThinking(thinking: unknown, model: string): boolean {
+  if (
+    thinking &&
+    typeof thinking === 'object' &&
+    !Array.isArray(thinking) &&
+    (thinking as Record<string, unknown>).type === 'adaptive'
+  ) {
+    return !isClaudeHaikuModel(model);
+  }
+  return true;
+}
 
 /**
  * System prompt required by Anthropic's subscription OAuth API to unlock
@@ -186,10 +208,43 @@ export function toAnthropicRequest(
   };
   if (systemBlocks.length > 0) result.system = systemBlocks;
 
-  const tools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
-  if (tools) {
-    if (shouldCache) tools[tools.length - 1].cache_control = CACHE;
-    result.tools = tools;
+  // Re-emit Anthropic server tools (web_search_*, bash_*, text_editor_*, etc.)
+  // unchanged when the inbound request was Anthropic Messages and stashed them
+  // on the body. The OpenAI tool shape can't represent a server tool's `type`
+  // tag, so convertTools would produce nameless customs that Anthropic rejects
+  // (issue #1886). Drop function-shaped entries whose name collides with a
+  // stashed server tool, then prepend the originals.
+  //
+  // Filter to plain objects up front so a malformed stash element (null,
+  // primitive, array) doesn't throw on spread or break the name index.
+  const stashedServerTools = Array.isArray(body._anthropicServerTools)
+    ? body._anthropicServerTools.filter(
+        (t): t is Record<string, unknown> => !!t && typeof t === 'object' && !Array.isArray(t),
+      )
+    : [];
+  const serverToolNames = new Set<string>();
+  for (const t of stashedServerTools) {
+    if (typeof t.name === 'string') serverToolNames.add(t.name);
+  }
+  const convertedTools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
+  const customTools: AnthropicTool[] = convertedTools
+    ? convertedTools.filter((t) => !serverToolNames.has(t.name))
+    : [];
+  // Strip any pre-existing cache_control on stashed entries when caching is
+  // disabled (e.g. subscription OAuth path) — otherwise a client-supplied
+  // breakpoint would leak through and Anthropic would still treat the
+  // request as cached.
+  const combinedTools: AnthropicTool[] = [
+    ...stashedServerTools.map((t) => {
+      const clone = { ...t } as Record<string, unknown>;
+      if (!shouldCache) delete clone.cache_control;
+      return clone as unknown as AnthropicTool;
+    }),
+    ...customTools,
+  ];
+  if (combinedTools.length > 0) {
+    if (shouldCache) combinedTools[combinedTools.length - 1].cache_control = CACHE;
+    result.tools = combinedTools;
   }
 
   if (body.temperature !== undefined) result.temperature = body.temperature;
@@ -198,7 +253,9 @@ export function toAnthropicRequest(
   // Anthropic-native fields forwarded when the inbound request originated as
   // Anthropic Messages (POST /v1/messages). Chat-completions clients won't
   // set these, so this is a no-op for the OpenAI-compat path.
-  if (body.thinking !== undefined) result.thinking = body.thinking;
+  if (body.thinking !== undefined && shouldForwardAnthropicThinking(body.thinking, _model)) {
+    result.thinking = body.thinking;
+  }
   // chat_completions `stop` accepts string OR string[]; Anthropic
   // `stop_sequences` is always an array. Wrap a bare string so a single
   // stop sequence isn't silently dropped.

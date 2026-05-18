@@ -360,4 +360,130 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(providerRepo.find).not.toHaveBeenCalled();
     });
   });
+
+  describe('upsertProvider — MiniMax subscription region', () => {
+    // upsertProvider encrypts the apiKey, which requires an encryption secret —
+    // the rest of this suite mocks repos but never hits the encrypt path, so
+    // there's no global setup. Keep the secret scoped to this describe.
+    let originalSecret: string | undefined;
+    beforeAll(() => {
+      originalSecret = process.env.BETTER_AUTH_SECRET;
+      process.env.BETTER_AUTH_SECRET = 'a'.repeat(48);
+    });
+    afterAll(() => {
+      if (originalSecret === undefined) {
+        delete process.env.BETTER_AUTH_SECRET;
+      } else {
+        process.env.BETTER_AUTH_SECRET = originalSecret;
+      }
+    });
+
+    it('persists region=cn on a new MiniMax subscription row', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'minimax',
+        'sk-cp-token-from-cn',
+        'subscription',
+        'cn',
+      );
+
+      expect(providerRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'minimax',
+          auth_type: 'subscription',
+          region: 'cn',
+        }),
+      );
+    });
+
+    it('updates region on an existing MiniMax subscription row', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'minimax',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'global',
+        is_active: true,
+      });
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'minimax',
+        'sk-cp-new-token',
+        'subscription',
+        'cn',
+      );
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          region: 'cn',
+        }),
+      );
+    });
+
+    it('preserves existing MiniMax subscription region when caller omits it', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'minimax',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'cn',
+        is_active: true,
+      });
+
+      await svc.upsertProvider('agent-1', 'user-1', 'minimax', 'sk-cp-rotated', 'subscription');
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          region: 'cn',
+        }),
+      );
+    });
+
+    it('rejects unsupported MiniMax subscription region', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        svc.upsertProvider('agent-1', 'user-1', 'minimax', 'sk-cp-token', 'subscription', 'eu'),
+      ).rejects.toThrow('MiniMax subscription region must be one of: global, cn');
+    });
+  });
+
+  describe('nextOAuthLabel', () => {
+    it('returns undefined when no subscription rows exist', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBeUndefined();
+    });
+
+    it('returns "Key 2" when one subscription row exists', async () => {
+      providerRepo.find.mockResolvedValue([{ label: 'Default', is_active: true }]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBe('Key 2');
+    });
+
+    it('skips existing labels', async () => {
+      providerRepo.find.mockResolvedValue([
+        { label: 'Default', is_active: true },
+        { label: 'Key 2', is_active: true },
+      ]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBe('Key 3');
+    });
+
+    it('is case-insensitive when checking existing labels', async () => {
+      providerRepo.find.mockResolvedValue([
+        { label: 'Default', is_active: true },
+        { label: 'key 2', is_active: true },
+      ]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBe('Key 3');
+    });
+  });
 });
