@@ -198,6 +198,10 @@ describe('AnthropicOauthService', () => {
       expect(fetchMock).toHaveBeenCalledTimes(1);
       const [tokenUrl, init] = fetchMock.mock.calls[0];
       expect(tokenUrl).toBe(ANTHROPIC_OAUTH.TOKEN_URL);
+      expect(init.headers).toEqual({
+        'Content-Type': 'application/json',
+        'User-Agent': 'anthropic',
+      });
       const body = JSON.parse(init.body);
       expect(body.grant_type).toBe('authorization_code');
       expect(body.code).toBe('auth-code');
@@ -243,8 +247,14 @@ describe('AnthropicOauthService', () => {
     it('throws when the token endpoint returns an error', async () => {
       fetchMock.mockResolvedValue(mockResponse(400, {}, 'invalid_grant'));
       const { state } = await svc.generateAuthorizationUrl('a', 'u');
+      const logger = { error: jest.fn(), log: jest.fn(), warn: jest.fn() };
+      (svc as unknown as { logger: typeof logger }).logger = logger;
+
       await expect(svc.exchangeCode(`bad#${state}`, undefined, 'a', 'u')).rejects.toThrow(
         'Token exchange failed',
+      );
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('"stateMatchesCodeVerifier":true'),
       );
     });
 
@@ -275,6 +285,10 @@ describe('AnthropicOauthService', () => {
       );
       const blob = await svc.refreshAccessToken('old-refresh');
       expect(blob).toEqual({ t: 'a2', r: 'r2', e: Date.now() + 1800 * 1000 });
+      expect(fetchMock.mock.calls[0][1].headers).toEqual({
+        'Content-Type': 'application/json',
+        'User-Agent': 'anthropic',
+      });
     });
 
     it('retains the old refresh token when the server omits a new one', async () => {

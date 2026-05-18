@@ -24,6 +24,10 @@ interface AnthropicTokenResponse {
 }
 
 const PROVIDER = 'anthropic';
+const ANTHROPIC_OAUTH_TOKEN_HEADERS = {
+  'Content-Type': 'application/json',
+  'User-Agent': 'anthropic',
+} as const;
 
 /**
  * Splits Anthropic's pasted authorization payload. The redirect page renders
@@ -89,7 +93,7 @@ export class AnthropicOauthService {
     userId: string,
   ): Promise<void> {
     const { code, state: extractedState } = splitAnthropicAuthPayload(payload);
-    let state = extractedState ?? fallbackState;
+    let state = extractedState ?? fallbackState?.trim();
     if (!code) throw new Error('Missing authorization code');
     if (!state) {
       const latest = await this.pendingFlows.findLatestForAgent(PROVIDER, agentId, userId);
@@ -103,21 +107,26 @@ export class AnthropicOauthService {
       throw new Error('OAuth state expired');
     }
 
+    const tokenRequest = {
+      grant_type: 'authorization_code',
+      code,
+      state,
+      client_id: ANTHROPIC_OAUTH.CLIENT_ID,
+      redirect_uri: ANTHROPIC_OAUTH.REDIRECT_URI,
+      code_verifier: pending.verifier,
+    };
     const response = await fetch(ANTHROPIC_OAUTH.TOKEN_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        grant_type: 'authorization_code',
-        code,
-        state,
-        client_id: ANTHROPIC_OAUTH.CLIENT_ID,
-        redirect_uri: ANTHROPIC_OAUTH.REDIRECT_URI,
-        code_verifier: pending.verifier,
-      }),
+      headers: ANTHROPIC_OAUTH_TOKEN_HEADERS,
+      body: JSON.stringify(tokenRequest),
     });
     if (!response.ok) {
       const text = await response.text();
-      this.logger.error(`Anthropic token exchange failed: ${scrubSecrets(text)}`);
+      this.logger.error(
+        `Anthropic token exchange failed: ${scrubSecrets(text)}; request_shape=${JSON.stringify(
+          describeTokenExchangeRequest(tokenRequest),
+        )}`,
+      );
       throw new Error('Token exchange failed');
     }
     const data = (await response.json()) as AnthropicTokenResponse;
@@ -149,7 +158,7 @@ export class AnthropicOauthService {
   async refreshAccessToken(refreshToken: string): Promise<OAuthTokenBlob> {
     const response = await fetch(ANTHROPIC_OAUTH.TOKEN_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: ANTHROPIC_OAUTH_TOKEN_HEADERS,
       body: JSON.stringify({
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
@@ -224,4 +233,26 @@ export class AnthropicOauthService {
     const pending = await this.pendingFlows.findLatestForAgent(PROVIDER, agentId, userId);
     return pending ? { state: pending.state } : null;
   }
+}
+
+function describeTokenExchangeRequest(request: {
+  grant_type: string;
+  code: string;
+  state: string;
+  client_id: string;
+  redirect_uri: string;
+  code_verifier: string;
+}) {
+  return {
+    grantType: request.grant_type,
+    hasCode: request.code.length > 0,
+    codeLength: request.code.length,
+    hasState: request.state.length > 0,
+    stateLength: request.state.length,
+    hasCodeVerifier: request.code_verifier.length > 0,
+    codeVerifierLength: request.code_verifier.length,
+    stateMatchesCodeVerifier: request.state === request.code_verifier,
+    hasClientId: request.client_id.length > 0,
+    hasRedirectUri: request.redirect_uri.length > 0,
+  };
 }
