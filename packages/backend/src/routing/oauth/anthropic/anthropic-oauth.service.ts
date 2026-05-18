@@ -113,7 +113,7 @@ export class AnthropicOauthService {
       state,
       client_id: ANTHROPIC_OAUTH.CLIENT_ID,
       redirect_uri: ANTHROPIC_OAUTH.REDIRECT_URI,
-      code_verifier: pending.verifier,
+      code_verifier: pending.verifier || state,
     };
     const response = await fetch(ANTHROPIC_OAUTH.TOKEN_URL, {
       method: 'POST',
