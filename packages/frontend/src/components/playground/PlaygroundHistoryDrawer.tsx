@@ -145,7 +145,9 @@ const RunItem: Component<{
 
 const PlaygroundRecentSidebar: Component<Props> = (props) => {
   const starredRuns = () => props.runs.filter((r) => r.starred);
-  const timeGroups = () => groupRuns(props.runs);
+  // Starred runs render in their own section, so exclude them from the date
+  // groups — otherwise a starred run shows up twice.
+  const timeGroups = () => groupRuns(props.runs.filter((r) => !r.starred));
 
   return (
     <>

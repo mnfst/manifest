@@ -96,7 +96,13 @@ export class PlaygroundService {
     const headers = whitelistResponseHeaders(forward.response.headers);
 
     if (!forward.response.ok) {
-      const bodyText = await forward.response.text();
+      let bodyText = '';
+      try {
+        bodyText = await forward.response.text();
+      } catch {
+        // A failed error-body read must not bypass provider-error handling —
+        // fall through with an empty body so we still record + respond.
+      }
       const durationMs = Date.now() - startedAt;
       const errorSummary = this.truncateError(bodyText, forward.response.status);
       await this.recordError(
