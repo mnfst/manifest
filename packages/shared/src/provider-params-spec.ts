@@ -62,7 +62,10 @@ export function getProviderParamSpecs(
   providerId: string | undefined,
 ): readonly ProviderParamSpec[] {
   if (!providerId) return [];
-  return PROVIDER_PARAM_SPECS[providerId.toLowerCase()] ?? [];
+  const key = providerId.toLowerCase();
+  return Object.prototype.hasOwnProperty.call(PROVIDER_PARAM_SPECS, key)
+    ? PROVIDER_PARAM_SPECS[key]
+    : [];
 }
 
 /** True when the provider's spec declares this param key. */

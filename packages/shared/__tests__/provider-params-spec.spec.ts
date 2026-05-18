@@ -33,6 +33,11 @@ describe('provider-params-spec', () => {
       expect(getProviderParamSpecs(undefined)).toEqual([]);
       expect(getProviderParamSpecs('')).toEqual([]);
     });
+
+    it('returns empty for object prototype keys', () => {
+      expect(getProviderParamSpecs('__proto__')).toEqual([]);
+      expect(getProviderParamSpecs('constructor')).toEqual([]);
+    });
   });
 
   describe('providerSupportsParam', () => {
