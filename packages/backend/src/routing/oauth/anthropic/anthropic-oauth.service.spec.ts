@@ -258,7 +258,7 @@ describe('AnthropicOauthService', () => {
       );
     });
 
-    it('logs request shape without crashing when the pending verifier is missing', async () => {
+    it('falls back to state when the pending verifier is missing', async () => {
       fetchMock.mockResolvedValue(mockResponse(400, {}, 'invalid_request'));
       const logger = { error: jest.fn(), log: jest.fn(), warn: jest.fn() };
       (svc as unknown as { logger: typeof logger }).logger = logger;
@@ -275,7 +275,11 @@ describe('AnthropicOauthService', () => {
         'Token exchange failed',
       );
 
-      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('"hasCodeVerifier":false'));
+      const [, init] = fetchMock.mock.calls[0];
+      expect(JSON.parse(init.body).code_verifier).toBe('state-1');
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('"stateMatchesCodeVerifier":true'),
+      );
     });
 
     it('stores an empty refresh token when Anthropic omits one in the response', async () => {
