@@ -112,6 +112,7 @@ export class ProxyFallbackService {
     chatBody?: Record<string, unknown>,
     fallbackRoutes?: ModelRoute[] | null,
     paramMergeContext?: ParamMergeContext,
+    endUserId?: string,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -228,6 +229,7 @@ export class ProxyFallbackService {
         signatureLookup,
         thinkingLookup,
         paramMergeContext,
+        endUserId,
       });
 
       if (forward.response.ok) {
@@ -273,6 +275,7 @@ export class ProxyFallbackService {
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
     paramMergeContext?: ParamMergeContext;
+    endUserId?: string;
   }): Promise<ForwardResult> {
     try {
       return await this.forwardToProvider(opts);
@@ -311,6 +314,7 @@ export class ProxyFallbackService {
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
     paramMergeContext?: ParamMergeContext;
+    endUserId?: string;
   }): Promise<ForwardResult> {
     const {
       provider,
@@ -321,6 +325,7 @@ export class ProxyFallbackService {
       providerRegion,
       signatureLookup,
       thinkingLookup,
+      endUserId,
     } = opts;
     // Recompute the param-defaults merge against *this* iteration's provider,
     // not whatever the primary route happened to be. Without this, DeepSeek's
@@ -407,6 +412,7 @@ export class ProxyFallbackService {
       apiMode: opts.apiMode,
       signatureLookup,
       thinkingLookup,
+      endUserId,
     });
   }
 }

@@ -155,13 +155,59 @@ describe('ProviderClient', () => {
             Authorization: 'Bearer sk-or-test',
             'Content-Type': 'application/json',
             'HTTP-Referer': 'https://manifest.build',
-            'X-Title': 'Manifest',
+            'X-OpenRouter-Title': 'Manifest',
+            'X-OpenRouter-Categories': 'cloud-agent',
+            'User-Agent': 'Manifest/1.0',
           },
         }),
       );
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('openrouter/auto');
+    });
+
+    it('injects user into openrouter body when endUserId is set', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or-test',
+        model: 'openai/gpt-4o',
+        body,
+        stream: false,
+        endUserId: 'end-user-42',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.user).toBe('end-user-42');
+    });
+
+    it('does not inject user for non-openrouter providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        endUserId: 'end-user-42',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.user).toBeUndefined();
+    });
+
+    it('does not inject user for openrouter when endUserId is absent', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or-test',
+        model: 'openai/gpt-4o',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.user).toBeUndefined();
     });
 
     it('sets stream=true when streaming', async () => {
