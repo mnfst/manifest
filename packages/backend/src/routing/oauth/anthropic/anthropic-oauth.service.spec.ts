@@ -146,6 +146,11 @@ describe('AnthropicOauthService', () => {
       expect(parsed.searchParams.get('code_challenge_method')).toBe('S256');
       expect(parsed.searchParams.get('code_challenge')?.length).toBeGreaterThan(0);
       expect(parsed.searchParams.get('state')).toBe(state);
+      expect(pendingStore.svc.create).toHaveBeenCalledWith(
+        'anthropic',
+        expect.objectContaining({ state, verifier: state }),
+        ANTHROPIC_OAUTH.STATE_TTL_MS,
+      );
       await expect(svc.getPendingCount()).resolves.toBe(1);
     });
   });
@@ -197,7 +202,7 @@ describe('AnthropicOauthService', () => {
       expect(body.grant_type).toBe('authorization_code');
       expect(body.code).toBe('auth-code');
       expect(body.state).toBe(state);
-      expect(body.code_verifier?.length).toBeGreaterThan(0);
+      expect(body.code_verifier).toBe(state);
 
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
@@ -219,6 +224,19 @@ describe('AnthropicOauthService', () => {
       );
       const { state } = await svc.generateAuthorizationUrl('a', 'u');
       await svc.exchangeCode('plain-code', state, 'a', 'u');
+      expect(providerService.upsertProvider).toHaveBeenCalled();
+    });
+
+    it('falls back to the latest pending state when the client posts a bare code', async () => {
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 60 }),
+      );
+      const { state } = await svc.generateAuthorizationUrl('a', 'u');
+
+      await svc.exchangeCode('plain-code', undefined, 'a', 'u');
+
+      const [, init] = fetchMock.mock.calls[0];
+      expect(JSON.parse(init.body).state).toBe(state);
       expect(providerService.upsertProvider).toHaveBeenCalled();
     });
 

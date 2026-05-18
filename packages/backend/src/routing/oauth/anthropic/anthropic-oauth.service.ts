@@ -4,7 +4,6 @@ import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.
 import { scrubSecrets } from '../../../common/utils/secret-scrub';
 import {
   generatePkce,
-  generateState,
   OAuthPendingFlowStore,
   parseOAuthTokenBlob,
   serializeOAuthTokenBlob,
@@ -56,8 +55,9 @@ export class AnthropicOauthService {
    * returned so the SPA can pre-fill it on the paste-code step.
    */
   async generateAuthorizationUrl(agentId: string, userId: string): Promise<AuthorizeResult> {
-    const state = generateState();
     const { verifier, challenge } = generatePkce();
+    // Claude Code's Anthropic OAuth flow uses the PKCE verifier as state.
+    const state = verifier;
     await this.pendingFlows.create(
       PROVIDER,
       { state, verifier, agentId, userId },
@@ -89,8 +89,12 @@ export class AnthropicOauthService {
     userId: string,
   ): Promise<void> {
     const { code, state: extractedState } = splitAnthropicAuthPayload(payload);
-    const state = extractedState ?? fallbackState;
+    let state = extractedState ?? fallbackState;
     if (!code) throw new Error('Missing authorization code');
+    if (!state) {
+      const latest = await this.pendingFlows.findLatestForAgent(PROVIDER, agentId, userId);
+      state = latest?.state;
+    }
     if (!state) throw new Error('Missing OAuth state');
 
     const pending = await this.pendingFlows.consume(PROVIDER, state, agentId, userId);
