@@ -52,7 +52,10 @@ function derivePromptFromRawBody(body: Record<string, unknown>): string {
     for (let i = messages.length - 1; i >= 0; i--) {
       const m = messages[i] as { role?: unknown; content?: unknown } | null;
       if (!m || m.role !== 'user') continue;
-      if (typeof m.content === 'string') return m.content;
+      if (typeof m.content === 'string') {
+        if (m.content.length > 0) return m.content;
+        continue;
+      }
       // Anthropic content can be an array of {type, text} blocks.
       if (Array.isArray(m.content)) {
         const text = m.content
@@ -75,7 +78,14 @@ function derivePromptFromRawBody(body: Record<string, unknown>): string {
   if (Array.isArray(input)) {
     for (let i = input.length - 1; i >= 0; i--) {
       const item = input[i] as { role?: unknown; content?: unknown } | null;
-      if (item && item.role === 'user' && typeof item.content === 'string') return item.content;
+      if (
+        item &&
+        item.role === 'user' &&
+        typeof item.content === 'string' &&
+        item.content.length > 0
+      ) {
+        return item.content;
+      }
     }
   }
   return '';

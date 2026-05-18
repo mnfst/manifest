@@ -121,6 +121,9 @@ export async function consumeProviderStream(
         for (const event of events) apply(event);
       }
     }
+    // Flush any bytes the decoder held back from a multi-byte char split
+    // across the last chunk boundary (the final read often has no value).
+    buffer += decoder.decode();
     // The final usage chunk often arrives without a trailing blank line, so it
     // sits unparsed in the buffer when the stream closes — flush it.
     const tail = buffer

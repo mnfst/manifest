@@ -1,4 +1,4 @@
-import { Show, createSignal, type Component, type JSX } from 'solid-js';
+import { Show, createEffect, createSignal, type Component, type JSX } from 'solid-js';
 
 interface Props {
   value: string;
@@ -22,6 +22,14 @@ const PlaygroundPrompt: Component<Props> = (props) => {
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, MAX_PROMPT_LINES * PROMPT_LINE_HEIGHT_PX)}px`;
   };
+
+  // Recalled / history-loaded prompts set `value` programmatically without an
+  // input event, so resize whenever the value changes. autoGrow() reads ref()
+  // internally, so the effect also re-runs once the textarea mounts.
+  createEffect(() => {
+    void props.value;
+    autoGrow();
+  });
 
   const submit = () => {
     if (props.disabled || props.running) return;

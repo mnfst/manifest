@@ -288,8 +288,8 @@ describe('PlaygroundHistoryService', () => {
     it('returns the generated columnId on the happy path', async () => {
       const { service } = buildService();
       const columnId = await service.saveColumn(baseInput());
-      expect(typeof columnId).toBe('string');
-      expect(columnId.length).toBeGreaterThan(0);
+      expect(columnId).toEqual(expect.any(String));
+      expect((columnId as string).length).toBeGreaterThan(0);
     });
 
     it('still returns the generated columnId when ensureRun fails — history is best-effort', async () => {
@@ -298,17 +298,17 @@ describe('PlaygroundHistoryService', () => {
       await expect(service.saveColumn(baseInput())).resolves.toEqual(expect.any(String));
     });
 
-    it('returns the columnId even when the column insert fails — best-effort and silent', async () => {
+    it('returns null when the column insert fails — no fabricated, unpersisted id', async () => {
       const { service, columnRepo } = buildService();
       columnRepo.insert.mockRejectedValueOnce(new Error('column insert blew up'));
       const columnId = await service.saveColumn(baseInput());
-      expect(columnId).toEqual(expect.any(String));
+      expect(columnId).toBeNull();
     });
 
-    it('returns the columnId even when the column insert fails with a non-Error', async () => {
+    it('returns null when the column insert fails with a non-Error', async () => {
       const { service, columnRepo } = buildService();
       columnRepo.insert.mockRejectedValueOnce('string-failure');
-      await expect(service.saveColumn(baseInput())).resolves.toEqual(expect.any(String));
+      await expect(service.saveColumn(baseInput())).resolves.toBeNull();
     });
 
     it('swallows ensureRun non-Error rejections', async () => {

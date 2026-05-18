@@ -47,7 +47,7 @@ export class PlaygroundHistoryService {
     private readonly columnRepo: Repository<PlaygroundColumn>,
   ) {}
 
-  async saveColumn(input: SaveColumnInput): Promise<string> {
+  async saveColumn(input: SaveColumnInput): Promise<string | null> {
     const runId = input.runId ?? uuid();
     const columnId = uuid();
 
@@ -76,7 +76,9 @@ export class PlaygroundHistoryService {
       this.logger.warn(
         `Failed to persist playground history column: ${err instanceof Error ? err.message : err}`,
       );
-      return columnId;
+      // The column was not persisted — return null so callers don't hand the
+      // client a columnId that references a row that does not exist.
+      return null;
     }
 
     if (insertedRun) {

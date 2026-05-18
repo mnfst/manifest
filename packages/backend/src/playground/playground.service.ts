@@ -128,7 +128,12 @@ export class PlaygroundService {
     };
 
     if (!forward.response.body) {
-      send({ type: 'error', message: 'Provider returned an empty stream' });
+      const message = 'Provider returned an empty stream';
+      await this.recordError(userId, agent, dto, authType, 502, message, Date.now() - startedAt);
+      await this.history.saveColumn(
+        this.errorColumn(userId, agent, dto, authType, headers, message),
+      );
+      send({ type: 'error', message });
       res.end();
       return;
     }

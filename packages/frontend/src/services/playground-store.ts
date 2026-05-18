@@ -109,6 +109,22 @@ function isFree(m: AvailableModel): boolean {
   );
 }
 
+/**
+ * The provider a model name advertises. An explicit `vendor/` slug wins when
+ * that vendor is a known provider — `inferProviderFromModel` otherwise buckets
+ * every `foo/bar` slug as "openrouter", which would hide a slug-formatted
+ * native ("openai/gpt-4o-mini" on the openai provider) behind a cross-vendor
+ * proxy ("gemini-imposter" on openai) in the native-vs-proxy pick below.
+ */
+function modelBrandId(modelName: string): string | undefined {
+  const slashIdx = modelName.indexOf('/');
+  if (slashIdx > 0) {
+    const fromSlug = resolveProviderId(modelName.slice(0, slashIdx));
+    if (fromSlug) return fromSlug;
+  }
+  return inferProviderFromModel(modelName);
+}
+
 export function createPlaygroundStore(agentName: string): PlaygroundStore {
   const [columns, setColumns] = createStore<PlaygroundColumn[]>([]);
   const [prompt, setPrompt] = createSignal('');
@@ -364,7 +380,7 @@ export function createPlaygroundStore(agentName: string): PlaygroundStore {
       const paid = bucket.filter((m) => !isFree(m));
       const pool = paid.length > 0 ? paid : bucket;
       const natives = pool.filter((m) => {
-        const prefixId = inferProviderFromModel(m.model_name);
+        const prefixId = modelBrandId(m.model_name);
         return !prefixId || prefixId === provId;
       });
       return shuffled(natives.length > 0 ? natives : pool)[0];
@@ -386,7 +402,7 @@ export function createPlaygroundStore(agentName: string): PlaygroundStore {
       const provId = providerIds[0] ?? '';
       const soloBucket = byProvider.get(provId) ?? [];
       const natives = soloBucket.filter((m) => {
-        const prefixId = inferProviderFromModel(m.model_name);
+        const prefixId = modelBrandId(m.model_name);
         return !prefixId || prefixId === provId;
       });
       // Take 2 from natives first; if we don't have enough, backfill with
@@ -423,7 +439,9 @@ export function createPlaygroundStore(agentName: string): PlaygroundStore {
     try {
       await setPlaygroundRunBest(currentRunId, next);
     } catch (err) {
-      setBestColumnId(previous); // revert; caller surfaces the error
+      // Only roll back if no newer pick superseded this optimistic update —
+      // otherwise a stale failure would clobber the user's latest choice.
+      if (bestColumnId() === next) setBestColumnId(previous);
       throw err;
     }
   };

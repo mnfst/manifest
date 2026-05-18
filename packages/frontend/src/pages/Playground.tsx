@@ -419,7 +419,9 @@ const Playground: Component = () => {
   onCleanup(() => setRightSidebar(null));
 
   const hasConnectedProviders = () => (providers() ?? []).some((p) => p.is_active);
-  const winners = () => findWinners(store.columns);
+  // Compute winners from whatever set is actually rendered — when a history
+  // run is open its columns drive the badges, not the live store.
+  const winners = () => findWinners(viewingHistory() ?? store.columns);
 
   return (
     <div class="playground">

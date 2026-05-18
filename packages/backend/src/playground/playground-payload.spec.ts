@@ -121,6 +121,34 @@ describe('derivePromptForHistory', () => {
     expect(out).toBe('block-a block-b');
   });
 
+  it('skips an empty trailing user string in rawRequestBody.messages and finds the earlier one', () => {
+    const out = derivePromptForHistory(
+      dto({
+        rawRequestBody: {
+          messages: [
+            { role: 'user', content: 'earlier prompt' },
+            { role: 'user', content: '' },
+          ],
+        },
+      }),
+    );
+    expect(out).toBe('earlier prompt');
+  });
+
+  it('skips an empty trailing user string in a Responses-API `input` array', () => {
+    const out = derivePromptForHistory(
+      dto({
+        rawRequestBody: {
+          input: [
+            { role: 'user', content: 'earlier input' },
+            { role: 'user', content: '' },
+          ],
+        },
+      }),
+    );
+    expect(out).toBe('earlier input');
+  });
+
   it('returns an empty string when no recognisable user message is found', () => {
     expect(derivePromptForHistory(dto({}))).toBe('');
     expect(derivePromptForHistory(dto({ rawRequestBody: {} }))).toBe('');
