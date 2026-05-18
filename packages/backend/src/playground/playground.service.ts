@@ -5,7 +5,10 @@ import { v4 as uuid } from 'uuid';
 import type { Response as ExpressResponse } from 'express';
 import type { AuthType, PlaygroundStreamEvent } from 'manifest-shared';
 import { AgentMessage } from '../entities/agent-message.entity';
+import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderClient } from '../routing/proxy/provider-client';
+import { buildCustomEndpoint } from '../routing/proxy/provider-endpoints';
+import { CustomProviderService } from '../routing/custom-provider/custom-provider.service';
 import { ProviderKeyService } from '../routing/routing-core/provider-key.service';
 import { ResolveAgentService } from '../routing/routing-core/resolve-agent.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
@@ -32,6 +35,8 @@ export class PlaygroundService {
     private readonly history: PlaygroundHistoryService,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
+    @InjectRepository(CustomProvider)
+    private readonly customProviderRepo: Repository<CustomProvider>,
   ) {}
 
   /**
@@ -75,17 +80,34 @@ export class PlaygroundService {
     const abort = new AbortController();
     res.on('close', () => abort.abort());
 
+    // Custom providers carry their endpoint (base URL + API kind) on the
+    // CustomProvider row, not in the static registry — resolve it the same
+    // way the proxy does, otherwise ProviderClient has no endpoint to forward
+    // to and crashes on `endpoint.format`.
+    let customEndpoint: ReturnType<typeof buildCustomEndpoint> | undefined;
+    let forwardModel = dto.model;
+    if (CustomProviderService.isCustom(dto.provider)) {
+      const cp = await this.customProviderRepo.findOne({
+        where: { id: CustomProviderService.extractId(dto.provider) },
+      });
+      if (cp) {
+        customEndpoint = buildCustomEndpoint(cp.base_url, cp.api_kind ?? 'openai');
+        forwardModel = CustomProviderService.rawModelName(dto.model);
+      }
+    }
+
     const startedAt = Date.now();
     let forward;
     try {
       forward = await this.providerClient.forward({
         provider: dto.provider,
         apiKey,
-        model: dto.model,
+        model: forwardModel,
         body: buildForwardBody(dto),
         stream: true,
         authType,
         extraHeaders,
+        customEndpoint,
         signal: abort.signal,
       });
     } catch (err) {
