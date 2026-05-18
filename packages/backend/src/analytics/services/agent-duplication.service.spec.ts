@@ -4,11 +4,6 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AgentDuplicationService } from './agent-duplication.service';
 import { Agent } from '../../entities/agent.entity';
-import { AgentApiKey } from '../../entities/agent-api-key.entity';
-import { UserProvider } from '../../entities/user-provider.entity';
-import { CustomProvider } from '../../entities/custom-provider.entity';
-import { TierAssignment } from '../../entities/tier-assignment.entity';
-import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { RoutingCacheService } from '../../routing/routing-core/routing-cache.service';
 
 process.env['BETTER_AUTH_SECRET'] = 'a'.repeat(64);
