@@ -74,9 +74,10 @@ export {
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';
 export type {
-  BenchmarkMetrics,
-  BenchmarkRunResult,
-  BenchmarkHistoryColumn,
-  BenchmarkHistoryRunSummary,
-  BenchmarkHistoryRunDetail,
-} from './benchmark';
+  PlaygroundMetrics,
+  PlaygroundRunResult,
+  PlaygroundStreamEvent,
+  PlaygroundHistoryColumn,
+  PlaygroundHistoryRunSummary,
+  PlaygroundHistoryRunDetail,
+} from './playground';
