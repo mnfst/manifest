@@ -1,0 +1,25 @@
+packages/backend/src/database/migrations/1787000000000-AddAgentModelParams.ts
+  s_2a89bb64d94650::t_149f17947de4c5 151,160-173,199-200
+  s_2a89bb64d94650::t_18941fa60c72c1 90,103,120
+  s_2a89bb64d94650::t_08e12718e2a40f 210-211
+  s_2a89bb64d94650::t_3367fe86217f86 30-35,37-40
+  s_2a89bb64d94650::t_8d002bf8f77d4a 82-84
+packages/backend/src/database/migrations/1787000000000-AddAgentModelParams.spec.ts
+  s_2a89bb64d94650::t_b91fb6c08994a4 12,34-37,40-42,45,50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "2940266471a5ddbf40a7599d7f8fa402d2ef81cc",
+  "prompts": {},
+  "sessions": {
+    "s_2a89bb64d94650": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3b03-cfb3-7333-9ad2-f7207827a195",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
