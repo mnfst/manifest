@@ -1014,7 +1014,7 @@ describe("MessageLog", () => {
   });
 
   describe("Tier filter", () => {
-    it("renders a Tier select with Benchmark among the options", async () => {
+    it("renders a Tier select with Playground among the options", async () => {
       mockGetMessages.mockResolvedValue(messagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
@@ -1025,7 +1025,7 @@ describe("MessageLog", () => {
       // Second Select is the tier filter (first is providers).
       const tierSelect = selects[1] as HTMLSelectElement;
       expect(tierSelect.textContent).toContain("All tiers");
-      expect(tierSelect.textContent).toContain("Benchmark");
+      expect(tierSelect.textContent).toContain("Playground");
       expect(tierSelect.textContent).toContain("Simple");
     });
 
@@ -1041,11 +1041,11 @@ describe("MessageLog", () => {
         '[data-testid="select"]',
       )[1] as HTMLSelectElement;
       mockGetMessages.mockClear();
-      fireEvent.change(tierSelect, { target: { value: "benchmark" } });
+      fireEvent.change(tierSelect, { target: { value: "playground" } });
       await vi.waitFor(() => {
         const calls = mockGetMessages.mock.calls;
         const lastQ = calls[calls.length - 1]?.[0] ?? {};
-        expect(lastQ.routing_tier).toBe("benchmark");
+        expect(lastQ.routing_tier).toBe("playground");
       });
     });
   });

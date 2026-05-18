@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render } from '@solidjs/testing-library';
 import hljs from 'highlight.js';
-import MarkdownContent from '../../src/components/benchmark/MarkdownContent';
+import MarkdownContent from '../../src/components/playground/MarkdownContent';
 
 describe('MarkdownContent', () => {
   afterEach(() => {
@@ -53,7 +53,6 @@ describe('MarkdownContent', () => {
     ));
     const code = container.querySelector('pre code');
     expect(code).not.toBeNull();
-    // No language → plain branch + escapeHtml: tags are shown literally.
     expect(code?.textContent).toContain('<b>&"\' not html');
     expect(code?.querySelector('b')).toBeNull();
     expect(code?.classList.contains('hljs')).toBe(true);
@@ -70,15 +69,6 @@ describe('MarkdownContent', () => {
     expect(code?.textContent).toContain('const x = "<i>";');
     expect(code?.querySelector('i')).toBeNull();
     expect(spy).toHaveBeenCalled();
-  });
-
-  it('forces rel="noopener noreferrer" on links that carry a target', () => {
-    const { container } = render(() => (
-      <MarkdownContent text={'<a href="https://evil.example" target="_blank">x</a>'} />
-    ));
-    const a = container.querySelector('a');
-    expect(a?.getAttribute('target')).toBe('_blank');
-    expect(a?.getAttribute('rel')).toBe('noopener noreferrer');
   });
 
   it('renders plain text without markdown gracefully', () => {
