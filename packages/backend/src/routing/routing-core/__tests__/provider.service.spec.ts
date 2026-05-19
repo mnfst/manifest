@@ -252,6 +252,69 @@ describe('ProviderService — route-only cleanup paths', () => {
       const result = await svc.removeProvider('agent-1', 'openai');
       expect(tierRepo.find).not.toHaveBeenCalled();
       expect(result.notifications).toEqual([]);
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('when disconnecting one auth leg, clears only that auth routes and recalculates tiers', async () => {
+      const subscriptionRow = {
+        id: 'p-sub',
+        agent_id: 'agent-1',
+        provider: 'openai',
+        auth_type: 'subscription' as const,
+        is_active: true,
+      };
+      providerRepo.find
+        .mockResolvedValueOnce([subscriptionRow])
+        .mockResolvedValueOnce([
+          {
+            id: 'p-key',
+            agent_id: 'agent-1',
+            provider: 'openai',
+            auth_type: 'api_key' as const,
+            is_active: true,
+          },
+        ]);
+
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          tier: 'standard',
+          override_route: {
+            provider: 'openai',
+            authType: 'subscription' as const,
+            model: 'codex-mini',
+          },
+          fallback_routes: [
+            { provider: 'openai', authType: 'subscription' as const, model: 'codex-2' },
+            { provider: 'openai', authType: 'api_key' as const, model: 'gpt-4o' },
+          ],
+        } as unknown as TierAssignment,
+      ]);
+      specRepo.find.mockResolvedValue([
+        {
+          category: 'coding',
+          override_route: {
+            provider: 'openai',
+            authType: 'subscription' as const,
+            model: 'codex-mini',
+          },
+          fallback_routes: null,
+        } as unknown as SpecificityAssignment,
+      ]);
+
+      const result = await svc.removeProvider('agent-1', 'openai', 'subscription');
+
+      expect(result.notifications).toEqual([]);
+      expect(tierRepo.save).toHaveBeenCalled();
+      const savedTier = tierRepo.save.mock.calls[0][0][0];
+      expect(savedTier.override_route).toBeNull();
+      expect(savedTier.fallback_routes).toEqual([
+        { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+      ]);
+      expect(specRepo.save).toHaveBeenCalled();
+      const savedSpec = specRepo.save.mock.calls[0][0][0];
+      expect(savedSpec.override_route).toBeNull();
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
