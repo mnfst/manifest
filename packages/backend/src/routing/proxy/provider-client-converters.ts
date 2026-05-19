@@ -305,6 +305,17 @@ export function sanitizeOpenAiBody(
       cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model);
       continue;
     }
+    if (key === 'tools') {
+      // chat-completions' tools[] schema only accepts entries with
+      // `type: "function"`. OpenAI-hosted tools (`web_search`,
+      // `file_search`, `computer_use_preview`, `code_interpreter`, ...) are
+      // Responses-API constructs and any chat-completions endpoint — OpenAI's
+      // own `/v1/chat/completions` included — 400s on them. Drop non-function
+      // entries here so the responsibility lives with the chat-completions
+      // adapter; upstream Responses-API-native paths bypass this sanitizer.
+      cleaned[key] = sanitizeOpenAiTools(value);
+      continue;
+    }
     // Rewrite max_tokens → max_completion_tokens for OpenAI-backed endpoints that
     // require it (native OpenAI + Copilot for o-series / GPT-5+). Applies in both
     // passthrough and non-passthrough branches.
@@ -332,4 +343,15 @@ export function sanitizeOpenAiBody(
   }
   if (endpointKey === 'deepseek') normalizeDeepSeekMaxTokens(cleaned);
   return cleaned;
+}
+
+function sanitizeOpenAiTools(tools: unknown): unknown {
+  if (!Array.isArray(tools)) return tools;
+  return tools.filter(
+    (tool) =>
+      !!tool &&
+      typeof tool === 'object' &&
+      !Array.isArray(tool) &&
+      (tool as Record<string, unknown>).type === 'function',
+  );
 }

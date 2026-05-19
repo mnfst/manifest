@@ -163,6 +163,7 @@ export class ProxyController {
           sessionKey,
           this.thinkingCache,
           apiMode,
+          req.ingestionContext.agentPlatform,
         );
       } else {
         streamUsage = await handleNonStreamResponse(

@@ -839,6 +839,97 @@ describe('proxy-response-handler', () => {
       // Should not throw — just drops the signatures silently.
       expect(() => capturedTransform!('{}')).not.toThrow();
     });
+
+    it('uses the strict Responses-API encoder + finalize when the agent platform is codex', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isResponses: false });
+      const client = mockProviderClient();
+      const meta = makeMeta();
+
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      let capturedFinalize: (() => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (
+          _body: unknown,
+          _res: unknown,
+          transform?: (chunk: string) => string | null,
+          finalize?: () => string | null,
+        ) => {
+          capturedTransform = transform;
+          capturedFinalize = finalize;
+          return null;
+        },
+      );
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+        'codex',
+      );
+
+      expect(capturedTransform).toBeDefined();
+      expect(capturedFinalize).toBeDefined();
+
+      const firstChunk = capturedTransform!(
+        JSON.stringify({ choices: [{ delta: { content: 'Hi' } }] }),
+      );
+      expect(firstChunk).toContain('event: response.created');
+      expect(firstChunk).toContain('event: response.output_item.added');
+      expect(firstChunk).toContain('event: response.output_text.delta');
+
+      const tail = capturedFinalize!();
+      expect(tail).toContain('event: response.output_item.done');
+      expect(tail).toContain('event: response.completed');
+    });
+
+    it('falls back to the delta-only Responses encoder (no finalize) for non-codex platforms', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isResponses: false });
+      const client = mockProviderClient();
+      const meta = makeMeta();
+
+      let capturedFinalize: (() => string | null) | undefined;
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (
+          _body: unknown,
+          _res: unknown,
+          transform?: (chunk: string) => string | null,
+          finalize?: () => string | null,
+        ) => {
+          capturedTransform = transform;
+          capturedFinalize = finalize;
+          return null;
+        },
+      );
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+        'claude-code',
+      );
+
+      expect(capturedFinalize).toBeUndefined();
+      const out = capturedTransform!(
+        'data: {"choices":[{"delta":{"content":"Hi"},"finish_reason":null}]}\n\n',
+      );
+      expect(out).toContain('event: response.output_text.delta');
+      expect(out).not.toContain('event: response.output_item.added');
+    });
   });
 
   /* ── handleNonStreamResponse ── */

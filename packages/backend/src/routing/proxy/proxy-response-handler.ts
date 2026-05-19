@@ -11,6 +11,7 @@ import { sanitizeProviderError } from './proxy-error-sanitizer';
 import {
   chatCompletionStreamChunkToResponses,
   collectResponsesSseResponse,
+  createStrictChatToResponsesTransformer,
   fromChatCompletionResponse,
 } from './responses-adapter';
 import {
@@ -274,15 +275,31 @@ export async function handleStreamResponse(
   sessionKey?: string,
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
+  agentPlatform?: string | null,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders);
 
   const messagesTransformer =
     apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;
-  const finalize = messagesTransformer ? () => messagesTransformer.finalize() : undefined;
+  // Codex clients require the full Responses-API lifecycle envelope. Build a
+  // stateful encoder so we can emit response.created/output_item.added at
+  // start, deltas in the middle, and output_item.done/response.completed at
+  // finalize — the delta-only fallback used by other agents trips Codex's
+  // "stream closed before response.completed" guard.
+  const strictResponsesTransformer =
+    apiMode === 'responses' && agentPlatform === 'codex'
+      ? createStrictChatToResponsesTransformer(meta.model)
+      : null;
+  const finalize = messagesTransformer
+    ? () => messagesTransformer.finalize()
+    : strictResponsesTransformer
+      ? () => strictResponsesTransformer.finalize()
+      : undefined;
   const toClientChunk =
     apiMode === 'responses'
-      ? chatCompletionStreamChunkToResponses
+      ? strictResponsesTransformer
+        ? strictResponsesTransformer.transform
+        : chatCompletionStreamChunkToResponses
       : messagesTransformer
         ? messagesTransformer.transform
         : (chunk: string) => chunk;

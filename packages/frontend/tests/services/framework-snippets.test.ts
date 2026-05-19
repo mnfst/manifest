@@ -323,6 +323,23 @@ describe("getNanobotConfigSnippet", () => {
   });
 });
 
+describe("getCodexConfigSnippet", () => {
+  it("emits a TOML config block that points codex at Manifest's /v1/responses", async () => {
+    const { getCodexConfigSnippet } = await import(
+      "../../src/services/framework-snippets"
+    );
+    const snippet = getCodexConfigSnippet("http://localhost:38240/v1", "mnfst_key");
+    expect(snippet).toContain('model = "auto"');
+    expect(snippet).toContain('model_provider = "manifest"');
+    expect(snippet).toContain("[model_providers.manifest]");
+    expect(snippet).toContain('name = "Manifest"');
+    expect(snippet).toContain('base_url = "http://localhost:38240/v1"');
+    expect(snippet).toContain('env_key = "OPENAI_API_KEY"');
+    expect(snippet).toContain('wire_api = "responses"');
+    expect(snippet).toContain('export OPENAI_API_KEY="mnfst_key"');
+  });
+});
+
 describe("getOpenClawSnippet", () => {
   it("includes openclaw config set commands", () => {
     const snippet = getOpenClawSnippet("http://localhost/v1", "mnfst_key");

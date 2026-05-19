@@ -71,7 +71,14 @@ function responseInputItemToMessage(item: JsonRecord): OpenAIMessage[] {
     ];
   }
 
-  const role = typeof item.role === 'string' ? item.role : 'user';
+  const rawRole = typeof item.role === 'string' ? item.role : 'user';
+  // OpenAI Responses-API emits role "developer" for what chat/completions
+  // calls "system" (newer name, identical semantics). Most upstream providers
+  // — DeepSeek, MiniMax, Z.AI, and others on the OpenAI-compat surface —
+  // still reject any role outside {system,user,assistant,tool}, so we
+  // normalize before forwarding. Codex always wires its instructions as a
+  // developer message, so without this step every codex turn 400s upstream.
+  const role = rawRole === 'developer' ? 'system' : rawRole;
   return [{ role, content: toChatContent(item.content, role) }];
 }
 
@@ -117,6 +124,16 @@ export function toChatCompletionsRequest(body: JsonRecord): JsonRecord {
 }
 
 function toChatTools(tools: unknown[]): JsonRecord[] {
+  // Rewrite Responses-API tool entries (`{type:"function", name, description,
+  // parameters, strict}`) into chat-completions tool shape
+  // (`{type:"function", function:{...}}`). Hosted tools (`web_search`,
+  // `file_search`, `computer_use_preview`, `code_interpreter`, ...) pass
+  // through unchanged here; the chat-completions adapter's per-provider
+  // `sanitizeOpenAiBody` is responsible for dropping any tool whose `type`
+  // isn't `function` before forwarding, because chat-completions' wire
+  // schema rejects them. OpenAI-native Responses paths (via
+  // `toNativeResponsesRequest`) never call this function and keep hosted
+  // tools intact.
   return tools.filter(isRecord).map((tool) => {
     if (tool.type !== 'function') return tool;
     return {
@@ -497,6 +514,424 @@ function safeParse(data: string): JsonRecord | null {
   } catch {
     return null;
   }
+}
+
+export interface ChatToResponsesTransformer {
+  /** Convert one upstream chat-completions SSE event into a (possibly multi-event) Responses SSE payload. */
+  transform(chatChunk: string): string | null;
+  /** Emit the closing lifecycle events that codex requires before treating the stream as complete. */
+  finalize(): string | null;
+}
+
+/**
+ * Strict OpenAI Responses-API SSE encoder used when the calling agent's
+ * platform is `codex`. Codex (Rust) refuses streams that skip the lifecycle
+ * envelope — `response.created` / `output_item.added` / `output_item.done` /
+ * `response.completed` with a populated `output[]`. This factory accumulates
+ * chat-completions deltas, owns the response/message identifiers, and emits
+ * the full event sequence so the codex client treats the stream as complete.
+ *
+ * Other agent platforms keep the legacy delta-only encoder
+ * (`chatCompletionStreamChunkToResponses`) for backwards compatibility.
+ */
+interface ToolCallState {
+  output_index: number;
+  item_id: string;
+  call_id: string;
+  name: string;
+  args: string;
+  added: boolean;
+  done: boolean;
+}
+
+export function createStrictChatToResponsesTransformer(model: string): ChatToResponsesTransformer {
+  const responseId = `resp_${randomUUID().replace(/-/g, '')}`;
+  const messageId = `msg_${randomUUID().replace(/-/g, '')}`;
+  const createdAt = Math.floor(Date.now() / 1000);
+  let started = false;
+  let itemOpened = false;
+  let textOutputIndex: number | null = null;
+  let finalized = false;
+  let accumulatedText = '';
+  let lastUsage: unknown = null;
+  let upstreamModel: string = model;
+  // chat/completions streams a tool call as multiple deltas keyed by
+  // tool_calls[*].index. We accumulate per-index state and re-emit the
+  // Responses-API function-call lifecycle so codex can dispatch the tool.
+  const toolCalls = new Map<number, ToolCallState>();
+  let nextOutputIndex = 0;
+  // OpenAI's Responses streaming protocol stamps every event with a
+  // monotonically increasing sequence_number (zero-indexed). The Python SDK
+  // declares it as a required field on every ResponseStreamEvent variant,
+  // so strict pydantic consumers reject any event that omits it.
+  let sequenceNumber = 0;
+
+  const buildResponseEnvelope = (
+    status: 'in_progress' | 'completed',
+    output: JsonRecord[],
+  ): JsonRecord => ({
+    id: responseId,
+    object: 'response',
+    created_at: createdAt,
+    status,
+    ...(status === 'completed' ? { completed_at: Math.floor(Date.now() / 1000) } : {}),
+    error: null,
+    incomplete_details: null,
+    instructions: null,
+    max_output_tokens: null,
+    model: upstreamModel,
+    output,
+    parallel_tool_calls: true,
+    previous_response_id: null,
+    reasoning: { effort: null, summary: null },
+    store: false,
+    temperature: null,
+    text: { format: { type: 'text' } },
+    tool_choice: 'auto',
+    tools: [],
+    top_p: null,
+    truncation: 'disabled',
+    usage: status === 'completed' ? toResponsesUsage(lastUsage) : null,
+    user: null,
+    metadata: {},
+  });
+
+  const messageItem = (text: string, status: 'in_progress' | 'completed'): JsonRecord => ({
+    id: messageId,
+    type: 'message',
+    status,
+    role: 'assistant',
+    content: text ? [{ type: 'output_text', text, annotations: [] }] : [],
+  });
+
+  // Wrap formatResponsesEvent so every event auto-stamps sequence_number.
+  // Keeping the counter inside the transformer closure (instead of inside
+  // each call site) means we cannot accidentally skip or double-stamp.
+  const emit = (event: string, data: JsonRecord): string =>
+    formatResponsesEvent(event, { ...data, sequence_number: sequenceNumber++ });
+
+  return {
+    transform(chatChunk: string): string | null {
+      const payloads = extractDataPayloads(chatChunk);
+      const events: string[] = [];
+
+      const ensureStarted = () => {
+        if (started) return;
+        started = true;
+        events.push(
+          emit('response.created', {
+            type: 'response.created',
+            response: buildResponseEnvelope('in_progress', []),
+          }),
+          emit('response.in_progress', {
+            type: 'response.in_progress',
+            response: buildResponseEnvelope('in_progress', []),
+          }),
+        );
+      };
+
+      const ensureItemOpened = () => {
+        ensureStarted();
+        if (itemOpened) return;
+        itemOpened = true;
+        textOutputIndex = nextOutputIndex++;
+        events.push(
+          emit('response.output_item.added', {
+            type: 'response.output_item.added',
+            response_id: responseId,
+            output_index: textOutputIndex,
+            item: messageItem('', 'in_progress'),
+          }),
+          emit('response.content_part.added', {
+            type: 'response.content_part.added',
+            response_id: responseId,
+            item_id: messageId,
+            output_index: textOutputIndex,
+            content_index: 0,
+            part: { type: 'output_text', text: '', annotations: [] },
+          }),
+        );
+      };
+
+      for (const payload of payloads) {
+        if (payload === '[DONE]') continue;
+        const data = safeParse(payload);
+        if (!data) continue;
+
+        if (typeof data.model === 'string') upstreamModel = data.model;
+        if (isRecord(data.usage)) lastUsage = data.usage;
+
+        const choices = Array.isArray(data.choices) ? data.choices : [];
+        if (choices.length === 0) continue;
+
+        const choice = isRecord(choices[0]) ? choices[0] : null;
+        const delta = isRecord(choice?.delta) ? choice.delta : {};
+
+        if (typeof delta.content === 'string' && delta.content.length > 0) {
+          ensureItemOpened();
+          accumulatedText += delta.content;
+          events.push(
+            emit('response.output_text.delta', {
+              type: 'response.output_text.delta',
+              response_id: responseId,
+              item_id: messageId,
+              output_index: textOutputIndex ?? 0,
+              content_index: 0,
+              delta: delta.content,
+              logprobs: [],
+            }),
+          );
+        }
+
+        if (Array.isArray(delta.tool_calls)) {
+          for (const tc of delta.tool_calls) {
+            if (!isRecord(tc)) continue;
+            // chat/completions keys tool call streaming by `index` (the slot
+            // within tool_calls[]); id/name typically only appear on the first
+            // delta. Allocate per-slot state lazily.
+            const slot = typeof tc.index === 'number' ? tc.index : toolCalls.size;
+            let state = toolCalls.get(slot);
+            const fn = isRecord(tc.function) ? tc.function : {};
+            if (!state) {
+              ensureStarted();
+              state = {
+                output_index: nextOutputIndex++,
+                item_id: `fc_${randomUUID().replace(/-/g, '')}`,
+                call_id: typeof tc.id === 'string' ? tc.id : '',
+                name: typeof fn.name === 'string' ? fn.name : '',
+                args: '',
+                added: false,
+                done: false,
+              };
+              toolCalls.set(slot, state);
+            } else {
+              if (!state.call_id && typeof tc.id === 'string') state.call_id = tc.id;
+              if (!state.name && typeof fn.name === 'string') state.name = fn.name;
+            }
+
+            // Defer `response.output_item.added` until we have both call_id
+            // and name. Some providers split the initial header across two
+            // deltas (id first, then name) — codex requires both fields on
+            // the `added` event or it rejects the stream.
+            if (!state.added && state.call_id && state.name) {
+              state.added = true;
+              events.push(
+                emit('response.output_item.added', {
+                  type: 'response.output_item.added',
+                  response_id: responseId,
+                  output_index: state.output_index,
+                  item: {
+                    type: 'function_call',
+                    id: state.item_id,
+                    call_id: state.call_id,
+                    name: state.name,
+                    arguments: '',
+                    status: 'in_progress',
+                  },
+                }),
+              );
+              // Replay any argument fragments that arrived while the header
+              // was incomplete. Coalesced into a single delta so the SDK
+              // observes the same byte stream regardless of whether args led
+              // or trailed the id/name in the upstream chat-completions
+              // deltas.
+              if (state.args.length > 0) {
+                events.push(
+                  emit('response.function_call_arguments.delta', {
+                    type: 'response.function_call_arguments.delta',
+                    response_id: responseId,
+                    item_id: state.item_id,
+                    output_index: state.output_index,
+                    delta: state.args,
+                  }),
+                );
+              }
+            }
+
+            if (typeof fn.arguments === 'string' && fn.arguments.length > 0) {
+              state.args += fn.arguments;
+              if (state.added) {
+                events.push(
+                  emit('response.function_call_arguments.delta', {
+                    type: 'response.function_call_arguments.delta',
+                    response_id: responseId,
+                    item_id: state.item_id,
+                    output_index: state.output_index,
+                    delta: fn.arguments,
+                  }),
+                );
+              }
+              // If header is still incomplete, args are accumulated in
+              // state.args above and will be replayed once `added` fires.
+            }
+          }
+        }
+        // finish_reason is intentionally ignored here — terminal events are
+        // emitted by finalize() once the upstream stream actually closes,
+        // so usage chunks that arrive after finish_reason still get folded
+        // into the final response.completed envelope.
+      }
+
+      return events.length > 0 ? events.join('') : null;
+    },
+
+    finalize(): string | null {
+      if (finalized) return null;
+      finalized = true;
+
+      const events: string[] = [];
+
+      if (!started) {
+        events.push(
+          emit('response.created', {
+            type: 'response.created',
+            response: buildResponseEnvelope('in_progress', []),
+          }),
+          emit('response.in_progress', {
+            type: 'response.in_progress',
+            response: buildResponseEnvelope('in_progress', []),
+          }),
+          emit('response.completed', {
+            type: 'response.completed',
+            response: buildResponseEnvelope('completed', []),
+          }),
+        );
+        return events.join('');
+      }
+
+      if (itemOpened) {
+        const textIdx = textOutputIndex ?? 0;
+        events.push(
+          emit('response.output_text.done', {
+            type: 'response.output_text.done',
+            response_id: responseId,
+            item_id: messageId,
+            output_index: textIdx,
+            content_index: 0,
+            text: accumulatedText,
+            logprobs: [],
+          }),
+          emit('response.content_part.done', {
+            type: 'response.content_part.done',
+            response_id: responseId,
+            item_id: messageId,
+            output_index: textIdx,
+            content_index: 0,
+            part: { type: 'output_text', text: accumulatedText, annotations: [] },
+          }),
+          emit('response.output_item.done', {
+            type: 'response.output_item.done',
+            response_id: responseId,
+            output_index: textIdx,
+            item: messageItem(accumulatedText, 'completed'),
+          }),
+        );
+      }
+
+      // Close out every accumulated function_call. Even if the header never
+      // completed (no name/call_id), surface what we have so codex can fail
+      // loudly rather than silently dropping the call.
+      for (const state of [...toolCalls.values()].sort((a, b) => a.output_index - b.output_index)) {
+        const finalCallId = state.call_id || state.item_id;
+        const finalName = state.name || 'unknown';
+        if (!state.added) {
+          // Header was never complete — synthesize a best-effort placeholder
+          // so the lifecycle stays well-formed.
+          state.added = true;
+          events.push(
+            emit('response.output_item.added', {
+              type: 'response.output_item.added',
+              response_id: responseId,
+              output_index: state.output_index,
+              item: {
+                type: 'function_call',
+                id: state.item_id,
+                call_id: finalCallId,
+                name: finalName,
+                arguments: '',
+                status: 'in_progress',
+              },
+            }),
+          );
+          if (state.args) {
+            events.push(
+              emit('response.function_call_arguments.delta', {
+                type: 'response.function_call_arguments.delta',
+                response_id: responseId,
+                item_id: state.item_id,
+                output_index: state.output_index,
+                delta: state.args,
+              }),
+            );
+          }
+        }
+        if (!state.done) {
+          state.done = true;
+          const finalItem = {
+            type: 'function_call',
+            id: state.item_id,
+            call_id: finalCallId,
+            name: finalName,
+            arguments: state.args,
+            status: 'completed',
+          };
+          events.push(
+            // OpenAI's Responses stream sends both the top-level `arguments`
+            // string and the final `item` payload on the done event. SDK
+            // consumers that only read one of the two shapes still get the
+            // complete function-call back.
+            emit('response.function_call_arguments.done', {
+              type: 'response.function_call_arguments.done',
+              response_id: responseId,
+              item_id: state.item_id,
+              output_index: state.output_index,
+              name: finalName,
+              arguments: state.args,
+              item: finalItem,
+            }),
+            emit('response.output_item.done', {
+              type: 'response.output_item.done',
+              response_id: responseId,
+              output_index: state.output_index,
+              item: finalItem,
+            }),
+          );
+        }
+      }
+
+      const ordered: { idx: number; item: JsonRecord }[] = [];
+      if (accumulatedText) {
+        ordered.push({
+          idx: textOutputIndex ?? 0,
+          item: messageItem(accumulatedText, 'completed'),
+        });
+      }
+      for (const state of toolCalls.values()) {
+        ordered.push({
+          idx: state.output_index,
+          item: {
+            type: 'function_call',
+            id: state.item_id,
+            call_id: state.call_id || state.item_id,
+            name: state.name || 'unknown',
+            arguments: state.args,
+            status: 'completed',
+          },
+        });
+      }
+      ordered.sort((a, b) => a.idx - b.idx);
+      const finalOutput = ordered.map((entry) => entry.item);
+
+      events.push(
+        emit('response.completed', {
+          type: 'response.completed',
+          response: buildResponseEnvelope('completed', finalOutput),
+        }),
+      );
+
+      return events.join('');
+    },
+  };
 }
 
 export function chatCompletionStreamChunkToResponses(chunk: string): string | null {

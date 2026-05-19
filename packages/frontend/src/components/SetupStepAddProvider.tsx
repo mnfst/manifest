@@ -6,10 +6,18 @@ import NanobotSetup from './NanobotSetup.jsx';
 import CraftAgentSetup from './CraftAgentSetup.jsx';
 import ClaudeCodeSetup from './ClaudeCodeSetup.jsx';
 import OpenCodeSetup from './OpenCodeSetup.jsx';
+import CodexSetup from './CodexSetup.jsx';
 import type { ToolkitId } from '../services/framework-snippets.js';
 
 type SetupTab = 'toolkits' | 'agents';
-type AgentId = 'openclaw' | 'hermes' | 'nanobot' | 'craft' | 'claude-code' | 'opencode';
+type AgentId =
+  | 'openclaw'
+  | 'hermes'
+  | 'nanobot'
+  | 'craft'
+  | 'claude-code'
+  | 'opencode'
+  | 'codex';
 
 interface Props {
   apiKey: string | null;
@@ -55,7 +63,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                   ? 'Connect Claude Code to Manifest'
                   : props.platform === 'opencode'
                     ? 'Connect OpenCode to Manifest'
-                    : 'Connect your agent to Manifest'}
+                    : props.platform === 'codex'
+                      ? 'Connect Codex CLI to Manifest'
+                      : 'Connect your agent to Manifest'}
       </h3>
 
       {/* Platform-filtered mode: show only relevant content */}
@@ -78,6 +88,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           </Match>
           <Match when={props.platform === 'opencode'}>
             <OpenCodeSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'codex'}>
+            <CodexSetup {...snippetProps()} />
           </Match>
           <Match when={toolkitId()}>
             <FrameworkSnippets
@@ -221,6 +234,22 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                 />
                 OpenCode
               </button>
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'codex' }}
+                onClick={() => setActiveAgent('codex')}
+                role="tab"
+                aria-selected={activeAgent() === 'codex'}
+              >
+                <img
+                  src="/icons/providers/codex.svg"
+                  alt=""
+                  class="panel__tab-icon"
+                  width="16"
+                  height="16"
+                />
+                Codex CLI
+              </button>
             </div>
           </div>
 
@@ -242,6 +271,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
             </Match>
             <Match when={activeAgent() === 'opencode'}>
               <OpenCodeSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'codex'}>
+              <CodexSetup {...snippetProps()} />
             </Match>
           </Switch>
         </Show>
