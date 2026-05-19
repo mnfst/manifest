@@ -376,6 +376,10 @@ function hasOwn(value: Record<string, unknown>, key: string): boolean {
 }
 
 function defineOwn(target: Record<string, unknown>, key: string, value: unknown): void {
+  /* istanbul ignore next -- splitProviderParamPath rejects these; this local guard satisfies CodeQL. */
+  if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+    throw new Error(`Invalid provider param path segment: ${key}`);
+  }
   Object.defineProperty(target, key, {
     value,
     enumerable: true,
@@ -385,6 +389,8 @@ function defineOwn(target: Record<string, unknown>, key: string, value: unknown)
 }
 
 function deleteOwn(target: Record<string, unknown>, key: string): void {
+  /* istanbul ignore next -- splitProviderParamPath rejects these; this local guard satisfies CodeQL. */
+  if (key === '__proto__' || key === 'constructor' || key === 'prototype') return;
   if (hasOwn(target, key)) Reflect.deleteProperty(target, key);
 }
 
