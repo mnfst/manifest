@@ -1,0 +1,106 @@
+packages/frontend/tests/components/ModelParamsAffordance.test.tsx
+  s_d55d26a37e6be3::t_15e021f089a832 3,7-22,26,44,60,76,92,112,146,182
+packages/frontend/tests/services/api/model-params.test.ts
+  s_d55d26a37e6be3::t_30d19c8ce6670a 4,31-39
+packages/shared/src/request-params-snapshot.ts
+  s_d55d26a37e6be3::t_294015c92c3de1 1,34-35,41
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_d55d26a37e6be3::t_a886a1de754841 1136,1192
+  s_d55d26a37e6be3::t_191e12547c2faa 3,38-52
+packages/frontend/src/pages/RoutingSpecificitySection.tsx
+  s_d55d26a37e6be3::t_a5cb93293e2b34 17,146,251
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_d55d26a37e6be3::t_fd4f18d5ab6339 1-101
+packages/backend/src/database/migrations/1789400000000-AddProviderParamSpecs.spec.ts
+  s_d55d26a37e6be3::t_17ccd54cfca808 1-28
+packages/shared/__tests__/request-params.spec.ts
+  s_d55d26a37e6be3::t_48ba5f9c2cbfe8 72
+  s_d55d26a37e6be3::t_d6f72435a59259 2,74-91
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_d55d26a37e6be3::t_ea7b81086065a3 16-26,39,84-86,98
+packages/shared/src/thinking-defaults.ts
+  s_d55d26a37e6be3::t_fbfcb6fabf6690 1,10-11,14,16
+packages/shared/src/index.ts
+  s_d55d26a37e6be3::t_c3acf40e8fc7a9 48,53
+packages/frontend/src/pages/Routing.tsx
+  s_d55d26a37e6be3::t_d8cf276cb7d645 29,35,85-86,88-89,486,533,548
+packages/frontend/src/components/HeaderTierCard.tsx
+  s_d55d26a37e6be3::t_7520f2d0b0459d 7,55,338,388
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_d55d26a37e6be3::t_3269f0fb434e9e 4,7-41,43,46-48,52-57,61-62,66-68,70-71,74-86,91-93,95-97,102,104-107,110-119,123,125-128,131-134,140-143,149-152
+packages/frontend/src/services/api/model-params.ts
+  s_d55d26a37e6be3::t_370e230ec2636d 4
+  s_d55d26a37e6be3::t_7bae5033751a8b 3,28-29
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_d55d26a37e6be3::t_5674dbbb723554 1-163
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.routes.spec.ts
+  s_d55d26a37e6be3::t_2a55bb414566b3 13,84-86,98
+packages/backend/src/database/migrations/1789400000000-AddProviderParamSpecs.ts
+  s_d55d26a37e6be3::t_8f60df78ee3f6e 1-215
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_d55d26a37e6be3::t_0c111398af1825 5,7,79,108
+packages/shared/src/provider-params-spec.ts
+  s_d55d26a37e6be3::t_00bf2aee0ad686 32,38,45-46,64,66
+packages/backend/src/database/database.module.ts
+  s_d55d26a37e6be3::t_0237a6a1f20418 23,105,126,209,256
+packages/backend/src/entities/provider-param-spec.entity.ts
+  s_d55d26a37e6be3::t_105b7038c39738 2,23-28,30-45
+  s_d55d26a37e6be3::t_15008dbf035423 1,3-22,29,46-55
+packages/frontend/src/components/ModelParamsAffordance.tsx
+  s_d55d26a37e6be3::t_895adb1654c491 17-18,55,67-69,123
+packages/frontend/src/components/FallbackList.tsx
+  s_d55d26a37e6be3::t_071758b82a62e6 10,32,439
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_d55d26a37e6be3::t_3c9e19fd1cb59e 3,80
+  s_d55d26a37e6be3::t_41b0758534ec1a 207-222,243
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_d55d26a37e6be3::t_30144c7c798ba1 36,126
+  s_d55d26a37e6be3::t_f8d17adb1f3fb5 219-223,227,511-515,563-567
+packages/backend/src/routing/routing-core/routing-core.module.ts
+  s_d55d26a37e6be3::t_cd74fa0c7ecfbd 7,23,32,51,65
+packages/shared/__tests__/request-params-snapshot.spec.ts
+  s_d55d26a37e6be3::t_c6cd581192f1ad 2,4-12,14-15,20,30,40,50,59
+packages/frontend/tests/pages/Routing.test.tsx
+  s_d55d26a37e6be3::t_7fac69f2a21c42 20,40,279,523-537
+packages/frontend/src/pages/RoutingTierCard.tsx
+  s_d55d26a37e6be3::t_bcb30a8a26a87e 24,103,500,553
+packages/frontend/tests/components/FallbackList.test.tsx
+  s_d55d26a37e6be3::t_7b780c1ebeed53 3,47-61
+  s_d55d26a37e6be3::t_3b2421ef15270a 1089,1118,1169
+packages/backend/src/routing/model-params.controller.ts
+  s_d55d26a37e6be3::t_aef72650adab64 58,116-119,125-126
+  s_d55d26a37e6be3::t_71928e0a00fe57 128
+  s_d55d26a37e6be3::t_dab3ef63661a61 5,11,20,24-32,69,133,140-141
+packages/shared/__tests__/thinking-defaults.spec.ts
+  s_d55d26a37e6be3::t_a80c3be3d45088 2,4-12,14-16,19-28
+packages/frontend/src/pages/RoutingDefaultTierSection.tsx
+  s_d55d26a37e6be3::t_b4be802445269c 6,22,82,114
+packages/frontend/src/pages/RoutingHeaderTiersSection.tsx
+  s_d55d26a37e6be3::t_5c94d409215a0a 17,33,189
+packages/backend/src/routing/__tests__/model-params.controller.spec.ts
+  s_d55d26a37e6be3::t_9fb3dc30a8559c 5,20-23,33-36,45,79-102,105-115,155-172,215-225,269
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_d55d26a37e6be3::t_6ce1fc84b8ca39 17,39-48,72,113-119,135
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_d55d26a37e6be3::t_2e503a397c81f1 2-3,12-13,26-28,75
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_d55d26a37e6be3::t_00a33779266081 3,10-38,43,121,173-180,182-183,185,195-204,206-207,209,225,251-256,258
+  s_d55d26a37e6be3::t_e097537a007c7f 1
+  s_d55d26a37e6be3::t_633802e91efa2d 220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.9",
+  "base_commit_sha": "2aa24d544a17f27ed7aaecbe63acbef6b6458e4f",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
