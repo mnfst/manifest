@@ -92,6 +92,7 @@ describe('AgentModelParamsService', () => {
     it('returns the matching row params (case-insensitive provider match)', async () => {
       const rows = [
         {
+          scope_key: 'tier:simple',
           provider: 'DeepSeek',
           auth_type: 'api_key',
           model_name: 'deepseek-v4',
@@ -100,20 +101,27 @@ describe('AgentModelParamsService', () => {
       ];
       repo.find.mockResolvedValueOnce(rows);
 
-      const result = await service.get('agent-1', 'deepseek', 'api_key', 'deepseek-v4');
+      const result = await service.get(
+        'agent-1',
+        'tier:simple',
+        'deepseek',
+        'api_key',
+        'deepseek-v4',
+      );
 
       expect(result).toEqual({ thinking: 'disabled' });
     });
 
     it('returns null when no row matches (steady state for most attempts)', async () => {
       repo.find.mockResolvedValueOnce([]);
-      const result = await service.get('agent-1', 'openai', 'api_key', 'gpt-4o');
+      const result = await service.get('agent-1', 'tier:simple', 'openai', 'api_key', 'gpt-4o');
       expect(result).toBeNull();
     });
 
     it('matches on full (provider, auth_type, model_name) tuple — same model under different auth is distinct', async () => {
       const rows = [
         {
+          scope_key: 'tier:simple',
           provider: 'openai',
           auth_type: 'subscription',
           model_name: 'gpt-4o',
@@ -123,7 +131,37 @@ describe('AgentModelParamsService', () => {
       repo.find.mockResolvedValueOnce(rows);
 
       // Same model, different auth_type → no match
-      expect(await service.get('agent-1', 'openai', 'api_key', 'gpt-4o')).toBeNull();
+      expect(await service.get('agent-1', 'tier:simple', 'openai', 'api_key', 'gpt-4o')).toBeNull();
+    });
+
+    it('keeps the same provider/auth/model distinct across tier scopes', async () => {
+      const rows = [
+        {
+          scope_key: 'tier:simple',
+          provider: 'anthropic',
+          auth_type: 'api_key',
+          model_name: 'claude-opus-4-7',
+          params: { temperature: 0.2 },
+        },
+        {
+          scope_key: 'tier:expert',
+          provider: 'anthropic',
+          auth_type: 'api_key',
+          model_name: 'claude-opus-4-7',
+          params: { temperature: 0.8 },
+        },
+      ] as unknown as AgentModelParams[];
+      repo.find.mockResolvedValueOnce(rows);
+
+      const result = await service.get(
+        'agent-1',
+        'tier:expert',
+        'anthropic',
+        'api_key',
+        'claude-opus-4-7',
+      );
+
+      expect(result).toEqual({ temperature: 0.8 });
     });
   });
 
@@ -131,6 +169,7 @@ describe('AgentModelParamsService', () => {
     it('runs the atomic INSERT ... ON CONFLICT upsert, invalidates the cache, then re-fetches the canonical row', async () => {
       const saved = {
         id: 'p1',
+        scope_key: 'tier:simple',
         provider: 'deepseek',
         auth_type: 'api_key',
         model_name: 'deepseek-v4',
@@ -138,9 +177,17 @@ describe('AgentModelParamsService', () => {
       } as unknown as AgentModelParams;
       repo.findOneOrFail.mockResolvedValueOnce(saved);
 
-      const result = await service.set('agent-1', 'user-1', 'DeepSeek', 'api_key', 'deepseek-v4', {
-        thinking: 'disabled',
-      });
+      const result = await service.set(
+        'agent-1',
+        'user-1',
+        'tier:simple',
+        'DeepSeek',
+        'api_key',
+        'deepseek-v4',
+        {
+          thinking: 'disabled',
+        },
+      );
 
       // QueryBuilder upsert ran (concurrent-safe — no findOne+save race).
       expect(repo.createQueryBuilder).toHaveBeenCalled();
@@ -151,6 +198,7 @@ describe('AgentModelParamsService', () => {
       expect(repo.findOneOrFail).toHaveBeenCalledWith({
         where: {
           agent_id: 'agent-1',
+          scope_key: 'tier:simple',
           provider: 'deepseek',
           auth_type: 'api_key',
           model_name: 'deepseek-v4',
@@ -162,9 +210,10 @@ describe('AgentModelParamsService', () => {
 
   describe('delete', () => {
     it('removes the row and invalidates the agent cache', async () => {
-      await service.delete('agent-1', 'DeepSeek', 'api_key', 'deepseek-v4');
+      await service.delete('agent-1', 'tier:simple', 'DeepSeek', 'api_key', 'deepseek-v4');
       expect(repo.delete).toHaveBeenCalledWith({
         agent_id: 'agent-1',
+        scope_key: 'tier:simple',
         provider: 'deepseek',
         auth_type: 'api_key',
         model_name: 'deepseek-v4',

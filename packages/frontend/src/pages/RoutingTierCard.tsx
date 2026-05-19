@@ -14,6 +14,7 @@ import { customProviderColor } from '../services/formatters.js';
 import FallbackList from '../components/FallbackList.js';
 import ModelParamsAffordance from '../components/ModelParamsAffordance.jsx';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
+import { modelParamsScopeForTier } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import type {
   TierAssignment,
@@ -64,6 +65,7 @@ export function providerIdForModel(model: string, apiModels: AvailableModel[]): 
 
 export interface RoutingTierCardProps {
   stage: StageDef;
+  modelParamsScope?: string;
   tier: () => TierAssignment | undefined;
   models: () => AvailableModel[];
   customProviders: () => CustomProviderData[];
@@ -107,9 +109,10 @@ export interface RoutingTierCardProps {
   /**
    * Read saved per-route params from the parent's loaded map. The
    * affordance reads through this so saving in one slot reflects on every
-   * other slot that resolves to the same `(provider, authType, model)`.
+   * other row with the same scoped `(provider, authType, model)`.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -119,6 +122,7 @@ export interface RoutingTierCardProps {
    * and the local cache update; the card just threads the callback down.
    */
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -134,6 +138,7 @@ const effectiveRoute = (
 const effectiveModel = (t: TierAssignment): string | null => effectiveRoute(t)?.model ?? null;
 
 const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
+  const modelParamsScope = () => props.modelParamsScope ?? modelParamsScopeForTier(props.stage.id);
   const eff = () => {
     const t = props.tier();
     return t ? effectiveModel(t) : null;
@@ -489,6 +494,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                             when={props.setModelParams && props.getModelParams && effectiveAuth()}
                           >
                             <ModelParamsAffordance
+                              scope={modelParamsScope()}
                               provider={provId()}
                               authType={effectiveAuth() ?? undefined}
                               model={modelName()}
@@ -540,6 +546,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             <FallbackList
               agentName={props.agentName()}
               tier={props.stage.id}
+              modelParamsScope={modelParamsScope()}
               tierData={props.tier}
               fallbacks={props.getFallbacksFor(props.stage.id)}
               fallbackRoutes={props.tier()?.fallback_routes ?? null}

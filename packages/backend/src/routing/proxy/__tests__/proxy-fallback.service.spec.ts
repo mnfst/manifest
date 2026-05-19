@@ -154,11 +154,12 @@ describe('ProxyFallbackService', () => {
         stream: false,
         sessionKey: 'sess-1',
         authType: 'api_key',
-        paramMergeContext: { agentId: 'agent-1' },
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:simple' },
       });
 
       expect(modelParamsService.get).toHaveBeenCalledWith(
         'agent-1',
+        'tier:simple',
         'deepseek',
         'api_key',
         'deepseek-v4-flash',
@@ -190,7 +191,7 @@ describe('ProxyFallbackService', () => {
         stream: false,
         sessionKey: 'sess-1',
         authType: 'api_key',
-        paramMergeContext: { agentId: 'agent-1' },
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:simple' },
       });
 
       const forwarded = providerClient.forward.mock.calls[0][0];
@@ -217,7 +218,7 @@ describe('ProxyFallbackService', () => {
         stream: false,
         sessionKey: 'sess-1',
         authType: 'api_key',
-        paramMergeContext: { agentId: 'agent-1' },
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:simple' },
       });
 
       const forwarded = providerClient.forward.mock.calls[0][0];

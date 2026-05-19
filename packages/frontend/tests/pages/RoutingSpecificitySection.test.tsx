@@ -8,6 +8,7 @@ vi.mock("../../src/services/api.js", () => ({
   toggleSpecificity: (...args: unknown[]) => mockToggleSpecificity(...args),
   setSpecificityFallbacks: (...args: unknown[]) => mockSetSpecificityFallbacks(...args),
   clearSpecificityFallbacks: (...args: unknown[]) => mockClearSpecificityFallbacks(...args),
+  modelParamsScopeForSpecificity: (category: string) => `specificity:${category}`,
 }));
 
 const mockToastError = vi.fn();
@@ -56,6 +57,7 @@ vi.mock("../../src/pages/RoutingTierCard.js", () => ({
       props.persistClearFallbacks,
       props.persistParamDefaults,
       props.onParamDefaultsSaved,
+      props.modelParamsScope,
       props.getModelParams,
       props.setModelParams,
     ];

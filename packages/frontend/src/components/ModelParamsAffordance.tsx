@@ -12,13 +12,20 @@ interface Props {
   model: string;
   /** Display label for the dialog header (e.g. "deepseek-v4-flash"). */
   slotLabel: string;
+  /** Route-scope key (tier/default, task-specific category, or header tier). */
+  scope: string;
   /**
    * Read the currently-saved params for this route from the parent's loaded
    * map. Called on every render so reactivity flows through the parent's
-   * signal — saving in one slot updates the badge on every other slot that
-   * resolves to the same `(provider, authType, model)` tuple.
+   * signal — saving in one slot updates only rows with the same scoped
+   * `(provider, authType, model)` tuple.
    */
-  getParams: (provider: string, authType: AuthType, model: string) => RequestParamDefaults | null;
+  getParams: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+  ) => RequestParamDefaults | null;
   /**
    * Persist the new params for this route. The dialog passes `null` when the
    * chosen value matches the provider's natural default — the parent should
@@ -27,6 +34,7 @@ interface Props {
    * reflects the new value.
    */
   setParams: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -48,8 +56,8 @@ interface Props {
  * The component is intentionally dumb about persistence: it does not own
  * fetch or cache state. The parent (`Routing.tsx`) fetches the agent's full
  * model-params map once on page boot and threads `getParams` / `setParams`
- * down, so every model row across every routing surface stays in sync from
- * a single source of truth.
+ * down, so every scoped model row stays in sync from a single source of
+ * truth without leaking values across tiers.
  */
 const ModelParamsAffordance: Component<Props> = (props) => {
   const [dialogOpen, setDialogOpen] = createSignal(false);
@@ -60,7 +68,7 @@ const ModelParamsAffordance: Component<Props> = (props) => {
 
   const current = () => {
     if (!props.provider || !props.authType) return null;
-    return props.getParams(props.provider, props.authType, props.model);
+    return props.getParams(props.scope, props.provider, props.authType, props.model);
   };
 
   const configured = () => current() !== null;
@@ -113,7 +121,9 @@ const ModelParamsAffordance: Component<Props> = (props) => {
           provider={props.provider!}
           authType={props.authType!}
           model={props.model}
-          onSave={(next) => props.setParams(props.provider!, props.authType!, props.model, next)}
+          onSave={(next) =>
+            props.setParams(props.scope, props.provider!, props.authType!, props.model, next)
+          }
           onClose={() => setDialogOpen(false)}
         />
       </Show>

@@ -1,6 +1,7 @@
 import { createSignal, createEffect, onCleanup, For, Show, type Component } from 'solid-js';
 import {
   clearFallbacks,
+  modelParamsScopeForTier,
   setFallbacks,
   type AuthType,
   type AvailableModel,
@@ -26,6 +27,7 @@ import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 interface FallbackListProps {
   agentName: string;
   tier: string;
+  modelParamsScope?: string;
   tierData?: () => TierAssignment | undefined;
   fallbacks: string[];
   // Optional structured route per fallback. When present (length matches
@@ -59,15 +61,18 @@ interface FallbackListProps {
    * Per-route params getter, threaded from the routing page boundary. When
    * present, every fallback row whose provider consumes a known param key
    * renders a `<ModelParamsAffordance>` for its own `(provider, authType,
-   * model)` tuple. Saving from a fallback row updates the parent's cache
-   * just like saving from the primary chip does.
+   * model)` tuple within this fallback list's route scope. Saving from a
+   * fallback row updates the parent's cache just like saving from the primary
+   * chip does, without leaking across tiers.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
   ) => RequestParamDefaults | null;
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -94,6 +99,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   const [dragIndex, setDragIndex] = createSignal<number | null>(null);
   const [dropSlot, setDropSlot] = createSignal<number | null>(null);
   let listRef: HTMLDivElement | undefined;
+  const modelParamsScope = () => props.modelParamsScope ?? modelParamsScopeForTier(props.tier);
 
   const modelLabel = (model: string): string => {
     const info = props.models.find((m) => m.model_name === model);
@@ -427,6 +433,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                       }
                     >
                       <ModelParamsAffordance
+                        scope={modelParamsScope()}
                         provider={provId()}
                         authType={(auth() as AuthType) ?? undefined}
                         model={model()}

@@ -73,10 +73,9 @@ const Routing: Component = () => {
   const [togglingComplexity, setTogglingComplexity] = createSignal(false);
   const complexityEnabled = () => complexityStatus()?.enabled ?? true;
 
-  // Per-route model params, fetched once and threaded down. Every model-row
-  // affordance reads through `getModelParamsFor` so saving in one slot
-  // reflects on every other slot that resolves to the same route — no
-  // per-component fetches, no stale-cache races.
+  // Per-route model params, fetched once and threaded down. Scope separates
+  // default/complexity tiers, task-specific tiers, and custom header tiers so
+  // the same model can have different values in different routing surfaces.
   const [modelParams, { mutate: mutateModelParams }] = createResource(
     () => agentName(),
     (name) => listModelParams(name).catch(() => [] as AgentModelParamsRow[]),
@@ -84,17 +83,19 @@ const Routing: Component = () => {
   const modelParamsMap = createMemo(() => {
     const map = new Map<string, RequestParamDefaults>();
     for (const row of modelParams() ?? []) {
-      map.set(modelParamsKey(row.provider, row.authType, row.model), row.params);
+      map.set(modelParamsKey(row.scope, row.provider, row.authType, row.model), row.params);
     }
     return map;
   });
   const getModelParamsFor = (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
   ): RequestParamDefaults | null =>
-    modelParamsMap().get(modelParamsKey(provider, authType, model)) ?? null;
+    modelParamsMap().get(modelParamsKey(scope, provider, authType, model)) ?? null;
   const setModelParamsFor = async (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -105,11 +106,12 @@ const Routing: Component = () => {
       // natural default. Delete the row so the table stays clean and the
       // dashboard snapshot reflects the provider default, not an explicit
       // override.
-      await deleteModelParams(agentName(), { provider, authType, model });
+      await deleteModelParams(agentName(), { scope, provider, authType, model });
       mutateModelParams((rows) =>
         (rows ?? []).filter(
           (r) =>
             !(
+              r.scope === scope &&
               r.provider.toLowerCase() === provider.toLowerCase() &&
               r.authType === authType &&
               r.model === model
@@ -118,11 +120,18 @@ const Routing: Component = () => {
       );
       return;
     }
-    const saved = await setModelParamsApi(agentName(), { provider, authType, model, params: next });
+    const saved = await setModelParamsApi(agentName(), {
+      scope,
+      provider,
+      authType,
+      model,
+      params: next,
+    });
     mutateModelParams((rows) => {
       const without = (rows ?? []).filter(
         (r) =>
           !(
+            r.scope === scope &&
             r.provider.toLowerCase() === provider.toLowerCase() &&
             r.authType === authType &&
             r.model === model

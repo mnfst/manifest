@@ -11,6 +11,7 @@ describe('model-params DTOs', () => {
   describe('SetModelParamsBodyDto', () => {
     it('accepts a well-formed body and preserves arbitrary params keys for registry validation', () => {
       const dto = plainToInstance(SetModelParamsBodyDto, {
+        scope: 'tier:simple',
         provider: 'deepseek',
         authType: 'api_key',
         model: 'deepseek-v4',
@@ -23,6 +24,7 @@ describe('model-params DTOs', () => {
 
     it('does not recurse into params values; the controller registry gate validates them', () => {
       const dto = plainToInstance(SetModelParamsBodyDto, {
+        scope: 'tier:simple',
         provider: 'deepseek',
         authType: 'api_key',
         model: 'deepseek-v4',
@@ -33,6 +35,7 @@ describe('model-params DTOs', () => {
 
     it('rejects unknown authType values (limited to AUTH_TYPES)', () => {
       const dto = plainToInstance(SetModelParamsBodyDto, {
+        scope: 'tier:simple',
         provider: 'deepseek',
         authType: 'bogus',
         model: 'deepseek-v4',
@@ -43,6 +46,7 @@ describe('model-params DTOs', () => {
 
     it('rejects when params is missing (ValidateIf forces the field)', () => {
       const dto = plainToInstance(SetModelParamsBodyDto, {
+        scope: 'tier:simple',
         provider: 'deepseek',
         authType: 'api_key',
         model: 'deepseek-v4',
@@ -54,6 +58,7 @@ describe('model-params DTOs', () => {
   describe('DeleteModelParamsBodyDto', () => {
     it('accepts a route identity body', () => {
       const dto = plainToInstance(DeleteModelParamsBodyDto, {
+        scope: 'tier:simple',
         provider: 'deepseek',
         authType: 'api_key',
         model: 'deepseek-v4',
@@ -63,6 +68,7 @@ describe('model-params DTOs', () => {
 
     it('rejects empty provider', () => {
       const dto = plainToInstance(DeleteModelParamsBodyDto, {
+        scope: 'tier:simple',
         provider: '',
         authType: 'api_key',
         model: 'deepseek-v4',

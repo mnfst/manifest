@@ -13,6 +13,7 @@ import {
   setHeaderTierFallbacks,
   clearHeaderTierFallbacks,
 } from '../services/api/header-tiers.js';
+import { modelParamsScopeForHeaderTier } from '../services/api.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import { authBadgeFor } from './AuthBadge.js';
 import { resolveProviderId, inferProviderFromModel, pricePerM } from '../services/routing-utils.js';
@@ -53,16 +54,18 @@ interface Props {
   /**
    * Per-route params getter, threaded from the routing page boundary. When
    * present, the primary chip and every fallback row render a
-   * `<ModelParamsAffordance>` for their own `(provider, authType, model)`
-   * tuple. Closes the gap where the custom (header-tier) routing surface
-   * had no params support at all.
+   * `<ModelParamsAffordance>` for their own scoped `(provider, authType,
+   * model)` tuple. Closes the gap where the custom (header-tier) routing
+   * surface had no params support at all.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
   ) => RequestParamDefaults | null;
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -79,6 +82,7 @@ const HeaderTierCard: Component<Props> = (props) => {
 
   const currentModel = (): string | null => props.tier.override_route?.model ?? null;
   const fallbacks = (): string[] => props.tier.fallback_routes?.map((r) => r.model) ?? [];
+  const modelParamsScope = () => modelParamsScopeForHeaderTier(props.tier.id);
 
   const providerId = (): string | undefined => {
     const m = currentModel();
@@ -328,6 +332,7 @@ const HeaderTierCard: Component<Props> = (props) => {
                     }
                   >
                     <ModelParamsAffordance
+                      scope={modelParamsScope()}
                       provider={providerId()}
                       authType={(effectiveAuth() as AuthType) ?? undefined}
                       model={modelName()}
@@ -376,6 +381,7 @@ const HeaderTierCard: Component<Props> = (props) => {
           <FallbackList
             agentName={props.agentName}
             tier={props.tier.id}
+            modelParamsScope={modelParamsScope()}
             fallbacks={fallbacks()}
             fallbackRoutes={props.tier.fallback_routes ?? null}
             models={props.models}

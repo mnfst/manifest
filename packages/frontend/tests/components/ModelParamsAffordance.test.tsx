@@ -10,6 +10,7 @@ describe('ModelParamsAffordance', () => {
         authType="api_key"
         model="deepseek-v4"
         slotLabel="deepseek-v4-flash"
+        scope="tier:simple"
         getParams={() => null}
         setParams={vi.fn()}
       />
@@ -26,6 +27,7 @@ describe('ModelParamsAffordance', () => {
         authType="api_key"
         model="gpt-4o"
         slotLabel="gpt-4o"
+        scope="tier:simple"
         getParams={() => null}
         setParams={vi.fn()}
       />
@@ -40,6 +42,7 @@ describe('ModelParamsAffordance', () => {
         authType={undefined}
         model="deepseek-v4"
         slotLabel="deepseek-v4"
+        scope="tier:simple"
         getParams={() => null}
         setParams={vi.fn()}
       />
@@ -54,6 +57,7 @@ describe('ModelParamsAffordance', () => {
         authType="api_key"
         model="deepseek-v4"
         slotLabel="deepseek-v4"
+        scope="tier:simple"
         getParams={() => null}
         setParams={vi.fn()}
       />
@@ -68,6 +72,7 @@ describe('ModelParamsAffordance', () => {
         authType="api_key"
         model="deepseek-v4"
         slotLabel="deepseek-v4"
+        scope="tier:simple"
         getParams={() => ({ thinking: 'disabled' })}
         setParams={vi.fn()}
       />
@@ -86,6 +91,7 @@ describe('ModelParamsAffordance', () => {
         authType="api_key"
         model="deepseek-v4"
         slotLabel="deepseek-v4"
+        scope="tier:simple"
         getParams={() => null}
         setParams={setParams}
       />
@@ -104,7 +110,7 @@ describe('ModelParamsAffordance', () => {
     fireEvent.click(save);
 
     await waitFor(() => {
-      expect(setParams).toHaveBeenCalledWith('deepseek', 'api_key', 'deepseek-v4', {
+      expect(setParams).toHaveBeenCalledWith('tier:simple', 'deepseek', 'api_key', 'deepseek-v4', {
         thinking: 'disabled',
       });
     });
@@ -118,6 +124,7 @@ describe('ModelParamsAffordance', () => {
         authType="api_key"
         model="deepseek-v4"
         slotLabel="deepseek-v4"
+        scope="tier:simple"
         getParams={() => ({ thinking: 'disabled' })}
         setParams={setParams}
       />
@@ -135,7 +142,13 @@ describe('ModelParamsAffordance', () => {
     fireEvent.click(save);
 
     await waitFor(() => {
-      expect(setParams).toHaveBeenCalledWith('deepseek', 'api_key', 'deepseek-v4', null);
+      expect(setParams).toHaveBeenCalledWith(
+        'tier:simple',
+        'deepseek',
+        'api_key',
+        'deepseek-v4',
+        null,
+      );
     });
   });
 
@@ -146,6 +159,7 @@ describe('ModelParamsAffordance', () => {
         authType="api_key"
         model="deepseek-v4"
         slotLabel="deepseek-v4"
+        scope="tier:simple"
         getParams={() => null}
         setParams={vi.fn()}
         disabled

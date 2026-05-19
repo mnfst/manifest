@@ -44,6 +44,7 @@ describe('ModelParamsController', () => {
     it('returns the projected list for the agent', async () => {
       service.list.mockResolvedValueOnce([
         {
+          scope_key: 'tier:simple',
           provider: 'deepseek',
           auth_type: 'api_key',
           model_name: 'deepseek-v4',
@@ -55,6 +56,7 @@ describe('ModelParamsController', () => {
 
       expect(result).toEqual([
         {
+          scope: 'tier:simple',
           provider: 'deepseek',
           authType: 'api_key',
           model: 'deepseek-v4',
@@ -67,6 +69,7 @@ describe('ModelParamsController', () => {
   describe('PUT /model-params', () => {
     it('persists compatible params and returns the projected row', async () => {
       service.set.mockResolvedValueOnce({
+        scope_key: 'tier:simple',
         provider: 'deepseek',
         auth_type: 'api_key',
         model_name: 'deepseek-v4',
@@ -77,6 +80,7 @@ describe('ModelParamsController', () => {
         mockUser,
         { agentName: 'demo' },
         {
+          scope: 'tier:simple',
           provider: 'deepseek',
           authType: 'api_key',
           model: 'deepseek-v4',
@@ -87,12 +91,14 @@ describe('ModelParamsController', () => {
       expect(service.set).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
+        'tier:simple',
         'deepseek',
         'api_key',
         'deepseek-v4',
         { thinking: 'disabled' },
       );
       expect(result).toEqual({
+        scope: 'tier:simple',
         provider: 'deepseek',
         authType: 'api_key',
         model: 'deepseek-v4',
@@ -102,7 +108,8 @@ describe('ModelParamsController', () => {
 
     it('persists all Anthropic API-key scalar params', async () => {
       service.set.mockImplementation(
-        async (_agentId, _userId, provider, authType, model, params) => ({
+        async (_agentId, _userId, scope, provider, authType, model, params) => ({
+          scope_key: scope,
           provider,
           auth_type: authType,
           model_name: model,
@@ -121,6 +128,7 @@ describe('ModelParamsController', () => {
         mockUser,
         { agentName: 'demo' },
         {
+          scope: 'tier:expert',
           provider: 'anthropic',
           authType: 'api_key',
           model: 'claude-opus-4-7',
@@ -131,6 +139,7 @@ describe('ModelParamsController', () => {
       expect(service.set).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
+        'tier:expert',
         'anthropic',
         'api_key',
         'claude-opus-4-7',
@@ -140,7 +149,8 @@ describe('ModelParamsController', () => {
     });
 
     it('strips keys the provider does not consume and persists only the compatible subset', async () => {
-      service.set.mockImplementation(async (_a, _u, p, a, m, params) => ({
+      service.set.mockImplementation(async (_a, _u, scope, p, a, m, params) => ({
+        scope_key: scope,
         provider: p,
         auth_type: a,
         model_name: m,
@@ -154,6 +164,7 @@ describe('ModelParamsController', () => {
         mockUser,
         { agentName: 'demo' },
         {
+          scope: 'tier:simple',
           provider: 'deepseek',
           authType: 'api_key',
           model: 'deepseek-v4',
@@ -170,6 +181,7 @@ describe('ModelParamsController', () => {
           mockUser,
           { agentName: 'demo' },
           {
+            scope: 'tier:simple',
             provider: 'deepseek',
             authType: 'api_key',
             model: 'deepseek-v4',
@@ -185,6 +197,7 @@ describe('ModelParamsController', () => {
           mockUser,
           { agentName: 'demo' },
           {
+            scope: 'tier:simple',
             provider: 'openai',
             authType: 'api_key',
             model: 'gpt-4o',
@@ -201,13 +214,20 @@ describe('ModelParamsController', () => {
         mockUser,
         { agentName: 'demo' },
         {
+          scope: 'tier:simple',
           provider: 'deepseek',
           authType: 'api_key',
           model: 'deepseek-v4',
         },
       );
 
-      expect(service.delete).toHaveBeenCalledWith('agent-1', 'deepseek', 'api_key', 'deepseek-v4');
+      expect(service.delete).toHaveBeenCalledWith(
+        'agent-1',
+        'tier:simple',
+        'deepseek',
+        'api_key',
+        'deepseek-v4',
+      );
       expect(result).toEqual({ ok: true });
     });
   });

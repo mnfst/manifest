@@ -300,7 +300,7 @@ describe('ProxyService — orchestration', () => {
       expect(momentum.recordCategory).not.toHaveBeenCalled();
     });
 
-    it('hands the fallback service a paramMergeContext carrying just the agentId', async () => {
+    it('hands the fallback service a paramMergeContext carrying the agentId and route scope', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
@@ -322,7 +322,7 @@ describe('ProxyService — orchestration', () => {
       // service so each fallback iteration looks up its own (provider,
       // auth, model) tuple.
       expect(call.body).toEqual({ messages: [{ role: 'user', content: 'hi' }] });
-      expect(call.paramMergeContext).toEqual({ agentId: 'agent-1' });
+      expect(call.paramMergeContext).toEqual({ agentId: 'agent-1', scopeKey: 'tier:standard' });
     });
 
     it('looks up the primary route model params for the snapshot', async () => {
@@ -345,10 +345,43 @@ describe('ProxyService — orchestration', () => {
       await svc.proxyRequest(baseOpts());
       expect(modelParamsService.get).toHaveBeenCalledWith(
         'agent-1',
+        'tier:standard',
         'deepseek',
         'api_key',
         'deepseek-v4-flash',
       );
+    });
+
+    it('scopes primary model params by the matched routing surface', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'specificity',
+        specificity_category: 'coding',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(modelParamsService.get).toHaveBeenCalledWith(
+        'agent-1',
+        'specificity:coding',
+        'deepseek',
+        'api_key',
+        'deepseek-v4-flash',
+      );
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].paramMergeContext).toEqual({
+        agentId: 'agent-1',
+        scopeKey: 'specificity:coding',
+      });
     });
 
     // Snapshot lookup must use the same normalized model id as the forward.
@@ -374,6 +407,7 @@ describe('ProxyService — orchestration', () => {
       await svc.proxyRequest(baseOpts());
       expect(modelParamsService.get).toHaveBeenCalledWith(
         'agent-1',
+        'tier:standard',
         'anthropic',
         'api_key',
         'claude-sonnet-4-6',

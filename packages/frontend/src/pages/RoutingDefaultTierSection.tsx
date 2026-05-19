@@ -8,6 +8,7 @@ import type {
   TierAssignment,
 } from '../services/api.js';
 import { DEFAULT_STAGE, STAGES } from '../services/providers.js';
+import { modelParamsScopeForTier } from '../services/api.js';
 import RoutingTierCard from './RoutingTierCard.js';
 
 export interface RoutingDefaultTierSectionProps {
@@ -45,6 +46,7 @@ export interface RoutingDefaultTierSectionProps {
    * affordance shows the configured-state badge without per-row fetches.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -55,6 +57,7 @@ export interface RoutingDefaultTierSectionProps {
    * callback down to the affordance.
    */
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -73,6 +76,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
     >
       <RoutingTierCard
         stage={DEFAULT_STAGE}
+        modelParamsScope={modelParamsScopeForTier(DEFAULT_STAGE.id)}
         tier={props.tier}
         models={props.models}
         customProviders={props.customProviders}
@@ -103,6 +107,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
         {(stage) => (
           <RoutingTierCard
             stage={stage}
+            modelParamsScope={modelParamsScopeForTier(stage.id)}
             tier={() => props.getTier(stage.id)}
             models={props.models}
             customProviders={props.customProviders}

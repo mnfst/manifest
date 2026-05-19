@@ -38,8 +38,11 @@ vi.mock("../../src/services/api.js", () => ({
   listModelParams: (...args: unknown[]) => mockListModelParams(...args),
   setModelParams: (...args: unknown[]) => mockSetModelParams(...args),
   deleteModelParams: (...args: unknown[]) => mockDeleteModelParams(...args),
-  modelParamsKey: (provider: string, authType: string, model: string) =>
-    `${provider.toLowerCase()}::${authType}::${model}`,
+  modelParamsKey: (scope: string, provider: string, authType: string, model: string) =>
+    `${scope}::${provider.toLowerCase()}::${model}::${authType}`,
+  modelParamsScopeForTier: (tier: string) => `tier:${tier}`,
+  modelParamsScopeForSpecificity: (category: string) => `specificity:${category}`,
+  modelParamsScopeForHeaderTier: (id: string) => `header:${id}`,
   // Re-export types only — no runtime impact
 }));
 
@@ -294,12 +297,13 @@ vi.mock("../../src/pages/RoutingDefaultTierSection.js", () => ({
           onClick={() =>
             (
               props.setModelParams as (
+                scope: string,
                 provider: string,
                 authType: string,
                 model: string,
                 p: { thinking: "enabled" | "disabled" } | null,
               ) => Promise<unknown>
-            )("deepseek", "api_key", "deepseek-v4", { thinking: "disabled" })
+            )("tier:default", "deepseek", "api_key", "deepseek-v4", { thinking: "disabled" })
           }
         >
           default-persist-params
@@ -309,12 +313,13 @@ vi.mock("../../src/pages/RoutingDefaultTierSection.js", () => ({
           onClick={() =>
             (
               props.setModelParams as (
+                scope: string,
                 provider: string,
                 authType: string,
                 model: string,
                 p: { thinking: "enabled" | "disabled" } | null,
               ) => Promise<unknown>
-            )("deepseek", "api_key", "deepseek-v4", null)
+            )("tier:default", "deepseek", "api_key", "deepseek-v4", null)
           }
         >
           default-saved-params
@@ -341,12 +346,14 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
       authType?: string,
     ) => void;
     setModelParams?: (
+      scope: string,
       provider: string,
       authType: string,
       model: string,
       paramDefaults: { thinking: "enabled" | "disabled" } | null,
     ) => Promise<unknown>;
     getModelParams?: (
+      scope: string,
       provider: string,
       authType: string,
       model: string,
@@ -414,7 +421,7 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
       <button
         data-testid="spec-persist-params"
         onClick={() =>
-          props.setModelParams?.("deepseek", "api_key", "deepseek-v4", {
+          props.setModelParams?.("specificity:coding", "deepseek", "api_key", "deepseek-v4", {
             thinking: "disabled",
           })
         }
@@ -423,7 +430,9 @@ vi.mock("../../src/pages/RoutingSpecificitySection.js", () => ({
       </button>
       <button
         data-testid="spec-saved-params"
-        onClick={() => props.getModelParams?.("deepseek", "api_key", "deepseek-v4")}
+        onClick={() =>
+          props.getModelParams?.("specificity:coding", "deepseek", "api_key", "deepseek-v4")
+        }
       >
         spec-saved-params
       </button>
@@ -1199,12 +1208,14 @@ describe("Routing page", () => {
     // covering provider/authType/model comparison) and keeps the non-match.
     mockListModelParams.mockResolvedValue([
       {
+        scope: "tier:default",
         provider: "DeepSeek",
         authType: "api_key",
         model: "deepseek-v4",
         params: { thinking: "enabled" },
       },
       {
+        scope: "specificity:coding",
         provider: "openai",
         authType: "api_key",
         model: "gpt-4o",
@@ -1212,6 +1223,7 @@ describe("Routing page", () => {
       },
     ]);
     mockSetModelParams.mockResolvedValue({
+      scope: "tier:default",
       provider: "deepseek",
       authType: "api_key",
       model: "deepseek-v4",
@@ -1224,6 +1236,7 @@ describe("Routing page", () => {
     fireEvent.click(screen.getByTestId("default-persist-params"));
     await waitFor(() => {
       expect(mockSetModelParams).toHaveBeenCalledWith("demo", {
+        scope: "tier:default",
         provider: "deepseek",
         authType: "api_key",
         model: "deepseek-v4",
@@ -1237,12 +1250,14 @@ describe("Routing page", () => {
     // match (case-insensitive provider compare) and retains the sibling.
     mockListModelParams.mockResolvedValue([
       {
+        scope: "tier:default",
         provider: "DeepSeek",
         authType: "api_key",
         model: "deepseek-v4",
         params: { thinking: "disabled" },
       },
       {
+        scope: "specificity:coding",
         provider: "anthropic",
         authType: "api_key",
         model: "claude-3-5-sonnet",
@@ -1257,6 +1272,7 @@ describe("Routing page", () => {
     fireEvent.click(screen.getByTestId("default-saved-params"));
     await waitFor(() => {
       expect(mockDeleteModelParams).toHaveBeenCalledWith("demo", {
+        scope: "tier:default",
         provider: "deepseek",
         authType: "api_key",
         model: "deepseek-v4",
@@ -1266,6 +1282,7 @@ describe("Routing page", () => {
 
   it("setModelParams on the Specificity Section calls the new endpoint", async () => {
     mockSetModelParams.mockResolvedValue({
+      scope: "specificity:coding",
       provider: "deepseek",
       authType: "api_key",
       model: "deepseek-v4",

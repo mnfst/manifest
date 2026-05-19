@@ -1,6 +1,7 @@
 import { createSignal, For, Show, type Component, type Accessor, type JSX } from 'solid-js';
 import { toast } from '../services/toast-store.js';
 import {
+  modelParamsScopeForSpecificity,
   toggleSpecificity,
   setSpecificityFallbacks,
   clearSpecificityFallbacks,
@@ -165,12 +166,14 @@ export interface RoutingSpecificitySectionProps {
    * state without per-row fetches.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
   ) => RequestParamDefaults | null;
   /** Persist new params for a single route. */
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -242,6 +245,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
             {(stage) => (
               <RoutingTierCard
                 stage={stage}
+                modelParamsScope={modelParamsScopeForSpecificity(stage.id)}
                 tier={() => toTierAssignment(getAssignment(stage.id))}
                 models={props.models}
                 customProviders={props.customProviders}

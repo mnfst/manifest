@@ -35,18 +35,16 @@ import type { SignatureLookup, ThinkingBlockLookup } from './proxy-types';
 import type { ProxyApiMode } from './proxy-types';
 
 /**
- * Context for the per-attempt param-defaults merge. Carries the agentId so
- * `applyParamMerge` can ask the model-params service for the configuration
- * that belongs to this attempt's (provider, auth_type, model) tuple — not
- * the primary route's. Storage is model-scoped on the new
- * `agent_model_params` table, so cross-provider leak is structurally
- * impossible; we no longer need a provider-keyed filter, and Manifest's
- * old tier-aware opinion layer is gone too. The registry for the exact
- * provider/auth/model route decides which saved UI values can become
- * outbound wire fields.
+ * Context for the per-attempt param-defaults merge. Carries the agentId and
+ * route scope so `applyParamMerge` can ask the model-params service for the
+ * configuration that belongs to this attempt's scoped (provider, auth_type,
+ * model) tuple — not merely the primary model or a globally shared model row.
+ * The registry for the exact provider/auth/model route decides which saved
+ * UI values can become outbound wire fields.
  */
 export interface ParamMergeContext {
   agentId: string;
+  scopeKey: string;
 }
 
 export interface FailedFallback {
@@ -81,7 +79,7 @@ export class ProxyFallbackService {
 
   /**
    * Per-attempt merge: look up the user's saved params for this
-   * (agent, provider, auth_type, model) tuple and fold them into the
+   * (agent, scope, provider, auth_type, model) tuple and fold them into the
    * outbound body. Returns the original body unchanged when no config
    * exists — the provider's natural default applies in that case.
    *
@@ -100,6 +98,7 @@ export class ProxyFallbackService {
     const typedAuthType = authType as AuthType;
     const modelParams = await this.modelParamsService.get(
       ctx.agentId,
+      ctx.scopeKey,
       provider,
       typedAuthType,
       model,
@@ -340,10 +339,9 @@ export class ProxyFallbackService {
       thinkingLookup,
     } = opts;
     // Per-attempt merge: ask the model-params service for this iteration's
-    // (provider, auth_type, model) config. Storage is model-scoped on the
-    // new agent_model_params table, so a primary OpenAI route with a
-    // DeepSeek fallback no longer needs the old per-provider filter —
-    // OpenAI's lookup returns null, DeepSeek's returns its own row.
+    // scoped (provider, auth_type, model) config. A primary OpenAI route
+    // with a DeepSeek fallback gets the same route scope but different
+    // provider/model tuple, so each attempt reads only its own row.
     const body = await this.applyParamMerge(
       opts.body,
       opts.paramMergeContext,

@@ -36,6 +36,13 @@ export { applyRequestParamDefaults } from './request-params';
 export type { JsonPrimitive, JsonValue, RequestParamDefaults } from './request-params';
 export { snapshotRequestParams } from './request-params-snapshot';
 export type { RequestParamsSnapshotInput } from './request-params-snapshot';
+export {
+  modelParamsScopeForTier,
+  modelParamsScopeForSpecificity,
+  modelParamsScopeForHeaderTier,
+  modelParamsScopeForRouting,
+} from './model-params-scope';
+export type { ModelParamsRoutingScopeInput } from './model-params-scope';
 export { providerThinkingDefault } from './thinking-defaults';
 export type { ThinkingState } from './thinking-defaults';
 export {

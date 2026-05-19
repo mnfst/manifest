@@ -263,6 +263,7 @@ describe('AgentDuplicationService', () => {
             id: 'mp1',
             user_id: 'u1',
             agent_id: 'src-1',
+            scope_key: 'tier:simple',
             provider: 'deepseek',
             auth_type: 'api_key',
             model_name: 'deepseek-v4',
@@ -275,6 +276,7 @@ describe('AgentDuplicationService', () => {
             id: 'mp2',
             user_id: 'u1',
             agent_id: 'src-1',
+            scope_key: 'header:ht-1',
             provider: 'custom:cp1',
             auth_type: 'api_key',
             model_name: 'qwen-72b',
@@ -327,10 +329,12 @@ describe('AgentDuplicationService', () => {
       ] as string;
       const deepseekRow = mpRows.find((r) => r['provider'] === 'deepseek')!;
       expect(deepseekRow['agent_id']).toBe(agentRow['id']);
+      expect(deepseekRow['scope_key']).toBe('tier:simple');
       expect(deepseekRow['model_name']).toBe('deepseek-v4');
       expect(deepseekRow['params']).toEqual({ thinking: 'disabled' });
       const customRow = mpRows.find((r) => String(r['provider']).startsWith('custom:'))!;
       expect(customRow['provider']).toBe(`custom:${newCustomId}`);
+      expect(customRow['scope_key']).toBe('header:ht-1');
       expect(customRow['agent_id']).toBe(agentRow['id']);
 
       expect(mockInvalidateAgent).toHaveBeenCalledWith(agentRow['id']);

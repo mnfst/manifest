@@ -99,6 +99,8 @@ import { AddAgentModelParams1787000000000 } from './migrations/1787000000000-Add
 import { AddBenchmarkHistory1788000000000 } from './migrations/1788000000000-AddBenchmarkHistory';
 import { RenameBenchmarkToPlayground1789000000000 } from './migrations/1789000000000-RenameBenchmarkToPlayground';
 import { AddOAuthPendingFlows1789100000000 } from './migrations/1789100000000-AddOAuthPendingFlows';
+import { FlattenAgentModelParamsThinking1789200000000 } from './migrations/1789200000000-FlattenAgentModelParamsThinking';
+import { ScopeAgentModelParams1789300000000 } from './migrations/1789300000000-ScopeAgentModelParams';
 
 const entities = [
   AgentMessage,
@@ -199,6 +201,8 @@ const migrations = [
   AddBenchmarkHistory1788000000000,
   RenameBenchmarkToPlayground1789000000000,
   AddOAuthPendingFlows1789100000000,
+  FlattenAgentModelParamsThinking1789200000000,
+  ScopeAgentModelParams1789300000000,
 ];
 
 @Module({

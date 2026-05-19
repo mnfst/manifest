@@ -28,6 +28,7 @@ export class ModelParamsController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const rows = await this.modelParamsService.list(agent.id);
     return rows.map((r) => ({
+      scope: r.scope_key,
       provider: r.provider,
       authType: r.auth_type,
       model: r.model_name,
@@ -36,10 +37,10 @@ export class ModelParamsController {
   }
 
   /**
-   * Upsert one route's params. Body shape carries the full route identity
-   * because model names can contain slashes (e.g. `anthropic/claude-3.5-…`)
-   * and putting them in the URL path requires encoding gymnastics no client
-   * remembers to do.
+   * Upsert one scoped route's params. Body shape carries the full route
+   * identity because model names can contain slashes (e.g.
+   * `anthropic/claude-3.5-…`) and putting them in the URL path requires
+   * encoding gymnastics no client remembers to do.
    *
    * Provider/key compatibility is enforced here, not in the DTO: the DTO
    * preserves the params object while this method checks the
@@ -62,12 +63,14 @@ export class ModelParamsController {
     const saved = await this.modelParamsService.set(
       agent.id,
       user.id,
+      body.scope,
       body.provider,
       body.authType,
       body.model,
       sanitized,
     );
     return {
+      scope: saved.scope_key,
       provider: saved.provider,
       authType: saved.auth_type,
       model: saved.model_name,
@@ -87,7 +90,13 @@ export class ModelParamsController {
     @Body() body: DeleteModelParamsBodyDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    await this.modelParamsService.delete(agent.id, body.provider, body.authType, body.model);
+    await this.modelParamsService.delete(
+      agent.id,
+      body.scope,
+      body.provider,
+      body.authType,
+      body.model,
+    );
     return { ok: true };
   }
 

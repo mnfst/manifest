@@ -34,6 +34,7 @@ describe('model-params API client', () => {
       text: () => Promise.resolve('{}'),
     } as Response);
     await setModelParams('demo', {
+      scope: 'tier:simple',
       provider: 'deepseek',
       authType: 'api_key',
       model: 'deepseek-v4',
@@ -43,6 +44,7 @@ describe('model-params API client', () => {
     expect(url).toContain('/api/v1/routing/demo/model-params');
     expect((init as RequestInit).method).toBe('PUT');
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      scope: 'tier:simple',
       provider: 'deepseek',
       authType: 'api_key',
       model: 'deepseek-v4',
@@ -57,6 +59,7 @@ describe('model-params API client', () => {
       text: () => Promise.resolve('{"ok":true}'),
     } as Response);
     await deleteModelParams('demo', {
+      scope: 'tier:simple',
       provider: 'deepseek',
       authType: 'api_key',
       model: 'deepseek-v4',
@@ -64,6 +67,7 @@ describe('model-params API client', () => {
     const [, init] = vi.mocked(fetch).mock.calls[0];
     expect((init as RequestInit).method).toBe('DELETE');
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      scope: 'tier:simple',
       provider: 'deepseek',
       authType: 'api_key',
       model: 'deepseek-v4',
@@ -72,14 +76,14 @@ describe('model-params API client', () => {
 
   describe('modelParamsKey', () => {
     it('lowercases the provider so case differences between save and lookup do not break the index', () => {
-      expect(modelParamsKey('DeepSeek', 'api_key', 'deepseek-v4')).toBe(
-        'deepseek::api_key::deepseek-v4',
+      expect(modelParamsKey('tier:simple', 'DeepSeek', 'api_key', 'deepseek-v4')).toBe(
+        'tier:simple::deepseek::deepseek-v4::api_key',
       );
     });
 
     it('keeps auth_type and model verbatim (case-sensitive on those segments)', () => {
-      expect(modelParamsKey('openai', 'subscription', 'gpt-4o')).toBe(
-        'openai::subscription::gpt-4o',
+      expect(modelParamsKey('header:abc', 'openai', 'subscription', 'gpt-4o')).toBe(
+        'header:abc::openai::gpt-4o::subscription',
       );
     });
   });

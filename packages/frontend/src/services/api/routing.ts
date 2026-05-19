@@ -173,9 +173,9 @@ export function toggleComplexity(agentName: string) {
  * Per-route outbound request body parameters merged into the provider
  * request before forwarding. Current built-in keys include DeepSeek
  * `thinking` and Anthropic generation controls; new keys land here as
- * their UI ships. Storage is per-(agent, route) on the
- * `agent_model_params` table — see `services/api/model-params.ts` for the
- * CRUD client.
+ * their UI ships. Storage is per-(agent, scoped route) on the
+ * `agent_model_params` table, so the same model can differ by tier — see
+ * `services/api/model-params.ts` for the CRUD client.
  */
 export type { JsonValue, RequestParamDefaults } from 'manifest-shared';
 

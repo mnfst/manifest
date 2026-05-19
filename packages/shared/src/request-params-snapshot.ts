@@ -9,7 +9,7 @@ import type { JsonValue, RequestParamDefaults } from './request-params';
  * 1. Whatever route-supported param keys the client sent in their body (top
  *    precedence by presence — including explicit `null`).
  * 2. The user's stored params for this attempt's (provider, auth_type,
- *    model) tuple, looked up from the per-route `agent_model_params` table.
+ *    model) tuple, looked up from the scoped `agent_model_params` table.
  * 3. The provider/auth/model spec's natural UI default so a request where
  *    neither the client nor the user configured anything still records the
  *    effective value.
@@ -26,8 +26,8 @@ export interface RequestParamsSnapshotInput {
   /** The inbound (pre-merge) client request body. */
   body: Record<string, unknown>;
   /**
-   * Saved per-route params for the attempt's (provider, auth_type, model)
-   * tuple, or `null` when nothing is configured. Pre-filtered by the
+   * Saved per-route params for the attempt's scoped (provider, auth_type,
+   * model) tuple, or `null` when nothing is configured. Pre-filtered by the
    * controller's compatibility gate, so any keys present are already known
    * to be consumed by the attempt's provider.
    */

@@ -15,6 +15,10 @@ export class ModelParamsBodyDto {
 export class SetModelParamsBodyDto extends ModelParamsBodyDto {
   @IsString()
   @IsNotEmpty()
+  scope!: string;
+
+  @IsString()
+  @IsNotEmpty()
   provider!: string;
 
   @IsIn(AUTH_TYPES)
@@ -31,6 +35,10 @@ export class SetModelParamsBodyDto extends ModelParamsBodyDto {
 }
 
 export class DeleteModelParamsBodyDto {
+  @IsString()
+  @IsNotEmpty()
+  scope!: string;
+
   @IsString()
   @IsNotEmpty()
   provider!: string;

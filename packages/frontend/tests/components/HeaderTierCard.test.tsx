@@ -1186,6 +1186,7 @@ describe("HeaderTierCard", () => {
     fireEvent.click(getByRole("button", { name: "Save" }));
     await waitFor(() => {
       expect(setModelParams).toHaveBeenCalledWith(
+        "header:ht-1",
         "deepseek",
         "api_key",
         "deepseek-v4",

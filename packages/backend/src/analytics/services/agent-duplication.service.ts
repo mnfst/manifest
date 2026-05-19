@@ -238,6 +238,7 @@ export class AgentDuplicationService {
             id: uuidv4(),
             user_id: p.user_id,
             agent_id: newAgentId,
+            scope_key: p.scope_key,
             // Same `custom:<uuid>` remap as user_providers / tier_assignments
             // / specificity_assignments above. Without this, a params row
             // configured for `custom:<old-uuid>` would point to the source

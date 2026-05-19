@@ -12,7 +12,11 @@ import { LimitCheckService } from '../../notifications/services/limit-check.serv
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
 import type { RequestParamDefaults, SpecificityCategory, TierSlot } from 'manifest-shared';
-import { SPECIFICITY_CATEGORIES, snapshotRequestParams } from 'manifest-shared';
+import {
+  SPECIFICITY_CATEGORIES,
+  modelParamsScopeForRouting,
+  snapshotRequestParams,
+} from 'manifest-shared';
 import type { ParamMergeContext } from './proxy-fallback.service';
 import {
   ProxyFallbackService,
@@ -85,7 +89,7 @@ export interface RoutingMeta {
    * Effective request body parameters for this attempt — the merged result
    * of (1) route-supported client body keys, (2) the user's saved
    * per-route params from `agent_model_params` for the attempt's
-   * (provider, auth_type, model) tuple, and (3) the provider's natural
+   * (scope, provider, auth_type, model) tuple, and (3) the provider's natural
    * API default for any unset key. Persisted on
    * `agent_messages.request_params` so the dashboard can show "this
    * request had thinking=disabled" alongside Request Headers in the
@@ -187,10 +191,15 @@ export class ProxyService {
 
     // Per-attempt param-defaults merge happens inside the fallback service
     // so each forward (primary + every fallback iteration) looks up its
-    // own (provider, auth_type, model) tuple in the model-params service.
-    // Pass the agentId here as a thin context bag; the storage is already
-    // route-scoped, so no per-provider filter is needed downstream.
-    const paramMergeContext: ParamMergeContext = { agentId };
+    // own scoped (provider, auth_type, model) tuple in the model-params
+    // service. Pass the agentId + route scope here as a thin context bag;
+    // storage is already route-scoped, so no per-provider filter is needed.
+    const modelParamsScope = modelParamsScopeForRouting({
+      tier: resolved.tier,
+      specificityCategory: resolved.specificity_category,
+      headerTierId: resolved.header_tier_id,
+    });
+    const paramMergeContext: ParamMergeContext = { agentId, scopeKey: modelParamsScope };
 
     // Snapshot of which known param keys are *effectively in play* for the
     // primary attempt. Stored on every `agent_messages` row recorded for
@@ -200,6 +209,7 @@ export class ProxyService {
     // provider so the persisted snapshot matches what was sent on that row.
     const primaryModelParams = await this.modelParamsService.get(
       agentId,
+      modelParamsScope,
       route.provider,
       route.authType,
       primaryModel,
@@ -477,12 +487,13 @@ export class ProxyService {
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
 
     if (success) {
-      // Re-snapshot for the fallback's actual provider — its model-scoped
-      // params row (if any) is what was actually applied. Different model
-      // → different lookup → different snapshot, matching the wire.
+      // Re-snapshot for the fallback's actual provider — its scoped params
+      // row (if any) is what was actually applied. Different route scope or
+      // model means different lookup, matching the wire.
       const fallbackModelParams = success.authType
         ? await this.modelParamsService.get(
             args.paramMergeContext.agentId,
+            args.paramMergeContext.scopeKey,
             success.provider,
             success.authType,
             success.model,
@@ -531,6 +542,7 @@ export class ProxyService {
       primaryProvider && primaryAuth && resolved.route
         ? await this.modelParamsService.get(
             args.paramMergeContext.agentId,
+            args.paramMergeContext.scopeKey,
             primaryProvider,
             primaryAuth as 'api_key' | 'subscription' | 'local',
             primaryModel,

@@ -6,6 +6,7 @@ const mockClearFallbacks = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   setFallbacks: (...args: unknown[]) => mockSetFallbacks(...args),
   clearFallbacks: (...args: unknown[]) => mockClearFallbacks(...args),
+  modelParamsScopeForTier: (tier: string) => `tier:${tier}`,
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({

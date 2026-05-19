@@ -4,6 +4,7 @@ import { render, fireEvent, waitFor } from "@solidjs/testing-library";
 const mockSetFallbacks = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   setFallbacks: (...args: unknown[]) => mockSetFallbacks(...args),
+  modelParamsScopeForTier: (tier: string) => `tier:${tier}`,
 }));
 
 const mockToastError = vi.fn();
@@ -1317,6 +1318,7 @@ describe("providerIdForModel route-provider attribution", () => {
     fireEvent.click(getByRole("button", { name: "Save" }));
     await waitFor(() => {
       expect(setModelParams).toHaveBeenCalledWith(
+        "tier:simple",
         "deepseek",
         "api_key",
         "deepseek-v4",
