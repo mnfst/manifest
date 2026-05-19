@@ -245,6 +245,7 @@
   align-items: center;
   gap: 10px;
   border: none;
+  appearance: none;
   background: none;
   cursor: pointer;
   font-family: var(--font-family);
@@ -280,7 +281,7 @@
 }
 
 .routing-switch--on .routing-switch__track {
-  background: #5bbcb4;
+  background-color: hsl(var(--success));
 }
 
 .routing-switch__thumb {
@@ -289,7 +290,7 @@
   left: 2px;
   width: 14px;
   height: 14px;
-  background: white;
+  background: hsl(var(--card));
   border-radius: 50%;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   transition: left var(--transition-fast);
