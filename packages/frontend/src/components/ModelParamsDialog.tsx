@@ -312,7 +312,10 @@ const ModelParamsDialog: Component<Props> = (props) => {
             {(spec) => (
               <div class="model-params__row">
                 <div class="model-params__label">
-                  <div class="model-params__label-title">{spec.control.label}</div>
+                  <div class="model-params__label-title">
+                    <span>{spec.control.label}</span>
+                    <code class="model-params__param-key">{spec.key}</code>
+                  </div>
                   <div class="model-params__label-hint">
                     Provider default: {spec.control.default}
                   </div>

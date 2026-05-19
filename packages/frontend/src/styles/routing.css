@@ -571,8 +571,23 @@
 }
 
 .model-params__label-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
   font-size: var(--font-size-sm);
   font-weight: 500;
+}
+
+.model-params__param-key {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-family-mono);
+  background: hsl(var(--muted) / 0.45);
+  border: 1px solid hsl(var(--border) / 0.7);
+  border-radius: var(--radius-sm);
+  padding: 1px 5px;
 }
 
 .model-params__label-hint {

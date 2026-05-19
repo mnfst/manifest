@@ -62,6 +62,11 @@ describe('ModelParamsDialog', () => {
     expect(q('.model-params__label-title')!.textContent).toContain('Thinking mode');
   });
 
+  it("renders the raw spec key as developer metadata", () => {
+    render(() => <ModelParamsDialog {...baseProps} />);
+    expect(q('.model-params__param-key')!.textContent).toBe('thinking');
+  });
+
   it('saves null when every chosen value matches the provider default', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(() => (
