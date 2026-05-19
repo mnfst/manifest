@@ -569,6 +569,64 @@ describe('MessagesQueryService', () => {
     expect(mockGetRawOne).toHaveBeenCalledTimes(2);
   });
 
+  it('passes routing_tier filter through to the query builder', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 2 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'gpt-4o-mini', cost: 0 },
+      ])
+      .mockResolvedValueOnce([{ model: 'gpt-4o-mini' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      routing_tier: 'playground',
+    });
+
+    expect(result.total_count).toBe(2);
+    const tierCall = andWhereSpy.mock.calls.find(
+      ([clause]) => typeof clause === 'string' && clause.includes('routing_tier'),
+    );
+    expect(tierCall).toBeDefined();
+    expect(tierCall?.[1]).toEqual({ tierFilter: 'playground' });
+  });
+
+  it('different routing_tier values produce different count cache keys', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 3 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'a', timestamp: '2026-04-24 10:00:00', model: 'x' }])
+      .mockResolvedValueOnce([{ model: 'x' }]);
+
+    await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      routing_tier: 'playground',
+    });
+
+    mockGetRawOne.mockResolvedValueOnce({ total: 11 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'b', timestamp: '2026-04-24 10:00:00', model: 'x' }])
+      .mockResolvedValueOnce([{ model: 'x' }]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      routing_tier: 'simple',
+    });
+
+    expect(result.total_count).toBe(11);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(2);
+  });
+
   it('different service_type produces different count cache key', async () => {
     // First call with no service_type
     mockGetRawOne.mockResolvedValueOnce({ total: 10 });

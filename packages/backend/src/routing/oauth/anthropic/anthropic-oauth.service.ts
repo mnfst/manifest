@@ -4,20 +4,12 @@ import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.
 import { scrubSecrets } from '../../../common/utils/secret-scrub';
 import {
   generatePkce,
-  generateState,
+  OAuthPendingFlowStore,
   parseOAuthTokenBlob,
-  PendingStore,
   serializeOAuthTokenBlob,
   type OAuthTokenBlob,
-  type PendingEntry,
 } from '../core';
 import { ANTHROPIC_OAUTH } from './anthropic-oauth.config';
-
-interface PendingAnthropicOAuth extends PendingEntry {
-  verifier: string;
-  agentId: string;
-  userId: string;
-}
 
 export interface AuthorizeResult {
   url: string;
@@ -30,6 +22,12 @@ interface AnthropicTokenResponse {
   expires_in: number;
   token_type?: string;
 }
+
+const PROVIDER = 'anthropic';
+const ANTHROPIC_OAUTH_TOKEN_HEADERS = {
+  'Content-Type': 'application/json',
+  'User-Agent': 'anthropic',
+} as const;
 
 /**
  * Splits Anthropic's pasted authorization payload. The redirect page renders
@@ -49,21 +47,26 @@ export function splitAnthropicAuthPayload(payload: string): { code: string; stat
 @Injectable()
 export class AnthropicOauthService {
   private readonly logger = new Logger(AnthropicOauthService.name);
-  private readonly pending = new PendingStore<PendingAnthropicOAuth>(ANTHROPIC_OAUTH.STATE_TTL_MS);
 
   constructor(
     private readonly providerService: ProviderService,
     private readonly discoveryService: ModelDiscoveryService,
+    private readonly pendingFlows: OAuthPendingFlowStore,
   ) {}
 
   /**
    * Build the authorize URL the user opens in a new tab. The state is also
    * returned so the SPA can pre-fill it on the paste-code step.
    */
-  generateAuthorizationUrl(agentId: string, userId: string): AuthorizeResult {
-    const state = generateState();
+  async generateAuthorizationUrl(agentId: string, userId: string): Promise<AuthorizeResult> {
     const { verifier, challenge } = generatePkce();
-    this.pending.set(state, { verifier, agentId, userId });
+    // Claude Code's Anthropic OAuth flow uses the PKCE verifier as state.
+    const state = verifier;
+    await this.pendingFlows.create(
+      PROVIDER,
+      { state, verifier, agentId, userId },
+      ANTHROPIC_OAUTH.STATE_TTL_MS,
+    );
 
     const params = new URLSearchParams({
       code: 'true',
@@ -83,35 +86,47 @@ export class AnthropicOauthService {
    * `payload` may be either the bare code or the `<code>#<state>` form
    * Anthropic's redirect page displays.
    */
-  async exchangeCode(payload: string, fallbackState?: string): Promise<void> {
+  async exchangeCode(
+    payload: string,
+    fallbackState: string | undefined,
+    agentId: string,
+    userId: string,
+  ): Promise<void> {
     const { code, state: extractedState } = splitAnthropicAuthPayload(payload);
-    const state = extractedState ?? fallbackState;
+    let state = extractedState ?? fallbackState?.trim();
     if (!code) throw new Error('Missing authorization code');
+    if (!state) {
+      const latest = await this.pendingFlows.findLatestForAgent(PROVIDER, agentId, userId);
+      state = latest?.state;
+    }
     if (!state) throw new Error('Missing OAuth state');
 
-    const pending = this.pending.peek(state);
+    const pending = await this.pendingFlows.consume(PROVIDER, state, agentId, userId);
     if (!pending) throw new Error('Invalid or expired OAuth state');
     if (pending.expiresAt < Date.now()) {
-      this.pending.delete(state);
       throw new Error('OAuth state expired');
     }
-    this.pending.delete(state);
 
+    const tokenRequest = {
+      grant_type: 'authorization_code',
+      code,
+      state,
+      client_id: ANTHROPIC_OAUTH.CLIENT_ID,
+      redirect_uri: ANTHROPIC_OAUTH.REDIRECT_URI,
+      code_verifier: pending.verifier || state,
+    };
     const response = await fetch(ANTHROPIC_OAUTH.TOKEN_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        grant_type: 'authorization_code',
-        code,
-        state,
-        client_id: ANTHROPIC_OAUTH.CLIENT_ID,
-        redirect_uri: ANTHROPIC_OAUTH.REDIRECT_URI,
-        code_verifier: pending.verifier,
-      }),
+      headers: ANTHROPIC_OAUTH_TOKEN_HEADERS,
+      body: JSON.stringify(tokenRequest),
     });
     if (!response.ok) {
       const text = await response.text();
-      this.logger.error(`Anthropic token exchange failed: ${scrubSecrets(text)}`);
+      this.logger.error(
+        `Anthropic token exchange failed: ${scrubSecrets(text)}; request_shape=${JSON.stringify(
+          describeTokenExchangeRequest(tokenRequest),
+        )}`,
+      );
       throw new Error('Token exchange failed');
     }
     const data = (await response.json()) as AnthropicTokenResponse;
@@ -121,11 +136,11 @@ export class AnthropicOauthService {
       e: Date.now() + data.expires_in * 1000,
     };
 
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'anthropic');
+    const label = await this.providerService.nextOAuthLabel(pending.agentId, PROVIDER);
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
-      'anthropic',
+      PROVIDER,
       serializeOAuthTokenBlob(blob),
       'subscription',
       undefined,
@@ -143,7 +158,7 @@ export class AnthropicOauthService {
   async refreshAccessToken(refreshToken: string): Promise<OAuthTokenBlob> {
     const response = await fetch(ANTHROPIC_OAUTH.TOKEN_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: ANTHROPIC_OAUTH_TOKEN_HEADERS,
       body: JSON.stringify({
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
@@ -200,12 +215,12 @@ export class AnthropicOauthService {
     }
   }
 
-  getPendingCount(): number {
-    return this.pending.size();
+  getPendingCount(): Promise<number> {
+    return this.pendingFlows.count(PROVIDER);
   }
 
-  clearPendingState(state: string): void {
-    this.pending.delete(state);
+  async clearPendingState(state: string): Promise<void> {
+    await this.pendingFlows.clear(PROVIDER, state);
   }
 
   /**
@@ -214,11 +229,40 @@ export class AnthropicOauthService {
    * or the page reloaded mid-flow. Only the `state` is returned — the PKCE
    * verifier stays server-side.
    */
-  findPendingForAgent(agentId: string): { state: string } | null {
-    // Linear scan — one entry per active flow per agent at most.
-    for (const [state, value] of this.pending.entries()) {
-      if (value.agentId === agentId) return { state };
-    }
-    return null;
+  async findPendingForAgent(agentId: string, userId: string): Promise<{ state: string } | null> {
+    const pending = await this.pendingFlows.findLatestForAgent(PROVIDER, agentId, userId);
+    return pending ? { state: pending.state } : null;
   }
+}
+
+function describeTokenExchangeRequest(request: {
+  grant_type: string;
+  code: unknown;
+  state: unknown;
+  client_id: unknown;
+  redirect_uri: unknown;
+  code_verifier: unknown;
+}) {
+  const codeLength = stringLength(request.code);
+  const stateLength = stringLength(request.state);
+  const codeVerifierLength = stringLength(request.code_verifier);
+  return {
+    grantType: request.grant_type,
+    hasCode: codeLength > 0,
+    codeLength,
+    hasState: stateLength > 0,
+    stateLength,
+    hasCodeVerifier: codeVerifierLength > 0,
+    codeVerifierLength,
+    stateMatchesCodeVerifier:
+      typeof request.state === 'string' &&
+      typeof request.code_verifier === 'string' &&
+      request.state === request.code_verifier,
+    hasClientId: stringLength(request.client_id) > 0,
+    hasRedirectUri: stringLength(request.redirect_uri) > 0,
+  };
+}
+
+function stringLength(value: unknown): number {
+  return typeof value === 'string' ? value.length : 0;
 }

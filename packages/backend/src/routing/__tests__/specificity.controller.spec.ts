@@ -196,44 +196,4 @@ describe('SpecificityController', () => {
       );
     });
   });
-
-  describe('setParamDefaults', () => {
-    it('persists defaults via the service when paramDefaults is supplied', async () => {
-      const updated = {
-        id: 'sa-1',
-        category: 'coding',
-        param_defaults: { thinking: { type: 'disabled' } },
-      };
-      mockSpecificityService.setParamDefaults.mockResolvedValue(updated);
-
-      const result = await controller.setParamDefaults(mockUser, 'test-agent', 'coding', {
-        paramDefaults: { thinking: { type: 'disabled' } },
-      });
-
-      expect(mockSpecificityService.setParamDefaults).toHaveBeenCalledWith(
-        'agent-1',
-        'user-1',
-        'coding',
-        { thinking: { type: 'disabled' } },
-      );
-      expect(result).toBe(updated);
-    });
-
-    it('clears defaults when paramDefaults is omitted', async () => {
-      mockSpecificityService.setParamDefaults.mockResolvedValue({} as never);
-      await controller.setParamDefaults(mockUser, 'test-agent', 'coding', {});
-      expect(mockSpecificityService.setParamDefaults).toHaveBeenCalledWith(
-        'agent-1',
-        'user-1',
-        'coding',
-        null,
-      );
-    });
-
-    it('rejects invalid category', async () => {
-      await expect(
-        controller.setParamDefaults(mockUser, 'test-agent', 'invalid', { paramDefaults: null }),
-      ).rejects.toThrow(BadRequestException);
-    });
-  });
 });

@@ -7,3 +7,5 @@ export * from './api/specificity.js';
 export * from './api/notifications.js';
 export * from './api/oauth.js';
 export * from './api/free-models.js';
+export * from './api/model-params.js';
+export * from './api/playground.js';

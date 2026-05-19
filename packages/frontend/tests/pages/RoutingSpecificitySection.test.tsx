@@ -56,6 +56,8 @@ vi.mock("../../src/pages/RoutingTierCard.js", () => ({
       props.persistClearFallbacks,
       props.persistParamDefaults,
       props.onParamDefaultsSaved,
+      props.getModelParams,
+      props.setModelParams,
     ];
     void _read;
     return (
@@ -112,6 +114,8 @@ function makeProps(
     onAddFallback: vi.fn(),
     refetchAll: vi.fn().mockResolvedValue(undefined),
     refetchSpecificity: vi.fn().mockResolvedValue(undefined),
+    getModelParams: () => null,
+    setModelParams: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
 }

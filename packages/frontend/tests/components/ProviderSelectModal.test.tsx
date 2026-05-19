@@ -66,7 +66,8 @@ vi.mock('../../src/services/toast-store.js', () => ({
 }));
 
 vi.mock('../../src/components/ProviderIcon.js', () => ({
-  providerIcon: () => null, customProviderLogo: () => null,
+  providerIcon: () => null,
+  customProviderLogo: () => null,
 }));
 
 import ProviderSelectModal from '../../src/components/ProviderSelectModal';
@@ -171,12 +172,17 @@ describe('ProviderSelectModal', () => {
     expect(screen.getByText('OpenRouter')).toBeDefined();
   });
 
-  it("does not show subscription-only providers in the API Keys tab", () => {
+  it('does not show subscription-only providers in the API Keys tab', () => {
     render(() => (
-      <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+      <ProviderSelectModal
+        providers={[]}
+        onClose={onClose}
+        onUpdate={onUpdate}
+        agentName="test-agent"
+      />
     ));
-    fireEvent.click(screen.getByText("API Keys"));
-    expect(screen.queryByText("GitHub Copilot")).toBeNull();
+    fireEvent.click(screen.getByText('API Keys'));
+    expect(screen.queryByText('GitHub Copilot')).toBeNull();
   });
 
   it("shows toggle switch in 'on' state for connected providers", () => {
@@ -552,7 +558,12 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByLabelText('Disconnect provider'));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'openai', 'api_key', undefined);
+        expect(mockDisconnectProvider).toHaveBeenCalledWith(
+          'test-agent',
+          'openai',
+          'api_key',
+          undefined,
+        );
       });
       expect(onUpdate).toHaveBeenCalled();
     });
@@ -1022,9 +1033,11 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect'));
 
       await waitFor(() => {
-        // The view strips the `#state` suffix before submitting; the state is
-        // provided alongside as the second arg.
-        expect(mockSubmitAnthropicOAuth).toHaveBeenCalledWith('test-agent', 'auth-code-123', 'xyz');
+        expect(mockSubmitAnthropicOAuth).toHaveBeenCalledWith(
+          'test-agent',
+          'auth-code-123#xyz',
+          'xyz',
+        );
       });
       expect(toast.success).toHaveBeenCalledWith('Anthropic subscription connected');
       windowOpenSpy.mockRestore();
@@ -1069,9 +1082,7 @@ describe('ProviderSelectModal', () => {
           agentName="test-agent"
         />
       ));
-      expect(
-        screen.getByText(/Use your existing subscription or paid plan/),
-      ).toBeDefined();
+      expect(screen.getByText(/Use your existing subscription or paid plan/)).toBeDefined();
     });
 
     it('shows tab hint text for API Keys tab', () => {
@@ -1310,9 +1321,7 @@ describe('ProviderSelectModal', () => {
 
     it('opens the popup synchronously then redirects it to the verification URL', async () => {
       const popup = { close: vi.fn(), opener: {}, location: { replace: vi.fn() } };
-      const openSpy = vi
-        .spyOn(window, 'open')
-        .mockReturnValue(popup as unknown as Window);
+      const openSpy = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window);
 
       render(() => (
         <ProviderSelectModal
@@ -1827,7 +1836,7 @@ describe('ProviderSelectModal', () => {
       ));
       fireEvent.click(screen.getByText('OpenAI'));
       // Should not have a setup token input field
-      const inputs = document.querySelectorAll(".provider-detail__input--masked");
+      const inputs = document.querySelectorAll('.provider-detail__input--masked');
       expect(inputs.length).toBe(0);
     });
 
@@ -2198,12 +2207,17 @@ describe('ProviderSelectModal', () => {
       vi.restoreAllMocks();
     });
 
-    it("opens device login view for copilot instead of toggling directly", async () => {
+    it('opens device login view for copilot instead of toggling directly', async () => {
       render(() => (
-        <ProviderSelectModal providers={[]} onClose={onClose} onUpdate={onUpdate} agentName="test-agent" />
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
       ));
       // Find the copilot row and click its toggle area
-      const copilotText = screen.getByText("GitHub Copilot");
+      const copilotText = screen.getByText('GitHub Copilot');
       expect(copilotText).toBeDefined();
 
       // Click the Copilot row (toggle)
@@ -2211,21 +2225,21 @@ describe('ProviderSelectModal', () => {
 
       // Should open device login detail view instead of calling connectProvider
       await waitFor(() => {
-        expect(screen.getByText("Connect providers")).toBeDefined();
+        expect(screen.getByText('Connect providers')).toBeDefined();
       });
       // connectProvider should NOT have been called (device login guard)
       expect(mockConnectProvider).not.toHaveBeenCalled();
     });
 
-    it("opens device login detail view for connected copilot (disconnect via detail)", async () => {
+    it('opens device login detail view for connected copilot (disconnect via detail)', async () => {
       const copilotSubProvider: RoutingProvider = {
-        id: "p-copilot",
-        provider: "copilot",
+        id: 'p-copilot',
+        provider: 'copilot',
         is_active: true,
         has_api_key: true,
-        key_prefix: "ghu_",
-        connected_at: "2025-01-01",
-        auth_type: "subscription",
+        key_prefix: 'ghu_',
+        connected_at: '2025-01-01',
+        auth_type: 'subscription',
       };
       render(() => (
         <ProviderSelectModal
@@ -2236,12 +2250,12 @@ describe('ProviderSelectModal', () => {
         />
       ));
       // Click the copilot row — always navigates to detail view
-      const copilotText = screen.getByText("GitHub Copilot");
+      const copilotText = screen.getByText('GitHub Copilot');
       fireEvent.click(copilotText);
 
       // Should open device login detail view (with disconnect button)
       await waitFor(() => {
-        expect(screen.getByText("Connected via GitHub device login.")).toBeDefined();
+        expect(screen.getByText('Connected via GitHub device login.')).toBeDefined();
       });
     });
   });

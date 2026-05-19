@@ -71,6 +71,14 @@ const Sidebar: Component<SidebarProps> = (props) => {
           Routing
         </A>
         <A
+          href={path('/playground')}
+          class="sidebar__link"
+          classList={{ active: isActive('/playground') }}
+          aria-current={isActive('/playground') ? 'page' : undefined}
+        >
+          Playground
+        </A>
+        <A
           href={path('/limits')}
           class="sidebar__link"
           classList={{ active: isActive('/limits') }}

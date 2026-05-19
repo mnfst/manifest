@@ -8,8 +8,16 @@ export {
   platformIcon,
 } from './agent-type';
 export type { AgentCategory, AgentPlatform } from './agent-type';
-export { TIERS, TIER_SLOTS, DEFAULT_TIER_SLOT, TIER_LABELS, TIER_DESCRIPTIONS } from './tiers';
-export type { Tier, TierSlot, DefaultTierSlot } from './tiers';
+export {
+  TIERS,
+  TIER_SLOTS,
+  DEFAULT_TIER_SLOT,
+  TIER_LABELS,
+  TIER_DESCRIPTIONS,
+  ALL_TIERS,
+  TIER_LABELS_ALL,
+} from './tiers';
+export type { Tier, TierSlot, DefaultTierSlot, MessageTier } from './tiers';
 export { TIER_COLORS, DEFAULT_TIER_COLOR } from './tier-colors';
 export type { TierColor } from './tier-colors';
 export { SPECIFICITY_CATEGORIES } from './specificity';
@@ -28,14 +36,16 @@ export { applyRequestParamDefaults, REQUEST_PARAM_KEYS } from './request-params'
 export type { RequestParamDefaults, RequestParamKey } from './request-params';
 export { snapshotRequestParams } from './request-params-snapshot';
 export type { RequestParamsSnapshotInput } from './request-params-snapshot';
-export {
-  PROVIDER_THINKING_DEFAULTS,
-  providerThinkingDefault,
-  manifestThinkingDefault,
-  manifestThinkingParamDefaults,
-  filterParamDefaultsForProvider,
-} from './thinking-defaults';
+export { providerThinkingDefault } from './thinking-defaults';
 export type { ThinkingState } from './thinking-defaults';
+export {
+  PROVIDER_PARAM_SPECS,
+  getProviderParamSpecs,
+  providerParamDefault,
+  providerSupportsParam,
+  pickProviderCompatibleParams,
+} from './provider-params-spec';
+export type { ParamControl, ProviderParamSpec } from './provider-params-spec';
 export { API_KEY_PREFIX } from './api-key';
 export {
   FALLBACK_KEY_DELIMITER,
@@ -63,3 +73,11 @@ export {
   getSubscriptionCapabilities,
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';
+export type {
+  PlaygroundMetrics,
+  PlaygroundRunResult,
+  PlaygroundStreamEvent,
+  PlaygroundHistoryColumn,
+  PlaygroundHistoryRunSummary,
+  PlaygroundHistoryRunDetail,
+} from './playground';

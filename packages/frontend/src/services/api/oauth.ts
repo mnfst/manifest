@@ -73,12 +73,12 @@ export function startAnthropicOAuth(agentName: string) {
   );
 }
 
-export function submitAnthropicOAuth(agentName: string, code: string, state: string) {
+export function submitAnthropicOAuth(agentName: string, payload: string, state: string) {
   return fetchMutate<{ ok: boolean }>(
     `/oauth/anthropic/exchange?agentName=${encodeURIComponent(agentName)}`,
     {
       method: 'POST',
-      body: JSON.stringify({ code, state }),
+      body: JSON.stringify({ code: payload, state }),
       headers: { 'Content-Type': 'application/json' },
     },
   );

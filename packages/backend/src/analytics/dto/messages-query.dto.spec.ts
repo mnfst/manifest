@@ -71,4 +71,20 @@ describe('MessagesQueryDto', () => {
     const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
     expect(flat.join('\n')).toMatch(/status must be one of/);
   });
+
+  it('accepts each known routing_tier value including playground', async () => {
+    for (const tier of ['simple', 'standard', 'complex', 'reasoning', 'playground']) {
+      const dto = plainToInstance(MessagesQueryDto, { routing_tier: tier });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    }
+  });
+
+  it('rejects an unknown routing_tier value', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { routing_tier: 'fanciful' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+    expect(flat.join('\n')).toMatch(/routing_tier must be one of/);
+  });
 });

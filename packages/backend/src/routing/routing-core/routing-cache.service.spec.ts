@@ -3,6 +3,7 @@ import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
+import { AgentModelParams } from '../../entities/agent-model-params.entity';
 
 // Minimal stand-ins for the TypeORM entities. The cache is entity-agnostic — it
 // only stores arrays by reference, so shape fidelity is unnecessary.
@@ -12,6 +13,8 @@ const customProvider = (name: string): CustomProvider =>
   ({ id: name }) as unknown as CustomProvider;
 const specificity = (name: string): SpecificityAssignment =>
   ({ id: name }) as unknown as SpecificityAssignment;
+const modelParams = (name: string): AgentModelParams =>
+  ({ id: name }) as unknown as AgentModelParams;
 const providerKey = (label: string, apiKey: string | null = 'sk-test'): CachedProviderKey => ({
   id: label,
   label,
@@ -98,6 +101,7 @@ describe('RoutingCacheService', () => {
       svc.setProviders('a', [provider('p1')]);
       svc.setCustomProviders('a', [customProvider('c1')]);
       svc.setSpecificity('a', [specificity('s1')]);
+      svc.setModelParams('a', [modelParams('mp1')]);
       svc.setProviderKeys('a', 'openai', [providerKey('Default', 'k')]);
       svc.setProviderKeys('a', 'anthropic', [providerKey('Default', 'k')], 'subscription');
 
@@ -112,11 +116,28 @@ describe('RoutingCacheService', () => {
       expect(svc.getProviders('a')).toBeNull();
       expect(svc.getCustomProviders('a')).toBeNull();
       expect(svc.getSpecificity('a')).toBeNull();
+      expect(svc.getModelParams('a')).toBeNull();
       expect(svc.getProviderKeys('a', 'openai')).toBeUndefined();
       expect(svc.getProviderKeys('a', 'anthropic', 'subscription')).toBeUndefined();
 
       expect(svc.getTiers('b')).not.toBeNull();
       expect(svc.getProviderKeys('b', 'openai')).toBe(bKeys);
+    });
+  });
+
+  describe('model params cache', () => {
+    it('returns null until set, returns cached rows after, and the granular invalidate clears just the model-params slot', () => {
+      expect(svc.getModelParams('a')).toBeNull();
+      const rows = [modelParams('mp1')];
+      svc.setModelParams('a', rows);
+      expect(svc.getModelParams('a')).toBe(rows);
+
+      // Granular invalidate (called on every set/delete from the model-params
+      // service) leaves the other caches untouched.
+      svc.setTiers('a', [tier('t1')]);
+      svc.invalidateModelParams('a');
+      expect(svc.getModelParams('a')).toBeNull();
+      expect(svc.getTiers('a')).not.toBeNull();
     });
   });
 

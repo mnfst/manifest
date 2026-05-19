@@ -62,7 +62,7 @@ describe('AnthropicOauthController', () => {
       await expect(ctrl.exchange('agent', 'auth-code', 'state-1', user)).resolves.toEqual({
         ok: true,
       });
-      expect(oauth.exchangeCode).toHaveBeenCalledWith('auth-code', 'state-1');
+      expect(oauth.exchangeCode).toHaveBeenCalledWith('auth-code', 'state-1', 'agent-1', 'user-1');
     });
 
     it('wraps service errors in a 400', async () => {
@@ -90,14 +90,14 @@ describe('AnthropicOauthController', () => {
 
     it('returns the active state when one exists', async () => {
       const { ctrl, oauth } = build();
-      (oauth.findPendingForAgent as jest.Mock).mockReturnValue({ state: 'abc' });
+      (oauth.findPendingForAgent as jest.Mock).mockResolvedValue({ state: 'abc' });
       await expect(ctrl.pending('agent', user)).resolves.toEqual({ state: 'abc' });
-      expect(oauth.findPendingForAgent).toHaveBeenCalledWith('agent-1');
+      expect(oauth.findPendingForAgent).toHaveBeenCalledWith('agent-1', 'user-1');
     });
 
     it('returns {state: null} when no flow is pending', async () => {
       const { ctrl, oauth } = build();
-      (oauth.findPendingForAgent as jest.Mock).mockReturnValue(null);
+      (oauth.findPendingForAgent as jest.Mock).mockResolvedValue(null);
       await expect(ctrl.pending('agent', user)).resolves.toEqual({ state: null });
     });
   });

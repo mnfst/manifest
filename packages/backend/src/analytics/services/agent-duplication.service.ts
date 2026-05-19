@@ -9,6 +9,7 @@ import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
+import { AgentModelParams } from '../../entities/agent-model-params.entity';
 import { hashKey, keyPrefix } from '../../common/utils/hash.util';
 import { encrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { sqlNow } from '../../common/utils/postgres-sql';
@@ -20,6 +21,7 @@ export interface DuplicateAgentSummary {
   customProviders: number;
   tierAssignments: number;
   specificityAssignments: number;
+  modelParams: number;
 }
 
 export interface DuplicateAgentResult {
@@ -65,18 +67,18 @@ export class AgentDuplicationService {
     const source = await this.findOwnedAgent(userId, sourceName);
     if (!source) throw new NotFoundException(`Agent "${sourceName}" not found`);
 
-    const [providers, customProviders, tierAssignments, specificityAssignments] = await Promise.all(
-      [
+    const [providers, customProviders, tierAssignments, specificityAssignments, modelParams] =
+      await Promise.all([
         this.dataSource.getRepository(UserProvider).count({ where: { agent_id: source.id } }),
         this.dataSource.getRepository(CustomProvider).count({ where: { agent_id: source.id } }),
         this.dataSource.getRepository(TierAssignment).count({ where: { agent_id: source.id } }),
         this.dataSource
           .getRepository(SpecificityAssignment)
           .count({ where: { agent_id: source.id } }),
-      ],
-    );
+        this.dataSource.getRepository(AgentModelParams).count({ where: { agent_id: source.id } }),
+      ]);
 
-    return { providers, customProviders, tierAssignments, specificityAssignments };
+    return { providers, customProviders, tierAssignments, specificityAssignments, modelParams };
   }
 
   async suggestName(userId: string, sourceName: string): Promise<string> {
@@ -223,11 +225,40 @@ export class AgentDuplicationService {
         );
       }
 
+      // Per-route model params travel with the agent — duplicating an agent
+      // without copying these would silently reset the new agent's DeepSeek
+      // thinking-mode (and any future per-model knob) back to the provider's
+      // natural default, surprising the user.
+      const modelParams = await manager
+        .getRepository(AgentModelParams)
+        .find({ where: { agent_id: source.id } });
+      if (modelParams.length > 0) {
+        await manager.getRepository(AgentModelParams).insert(
+          modelParams.map((p) => ({
+            id: uuidv4(),
+            user_id: p.user_id,
+            agent_id: newAgentId,
+            // Same `custom:<uuid>` remap as user_providers / tier_assignments
+            // / specificity_assignments above. Without this, a params row
+            // configured for `custom:<old-uuid>` would point to the source
+            // agent's custom provider after duplication, breaking the
+            // per-route lookup for the new agent.
+            provider: this.remapCustomProviderRef(p.provider, customProviderIdMap),
+            auth_type: p.auth_type,
+            model_name: p.model_name,
+            params: p.params,
+            created_at: now,
+            updated_at: now,
+          })),
+        );
+      }
+
       return {
         providers: providers.length,
         customProviders: customProviders.length,
         tierAssignments: tiers.length,
         specificityAssignments: specificity.length,
+        modelParams: modelParams.length,
       };
     });
 

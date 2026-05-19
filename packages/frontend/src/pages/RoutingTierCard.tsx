@@ -12,10 +12,9 @@ import {
 } from '../services/routing-utils.js';
 import { customProviderColor } from '../services/formatters.js';
 import FallbackList from '../components/FallbackList.js';
-import ModelParamsDialog from '../components/ModelParamsDialog.jsx';
+import ModelParamsAffordance from '../components/ModelParamsAffordance.jsx';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
-import { providerThinkingDefault } from 'manifest-shared';
 import type {
   TierAssignment,
   AvailableModel,
@@ -106,22 +105,25 @@ export interface RoutingTierCardProps {
   ) => Promise<unknown>;
   persistClearFallbacks?: (agentName: string, tier: string) => Promise<unknown>;
   /**
-   * Save the configured request body params for this tier (or specificity
-   * category — same shape). The dialog calls this on save; the parent is
-   * responsible for the API call. Optional so tests and embed contexts can
-   * skip the params surface entirely.
+   * Read saved per-route params from the parent's loaded map. The
+   * affordance reads through this so saving in one slot reflects on every
+   * other slot that resolves to the same `(provider, authType, model)`.
    */
-  persistParamDefaults?: (
-    agentName: string,
-    tier: string,
-    paramDefaults: RequestParamDefaults | null,
-  ) => Promise<unknown>;
+  getModelParams?: (
+    provider: string,
+    authType: AuthType,
+    model: string,
+  ) => RequestParamDefaults | null;
   /**
-   * Optional optimistic-update hook the parent uses to update its tier
-   * snapshot after a successful save, so the icon's "configured" badge
-   * reflects the new state without a refetch.
+   * Persist new params for a single route. Parent owns the server call
+   * and the local cache update; the card just threads the callback down.
    */
-  onParamDefaultsSaved?: (tier: string, paramDefaults: RequestParamDefaults | null) => void;
+  setModelParams?: (
+    provider: string,
+    authType: AuthType,
+    model: string,
+    params: RequestParamDefaults | null,
+  ) => Promise<unknown>;
 }
 
 const effectiveRoute = (
@@ -147,33 +149,6 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const [primaryDragging, setPrimaryDragging] = createSignal(false);
   const [fallbackDragging, setFallbackDragging] = createSignal<number | null>(null);
   const [primaryDropTarget, setPrimaryDropTarget] = createSignal(false);
-  const [paramsDialogOpen, setParamsDialogOpen] = createSignal(false);
-
-  // The sliders icon renders next to whichever route — primary or fallback —
-  // uses a provider whose API consumes a known param key (today only
-  // DeepSeek's `thinking`). Param defaults are stored at the tier level and
-  // filtered per-attempt against the actual provider in the proxy, so the
-  // affordance attaches to the route that actually consumes the value rather
-  // than always living next to the primary.
-  const primaryProvider = (): string | null => {
-    const t = props.tier();
-    return t ? (effectiveRoute(t)?.provider ?? null) : null;
-  };
-  const primarySupportsParams = () => {
-    const p = primaryProvider();
-    return p !== null && providerThinkingDefault(p) !== undefined;
-  };
-  const paramSurfaceProvider = (): string | null => {
-    const fromPrimary = primaryProvider();
-    if (fromPrimary && providerThinkingDefault(fromPrimary) !== undefined) return fromPrimary;
-    const t = props.tier();
-    for (const r of t?.fallback_routes ?? []) {
-      if (r.provider && providerThinkingDefault(r.provider) !== undefined) return r.provider;
-    }
-    return null;
-  };
-  const supportsParams = () => paramSurfaceProvider() !== null;
-  const paramsConfigured = () => (props.tier()?.param_defaults ?? null) !== null;
 
   const handlePrimaryDragStart = (e: DragEvent) => {
     setPrimaryDragging(true);
@@ -510,41 +485,18 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                             }}
                             disabled={() => props.changingTier() === props.stage.id}
                           />
-                          <Show when={primarySupportsParams() && props.persistParamDefaults}>
-                            <button
-                              class="routing-card__chip-action"
-                              classList={{
-                                'routing-card__chip-action--configured': paramsConfigured(),
-                              }}
-                              onClick={() => setParamsDialogOpen(true)}
+                          <Show
+                            when={props.setModelParams && props.getModelParams && effectiveAuth()}
+                          >
+                            <ModelParamsAffordance
+                              provider={provId()}
+                              authType={effectiveAuth() ?? undefined}
+                              model={modelName()}
+                              slotLabel={labelFor(modelName())}
+                              getParams={props.getModelParams!}
+                              setParams={props.setModelParams!}
                               disabled={props.changingTier() === props.stage.id}
-                              aria-label={`Configure model parameters for ${props.stage.label}`}
-                              title="Model parameters"
-                            >
-                              <span class="routing-tooltip">Parameters</span>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="12"
-                                height="12"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                              >
-                                <line x1="4" y1="21" x2="4" y2="14" />
-                                <line x1="4" y1="10" x2="4" y2="3" />
-                                <line x1="12" y1="21" x2="12" y2="12" />
-                                <line x1="12" y1="8" x2="12" y2="3" />
-                                <line x1="20" y1="21" x2="20" y2="16" />
-                                <line x1="20" y1="12" x2="20" y2="3" />
-                                <line x1="1" y1="14" x2="7" y2="14" />
-                                <line x1="9" y1="8" x2="15" y2="8" />
-                                <line x1="17" y1="16" x2="23" y2="16" />
-                              </svg>
-                            </button>
+                            />
                           </Show>
                           <button
                             class="routing-card__chip-action"
@@ -608,9 +560,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               onFallbackDragEnd={() => setFallbackDragging(null)}
               persistFallbacks={props.persistFallbacks}
               persistClearFallbacks={props.persistClearFallbacks}
-              onConfigureParams={
-                props.persistParamDefaults ? () => setParamsDialogOpen(true) : undefined
-              }
+              getModelParams={props.getModelParams}
+              setModelParams={props.setModelParams}
             />
           </div>
         </Show>
@@ -659,28 +610,6 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             </div>
           </div>
         </div>
-      </Show>
-
-      <Show when={paramsDialogOpen() && supportsParams() && props.persistParamDefaults}>
-        {(() => {
-          const provider = paramSurfaceProvider() ?? '';
-          const providerDefault = providerThinkingDefault(provider) ?? 'enabled';
-          return (
-            <ModelParamsDialog
-              open={paramsDialogOpen()}
-              slotLabel={props.stage.label}
-              current={props.tier()?.param_defaults ?? null}
-              providerDefault={providerDefault}
-              onSave={async (paramDefaults) => {
-                if (!props.persistParamDefaults) return;
-                await props.persistParamDefaults(props.agentName(), props.stage.id, paramDefaults);
-                props.onParamDefaultsSaved?.(props.stage.id, paramDefaults);
-                toast.success('Model parameters saved');
-              }}
-              onClose={() => setParamsDialogOpen(false)}
-            />
-          );
-        })()}
       </Show>
     </div>
   );

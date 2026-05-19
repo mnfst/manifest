@@ -8,6 +8,7 @@ import { MinimaxOauthController } from './minimax-oauth.controller';
 import { CopilotDeviceAuthService } from './copilot-device-auth.service';
 import { AnthropicOauthService } from './anthropic/anthropic-oauth.service';
 import { AnthropicOauthController } from './anthropic/anthropic-oauth.controller';
+import { OAuthPendingFlowStore } from './core';
 
 @Module({
   imports: [RoutingCoreModule, ModelDiscoveryModule],
@@ -17,6 +18,7 @@ import { AnthropicOauthController } from './anthropic/anthropic-oauth.controller
     MinimaxOauthService,
     CopilotDeviceAuthService,
     AnthropicOauthService,
+    OAuthPendingFlowStore,
   ],
   exports: [
     OpenaiOauthService,
