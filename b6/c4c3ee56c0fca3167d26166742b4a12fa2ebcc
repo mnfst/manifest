@@ -1,0 +1,23 @@
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_d55d26a37e6be3::t_b684f5dbae7f03 315-318
+packages/frontend/src/styles/routing.css
+  s_d55d26a37e6be3::t_d0a4fc7f4e1ce4 574-577,582-590
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_d55d26a37e6be3::t_029bc39049ed29 65-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.9",
+  "base_commit_sha": "b6c4c3ee56c0fca3167d26166742b4a12fa2ebcc",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
