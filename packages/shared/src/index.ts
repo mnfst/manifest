@@ -45,15 +45,12 @@ export {
 export type { ModelParamsRoutingScopeInput } from './model-params-scope';
 export { providerThinkingDefault } from './thinking-defaults';
 export type { ThinkingState } from './thinking-defaults';
-export {
-  PROVIDER_PARAM_SPECS,
-  getProviderParamSpecs,
-  pickProviderCompatibleParams,
-} from './provider-params-spec';
+export { getProviderParamSpecs, pickProviderCompatibleParams } from './provider-params-spec';
 export type {
   ParamControl,
   ProviderParamSpec,
   ProviderParamSpecGroup,
+  ProviderParamSpecRegistry,
 } from './provider-params-spec';
 export { API_KEY_PREFIX } from './api-key';
 export {

@@ -29,82 +29,21 @@ export interface ProviderParamSpecGroup {
   byModel?: Readonly<Record<string, readonly ProviderParamSpec[]>>;
 }
 
-/**
- * Single source of truth: which provider/auth route consumes which params,
- * with UI shape, storage key, natural default, and optional wire serializer.
- * Key format is `provider:authType`; model overrides replace `base`
- * wholesale when present.
- */
-export const PROVIDER_PARAM_SPECS: Record<`${string}:${AuthType}`, ProviderParamSpecGroup> = {
-  'anthropic:api_key': {
-    base: [
-      {
-        key: 'max_tokens',
-        control: {
-          kind: 'number',
-          label: 'Max tokens',
-          min: 1,
-          default: 4096,
-        },
-      },
-      {
-        key: 'temperature',
-        control: {
-          kind: 'slider',
-          label: 'Temperature',
-          min: 0,
-          max: 1,
-          step: 0.1,
-          default: 1,
-        },
-      },
-      {
-        key: 'top_p',
-        control: {
-          kind: 'slider',
-          label: 'Top P',
-          min: 0,
-          max: 1,
-          step: 0.01,
-          default: 1,
-        },
-      },
-      {
-        key: 'top_k',
-        control: {
-          kind: 'number',
-          label: 'Top K',
-          min: 0,
-          default: 0,
-        },
-      },
-    ],
-  },
-  'deepseek:api_key': {
-    base: [
-      {
-        key: 'thinking',
-        control: {
-          kind: 'toggle',
-          label: 'Thinking mode',
-          values: ['enabled', 'disabled'],
-          default: 'enabled',
-        },
-      },
-    ],
-  },
-};
+export type ProviderParamSpecRegistry = Readonly<
+  Record<`${string}:${AuthType}`, ProviderParamSpecGroup>
+>;
 
 /** All param specs for a provider/auth/model route, or empty when the route has none. */
 export function getProviderParamSpecs(
+  registry: ProviderParamSpecRegistry,
   providerId: string | undefined,
   authType: AuthType | undefined,
   model?: string | undefined,
 ): readonly ProviderParamSpec[] {
   if (!providerId || !authType) return [];
   const groupKey = `${providerId.toLowerCase()}:${authType}` as `${string}:${AuthType}`;
-  const group = Object.prototype.hasOwnProperty.call(PROVIDER_PARAM_SPECS, groupKey)
-    ? PROVIDER_PARAM_SPECS[groupKey]
+  const group = Object.prototype.hasOwnProperty.call(registry, groupKey)
+    ? registry[groupKey]
     : undefined;
   if (!group) return [];
   if (model && group.byModel && Object.prototype.hasOwnProperty.call(group.byModel, model)) {
@@ -121,12 +60,10 @@ export function getProviderParamSpecs(
  * Returns the trimmed payload (may be empty) without mutating the input.
  */
 export function pickProviderCompatibleParams(
-  providerId: string | undefined,
-  authType: AuthType | undefined,
-  model: string | undefined,
   params: Record<string, JsonValue>,
+  specs: readonly ProviderParamSpec[],
 ): Record<string, JsonValue> {
-  const supported = new Set(getProviderParamSpecs(providerId, authType, model).map((s) => s.key));
+  const supported = new Set(specs.map((s) => s.key));
   const out: Record<string, JsonValue> = {};
   for (const key of supported) {
     if (key in params) out[key] = params[key];

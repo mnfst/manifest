@@ -1,5 +1,5 @@
 import { createSignal, Show, type Component } from 'solid-js';
-import { getProviderParamSpecs } from 'manifest-shared';
+import { getProviderParamSpecs, type ProviderParamSpecRegistry } from 'manifest-shared';
 import type { AuthType, RequestParamDefaults } from '../services/api.js';
 import ModelParamsDialog from './ModelParamsDialog.jsx';
 
@@ -14,6 +14,8 @@ interface Props {
   slotLabel: string;
   /** Route-scope key (tier/default, task-specific category, or header tier). */
   scope: string;
+  /** Backend-loaded provider param registry. */
+  specRegistry: ProviderParamSpecRegistry;
   /**
    * Read the currently-saved params for this route from the parent's loaded
    * map. Called on every render so reactivity flows through the parent's
@@ -50,7 +52,7 @@ interface Props {
 /**
  * Per-model "Parameters" affordance: a small gear/sliders button next to a
  * model row that opens the curated parameters dialog. Visibility is driven
- * by the route's provider/auth/model tuple — only routes with shared registry
+ * by the route's provider/auth/model tuple — only routes with DB-backed
  * specs render the button at all.
  *
  * The component is intentionally dumb about persistence: it does not own
@@ -62,9 +64,9 @@ interface Props {
 const ModelParamsAffordance: Component<Props> = (props) => {
   const [dialogOpen, setDialogOpen] = createSignal(false);
 
-  const supports = () =>
-    props.provider !== undefined &&
-    getProviderParamSpecs(props.provider, props.authType, props.model).length > 0;
+  const specs = () =>
+    getProviderParamSpecs(props.specRegistry, props.provider, props.authType, props.model);
+  const supports = () => props.provider !== undefined && specs().length > 0;
 
   const current = () => {
     if (!props.provider || !props.authType) return null;
@@ -118,9 +120,7 @@ const ModelParamsAffordance: Component<Props> = (props) => {
           open={dialogOpen()}
           slotLabel={props.slotLabel}
           current={current()}
-          provider={props.provider!}
-          authType={props.authType!}
-          model={props.model}
+          specs={specs()}
           onSave={(next) =>
             props.setParams(props.scope, props.provider!, props.authType!, props.model, next)
           }

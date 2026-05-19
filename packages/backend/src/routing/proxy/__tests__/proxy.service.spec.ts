@@ -14,6 +14,7 @@ import type { ProxyFallbackService } from '../proxy-fallback.service';
 import type { ThoughtSignatureCache } from '../thought-signature-cache';
 import type { ThinkingBlockCache } from '../thinking-block-cache';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
+import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
 
 /**
  * Stream-warmup helper is mocked because the real implementation depends on
@@ -34,6 +35,16 @@ const route = (provider: string, authType: ModelRoute['authType'], model: string
 
 const okResponse = (status = 200) =>
   new Response('{"ok":true}', { status, headers: { 'content-type': 'application/json' } });
+
+const thinkingSpec = {
+  key: 'thinking',
+  control: {
+    kind: 'toggle' as const,
+    label: 'Thinking mode',
+    values: ['enabled', 'disabled'] as const,
+    default: 'enabled',
+  },
+};
 
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<Pick<ResolveService, 'resolve' | 'resolveForTier'>>;
@@ -58,6 +69,7 @@ describe('ProxyService — orchestration', () => {
   let signatureCache: ThoughtSignatureCache;
   let thinkingCache: ThinkingBlockCache;
   let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
+  let providerParamSpecs: { getSpecs: jest.Mock };
   let svc: ProxyService;
 
   beforeEach(() => {
@@ -98,6 +110,13 @@ describe('ProxyService — orchestration', () => {
       set: jest.fn(),
       delete: jest.fn(),
     };
+    providerParamSpecs = {
+      getSpecs: jest
+        .fn()
+        .mockImplementation(async (provider: string, authType: string) =>
+          provider.toLowerCase() === 'deepseek' && authType === 'api_key' ? [thinkingSpec] : [],
+        ),
+    };
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
@@ -113,6 +132,7 @@ describe('ProxyService — orchestration', () => {
       signatureCache,
       thinkingCache,
       modelParamsService as unknown as AgentModelParamsService,
+      providerParamSpecs as unknown as ProviderParamSpecService,
     );
   });
 

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
+import type { ProviderParamSpecRegistry } from "manifest-shared";
 
 const mockSetFallbacks = vi.fn();
 const mockClearFallbacks = vi.fn();
@@ -42,6 +43,22 @@ vi.mock("../../src/services/provider-utils.js", () => ({
 }));
 
 import FallbackList from "../../src/components/FallbackList";
+
+const modelParamSpecs = (): ProviderParamSpecRegistry => ({
+  "deepseek:api_key": {
+    base: [
+      {
+        key: "thinking",
+        control: {
+          kind: "toggle",
+          label: "Thinking mode",
+          values: ["enabled", "disabled"],
+          default: "enabled",
+        },
+      },
+    ],
+  },
+});
 
 const models = [
   { model_name: "model-a", provider: "OpenAI" },
@@ -1069,6 +1086,7 @@ describe("FallbackList", () => {
           {...defaultProps}
           fallbacks={["deepseek-v4-flash"]}
           fallbackRoutes={[deepseekRoute] as any}
+          modelParamSpecs={modelParamSpecs}
           getModelParams={getModelParams}
           setModelParams={setModelParams}
         />
@@ -1097,6 +1115,7 @@ describe("FallbackList", () => {
           {...defaultProps}
           fallbacks={["gpt-4o"]}
           fallbackRoutes={[openaiRoute] as any}
+          modelParamSpecs={modelParamSpecs}
           getModelParams={vi.fn().mockReturnValue(null)}
           setModelParams={vi.fn()}
         />
@@ -1147,6 +1166,7 @@ describe("FallbackList", () => {
           connectedProviders={connectedProvidersWithDeepseek}
           fallbacks={["deepseek-v4-flash"]}
           fallbackRoutes={null}
+          modelParamSpecs={modelParamSpecs}
           getModelParams={vi.fn().mockReturnValue(null)}
           setModelParams={vi.fn()}
         />

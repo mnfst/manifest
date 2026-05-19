@@ -1,34 +1,52 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
-import { PROVIDER_PARAM_SPECS } from 'manifest-shared';
+import type { ProviderParamSpec } from 'manifest-shared';
 
 import ModelParamsDialog from '../../src/components/ModelParamsDialog';
 
 const q = (sel: string) => document.querySelector(sel);
 
 describe('ModelParamsDialog', () => {
-  // Dialog now reads which controls to render from
-  // `PROVIDER_PARAM_SPECS[provider:authType]` in manifest-shared. DeepSeek's
-  // spec declares a single `thinking` toggle with default `enabled`, so
-  // these tests use the real route identity.
+  const deepseekSpecs: ProviderParamSpec[] = [
+    {
+      key: 'thinking',
+      control: {
+        kind: 'toggle',
+        label: 'Thinking mode',
+        values: ['enabled', 'disabled'],
+        default: 'enabled',
+      },
+    },
+  ];
+  const anthropicSpecs: ProviderParamSpec[] = [
+    {
+      key: 'max_tokens',
+      control: { kind: 'number', label: 'Max tokens', min: 1, default: 4096 },
+    },
+    {
+      key: 'temperature',
+      control: { kind: 'slider', label: 'Temperature', min: 0, max: 1, step: 0.1, default: 1 },
+    },
+    {
+      key: 'top_p',
+      control: { kind: 'slider', label: 'Top P', min: 0, max: 1, step: 0.01, default: 1 },
+    },
+    {
+      key: 'top_k',
+      control: { kind: 'number', label: 'Top K', min: 0, default: 0 },
+    },
+  ];
   const baseProps = {
     open: true,
     slotLabel: 'deepseek-v4-flash',
     current: null as null | Record<string, unknown>,
-    provider: 'deepseek',
-    authType: 'api_key' as const,
-    model: 'deepseek-v4-flash',
+    specs: deepseekSpecs,
     onClose: vi.fn(),
     onSave: vi.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(() => {
-    delete PROVIDER_PARAM_SPECS['test:api_key'];
     vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    delete PROVIDER_PARAM_SPECS['test:api_key'];
   });
 
   it('renders nothing when closed', () => {
@@ -100,7 +118,7 @@ describe('ModelParamsDialog', () => {
   });
 
   it('renders nothing for providers with no spec entries', () => {
-    render(() => <ModelParamsDialog {...baseProps} provider="openai" />);
+    render(() => <ModelParamsDialog {...baseProps} specs={[]} />);
     // The dialog still mounts (open=true), but no rows render — the For
     // over zero spec entries collapses to nothing. Saving with no rows
     // produces the empty payload → null.
@@ -152,21 +170,19 @@ describe('ModelParamsDialog', () => {
   });
 
   it('renders a select control from the registry and saves its UI value', async () => {
-    PROVIDER_PARAM_SPECS['test:api_key'] = {
-      base: [
-        {
-          key: 'reasoning_effort',
-          control: {
-            kind: 'select',
-            label: 'Reasoning effort',
-            values: ['low', 'medium', 'high'],
-            default: 'medium',
-          },
+    const specs: ProviderParamSpec[] = [
+      {
+        key: 'reasoning_effort',
+        control: {
+          kind: 'select',
+          label: 'Reasoning effort',
+          values: ['low', 'medium', 'high'],
+          default: 'medium',
         },
-      ],
-    };
+      },
+    ];
     const onSave = vi.fn().mockResolvedValue(undefined);
-    render(() => <ModelParamsDialog {...baseProps} provider="test" onSave={onSave} />);
+    render(() => <ModelParamsDialog {...baseProps} specs={specs} onSave={onSave} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Reasoning effort' }));
     fireEvent.click(screen.getByRole('option', { name: 'high' }));
@@ -176,23 +192,21 @@ describe('ModelParamsDialog', () => {
   });
 
   it('renders a slider control and clamps numeric input to the configured range', async () => {
-    PROVIDER_PARAM_SPECS['test:api_key'] = {
-      base: [
-        {
-          key: 'temperature',
-          control: {
-            kind: 'slider',
-            label: 'Temperature',
-            min: 0,
-            max: 2,
-            step: 0.1,
-            default: 1,
-          },
+    const specs: ProviderParamSpec[] = [
+      {
+        key: 'temperature',
+        control: {
+          kind: 'slider',
+          label: 'Temperature',
+          min: 0,
+          max: 2,
+          step: 0.1,
+          default: 1,
         },
-      ],
-    };
+      },
+    ];
     const onSave = vi.fn().mockResolvedValue(undefined);
-    render(() => <ModelParamsDialog {...baseProps} provider="test" onSave={onSave} />);
+    render(() => <ModelParamsDialog {...baseProps} specs={specs} onSave={onSave} />);
 
     const slider = screen.getByRole('slider', { name: 'Temperature' });
     expect(document.querySelector('input[type="range"]')).toBeNull();
@@ -203,13 +217,12 @@ describe('ModelParamsDialog', () => {
     await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 2 }));
   });
 
-  it('renders Anthropic API-key scalar params from the real registry entry', async () => {
+  it('renders Anthropic API-key scalar params from resolved specs', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(() => (
       <ModelParamsDialog
         {...baseProps}
-        provider="anthropic"
-        model="claude-sonnet-4-6"
+        specs={anthropicSpecs}
         onSave={onSave}
       />
     ));
@@ -235,16 +248,14 @@ describe('ModelParamsDialog', () => {
   });
 
   it('renders a number control and stores numbers instead of input strings', async () => {
-    PROVIDER_PARAM_SPECS['test:api_key'] = {
-      base: [
-        {
-          key: 'budget_tokens',
-          control: { kind: 'number', label: 'Budget tokens', min: 1024, max: 4096, default: 2048 },
-        },
-      ],
-    };
+    const specs: ProviderParamSpec[] = [
+      {
+        key: 'budget_tokens',
+        control: { kind: 'number', label: 'Budget tokens', min: 1024, max: 4096, default: 2048 },
+      },
+    ];
     const onSave = vi.fn().mockResolvedValue(undefined);
-    render(() => <ModelParamsDialog {...baseProps} provider="test" onSave={onSave} />);
+    render(() => <ModelParamsDialog {...baseProps} specs={specs} onSave={onSave} />);
 
     fireEvent.input(screen.getByLabelText('Budget tokens'), { target: { value: '3072' } });
     fireEvent.click(screen.getByText('Save'));

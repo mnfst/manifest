@@ -7,6 +7,7 @@ import {
   type AvailableModel,
   type CustomProviderData,
   type ModelRoute,
+  type ProviderParamSpecRegistry,
   type RequestParamDefaults,
   type RoutingProvider,
   type TierAssignment,
@@ -28,6 +29,7 @@ interface FallbackListProps {
   agentName: string;
   tier: string;
   modelParamsScope?: string;
+  modelParamSpecs?: () => ProviderParamSpecRegistry;
   tierData?: () => TierAssignment | undefined;
   fallbacks: string[];
   // Optional structured route per fallback. When present (length matches
@@ -434,6 +436,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     >
                       <ModelParamsAffordance
                         scope={modelParamsScope()}
+                        specRegistry={props.modelParamSpecs?.() ?? {}}
                         provider={provId()}
                         authType={(auth() as AuthType) ?? undefined}
                         model={model()}

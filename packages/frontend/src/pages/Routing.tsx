@@ -26,11 +26,13 @@ import {
   getComplexityStatus,
   toggleComplexity,
   listModelParams,
+  listModelParamSpecs,
   setModelParams as setModelParamsApi,
   deleteModelParams,
   modelParamsKey,
   type AgentModelParamsRow,
   type AuthType,
+  type ProviderParamSpecRegistry,
   type RequestParamDefaults,
   type SpecificityAssignment,
   type TierAssignment,
@@ -80,6 +82,11 @@ const Routing: Component = () => {
     () => agentName(),
     (name) => listModelParams(name).catch(() => [] as AgentModelParamsRow[]),
   );
+  const [modelParamSpecs] = createResource(
+    () => agentName(),
+    (name) => listModelParamSpecs(name).catch(() => ({}) as ProviderParamSpecRegistry),
+  );
+  const modelParamSpecRegistry = () => modelParamSpecs() ?? ({} as ProviderParamSpecRegistry);
   const modelParamsMap = createMemo(() => {
     const map = new Map<string, RequestParamDefaults>();
     for (const row of modelParams() ?? []) {
@@ -476,6 +483,7 @@ const Routing: Component = () => {
                   togglingComplexity={togglingComplexity}
                   onToggleComplexity={handleToggleComplexity}
                   embedded
+                  modelParamSpecs={modelParamSpecRegistry}
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
                 />
@@ -522,6 +530,7 @@ const Routing: Component = () => {
                   refetchAll={refetchAll}
                   refetchSpecificity={() => refetchSpecificity() as unknown as Promise<void>}
                   embedded
+                  modelParamSpecs={modelParamSpecRegistry}
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
                 />
@@ -536,6 +545,7 @@ const Routing: Component = () => {
                   externalRefetch={() => void refetchHeaderTiers()}
                   externalMutate={mutateHeaderTiers}
                   embedded
+                  modelParamSpecs={modelParamSpecRegistry}
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
                 />

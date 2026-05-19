@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, fireEvent, waitFor } from "@solidjs/testing-library";
+import type { ProviderParamSpecRegistry } from "manifest-shared";
 
 const mockResetHeaderTier = vi.fn();
 const mockSetHeaderTierFallbacks = vi.fn();
@@ -33,6 +34,22 @@ vi.mock("../../src/services/routing-utils.js", () => ({
   pricePerM: (n: number) => `$${(n * 1_000_000).toFixed(2)}`,
   stripCustomPrefix: (m: string) => m,
 }));
+
+const modelParamSpecs = (): ProviderParamSpecRegistry => ({
+  "deepseek:api_key": {
+    base: [
+      {
+        key: "thinking",
+        control: {
+          kind: "toggle",
+          label: "Thinking mode",
+          values: ["enabled", "disabled"],
+          default: "enabled",
+        },
+      },
+    ],
+  },
+});
 
 vi.mock("../../src/services/providers.js", () => ({
   PROVIDERS: [
@@ -1116,6 +1133,7 @@ describe("HeaderTierCard", () => {
         connectedProviders={deepseekProviders}
         onOverride={vi.fn()}
         onFallbacksUpdate={vi.fn()}
+        modelParamSpecs={modelParamSpecs}
         getModelParams={() => null}
         setModelParams={vi.fn().mockResolvedValue(undefined)}
       />
@@ -1171,6 +1189,7 @@ describe("HeaderTierCard", () => {
         connectedProviders={deepseekProviders}
         onOverride={vi.fn()}
         onFallbacksUpdate={vi.fn()}
+        modelParamSpecs={modelParamSpecs}
         getModelParams={() => null}
         setModelParams={setModelParams}
       />

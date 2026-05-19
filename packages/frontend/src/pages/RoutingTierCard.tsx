@@ -21,6 +21,7 @@ import type {
   AvailableModel,
   AuthType,
   ModelRoute,
+  ProviderParamSpecRegistry,
   RequestParamDefaults,
   RoutingProvider,
   CustomProviderData,
@@ -99,6 +100,7 @@ export interface RoutingTierCardProps {
   onAddFallback: (tierId: string) => void;
   getFallbacksFor: (tierId: string) => string[];
   connectedProviders: () => RoutingProvider[];
+  modelParamSpecs?: () => ProviderParamSpecRegistry;
   persistFallbacks?: (
     agentName: string,
     tier: string,
@@ -495,6 +497,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                           >
                             <ModelParamsAffordance
                               scope={modelParamsScope()}
+                              specRegistry={props.modelParamSpecs?.() ?? {}}
                               provider={provId()}
                               authType={effectiveAuth() ?? undefined}
                               model={modelName()}
@@ -547,6 +550,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               agentName={props.agentName()}
               tier={props.stage.id}
               modelParamsScope={modelParamsScope()}
+              modelParamSpecs={props.modelParamSpecs}
               tierData={props.tier}
               fallbacks={props.getFallbacksFor(props.stage.id)}
               fallbackRoutes={props.tier()?.fallback_routes ?? null}

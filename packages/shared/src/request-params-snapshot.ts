@@ -1,5 +1,4 @@
-import type { AuthType } from './auth-types';
-import { getProviderParamSpecs } from './provider-params-spec';
+import type { ProviderParamSpec } from './provider-params-spec';
 import type { JsonValue, RequestParamDefaults } from './request-params';
 
 /**
@@ -32,19 +31,14 @@ export interface RequestParamsSnapshotInput {
    * to be consumed by the attempt's provider.
    */
   modelParams: RequestParamDefaults | null | undefined;
-  /** The provider that actually received (or will receive) the request. */
-  provider: string;
-  /** Auth path used by this provider attempt. */
-  authType: AuthType;
-  /** Provider-normalized model id for this attempt. */
-  model: string;
+  /** The route-supported params for the provider/auth/model attempt. */
+  specs: readonly ProviderParamSpec[];
 }
 
 export function snapshotRequestParams(
   input: RequestParamsSnapshotInput,
 ): RequestParamDefaults | null {
-  const { body, modelParams, provider, authType, model } = input;
-  const specs = getProviderParamSpecs(provider, authType, model);
+  const { body, modelParams, specs } = input;
   const out: RequestParamDefaults = {};
   for (const spec of specs) {
     if (spec.key in body) {

@@ -14,6 +14,7 @@ import type {
   AvailableModel,
   AuthType,
   ModelRoute,
+  ProviderParamSpecRegistry,
   RequestParamDefaults,
   RoutingProvider,
   CustomProviderData,
@@ -142,6 +143,7 @@ export interface RoutingSpecificitySectionProps {
   customProviders: () => CustomProviderData[];
   activeProviders: () => RoutingProvider[];
   connectedProviders: () => RoutingProvider[];
+  modelParamSpecs?: () => ProviderParamSpecRegistry;
   changingTier: () => string | null;
   resettingTier: () => string | null;
   resettingAll: () => boolean;
@@ -246,6 +248,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
               <RoutingTierCard
                 stage={stage}
                 modelParamsScope={modelParamsScopeForSpecificity(stage.id)}
+                modelParamSpecs={props.modelParamSpecs}
                 tier={() => toTierAssignment(getAssignment(stage.id))}
                 models={props.models}
                 customProviders={props.customProviders}

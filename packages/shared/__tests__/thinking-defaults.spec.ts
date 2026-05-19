@@ -1,18 +1,30 @@
 import { providerThinkingDefault } from '../src/thinking-defaults';
+import type { ProviderParamSpec } from '../src/provider-params-spec';
+
+const thinkingSpec: ProviderParamSpec = {
+  key: 'thinking',
+  control: {
+    kind: 'toggle',
+    label: 'Thinking mode',
+    values: ['enabled', 'disabled'],
+    default: 'enabled',
+  },
+};
 
 describe('providerThinkingDefault', () => {
-  it('returns the registered default for providers whose spec declares the thinking key', () => {
-    expect(providerThinkingDefault('deepseek', 'api_key')).toBe('enabled');
+  it('returns the default from specs that declare the thinking key', () => {
+    expect(providerThinkingDefault([thinkingSpec])).toBe('enabled');
   });
 
-  it('is case-insensitive on the provider id', () => {
-    expect(providerThinkingDefault('DeepSeek', 'api_key')).toBe('enabled');
-  });
-
-  it('returns undefined for routes whose spec has no thinking key', () => {
-    expect(providerThinkingDefault('openai', 'api_key')).toBeUndefined();
-    expect(providerThinkingDefault('deepseek', 'subscription')).toBeUndefined();
-    expect(providerThinkingDefault(undefined, 'api_key')).toBeUndefined();
-    expect(providerThinkingDefault('', 'api_key')).toBeUndefined();
+  it('returns undefined when no spec has a thinking key', () => {
+    expect(
+      providerThinkingDefault([
+        {
+          key: 'temperature',
+          control: { kind: 'slider', label: 'Temperature', min: 0, max: 1, default: 1 },
+        },
+      ]),
+    ).toBeUndefined();
+    expect(providerThinkingDefault([])).toBeUndefined();
   });
 });

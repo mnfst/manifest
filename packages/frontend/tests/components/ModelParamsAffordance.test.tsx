@@ -1,11 +1,29 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, waitFor } from '@solidjs/testing-library';
+import type { ProviderParamSpecRegistry } from 'manifest-shared';
 import ModelParamsAffordance from '../../src/components/ModelParamsAffordance';
 
 describe('ModelParamsAffordance', () => {
+  const specRegistry: ProviderParamSpecRegistry = {
+    'deepseek:api_key': {
+      base: [
+        {
+          key: 'thinking',
+          control: {
+            kind: 'toggle',
+            label: 'Thinking mode',
+            values: ['enabled', 'disabled'],
+            default: 'enabled',
+          },
+        },
+      ],
+    },
+  };
+
   it('renders the button when the route provider consumes a known param key', () => {
     const { container } = render(() => (
       <ModelParamsAffordance
+        specRegistry={specRegistry}
         provider="deepseek"
         authType="api_key"
         model="deepseek-v4"
@@ -23,6 +41,7 @@ describe('ModelParamsAffordance', () => {
   it('does NOT render the button when the provider has no known param key', () => {
     const { container } = render(() => (
       <ModelParamsAffordance
+        specRegistry={specRegistry}
         provider="openai"
         authType="api_key"
         model="gpt-4o"
@@ -38,6 +57,7 @@ describe('ModelParamsAffordance', () => {
   it('does NOT render the button when authType is missing (can not call the endpoint)', () => {
     const { container } = render(() => (
       <ModelParamsAffordance
+        specRegistry={specRegistry}
         provider="deepseek"
         authType={undefined}
         model="deepseek-v4"
@@ -53,6 +73,7 @@ describe('ModelParamsAffordance', () => {
   it('does NOT render the button when provider is undefined', () => {
     const { container } = render(() => (
       <ModelParamsAffordance
+        specRegistry={specRegistry}
         provider={undefined}
         authType="api_key"
         model="deepseek-v4"
@@ -68,6 +89,7 @@ describe('ModelParamsAffordance', () => {
   it('flips the configured class when getParams returns a non-null value', () => {
     const { container } = render(() => (
       <ModelParamsAffordance
+        specRegistry={specRegistry}
         provider="deepseek"
         authType="api_key"
         model="deepseek-v4"
@@ -87,6 +109,7 @@ describe('ModelParamsAffordance', () => {
     const setParams = vi.fn().mockResolvedValue(undefined);
     const { container, getByRole } = render(() => (
       <ModelParamsAffordance
+        specRegistry={specRegistry}
         provider="deepseek"
         authType="api_key"
         model="deepseek-v4"
@@ -120,6 +143,7 @@ describe('ModelParamsAffordance', () => {
     const setParams = vi.fn().mockResolvedValue(undefined);
     const { container, getByRole } = render(() => (
       <ModelParamsAffordance
+        specRegistry={specRegistry}
         provider="deepseek"
         authType="api_key"
         model="deepseek-v4"
@@ -155,6 +179,7 @@ describe('ModelParamsAffordance', () => {
   it('button is disabled when the parent says so', () => {
     const { container } = render(() => (
       <ModelParamsAffordance
+        specRegistry={specRegistry}
         provider="deepseek"
         authType="api_key"
         model="deepseek-v4"

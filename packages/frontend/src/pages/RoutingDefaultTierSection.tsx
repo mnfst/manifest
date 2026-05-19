@@ -3,6 +3,7 @@ import type {
   AuthType,
   AvailableModel,
   CustomProviderData,
+  ProviderParamSpecRegistry,
   RequestParamDefaults,
   RoutingProvider,
   TierAssignment,
@@ -18,6 +19,7 @@ export interface RoutingDefaultTierSectionProps {
   customProviders: () => CustomProviderData[];
   activeProviders: () => RoutingProvider[];
   connectedProviders: () => RoutingProvider[];
+  modelParamSpecs?: () => ProviderParamSpecRegistry;
   tiersLoading: boolean;
   changingTier: () => string | null;
   resettingTier: () => string | null;
@@ -77,6 +79,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
       <RoutingTierCard
         stage={DEFAULT_STAGE}
         modelParamsScope={modelParamsScopeForTier(DEFAULT_STAGE.id)}
+        modelParamSpecs={props.modelParamSpecs}
         tier={props.tier}
         models={props.models}
         customProviders={props.customProviders}
@@ -108,6 +111,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
           <RoutingTierCard
             stage={stage}
             modelParamsScope={modelParamsScopeForTier(stage.id)}
+            modelParamSpecs={props.modelParamSpecs}
             tier={() => props.getTier(stage.id)}
             models={props.models}
             customProviders={props.customProviders}

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   listModelParams,
+  listModelParamSpecs,
   setModelParams,
   deleteModelParams,
   modelParamsKey,
@@ -23,6 +24,19 @@ describe('model-params API client', () => {
     await listModelParams('demo');
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining('/routing/demo/model-params'),
+      expect.anything(),
+    );
+  });
+
+  it('listModelParamSpecs GETs the DB-backed param spec registry', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({}),
+    } as unknown as Response);
+    await listModelParamSpecs('demo');
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/routing/demo/model-param-specs'),
       expect.anything(),
     );
   });

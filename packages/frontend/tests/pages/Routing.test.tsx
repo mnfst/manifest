@@ -17,6 +17,7 @@ const mockRefreshPricing = vi.fn();
 const mockGetComplexityStatus = vi.fn();
 const mockToggleComplexity = vi.fn();
 const mockListModelParams = vi.fn();
+const mockListModelParamSpecs = vi.fn();
 const mockSetModelParams = vi.fn();
 const mockDeleteModelParams = vi.fn();
 
@@ -36,6 +37,7 @@ vi.mock("../../src/services/api.js", () => ({
   setSpecificityFallbacks: (...args: unknown[]) => mockSetSpecificityFallbacks(...args),
   clearSpecificityFallbacks: (...args: unknown[]) => mockClearSpecificityFallbacks(...args),
   listModelParams: (...args: unknown[]) => mockListModelParams(...args),
+  listModelParamSpecs: (...args: unknown[]) => mockListModelParamSpecs(...args),
   setModelParams: (...args: unknown[]) => mockSetModelParams(...args),
   deleteModelParams: (...args: unknown[]) => mockDeleteModelParams(...args),
   modelParamsKey: (scope: string, provider: string, authType: string, model: string) =>
@@ -274,6 +276,7 @@ vi.mock("../../src/pages/RoutingDefaultTierSection.js", () => ({
       props.getTier,
       props.complexityEnabled,
       props.togglingComplexity,
+      props.modelParamSpecs,
       props.getModelParams,
       props.setModelParams,
     ];
@@ -517,6 +520,21 @@ beforeEach(() => {
   mockGetPricingHealth.mockResolvedValue({ model_count: 100, last_fetched_at: "2025-01-01" });
   mockToggleComplexity.mockResolvedValue({ enabled: false });
   mockListModelParams.mockResolvedValue([]);
+  mockListModelParamSpecs.mockResolvedValue({
+    "deepseek:api_key": {
+      base: [
+        {
+          key: "thinking",
+          control: {
+            kind: "toggle",
+            label: "Thinking mode",
+            values: ["enabled", "disabled"],
+            default: "enabled",
+          },
+        },
+      ],
+    },
+  });
 });
 
 describe("Routing page", () => {

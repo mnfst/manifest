@@ -13,6 +13,17 @@ import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+
+const thinkingSpec = {
+  key: 'thinking',
+  control: {
+    kind: 'toggle' as const,
+    label: 'Thinking mode',
+    values: ['enabled', 'disabled'] as const,
+    default: 'enabled',
+  },
+};
 
 describe('ProxyFallbackService', () => {
   let service: ProxyFallbackService;
@@ -25,6 +36,7 @@ describe('ProxyFallbackService', () => {
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
   let modelParamsService: jest.Mocked<AgentModelParamsService>;
+  let providerParamSpecs: jest.Mocked<ProviderParamSpecService>;
 
   beforeEach(() => {
     providerKeyService = {
@@ -69,6 +81,9 @@ describe('ProxyFallbackService', () => {
       set: jest.fn(),
       delete: jest.fn(),
     } as unknown as jest.Mocked<AgentModelParamsService>;
+    providerParamSpecs = {
+      getSpecs: jest.fn().mockResolvedValue([thinkingSpec]),
+    } as unknown as jest.Mocked<ProviderParamSpecService>;
 
     service = new ProxyFallbackService(
       providerKeyService,
@@ -80,6 +95,7 @@ describe('ProxyFallbackService', () => {
       copilotToken,
       pricingCache,
       modelParamsService,
+      providerParamSpecs,
     );
   });
 

@@ -1,6 +1,7 @@
 import { fetchJson, fetchMutate, routingPath } from './core.js';
 import type { AuthType } from './routing.js';
-import type { RequestParamDefaults } from 'manifest-shared';
+import type { ProviderParamSpecRegistry, RequestParamDefaults } from 'manifest-shared';
+export type { ProviderParamSpecRegistry } from 'manifest-shared';
 export {
   modelParamsScopeForTier,
   modelParamsScopeForSpecificity,
@@ -22,6 +23,10 @@ export interface AgentModelParamsRow {
 
 export function listModelParams(agentName: string) {
   return fetchJson<AgentModelParamsRow[]>(routingPath(agentName, 'model-params'));
+}
+
+export function listModelParamSpecs(agentName: string) {
+  return fetchJson<ProviderParamSpecRegistry>(routingPath(agentName, 'model-param-specs'));
 }
 
 export function setModelParams(

@@ -4,6 +4,7 @@ import type {
   AvailableModel,
   CustomProviderData,
   ModelRoute,
+  ProviderParamSpecRegistry,
   RequestParamDefaults,
   RoutingProvider,
 } from '../services/api.js';
@@ -51,6 +52,7 @@ interface Props {
   onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onEdit?: () => void;
   onDisable?: () => void;
+  modelParamSpecs?: () => ProviderParamSpecRegistry;
   /**
    * Per-route params getter, threaded from the routing page boundary. When
    * present, the primary chip and every fallback row render a
@@ -333,6 +335,7 @@ const HeaderTierCard: Component<Props> = (props) => {
                   >
                     <ModelParamsAffordance
                       scope={modelParamsScope()}
+                      specRegistry={props.modelParamSpecs?.() ?? {}}
                       provider={providerId()}
                       authType={(effectiveAuth() as AuthType) ?? undefined}
                       model={modelName()}
@@ -382,6 +385,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             agentName={props.agentName}
             tier={props.tier.id}
             modelParamsScope={modelParamsScope()}
+            modelParamSpecs={props.modelParamSpecs}
             fallbacks={fallbacks()}
             fallbackRoutes={props.tier.fallback_routes ?? null}
             models={props.models}

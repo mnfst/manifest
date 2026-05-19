@@ -1,6 +1,6 @@
 import { createSignal, createEffect, For, Show, type Component } from 'solid-js';
-import { getProviderParamSpecs, type ParamControl, type ProviderParamSpec } from 'manifest-shared';
-import type { AuthType, JsonValue, RequestParamDefaults } from '../services/api.js';
+import type { ParamControl, ProviderParamSpec } from 'manifest-shared';
+import type { JsonValue, RequestParamDefaults } from '../services/api.js';
 import Select from './Select.jsx';
 
 interface Props {
@@ -9,12 +9,8 @@ interface Props {
   slotLabel: string;
   /** Currently configured params for this route; null when none set. */
   current: RequestParamDefaults | null;
-  /** The provider this route resolves to — drives which spec entries render. */
-  provider: string;
-  /** Auth type this route uses — provider params can differ by auth path. */
-  authType: AuthType;
-  /** Provider-normalized model id — model overrides replace provider base specs. */
-  model: string;
+  /** Provider/auth/model-resolved specs loaded from the backend registry. */
+  specs: readonly ProviderParamSpec[];
   /**
    * Persist new defaults. Called with `null` when every chosen value
    * matches the provider's natural default (no override needed) and with a
@@ -27,9 +23,9 @@ interface Props {
 
 /**
  * Local-state shape: one UI/storage value per spec key. The dialog is fully
- * driven by `getProviderParamSpecs(provider, authType, model)` — adding a
- * new provider knob is one registry entry, and the matching control kind
- * below renders it automatically.
+ * driven by backend-loaded provider param specs — adding a new provider
+ * knob is one database row, and the matching control kind below renders it
+ * automatically.
  */
 type DraftState = Record<string, JsonValue>;
 
@@ -76,7 +72,7 @@ const sliderValue = (value: number, control: SliderControl): number => {
 };
 
 const ModelParamsDialog: Component<Props> = (props) => {
-  const specs = () => getProviderParamSpecs(props.provider, props.authType, props.model);
+  const specs = () => props.specs;
   const [draft, setDraft] = createSignal<DraftState>(stateFromCurrent(specs(), props.current));
   const [saving, setSaving] = createSignal(false);
 

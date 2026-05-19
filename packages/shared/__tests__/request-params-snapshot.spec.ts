@@ -1,41 +1,33 @@
 import { snapshotRequestParams } from '../src/request-params-snapshot';
+import type { ProviderParamSpec } from '../src/provider-params-spec';
+
+const thinkingSpec: ProviderParamSpec = {
+  key: 'thinking',
+  control: {
+    kind: 'toggle',
+    label: 'Thinking mode',
+    values: ['enabled', 'disabled'],
+    default: 'enabled',
+  },
+};
 
 describe('snapshotRequestParams', () => {
-  it('returns null when the provider has no known param keys (e.g. OpenAI)', () => {
+  it('returns null when the route has no known param specs', () => {
     expect(
       snapshotRequestParams({
         body: { messages: [] },
         modelParams: null,
-        provider: 'openai',
-        authType: 'api_key',
-        model: 'gpt-4o',
-      }),
-    ).toBeNull();
-  });
-
-  it('returns null when the provider supports params under a different auth type', () => {
-    expect(
-      snapshotRequestParams({
-        body: { messages: [] },
-        modelParams: null,
-        provider: 'deepseek',
-        authType: 'subscription',
-        model: 'deepseek-v4',
+        specs: [],
       }),
     ).toBeNull();
   });
 
   it("falls back to the provider's own default for known keys when nothing was overridden", () => {
-    // DeepSeek defaults thinking to enabled. Neither the client nor any
-    // saved per-route config contributed a value, so the snapshot emits the
-    // provider's natural default — that's what the request actually had.
     expect(
       snapshotRequestParams({
         body: { messages: [] },
         modelParams: null,
-        provider: 'deepseek',
-        authType: 'api_key',
-        model: 'deepseek-v4',
+        specs: [thinkingSpec],
       }),
     ).toEqual({ thinking: 'enabled' });
   });
@@ -45,9 +37,7 @@ describe('snapshotRequestParams', () => {
       snapshotRequestParams({
         body: { messages: [] },
         modelParams: { thinking: 'disabled' },
-        provider: 'deepseek',
-        authType: 'api_key',
-        model: 'deepseek-v4',
+        specs: [thinkingSpec],
       }),
     ).toEqual({ thinking: 'disabled' });
   });
@@ -57,9 +47,7 @@ describe('snapshotRequestParams', () => {
       snapshotRequestParams({
         body: { thinking: 'enabled', messages: [] },
         modelParams: { thinking: 'disabled' },
-        provider: 'deepseek',
-        authType: 'api_key',
-        model: 'deepseek-v4',
+        specs: [thinkingSpec],
       }),
     ).toEqual({ thinking: 'enabled' });
   });
@@ -68,9 +56,7 @@ describe('snapshotRequestParams', () => {
     const result = snapshotRequestParams({
       body: { messages: [], temperature: 0.7, thinking: 'enabled' },
       modelParams: null,
-      provider: 'deepseek',
-      authType: 'api_key',
-      model: 'deepseek-v4',
+      specs: [thinkingSpec],
     });
     expect(result).toEqual({ thinking: 'enabled' });
     expect(Object.keys(result!)).not.toContain('temperature');

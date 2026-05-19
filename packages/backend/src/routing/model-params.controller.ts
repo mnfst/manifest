@@ -2,11 +2,13 @@ import { BadRequestException, Body, Controller, Delete, Get, Param, Put } from '
 import {
   pickProviderCompatibleParams,
   type AuthType,
+  type ProviderParamSpecRegistry,
   type RequestParamDefaults,
 } from 'manifest-shared';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { AgentModelParamsService } from './routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { AgentNameParamDto } from './dto/routing.dto';
 import { DeleteModelParamsBodyDto, SetModelParamsBodyDto } from './dto/model-params.dto';
@@ -15,8 +17,18 @@ import { DeleteModelParamsBodyDto, SetModelParamsBodyDto } from './dto/model-par
 export class ModelParamsController {
   constructor(
     private readonly modelParamsService: AgentModelParamsService,
+    private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly resolveAgentService: ResolveAgentService,
   ) {}
+
+  @Get(':agentName/model-param-specs')
+  async specs(
+    @CurrentUser() user: AuthUser,
+    @Param() params: AgentNameParamDto,
+  ): Promise<ProviderParamSpecRegistry> {
+    await this.resolveAgentService.resolve(user.id, params.agentName);
+    return this.providerParamSpecs.getRegistry();
+  }
 
   /**
    * Full list for the agent. The frontend calls this once on Routing page
@@ -43,7 +55,7 @@ export class ModelParamsController {
    * encoding gymnastics no client remembers to do.
    *
    * Provider/key compatibility is enforced here, not in the DTO: the DTO
-   * preserves the params object while this method checks the
+   * preserves the params object while this method checks DB-backed
    * (provider, auth_type, model, key) compatibility so an incompatible route
    * does not save a payload it would silently drop at proxy time.
    */
@@ -54,7 +66,7 @@ export class ModelParamsController {
     @Body() body: SetModelParamsBodyDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const sanitized = this.assertCompatibleParams(
+    const sanitized = await this.assertCompatibleParams(
       body.provider,
       body.authType,
       body.model,
@@ -101,32 +113,32 @@ export class ModelParamsController {
   }
 
   /**
-   * Provider/key compatibility gate, driven by the single
-   * `PROVIDER_PARAM_SPECS` registry in `manifest-shared`. Returns the
-   * params trimmed to the keys the provider actually consumes — a partially
-   * incompatible payload still saves the compatible part rather than
-   * throwing, matching the proxy's lenient merge behavior.
+   * Provider/key compatibility gate, driven by the DB-backed provider param
+   * specs. Returns the params trimmed to the keys the provider actually
+   * consumes — a partially incompatible payload still saves the compatible
+   * part rather than throwing, matching the proxy's lenient merge behavior.
    *
    * Throws when the payload is empty (no keys at all) or when no key is
    * compatible with the provider — those are user errors the UI should
    * surface, not silently swallow.
    *
-   * Adding a new provider knob is one entry in `PROVIDER_PARAM_SPECS`;
-   * this method does not need to change.
+   * Adding a new provider knob is one row in `provider_param_specs`; this
+   * method does not need to change.
    */
-  private assertCompatibleParams(
+  private async assertCompatibleParams(
     provider: string,
     authType: AuthType,
     model: string,
     params: RequestParamDefaults,
-  ): RequestParamDefaults {
+  ): Promise<RequestParamDefaults> {
     const keys = Object.keys(params).filter(
       (k) => (params as Record<string, unknown>)[k] !== undefined,
     );
     if (keys.length === 0) {
       throw new BadRequestException('params must contain at least one configurable field');
     }
-    const out = pickProviderCompatibleParams(provider, authType, model, params);
+    const specs = await this.providerParamSpecs.getSpecs(provider, authType, model);
+    const out = pickProviderCompatibleParams(params, specs);
     if (Object.keys(out).length === 0) {
       throw new BadRequestException(
         `Provider "${provider}" does not consume any of the supplied params`,

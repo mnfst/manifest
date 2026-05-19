@@ -1,5 +1,5 @@
 import { applyRequestParamDefaults } from '../src/request-params';
-import { getProviderParamSpecs, type ProviderParamSpec } from '../src/provider-params-spec';
+import type { ProviderParamSpec } from '../src/provider-params-spec';
 
 const thinkingSpec: ProviderParamSpec = {
   key: 'thinking',
@@ -69,9 +69,26 @@ describe('applyRequestParamDefaults', () => {
     expect(merged).toEqual({ messages: [] });
   });
 
-  it('merges Anthropic API-key scalar defaults through the real registry specs', () => {
+  it('merges Anthropic API-key scalar defaults through resolved specs', () => {
     const body: Record<string, unknown> = { messages: [] };
-    const specs = getProviderParamSpecs('anthropic', 'api_key', 'claude-sonnet-4-6');
+    const specs: ProviderParamSpec[] = [
+      {
+        key: 'max_tokens',
+        control: { kind: 'number', label: 'Max tokens', min: 1, default: 4096 },
+      },
+      {
+        key: 'temperature',
+        control: { kind: 'slider', label: 'Temperature', min: 0, max: 1, step: 0.1, default: 1 },
+      },
+      {
+        key: 'top_p',
+        control: { kind: 'slider', label: 'Top P', min: 0, max: 1, step: 0.01, default: 1 },
+      },
+      {
+        key: 'top_k',
+        control: { kind: 'number', label: 'Top K', min: 0, default: 0 },
+      },
+    ];
     const merged = applyRequestParamDefaults(
       body,
       { max_tokens: 2048, temperature: 0.4, top_p: 0.8, top_k: 40 },

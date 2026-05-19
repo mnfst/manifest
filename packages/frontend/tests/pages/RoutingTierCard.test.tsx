@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, fireEvent, waitFor } from "@solidjs/testing-library";
+import type { ProviderParamSpecRegistry } from "manifest-shared";
 
 const mockSetFallbacks = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
@@ -76,6 +77,7 @@ vi.mock("../../src/components/FallbackList.js", () => ({
       props.primaryDragging,
       props.persistFallbacks,
       props.persistClearFallbacks,
+      props.modelParamSpecs,
       props.getModelParams,
       props.setModelParams,
     ];
@@ -202,6 +204,22 @@ const activeProviders: RoutingProvider[] = [
   },
 ];
 
+const modelParamSpecs = (): ProviderParamSpecRegistry => ({
+  "deepseek:api_key": {
+    base: [
+      {
+        key: "thinking",
+        control: {
+          kind: "toggle",
+          label: "Thinking mode",
+          values: ["enabled", "disabled"],
+          default: "enabled",
+        },
+      },
+    ],
+  },
+});
+
 function makeProps(overrides: Partial<Parameters<typeof RoutingTierCard>[0]> = {}) {
   return {
     stage,
@@ -222,6 +240,7 @@ function makeProps(overrides: Partial<Parameters<typeof RoutingTierCard>[0]> = {
     onAddFallback: vi.fn(),
     getFallbacksFor: () => baseTier.fallback_routes!.map((r) => r.model),
     connectedProviders: () => activeProviders,
+    modelParamSpecs,
     getModelParams: () => null,
     setModelParams: vi.fn().mockResolvedValue(undefined),
     ...overrides,

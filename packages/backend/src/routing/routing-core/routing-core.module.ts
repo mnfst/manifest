@@ -4,6 +4,7 @@ import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { AgentModelParams } from '../../entities/agent-model-params.entity';
+import { ProviderParamSpecEntity } from '../../entities/provider-param-spec.entity';
 import { Agent } from '../../entities/agent.entity';
 import { Tenant } from '../../entities/tenant.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -19,6 +20,7 @@ import { ResolveAgentService } from './resolve-agent.service';
 import { SpecificityService } from './specificity.service';
 import { SpecificityPenaltyService } from './specificity-penalty.service';
 import { AgentModelParamsService } from './agent-model-params.service';
+import { ProviderParamSpecService } from './provider-param-spec.service';
 
 @Module({
   imports: [
@@ -27,6 +29,7 @@ import { AgentModelParamsService } from './agent-model-params.service';
       TierAssignment,
       SpecificityAssignment,
       AgentModelParams,
+      ProviderParamSpecEntity,
       Agent,
       Tenant,
       AgentMessage,
@@ -45,6 +48,7 @@ import { AgentModelParamsService } from './agent-model-params.service';
     SpecificityService,
     SpecificityPenaltyService,
     AgentModelParamsService,
+    ProviderParamSpecService,
   ],
   exports: [
     TypeOrmModule,
@@ -58,6 +62,7 @@ import { AgentModelParamsService } from './agent-model-params.service';
     SpecificityService,
     SpecificityPenaltyService,
     AgentModelParamsService,
+    ProviderParamSpecService,
   ],
 })
 export class RoutingCoreModule {}

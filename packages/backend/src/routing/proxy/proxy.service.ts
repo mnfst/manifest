@@ -33,6 +33,7 @@ import {
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 import { formatManifestError } from '../../common/errors/error-codes';
 import { peekStream } from './stream-warmup';
@@ -122,6 +123,7 @@ export class ProxyService {
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
     private readonly modelParamsService: AgentModelParamsService,
+    private readonly providerParamSpecs: ProviderParamSpecService,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -214,12 +216,15 @@ export class ProxyService {
       route.authType,
       primaryModel,
     );
+    const primaryParamSpecs = await this.providerParamSpecs.getSpecs(
+      route.provider,
+      route.authType,
+      primaryModel,
+    );
     const primaryRequestParams = snapshotRequestParams({
       body: routingBody as Record<string, unknown>,
       modelParams: primaryModelParams,
-      provider: route.provider,
-      authType: route.authType,
-      model: primaryModel,
+      specs: primaryParamSpecs,
     });
 
     const forward = await this.fallbackService.tryForwardToProvider({
@@ -503,9 +508,11 @@ export class ProxyService {
         ? snapshotRequestParams({
             body: body as Record<string, unknown>,
             modelParams: fallbackModelParams,
-            provider: success.provider,
-            authType: success.authType,
-            model: success.model,
+            specs: await this.providerParamSpecs.getSpecs(
+              success.provider,
+              success.authType,
+              success.model,
+            ),
           })
         : null;
       return {
@@ -553,9 +560,11 @@ export class ProxyService {
         ? snapshotRequestParams({
             body: body as Record<string, unknown>,
             modelParams: primaryModelParams,
-            provider: primaryProvider,
-            authType: primaryAuth as AuthType,
-            model: primaryModel,
+            specs: await this.providerParamSpecs.getSpecs(
+              primaryProvider,
+              primaryAuth as AuthType,
+              primaryModel,
+            ),
           })
         : null;
     return {

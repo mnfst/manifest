@@ -2,8 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { AuthType, ModelRoute } from 'manifest-shared';
-import { applyRequestParamDefaults, getProviderParamSpecs } from 'manifest-shared';
+import { applyRequestParamDefaults } from 'manifest-shared';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
@@ -75,6 +76,7 @@ export class ProxyFallbackService {
     private readonly copilotToken: CopilotTokenService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly modelParamsService: AgentModelParamsService,
+    private readonly providerParamSpecs: ProviderParamSpecService,
   ) {}
 
   /**
@@ -103,7 +105,7 @@ export class ProxyFallbackService {
       typedAuthType,
       model,
     );
-    const specs = getProviderParamSpecs(provider, typedAuthType, model);
+    const specs = await this.providerParamSpecs.getSpecs(provider, typedAuthType, model);
     return applyRequestParamDefaults(body, modelParams, specs);
   }
 

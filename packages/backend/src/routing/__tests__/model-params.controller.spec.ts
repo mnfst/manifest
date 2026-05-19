@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ModelParamsController } from '../model-params.controller';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
 import { AuthUser } from '../../auth/auth.instance';
 
@@ -16,6 +17,10 @@ describe('ModelParamsController', () => {
     delete: jest.Mock;
     get: jest.Mock;
   }>;
+  let providerParamSpecs: jest.Mocked<{
+    getRegistry: jest.Mock;
+    getSpecs: jest.Mock;
+  }>;
   let resolveAgent: jest.Mocked<{ resolve: jest.Mock }>;
 
   beforeEach(async () => {
@@ -25,6 +30,10 @@ describe('ModelParamsController', () => {
       delete: jest.fn(),
       get: jest.fn(),
     };
+    providerParamSpecs = {
+      getRegistry: jest.fn(),
+      getSpecs: jest.fn(),
+    };
     resolveAgent = {
       resolve: jest.fn().mockResolvedValue(mockAgent),
     };
@@ -33,6 +42,7 @@ describe('ModelParamsController', () => {
       controllers: [ModelParamsController],
       providers: [
         { provide: AgentModelParamsService, useValue: service },
+        { provide: ProviderParamSpecService, useValue: providerParamSpecs },
         { provide: ResolveAgentService, useValue: resolveAgent },
       ],
     }).compile();
@@ -66,8 +76,43 @@ describe('ModelParamsController', () => {
     });
   });
 
+  describe('GET /model-param-specs', () => {
+    it('returns the backend-loaded param spec registry', async () => {
+      const registry = {
+        'deepseek:api_key': {
+          base: [
+            {
+              key: 'thinking',
+              control: {
+                kind: 'toggle',
+                label: 'Thinking mode',
+                values: ['enabled', 'disabled'],
+                default: 'enabled',
+              },
+            },
+          ],
+        },
+      };
+      providerParamSpecs.getRegistry.mockResolvedValueOnce(registry);
+
+      await expect(controller.specs(mockUser, { agentName: 'demo' })).resolves.toBe(registry);
+      expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'demo');
+    });
+  });
+
   describe('PUT /model-params', () => {
     it('persists compatible params and returns the projected row', async () => {
+      providerParamSpecs.getSpecs.mockResolvedValueOnce([
+        {
+          key: 'thinking',
+          control: {
+            kind: 'toggle',
+            label: 'Thinking mode',
+            values: ['enabled', 'disabled'],
+            default: 'enabled',
+          },
+        },
+      ]);
       service.set.mockResolvedValueOnce({
         scope_key: 'tier:simple',
         provider: 'deepseek',
@@ -107,6 +152,24 @@ describe('ModelParamsController', () => {
     });
 
     it('persists all Anthropic API-key scalar params', async () => {
+      providerParamSpecs.getSpecs.mockResolvedValueOnce([
+        {
+          key: 'max_tokens',
+          control: { kind: 'number', label: 'Max tokens', min: 1, default: 4096 },
+        },
+        {
+          key: 'temperature',
+          control: { kind: 'slider', label: 'Temperature', min: 0, max: 1, step: 0.1, default: 1 },
+        },
+        {
+          key: 'top_p',
+          control: { kind: 'slider', label: 'Top P', min: 0, max: 1, step: 0.01, default: 1 },
+        },
+        {
+          key: 'top_k',
+          control: { kind: 'number', label: 'Top K', min: 0, default: 0 },
+        },
+      ]);
       service.set.mockImplementation(
         async (_agentId, _userId, scope, provider, authType, model, params) => ({
           scope_key: scope,
@@ -149,6 +212,17 @@ describe('ModelParamsController', () => {
     });
 
     it('strips keys the provider does not consume and persists only the compatible subset', async () => {
+      providerParamSpecs.getSpecs.mockResolvedValueOnce([
+        {
+          key: 'thinking',
+          control: {
+            kind: 'toggle',
+            label: 'Thinking mode',
+            values: ['enabled', 'disabled'],
+            default: 'enabled',
+          },
+        },
+      ]);
       service.set.mockImplementation(async (_a, _u, scope, p, a, m, params) => ({
         scope_key: scope,
         provider: p,
@@ -192,6 +266,7 @@ describe('ModelParamsController', () => {
     });
 
     it('throws when the provider does not consume any of the supplied keys', async () => {
+      providerParamSpecs.getSpecs.mockResolvedValueOnce([]);
       await expect(
         controller.set(
           mockUser,
