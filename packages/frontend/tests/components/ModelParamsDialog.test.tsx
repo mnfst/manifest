@@ -30,10 +30,46 @@ describe('ModelParamsDialog', () => {
     {
       key: 'top_p',
       control: { kind: 'slider', label: 'Top P', min: 0, max: 1, step: 0.01, default: 1 },
+      dependencies: [
+        {
+          effect: 'disable',
+          when: { key: 'thinking.type', values: ['adaptive', 'enabled'] },
+        },
+        {
+          effect: 'omit',
+          when: { key: 'thinking.type', values: ['adaptive', 'enabled'] },
+        },
+      ],
     },
     {
       key: 'top_k',
       control: { kind: 'number', label: 'Top K', min: 0, default: 0 },
+      dependencies: [
+        {
+          effect: 'disable',
+          when: { key: 'thinking.type', values: ['adaptive', 'enabled'] },
+        },
+        {
+          effect: 'omit',
+          when: { key: 'thinking.type', values: ['adaptive', 'enabled'] },
+        },
+      ],
+    },
+    {
+      key: 'type',
+      group: { key: 'thinking', label: 'Thinking' },
+      control: {
+        kind: 'select',
+        label: 'Thinking mode',
+        values: ['disabled', 'adaptive', 'enabled'],
+        default: 'disabled',
+      },
+    },
+    {
+      key: 'budget_tokens',
+      group: { key: 'thinking', label: 'Thinking' },
+      visibleWhen: { key: 'type', equals: 'enabled' },
+      control: { kind: 'number', label: 'Budget tokens', min: 1024, default: 4096 },
     },
   ];
   const baseProps = {
@@ -295,6 +331,64 @@ describe('ModelParamsDialog', () => {
         temperature: 0.4,
         top_p: 0.8,
         top_k: 40,
+      }),
+    );
+  });
+
+  it('renders grouped Anthropic thinking params only when their dependency is active', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => <ModelParamsDialog {...baseProps} specs={anthropicSpecs} onSave={onSave} />);
+
+    expect(screen.getByText('Thinking')).not.toBeNull();
+    expect(screen.queryByLabelText('Budget tokens')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Thinking mode' }));
+    fireEvent.click(screen.getByRole('option', { name: 'enabled' }));
+    expect(screen.getByLabelText('Budget tokens')).not.toBeNull();
+    fireEvent.input(screen.getByLabelText('Budget tokens'), { target: { value: '8192' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith({
+        thinking: { type: 'enabled', budget_tokens: 8192 },
+      }),
+    );
+  });
+
+  it('persists Anthropic adaptive thinking without the hidden budget field', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => <ModelParamsDialog {...baseProps} specs={anthropicSpecs} onSave={onSave} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Thinking mode' }));
+    fireEvent.click(screen.getByRole('option', { name: 'adaptive' }));
+    expect(screen.queryByLabelText('Budget tokens')).toBeNull();
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith({
+        thinking: { type: 'adaptive' },
+      }),
+    );
+  });
+
+  it('disables Anthropic top_k when thinking makes it provider-incompatible', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => <ModelParamsDialog {...baseProps} specs={anthropicSpecs} onSave={onSave} />);
+
+    fireEvent.input(screen.getByLabelText('Top K'), { target: { value: '3' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Thinking mode' }));
+    fireEvent.click(screen.getByRole('option', { name: 'adaptive' }));
+
+    expect(screen.getByRole('slider', { name: 'Top P' }).getAttribute('aria-disabled')).toBe(
+      'true',
+    );
+    expect((screen.getByLabelText('Top K') as HTMLInputElement).disabled).toBe(true);
+    expect(screen.getAllByText('Unavailable with selected parameters')).toHaveLength(2);
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith({
+        thinking: { type: 'adaptive' },
       }),
     );
   });

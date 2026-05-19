@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
-import type { AuthType, JsonValue, ParamControl } from 'manifest-shared';
+import type { AuthType, JsonValue, ParamControl, ProviderParamDependency } from 'manifest-shared';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 @Entity('provider_param_specs')
@@ -19,6 +19,12 @@ export class ProviderParamSpecEntity {
 
   @Column('varchar')
   param_key!: string;
+
+  @Column('varchar', { nullable: true, default: null })
+  group_key!: string | null;
+
+  @Column('varchar', { nullable: true, default: null })
+  group_label!: string | null;
 
   @Column('varchar')
   control_kind!: ParamControl['kind'];
@@ -43,6 +49,15 @@ export class ProviderParamSpecEntity {
 
   @Column('varchar', { nullable: true, default: null })
   serializer!: string | null;
+
+  @Column('varchar', { nullable: true, default: null })
+  depends_on_key!: string | null;
+
+  @Column('jsonb', { nullable: true, default: null })
+  depends_on_value!: JsonValue | null;
+
+  @Column('jsonb', { nullable: true, default: null })
+  dependencies!: ProviderParamDependency[] | null;
 
   @Column('integer', { default: 0 })
   sort_order!: number;

@@ -570,6 +570,34 @@
   padding: 12px 0;
 }
 
+.model-params__row--disabled .model-params__label-title,
+.model-params__row--disabled .model-params__label-hint {
+  color: hsl(var(--muted-foreground));
+}
+
+.model-params__group {
+  padding: 8px 0;
+  border-top: 1px solid hsl(var(--border) / 0.65);
+}
+
+.model-params__group:first-of-type {
+  border-top: none;
+}
+
+.model-params__group-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 0 2px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+
+.model-params__group .model-params__row {
+  padding: 10px 0;
+}
+
 .model-params__label-title {
   display: flex;
   align-items: baseline;
@@ -626,15 +654,15 @@
 
 .model-params__range {
   display: grid;
-  grid-template-columns: minmax(150px, 1fr) 66px;
+  grid-template-columns: 112px 54px;
   align-items: center;
-  gap: 12px;
-  min-width: 240px;
+  gap: 8px;
+  min-width: 174px;
 }
 
 .model-params__slider {
   position: relative;
-  height: 28px;
+  height: 24px;
   cursor: pointer;
   touch-action: none;
 }
@@ -644,7 +672,7 @@
   left: 0;
   right: 0;
   top: 50%;
-  height: 6px;
+  height: 4px;
   overflow: hidden;
   border-radius: 9999px;
   background: hsl(var(--muted));
@@ -663,9 +691,9 @@
   position: absolute;
   top: 50%;
   left: var(--model-params-slider-progress, 100%);
-  width: 16px;
-  height: 16px;
-  border: 2px solid hsl(var(--card));
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid hsl(var(--card));
   border-radius: 50%;
   background: hsl(var(--success));
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.22);
@@ -678,12 +706,12 @@
 .model-params__slider:hover .model-params__slider-thumb {
   box-shadow:
     0 1px 3px rgb(0 0 0 / 0.22),
-    0 0 0 5px hsl(var(--success) / 0.14);
+    0 0 0 3px hsl(var(--success) / 0.14);
 }
 
 .model-params__slider:focus-visible {
   outline: 2px solid hsl(var(--success) / 0.45);
-  outline-offset: 2px;
+  outline-offset: 1px;
 }
 
 .model-params__slider:focus-visible .model-params__slider-thumb {
@@ -691,16 +719,16 @@
 }
 
 .model-params__slider-input {
-  width: 66px;
-  height: 32px;
-  padding: 0 8px;
+  width: 54px;
+  height: 28px;
+  padding: 0 6px;
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius-sm);
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   color-scheme: light;
   font-family: var(--font-family);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }

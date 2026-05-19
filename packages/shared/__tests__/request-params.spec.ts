@@ -1,4 +1,4 @@
-import { applyRequestParamDefaults } from '../src/request-params';
+import { applyRequestParamDefaults, type JsonValue } from '../src/request-params';
 import type { ProviderParamSpec } from '../src/provider-params-spec';
 
 const thinkingSpec: ProviderParamSpec = {
@@ -13,13 +13,22 @@ const thinkingSpec: ProviderParamSpec = {
 
 const budgetSpec: ProviderParamSpec = {
   key: 'budget_tokens',
+  group: {
+    key: 'thinking',
+    label: 'Thinking',
+    serialize: (v): Record<string, JsonValue> => {
+      if (!v || typeof v !== 'object' || Array.isArray(v)) return {};
+      const record = v as Record<string, unknown>;
+      if (record.type !== 'enabled' || typeof record.budget_tokens !== 'number') return {};
+      return { thinking: { type: 'enabled', budget_tokens: record.budget_tokens } };
+    },
+  },
   control: {
     kind: 'number',
     label: 'Budget tokens',
     min: 1024,
     default: 2048,
   },
-  serialize: (v) => ({ thinking: { type: 'enabled', budget_tokens: v } }),
 };
 
 describe('applyRequestParamDefaults', () => {
@@ -38,7 +47,11 @@ describe('applyRequestParamDefaults', () => {
 
   it('uses the spec serializer when a default needs a non-flat wire shape', () => {
     const body: Record<string, unknown> = { messages: [] };
-    const merged = applyRequestParamDefaults(body, { budget_tokens: 4096 }, [budgetSpec]);
+    const merged = applyRequestParamDefaults(
+      body,
+      { thinking: { type: 'enabled', budget_tokens: 4096 } },
+      [budgetSpec],
+    );
     expect(merged.thinking).toEqual({ type: 'enabled', budget_tokens: 4096 });
   });
 
@@ -59,8 +72,90 @@ describe('applyRequestParamDefaults', () => {
       messages: [],
       thinking: { type: 'adaptive' },
     };
-    const merged = applyRequestParamDefaults(body, { budget_tokens: 4096 }, [budgetSpec]);
+    const merged = applyRequestParamDefaults(
+      body,
+      { thinking: { type: 'enabled', budget_tokens: 4096 } },
+      [budgetSpec],
+    );
     expect(merged.thinking).toEqual({ type: 'adaptive' });
+  });
+
+  it('serializes a grouped default only once when multiple specs share storage', () => {
+    const body: Record<string, unknown> = { messages: [] };
+    const typeSpec: ProviderParamSpec = {
+      key: 'type',
+      group: budgetSpec.group,
+      control: {
+        kind: 'select',
+        label: 'Thinking mode',
+        values: ['disabled', 'enabled'],
+        default: 'disabled',
+      },
+    };
+
+    const merged = applyRequestParamDefaults(
+      body,
+      { thinking: { type: 'enabled', budget_tokens: 4096 } },
+      [typeSpec, budgetSpec],
+    );
+
+    expect(merged).toEqual({
+      thinking: { type: 'enabled', budget_tokens: 4096 },
+      messages: [],
+    });
+  });
+
+  it('omits defaults that conflict with active provider dependencies', () => {
+    const body: Record<string, unknown> = { messages: [] };
+    const typeSpec: ProviderParamSpec = {
+      key: 'type',
+      group: {
+        key: 'thinking',
+        label: 'Thinking',
+        serialize: (v): Record<string, JsonValue> => {
+          if (!v || typeof v !== 'object' || Array.isArray(v)) return {};
+          const record = v as Record<string, unknown>;
+          return record.type === 'adaptive' ? { thinking: { type: 'adaptive' } } : {};
+        },
+      },
+      control: {
+        kind: 'select',
+        label: 'Thinking mode',
+        values: ['disabled', 'adaptive', 'enabled'],
+        default: 'disabled',
+      },
+    };
+    const topKSpec: ProviderParamSpec = {
+      key: 'top_k',
+      control: { kind: 'number', label: 'Top K', min: 0, default: 0 },
+      dependencies: [
+        {
+          effect: 'omit',
+          when: { key: 'thinking.type', values: ['adaptive', 'enabled'] },
+        },
+      ],
+    };
+    const topPSpec: ProviderParamSpec = {
+      key: 'top_p',
+      control: { kind: 'slider', label: 'Top P', min: 0, max: 1, step: 0.01, default: 1 },
+      dependencies: [
+        {
+          effect: 'omit',
+          when: { key: 'thinking.type', values: ['adaptive', 'enabled'] },
+        },
+      ],
+    };
+
+    const merged = applyRequestParamDefaults(
+      body,
+      { top_k: 3, top_p: 0.4, thinking: { type: 'adaptive' } },
+      [topKSpec, topPSpec, typeSpec],
+    );
+
+    expect(merged).toEqual({
+      thinking: { type: 'adaptive' },
+      messages: [],
+    });
   });
 
   it('ignores defaults with no matching spec entry', () => {

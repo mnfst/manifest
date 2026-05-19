@@ -1,4 +1,8 @@
-import type { ProviderParamSpec } from './provider-params-spec';
+import {
+  omitProviderIncompatibleParams,
+  providerParamStorageKey,
+  type ProviderParamSpec,
+} from './provider-params-spec';
 import type { JsonValue, RequestParamDefaults } from './request-params';
 
 /**
@@ -40,16 +44,43 @@ export function snapshotRequestParams(
 ): RequestParamDefaults | null {
   const { body, modelParams, specs } = input;
   const out: RequestParamDefaults = {};
+  const handledGroups = new Set<string>();
   for (const spec of specs) {
-    if (spec.key in body) {
-      out[spec.key] = body[spec.key] as JsonValue;
+    const storageKey = providerParamStorageKey(spec);
+    if (spec.group) {
+      if (handledGroups.has(storageKey)) continue;
+      handledGroups.add(storageKey);
+      if (storageKey in body) {
+        out[storageKey] = body[storageKey] as JsonValue;
+        continue;
+      }
+      if (modelParams && storageKey in modelParams) {
+        out[storageKey] = modelParams[storageKey];
+        continue;
+      }
+      out[storageKey] = groupDefault(specs, spec.group.key);
       continue;
     }
-    if (modelParams && spec.key in modelParams) {
-      out[spec.key] = modelParams[spec.key];
+    if (storageKey in body) {
+      out[storageKey] = body[storageKey] as JsonValue;
       continue;
     }
-    out[spec.key] = spec.control.default;
+    if (modelParams && storageKey in modelParams) {
+      out[storageKey] = modelParams[storageKey];
+      continue;
+    }
+    out[storageKey] = spec.control.default;
   }
-  return Object.keys(out).length > 0 ? out : null;
+  const effective = omitProviderIncompatibleParams(out, specs);
+  return Object.keys(effective).length > 0 ? effective : null;
+}
+
+function groupDefault(specs: readonly ProviderParamSpec[], groupKey: string): JsonValue {
+  const value: Record<string, JsonValue> = {};
+  for (const spec of specs) {
+    if (spec.group?.key !== groupKey) continue;
+    if (spec.visibleWhen && value[spec.visibleWhen.key] !== spec.visibleWhen.equals) continue;
+    value[spec.key] = spec.control.default;
+  }
+  return value;
 }

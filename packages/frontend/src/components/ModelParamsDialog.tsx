@@ -1,5 +1,10 @@
 import { createSignal, createEffect, For, Show, type Component } from 'solid-js';
-import type { ParamControl, ProviderParamSpec } from 'manifest-shared';
+import {
+  providerParamHasEffect,
+  providerParamStorageKey,
+  type ParamControl,
+  type ProviderParamSpec,
+} from 'manifest-shared';
 import type { JsonValue, RequestParamDefaults } from '../services/api.js';
 import Select from './Select.jsx';
 
@@ -29,8 +34,26 @@ interface Props {
  */
 type DraftState = Record<string, JsonValue>;
 
+type SpecRenderItem =
+  | { kind: 'spec'; spec: ProviderParamSpec }
+  | { kind: 'group'; key: string; label: string; specs: ProviderParamSpec[] };
+
+const isRecord = (value: unknown): value is Record<string, JsonValue> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const valuesEqual = (a: JsonValue, b: JsonValue) =>
+  typeof a === 'object' || typeof b === 'object'
+    ? JSON.stringify(a) === JSON.stringify(b)
+    : a === b;
+
 const readValue = (spec: ProviderParamSpec, current: RequestParamDefaults | null): JsonValue => {
-  const stored = (current as Record<string, unknown> | null)?.[spec.key];
+  const storageKey = providerParamStorageKey(spec);
+  const stored = (current as Record<string, unknown> | null)?.[storageKey];
+  if (spec.group) {
+    return isRecord(stored) && stored[spec.key] !== undefined
+      ? stored[spec.key]
+      : spec.control.default;
+  }
   if (stored && typeof stored === 'object' && !Array.isArray(stored) && 'type' in stored) {
     return (stored as { type: JsonValue }).type;
   }
@@ -42,8 +65,36 @@ const stateFromCurrent = (
   current: RequestParamDefaults | null,
 ): DraftState => {
   const draft: DraftState = {};
-  for (const spec of specs) draft[spec.key] = readValue(spec, current);
+  for (const spec of specs) {
+    const storageKey = providerParamStorageKey(spec);
+    if (spec.group) {
+      const existing = isRecord(draft[storageKey]) ? draft[storageKey] : {};
+      draft[storageKey] = { ...existing, [spec.key]: readValue(spec, current) };
+      continue;
+    }
+    draft[storageKey] = readValue(spec, current);
+  }
   return draft;
+};
+
+const renderItemsFromSpecs = (specs: readonly ProviderParamSpec[]): SpecRenderItem[] => {
+  const items: SpecRenderItem[] = [];
+  const seenGroups = new Set<string>();
+  for (const spec of specs) {
+    if (!spec.group) {
+      items.push({ kind: 'spec', spec });
+      continue;
+    }
+    if (seenGroups.has(spec.group.key)) continue;
+    seenGroups.add(spec.group.key);
+    items.push({
+      kind: 'group',
+      key: spec.group.key,
+      label: spec.group.label,
+      specs: specs.filter((s) => s.group?.key === spec.group?.key),
+    });
+  }
+  return items;
 };
 
 type ToggleControl = Extract<ParamControl, { kind: 'toggle' }>;
@@ -76,6 +127,7 @@ const sliderValue = (value: number, control: SliderControl): number => {
 
 const ModelParamsDialog: Component<Props> = (props) => {
   const specs = () => props.specs;
+  const renderItems = () => renderItemsFromSpecs(specs());
   const [draft, setDraft] = createSignal<DraftState>(stateFromCurrent(specs(), props.current));
   const [saving, setSaving] = createSignal(false);
 
@@ -86,17 +138,45 @@ const ModelParamsDialog: Component<Props> = (props) => {
     if (props.open) setDraft(stateFromCurrent(specs(), props.current));
   });
 
-  const setKey = (key: string, value: JsonValue) => {
-    setDraft({ ...draft(), [key]: value });
+  const specValue = (spec: ProviderParamSpec): JsonValue => {
+    const storageKey = providerParamStorageKey(spec);
+    const stored = draft()[storageKey];
+    if (!spec.group) return stored ?? spec.control.default;
+    return isRecord(stored) && stored[spec.key] !== undefined
+      ? stored[spec.key]
+      : spec.control.default;
   };
 
+  const setSpecValue = (spec: ProviderParamSpec, value: JsonValue) => {
+    const storageKey = providerParamStorageKey(spec);
+    if (!spec.group) {
+      setDraft({ ...draft(), [storageKey]: value });
+      return;
+    }
+    const existing = draft()[storageKey];
+    const nextGroup = isRecord(existing) ? { ...existing } : {};
+    nextGroup[spec.key] = value;
+    setDraft({ ...draft(), [storageKey]: nextGroup });
+  };
+
+  const isSpecVisible = (spec: ProviderParamSpec): boolean => {
+    if (!spec.visibleWhen) return true;
+    const storageKey = providerParamStorageKey(spec);
+    const source = spec.group ? draft()[storageKey] : draft();
+    const actual = isRecord(source) ? source[spec.visibleWhen.key] : undefined;
+    return valuesEqual(actual ?? null, spec.visibleWhen.equals);
+  };
+  const isSpecDisabled = (spec: ProviderParamSpec): boolean =>
+    providerParamHasEffect(spec, draft(), 'disable');
+  const isControlDisabled = (spec: ProviderParamSpec): boolean => saving() || isSpecDisabled(spec);
+
   const stringValue = (spec: ProviderParamSpec, control: ToggleControl | SelectControl) => {
-    const value = draft()[spec.key];
+    const value = specValue(spec);
     return typeof value === 'string' ? value : control.default;
   };
 
   const numericValue = (spec: ProviderParamSpec, control: SliderControl | NumberControl) => {
-    const value = draft()[spec.key];
+    const value = specValue(spec);
     return typeof value === 'number' && Number.isFinite(value) ? value : control.default;
   };
 
@@ -110,8 +190,8 @@ const ModelParamsDialog: Component<Props> = (props) => {
         class="model-params__toggle"
         aria-pressed={isOn()}
         aria-label={`${control.label}: ${currentValue()}`}
-        disabled={saving()}
-        onClick={() => setKey(spec.key, isOn() ? offValue : onValue)}
+        disabled={isControlDisabled(spec)}
+        onClick={() => setSpecValue(spec, isOn() ? offValue : onValue)}
       >
         <span class="provider-toggle__switch" classList={{ 'provider-toggle__switch--on': isOn() }}>
           <span class="provider-toggle__switch-thumb" />
@@ -126,7 +206,8 @@ const ModelParamsDialog: Component<Props> = (props) => {
         label={control.label}
         options={control.values.map((v) => ({ label: v, value: v }))}
         value={stringValue(spec, control)}
-        onChange={(v) => setKey(spec.key, v)}
+        disabled={isControlDisabled(spec)}
+        onChange={(v) => setSpecValue(spec, v)}
       />
     </div>
   );
@@ -140,7 +221,8 @@ const ModelParamsDialog: Component<Props> = (props) => {
       return clampNumber(((value() - control.min) / span) * 100, 0, 0, 100);
     };
     const setSliderValue = (next: number) => {
-      setKey(spec.key, sliderValue(next, control));
+      if (isControlDisabled(spec)) return;
+      setSpecValue(spec, sliderValue(next, control));
     };
     const setFromPointer = (clientX: number) => {
       if (!sliderRef) return;
@@ -152,7 +234,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
       setSliderValue(Number.parseFloat(raw));
     };
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (saving()) return;
+      if (isControlDisabled(spec)) return;
       const step = sliderStep(control);
       switch (e.key) {
         case 'ArrowLeft':
@@ -181,16 +263,16 @@ const ModelParamsDialog: Component<Props> = (props) => {
           ref={sliderRef}
           class="model-params__slider"
           role="slider"
-          tabIndex={saving() ? -1 : 0}
+          tabIndex={isControlDisabled(spec) ? -1 : 0}
           aria-label={control.label}
           aria-valuemin={control.min}
           aria-valuemax={control.max}
           aria-valuenow={value()}
           aria-valuetext={String(value())}
-          aria-disabled={saving()}
+          aria-disabled={isControlDisabled(spec)}
           style={`--model-params-slider-progress: ${progress()}%;`}
           onPointerDown={(e) => {
-            if (saving()) return;
+            if (isControlDisabled(spec)) return;
             e.preventDefault();
             e.currentTarget.setPointerCapture?.(e.pointerId);
             setFromPointer(e.clientX);
@@ -215,7 +297,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
           max={control.max}
           step={sliderStep(control)}
           value={value()}
-          disabled={saving()}
+          disabled={isControlDisabled(spec)}
           aria-label={`${control.label} value`}
           onInput={(e) => setFromTextInput(e.currentTarget.value)}
         />
@@ -226,8 +308,9 @@ const ModelParamsDialog: Component<Props> = (props) => {
   const NumberRow = (spec: ProviderParamSpec, control: NumberControl) => {
     const value = () => numericValue(spec, control);
     const setFromInput = (raw: string) => {
+      if (isControlDisabled(spec)) return;
       const parsed = Number.parseFloat(raw);
-      setKey(spec.key, clampNumber(parsed, control.default, control.min, control.max));
+      setSpecValue(spec, clampNumber(parsed, control.default, control.min, control.max));
     };
     return (
       <input
@@ -236,7 +319,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
         min={control.min}
         max={control.max}
         value={value()}
-        disabled={saving()}
+        disabled={isControlDisabled(spec)}
         aria-label={control.label}
         onInput={(e) => setFromInput(e.currentTarget.value)}
       />
@@ -267,10 +350,29 @@ const ModelParamsDialog: Component<Props> = (props) => {
       // and the dashboard snapshot reflects the provider default, not an
       // explicit override.
       const out: RequestParamDefaults = {};
+      const handledGroups = new Set<string>();
       for (const spec of specs()) {
-        const value = draft()[spec.key] ?? spec.control.default;
-        if (value !== spec.control.default) {
-          out[spec.key] = value;
+        const storageKey = providerParamStorageKey(spec);
+        if (spec.group) {
+          if (handledGroups.has(storageKey)) continue;
+          handledGroups.add(storageKey);
+          const groupSpecs = specs().filter((s) => s.group?.key === spec.group?.key);
+          const visibleSpecs = groupSpecs.filter(
+            (groupSpec) => isSpecVisible(groupSpec) && !isSpecDisabled(groupSpec),
+          );
+          const hasOverride = visibleSpecs.some(
+            (s) => !valuesEqual(specValue(s), s.control.default),
+          );
+          if (!hasOverride) continue;
+          const value: Record<string, JsonValue> = {};
+          for (const groupSpec of visibleSpecs) value[groupSpec.key] = specValue(groupSpec);
+          out[storageKey] = value;
+          continue;
+        }
+        if (isSpecDisabled(spec)) continue;
+        const value = specValue(spec);
+        if (!valuesEqual(value, spec.control.default)) {
+          out[storageKey] = value;
         }
       }
       const next: RequestParamDefaults | null = Object.keys(out).length === 0 ? null : out;
@@ -283,6 +385,29 @@ const ModelParamsDialog: Component<Props> = (props) => {
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Escape' && !saving()) props.onClose();
+  };
+
+  const ParamRow = (rowProps: { spec: ProviderParamSpec }) => {
+    const spec = () => rowProps.spec;
+    return (
+      <div
+        class="model-params__row"
+        classList={{ 'model-params__row--disabled': isSpecDisabled(spec()) }}
+      >
+        <div class="model-params__label">
+          <div class="model-params__label-title">
+            <span>{spec().control.label}</span>
+            <code class="model-params__param-key">{spec().key}</code>
+          </div>
+          <div class="model-params__label-hint">
+            {isSpecDisabled(spec())
+              ? 'Unavailable with selected parameters'
+              : `Provider default: ${spec().control.default}`}
+          </div>
+        </div>
+        {renderControl(spec())}
+      </div>
+    );
   };
 
   return (
@@ -307,21 +432,28 @@ const ModelParamsDialog: Component<Props> = (props) => {
           </h2>
           <p class="modal-card__desc">Defaults for {props.slotLabel}. Client requests override.</p>
 
-          <For each={specs()}>
-            {(spec) => (
-              <div class="model-params__row">
-                <div class="model-params__label">
-                  <div class="model-params__label-title">
-                    <span>{spec.control.label}</span>
-                    <code class="model-params__param-key">{spec.key}</code>
+          <For each={renderItems()}>
+            {(item) =>
+              item.kind === 'group' ? (
+                <div class="model-params__group">
+                  <div class="model-params__group-header">
+                    <span>{item.label}</span>
+                    <code class="model-params__param-key">{item.key}</code>
                   </div>
-                  <div class="model-params__label-hint">
-                    Provider default: {spec.control.default}
-                  </div>
+                  <For each={item.specs}>
+                    {(spec) => (
+                      <Show when={isSpecVisible(spec)}>
+                        <ParamRow spec={spec} />
+                      </Show>
+                    )}
+                  </For>
                 </div>
-                {renderControl(spec)}
-              </div>
-            )}
+              ) : (
+                <Show when={isSpecVisible(item.spec)}>
+                  <ParamRow spec={item.spec} />
+                </Show>
+              )
+            }
           </For>
 
           <div class="modal-card__footer">

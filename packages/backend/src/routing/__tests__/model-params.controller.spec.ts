@@ -169,6 +169,22 @@ describe('ModelParamsController', () => {
           key: 'top_k',
           control: { kind: 'number', label: 'Top K', min: 0, default: 0 },
         },
+        {
+          key: 'type',
+          group: { key: 'thinking', label: 'Thinking' },
+          control: {
+            kind: 'select',
+            label: 'Thinking mode',
+            values: ['disabled', 'adaptive', 'enabled'],
+            default: 'disabled',
+          },
+        },
+        {
+          key: 'budget_tokens',
+          group: { key: 'thinking', label: 'Thinking' },
+          visibleWhen: { key: 'type', equals: 'enabled' },
+          control: { kind: 'number', label: 'Budget tokens', min: 1024, default: 4096 },
+        },
       ]);
       service.set.mockImplementation(
         async (_agentId, _userId, scope, provider, authType, model, params) => ({
@@ -185,6 +201,7 @@ describe('ModelParamsController', () => {
         temperature: 0.6,
         top_p: 0.77,
         top_k: 10,
+        thinking: { type: 'enabled', budget_tokens: 4096 },
       };
 
       const result = await controller.set(

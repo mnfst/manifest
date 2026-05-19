@@ -1,9 +1,13 @@
-import type { ProviderParamSpec } from './provider-params-spec';
+import {
+  omitProviderIncompatibleParams,
+  providerParamStorageKey,
+  type ProviderParamSpec,
+} from './provider-params-spec';
 
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | unknown[] | Record<string, unknown>;
 
-/** Per-route UI/storage values keyed by `ProviderParamSpec.key`. */
+/** Per-route UI/storage values keyed by `ProviderParamSpec.key` or `ProviderParamSpec.group.key`. */
 export type RequestParamDefaults = Record<string, JsonValue>;
 
 /**
@@ -17,14 +21,25 @@ export function applyRequestParamDefaults<T extends Record<string, unknown>>(
   defaults: RequestParamDefaults | null | undefined,
   specs: readonly ProviderParamSpec[],
 ): T {
-  if (!defaults) return body;
+  if (!defaults) return omitProviderIncompatibleParams(body, specs);
   const merged: Record<string, JsonValue> = {};
+  const handledGroups = new Set<string>();
   for (const spec of specs) {
-    if (!(spec.key in defaults)) continue;
+    const storageKey = providerParamStorageKey(spec);
+    if (!(storageKey in defaults)) continue;
+    if (spec.group) {
+      if (handledGroups.has(storageKey)) continue;
+      handledGroups.add(storageKey);
+      const fragment = spec.group.serialize
+        ? spec.group.serialize(defaults[storageKey])
+        : { [storageKey]: defaults[storageKey] };
+      Object.assign(merged, fragment);
+      continue;
+    }
     const fragment = spec.serialize
-      ? spec.serialize(defaults[spec.key])
-      : { [spec.key]: defaults[spec.key] };
+      ? spec.serialize(defaults[storageKey])
+      : { [storageKey]: defaults[storageKey] };
     Object.assign(merged, fragment);
   }
-  return { ...merged, ...body } as T;
+  return omitProviderIncompatibleParams({ ...merged, ...body }, specs) as T;
 }

@@ -1,6 +1,8 @@
 import {
   getProviderParamSpecs,
+  omitProviderIncompatibleParams,
   pickProviderCompatibleParams,
+  providerParamHasEffect,
   type ProviderParamSpecRegistry,
 } from '../src/provider-params-spec';
 
@@ -18,10 +20,46 @@ const registry: ProviderParamSpecRegistry = {
       {
         key: 'top_p',
         control: { kind: 'slider', label: 'Top P', min: 0, max: 1, step: 0.01, default: 1 },
+        dependencies: [
+          {
+            effect: 'disable',
+            when: { key: 'thinking.type', values: ['adaptive', 'enabled'] },
+          },
+          {
+            effect: 'omit',
+            when: { key: 'thinking.type', values: ['adaptive', 'enabled'] },
+          },
+        ],
       },
       {
         key: 'top_k',
         control: { kind: 'number', label: 'Top K', min: 0, default: 0 },
+        dependencies: [
+          {
+            effect: 'disable',
+            when: { key: 'thinking.type', values: ['adaptive', 'enabled'] },
+          },
+          {
+            effect: 'omit',
+            when: { key: 'thinking.type', values: ['adaptive', 'enabled'] },
+          },
+        ],
+      },
+      {
+        key: 'type',
+        group: { key: 'thinking', label: 'Thinking' },
+        control: {
+          kind: 'select',
+          label: 'Thinking mode',
+          values: ['disabled', 'adaptive', 'enabled'],
+          default: 'disabled',
+        },
+      },
+      {
+        key: 'budget_tokens',
+        group: { key: 'thinking', label: 'Thinking' },
+        visibleWhen: { key: 'type', equals: 'enabled' },
+        control: { kind: 'number', label: 'Budget tokens', min: 1024, default: 4096 },
       },
     ],
   },
@@ -45,7 +83,7 @@ describe('provider-params-spec', () => {
     it('returns the provider entries case-insensitively', () => {
       expect(getProviderParamSpecs(registry, 'deepseek', 'api_key')).toHaveLength(1);
       expect(getProviderParamSpecs(registry, 'DeepSeek', 'api_key')).toHaveLength(1);
-      expect(getProviderParamSpecs(registry, 'Anthropic', 'api_key')).toHaveLength(4);
+      expect(getProviderParamSpecs(registry, 'Anthropic', 'api_key')).toHaveLength(6);
     });
 
     it('returns empty for unknown providers, missing input, and auth types with no entry', () => {
@@ -113,11 +151,18 @@ describe('provider-params-spec', () => {
             temperature: 0.4,
             top_p: 0.8,
             top_k: 40,
-            thinking: { type: 'enabled', budget_tokens: 1024 },
+            thinking: { type: 'enabled', budget_tokens: 4096 },
+            budget_tokens: 1024,
           },
           getProviderParamSpecs(registry, 'anthropic', 'api_key', 'claude-sonnet-4-6'),
         ),
-      ).toEqual({ max_tokens: 2048, temperature: 0.4, top_p: 0.8, top_k: 40 });
+      ).toEqual({
+        max_tokens: 2048,
+        temperature: 0.4,
+        top_p: 0.8,
+        top_k: 40,
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+      });
     });
 
     it('drops keys the specs do not consume', () => {
@@ -152,6 +197,48 @@ describe('provider-params-spec', () => {
       );
       expect(out).not.toBe(input);
       expect(input.thinking).toEqual('enabled');
+    });
+  });
+
+  describe('provider param dependencies', () => {
+    const anthropicSpecs = getProviderParamSpecs(
+      registry,
+      'anthropic',
+      'api_key',
+      'claude-sonnet-4-6',
+    );
+    const topKSpec = anthropicSpecs.find((spec) => spec.key === 'top_k')!;
+
+    it('detects effects from dot-path dependency values', () => {
+      expect(providerParamHasEffect(topKSpec, { thinking: { type: 'adaptive' } }, 'disable')).toBe(
+        true,
+      );
+      expect(providerParamHasEffect(topKSpec, { thinking: { type: 'enabled' } }, 'omit')).toBe(
+        true,
+      );
+      expect(providerParamHasEffect(topKSpec, { thinking: { type: 'disabled' } }, 'disable')).toBe(
+        false,
+      );
+    });
+
+    it('omits params whose provider compatibility rule is active', () => {
+      const input = {
+        top_p: 0.4,
+        top_k: 3,
+        thinking: { type: 'adaptive' },
+        temperature: 0.4,
+      };
+
+      expect(omitProviderIncompatibleParams(input, anthropicSpecs)).toEqual({
+        thinking: { type: 'adaptive' },
+        temperature: 0.4,
+      });
+      expect(input).toEqual({
+        top_p: 0.4,
+        top_k: 3,
+        thinking: { type: 'adaptive' },
+        temperature: 0.4,
+      });
     });
   });
 });

@@ -103,6 +103,9 @@ import { AddOAuthPendingFlows1789100000000 } from './migrations/1789100000000-Ad
 import { FlattenAgentModelParamsThinking1789200000000 } from './migrations/1789200000000-FlattenAgentModelParamsThinking';
 import { ScopeAgentModelParams1789300000000 } from './migrations/1789300000000-ScopeAgentModelParams';
 import { AddProviderParamSpecs1789400000000 } from './migrations/1789400000000-AddProviderParamSpecs';
+import { AddProviderParamSpecGroups1789500000000 } from './migrations/1789500000000-AddProviderParamSpecGroups';
+import { AddProviderParamDependencies1789600000000 } from './migrations/1789600000000-AddProviderParamDependencies';
+import { AddOpenAiProviderParamSpecs1789700000000 } from './migrations/1789700000000-AddOpenAiProviderParamSpecs';
 
 const entities = [
   AgentMessage,
@@ -207,6 +210,9 @@ const migrations = [
   FlattenAgentModelParamsThinking1789200000000,
   ScopeAgentModelParams1789300000000,
   AddProviderParamSpecs1789400000000,
+  AddProviderParamSpecGroups1789500000000,
+  AddProviderParamDependencies1789600000000,
+  AddOpenAiProviderParamSpecs1789700000000,
 ];
 
 @Module({

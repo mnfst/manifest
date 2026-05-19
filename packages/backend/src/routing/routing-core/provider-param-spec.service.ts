@@ -6,6 +6,7 @@ import {
   type AuthType,
   type JsonValue,
   type ParamControl,
+  type ProviderParamDependency,
   type ProviderParamSpec,
   type ProviderParamSpecGroup,
   type ProviderParamSpecRegistry,
@@ -16,7 +17,9 @@ const CACHE_TTL_MS = 120_000;
 
 type Serializer = (value: JsonValue) => Record<string, JsonValue>;
 
-const SERIALIZERS: Record<string, Serializer> = {};
+const SERIALIZERS: Record<string, Serializer> = {
+  anthropic_thinking: serializeAnthropicThinking,
+};
 
 @Injectable()
 export class ProviderParamSpecService {
@@ -95,10 +98,62 @@ export class ProviderParamSpecService {
     if (row.serializer) {
       const serialize = SERIALIZERS[row.serializer];
       if (!serialize) throw new Error(`Unknown provider param serializer: ${row.serializer}`);
-      spec.serialize = serialize;
+      if (row.group_key) {
+        spec.group = {
+          key: row.group_key,
+          label: row.group_label ?? row.group_key,
+          serialize,
+        };
+      } else {
+        spec.serialize = serialize;
+      }
+    } else if (row.group_key) {
+      spec.group = {
+        key: row.group_key,
+        label: row.group_label ?? row.group_key,
+      };
     }
 
+    if (row.depends_on_key) {
+      spec.visibleWhen = {
+        key: row.depends_on_key,
+        equals: row.depends_on_value,
+      };
+    }
+    if (row.dependencies) spec.dependencies = this.rowToDependencies(row);
+
     return spec;
+  }
+
+  private rowToDependencies(row: ProviderParamSpecEntity): ProviderParamDependency[] {
+    if (!Array.isArray(row.dependencies)) {
+      throw new Error(`Invalid provider param dependencies: ${row.id}`);
+    }
+
+    return row.dependencies.map((dependency) => {
+      if (!isRecord(dependency) || !isRecord(dependency.when)) {
+        throw new Error(`Invalid provider param dependency: ${row.id}`);
+      }
+      if (dependency.effect !== 'disable' && dependency.effect !== 'omit') {
+        throw new Error(`Invalid provider param dependency effect: ${row.id}`);
+      }
+      if (typeof dependency.when.key !== 'string' || dependency.when.key.length === 0) {
+        throw new Error(`Invalid provider param dependency key: ${row.id}`);
+      }
+      const values = dependency.when.values;
+      if (values !== undefined && !Array.isArray(values)) {
+        throw new Error(`Invalid provider param dependency values: ${row.id}`);
+      }
+
+      return {
+        effect: dependency.effect,
+        when: {
+          key: dependency.when.key,
+          ...('equals' in dependency.when ? { equals: dependency.when.equals as JsonValue } : {}),
+          ...(values !== undefined ? { values: values as JsonValue[] } : {}),
+        },
+      };
+    });
   }
 
   private rowToControl(row: ProviderParamSpecEntity): ParamControl {
@@ -160,4 +215,26 @@ export class ProviderParamSpecService {
   private isStringTuple(value: unknown): value is [string, string] {
     return this.isStringArray(value) && value.length === 2;
   }
+}
+
+function serializeAnthropicThinking(value: JsonValue): Record<string, JsonValue> {
+  if (!isRecord(value)) return {};
+
+  if (value.type === 'adaptive') {
+    return { thinking: { type: 'adaptive' } };
+  }
+
+  if (value.type !== 'enabled') return {};
+  const budgetTokens = value.budget_tokens;
+  if (typeof budgetTokens !== 'number' || !Number.isFinite(budgetTokens)) return {};
+  return {
+    thinking: {
+      type: 'enabled',
+      budget_tokens: Math.trunc(budgetTokens),
+    },
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, JsonValue> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
