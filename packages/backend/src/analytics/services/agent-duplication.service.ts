@@ -246,6 +246,7 @@ export class AgentDuplicationService {
             provider: this.remapCustomProviderRef(p.provider, customProviderIdMap),
             auth_type: p.auth_type,
             model_name: p.model_name,
+            scope_key: p.scope_key,
             params: p.params,
             created_at: now,
             updated_at: now,

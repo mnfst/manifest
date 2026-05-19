@@ -2,11 +2,26 @@ import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ModelParamsController } from '../model-params.controller';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
 import { AuthUser } from '../../auth/auth.instance';
+import type { ProviderParamSpecCatalog } from 'manifest-shared';
 
 const mockUser: AuthUser = { id: 'user-1' } as AuthUser;
 const mockAgent = { id: 'agent-1' };
+const specs: ProviderParamSpecCatalog = [
+  {
+    provider: 'deepseek',
+    authType: 'api_key',
+    model: 'deepseek-v4',
+    path: 'thinking.type',
+    type: 'enum',
+    label: 'Thinking mode',
+    default: 'enabled',
+    values: ['enabled', 'disabled'],
+    group: 'reasoning',
+  },
+];
 
 describe('ModelParamsController', () => {
   let controller: ModelParamsController;
@@ -16,6 +31,7 @@ describe('ModelParamsController', () => {
     delete: jest.Mock;
     get: jest.Mock;
   }>;
+  let providerParamSpecs: jest.Mocked<{ list: jest.Mock; getSpecs: jest.Mock }>;
   let resolveAgent: jest.Mocked<{ resolve: jest.Mock }>;
 
   beforeEach(async () => {
@@ -25,6 +41,10 @@ describe('ModelParamsController', () => {
       delete: jest.fn(),
       get: jest.fn(),
     };
+    providerParamSpecs = {
+      list: jest.fn().mockResolvedValue(specs),
+      getSpecs: jest.fn().mockResolvedValue(specs),
+    };
     resolveAgent = {
       resolve: jest.fn().mockResolvedValue(mockAgent),
     };
@@ -33,11 +53,20 @@ describe('ModelParamsController', () => {
       controllers: [ModelParamsController],
       providers: [
         { provide: AgentModelParamsService, useValue: service },
+        { provide: ProviderParamSpecService, useValue: providerParamSpecs },
         { provide: ResolveAgentService, useValue: resolveAgent },
       ],
     }).compile();
 
     controller = module.get<ModelParamsController>(ModelParamsController);
+  });
+
+  describe('GET /model-param-specs', () => {
+    it('returns the provider param spec catalog for the resolved agent', async () => {
+      const result = await controller.specs(mockUser, { agentName: 'demo' });
+      expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'demo');
+      expect(result).toBe(specs);
+    });
   });
 
   describe('GET /model-params', () => {
@@ -47,6 +76,7 @@ describe('ModelParamsController', () => {
           provider: 'deepseek',
           auth_type: 'api_key',
           model_name: 'deepseek-v4',
+          scope_key: 'tier:default',
           params: { thinking: { type: 'disabled' } },
         },
       ]);
@@ -58,6 +88,7 @@ describe('ModelParamsController', () => {
           provider: 'deepseek',
           authType: 'api_key',
           model: 'deepseek-v4',
+          scope: 'tier:default',
           params: { thinking: { type: 'disabled' } },
         },
       ]);
@@ -70,6 +101,7 @@ describe('ModelParamsController', () => {
         provider: 'deepseek',
         auth_type: 'api_key',
         model_name: 'deepseek-v4',
+        scope_key: 'tier:default',
         params: { thinking: { type: 'disabled' } },
       });
 
@@ -77,6 +109,7 @@ describe('ModelParamsController', () => {
         mockUser,
         { agentName: 'demo' },
         {
+          scope: 'tier:default',
           provider: 'deepseek',
           authType: 'api_key',
           model: 'deepseek-v4',
@@ -84,9 +117,15 @@ describe('ModelParamsController', () => {
         },
       );
 
+      expect(providerParamSpecs.getSpecs).toHaveBeenCalledWith(
+        'deepseek',
+        'api_key',
+        'deepseek-v4',
+      );
       expect(service.set).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
+        'tier:default',
         'deepseek',
         'api_key',
         'deepseek-v4',
@@ -96,29 +135,29 @@ describe('ModelParamsController', () => {
         provider: 'deepseek',
         authType: 'api_key',
         model: 'deepseek-v4',
+        scope: 'tier:default',
         params: { thinking: { type: 'disabled' } },
       });
     });
 
     it('strips keys the provider does not consume and persists only the compatible subset', async () => {
-      service.set.mockImplementation(async (_a, _u, p, a, m, params) => ({
+      service.set.mockImplementation(async (_agent, _user, scope, p, a, m, params) => ({
         provider: p,
         auth_type: a,
         model_name: m,
+        scope_key: scope,
         params,
       }));
 
-      // Future-proofing: extra keys the provider doesn't consume get filtered.
-      // Today only `thinking` exists so a single-key payload doubles as the
-      // compatibility check; this test ensures the trimming path is exercised.
       const out = await controller.set(
         mockUser,
         { agentName: 'demo' },
         {
+          scope: 'tier:default',
           provider: 'deepseek',
           authType: 'api_key',
           model: 'deepseek-v4',
-          params: { thinking: { type: 'enabled' } },
+          params: { temperature: 0.2, thinking: { type: 'enabled' } },
         },
       );
 
@@ -131,6 +170,7 @@ describe('ModelParamsController', () => {
           mockUser,
           { agentName: 'demo' },
           {
+            scope: 'tier:default',
             provider: 'deepseek',
             authType: 'api_key',
             model: 'deepseek-v4',
@@ -140,12 +180,14 @@ describe('ModelParamsController', () => {
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
-    it('throws when the provider does not consume any of the supplied keys', async () => {
+    it('throws when the model has no compatible specs', async () => {
+      providerParamSpecs.getSpecs.mockResolvedValueOnce([]);
       await expect(
         controller.set(
           mockUser,
           { agentName: 'demo' },
           {
+            scope: 'tier:default',
             provider: 'openai',
             authType: 'api_key',
             model: 'gpt-4o',
@@ -162,13 +204,20 @@ describe('ModelParamsController', () => {
         mockUser,
         { agentName: 'demo' },
         {
+          scope: 'tier:default',
           provider: 'deepseek',
           authType: 'api_key',
           model: 'deepseek-v4',
         },
       );
 
-      expect(service.delete).toHaveBeenCalledWith('agent-1', 'deepseek', 'api_key', 'deepseek-v4');
+      expect(service.delete).toHaveBeenCalledWith(
+        'agent-1',
+        'tier:default',
+        'deepseek',
+        'api_key',
+        'deepseek-v4',
+      );
       expect(result).toEqual({ ok: true });
     });
   });

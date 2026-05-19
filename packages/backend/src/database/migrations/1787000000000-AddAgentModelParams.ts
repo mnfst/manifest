@@ -20,11 +20,10 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * compatible route — the effective primary (override > auto) plus every
  * fallback_route — when the route's provider is known to consume any key
  * present in the blob. Today that means `deepseek` for the `thinking` key;
- * the list is centralized in `PROVIDER_THINKING_DEFAULTS` in the shared
- * package, mirrored here as a literal because migrations run before the
- * runtime app boots. When new provider knobs land (reasoning_effort, etc.)
- * any historical data for them is set via the new UI, not by retroactive
- * migration.
+ * this migration mirrored the then-current DeepSeek-only registry as a
+ * literal because migrations run before the runtime app boots. Newer
+ * provider knobs are represented by `provider_param_specs` rows rather than
+ * retroactive slot migration.
  *
  * Conflict resolution: a given (agent, provider, auth_type, model_name) can
  * appear in multiple slots (e.g. as fallback in two tiers). Postgres cannot
@@ -65,9 +64,8 @@ export class AddAgentModelParams1787000000000 implements MigrationInterface {
     `);
 
     // 2. Backfill from legacy `param_defaults` blobs -----------------------
-    // Provider-keys compatibility lives in the shared package's
-    // PROVIDER_THINKING_DEFAULTS map; the migration mirrors that map as a
-    // literal so the data move doesn't depend on importing runtime code.
+    // Legacy provider-key compatibility is mirrored as a literal so the data
+    // move doesn't depend on importing runtime code.
     // When a new provider knob lands, append its provider→key mapping below
     // — historical user_providers won't be retroactively backfilled (the
     // legacy blob never knew about that key) but new writes will populate

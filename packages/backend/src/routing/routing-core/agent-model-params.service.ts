@@ -9,8 +9,8 @@ import { RoutingCacheService } from './routing-cache.service';
 /**
  * Per-(agent, route) outbound request body defaults. Replaces the legacy
  * per-slot `param_defaults` blobs on tier/specificity assignments: now
- * params travel with the route identity (provider, auth_type, model) so
- * one configuration applies anywhere the model is used.
+ * params travel with the scoped route identity (scope_key, provider, model,
+ * auth_type) so the same model can have different settings per tier.
  *
  * The proxy hits `get()` on every attempt, so the implementation reads
  * through a per-agent list cache (set once, served from memory for the
@@ -45,6 +45,7 @@ export class AgentModelParamsService {
    */
   async get(
     agentId: string,
+    scopeKey: string,
     provider: string,
     authType: AuthType,
     modelName: string,
@@ -52,16 +53,17 @@ export class AgentModelParamsService {
     const rows = await this.list(agentId);
     const match = rows.find(
       (r) =>
+        r.scope_key === scopeKey &&
         r.provider.toLowerCase() === provider.toLowerCase() &&
         r.auth_type === authType &&
         r.model_name === modelName,
     );
-    return match?.params ?? null;
+    return (match?.params as RequestParamDefaults | undefined) ?? null;
   }
 
   /**
    * Atomic upsert for one route's params. The unique index on (agent_id,
-   * provider, auth_type, model_name) drives the ON CONFLICT clause so two
+   * scope_key, provider, model_name, auth_type) drives the ON CONFLICT clause so two
    * concurrent writes for the same route resolve deterministically instead
    * of racing on `findOne` + `save` and failing one with a duplicate-key
    * error.
@@ -73,6 +75,7 @@ export class AgentModelParamsService {
   async set(
     agentId: string,
     userId: string,
+    scopeKey: string,
     provider: string,
     authType: AuthType,
     modelName: string,
@@ -87,12 +90,16 @@ export class AgentModelParamsService {
         id: randomUUID(),
         user_id: userId,
         agent_id: agentId,
+        scope_key: scopeKey,
         provider: normalizedProvider,
         auth_type: authType,
         model_name: modelName,
-        params,
+        params: params as object,
       })
-      .orUpdate(['params', 'updated_at'], ['agent_id', 'provider', 'auth_type', 'model_name'])
+      .orUpdate(
+        ['params', 'updated_at'],
+        ['agent_id', 'scope_key', 'provider', 'model_name', 'auth_type'],
+      )
       .setParameter('updated_at', new Date().toISOString())
       .execute();
     this.cache.invalidateModelParams(agentId);
@@ -105,6 +112,7 @@ export class AgentModelParamsService {
     const row = await this.repo.findOneOrFail({
       where: {
         agent_id: agentId,
+        scope_key: scopeKey,
         provider: normalizedProvider,
         auth_type: authType,
         model_name: modelName,
@@ -120,12 +128,14 @@ export class AgentModelParamsService {
    */
   async delete(
     agentId: string,
+    scopeKey: string,
     provider: string,
     authType: AuthType,
     modelName: string,
   ): Promise<void> {
     await this.repo.delete({
       agent_id: agentId,
+      scope_key: scopeKey,
       provider: provider.toLowerCase(),
       auth_type: authType,
       model_name: modelName,

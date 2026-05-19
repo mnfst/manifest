@@ -12,7 +12,11 @@ import { LimitCheckService } from '../../notifications/services/limit-check.serv
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
 import type { RequestParamDefaults, SpecificityCategory, TierSlot } from 'manifest-shared';
-import { SPECIFICITY_CATEGORIES, snapshotRequestParams } from 'manifest-shared';
+import {
+  SPECIFICITY_CATEGORIES,
+  modelParamsScopeForRouting,
+  snapshotRequestParams,
+} from 'manifest-shared';
 import type { ParamMergeContext } from './proxy-fallback.service';
 import {
   ProxyFallbackService,
@@ -29,6 +33,7 @@ import {
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 import { formatManifestError } from '../../common/errors/error-codes';
 import { peekStream } from './stream-warmup';
@@ -82,14 +87,10 @@ export interface RoutingMeta {
    */
   primaryAuthType?: string;
   /**
-   * Effective request body parameters for this attempt — the merged result
-   * of (1) client body keys in `REQUEST_PARAM_KEYS`, (2) the user's saved
-   * per-route params from `agent_model_params` for the attempt's
-   * (provider, auth_type, model) tuple, and (3) the provider's natural
-   * API default for any unset key. Persisted on
-   * `agent_messages.request_params` so the dashboard can show "this
-   * request had thinking=disabled" alongside Request Headers in the
-   * expanded row. `null` when no known params apply.
+   * Effective request body parameters for this attempt: client body values,
+   * route-scoped `agent_model_params`, and DB-backed provider param defaults.
+   * Persisted on `agent_messages.request_params` so the dashboard can show
+   * which model params were in play for the recorded request.
    */
   request_params?: RequestParamDefaults | null;
 }
@@ -118,6 +119,7 @@ export class ProxyService {
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
     private readonly modelParamsService: AgentModelParamsService,
+    private readonly providerParamSpecs: ProviderParamSpecService,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -190,7 +192,12 @@ export class ProxyService {
     // own (provider, auth_type, model) tuple in the model-params service.
     // Pass the agentId here as a thin context bag; the storage is already
     // route-scoped, so no per-provider filter is needed downstream.
-    const paramMergeContext: ParamMergeContext = { agentId };
+    const scopeKey = modelParamsScopeForRouting({
+      tier: resolved.tier,
+      specificityCategory: resolved.specificity_category,
+      headerTierId: resolved.header_tier_id,
+    });
+    const paramMergeContext: ParamMergeContext = { agentId, scopeKey };
 
     // Snapshot of which known param keys are *effectively in play* for the
     // primary attempt. Stored on every `agent_messages` row recorded for
@@ -200,6 +207,12 @@ export class ProxyService {
     // provider so the persisted snapshot matches what was sent on that row.
     const primaryModelParams = await this.modelParamsService.get(
       agentId,
+      scopeKey,
+      route.provider,
+      route.authType,
+      primaryModel,
+    );
+    const primarySpecs = await this.providerParamSpecs.getSpecs(
       route.provider,
       route.authType,
       primaryModel,
@@ -207,7 +220,7 @@ export class ProxyService {
     const primaryRequestParams = snapshotRequestParams({
       body: routingBody as Record<string, unknown>,
       modelParams: primaryModelParams,
-      provider: route.provider,
+      specs: primarySpecs,
     });
 
     const forward = await this.fallbackService.tryForwardToProvider({
@@ -481,15 +494,19 @@ export class ProxyService {
       const fallbackModelParams = success.authType
         ? await this.modelParamsService.get(
             args.paramMergeContext.agentId,
+            args.paramMergeContext.scopeKey,
             success.provider,
             success.authType,
             success.model,
           )
         : null;
+      const fallbackSpecs = success.authType
+        ? await this.providerParamSpecs.getSpecs(success.provider, success.authType, success.model)
+        : [];
       const fallbackRequestParams = snapshotRequestParams({
         body: body as Record<string, unknown>,
         modelParams: fallbackModelParams,
-        provider: success.provider,
+        specs: fallbackSpecs,
       });
       return {
         forward: success.forward,
@@ -525,15 +542,24 @@ export class ProxyService {
       primaryProvider && primaryAuth && resolved.route
         ? await this.modelParamsService.get(
             args.paramMergeContext.agentId,
+            args.paramMergeContext.scopeKey,
             primaryProvider,
             primaryAuth as 'api_key' | 'subscription' | 'local',
             primaryModel,
           )
         : null;
+    const exhaustedSpecs =
+      primaryProvider && primaryAuth && resolved.route
+        ? await this.providerParamSpecs.getSpecs(
+            primaryProvider,
+            primaryAuth as 'api_key' | 'subscription' | 'local',
+            primaryModel,
+          )
+        : [];
     const exhaustedRequestParams = snapshotRequestParams({
       body: body as Record<string, unknown>,
       modelParams: primaryModelParams,
-      provider: primaryProvider ?? '',
+      specs: exhaustedSpecs,
     });
     return {
       forward: {

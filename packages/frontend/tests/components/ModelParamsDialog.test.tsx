@@ -1,21 +1,94 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import type { ProviderParamSpec, RequestParamDefaults } from 'manifest-shared';
 
 import ModelParamsDialog from '../../src/components/ModelParamsDialog';
 
 const q = (sel: string) => document.querySelector(sel);
 
+const deepseekSpecs: readonly ProviderParamSpec[] = [
+  {
+    provider: 'deepseek',
+    authType: 'api_key',
+    model: 'deepseek-v4',
+    path: 'thinking.type',
+    type: 'enum',
+    label: 'Thinking mode',
+    default: 'enabled',
+    values: ['enabled', 'disabled'],
+    group: 'reasoning',
+  },
+];
+
+const anthropicSpecs: readonly ProviderParamSpec[] = [
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'thinking.type',
+    type: 'enum',
+    label: 'Thinking mode',
+    default: 'disabled',
+    values: ['disabled', 'adaptive', 'enabled'],
+    group: 'reasoning',
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'thinking.budget_tokens',
+    type: 'integer',
+    label: 'Thinking budget',
+    default: 4096,
+    range: { min: 1024, max: 32768, step: 1024 },
+    group: 'reasoning',
+    applicability: { only: { 'thinking.type': 'enabled' } },
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'temperature',
+    type: 'number',
+    label: 'Temperature',
+    default: 1,
+    range: { min: 0, max: 1, step: 0.1 },
+    group: 'sampling',
+    applicability: { except: { 'thinking.type': ['enabled', 'adaptive'] } },
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'top_p',
+    type: 'number',
+    label: 'Top P',
+    default: 1,
+    range: { min: 0, max: 1, step: 0.01 },
+    group: 'sampling',
+    applicability: {
+      except: [{ 'thinking.type': ['enabled', 'adaptive'] }, { temperature: { not: 1 } }],
+    },
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'max_tokens',
+    type: 'integer',
+    label: 'Max tokens',
+    default: 4096,
+    range: { min: 1 },
+    group: 'generation_length',
+  },
+];
+
 describe('ModelParamsDialog', () => {
-  // Dialog now reads which controls to render from
-  // `PROVIDER_PARAM_SPECS[provider]` in manifest-shared. DeepSeek's spec
-  // declares a single `thinking` toggle with default `enabled`, so these
-  // tests use `provider: 'deepseek'` instead of passing `providerDefault`
-  // directly — the dialog is fully driven by the spec.
   const baseProps = {
     open: true,
-    slotLabel: 'deepseek-v4-flash',
-    current: null as null | { thinking?: { type: 'enabled' | 'disabled' } },
-    provider: 'deepseek',
+    slotLabel: 'deepseek-v4',
+    current: null as RequestParamDefaults | null,
+    specs: deepseekSpecs,
     onClose: vi.fn(),
     onSave: vi.fn().mockResolvedValue(undefined),
   };
@@ -27,35 +100,38 @@ describe('ModelParamsDialog', () => {
     expect(q('.modal-overlay')).toBeNull();
   });
 
-  it('starts on the provider default when no override is configured', () => {
+  it('starts on the spec default when no override is configured', () => {
     render(() => <ModelParamsDialog {...baseProps} />);
     const toggle = q('.model-params__toggle') as HTMLButtonElement;
-    // DeepSeek's natural default for `thinking` is `enabled`, per the spec.
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
     expect(q('.provider-toggle__switch--on')).not.toBeNull();
   });
 
   it('reflects the configured override when present', () => {
-    render(() => (
-      <ModelParamsDialog {...baseProps} current={{ thinking: { type: 'disabled' } }} />
-    ));
+    render(() => <ModelParamsDialog {...baseProps} current={{ thinking: { type: 'disabled' } }} />);
     const toggle = q('.model-params__toggle') as HTMLButtonElement;
     expect(toggle.getAttribute('aria-pressed')).toBe('false');
     expect(q('.provider-toggle__switch--on')).toBeNull();
   });
 
-  it("renders the spec's natural default in the hint text", () => {
-    render(() => <ModelParamsDialog {...baseProps} />);
-    // DeepSeek's spec default is `enabled`.
-    expect(q('.model-params__label-hint')!.textContent).toContain('enabled');
+  it('shows the human label and raw provider param path', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+    expect(screen.getByText('Max tokens')).toBeTruthy();
+    expect(screen.getByText('max_tokens')).toBeTruthy();
   });
 
-  it("renders the spec's label as the row title", () => {
-    render(() => <ModelParamsDialog {...baseProps} />);
-    expect(q('.model-params__label-title')!.textContent).toContain('Thinking mode');
+  it('renders derived select, slider, and number controls from specs', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+    expect(screen.getByLabelText('Thinking mode')).toBeTruthy();
+    expect(screen.getByRole('slider', { name: 'Temperature' })).toBeTruthy();
+    expect(screen.getByLabelText('Max tokens')).toBeTruthy();
   });
 
-  it('saves null when every chosen value matches the provider default', async () => {
+  it('saves null when every chosen value matches the spec default', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(() => (
       <ModelParamsDialog
@@ -65,42 +141,84 @@ describe('ModelParamsDialog', () => {
       />
     ));
 
-    fireEvent.click(q('.model-params__toggle') as HTMLButtonElement); // disabled → enabled
+    fireEvent.click(q('.model-params__toggle') as HTMLButtonElement);
     fireEvent.click(screen.getByText('Save'));
 
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(null));
   });
 
-  it('saves an explicit override when at least one value differs from the provider default', async () => {
+  it('saves an explicit override when at least one value differs from the spec default', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const onClose = vi.fn();
-    render(() => (
-      <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />
-    ));
+    render(() => <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />);
 
-    fireEvent.click(q('.model-params__toggle') as HTMLButtonElement); // enabled → disabled
+    fireEvent.click(q('.model-params__toggle') as HTMLButtonElement);
     fireEvent.click(screen.getByText('Save'));
 
-    await waitFor(() =>
-      expect(onSave).toHaveBeenCalledWith({ thinking: { type: 'disabled' } }),
-    );
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ thinking: { type: 'disabled' } }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it('renders nothing for providers with no spec entries', () => {
-    render(() => <ModelParamsDialog {...baseProps} provider="openai" />);
-    // The dialog still mounts (open=true), but no rows render — the For
-    // over zero spec entries collapses to nothing. Saving with no rows
-    // produces the empty payload → null.
-    expect(q('.model-params__row')).toBeNull();
+  it('includes applicable nested sibling defaults when saving a nested override', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
+
+    fireEvent.click(screen.getByLabelText('Thinking mode'));
+    fireEvent.click(screen.getByRole('option', { name: 'enabled' }));
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith({
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+      }),
+    );
+  });
+
+  it('disables controls when model-param availability rules make them unavailable', () => {
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        current={{ thinking: { type: 'adaptive' } }}
+      />
+    ));
+    expect(screen.getByRole('slider', { name: 'Temperature' }).getAttribute('aria-disabled')).toBe(
+      'true',
+    );
+  });
+
+  it('disables and skips conflicted params when another param is configured', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        current={{ temperature: 0.2, top_p: 0.7 }}
+        onSave={onSave}
+      />
+    ));
+
+    expect(screen.getByRole('slider', { name: 'Top P' }).getAttribute('aria-disabled')).toBe(
+      'true',
+    );
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 0.2 }));
   });
 
   it('cancel button closes without persisting', () => {
     const onSave = vi.fn();
     const onClose = vi.fn();
-    render(() => (
-      <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />
-    ));
+    render(() => <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />);
 
     fireEvent.click(screen.getByText('Cancel'));
     expect(onSave).not.toHaveBeenCalled();

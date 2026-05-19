@@ -1,0 +1,155 @@
+# MPC Schema
+
+MPC stands for Model Param Capability.
+
+This document defines the JSON language used by `provider_param_specs`.
+The database rows are the source of truth for provider model parameters.
+Frontend rendering, API validation, request merging, and telemetry snapshots
+must all consume this schema rather than adding provider-specific conditionals.
+
+The executable validator is `isParamApplicability` in
+`packages/shared/src/provider-params-spec.ts`. Any schema change must update:
+
+- this document
+- the shared TypeScript types
+- `isParamApplicability`
+- the shared tests that prove invalid shapes are rejected
+
+## Provider Param Row
+
+Each row describes one parameter for one provider/auth/model tuple.
+
+```json
+{
+  "provider": "anthropic",
+  "authType": "api_key",
+  "model": "claude-haiku-4-5-20251001",
+  "path": "top_p",
+  "type": "number",
+  "label": "Top P",
+  "default": 1,
+  "range": { "min": 0, "max": 1, "step": 0.01 },
+  "group": "sampling",
+  "applicability": {
+    "except": [{ "thinking.type": ["adaptive", "enabled"] }, { "temperature": { "not": 1 } }]
+  }
+}
+```
+
+Rules:
+
+- `provider`, `authType`, and `model` identify exactly one model route.
+- `path` is a dot path into stored params and outbound request params.
+- `type` is semantic data type, not a UI control kind.
+- `label` is user-facing copy.
+- `default` is the provider default Manifest should display.
+- `values` is allowed only for finite choices.
+- `range` describes numeric bounds and optional step.
+- `group` is a semantic grouping for ordering and display.
+- `applicability` is optional; omitted means always available.
+- Do not add ad hoc rule fields such as `conflictsWith`, `disabledWhen`,
+  `ui`, or provider-specific metadata. Express availability through
+  `applicability`.
+
+## Applicability
+
+`applicability` controls whether a parameter is available for the current
+draft or request params.
+
+Only two top-level keys are allowed:
+
+- `only`: the parameter is available only when the rule matches.
+- `except`: the parameter is unavailable when the rule matches.
+
+At least one of `only` or `except` must be present. Unknown keys are invalid.
+
+### Rule Shape
+
+A rule is either:
+
+- one non-empty match object
+- a non-empty array of match objects
+
+Array rules are OR semantics. A single match object is AND semantics.
+
+```json
+{
+  "except": [{ "thinking.type": ["adaptive", "enabled"] }, { "temperature": { "not": 1 } }]
+}
+```
+
+This means: disable the param when `thinking.type` is `adaptive` or `enabled`,
+or when `temperature` exists and is not `1`.
+
+### Match Values
+
+Each match key is a dot path. Each match value must be one of:
+
+- JSON primitive: string, number, boolean, or null
+- non-empty array of JSON primitives
+- `{ "not": <primitive or non-empty primitive array> }`
+
+Objects other than `{ "not": ... }` are invalid.
+Empty arrays are invalid.
+Empty match objects are invalid.
+
+Examples:
+
+```json
+{ "thinking.type": "enabled" }
+```
+
+```json
+{ "thinking.type": ["adaptive", "enabled"] }
+```
+
+```json
+{ "temperature": { "not": 1 } }
+```
+
+## Evaluation Semantics
+
+Evaluation uses the current params object after dot-path expansion.
+
+For a normal match:
+
+- primitive value matches by JSON equality
+- array value matches if any primitive item equals the actual value
+- missing paths do not match
+
+For `{ "not": value }`:
+
+- missing paths do not match
+- present paths match when the actual value is not equal to `value`
+
+For a param spec:
+
+1. If `only` is present and does not match, the param is unavailable.
+2. If `except` is present and matches, the param is unavailable.
+3. Otherwise the param is available.
+
+## Storage And Request Merge
+
+Saved model params store UI values using the same dot-path shape as `path`.
+They do not store derived UI state or provider-specific rule state.
+
+The outbound proxy merge:
+
+1. expands needed nested defaults for configured nested roots
+2. merges client request body values last, so client body values win
+3. omits params that are not applicable under the final effective values
+
+## Adding A New Rule
+
+Prefer expressing new provider behavior with existing `applicability` syntax.
+
+Add new schema syntax only when a provider rule cannot be represented with:
+
+- exact match
+- one-of match
+- negated match
+- OR of match objects
+- AND within one match object
+
+When extending the language, update the executable validator and add tests for
+both accepted and rejected shapes in `packages/shared/__tests__/provider-params-spec.spec.ts`.

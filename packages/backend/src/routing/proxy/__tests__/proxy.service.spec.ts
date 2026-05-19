@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { ModelRoute } from 'manifest-shared';
+import type { ModelRoute, ProviderParamSpecCatalog } from 'manifest-shared';
 import { ProxyService } from '../proxy.service';
 import type { ResolveService } from '../../resolve/resolve.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
@@ -14,6 +14,7 @@ import type { ProxyFallbackService } from '../proxy-fallback.service';
 import type { ThoughtSignatureCache } from '../thought-signature-cache';
 import type { ThinkingBlockCache } from '../thinking-block-cache';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
+import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
 
 /**
  * Stream-warmup helper is mocked because the real implementation depends on
@@ -34,6 +35,20 @@ const route = (provider: string, authType: ModelRoute['authType'], model: string
 
 const okResponse = (status = 200) =>
   new Response('{"ok":true}', { status, headers: { 'content-type': 'application/json' } });
+
+const specCatalog: ProviderParamSpecCatalog = [
+  {
+    provider: 'deepseek',
+    authType: 'api_key',
+    model: 'deepseek-v4-flash',
+    path: 'thinking.type',
+    type: 'enum',
+    label: 'Thinking mode',
+    default: 'enabled',
+    values: ['enabled', 'disabled'],
+    group: 'reasoning',
+  },
+];
 
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<Pick<ResolveService, 'resolve' | 'resolveForTier'>>;
@@ -58,6 +73,7 @@ describe('ProxyService — orchestration', () => {
   let signatureCache: ThoughtSignatureCache;
   let thinkingCache: ThinkingBlockCache;
   let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
+  let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
   let svc: ProxyService;
 
   beforeEach(() => {
@@ -98,6 +114,15 @@ describe('ProxyService — orchestration', () => {
       set: jest.fn(),
       delete: jest.fn(),
     };
+    providerParamSpecs = {
+      getSpecs: jest.fn(async (provider: string, authType: string, model: string) =>
+        specCatalog.filter(
+          (spec) =>
+            spec.provider === provider && spec.authType === authType && spec.model === model,
+        ),
+      ),
+      list: jest.fn().mockResolvedValue(specCatalog),
+    };
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
@@ -113,6 +138,7 @@ describe('ProxyService — orchestration', () => {
       signatureCache,
       thinkingCache,
       modelParamsService as unknown as AgentModelParamsService,
+      providerParamSpecs as unknown as ProviderParamSpecService,
     );
   });
 
@@ -300,7 +326,7 @@ describe('ProxyService — orchestration', () => {
       expect(momentum.recordCategory).not.toHaveBeenCalled();
     });
 
-    it('hands the fallback service a paramMergeContext carrying just the agentId', async () => {
+    it('hands the fallback service a paramMergeContext carrying the agent and route scope', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
@@ -319,10 +345,9 @@ describe('ProxyService — orchestration', () => {
       await svc.proxyRequest(baseOpts());
       const call = fallbackService.tryForwardToProvider.mock.calls[0][0];
       // Body stays raw — the merge happens per-attempt inside the fallback
-      // service so each fallback iteration looks up its own (provider,
-      // auth, model) tuple.
+      // service so each fallback iteration looks up its own scoped route.
       expect(call.body).toEqual({ messages: [{ role: 'user', content: 'hi' }] });
-      expect(call.paramMergeContext).toEqual({ agentId: 'agent-1' });
+      expect(call.paramMergeContext).toEqual({ agentId: 'agent-1', scopeKey: 'tier:standard' });
     });
 
     it('looks up the primary route model params for the snapshot', async () => {
@@ -345,6 +370,7 @@ describe('ProxyService — orchestration', () => {
       await svc.proxyRequest(baseOpts());
       expect(modelParamsService.get).toHaveBeenCalledWith(
         'agent-1',
+        'tier:standard',
         'deepseek',
         'api_key',
         'deepseek-v4-flash',
@@ -374,6 +400,7 @@ describe('ProxyService — orchestration', () => {
       await svc.proxyRequest(baseOpts());
       expect(modelParamsService.get).toHaveBeenCalledWith(
         'agent-1',
+        'tier:standard',
         'anthropic',
         'api_key',
         'claude-sonnet-4-6',
@@ -479,12 +506,10 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.request_params).toEqual({ thinking: { type: 'enabled' } });
     });
 
-    it('snapshot is null when the provider has no known param keys (today: any non-DeepSeek provider)', async () => {
-      // Forward-compat property: providers that never appear in the
-      // `PROVIDER_THINKING_DEFAULTS` registry produce a null snapshot,
-      // so the existing experience for OpenAI/Anthropic/Gemini/etc. rows
-      // stays unchanged. New providers light up by adding an entry to
-      // the registry — no proxy code needed.
+    it('snapshot is null when the resolved model has no DB-backed param specs', async () => {
+      // Forward-compat property: models that never appear in the DB-backed
+      // spec catalog produce a null snapshot. New params light up by adding
+      // provider_param_specs rows — no proxy code needed.
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),

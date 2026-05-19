@@ -13,6 +13,7 @@ import type {
   AvailableModel,
   AuthType,
   ModelRoute,
+  ProviderParamSpecCatalog,
   RequestParamDefaults,
   RoutingProvider,
   CustomProviderData,
@@ -165,17 +166,20 @@ export interface RoutingSpecificitySectionProps {
    * state without per-row fetches.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
   ) => RequestParamDefaults | null;
   /** Persist new params for a single route. */
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelParamSpecs?: () => ProviderParamSpecCatalog;
 }
 
 function toTierAssignment(a: SpecificityAssignment | undefined): TierAssignment | undefined {
@@ -270,6 +274,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 }
                 getModelParams={props.getModelParams}
                 setModelParams={props.setModelParams}
+                modelParamSpecs={props.modelParamSpecs}
               />
             )}
           </For>

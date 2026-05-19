@@ -15,11 +15,13 @@ import FallbackList from '../components/FallbackList.js';
 import ModelParamsAffordance from '../components/ModelParamsAffordance.jsx';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import { modelParamsScopeForTier } from 'manifest-shared';
 import type {
   TierAssignment,
   AvailableModel,
   AuthType,
   ModelRoute,
+  ProviderParamSpecCatalog,
   RequestParamDefaults,
   RoutingProvider,
   CustomProviderData,
@@ -110,6 +112,7 @@ export interface RoutingTierCardProps {
    * other slot that resolves to the same `(provider, authType, model)`.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -119,11 +122,13 @@ export interface RoutingTierCardProps {
    * and the local cache update; the card just threads the callback down.
    */
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelParamSpecs?: () => ProviderParamSpecCatalog;
 }
 
 const effectiveRoute = (
@@ -493,6 +498,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                               authType={effectiveAuth() ?? undefined}
                               model={modelName()}
                               slotLabel={labelFor(modelName())}
+                              scope={modelParamsScopeForTier(props.stage.id)}
+                              specCatalog={props.modelParamSpecs?.() ?? []}
                               getParams={props.getModelParams!}
                               setParams={props.setModelParams!}
                               disabled={props.changingTier() === props.stage.id}
@@ -562,6 +569,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               persistClearFallbacks={props.persistClearFallbacks}
               getModelParams={props.getModelParams}
               setModelParams={props.setModelParams}
+              modelParamSpecs={props.modelParamSpecs}
+              modelParamsScope={modelParamsScopeForTier(props.stage.id)}
             />
           </div>
         </Show>

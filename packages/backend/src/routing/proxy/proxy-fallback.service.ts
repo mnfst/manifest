@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import type { AuthType, ModelRoute } from 'manifest-shared';
 import { applyRequestParamDefaults } from 'manifest-shared';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 
 /**
  * Context for the per-attempt param-defaults merge. Carries the agentId so
@@ -17,6 +18,7 @@ import { AgentModelParamsService } from '../routing-core/agent-model-params.serv
  */
 export interface ParamMergeContext {
   agentId: string;
+  scopeKey: string;
 }
 
 import { ProviderKeyService } from '../routing-core/provider-key.service';
@@ -77,6 +79,7 @@ export class ProxyFallbackService {
     private readonly copilotToken: CopilotTokenService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly modelParamsService: AgentModelParamsService,
+    private readonly providerParamSpecs: ProviderParamSpecService,
   ) {}
 
   /**
@@ -99,11 +102,13 @@ export class ProxyFallbackService {
     if (!ctx || !authType) return body;
     const modelParams = await this.modelParamsService.get(
       ctx.agentId,
+      ctx.scopeKey,
       provider,
       authType as AuthType,
       model,
     );
-    return applyRequestParamDefaults(body, modelParams);
+    const specs = await this.providerParamSpecs.getSpecs(provider, authType as AuthType, model);
+    return applyRequestParamDefaults(body, modelParams, specs);
   }
 
   async tryFallbacks(

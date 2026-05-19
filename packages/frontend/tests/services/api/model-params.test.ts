@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
+  listModelParamSpecs,
   listModelParams,
   setModelParams,
   deleteModelParams,
@@ -27,6 +28,19 @@ describe('model-params API client', () => {
     );
   });
 
+  it('listModelParamSpecs GETs the DB-backed spec catalog', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve([]),
+    } as unknown as Response);
+    await listModelParamSpecs('demo');
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/routing/demo/model-param-specs'),
+      expect.anything(),
+    );
+  });
+
   it('setModelParams PUTs the full route identity + params payload', async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
@@ -34,6 +48,7 @@ describe('model-params API client', () => {
       text: () => Promise.resolve('{}'),
     } as Response);
     await setModelParams('demo', {
+      scope: 'tier:default',
       provider: 'deepseek',
       authType: 'api_key',
       model: 'deepseek-v4',
@@ -43,6 +58,7 @@ describe('model-params API client', () => {
     expect(url).toContain('/api/v1/routing/demo/model-params');
     expect((init as RequestInit).method).toBe('PUT');
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      scope: 'tier:default',
       provider: 'deepseek',
       authType: 'api_key',
       model: 'deepseek-v4',
@@ -57,6 +73,7 @@ describe('model-params API client', () => {
       text: () => Promise.resolve('{"ok":true}'),
     } as Response);
     await deleteModelParams('demo', {
+      scope: 'tier:default',
       provider: 'deepseek',
       authType: 'api_key',
       model: 'deepseek-v4',
@@ -64,6 +81,7 @@ describe('model-params API client', () => {
     const [, init] = vi.mocked(fetch).mock.calls[0];
     expect((init as RequestInit).method).toBe('DELETE');
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      scope: 'tier:default',
       provider: 'deepseek',
       authType: 'api_key',
       model: 'deepseek-v4',
@@ -72,14 +90,14 @@ describe('model-params API client', () => {
 
   describe('modelParamsKey', () => {
     it('lowercases the provider so case differences between save and lookup do not break the index', () => {
-      expect(modelParamsKey('DeepSeek', 'api_key', 'deepseek-v4')).toBe(
-        'deepseek::api_key::deepseek-v4',
+      expect(modelParamsKey('tier:default', 'DeepSeek', 'api_key', 'deepseek-v4')).toBe(
+        'tier:default::deepseek::deepseek-v4::api_key',
       );
     });
 
     it('keeps auth_type and model verbatim (case-sensitive on those segments)', () => {
-      expect(modelParamsKey('openai', 'subscription', 'gpt-4o')).toBe(
-        'openai::subscription::gpt-4o',
+      expect(modelParamsKey('specificity:coding', 'openai', 'subscription', 'gpt-4o')).toBe(
+        'specificity:coding::openai::gpt-4o::subscription',
       );
     });
   });
