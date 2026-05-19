@@ -214,6 +214,8 @@ describe('AgentDuplicationService', () => {
             api_key_encrypted: 'enc',
             key_prefix: 'sk-',
             auth_type: 'api_key',
+            label: 'Anthropic prod',
+            priority: 7,
             region: null,
             is_active: true,
             cached_models: [{ id: 'm' }],
@@ -314,6 +316,8 @@ describe('AgentDuplicationService', () => {
       const userProviderRow = (insertedRows['UserProvider'] as Array<Record<string, unknown>>)[0];
       expect(userProviderRow['agent_id']).toBe(agentRow['id']);
       expect(userProviderRow['api_key_encrypted']).toBe('enc');
+      expect(userProviderRow['label']).toBe('Anthropic prod');
+      expect(userProviderRow['priority']).toBe(7);
       expect(userProviderRow['id']).not.toBe('up1');
 
       // Per-route model params travel with the agent. The deepseek row

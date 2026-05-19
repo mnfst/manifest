@@ -178,6 +178,8 @@ export class AgentDuplicationService {
             api_key_encrypted: p.api_key_encrypted,
             key_prefix: p.key_prefix,
             auth_type: p.auth_type,
+            label: p.label,
+            priority: p.priority,
             region: p.region,
             is_active: p.is_active,
             connected_at: now,
