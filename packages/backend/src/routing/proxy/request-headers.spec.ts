@@ -1,4 +1,4 @@
-import { sanitizeRequestHeaders } from './request-headers';
+import { resolveEndUserId, sanitizeRequestHeaders } from './request-headers';
 
 describe('sanitizeRequestHeaders', () => {
   it('returns null when no headers are provided', () => {
@@ -109,5 +109,24 @@ describe('sanitizeRequestHeaders', () => {
     expect(serialized).toBeLessThanOrEqual(8192);
     expect(Object.keys(result!).length).toBeLessThan(20);
     expect(Object.keys(result!).length).toBeGreaterThan(0);
+  });
+});
+
+describe('resolveEndUserId', () => {
+  it('returns undefined when headers are missing', () => {
+    expect(resolveEndUserId(undefined)).toBeUndefined();
+  });
+
+  it('returns undefined when x-user-id is absent or blank', () => {
+    expect(resolveEndUserId({})).toBeUndefined();
+    expect(resolveEndUserId({ 'x-user-id': '   ' })).toBeUndefined();
+  });
+
+  it('returns trimmed x-user-id from a string header', () => {
+    expect(resolveEndUserId({ 'x-user-id': '  end-user-42  ' })).toBe('end-user-42');
+  });
+
+  it('uses the first value when x-user-id is an array', () => {
+    expect(resolveEndUserId({ 'x-user-id': ['first', 'second'] })).toBe('first');
   });
 });

@@ -243,6 +243,18 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(path).toBe('/api/v1/chat/completions');
   });
 
+  it('openrouter buildHeaders include OR attribution and User-Agent', () => {
+    const headers = PROVIDER_ENDPOINTS['openrouter'].buildHeaders('sk-or-test');
+    expect(headers).toEqual({
+      Authorization: 'Bearer sk-or-test',
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://manifest.build',
+      'X-OpenRouter-Title': 'Manifest',
+      'X-OpenRouter-Categories': 'cloud-agent',
+      'User-Agent': 'Manifest/1.0',
+    });
+  });
+
   it('openai-subscription uses chatgpt.com backend base URL', () => {
     const ep = PROVIDER_ENDPOINTS['openai-subscription'];
     expect(ep.baseUrl).toBe('https://chatgpt.com/backend-api');

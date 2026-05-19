@@ -170,7 +170,6 @@ describe('ProxyFallbackService', () => {
       );
     });
 
-    it('per-attempt lookup leaves other providers untouched (no cross-provider leak)', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -565,6 +564,41 @@ describe('ProxyFallbackService', () => {
       expect(result.success!.provider).toBe('Anthropic');
       expect(result.success!.fallbackIndex).toBe(0);
       expect(result.failures).toHaveLength(0);
+    });
+
+    it('forwards endUserId on fallback attempts', async () => {
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-or');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      pricingCache.getByModel.mockReturnValue({ provider: 'openrouter' } as never);
+
+      await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['openai/gpt-4o'],
+        body,
+        false,
+        'sess-1',
+        'gpt-4o',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'end-user-42',
+      );
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({ endUserId: 'end-user-42' }),
+      );
     });
 
     it('returns null success when all fallbacks fail', async () => {

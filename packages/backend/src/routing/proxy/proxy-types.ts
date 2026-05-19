@@ -47,6 +47,8 @@ export interface ForwardOptions {
   signatureLookup?: SignatureLookup;
   /** Lookup for re-injecting cached thinking blocks (Anthropic only). */
   thinkingLookup?: ThinkingBlockLookup;
+  /** End-user id from x-user-id (OpenRouter session attribution). */
+  endUserId?: string;
 }
 
 /** Options for ProxyService.proxyRequest. */

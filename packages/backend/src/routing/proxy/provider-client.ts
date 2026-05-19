@@ -121,6 +121,7 @@ export class ProviderClient {
       stream,
       signatureLookup: opts.signatureLookup,
       thinkingLookup: opts.thinkingLookup,
+      endUserId: opts.endUserId,
     });
 
     const finalHeaders = extraHeaders ? { ...headers, ...extraHeaders } : headers;
@@ -201,6 +202,7 @@ export class ProviderClient {
     stream: boolean;
     signatureLookup?: ForwardOptions['signatureLookup'];
     thinkingLookup?: ForwardOptions['thinkingLookup'];
+    endUserId?: string;
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // For non-chat_completions inbound modes ('responses', 'messages'), the
@@ -282,9 +284,12 @@ export class ProviderClient {
           : {};
       sanitized.stream_options = { ...existing, include_usage: true };
     }
-    const requestBody = { ...sanitized, model: bareModel, stream };
+    const requestBody: Record<string, unknown> = { ...sanitized, model: bareModel, stream };
     if (endpointKey === 'openrouter' && ctx.model.startsWith('anthropic/')) {
       injectOpenRouterCacheControl(requestBody);
+    }
+    if (endpointKey === 'openrouter' && ctx.endUserId) {
+      requestBody.user = ctx.endUserId;
     }
     return {
       url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,

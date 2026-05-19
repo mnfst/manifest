@@ -52,6 +52,15 @@ export function sanitizeRequestHeaders(
   return count > 0 ? out : null;
 }
 
+/** Stable per-end-user id forwarded by agents (e.g. OpenWebUI x-user-id). */
+export function resolveEndUserId(headers: IncomingHttpHeaders | undefined): string | undefined {
+  if (!headers) return undefined;
+  const raw = headers['x-user-id'];
+  if (raw == null) return undefined;
+  const value = (Array.isArray(raw) ? raw[0] : String(raw)).trim();
+  return value || undefined;
+}
+
 // Truncate by UTF-8 byte length (not character count) so multi-byte values
 // can't exceed the byte budget. When the cut lands mid-codepoint, Node's
 // Buffer.toString replaces the partial sequence with U+FFFD — strip those so

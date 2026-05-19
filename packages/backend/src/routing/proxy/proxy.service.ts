@@ -34,6 +34,7 @@ import { formatManifestError } from '../../common/errors/error-codes';
 import { peekStream } from './stream-warmup';
 import type { AuthType } from 'manifest-shared';
 import { toChatCompletionsRequest } from './responses-adapter';
+import { resolveEndUserId } from './request-headers';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 
 const STREAM_WARMUP_MS = 15_000;
@@ -180,6 +181,7 @@ export class ProxyService {
     );
 
     const stream = body.stream === true;
+    const endUserId = resolveEndUserId(headers);
     const signatureLookup = (toolCallId: string) =>
       this.signatureCache.retrieve(sessionKey, toolCallId);
     const thinkingLookup = (firstToolUseId: string) =>
@@ -226,6 +228,7 @@ export class ProxyService {
       signatureLookup,
       thinkingLookup,
       paramMergeContext,
+      endUserId,
     });
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
@@ -244,6 +247,7 @@ export class ProxyService {
         thinkingLookup,
         apiMode,
         paramMergeContext,
+        endUserId,
       });
       if (fallbackResult) return fallbackResult;
     }
@@ -422,6 +426,7 @@ export class ProxyService {
     thinkingLookup: ThinkingBlockLookup;
     apiMode: ProxyApiMode;
     paramMergeContext: ParamMergeContext;
+    endUserId?: string;
   }): Promise<ProxyResult | null> {
     const {
       agentId,
@@ -435,6 +440,7 @@ export class ProxyService {
       sessionKey,
       signal,
       apiMode,
+      endUserId,
     } = args;
     // Prefer the resolver's fallback_routes (which already contains the right
     // tier's routes); fall back to a fresh tier lookup if the resolver returned
@@ -469,6 +475,7 @@ export class ProxyService {
       chatBody,
       fallbackRoutes,
       args.paramMergeContext,
+      endUserId,
     );
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
