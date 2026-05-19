@@ -196,6 +196,23 @@ describe('ModelParamsController', () => {
         ),
       ).rejects.toBeInstanceOf(BadRequestException);
     });
+
+    it('throws when a compatible param has an invalid value type', async () => {
+      await expect(
+        controller.set(
+          mockUser,
+          { agentName: 'demo' },
+          {
+            scope: 'tier:default',
+            provider: 'deepseek',
+            authType: 'api_key',
+            model: 'deepseek-v4',
+            params: { thinking: { type: 123 } },
+          },
+        ),
+      ).rejects.toThrow('Invalid value for param "thinking.type"');
+      expect(service.set).not.toHaveBeenCalled();
+    });
   });
 
   describe('DELETE /model-params', () => {

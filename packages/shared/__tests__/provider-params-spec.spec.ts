@@ -9,6 +9,7 @@ import {
   omitProviderInapplicableParams,
   pickProviderCompatibleParams,
   providerParamIsApplicable,
+  providerParamValueIsValid,
   setProviderParamValue,
   type ProviderParamSpecCatalog,
 } from '../src/provider-params-spec';
@@ -205,6 +206,32 @@ describe('provider-params-spec', () => {
       expect(pickProviderCompatibleParams({ thinking: { type: 'enabled' } }, specs)).toEqual({
         thinking: { type: 'enabled', budget_tokens: 4096 },
       });
+    });
+  });
+
+  describe('providerParamValueIsValid', () => {
+    it('validates enum membership and numeric ranges', () => {
+      expect(providerParamValueIsValid(catalog[1], 'enabled')).toBe(true);
+      expect(providerParamValueIsValid(catalog[1], 'unsupported')).toBe(false);
+      expect(providerParamValueIsValid(catalog[2], 0.2)).toBe(true);
+      expect(providerParamValueIsValid(catalog[2], 1.2)).toBe(false);
+      expect(providerParamValueIsValid(catalog[0], 2048)).toBe(true);
+      expect(providerParamValueIsValid(catalog[0], 2048.5)).toBe(false);
+    });
+
+    it('keeps boolean values as booleans', () => {
+      const booleanSpec = {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test-model',
+        path: 'stream',
+        type: 'boolean',
+        label: 'Stream',
+        default: false,
+        group: 'provider_metadata',
+      } as const;
+      expect(providerParamValueIsValid(booleanSpec, true)).toBe(true);
+      expect(providerParamValueIsValid(booleanSpec, 'true')).toBe(false);
     });
   });
 

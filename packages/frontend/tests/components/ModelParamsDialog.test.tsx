@@ -6,6 +6,15 @@ import ModelParamsDialog from '../../src/components/ModelParamsDialog';
 
 const q = (sel: string) => document.querySelector(sel);
 
+const pointerEvent = (type: string, clientX: number) => {
+  const event = new Event(type, { bubbles: true, cancelable: true }) as PointerEvent;
+  Object.defineProperties(event, {
+    clientX: { value: clientX },
+    pointerId: { value: 1 },
+  });
+  return event;
+};
+
 const deepseekSpecs: readonly ProviderParamSpec[] = [
   {
     provider: 'deepseek',
@@ -83,6 +92,19 @@ const anthropicSpecs: readonly ProviderParamSpec[] = [
   },
 ];
 
+const booleanSpecs: readonly ProviderParamSpec[] = [
+  {
+    provider: 'test',
+    authType: 'api_key',
+    model: 'test-model',
+    path: 'stream',
+    type: 'boolean',
+    label: 'Stream responses',
+    default: true,
+    group: 'provider_metadata',
+  },
+];
+
 describe('ModelParamsDialog', () => {
   const baseProps = {
     open: true,
@@ -152,6 +174,35 @@ describe('ModelParamsDialog', () => {
     expect(input.value).toBe('1');
   });
 
+  it('updates slider controls from pointer input', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+
+    const slider = screen.getByRole('slider', { name: 'Temperature' }) as HTMLDivElement;
+    const input = screen.getByLabelText('Temperature value') as HTMLInputElement;
+    vi.spyOn(slider, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      right: 100,
+      top: 0,
+      bottom: 20,
+      width: 100,
+      height: 20,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    slider.setPointerCapture = vi.fn();
+    slider.hasPointerCapture = vi.fn(() => true);
+    slider.releasePointerCapture = vi.fn();
+
+    fireEvent(slider, pointerEvent('pointerdown', 50));
+    expect(input.value).toBe('0.5');
+
+    fireEvent(slider, pointerEvent('pointermove', 20));
+    expect(input.value).toBe('0.2');
+  });
+
   it('stores integer number controls as parsed numeric values', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(() => (
@@ -195,6 +246,23 @@ describe('ModelParamsDialog', () => {
 
     await waitFor(() => expect(onSave).toHaveBeenCalledWith({ thinking: { type: 'disabled' } }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  it('keeps boolean toggle values as booleans', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={booleanSpecs}
+        slotLabel="test-model"
+        onSave={onSave}
+      />
+    ));
+
+    fireEvent.click(q('.model-params__toggle') as HTMLButtonElement);
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ stream: false }));
   });
 
   it('includes applicable nested sibling defaults when saving a nested override', async () => {
@@ -251,6 +319,23 @@ describe('ModelParamsDialog', () => {
     fireEvent.click(screen.getByText('Save'));
 
     await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 0.2 }));
+  });
+
+  it('does not persist nested defaults when only stale inapplicable nested values differ', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        current={{ thinking: { type: 'disabled', budget_tokens: 8192 } }}
+        onSave={onSave}
+      />
+    ));
+
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(null));
   });
 
   it('cancel button closes without persisting', () => {

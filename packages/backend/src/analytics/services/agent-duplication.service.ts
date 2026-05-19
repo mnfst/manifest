@@ -233,25 +233,34 @@ export class AgentDuplicationService {
         .getRepository(AgentModelParams)
         .find({ where: { agent_id: source.id } });
       if (modelParams.length > 0) {
-        await manager.getRepository(AgentModelParams).insert(
-          modelParams.map((p) => ({
-            id: uuidv4(),
-            user_id: p.user_id,
-            agent_id: newAgentId,
-            // Same `custom:<uuid>` remap as user_providers / tier_assignments
-            // / specificity_assignments above. Without this, a params row
-            // configured for `custom:<old-uuid>` would point to the source
-            // agent's custom provider after duplication, breaking the
-            // per-route lookup for the new agent.
-            provider: this.remapCustomProviderRef(p.provider, customProviderIdMap),
-            auth_type: p.auth_type,
-            model_name: p.model_name,
-            scope_key: p.scope_key,
-            params: p.params,
-            created_at: now,
-            updated_at: now,
-          })),
-        );
+        for (const p of modelParams) {
+          await manager.query(
+            `
+              INSERT INTO "agent_model_params" (
+                "id", "user_id", "agent_id", "scope_key", "provider",
+                "auth_type", "model_name", "params", "created_at", "updated_at"
+              )
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            `,
+            [
+              uuidv4(),
+              p.user_id,
+              newAgentId,
+              p.scope_key,
+              // Same `custom:<uuid>` remap as user_providers / tier_assignments
+              // / specificity_assignments above. Without this, a params row
+              // configured for `custom:<old-uuid>` would point to the source
+              // agent's custom provider after duplication, breaking the
+              // per-route lookup for the new agent.
+              this.remapCustomProviderRef(p.provider, customProviderIdMap),
+              p.auth_type,
+              p.model_name,
+              p.params,
+              now,
+              now,
+            ],
+          );
+        }
       }
 
       return {

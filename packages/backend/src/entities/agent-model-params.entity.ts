@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
-import type { AuthType } from 'manifest-shared';
+import type { AuthType, RequestParamDefaults } from 'manifest-shared';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 /**
@@ -40,7 +40,7 @@ export class AgentModelParams {
   model_name!: string;
 
   @Column('jsonb')
-  params!: object;
+  params!: RequestParamDefaults;
 
   @Column(timestampType(), { default: timestampDefault() })
   created_at!: string;

@@ -1,6 +1,8 @@
 import { BadRequestException, Body, Controller, Delete, Get, Param, Put } from '@nestjs/common';
 import {
+  getProviderParamValue,
   pickProviderCompatibleParams,
+  providerParamValueIsValid,
   type AuthType,
   type ProviderParamSpecCatalog,
   type RequestParamDefaults,
@@ -144,6 +146,12 @@ export class ModelParamsController {
       throw new BadRequestException(
         `Provider "${provider}" does not consume any of the supplied params`,
       );
+    }
+    for (const spec of specs) {
+      const value = getProviderParamValue(out, spec.path);
+      if (value !== undefined && !providerParamValueIsValid(spec, value)) {
+        throw new BadRequestException(`Invalid value for param "${spec.path}"`);
+      }
     }
     return out;
   }

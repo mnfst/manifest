@@ -65,7 +65,12 @@ export class ScopeAgentModelParams1789200000000 implements MigrationInterface {
           fr->>'authType' AS auth_type,
           fr->>'model' AS model_name
         FROM route_sources rs
-        CROSS JOIN LATERAL jsonb_array_elements(rs.fallback_routes) AS arr(fr)
+        CROSS JOIN LATERAL jsonb_array_elements(
+          CASE
+            WHEN jsonb_typeof(rs.fallback_routes) = 'array' THEN rs.fallback_routes
+            ELSE '[]'::jsonb
+          END
+        ) AS arr(fr)
         WHERE rs.fallback_routes IS NOT NULL
           AND jsonb_typeof(rs.fallback_routes) = 'array'
           AND jsonb_typeof(fr) = 'object'
@@ -154,7 +159,12 @@ export class ScopeAgentModelParams1789200000000 implements MigrationInterface {
           fr->>'authType' AS auth_type,
           fr->>'model' AS model_name
         FROM route_sources rs
-        CROSS JOIN LATERAL jsonb_array_elements(rs.fallback_routes) AS arr(fr)
+        CROSS JOIN LATERAL jsonb_array_elements(
+          CASE
+            WHEN jsonb_typeof(rs.fallback_routes) = 'array' THEN rs.fallback_routes
+            ELSE '[]'::jsonb
+          END
+        ) AS arr(fr)
         WHERE rs.fallback_routes IS NOT NULL
           AND jsonb_typeof(rs.fallback_routes) = 'array'
           AND jsonb_typeof(fr) = 'object'

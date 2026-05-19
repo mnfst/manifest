@@ -155,6 +155,17 @@ export function pickProviderCompatibleParams(
   return out;
 }
 
+export function providerParamValueIsValid(spec: ProviderParamSpec, value: unknown): boolean {
+  if (spec.type === 'boolean') return typeof value === 'boolean';
+  if (spec.type === 'string') return typeof value === 'string';
+  if (spec.type === 'enum') {
+    return (spec.values ?? []).some((candidate) => jsonValuesEqual(value, candidate));
+  }
+  if (spec.type === 'integer') return numberValueIsValid(spec, value, Number.isInteger);
+  if (spec.type === 'number') return numberValueIsValid(spec, value);
+  return false;
+}
+
 export function omitProviderInapplicableParams<T extends Record<string, unknown>>(
   params: T,
   specs: readonly ProviderParamSpec[],
@@ -358,6 +369,17 @@ function jsonValuesEqual(a: unknown, b: unknown): boolean {
     return JSON.stringify(a) === JSON.stringify(b);
   }
   return a === b;
+}
+
+function numberValueIsValid(
+  spec: ProviderParamSpec,
+  value: unknown,
+  predicate: (value: number) => boolean = Number.isFinite,
+): boolean {
+  if (typeof value !== 'number' || !Number.isFinite(value) || !predicate(value)) return false;
+  if (spec.range?.min !== undefined && value < spec.range.min) return false;
+  if (spec.range?.max !== undefined && value > spec.range.max) return false;
+  return true;
 }
 
 function structuredCloneRecord<T extends Record<string, unknown>>(

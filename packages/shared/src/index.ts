@@ -47,6 +47,7 @@ export {
   omitProviderInapplicableParams,
   pickProviderCompatibleParams,
   providerParamIsApplicable,
+  providerParamValueIsValid,
   setProviderParamValue,
 } from './provider-params-spec';
 export type {

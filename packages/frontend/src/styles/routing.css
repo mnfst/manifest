@@ -740,7 +740,10 @@
 }
 
 .model-params__slider-input::-webkit-outer-spin-button,
-.model-params__slider-input::-webkit-inner-spin-button {
+.model-params__slider-input::-webkit-inner-spin-button,
+.model-params__number::-webkit-outer-spin-button,
+.model-params__number::-webkit-inner-spin-button {
+  -webkit-appearance: none;
   margin: 0;
 }
 

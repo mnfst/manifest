@@ -66,7 +66,8 @@ const groupSpecs = (specs: readonly ProviderParamSpec[]) =>
 
 const valuesEqual = (a: unknown, b: unknown) =>
   typeof a === 'object' || typeof b === 'object'
-    ? JSON.stringify(a) === JSON.stringify(b)
+    ? /* v8 ignore next -- current MPC rows compare primitives; keep defensive JsonValue equality. */
+      JSON.stringify(a) === JSON.stringify(b)
     : a === b;
 
 const clampNumber = (value: number, fallback: number, min?: number, max?: number): number => {
@@ -128,19 +129,17 @@ const ModelParamsDialog: Component<Props> = (props) => {
   };
 
   const ToggleRow = (spec: ProviderParamSpec) => {
-    const currentValue = () => stringValue(spec);
+    const currentValue = () => valueFor(spec);
     const values = () => (spec.values ?? []) as readonly JsonValue[];
-    const onValue = () =>
-      values().some((v) => String(v) === 'enabled') ? 'enabled' : String(values()[0] ?? true);
-    const offValue = () =>
-      values().some((v) => String(v) === 'disabled') ? 'disabled' : String(values()[1] ?? false);
-    const isOn = () => currentValue() === onValue();
+    const onValue = () => values().find((v) => String(v) === 'enabled') ?? values()[0] ?? true;
+    const offValue = () => values().find((v) => String(v) === 'disabled') ?? values()[1] ?? false;
+    const isOn = () => valuesEqual(currentValue(), onValue());
     return (
       <button
         type="button"
         class="model-params__toggle"
         aria-pressed={isOn()}
-        aria-label={`${spec.label}: ${currentValue()}`}
+        aria-label={`${spec.label}: ${String(currentValue())}`}
         disabled={isDisabled(spec)}
         onClick={() => setValue(spec, isOn() ? offValue() : onValue())}
       >
@@ -294,6 +293,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
       const nestedRootsWithOverrides = new Set(
         props.specs
           .filter((spec) => spec.path.includes('.'))
+          .filter((spec) => isApplicable(spec))
           .filter((spec) => !valuesEqual(valueFor(spec), spec.default))
           .map((spec) => spec.path.split('.')[0]),
       );

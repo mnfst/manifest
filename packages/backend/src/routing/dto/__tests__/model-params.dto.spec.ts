@@ -35,6 +35,34 @@ describe('model-params DTOs', () => {
       });
       expect(validateSync(dto).length).toBeGreaterThan(0);
     });
+
+    it('rejects params that are not a JSON object', () => {
+      const dto = plainToInstance(SetModelParamsBodyDto, {
+        scope: 'tier:default',
+        provider: 'deepseek',
+        authType: 'api_key',
+        model: 'deepseek-v4',
+        params: { temperature: Number.NaN },
+      });
+      expect(validateSync(dto).length).toBeGreaterThan(0);
+    });
+
+    it('rejects params nested beyond the validator depth limit', () => {
+      let params: Record<string, unknown> = { value: 'enabled' };
+      for (let index = 0; index < 120; index += 1) {
+        params = { nested: params };
+      }
+
+      const dto = plainToInstance(SetModelParamsBodyDto, {
+        scope: 'tier:default',
+        provider: 'deepseek',
+        authType: 'api_key',
+        model: 'deepseek-v4',
+        params,
+      });
+
+      expect(validateSync(dto).length).toBeGreaterThan(0);
+    });
   });
 
   describe('DeleteModelParamsBodyDto', () => {
