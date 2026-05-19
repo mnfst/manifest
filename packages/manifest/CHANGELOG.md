@@ -1,5 +1,21 @@
 # manifest
 
+## 6.5.0
+
+### Minor Changes
+
+- c4571f7: Add Playground page: compare LLM responses from multiple models side by side for cost, output tokens, and latency. Includes request-headers popover, history drawer with replay, and markdown rendering of responses.
+
+### Patch Changes
+
+- f2074dd: Make Anthropic OAuth token exchange diagnostics safe when fields are missing.
+- 3ff3087: Persist Anthropic OAuth pending state in Postgres so production exchanges survive reloads, restarts, and multi-instance routing.
+- 7913169: Align Anthropic OAuth state handling with the Claude Code PKCE flow.
+- ed05898: Add Claude Code-compatible Anthropic OAuth token headers and safe request-shape diagnostics.
+- 0421e0a: Fall back to the OAuth state when Anthropic pending verifier data is missing.
+- d00e52b: Fix custom providers in the Playground. Selecting a model from a custom (OpenAI/Anthropic-compatible) provider now resolves its endpoint instead of failing with "Provider request failed".
+- 2b1c9b5: Hide the misleading empty "tier" label in the Playground model picker. The subtitle now only shows when a real routing tier applies.
+
 ## 6.4.0
 
 ### Minor Changes
