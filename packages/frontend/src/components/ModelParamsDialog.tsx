@@ -50,9 +50,8 @@ const readValue = (spec: ProviderParamSpec, current: RequestParamDefaults | null
   const storageKey = providerParamStorageKey(spec);
   const stored = (current as Record<string, unknown> | null)?.[storageKey];
   if (spec.group) {
-    return isRecord(stored) && stored[spec.key] !== undefined
-      ? stored[spec.key]
-      : spec.control.default;
+    const groupValue = isRecord(stored) ? stored[spec.key] : undefined;
+    return groupValue === undefined ? spec.control.default : groupValue;
   }
   if (stored && typeof stored === 'object' && !Array.isArray(stored) && 'type' in stored) {
     return (stored as { type: JsonValue }).type;
@@ -142,9 +141,8 @@ const ModelParamsDialog: Component<Props> = (props) => {
     const storageKey = providerParamStorageKey(spec);
     const stored = draft()[storageKey];
     if (!spec.group) return stored ?? spec.control.default;
-    return isRecord(stored) && stored[spec.key] !== undefined
-      ? stored[spec.key]
-      : spec.control.default;
+    const groupValue = isRecord(stored) ? stored[spec.key] : undefined;
+    return groupValue === undefined ? spec.control.default : groupValue;
   };
 
   const setSpecValue = (spec: ProviderParamSpec, value: JsonValue) => {
