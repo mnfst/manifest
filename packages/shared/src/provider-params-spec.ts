@@ -102,8 +102,7 @@ export function omitProviderIncompatibleParams<T extends Record<string, unknown>
   let out: Record<string, unknown> | null = null;
 
   for (const spec of specs) {
-    const source = out ?? params;
-    if (!providerParamHasEffect(spec, source, 'omit')) continue;
+    if (!providerParamHasEffect(spec, params, 'omit')) continue;
     out ??= { ...params };
     omitProviderParam(out, spec);
   }

@@ -57,4 +57,20 @@ describe('AddOpenAiProviderParamSpecs1789700000000', () => {
       ]),
     );
   });
+
+  it('rolls back only the exact rows seeded by the migration', async () => {
+    await migration.down(queryRunner as never);
+    const [sql, params] = queryRunner.query.mock.calls[0]!;
+
+    expect(String(sql)).toContain('DELETE FROM "provider_param_specs"');
+    expect(String(sql)).toContain('WHERE "id" IN');
+    expect(String(sql)).not.toContain('LIKE');
+    expect(params).toEqual(
+      expect.arrayContaining([
+        'openai-api-key-base-max-tokens',
+        'openai-api-key-gpt-4o-temperature',
+        'openai-api-key-o3-reasoning-effort',
+      ]),
+    );
+  });
 });

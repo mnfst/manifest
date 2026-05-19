@@ -1,4 +1,4 @@
-import { createSignal, For, Show, onCleanup, type Component } from 'solid-js';
+import { createEffect, createSignal, For, Show, onCleanup, type Component } from 'solid-js';
 
 interface SelectOption {
   label: string;
@@ -18,11 +18,16 @@ interface SelectProps {
 const Select: Component<SelectProps> = (props) => {
   const [open, setOpen] = createSignal(false);
   let ref: HTMLDivElement | undefined;
+  const isOpen = () => open() && !props.disabled;
 
   const selectedLabel = () => {
     const opt = props.options.find((o) => o.value === props.value);
     return opt?.label ?? props.placeholder ?? 'Select...';
   };
+
+  createEffect(() => {
+    if (props.disabled) setOpen(false);
+  });
 
   const handleClickOutside = (e: MouseEvent) => {
     if (ref && !ref.contains(e.target as Node)) {
@@ -47,14 +52,14 @@ const Select: Component<SelectProps> = (props) => {
     <div class="custom-select" ref={ref}>
       <button
         class="custom-select__trigger"
-        classList={{ 'custom-select__trigger--open': open() }}
+        classList={{ 'custom-select__trigger--open': isOpen() }}
         onClick={() => {
           if (!props.disabled) setOpen(!open());
         }}
         disabled={props.disabled}
         type="button"
         aria-haspopup="listbox"
-        aria-expanded={open()}
+        aria-expanded={isOpen()}
         aria-label={props.label ?? selectedLabel()}
       >
         <span class="custom-select__value">{props.displayValue ?? selectedLabel()}</span>
@@ -73,7 +78,7 @@ const Select: Component<SelectProps> = (props) => {
           <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
-      <Show when={open()}>
+      <Show when={isOpen()}>
         <div class="custom-select__dropdown" role="listbox">
           <For each={props.options}>
             {(opt) => (
@@ -81,9 +86,14 @@ const Select: Component<SelectProps> = (props) => {
                 class="custom-select__option"
                 classList={{ 'custom-select__option--selected': props.value === opt.value }}
                 onClick={() => {
+                  if (props.disabled) {
+                    setOpen(false);
+                    return;
+                  }
                   props.onChange(opt.value);
                   setOpen(false);
                 }}
+                disabled={props.disabled}
                 type="button"
                 role="option"
                 aria-selected={props.value === opt.value}

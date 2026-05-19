@@ -240,5 +240,25 @@ describe('provider-params-spec', () => {
         temperature: 0.4,
       });
     });
+
+    it('evaluates omit dependencies against the original param payload', () => {
+      const specs = [
+        {
+          key: 'first',
+          control: { kind: 'select', label: 'First', values: ['keep', 'drop'], default: 'keep' },
+          dependencies: [{ effect: 'omit', when: { key: 'mode', equals: 'drop' } }],
+        },
+        {
+          key: 'second',
+          control: { kind: 'select', label: 'Second', values: ['keep', 'drop'], default: 'keep' },
+          dependencies: [{ effect: 'omit', when: { key: 'first', equals: 'drop' } }],
+        },
+      ] satisfies ProviderParamSpecRegistry['unit:api_key']['base'];
+
+      expect(omitProviderIncompatibleParams({ mode: 'drop', first: 'drop', second: 'drop' }, specs))
+        .toEqual({
+          mode: 'drop',
+        });
+    });
   });
 });

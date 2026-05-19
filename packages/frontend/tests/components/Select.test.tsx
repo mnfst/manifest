@@ -1,5 +1,6 @@
+import { createSignal } from "solid-js";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@solidjs/testing-library";
+import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 import Select from "../../src/components/Select";
 
 describe("Select", () => {
@@ -50,5 +51,43 @@ describe("Select", () => {
     const trigger = screen.getByRole("button");
     expect(trigger.getAttribute("aria-haspopup")).toBe("listbox");
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("closes an open dropdown when the control becomes disabled", async () => {
+    const onChange = vi.fn();
+
+    const Harness = () => {
+      const [disabled, setDisabled] = createSignal(false);
+      return (
+        <>
+          <button type="button" onClick={() => setDisabled(true)}>
+            Disable
+          </button>
+          <Select
+            label="Unit select"
+            options={[
+              { label: "Alpha", value: "alpha" },
+              { label: "Beta", value: "beta" },
+            ]}
+            value="alpha"
+            onChange={onChange}
+            disabled={disabled()}
+          />
+        </>
+      );
+    };
+
+    render(() => <Harness />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Unit select" }));
+    expect(screen.queryByRole("listbox")).not.toBeNull();
+
+    fireEvent.click(screen.getByText("Disable"));
+
+    await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+    expect((screen.getByRole("button", { name: "Unit select" }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

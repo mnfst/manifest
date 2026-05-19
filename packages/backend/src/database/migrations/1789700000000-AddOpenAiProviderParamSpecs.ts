@@ -126,23 +126,27 @@ function row(modelName: string | null, template: SpecTemplate): SeedRow {
   ];
 }
 
+function openAiParamRows(): SeedRow[] {
+  return [
+    row(null, MAX_TOKENS),
+    ...OPENAI_CHAT_SAMPLING_MODELS.flatMap((model) =>
+      [MAX_TOKENS, TEMPERATURE, TOP_P].map((spec) => row(model, spec)),
+    ),
+    ...OPENAI_O_SERIES_REASONING_MODELS.flatMap((model) =>
+      [MAX_TOKENS, REASONING_EFFORT].map((spec) => row(model, spec)),
+    ),
+    ...OPENAI_GPT5_REASONING_MODELS.flatMap((model) =>
+      [MAX_TOKENS, TEMPERATURE, TOP_P, REASONING_EFFORT].map((spec) => row(model, spec)),
+    ),
+    ...OPENAI_GPT51_REASONING_MODELS.flatMap((model) =>
+      [MAX_TOKENS, TEMPERATURE, TOP_P, GPT_5_1_REASONING_EFFORT].map((spec) => row(model, spec)),
+    ),
+  ];
+}
+
 export class AddOpenAiProviderParamSpecs1789700000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const rows: SeedRow[] = [
-      row(null, MAX_TOKENS),
-      ...OPENAI_CHAT_SAMPLING_MODELS.flatMap((model) =>
-        [MAX_TOKENS, TEMPERATURE, TOP_P].map((spec) => row(model, spec)),
-      ),
-      ...OPENAI_O_SERIES_REASONING_MODELS.flatMap((model) =>
-        [MAX_TOKENS, REASONING_EFFORT].map((spec) => row(model, spec)),
-      ),
-      ...OPENAI_GPT5_REASONING_MODELS.flatMap((model) =>
-        [MAX_TOKENS, TEMPERATURE, TOP_P, REASONING_EFFORT].map((spec) => row(model, spec)),
-      ),
-      ...OPENAI_GPT51_REASONING_MODELS.flatMap((model) =>
-        [MAX_TOKENS, TEMPERATURE, TOP_P, GPT_5_1_REASONING_EFFORT].map((spec) => row(model, spec)),
-      ),
-    ];
+    const rows = openAiParamRows();
 
     for (const seed of rows) {
       const [
@@ -217,11 +221,14 @@ export class AddOpenAiProviderParamSpecs1789700000000 implements MigrationInterf
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
+    const ids = openAiParamRows().map(([id]) => id);
+    const placeholders = ids.map((_, index) => `$${index + 1}`).join(', ');
+    await queryRunner.query(
+      `
       DELETE FROM "provider_param_specs"
-      WHERE "provider" = 'openai'
-        AND "auth_type" = 'api_key'
-        AND "id" LIKE 'openai-api-key-%'
-    `);
+      WHERE "id" IN (${placeholders})
+    `,
+      ids,
+    );
   }
 }
