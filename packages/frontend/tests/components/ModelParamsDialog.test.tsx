@@ -80,7 +80,7 @@ describe('ModelParamsDialog', () => {
     expect(q('.model-params__label-title')!.textContent).toContain('Thinking mode');
   });
 
-  it("renders the raw spec key as developer metadata", () => {
+  it('renders the raw spec key as developer metadata', () => {
     render(() => <ModelParamsDialog {...baseProps} />);
     expect(q('.model-params__param-key')!.textContent).toBe('thinking');
   });
@@ -88,11 +88,7 @@ describe('ModelParamsDialog', () => {
   it('saves null when every chosen value matches the provider default', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(() => (
-      <ModelParamsDialog
-        {...baseProps}
-        onSave={onSave}
-        current={{ thinking: 'disabled' }}
-      />
+      <ModelParamsDialog {...baseProps} onSave={onSave} current={{ thinking: 'disabled' }} />
     ));
 
     fireEvent.click(q('.model-params__toggle') as HTMLButtonElement); // disabled → enabled
@@ -104,16 +100,12 @@ describe('ModelParamsDialog', () => {
   it('saves an explicit override when at least one value differs from the provider default', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const onClose = vi.fn();
-    render(() => (
-      <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />
-    ));
+    render(() => <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />);
 
     fireEvent.click(q('.model-params__toggle') as HTMLButtonElement); // enabled → disabled
     fireEvent.click(screen.getByText('Save'));
 
-    await waitFor(() =>
-      expect(onSave).toHaveBeenCalledWith({ thinking: 'disabled' }),
-    );
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ thinking: 'disabled' }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
@@ -128,9 +120,7 @@ describe('ModelParamsDialog', () => {
   it('cancel button closes without persisting', () => {
     const onSave = vi.fn();
     const onClose = vi.fn();
-    render(() => (
-      <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />
-    ));
+    render(() => <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />);
 
     fireEvent.click(screen.getByText('Cancel'));
     expect(onSave).not.toHaveBeenCalled();
@@ -217,15 +207,58 @@ describe('ModelParamsDialog', () => {
     await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 2 }));
   });
 
+  it('supports slider keyboard increments and Home reset', async () => {
+    const specs: ProviderParamSpec[] = [
+      {
+        key: 'temperature',
+        control: {
+          kind: 'slider',
+          label: 'Temperature',
+          min: 0,
+          max: 2,
+          step: 0.1,
+          default: 1,
+        },
+      },
+    ];
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => <ModelParamsDialog {...baseProps} specs={specs} onSave={onSave} />);
+
+    const slider = screen.getByRole('slider', { name: 'Temperature' });
+    Object.defineProperty(slider, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => ({
+        left: 0,
+        width: 200,
+        top: 0,
+        height: 20,
+        right: 200,
+        bottom: 20,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }),
+    });
+
+    const pointerDown = new Event('pointerdown', { bubbles: true, cancelable: true });
+    Object.defineProperty(pointerDown, 'clientX', { value: 50 });
+    Object.defineProperty(pointerDown, 'pointerId', { value: 1 });
+    fireEvent(slider, pointerDown);
+    expect(slider.getAttribute('aria-valuenow')).toBe('0.5');
+    fireEvent.keyDown(slider, { key: 'ArrowLeft' });
+    expect(slider.getAttribute('aria-valuenow')).toBe('0.4');
+    fireEvent.keyDown(slider, { key: 'ArrowRight' });
+    expect(slider.getAttribute('aria-valuenow')).toBe('0.5');
+    fireEvent.keyDown(slider, { key: 'Home' });
+    expect(slider.getAttribute('aria-valuenow')).toBe('0');
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 0 }));
+  });
+
   it('renders Anthropic API-key scalar params from resolved specs', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
-    render(() => (
-      <ModelParamsDialog
-        {...baseProps}
-        specs={anthropicSpecs}
-        onSave={onSave}
-      />
-    ));
+    render(() => <ModelParamsDialog {...baseProps} specs={anthropicSpecs} onSave={onSave} />);
 
     const temperatureSlider = screen.getByRole('slider', { name: 'Temperature' });
     const topPSlider = screen.getByRole('slider', { name: 'Top P' });
@@ -235,7 +268,9 @@ describe('ModelParamsDialog', () => {
     fireEvent.input(screen.getByLabelText('Top K'), { target: { value: '40' } });
     fireEvent.click(screen.getByText('Save'));
 
-    expect(temperatureSlider.getAttribute('style')).toContain('--model-params-slider-progress: 40%');
+    expect(temperatureSlider.getAttribute('style')).toContain(
+      '--model-params-slider-progress: 40%',
+    );
     expect(topPSlider.getAttribute('style')).toContain('--model-params-slider-progress: 80%');
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith({
