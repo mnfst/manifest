@@ -250,6 +250,29 @@ describe('ProxyService — orchestration', () => {
       expect(momentum.recordTier).toHaveBeenCalledWith('sess-1', 'standard');
     });
 
+    it('passes endUserId from x-user-id to tryForwardToProvider', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openrouter', 'api_key', 'openai/gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts({ headers: { 'x-user-id': 'end-user-42' } }));
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ endUserId: 'end-user-42' }),
+      );
+    });
+
     it('records the specificity category when the route originates from specificity', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
@@ -557,6 +580,35 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
       expect(result.meta.provider).toBe('anthropic');
       expect(result.meta.primaryProvider).toBe('openai');
+    });
+
+    it('passes endUserId to tryFallbacks when x-user-id is set', async () => {
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('upstream broken', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(),
+            isGoogle: false,
+            isAnthropic: true,
+            isChatGpt: false,
+          },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+        },
+        failures: [],
+      } as never);
+
+      await svc.proxyRequest(baseOpts({ headers: { 'x-user-id': 'end-user-42' } }));
+
+      expect(fallbackService.tryFallbacks).toHaveBeenCalled();
+      const args = fallbackService.tryFallbacks.mock.calls[0];
+      expect(args[args.length - 1]).toBe('end-user-42');
     });
 
     it('returns the successful fallback auth_type, not the primary auth_type (#1173)', async () => {

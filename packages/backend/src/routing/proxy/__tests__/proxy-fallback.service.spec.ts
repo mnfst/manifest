@@ -152,6 +152,29 @@ describe('ProxyFallbackService', () => {
       );
     });
 
+    it('forwards endUserId to providerClient', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'openrouter',
+        apiKey: 'sk-or-test',
+        model: 'openai/gpt-4o',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        endUserId: 'end-user-42',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({ endUserId: 'end-user-42' }),
+      );
+    });
+
     it("re-merges per attempt — does not leak DeepSeek's thinking onto an Anthropic fallback", async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
@@ -548,6 +571,41 @@ describe('ProxyFallbackService', () => {
       expect(result.success!.provider).toBe('Anthropic');
       expect(result.success!.fallbackIndex).toBe(0);
       expect(result.failures).toHaveLength(0);
+    });
+
+    it('forwards endUserId on fallback attempts', async () => {
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-or');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      pricingCache.getByModel.mockReturnValue({ provider: 'openrouter' } as never);
+
+      await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['openai/gpt-4o'],
+        body,
+        false,
+        'sess-1',
+        'gpt-4o',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'end-user-42',
+      );
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({ endUserId: 'end-user-42' }),
+      );
     });
 
     it('returns null success when all fallbacks fail', async () => {
