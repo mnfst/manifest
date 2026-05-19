@@ -698,6 +698,7 @@
   border-radius: var(--radius-sm);
   background: hsl(var(--background));
   color: hsl(var(--foreground));
+  color-scheme: light;
   font-family: var(--font-family);
   font-size: var(--font-size-sm);
   font-variant-numeric: tabular-nums;
@@ -722,8 +723,14 @@
   border-radius: var(--radius);
   background: hsl(var(--background));
   color: hsl(var(--foreground));
+  color-scheme: light;
   font-family: var(--font-family);
   font-size: var(--font-size-sm);
+}
+
+.dark .model-params__slider-input,
+.dark .model-params__number {
+  color-scheme: dark;
 }
 
 .model-params__number:focus-visible {
