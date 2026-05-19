@@ -69,6 +69,23 @@ describe('ModelParamsDialog', () => {
     expect(q('.provider-toggle__switch--on')).toBeNull();
   });
 
+  it('normalizes legacy nested thinking overrides when saved', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        onSave={onSave}
+        current={{ thinking: { type: 'disabled' } }}
+      />
+    ));
+
+    const toggle = q('.model-params__toggle') as HTMLButtonElement;
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ thinking: 'disabled' }));
+  });
+
   it("renders the spec's natural default in the hint text", () => {
     render(() => <ModelParamsDialog {...baseProps} />);
     // DeepSeek's spec default is `enabled`.

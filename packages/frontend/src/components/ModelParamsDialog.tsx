@@ -31,6 +31,9 @@ type DraftState = Record<string, JsonValue>;
 
 const readValue = (spec: ProviderParamSpec, current: RequestParamDefaults | null): JsonValue => {
   const stored = (current as Record<string, unknown> | null)?.[spec.key];
+  if (stored && typeof stored === 'object' && !Array.isArray(stored) && 'type' in stored) {
+    return (stored as { type: JsonValue }).type;
+  }
   return stored === undefined ? spec.control.default : (stored as JsonValue);
 };
 
