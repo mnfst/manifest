@@ -5,6 +5,7 @@ import {
   compareProviderParamSpecs,
   getProviderParamSpecs,
   isParamApplicability,
+  isProviderParamPath,
   type AuthType,
   type JsonValue,
   type ModelParamGroup,
@@ -57,7 +58,7 @@ export class ProviderParamSpecService {
       provider: row.provider,
       authType: row.auth_type,
       model: row.model_name,
-      path: row.param_path,
+      path: this.assertPath(row),
       type: this.assertType(row),
       label: row.label,
       default: row.default_value,
@@ -82,6 +83,13 @@ export class ProviderParamSpecService {
       return value;
     }
     throw new Error(`Invalid provider param type: ${row.id}`);
+  }
+
+  private assertPath(row: ProviderParamSpecEntity): string {
+    if (!isProviderParamPath(row.param_path)) {
+      throw new Error(`Invalid provider param path: ${row.id}`);
+    }
+    return row.param_path;
   }
 
   private assertGroup(row: ProviderParamSpecEntity): ModelParamGroup {

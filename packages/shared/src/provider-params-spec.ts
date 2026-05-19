@@ -74,6 +74,8 @@ const GROUP_ORDER: readonly ModelParamGroup[] = [
   'provider_metadata',
 ];
 
+const UNSAFE_PATH_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype']);
+
 export function getProviderParamSpecs(
   catalog: ProviderParamSpecCatalog,
   providerId: string | undefined,
@@ -127,6 +129,14 @@ export function isParamApplicability(value: unknown): value is ParamApplicabilit
     return false;
   }
   return true;
+}
+
+export function isProviderParamPath(path: string): boolean {
+  const segments = path.split('.');
+  return (
+    segments.length > 0 &&
+    segments.every((segment) => segment !== '' && !UNSAFE_PATH_SEGMENTS.has(segment))
+  );
 }
 
 export function pickProviderCompatibleParams(
@@ -256,7 +266,8 @@ function isApplicabilityMatch(value: unknown): value is ParamApplicabilityMatch 
   if (!isRecord(value)) return false;
   const entries = Object.entries(value);
   return (
-    entries.length > 0 && entries.every(([path, expected]) => path !== '' && isMatchValue(expected))
+    entries.length > 0 &&
+    entries.every(([path, expected]) => isProviderParamPath(path) && isMatchValue(expected))
   );
 }
 
@@ -282,8 +293,9 @@ function isJsonPrimitive(value: unknown): value is JsonPrimitive {
 
 function getPath(values: Record<string, unknown>, path: string): unknown {
   let current: unknown = values;
-  for (const segment of path.split('.')) {
+  for (const segment of splitProviderParamPath(path)) {
     if (!isRecord(current)) return undefined;
+    if (!hasOwn(current, segment)) return undefined;
     current = current[segment];
   }
   return current;
@@ -291,49 +303,49 @@ function getPath(values: Record<string, unknown>, path: string): unknown {
 
 function hasPath(values: Record<string, unknown>, path: string): boolean {
   let current: unknown = values;
-  const segments = path.split('.');
+  const segments = splitProviderParamPath(path);
   for (let i = 0; i < segments.length; i++) {
-    if (!isRecord(current) || !(segments[i] in current)) return false;
+    if (!isRecord(current) || !hasOwn(current, segments[i])) return false;
     current = current[segments[i]];
   }
   return true;
 }
 
 function setPath(values: Record<string, unknown>, path: string, value: JsonValue): void {
-  const segments = path.split('.');
+  const segments = splitProviderParamPath(path);
   let current = values;
   for (let i = 0; i < segments.length - 1; i++) {
     const segment = segments[i];
-    const existing = current[segment];
-    if (!isRecord(existing)) current[segment] = {};
+    const existing = hasOwn(current, segment) ? current[segment] : undefined;
+    if (!isRecord(existing)) defineOwn(current, segment, {});
     current = current[segment] as Record<string, unknown>;
   }
-  current[segments[segments.length - 1]] = value;
+  defineOwn(current, segments[segments.length - 1], value);
 }
 
 function deletePath(values: Record<string, unknown>, path: string): void {
   const parents: Array<[Record<string, unknown>, string]> = [];
   let current: unknown = values;
-  const segments = path.split('.');
+  const segments = splitProviderParamPath(path);
   for (let i = 0; i < segments.length - 1; i++) {
-    if (!isRecord(current)) return;
+    if (!isRecord(current) || !hasOwn(current, segments[i])) return;
     parents.push([current, segments[i]]);
     current = current[segments[i]];
   }
   if (!isRecord(current)) return;
-  delete current[segments[segments.length - 1]];
+  deleteOwn(current, segments[segments.length - 1]);
 
   for (let i = parents.length - 1; i >= 0; i--) {
     const [parent, segment] = parents[i];
     const child = parent[segment];
     if (isRecord(child) && Object.keys(child).length === 0) {
-      delete parent[segment];
+      deleteOwn(parent, segment);
     }
   }
 }
 
 function pathRoot(path: string): string {
-  return path.split('.')[0];
+  return splitProviderParamPath(path)[0];
 }
 
 function pathOrderRank(path: string): number {
@@ -352,6 +364,28 @@ function structuredCloneRecord<T extends Record<string, unknown>>(
   value: T,
 ): Record<string, unknown> {
   return JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
+}
+
+function splitProviderParamPath(path: string): string[] {
+  if (!isProviderParamPath(path)) throw new Error(`Invalid provider param path: ${path}`);
+  return path.split('.');
+}
+
+function hasOwn(value: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
+}
+
+function defineOwn(target: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(target, key, {
+    value,
+    enumerable: true,
+    configurable: true,
+    writable: true,
+  });
+}
+
+function deleteOwn(target: Record<string, unknown>, key: string): void {
+  if (hasOwn(target, key)) Reflect.deleteProperty(target, key);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

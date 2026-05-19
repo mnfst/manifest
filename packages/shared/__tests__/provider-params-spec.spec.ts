@@ -1,9 +1,15 @@
 import {
+  compareProviderParamSpecs,
+  deleteProviderParamValue,
   expandConfiguredParamDefaults,
+  getProviderParamValue,
   getProviderParamSpecs,
   isParamApplicability,
+  isProviderParamPath,
+  omitProviderInapplicableParams,
   pickProviderCompatibleParams,
   providerParamIsApplicable,
+  setProviderParamValue,
   type ProviderParamSpecCatalog,
 } from '../src/provider-params-spec';
 
@@ -97,6 +103,12 @@ describe('provider-params-spec', () => {
       );
       expect(paths).toEqual(['temperature', 'top_p', 'thinking.type', 'thinking.budget_tokens']);
     });
+
+    it('falls back to lexical path ordering for otherwise equivalent specs', () => {
+      expect(
+        compareProviderParamSpecs({ ...catalog[0], path: 'thinking.alpha' }, catalog[0]),
+      ).toBeLessThan(0);
+    });
   });
 
   describe('providerParamIsApplicable', () => {
@@ -118,6 +130,10 @@ describe('provider-params-spec', () => {
       expect(providerParamIsApplicable(spec, { temperature: 1 })).toBe(true);
       expect(providerParamIsApplicable(spec, { temperature: 0.2 })).toBe(false);
     });
+
+    it('does not match primitive conditions against object values', () => {
+      expect(providerParamIsApplicable(catalog[3], { temperature: { value: 1 } })).toBe(false);
+    });
   });
 
   describe('isParamApplicability', () => {
@@ -136,6 +152,24 @@ describe('provider-params-spec', () => {
       expect(isParamApplicability({ except: [] })).toBe(false);
       expect(isParamApplicability({ except: { temperature: { value: 0 } } })).toBe(false);
       expect(isParamApplicability({})).toBe(false);
+    });
+
+    it('rejects prototype-polluting applicability paths', () => {
+      expect(isParamApplicability({ except: { '__proto__.polluted': true } })).toBe(false);
+      expect(isParamApplicability({ except: { 'constructor.prototype.polluted': true } })).toBe(
+        false,
+      );
+      expect(isParamApplicability({ except: { 'thinking.prototype': true } })).toBe(false);
+    });
+  });
+
+  describe('isProviderParamPath', () => {
+    it('accepts dot paths and rejects unsafe path segments', () => {
+      expect(isProviderParamPath('thinking.budget_tokens')).toBe(true);
+      expect(isProviderParamPath('')).toBe(false);
+      expect(isProviderParamPath('thinking.')).toBe(false);
+      expect(isProviderParamPath('__proto__.polluted')).toBe(false);
+      expect(isProviderParamPath('constructor.prototype.polluted')).toBe(false);
     });
   });
 
@@ -174,6 +208,30 @@ describe('provider-params-spec', () => {
     });
   });
 
+  describe('omitProviderInapplicableParams', () => {
+    const specs = getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6');
+
+    it('returns the same object when every configured param is still applicable', () => {
+      const params = { temperature: 1 };
+      expect(omitProviderInapplicableParams(params, specs)).toBe(params);
+    });
+
+    it('removes inapplicable nested values and prunes empty parents', () => {
+      expect(
+        omitProviderInapplicableParams(
+          { thinking: { budget_tokens: 8192 }, temperature: 0.2 },
+          specs,
+        ),
+      ).toEqual({ temperature: 0.2 });
+    });
+
+    it('removes inapplicable flat values', () => {
+      expect(
+        omitProviderInapplicableParams({ thinking: { type: 'enabled' }, temperature: 0.2 }, specs),
+      ).toEqual({ thinking: { type: 'enabled' } });
+    });
+  });
+
   describe('expandConfiguredParamDefaults', () => {
     it('does not add nested defaults when the root is not configured', () => {
       expect(expandConfiguredParamDefaults({ temperature: 0.5 }, catalog)).toEqual({
@@ -188,6 +246,42 @@ describe('provider-params-spec', () => {
       expect(expandConfiguredParamDefaults({ thinking: { type: 'enabled' } }, catalog)).toEqual({
         thinking: { type: 'enabled', budget_tokens: 4096 },
       });
+    });
+  });
+
+  describe('getProviderParamValue', () => {
+    it('returns undefined for empty values and reads nested paths', () => {
+      expect(getProviderParamValue(null, 'thinking.type')).toBeUndefined();
+      expect(getProviderParamValue({ thinking: { type: 'enabled' } }, 'thinking.type')).toBe(
+        'enabled',
+      );
+    });
+  });
+
+  describe('deleteProviderParamValue', () => {
+    it('removes flat and nested values without mutating the input', () => {
+      const params = { temperature: 0.2, thinking: { type: 'enabled', budget_tokens: 4096 } };
+
+      expect(deleteProviderParamValue(params, 'temperature')).toEqual({
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+      });
+      expect(deleteProviderParamValue(params, 'thinking.budget_tokens')).toEqual({
+        temperature: 0.2,
+        thinking: { type: 'enabled' },
+      });
+      expect(params).toEqual({
+        temperature: 0.2,
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+      });
+    });
+  });
+
+  describe('setProviderParamValue', () => {
+    it('rejects unsafe paths without polluting prototypes', () => {
+      expect(() => setProviderParamValue({}, '__proto__.polluted', true)).toThrow(
+        'Invalid provider param path',
+      );
+      expect(({} as Record<string, unknown>)['polluted']).toBeUndefined();
     });
   });
 });

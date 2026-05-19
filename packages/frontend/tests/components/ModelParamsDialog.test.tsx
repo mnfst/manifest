@@ -131,6 +131,44 @@ describe('ModelParamsDialog', () => {
     expect(screen.getByLabelText('Max tokens')).toBeTruthy();
   });
 
+  it('updates slider controls from keyboard input', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+
+    const slider = screen.getByRole('slider', { name: 'Temperature' });
+    const input = screen.getByLabelText('Temperature value') as HTMLInputElement;
+
+    fireEvent.keyDown(slider, { key: 'ArrowDown' });
+    expect(input.value).toBe('0.9');
+
+    fireEvent.keyDown(slider, { key: 'ArrowUp' });
+    expect(input.value).toBe('1');
+
+    fireEvent.keyDown(slider, { key: 'Home' });
+    expect(input.value).toBe('0');
+
+    fireEvent.keyDown(slider, { key: 'End' });
+    expect(input.value).toBe('1');
+  });
+
+  it('stores integer number controls as parsed numeric values', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
+
+    fireEvent.input(screen.getByLabelText('Max tokens'), { target: { value: '2048.9' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ max_tokens: 2048 }));
+  });
+
   it('saves null when every chosen value matches the spec default', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(() => (
