@@ -1,0 +1,54 @@
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_d55d26a37e6be3::t_60051721bf4601 91-93
+packages/shared/__tests__/model-parameters-schema.spec.ts
+  s_d55d26a37e6be3::t_a9fc2df82538ff 39
+  s_d55d26a37e6be3::t_5a0125cfa5e7a2 1-12,15-38,40-41,45-48,51-58
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_d55d26a37e6be3::t_60051721bf4601 512
+packages/frontend/tests/services/api/model-params.test.ts
+  s_d55d26a37e6be3::t_60051721bf4601 31
+packages/frontend/tests/components/ModelParamsAffordance.test.tsx
+  s_d55d26a37e6be3::t_60051721bf4601 32
+packages/shared/src/request-params-snapshot.ts
+  s_d55d26a37e6be3::t_60051721bf4601 22
+packages/shared/src/model-parameters-schema.ts
+  s_d55d26a37e6be3::t_9cdeba4ae2243f 1
+  s_d55d26a37e6be3::t_a1f625ebf446be 7-8,15,24,32,41,56,72,82,94,102,116,125,134,153,163,258-266,350
+  s_d55d26a37e6be3::t_60051721bf4601 9
+packages/shared/src/index.ts
+  s_d55d26a37e6be3::t_0f98cd9c129785 62
+packages/backend/src/routing/model-params.controller.ts
+  s_d55d26a37e6be3::t_60051721bf4601 119,128
+packages/shared/src/provider-params-spec.ts
+  s_d55d26a37e6be3::t_60051721bf4601 26-27
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_d55d26a37e6be3::t_3baff031409355 1-24
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_d55d26a37e6be3::t_60051721bf4601 91
+docs/model-parameters-schema.md
+  s_d55d26a37e6be3::t_3a6547c6c3327d 1,3,5-14,24,26,62-63,161-162
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_d55d26a37e6be3::t_60051721bf4601 69
+packages/backend/src/routing/dto/model-params.dto.ts
+  s_d55d26a37e6be3::t_60051721bf4601 48
+packages/backend/src/database/migrations/1787000000000-AddAgentModelParams.ts
+  s_d55d26a37e6be3::t_60051721bf4601 25-26
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_d55d26a37e6be3::t_3c409989b3aaf7 5,13-15,18,26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "5386b202264477d73f06d6af4321989f18bccf14",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
