@@ -1,6 +1,7 @@
 import { For, Show, type JSX } from 'solid-js';
 import CodeBlock from './CodeBlock.jsx';
 import RecordedTurn from './RecordedTurn.jsx';
+import RecordedOutline from './RecordedOutline.jsx';
 import { HeadersTable, ResponseTab, ToolsList, prettyJson } from './RecordedResponseTab.jsx';
 import {
   detectRequestBodyFormat,
@@ -22,6 +23,17 @@ const FORMAT_HINT: Record<Exclude<RequestBodyFormat, 'openai'>, string> = {
   unknown: 'Unrecognised request body shape. Open the Raw tab to inspect it.',
 };
 
+interface OutlineProps {
+  activeIndex: number | null;
+  searchQuery: string;
+  onSearch: (q: string) => void;
+  onJump: (index: number) => void;
+  onToggleRole: (role: Role) => void;
+  onJumpFirstUser: () => void;
+  onJumpLastUser: () => void;
+  onJumpLastAssistant: () => void;
+}
+
 interface Props {
   tab: TabId;
   data: MessageDetailResponse;
@@ -32,7 +44,9 @@ interface Props {
   activeTurnIndex: number | null;
   renderMode: 'rendered' | 'raw';
   searchQuery: string;
+  onSearch: (q: string) => void;
   onToggleTurn: (index: number) => void;
+  outlineProps?: OutlineProps;
 }
 
 export function RecordedTabContent(props: Props): JSX.Element {
@@ -45,16 +59,34 @@ export function RecordedTabContent(props: Props): JSX.Element {
             return <div class="recorded-modal__empty">{FORMAT_HINT[format]}</div>;
           }
           return (
-            <Conversation
-              messages={props.messages}
-              rows={props.rows}
-              visibleRoles={props.visibleRoles}
-              expandedTurns={props.expandedTurns}
-              activeIndex={props.activeTurnIndex}
-              renderMode={props.renderMode}
-              searchQuery={props.searchQuery}
-              onToggle={props.onToggleTurn}
-            />
+            <div class="recorded-drawer__conversation-layout">
+              <Show when={props.outlineProps}>
+                <RecordedOutline
+                  rows={props.rows}
+                  activeIndex={props.outlineProps!.activeIndex}
+                  visibleRoles={props.visibleRoles}
+                  searchQuery={props.outlineProps!.searchQuery}
+                  onSearch={props.outlineProps!.onSearch}
+                  onJump={props.outlineProps!.onJump}
+                  onToggleRole={props.outlineProps!.onToggleRole}
+                  onJumpFirstUser={props.outlineProps!.onJumpFirstUser}
+                  onJumpLastUser={props.outlineProps!.onJumpLastUser}
+                  onJumpLastAssistant={props.outlineProps!.onJumpLastAssistant}
+                />
+              </Show>
+              <div class="recorded-drawer__conversation-main">
+                <Conversation
+                  messages={props.messages}
+                  rows={props.rows}
+                  visibleRoles={props.visibleRoles}
+                  expandedTurns={props.expandedTurns}
+                  activeIndex={props.activeTurnIndex}
+                  renderMode={props.renderMode}
+                  searchQuery={props.searchQuery}
+                  onToggle={props.onToggleTurn}
+                />
+              </div>
+            </div>
           );
         })()}
       </Show>

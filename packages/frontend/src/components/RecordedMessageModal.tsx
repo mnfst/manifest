@@ -14,8 +14,10 @@ import RecordedOutline, { type OutlineRow } from './RecordedOutline.jsx';
 import RecordedEssentials from './RecordedEssentials.jsx';
 import {
   DrawerHeader,
+  DrawerSubheader,
   DrawerMetrics,
   DrawerActionBar,
+  metadataVisible,
   DrawerTabs,
 } from './RecordedDrawerChrome.jsx';
 import { prettyJson } from './RecordedResponseTab.jsx';
@@ -241,93 +243,166 @@ const RecordedMessageModal: Component<Props> = (props) => {
             }}
             onKeyDown={onDrawerKeyDown}
           >
-            <DrawerHeader data={data()} onClose={props.onClose} />
-
-            <Show when={data() && !data.loading && !data.error}>
-              <DrawerMetrics message={data()!.message} recording={data()!.recording} />
-              <DrawerActionBar
-                hasRequestBody={!!data()!.recording?.request_body}
-                hasResponseBody={!!data()!.recording?.response_body}
-                onCopyRequest={() => copyToClipboard(data()!.recording?.request_body, 'Request')}
-                onCopyResponse={() => copyToClipboard(data()!.recording?.response_body, 'Response')}
-                overflowOpen={state.overflowOpen()}
-                onToggleOverflow={() => state.setOverflowOpen((v) => !v)}
-                confirmingDelete={state.confirmingDelete()}
-                onStartDelete={() => state.setConfirmingDelete(true)}
-                onCancelDelete={() => state.setConfirmingDelete(false)}
-                onConfirmDelete={handleDelete}
-                deleting={state.deleting()}
-                hasRecording={!!data()!.recording}
-              />
-              <Show when={isOpenAIFormat()}>
-                <RecordedEssentials
-                  lastUser={lastUserMessage()?.msg ?? null}
-                  assistantReply={assistantReply()}
-                  onJumpToLastUser={jumpLastUser}
-                  onJumpToAssistant={jumpLastAssistant}
-                />
-              </Show>
+            <DrawerHeader
+              data={data()}
+              onClose={props.onClose}
+              hasRequestBody={!!data()?.recording?.request_body}
+              hasResponseBody={!!data()?.recording?.response_body}
+              hasRecording={!!data()?.recording}
+              onCopyRequest={() => copyToClipboard(data()!.recording?.request_body, 'Request')}
+              onCopyResponse={() => copyToClipboard(data()!.recording?.response_body, 'Response')}
+              overflowOpen={state.overflowOpen()}
+              onToggleOverflow={() => state.setOverflowOpen((v) => !v)}
+              confirmingDelete={state.confirmingDelete()}
+              onStartDelete={() => state.setConfirmingDelete(true)}
+              onCancelDelete={() => state.setConfirmingDelete(false)}
+              onConfirmDelete={handleDelete}
+              deleting={state.deleting()}
+            />
+            <Show when={data()}>
+              <DrawerSubheader data={data()!} />
             </Show>
 
-            <div class="recorded-drawer__layout">
-              <Show when={data() && !data.loading && !data.error && isOpenAIFormat()}>
-                <RecordedOutline
+            <Show when={data() && !data.loading && !data.error}>
+              <div
+                class="recorded-drawer__metadata-collapse"
+                classList={{ 'recorded-drawer__metadata-collapse--hidden': !metadataVisible() }}
+              >
+                <DrawerMetrics message={data()!.message} recording={data()!.recording} />
+              </div>
+            </Show>
+
+            <Show when={data.loading}>
+              <div class="recorded-modal__loader">Loading recording&hellip;</div>
+            </Show>
+            <Show when={data.error}>
+              <div class="recorded-modal__error">
+                Failed to load recording.{' '}
+                <button type="button" class="recorded-modal__retry" onClick={() => refetch()}>
+                  Retry
+                </button>
+              </div>
+            </Show>
+
+            <Show when={data() && !data.loading && !data.error}>
+              <DrawerTabs
+                active={state.activeTab()}
+                onChange={state.setActiveTab}
+                counts={{
+                  conversation: messages().length,
+                  tools: requestTools(data()!).length,
+                }}
+              />
+              <div
+                class="recorded-drawer__tab-body"
+                ref={(el) => {
+                  createEffect(
+                    on(
+                      () => [data(), state.activeTab()],
+                      () => {
+                        if (data() && state.activeTab() === 'conversation') {
+                          requestAnimationFrame(() => {
+                            el.scrollTop = el.scrollHeight;
+                          });
+                        }
+                      },
+                    ),
+                  );
+                }}
+              >
+                <RecordedTabContent
+                  tab={state.activeTab()}
+                  data={data()!}
+                  messages={messages()}
                   rows={outlineRows()}
-                  activeIndex={state.activeTurnIndex()}
                   visibleRoles={state.visibleRoles()}
+                  expandedTurns={state.expandedTurns()}
+                  activeTurnIndex={state.activeTurnIndex()}
+                  renderMode={state.renderMode()}
                   searchQuery={state.searchQuery()}
                   onSearch={state.setSearchQuery}
-                  onJump={jumpTo}
-                  onToggleRole={state.toggleRole}
-                  onJumpFirstUser={jumpFirstUser}
-                  onJumpLastUser={jumpLastUser}
-                  onJumpLastAssistant={jumpLastAssistant}
+                  onToggleTurn={state.toggleTurn}
+                  outlineProps={{
+                    activeIndex: state.activeTurnIndex(),
+                    searchQuery: state.searchQuery(),
+                    onSearch: state.setSearchQuery,
+                    onJump: jumpTo,
+                    onToggleRole: state.toggleRole,
+                    onJumpFirstUser: jumpFirstUser,
+                    onJumpLastUser: jumpLastUser,
+                    onJumpLastAssistant: jumpLastAssistant,
+                  }}
                 />
-              </Show>
-
-              <main class="recorded-drawer__main">
-                <Show when={data.loading}>
-                  <div class="recorded-modal__loader">Loading recording&hellip;</div>
-                </Show>
-                <Show when={data.error}>
-                  <div class="recorded-modal__error">
-                    Failed to load recording.{' '}
-                    <button type="button" class="recorded-modal__retry" onClick={() => refetch()}>
-                      Retry
-                    </button>
-                  </div>
-                </Show>
-
-                <Show when={data() && !data.loading && !data.error}>
-                  <DrawerTabs
-                    active={state.activeTab()}
-                    onChange={state.setActiveTab}
-                    renderMode={state.renderMode()}
-                    onToggleRenderMode={state.toggleRenderMode}
-                    counts={{
-                      conversation: messages().length,
-                      tools: requestTools(data()!).length,
-                    }}
-                  />
-                  <div class="recorded-drawer__tab-body">
-                    <RecordedTabContent
-                      tab={state.activeTab()}
-                      data={data()!}
-                      messages={messages()}
-                      rows={outlineRows()}
-                      visibleRoles={state.visibleRoles()}
-                      expandedTurns={state.expandedTurns()}
-                      activeTurnIndex={state.activeTurnIndex()}
-                      renderMode={state.renderMode()}
-                      searchQuery={state.searchQuery()}
-                      onToggleTurn={state.toggleTurn}
-                    />
-                  </div>
-                </Show>
-              </main>
-            </div>
+              </div>
+            </Show>
           </div>
         </div>
+
+        {/* Delete confirmation modal */}
+        <Show when={state.confirmingDelete()}>
+          <div
+            class="modal-overlay"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) state.setConfirmingDelete(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') state.setConfirmingDelete(false);
+            }}
+          >
+            <div
+              class="modal-card"
+              style="max-width: 440px;"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-recording-title"
+            >
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
+                <h3 id="delete-recording-title" style="margin: 0; font-size: var(--font-size-lg);">
+                  Delete recording
+                </h3>
+                <button
+                  style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px;"
+                  onClick={() => state.setConfirmingDelete(false)}
+                  aria-label="Close"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-lg);">
+                The conversation content and response will be permanently deleted. Metadata (model,
+                tokens, cost, routing) will still be visible on the Messages page.
+              </p>
+              <div style="display: flex; gap: var(--gap-sm); justify-content: flex-end;">
+                <button
+                  class="btn btn--primary btn--sm"
+                  onClick={() => state.setConfirmingDelete(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  class="btn btn--danger btn--sm"
+                  onClick={handleDelete}
+                  disabled={state.deleting()}
+                >
+                  {state.deleting() ? <span class="spinner" /> : 'Delete recording'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </Show>
       </Show>
     </Portal>
   );

@@ -98,7 +98,7 @@ const Settings: Component = () => {
     try {
       await updateAgent(agentName(), { record_messages: true });
       await refetchInfo();
-      toast.success('Privacy mode disabled');
+      toast.success('Logs enabled');
     } catch {
       /* error toast handled by fetchMutate */
     } finally {
@@ -112,7 +112,7 @@ const Settings: Component = () => {
     try {
       await updateAgent(agentName(), { record_messages: false });
       await refetchInfo();
-      toast.success('Privacy mode enabled');
+      toast.success('Logs disabled');
     } catch {
       /* error toast handled by fetchMutate */
     } finally {
@@ -372,11 +372,24 @@ const Settings: Component = () => {
       <div class="settings-card settings-card--danger">
         <div class="settings-card__row">
           <div class="settings-card__label">
-            <span class="settings-card__label-title">Privacy mode</span>
-            <span class="settings-card__label-desc">
-              When privacy mode is enabled, requests and responses are not captured. You lose
-              visibility on conversations and troubleshooting data.
-            </span>
+            <Show
+              when={logging()}
+              fallback={
+                <>
+                  <span class="settings-card__label-title">Enable message logs</span>
+                  <span class="settings-card__label-desc">
+                    Capture every request and response to get full visibility on your agent's
+                    conversations, model choices, and performance.
+                  </span>
+                </>
+              }
+            >
+              <span class="settings-card__label-title">Disable message logs</span>
+              <span class="settings-card__label-desc">
+                Stop capturing requests and responses. You will lose visibility on conversations and
+                troubleshooting data.
+              </span>
+            </Show>
           </div>
           <div class="settings-card__control">
             <Show
@@ -387,7 +400,7 @@ const Settings: Component = () => {
                   onClick={() => handleToggleLogs(true)}
                   disabled={togglingLogs() || agentInfo.loading}
                 >
-                  {togglingLogs() ? <span class="spinner" /> : 'Disable privacy mode'}
+                  {togglingLogs() ? <span class="spinner" /> : 'Enable logs'}
                 </button>
               }
             >
@@ -396,7 +409,7 @@ const Settings: Component = () => {
                 onClick={() => handleToggleLogs(false)}
                 disabled={togglingLogs() || agentInfo.loading}
               >
-                {togglingLogs() ? <span class="spinner" /> : 'Enable privacy mode'}
+                {togglingLogs() ? <span class="spinner" /> : 'Disable logs'}
               </button>
             </Show>
           </div>
@@ -532,7 +545,7 @@ const Settings: Component = () => {
           >
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
               <h3 id="disable-logs-modal-title" style="margin: 0; font-size: var(--font-size-lg);">
-                Enable privacy mode
+                Disable logs
               </h3>
               <button
                 style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px;"
@@ -579,7 +592,7 @@ const Settings: Component = () => {
                 Cancel
               </button>
               <button class="btn btn--danger btn--sm" onClick={confirmDisableLogs}>
-                Enable privacy mode
+                Disable logs
               </button>
             </div>
           </div>

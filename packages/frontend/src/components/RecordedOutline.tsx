@@ -48,10 +48,10 @@ const RecordedOutline: Component<Props> = (props) => {
           type="search"
           id="recorded-drawer-search"
           class="recorded-modal__rail-input"
-          placeholder="Search this recording (/ to focus)"
+          placeholder="Search conversation"
           value={props.searchQuery}
           onInput={(e) => props.onSearch(e.currentTarget.value)}
-          aria-label="Search recording"
+          aria-label="Search conversation"
         />
       </div>
       <div class="recorded-modal__rail-filters" role="group" aria-label="Filter by role">
