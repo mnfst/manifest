@@ -6,7 +6,6 @@ import {
   getProviderParamSpecs,
   isParamApplicability,
   isProviderParamPath,
-  MODEL_PARAMETERS_SCHEMA,
   providerParamValueIsValid,
   type AuthType,
   type JsonValue,
@@ -46,7 +45,7 @@ interface ModelParametersApiResponse {
 @Injectable()
 export class ProviderParamSpecService implements OnModuleInit {
   private readonly logger = new Logger(ProviderParamSpecService.name);
-  private specs: ProviderParamSpecCatalog = freezeCatalog(MODEL_PARAMETERS_SCHEMA);
+  private specs: ProviderParamSpecCatalog = freezeCatalog([]);
   private lastFetchedAt: Date | null = null;
 
   async onModuleInit(): Promise<void> {
@@ -64,15 +63,15 @@ export class ProviderParamSpecService implements OnModuleInit {
 
     const catalog = parseModelParametersCatalog(raw);
     if (!catalog) {
-      this.logger.warn('modelparameters.dev returned an invalid MPS catalog; keeping fallback');
+      this.logger.warn(
+        'modelparameters.dev returned an invalid MPS catalog; keeping current cache',
+      );
       return 0;
     }
 
-    this.specs = freezeCatalog(mergeCatalogs(catalog, MODEL_PARAMETERS_SCHEMA));
+    this.specs = freezeCatalog(catalog);
     this.lastFetchedAt = new Date();
-    this.logger.log(
-      `modelparameters.dev MPS catalog loaded: ${catalog.length} remote models, ${this.specs.length} total models`,
-    );
+    this.logger.log(`modelparameters.dev MPS catalog loaded: ${this.specs.length} models`);
     return catalog.length;
   }
 
@@ -136,20 +135,6 @@ function parseModelParametersCatalog(raw: unknown): ProviderParamSpecCatalog | n
     if (entry) catalog.push(entry);
   }
   return catalog.length > 0 ? catalog : null;
-}
-
-function mergeCatalogs(
-  remote: ProviderParamSpecCatalog,
-  fallback: ProviderParamSpecCatalog,
-): ProviderParamSpecCatalog {
-  const byKey = new Map<string, ProviderModelParamSpec>();
-  for (const entry of fallback) byKey.set(catalogKey(entry), entry);
-  for (const entry of remote) byKey.set(catalogKey(entry), entry);
-  return [...byKey.values()];
-}
-
-function catalogKey(entry: ProviderModelParamSpec): string {
-  return `${entry.provider.toLowerCase()}:${entry.authType}:${entry.model}`;
 }
 
 function parseProviderModelParamSpec(raw: unknown): ProviderModelParamSpec | null {

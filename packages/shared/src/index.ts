@@ -61,7 +61,6 @@ export type {
   ProviderParamSpec,
   ProviderParamSpecCatalog,
 } from './provider-params-spec';
-export { MODEL_PARAMETERS_SCHEMA } from './model-parameters-schema';
 export {
   modelParamsScopeForHeaderTier,
   modelParamsScopeForRouting,

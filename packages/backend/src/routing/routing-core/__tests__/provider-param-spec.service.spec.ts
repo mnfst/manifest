@@ -1,4 +1,3 @@
-import { MODEL_PARAMETERS_SCHEMA } from 'manifest-shared';
 import { ProviderParamSpecService } from '../provider-param-spec.service';
 
 describe('ProviderParamSpecService', () => {
@@ -12,31 +11,27 @@ describe('ProviderParamSpecService', () => {
     fetchSpy.mockRestore();
   });
 
-  it('returns the bundled MPS fallback before the remote catalog loads', async () => {
-    const service = new ProviderParamSpecService();
-
-    await expect(service.list()).resolves.toHaveLength(MODEL_PARAMETERS_SCHEMA.length);
-  });
-
-  it('filters specs by provider, auth type, and model', async () => {
-    const service = new ProviderParamSpecService();
-
-    const apiSpecs = await service.getSpecs('anthropic', 'api_key', 'claude-sonnet-4-6');
-    const subscriptionSpecs = await service.getSpecs(
-      'anthropic',
-      'subscription',
-      'claude-sonnet-4-6',
-    );
-
-    expect(apiSpecs.map((spec) => spec.path)).toContain('thinking.type');
-    expect(subscriptionSpecs.map((spec) => spec.path)).toEqual([]);
-  });
-
-  it('refreshes specs from modelparameters.dev and filters API-level params', async () => {
+  function mockRemoteCatalog(): void {
     fetchSpy.mockResolvedValue({
       ok: true,
       json: async () => ({
         models: [
+          {
+            provider: 'anthropic',
+            authType: 'api_key',
+            model: 'claude-sonnet-4-6',
+            params: [
+              {
+                path: 'thinking.type',
+                type: 'enum',
+                label: 'Thinking mode',
+                description: 'Controls Anthropic thinking mode.',
+                group: 'reasoning',
+                default: 'disabled',
+                values: ['disabled', 'adaptive', 'enabled'],
+              },
+            ],
+          },
           {
             provider: 'openai',
             authType: 'api_key',
@@ -72,9 +67,35 @@ describe('ProviderParamSpecService', () => {
         ],
       }),
     } as Response);
+  }
+
+  it('starts empty before the remote catalog loads', async () => {
     const service = new ProviderParamSpecService();
 
-    await expect(service.refreshCache()).resolves.toBe(1);
+    await expect(service.list()).resolves.toEqual([]);
+  });
+
+  it('filters specs by provider, auth type, and model', async () => {
+    mockRemoteCatalog();
+    const service = new ProviderParamSpecService();
+    await service.refreshCache();
+
+    const apiSpecs = await service.getSpecs('anthropic', 'api_key', 'claude-sonnet-4-6');
+    const subscriptionSpecs = await service.getSpecs(
+      'anthropic',
+      'subscription',
+      'claude-sonnet-4-6',
+    );
+
+    expect(apiSpecs.map((spec) => spec.path)).toContain('thinking.type');
+    expect(subscriptionSpecs.map((spec) => spec.path)).toEqual([]);
+  });
+
+  it('refreshes specs from modelparameters.dev and filters API-level params', async () => {
+    mockRemoteCatalog();
+    const service = new ProviderParamSpecService();
+
+    await expect(service.refreshCache()).resolves.toBe(2);
 
     expect(fetchSpy).toHaveBeenCalledWith(
       'https://modelparameters.dev/api/v1/models.json',
@@ -83,27 +104,42 @@ describe('ProviderParamSpecService', () => {
     const remoteSpecs = await service.getSpecs('openai', 'api_key', 'gpt-test');
     expect(remoteSpecs.map((spec) => spec.path)).toEqual(['max_completion_tokens', 'temperature']);
     expect(remoteSpecs.map((spec) => spec.path)).not.toContain('stream');
-    await expect(service.list()).resolves.toHaveLength(MODEL_PARAMETERS_SCHEMA.length + 1);
+    await expect(service.list()).resolves.toHaveLength(2);
     expect(service.getLastFetchedAt()).toBeInstanceOf(Date);
   });
 
-  it('keeps the bundled fallback when the remote fetch fails', async () => {
+  it('stays empty when the initial remote fetch fails', async () => {
     fetchSpy.mockResolvedValue({ ok: false, status: 503 } as Response);
     const service = new ProviderParamSpecService();
 
     await expect(service.refreshCache()).resolves.toBe(0);
-    await expect(service.list()).resolves.toHaveLength(MODEL_PARAMETERS_SCHEMA.length);
+    await expect(service.list()).resolves.toEqual([]);
     expect(service.getLastFetchedAt()).toBeNull();
   });
 
-  it('keeps the bundled fallback when the remote catalog shape is invalid', async () => {
+  it('keeps the current cache when a later remote fetch fails', async () => {
+    mockRemoteCatalog();
+    const service = new ProviderParamSpecService();
+    await service.refreshCache();
+
+    fetchSpy.mockResolvedValue({ ok: false, status: 503 } as Response);
+
+    await expect(service.refreshCache()).resolves.toBe(0);
+    await expect(service.list()).resolves.toHaveLength(2);
+    expect(service.getLastFetchedAt()).toBeInstanceOf(Date);
+  });
+
+  it('keeps the current cache when the remote catalog shape is invalid', async () => {
+    mockRemoteCatalog();
+    const service = new ProviderParamSpecService();
+    await service.refreshCache();
+
     fetchSpy.mockResolvedValue({
       ok: true,
       json: async () => ({ models: [{ provider: 'openai', authType: 'api_key' }] }),
     } as Response);
-    const service = new ProviderParamSpecService();
 
     await expect(service.refreshCache()).resolves.toBe(0);
-    await expect(service.list()).resolves.toHaveLength(MODEL_PARAMETERS_SCHEMA.length);
+    await expect(service.list()).resolves.toHaveLength(2);
   });
 });

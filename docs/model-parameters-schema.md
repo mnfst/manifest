@@ -8,10 +8,8 @@ can configure for a provider/auth/model tuple. User-selected values still live i
 `agent_model_params`.
 
 The runtime source is `https://modelparameters.dev/api/v1/models.json`.
-Manifest also ships a bundled fallback catalog in
-`packages/shared/src/model-parameters-schema.ts` so the routing UI still works
-when the remote API is unavailable or does not yet include a model covered by
-the bundled catalog. Remote entries win by exact provider/auth/model tuple.
+Manifest caches the latest valid remote catalog in memory and keeps that cache
+through transient refresh failures.
 
 The executable validator is `isParamApplicability` in
 `packages/shared/src/provider-params-spec.ts`. Any schema change must update:
