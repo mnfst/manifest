@@ -317,7 +317,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--gap-lg);
-  z-index: 40;
+  z-index: 60;
 }
 
 .header__left {

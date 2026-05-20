@@ -271,7 +271,7 @@
 }
 
 .recorded-modal__turn--highlight {
-  background: #e3f7f6;
+  background: hsl(var(--success) / 0.15);
 }
 
 .recorded-modal__role {
@@ -291,7 +291,11 @@
 }
 
 .recorded-modal__role--system {
-  color: #000000;
+  color: hsl(var(--foreground));
+}
+
+.dark .recorded-modal__role--assistant {
+  color: #6e7aff;
 }
 
 .recorded-modal__role--tool {
