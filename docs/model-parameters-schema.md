@@ -23,31 +23,38 @@ The executable validator is `isParamApplicability` in
 
 ## Schema Entry
 
-Each entry describes one parameter for one provider/auth/model tuple.
+Each entry describes one provider/auth/model tuple and its available parameters.
 
 ```json
 {
   "provider": "anthropic",
   "authType": "api_key",
   "model": "claude-haiku-4-5-20251001",
-  "path": "top_p",
-  "type": "number",
-  "label": "Top P",
-  "default": 1,
-  "range": { "min": 0, "max": 1, "step": 0.01 },
-  "group": "sampling",
-  "applicability": {
-    "except": [{ "thinking.type": ["adaptive", "enabled"] }, { "temperature": { "not": 1 } }]
-  }
+  "params": [
+    {
+      "path": "top_p",
+      "type": "number",
+      "label": "Top P",
+      "description": "Controls nucleus sampling by limiting generation to tokens whose cumulative probability reaches this value.",
+      "default": 1,
+      "range": { "min": 0, "max": 1, "step": 0.01 },
+      "group": "sampling",
+      "applicability": {
+        "except": [{ "thinking.type": ["adaptive", "enabled"] }, { "temperature": { "not": 1 } }]
+      }
+    }
+  ]
 }
 ```
 
 Rules:
 
 - `provider`, `authType`, and `model` identify exactly one model route.
+- `params` is the non-empty list of parameters for that exact route.
 - `path` is a dot path into stored params and outbound request params.
 - `type` is semantic data type, not a UI control kind.
 - `label` is user-facing copy.
+- `description` is developer-facing explanatory copy for the raw parameter.
 - `default` is the provider default Manifest should display.
 - `values` is allowed only for finite choices.
 - `range` describes numeric bounds and optional step.

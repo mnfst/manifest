@@ -8,12 +8,17 @@ const specCatalog: ProviderParamSpecCatalog = [
     provider: 'deepseek',
     authType: 'api_key',
     model: 'deepseek-v4',
-    path: 'thinking.type',
-    type: 'enum',
-    label: 'Thinking mode',
-    default: 'enabled',
-    values: ['enabled', 'disabled'],
-    group: 'reasoning',
+    params: [
+      {
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls whether DeepSeek thinking mode is enabled.',
+        default: 'enabled',
+        values: ['enabled', 'disabled'],
+        group: 'reasoning',
+      },
+    ],
   },
 ];
 

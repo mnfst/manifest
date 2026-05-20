@@ -5,23 +5,29 @@ import { AgentModelParamsService } from '../routing-core/agent-model-params.serv
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
 import { AuthUser } from '../../auth/auth.instance';
-import type { ProviderParamSpecCatalog } from 'manifest-shared';
+import { getProviderParamSpecs, type ProviderParamSpecCatalog } from 'manifest-shared';
 
 const mockUser: AuthUser = { id: 'user-1' } as AuthUser;
 const mockAgent = { id: 'agent-1' };
-const specs: ProviderParamSpecCatalog = [
+const specCatalog: ProviderParamSpecCatalog = [
   {
     provider: 'deepseek',
     authType: 'api_key',
     model: 'deepseek-v4',
-    path: 'thinking.type',
-    type: 'enum',
-    label: 'Thinking mode',
-    default: 'enabled',
-    values: ['enabled', 'disabled'],
-    group: 'reasoning',
+    params: [
+      {
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls whether DeepSeek thinking mode is enabled.',
+        default: 'enabled',
+        values: ['enabled', 'disabled'],
+        group: 'reasoning',
+      },
+    ],
   },
 ];
+const specs = getProviderParamSpecs(specCatalog, 'deepseek', 'api_key', 'deepseek-v4');
 
 describe('ModelParamsController', () => {
   let controller: ModelParamsController;
@@ -42,7 +48,7 @@ describe('ModelParamsController', () => {
       get: jest.fn(),
     };
     providerParamSpecs = {
-      list: jest.fn().mockResolvedValue(specs),
+      list: jest.fn().mockResolvedValue(specCatalog),
       getSpecs: jest.fn().mockResolvedValue(specs),
     };
     resolveAgent = {
@@ -65,7 +71,7 @@ describe('ModelParamsController', () => {
     it('returns the provider param spec catalog for the resolved agent', async () => {
       const result = await controller.specs(mockUser, { agentName: 'demo' });
       expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'demo');
-      expect(result).toBe(specs);
+      expect(result).toBe(specCatalog);
     });
   });
 

@@ -19,63 +19,73 @@ const catalog: ProviderParamSpecCatalog = [
     provider: 'anthropic',
     authType: 'api_key',
     model: 'claude-sonnet-4-6',
-    path: 'thinking.budget_tokens',
-    type: 'integer',
-    label: 'Thinking budget',
-    default: 4096,
-    range: { min: 1024, max: 32768, step: 1024 },
-    group: 'reasoning',
-    applicability: { only: { 'thinking.type': 'enabled' } },
-  },
-  {
-    provider: 'anthropic',
-    authType: 'api_key',
-    model: 'claude-sonnet-4-6',
-    path: 'thinking.type',
-    type: 'enum',
-    label: 'Thinking mode',
-    default: 'disabled',
-    values: ['disabled', 'adaptive', 'enabled'],
-    group: 'reasoning',
-  },
-  {
-    provider: 'anthropic',
-    authType: 'api_key',
-    model: 'claude-sonnet-4-6',
-    path: 'temperature',
-    type: 'number',
-    label: 'Temperature',
-    default: 1,
-    range: { min: 0, max: 1, step: 0.1 },
-    group: 'sampling',
-    applicability: { except: { 'thinking.type': ['enabled', 'adaptive'] } },
-  },
-  {
-    provider: 'anthropic',
-    authType: 'api_key',
-    model: 'claude-sonnet-4-6',
-    path: 'top_p',
-    type: 'number',
-    label: 'Top P',
-    default: 1,
-    range: { min: 0, max: 1, step: 0.01 },
-    group: 'sampling',
-    applicability: {
-      except: [{ 'thinking.type': ['enabled', 'adaptive'] }, { temperature: { not: 1 } }],
-    },
+    params: [
+      {
+        path: 'thinking.budget_tokens',
+        type: 'integer',
+        label: 'Thinking budget',
+        description: 'Maximum Anthropic extended thinking token budget.',
+        default: 4096,
+        range: { min: 1024, max: 32768, step: 1024 },
+        group: 'reasoning',
+        applicability: { only: { 'thinking.type': 'enabled' } },
+      },
+      {
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls Anthropic thinking mode.',
+        default: 'disabled',
+        values: ['disabled', 'adaptive', 'enabled'],
+        group: 'reasoning',
+      },
+      {
+        path: 'temperature',
+        type: 'number',
+        label: 'Temperature',
+        description: 'Controls sampling randomness.',
+        default: 1,
+        range: { min: 0, max: 1, step: 0.1 },
+        group: 'sampling',
+        applicability: { except: { 'thinking.type': ['enabled', 'adaptive'] } },
+      },
+      {
+        path: 'top_p',
+        type: 'number',
+        label: 'Top P',
+        description: 'Controls nucleus sampling.',
+        default: 1,
+        range: { min: 0, max: 1, step: 0.01 },
+        group: 'sampling',
+        applicability: {
+          except: [{ 'thinking.type': ['enabled', 'adaptive'] }, { temperature: { not: 1 } }],
+        },
+      },
+    ],
   },
   {
     provider: 'openai',
     authType: 'api_key',
     model: 'gpt-5',
-    path: 'reasoning_effort',
-    type: 'enum',
-    label: 'Reasoning effort',
-    default: 'medium',
-    values: ['minimal', 'low', 'medium', 'high'],
-    group: 'reasoning',
+    params: [
+      {
+        path: 'reasoning_effort',
+        type: 'enum',
+        label: 'Reasoning effort',
+        description: 'Controls OpenAI reasoning effort.',
+        default: 'medium',
+        values: ['minimal', 'low', 'medium', 'high'],
+        group: 'reasoning',
+      },
+    ],
   },
 ];
+
+const anthropicSpecs = getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6');
+const thinkingBudgetSpec = anthropicSpecs.find((spec) => spec.path === 'thinking.budget_tokens')!;
+const thinkingTypeSpec = anthropicSpecs.find((spec) => spec.path === 'thinking.type')!;
+const temperatureSpec = anthropicSpecs.find((spec) => spec.path === 'temperature')!;
+const topPSpec = anthropicSpecs.find((spec) => spec.path === 'top_p')!;
 
 describe('provider-params-spec', () => {
   describe('getProviderParamSpecs', () => {
@@ -107,33 +117,36 @@ describe('provider-params-spec', () => {
 
     it('falls back to lexical path ordering for otherwise equivalent specs', () => {
       expect(
-        compareProviderParamSpecs({ ...catalog[0], path: 'thinking.alpha' }, catalog[0]),
+        compareProviderParamSpecs(
+          { ...thinkingBudgetSpec, path: 'thinking.alpha' },
+          thinkingBudgetSpec,
+        ),
       ).toBeLessThan(0);
     });
   });
 
   describe('providerParamIsApplicable', () => {
     it('supports only constraints', () => {
-      const spec = catalog[0];
+      const spec = thinkingBudgetSpec;
       expect(providerParamIsApplicable(spec, { thinking: { type: 'enabled' } })).toBe(true);
       expect(providerParamIsApplicable(spec, { thinking: { type: 'adaptive' } })).toBe(false);
     });
 
     it('supports except constraints', () => {
-      const spec = catalog[2];
+      const spec = temperatureSpec;
       expect(providerParamIsApplicable(spec, { thinking: { type: 'disabled' } })).toBe(true);
       expect(providerParamIsApplicable(spec, { thinking: { type: 'adaptive' } })).toBe(false);
       expect(providerParamIsApplicable(spec, { thinking: { type: 'enabled' } })).toBe(false);
     });
 
     it('supports negated except constraints', () => {
-      const spec = catalog[3];
+      const spec = topPSpec;
       expect(providerParamIsApplicable(spec, { temperature: 1 })).toBe(true);
       expect(providerParamIsApplicable(spec, { temperature: 0.2 })).toBe(false);
     });
 
     it('does not match primitive conditions against object values', () => {
-      expect(providerParamIsApplicable(catalog[3], { temperature: { value: 1 } })).toBe(false);
+      expect(providerParamIsApplicable(topPSpec, { temperature: { value: 1 } })).toBe(false);
     });
   });
 
@@ -211,12 +224,12 @@ describe('provider-params-spec', () => {
 
   describe('providerParamValueIsValid', () => {
     it('validates enum membership and numeric ranges', () => {
-      expect(providerParamValueIsValid(catalog[1], 'enabled')).toBe(true);
-      expect(providerParamValueIsValid(catalog[1], 'unsupported')).toBe(false);
-      expect(providerParamValueIsValid(catalog[2], 0.2)).toBe(true);
-      expect(providerParamValueIsValid(catalog[2], 1.2)).toBe(false);
-      expect(providerParamValueIsValid(catalog[0], 2048)).toBe(true);
-      expect(providerParamValueIsValid(catalog[0], 2048.5)).toBe(false);
+      expect(providerParamValueIsValid(thinkingTypeSpec, 'enabled')).toBe(true);
+      expect(providerParamValueIsValid(thinkingTypeSpec, 'unsupported')).toBe(false);
+      expect(providerParamValueIsValid(temperatureSpec, 0.2)).toBe(true);
+      expect(providerParamValueIsValid(temperatureSpec, 1.2)).toBe(false);
+      expect(providerParamValueIsValid(thinkingBudgetSpec, 2048)).toBe(true);
+      expect(providerParamValueIsValid(thinkingBudgetSpec, 2048.5)).toBe(false);
     });
 
     it('keeps boolean values as booleans', () => {
@@ -227,6 +240,7 @@ describe('provider-params-spec', () => {
         path: 'stream',
         type: 'boolean',
         label: 'Stream',
+        description: 'Controls streaming output.',
         default: false,
         group: 'provider_metadata',
       } as const;
@@ -261,16 +275,20 @@ describe('provider-params-spec', () => {
 
   describe('expandConfiguredParamDefaults', () => {
     it('does not add nested defaults when the root is not configured', () => {
-      expect(expandConfiguredParamDefaults({ temperature: 0.5 }, catalog)).toEqual({
+      expect(expandConfiguredParamDefaults({ temperature: 0.5 }, anthropicSpecs)).toEqual({
         temperature: 0.5,
       });
     });
 
     it('adds only applicable nested defaults under configured roots', () => {
-      expect(expandConfiguredParamDefaults({ thinking: { type: 'disabled' } }, catalog)).toEqual({
+      expect(
+        expandConfiguredParamDefaults({ thinking: { type: 'disabled' } }, anthropicSpecs),
+      ).toEqual({
         thinking: { type: 'disabled' },
       });
-      expect(expandConfiguredParamDefaults({ thinking: { type: 'enabled' } }, catalog)).toEqual({
+      expect(
+        expandConfiguredParamDefaults({ thinking: { type: 'enabled' } }, anthropicSpecs),
+      ).toEqual({
         thinking: { type: 'enabled', budget_tokens: 4096 },
       });
     });

@@ -49,11 +49,15 @@ describe('MODEL_PARAMETERS_SCHEMA', () => {
   });
 
   it('contains only valid schema entries', () => {
-    for (const spec of MODEL_PARAMETERS_SCHEMA) {
-      expect(isProviderParamPath(spec.path)).toBe(true);
-      expect(providerParamValueIsValid(spec, spec.default)).toBe(true);
-      if (spec.applicability) {
-        expect(isParamApplicability(spec.applicability)).toBe(true);
+    for (const entry of MODEL_PARAMETERS_SCHEMA) {
+      expect(entry.params.length).toBeGreaterThan(0);
+      for (const spec of entry.params) {
+        expect(spec.description.trim()).not.toBe('');
+        expect(isProviderParamPath(spec.path)).toBe(true);
+        expect(providerParamValueIsValid(spec, spec.default)).toBe(true);
+        if (spec.applicability) {
+          expect(isParamApplicability(spec.applicability)).toBe(true);
+        }
       }
     }
   });

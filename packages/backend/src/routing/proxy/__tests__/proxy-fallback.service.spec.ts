@@ -14,19 +14,24 @@ import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
-import type { ProviderParamSpecCatalog } from 'manifest-shared';
+import { getProviderParamSpecs, type ProviderParamSpecCatalog } from 'manifest-shared';
 
 const specCatalog: ProviderParamSpecCatalog = [
   {
     provider: 'deepseek',
     authType: 'api_key',
     model: 'deepseek-v4-flash',
-    path: 'thinking.type',
-    type: 'enum',
-    label: 'Thinking mode',
-    default: 'enabled',
-    values: ['enabled', 'disabled'],
-    group: 'reasoning',
+    params: [
+      {
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls whether DeepSeek thinking mode is enabled.',
+        default: 'enabled',
+        values: ['enabled', 'disabled'],
+        group: 'reasoning',
+      },
+    ],
   },
 ];
 
@@ -89,10 +94,7 @@ describe('ProxyFallbackService', () => {
 
     providerParamSpecs = {
       getSpecs: jest.fn(async (provider: string, authType: string, model: string) =>
-        specCatalog.filter(
-          (spec) =>
-            spec.provider === provider && spec.authType === authType && spec.model === model,
-        ),
+        getProviderParamSpecs(specCatalog, provider, authType as 'api_key' | 'subscription', model),
       ),
       list: jest.fn().mockResolvedValue(specCatalog),
     } as unknown as jest.Mocked<ProviderParamSpecService>;

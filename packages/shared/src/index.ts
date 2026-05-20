@@ -52,10 +52,12 @@ export {
 } from './provider-params-spec';
 export type {
   ModelParamGroup,
+  ModelParamDefinition,
   ModelParamRange,
   ModelParamType,
   ParamApplicability,
   ParamApplicabilityMatch,
+  ProviderModelParamSpec,
   ProviderParamSpec,
   ProviderParamSpecCatalog,
 } from './provider-params-spec';

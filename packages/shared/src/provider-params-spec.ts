@@ -44,10 +44,7 @@ export interface ParamApplicability {
   except?: ParamApplicabilityRule;
 }
 
-export interface ProviderParamSpec {
-  provider: string;
-  authType: AuthType;
-  model: string;
+export interface ModelParamDefinition {
   /**
    * Dot path through the storage and request body shape.
    * Examples: `temperature`, `reasoning_effort`, `thinking.budget_tokens`.
@@ -55,6 +52,7 @@ export interface ProviderParamSpec {
   path: string;
   type: ModelParamType;
   label: string;
+  description: string;
   default: JsonValue;
   values?: readonly JsonValue[];
   range?: ModelParamRange;
@@ -62,7 +60,20 @@ export interface ProviderParamSpec {
   applicability?: ParamApplicability;
 }
 
-export type ProviderParamSpecCatalog = readonly ProviderParamSpec[];
+export interface ProviderModelParamSpec {
+  provider: string;
+  authType: AuthType;
+  model: string;
+  params: readonly ModelParamDefinition[];
+}
+
+export interface ProviderParamSpec extends ModelParamDefinition {
+  provider: string;
+  authType: AuthType;
+  model: string;
+}
+
+export type ProviderParamSpecCatalog = readonly ProviderModelParamSpec[];
 
 const GROUP_ORDER: readonly ModelParamGroup[] = [
   'generation_length',
@@ -84,17 +95,27 @@ export function getProviderParamSpecs(
 ): readonly ProviderParamSpec[] {
   if (!providerId || !authType || !model) return [];
   const provider = providerId.toLowerCase();
-  return catalog
-    .filter(
-      (spec) =>
-        spec.provider.toLowerCase() === provider &&
-        spec.authType === authType &&
-        spec.model === model,
-    )
+  const entry = catalog.find(
+    (spec) =>
+      spec.provider.toLowerCase() === provider &&
+      spec.authType === authType &&
+      spec.model === model,
+  );
+  if (!entry) return [];
+  return entry.params
+    .map((param) => ({
+      provider: entry.provider,
+      authType: entry.authType,
+      model: entry.model,
+      ...param,
+    }))
     .sort(compareProviderParamSpecs);
 }
 
-export function compareProviderParamSpecs(a: ProviderParamSpec, b: ProviderParamSpec): number {
+export function compareProviderParamSpecs(
+  a: ModelParamDefinition,
+  b: ModelParamDefinition,
+): number {
   const groupDelta = GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group);
   if (groupDelta !== 0) return groupDelta;
 
@@ -108,7 +129,7 @@ export function compareProviderParamSpecs(a: ProviderParamSpec, b: ProviderParam
 }
 
 export function providerParamIsApplicable(
-  spec: ProviderParamSpec,
+  spec: ModelParamDefinition,
   values: Record<string, unknown>,
 ): boolean {
   const applicability = spec.applicability;
@@ -155,7 +176,7 @@ export function pickProviderCompatibleParams(
   return out;
 }
 
-export function providerParamValueIsValid(spec: ProviderParamSpec, value: unknown): boolean {
+export function providerParamValueIsValid(spec: ModelParamDefinition, value: unknown): boolean {
   if (spec.type === 'boolean') return typeof value === 'boolean';
   if (spec.type === 'string') return typeof value === 'string';
   if (spec.type === 'enum') {
@@ -372,7 +393,7 @@ function jsonValuesEqual(a: unknown, b: unknown): boolean {
 }
 
 function numberValueIsValid(
-  spec: ProviderParamSpec,
+  spec: ModelParamDefinition,
   value: unknown,
   predicate: (value: number) => boolean = Number.isFinite,
 ): boolean {

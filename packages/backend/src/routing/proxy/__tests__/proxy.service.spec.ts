@@ -1,6 +1,11 @@
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { ModelRoute, ProviderParamSpecCatalog } from 'manifest-shared';
+import {
+  getProviderParamSpecs,
+  type AuthType,
+  type ModelRoute,
+  type ProviderParamSpecCatalog,
+} from 'manifest-shared';
 import { ProxyService } from '../proxy.service';
 import type { ResolveService } from '../../resolve/resolve.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
@@ -41,12 +46,17 @@ const specCatalog: ProviderParamSpecCatalog = [
     provider: 'deepseek',
     authType: 'api_key',
     model: 'deepseek-v4-flash',
-    path: 'thinking.type',
-    type: 'enum',
-    label: 'Thinking mode',
-    default: 'enabled',
-    values: ['enabled', 'disabled'],
-    group: 'reasoning',
+    params: [
+      {
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls whether DeepSeek thinking mode is enabled.',
+        default: 'enabled',
+        values: ['enabled', 'disabled'],
+        group: 'reasoning',
+      },
+    ],
   },
 ];
 
@@ -116,10 +126,7 @@ describe('ProxyService — orchestration', () => {
     };
     providerParamSpecs = {
       getSpecs: jest.fn(async (provider: string, authType: string, model: string) =>
-        specCatalog.filter(
-          (spec) =>
-            spec.provider === provider && spec.authType === authType && spec.model === model,
-        ),
+        getProviderParamSpecs(specCatalog, provider, authType as AuthType, model),
       ),
       list: jest.fn().mockResolvedValue(specCatalog),
     };

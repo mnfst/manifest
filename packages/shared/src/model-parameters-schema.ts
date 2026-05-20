@@ -4,6 +4,7 @@ import type {
   ModelParamRange,
   ModelParamType,
   ParamApplicability,
+  ProviderModelParamSpec,
   ProviderParamSpecCatalog,
 } from './provider-params-spec';
 import type { JsonValue } from './request-params';
@@ -12,6 +13,7 @@ type SeedSpec = {
   path: string;
   type: ModelParamType;
   label: string;
+  description: string;
   default: JsonValue;
   values?: readonly JsonValue[];
   range?: ModelParamRange;
@@ -19,16 +21,11 @@ type SeedSpec = {
   applicability?: ParamApplicability;
 };
 
-type SeedRow = SeedSpec & {
-  provider: string;
-  authType: AuthType;
-  model: string;
-};
-
 const MAX_TOKENS: SeedSpec = {
   path: 'max_tokens',
   type: 'integer',
   label: 'Max tokens',
+  description: 'Maximum number of output tokens the model may generate.',
   default: 4096,
   range: { min: 1 },
   group: 'generation_length',
@@ -38,6 +35,8 @@ const OPENAI_TEMPERATURE: SeedSpec = {
   path: 'temperature',
   type: 'number',
   label: 'Temperature',
+  description:
+    'Controls randomness. Lower values make outputs more focused; higher values make them more varied.',
   default: 1,
   range: { min: 0, max: 2, step: 0.1 },
   group: 'sampling',
@@ -53,6 +52,8 @@ const TOP_P: SeedSpec = {
   path: 'top_p',
   type: 'number',
   label: 'Top P',
+  description:
+    'Controls nucleus sampling by limiting generation to tokens whose cumulative probability reaches this value.',
   default: 1,
   range: { min: 0, max: 1, step: 0.01 },
   group: 'sampling',
@@ -69,6 +70,7 @@ const TOP_K: SeedSpec = {
   path: 'top_k',
   type: 'integer',
   label: 'Top K',
+  description: 'Limits token sampling to the top K most likely next tokens.',
   default: 0,
   range: { min: 0 },
   group: 'sampling',
@@ -79,6 +81,7 @@ const OPENAI_REASONING_EFFORT: SeedSpec = {
   path: 'reasoning_effort',
   type: 'enum',
   label: 'Reasoning effort',
+  description: 'Controls how much reasoning the model should perform before producing an answer.',
   default: 'medium',
   values: ['minimal', 'low', 'medium', 'high'],
   group: 'reasoning',
@@ -99,6 +102,7 @@ const OPENAI_SUBSCRIPTION_REASONING_EFFORT: SeedSpec = {
   path: 'reasoning.effort',
   type: 'enum',
   label: 'Reasoning effort',
+  description: 'Controls how much reasoning the model should perform before producing an answer.',
   default: 'medium',
   values: ['minimal', 'low', 'medium', 'high'],
   group: 'reasoning',
@@ -113,6 +117,7 @@ const OPENAI_SUBSCRIPTION_REASONING_SUMMARY: SeedSpec = {
   path: 'reasoning.summary',
   type: 'enum',
   label: 'Reasoning summary',
+  description: 'Controls the level of reasoning summary returned with the response.',
   default: 'auto',
   values: ['auto', 'concise', 'detailed', 'none'],
   group: 'reasoning',
@@ -122,6 +127,7 @@ const OPENAI_SUBSCRIPTION_VERBOSITY: SeedSpec = {
   path: 'text.verbosity',
   type: 'enum',
   label: 'Verbosity',
+  description: "Controls how concise or detailed the model's final text response should be.",
   default: 'medium',
   values: ['low', 'medium', 'high'],
   group: 'output_format',
@@ -131,6 +137,7 @@ const THINKING_TYPE_ADAPTIVE_ONLY: SeedSpec = {
   path: 'thinking.type',
   type: 'enum',
   label: 'Thinking mode',
+  description: 'Controls the Anthropic thinking mode values supported by this model.',
   default: 'disabled',
   values: ['disabled', 'adaptive'],
   group: 'reasoning',
@@ -150,6 +157,8 @@ const THINKING_BUDGET_TOKENS: SeedSpec = {
   path: 'thinking.budget_tokens',
   type: 'integer',
   label: 'Budget tokens',
+  description:
+    'Maximum token budget Anthropic may use for extended thinking before producing the final answer.',
   default: 4096,
   range: { min: 1024 },
   group: 'reasoning',
@@ -160,6 +169,7 @@ const DEEPSEEK_THINKING: SeedSpec = {
   path: 'thinking.type',
   type: 'enum',
   label: 'Thinking mode',
+  description: 'Controls whether DeepSeek thinking mode is enabled for this model.',
   default: 'enabled',
   values: ['enabled', 'disabled'],
   group: 'reasoning',
@@ -265,93 +275,102 @@ const DEEPSEEK_THINKING_MODELS = [
  */
 export const MODEL_PARAMETERS_SCHEMA: ProviderParamSpecCatalog = providerParamRows();
 
-function providerParamRows(): SeedRow[] {
+function providerParamRows(): ProviderParamSpecCatalog {
   return [
-    ...OPENAI_CHAT_SAMPLING_MODELS.flatMap((model) =>
-      openAiRows(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P]),
+    ...OPENAI_CHAT_SAMPLING_MODELS.map((model) =>
+      openAiSpec(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P]),
     ),
-    ...OPENAI_O_SERIES_REASONING_MODELS.flatMap((model) =>
-      openAiRows(model, [MAX_TOKENS, OPENAI_REASONING_EFFORT]),
+    ...OPENAI_O_SERIES_REASONING_MODELS.map((model) =>
+      openAiSpec(model, [MAX_TOKENS, OPENAI_REASONING_EFFORT]),
     ),
-    ...OPENAI_GPT_5_REASONING_MODELS.flatMap((model) =>
-      openAiRows(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P, OPENAI_REASONING_EFFORT]),
+    ...OPENAI_GPT_5_REASONING_MODELS.map((model) =>
+      openAiSpec(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P, OPENAI_REASONING_EFFORT]),
     ),
-    ...OPENAI_GPT_5_XHIGH_REASONING_MODELS.flatMap((model) =>
-      openAiRows(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P, OPENAI_XHIGH_REASONING_EFFORT]),
+    ...OPENAI_GPT_5_XHIGH_REASONING_MODELS.map((model) =>
+      openAiSpec(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P, OPENAI_XHIGH_REASONING_EFFORT]),
     ),
-    ...OPENAI_GPT_5_1_REASONING_MODELS.flatMap((model) =>
-      openAiRows(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P, OPENAI_GPT_5_1_REASONING_EFFORT]),
+    ...OPENAI_GPT_5_1_REASONING_MODELS.map((model) =>
+      openAiSpec(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P, OPENAI_GPT_5_1_REASONING_EFFORT]),
     ),
-    ...OPENAI_SUBSCRIPTION_MODELS.flatMap((model) =>
-      openAiRowsForAuth('subscription', model, [
+    ...OPENAI_SUBSCRIPTION_MODELS.map((model) =>
+      openAiSpecForAuth('subscription', model, [
         OPENAI_SUBSCRIPTION_REASONING_EFFORT,
         OPENAI_SUBSCRIPTION_REASONING_SUMMARY,
         OPENAI_SUBSCRIPTION_VERBOSITY,
       ]),
     ),
-    ...OPENAI_SUBSCRIPTION_XHIGH_REASONING_MODELS.flatMap((model) =>
-      openAiRowsForAuth('subscription', model, [
+    ...OPENAI_SUBSCRIPTION_XHIGH_REASONING_MODELS.map((model) =>
+      openAiSpecForAuth('subscription', model, [
         OPENAI_SUBSCRIPTION_XHIGH_REASONING_EFFORT,
         OPENAI_SUBSCRIPTION_REASONING_SUMMARY,
         OPENAI_SUBSCRIPTION_VERBOSITY,
       ]),
     ),
-    ...ANTHROPIC_ADAPTIVE_ONLY_MODELS.flatMap((model) =>
-      anthropicRows(model, [THINKING_TYPE_ADAPTIVE_ONLY]),
+    ...ANTHROPIC_ADAPTIVE_ONLY_MODELS.map((model) =>
+      anthropicSpec(model, [THINKING_TYPE_ADAPTIVE_ONLY]),
     ),
-    ...ANTHROPIC_FULL_THINKING_MODELS.flatMap((model) =>
-      anthropicRows(model, [THINKING_TYPE_FULL, THINKING_BUDGET_TOKENS]),
+    ...ANTHROPIC_FULL_THINKING_MODELS.map((model) =>
+      anthropicSpec(model, [THINKING_TYPE_FULL, THINKING_BUDGET_TOKENS]),
     ),
-    ...ANTHROPIC_EXTENDED_ONLY_MODELS.flatMap((model) =>
-      anthropicRows(model, [THINKING_TYPE_EXTENDED_ONLY, THINKING_BUDGET_TOKENS]),
+    ...ANTHROPIC_EXTENDED_ONLY_MODELS.map((model) =>
+      anthropicSpec(model, [THINKING_TYPE_EXTENDED_ONLY, THINKING_BUDGET_TOKENS]),
     ),
-    ...ANTHROPIC_SAMPLING_ONLY_MODELS.flatMap((model) => anthropicRows(model, [])),
-    ...ANTHROPIC_SUBSCRIPTION_FULL_THINKING_MODELS.flatMap((model) =>
-      anthropicRowsForAuth('subscription', model, [THINKING_TYPE_FULL, THINKING_BUDGET_TOKENS]),
+    ...ANTHROPIC_SAMPLING_ONLY_MODELS.map((model) => anthropicSpec(model, [])),
+    ...ANTHROPIC_SUBSCRIPTION_FULL_THINKING_MODELS.map((model) =>
+      anthropicSpecForAuth('subscription', model, [THINKING_TYPE_FULL, THINKING_BUDGET_TOKENS]),
     ),
-    ...ANTHROPIC_SUBSCRIPTION_EXTENDED_ONLY_MODELS.flatMap((model) =>
-      anthropicRowsForAuth('subscription', model, [
+    ...ANTHROPIC_SUBSCRIPTION_EXTENDED_ONLY_MODELS.map((model) =>
+      anthropicSpecForAuth('subscription', model, [
         THINKING_TYPE_EXTENDED_ONLY,
         THINKING_BUDGET_TOKENS,
       ]),
     ),
     ...DEEPSEEK_THINKING_MODELS.map((model) =>
-      row('deepseek', 'api_key', model, DEEPSEEK_THINKING),
+      providerModelSpec('deepseek', 'api_key', model, [DEEPSEEK_THINKING]),
     ),
   ];
 }
 
-function openAiRows(model: string, specs: readonly SeedSpec[]): SeedRow[] {
-  return openAiRowsForAuth('api_key', model, specs);
+function openAiSpec(model: string, specs: readonly SeedSpec[]): ProviderModelParamSpec {
+  return openAiSpecForAuth('api_key', model, specs);
 }
 
-function openAiRowsForAuth(
+function openAiSpecForAuth(
   authType: 'api_key' | 'subscription',
   model: string,
   specs: readonly SeedSpec[],
-): SeedRow[] {
-  return specs.map((spec) => row('openai', authType, model, spec));
+): ProviderModelParamSpec {
+  return providerModelSpec('openai', authType, model, specs);
 }
 
-function anthropicRows(model: string, reasoningSpecs: readonly SeedSpec[]): SeedRow[] {
-  return anthropicRowsForAuth('api_key', model, reasoningSpecs);
+function anthropicSpec(model: string, reasoningSpecs: readonly SeedSpec[]): ProviderModelParamSpec {
+  return anthropicSpecForAuth('api_key', model, reasoningSpecs);
 }
 
-function anthropicRowsForAuth(
+function anthropicSpecForAuth(
   authType: 'api_key' | 'subscription',
   model: string,
   reasoningSpecs: readonly SeedSpec[],
-): SeedRow[] {
-  return [MAX_TOKENS, ANTHROPIC_TEMPERATURE, ANTHROPIC_TOP_P, TOP_K, ...reasoningSpecs].map(
-    (spec) => row('anthropic', authType, model, spec),
-  );
+): ProviderModelParamSpec {
+  return providerModelSpec('anthropic', authType, model, [
+    MAX_TOKENS,
+    ANTHROPIC_TEMPERATURE,
+    ANTHROPIC_TOP_P,
+    TOP_K,
+    ...reasoningSpecs,
+  ]);
 }
 
-function row(provider: string, authType: AuthType, model: string, spec: SeedSpec): SeedRow {
+function providerModelSpec(
+  provider: string,
+  authType: AuthType,
+  model: string,
+  params: readonly SeedSpec[],
+): ProviderModelParamSpec {
   return {
     provider,
     authType,
     model,
-    ...spec,
+    params: params.map((param) => ({ ...param })),
   };
 }
