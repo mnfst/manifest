@@ -181,7 +181,7 @@ export class PlaygroundService {
         pricing: this.pricingCache.getByModel(dto.model),
         isSubscription: authType === 'subscription',
       });
-      const tokensPerSec = outputTokens > 0 && totalMs > 0 ? outputTokens / (totalMs / 1000) : null;
+      const tokensPerSec = outputTokens > 0 ? outputTokens / (Math.max(totalMs, 1) / 1000) : null;
 
       await this.recordSuccess(userId, agent, dto, authType, {
         inputTokens,

@@ -4,6 +4,7 @@ import type {
   AvailableModel,
   CustomProviderData,
   ModelRoute,
+  ProviderParamSpecCatalog,
   RequestParamDefaults,
   RoutingProvider,
 } from '../services/api.js';
@@ -23,6 +24,7 @@ import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
 import { toast } from '../services/toast-store.js';
+import { modelParamsScopeForHeaderTier } from 'manifest-shared';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
@@ -58,16 +60,19 @@ interface Props {
    * had no params support at all.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
   ) => RequestParamDefaults | null;
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelParamSpecs?: () => ProviderParamSpecCatalog;
 }
 
 const HeaderTierCard: Component<Props> = (props) => {
@@ -332,6 +337,8 @@ const HeaderTierCard: Component<Props> = (props) => {
                       authType={(effectiveAuth() as AuthType) ?? undefined}
                       model={modelName()}
                       slotLabel={modelLabel() || modelName()}
+                      scope={modelParamsScopeForHeaderTier(props.tier.id)}
+                      specCatalog={props.modelParamSpecs?.() ?? []}
                       getParams={props.getModelParams!}
                       setParams={props.setModelParams!}
                     />
@@ -388,6 +395,8 @@ const HeaderTierCard: Component<Props> = (props) => {
             }
             getModelParams={props.getModelParams}
             setModelParams={props.setModelParams}
+            modelParamSpecs={props.modelParamSpecs}
+            modelParamsScope={modelParamsScopeForHeaderTier(props.tier.id)}
             persistClearFallbacks={(_agent, tierId) =>
               clearHeaderTierFallbacks(props.agentName, tierId)
             }

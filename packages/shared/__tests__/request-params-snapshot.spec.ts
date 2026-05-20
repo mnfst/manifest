@@ -1,57 +1,120 @@
 import { snapshotRequestParams } from '../src/request-params-snapshot';
+import type { ProviderParamSpec } from '../src/provider-params-spec';
+
+const specs: readonly ProviderParamSpec[] = [
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'thinking.budget_tokens',
+    type: 'integer',
+    label: 'Thinking budget',
+    description: 'Maximum Anthropic extended thinking token budget.',
+    default: 4096,
+    range: { min: 1024, max: 32768, step: 1024 },
+    group: 'reasoning',
+    applicability: { only: { 'thinking.type': 'enabled' } },
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'thinking.type',
+    type: 'enum',
+    label: 'Thinking mode',
+    description: 'Controls Anthropic thinking mode.',
+    default: 'disabled',
+    values: ['disabled', 'adaptive', 'enabled'],
+    group: 'reasoning',
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'temperature',
+    type: 'number',
+    label: 'Temperature',
+    description: 'Controls sampling randomness.',
+    default: 1,
+    range: { min: 0, max: 1, step: 0.1 },
+    group: 'sampling',
+    applicability: { except: { 'thinking.type': ['enabled', 'adaptive'] } },
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'top_p',
+    type: 'number',
+    label: 'Top P',
+    description: 'Controls nucleus sampling.',
+    default: 1,
+    range: { min: 0, max: 1, step: 0.01 },
+    group: 'sampling',
+    applicability: {
+      except: [{ 'thinking.type': ['enabled', 'adaptive'] }, { temperature: { not: 1 } }],
+    },
+  },
+];
 
 describe('snapshotRequestParams', () => {
-  it('returns null when the provider has no known param keys (e.g. OpenAI)', () => {
+  it('returns null when the resolved model has no specs', () => {
     expect(
       snapshotRequestParams({
         body: { messages: [] },
         modelParams: null,
-        provider: 'openai',
+        specs: [],
       }),
     ).toBeNull();
   });
 
-  it("falls back to the provider's own default for known keys when nothing was overridden", () => {
-    // DeepSeek defaults thinking to enabled. Neither the client nor any
-    // saved per-route config contributed a value, so the snapshot emits the
-    // provider's natural default — that's what the request actually had.
+  it('falls back to provider defaults for known params', () => {
     expect(
       snapshotRequestParams({
         body: { messages: [] },
         modelParams: null,
-        provider: 'deepseek',
+        specs,
       }),
-    ).toEqual({ thinking: { type: 'enabled' } });
+    ).toEqual({ temperature: 1, top_p: 1, thinking: { type: 'disabled' } });
   });
 
-  it("records the user's saved per-route override when present", () => {
+  it('records saved per-route params and nested sibling defaults', () => {
     expect(
       snapshotRequestParams({
         body: { messages: [] },
-        modelParams: { thinking: { type: 'disabled' } },
-        provider: 'deepseek',
+        modelParams: { thinking: { type: 'enabled' } },
+        specs,
       }),
-    ).toEqual({ thinking: { type: 'disabled' } });
+    ).toEqual({ thinking: { type: 'enabled', budget_tokens: 4096 } });
   });
 
-  it("client body wins by presence over saved per-route params", () => {
+  it('lets client body values win over saved params', () => {
     expect(
       snapshotRequestParams({
-        body: { thinking: { type: 'enabled' }, messages: [] },
-        modelParams: { thinking: { type: 'disabled' } },
-        provider: 'deepseek',
+        body: { temperature: 0.4, messages: [] },
+        modelParams: { temperature: 0.8 },
+        specs,
       }),
-    ).toEqual({ thinking: { type: 'enabled' } });
+    ).toEqual({ temperature: 0.4, thinking: { type: 'disabled' } });
   });
 
-  it('only emits keys from REQUEST_PARAM_KEYS — extraneous body fields stay out of the snapshot', () => {
-    const result = snapshotRequestParams({
-      body: { messages: [], temperature: 0.7, thinking: { type: 'enabled' } },
-      modelParams: null,
-      provider: 'deepseek',
-    });
-    expect(result).toEqual({ thinking: { type: 'enabled' } });
-    expect(Object.keys(result!)).not.toContain('temperature');
-    expect(Object.keys(result!)).not.toContain('messages');
+  it('omits unavailable params from the snapshot', () => {
+    expect(
+      snapshotRequestParams({
+        body: { messages: [] },
+        modelParams: { temperature: 0.7, thinking: { type: 'adaptive' } },
+        specs,
+      }),
+    ).toEqual({ thinking: { type: 'adaptive' } });
+  });
+
+  it('omits conflicted defaults from the snapshot', () => {
+    expect(
+      snapshotRequestParams({
+        body: { messages: [] },
+        modelParams: { temperature: 0.2, top_p: 0.7 },
+        specs,
+      }),
+    ).toEqual({ temperature: 0.2, thinking: { type: 'disabled' } });
   });
 });

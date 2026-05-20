@@ -3,6 +3,7 @@ import type {
   AuthType,
   AvailableModel,
   CustomProviderData,
+  ProviderParamSpecCatalog,
   RequestParamDefaults,
   RoutingProvider,
   TierAssignment,
@@ -45,6 +46,7 @@ export interface RoutingDefaultTierSectionProps {
    * affordance shows the configured-state badge without per-row fetches.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -55,11 +57,13 @@ export interface RoutingDefaultTierSectionProps {
    * callback down to the affordance.
    */
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelParamSpecs?: () => ProviderParamSpecCatalog;
 }
 
 const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (props) => {
@@ -93,6 +97,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
         connectedProviders={props.connectedProviders}
         getModelParams={props.getModelParams}
         setModelParams={props.setModelParams}
+        modelParamSpecs={props.modelParamSpecs}
       />
     </div>
   );
@@ -123,6 +128,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
             connectedProviders={props.connectedProviders}
             getModelParams={props.getModelParams}
             setModelParams={props.setModelParams}
+            modelParamSpecs={props.modelParamSpecs}
           />
         )}
       </For>

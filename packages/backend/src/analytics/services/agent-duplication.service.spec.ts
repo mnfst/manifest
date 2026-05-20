@@ -78,6 +78,22 @@ describe('AgentDuplicationService', () => {
               throw new Error(`Unexpected entity ${entity.name}`);
           }
         },
+        query: jest.fn(async (sql: string, params: unknown[]) => {
+          if (!sql.includes('INSERT INTO "agent_model_params"')) return;
+          insertedRows['AgentModelParams'] = insertedRows['AgentModelParams'] ?? [];
+          insertedRows['AgentModelParams'].push({
+            id: params[0],
+            user_id: params[1],
+            agent_id: params[2],
+            scope_key: params[3],
+            provider: params[4],
+            auth_type: params[5],
+            model_name: params[6],
+            params: params[7],
+            created_at: params[8],
+            updated_at: params[9],
+          });
+        }),
       };
       return cb(manager);
     });
@@ -266,6 +282,7 @@ describe('AgentDuplicationService', () => {
             provider: 'deepseek',
             auth_type: 'api_key',
             model_name: 'deepseek-v4',
+            scope_key: 'tier:default',
             params: { thinking: { type: 'disabled' } },
           },
           // Custom-provider-keyed row exercises the remap path so a route
@@ -278,6 +295,7 @@ describe('AgentDuplicationService', () => {
             provider: 'custom:cp1',
             auth_type: 'api_key',
             model_name: 'qwen-72b',
+            scope_key: 'tier:default',
             params: { thinking: { type: 'enabled' } },
           },
         ],

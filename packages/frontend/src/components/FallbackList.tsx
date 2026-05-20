@@ -6,6 +6,7 @@ import {
   type AvailableModel,
   type CustomProviderData,
   type ModelRoute,
+  type ProviderParamSpecCatalog,
   type RequestParamDefaults,
   type RoutingProvider,
   type TierAssignment,
@@ -22,6 +23,7 @@ import { toast } from '../services/toast-store.js';
 import { authBadgeFor } from './AuthBadge.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import ModelParamsAffordance from './ModelParamsAffordance.jsx';
+import { modelParamsScopeForTier } from 'manifest-shared';
 
 interface FallbackListProps {
   agentName: string;
@@ -63,16 +65,20 @@ interface FallbackListProps {
    * just like saving from the primary chip does.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
   ) => RequestParamDefaults | null;
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelParamSpecs?: () => ProviderParamSpecCatalog;
+  modelParamsScope?: string;
 }
 
 const FallbackUndoIcon: Component<{ size: 20 | 16; class?: string }> = (p) => (
@@ -104,6 +110,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     }
     return stripCustomPrefix(model);
   };
+  const modelParamsScope = () => props.modelParamsScope ?? modelParamsScopeForTier(props.tier);
 
   /**
    * Active labeled keys for (provider, auth_type), sorted by priority. Used
@@ -431,6 +438,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                         authType={(auth() as AuthType) ?? undefined}
                         model={model()}
                         slotLabel={modelLabel(model())}
+                        scope={modelParamsScope()}
+                        specCatalog={props.modelParamSpecs?.() ?? []}
                         getParams={props.getModelParams!}
                         setParams={props.setModelParams!}
                       />

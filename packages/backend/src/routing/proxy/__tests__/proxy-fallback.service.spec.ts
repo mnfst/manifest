@@ -13,6 +13,27 @@ import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import { getProviderParamSpecs, type ProviderParamSpecCatalog } from 'manifest-shared';
+
+const specCatalog: ProviderParamSpecCatalog = [
+  {
+    provider: 'deepseek',
+    authType: 'api_key',
+    model: 'deepseek-v4-flash',
+    params: [
+      {
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls whether DeepSeek thinking mode is enabled.',
+        default: 'enabled',
+        values: ['enabled', 'disabled'],
+        group: 'reasoning',
+      },
+    ],
+  },
+];
 
 describe('ProxyFallbackService', () => {
   let service: ProxyFallbackService;
@@ -25,6 +46,7 @@ describe('ProxyFallbackService', () => {
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
   let modelParamsService: jest.Mocked<AgentModelParamsService>;
+  let providerParamSpecs: jest.Mocked<ProviderParamSpecService>;
 
   beforeEach(() => {
     providerKeyService = {
@@ -70,6 +92,13 @@ describe('ProxyFallbackService', () => {
       delete: jest.fn(),
     } as unknown as jest.Mocked<AgentModelParamsService>;
 
+    providerParamSpecs = {
+      getSpecs: jest.fn(async (provider: string, authType: string, model: string) =>
+        getProviderParamSpecs(specCatalog, provider, authType as 'api_key' | 'subscription', model),
+      ),
+      list: jest.fn().mockResolvedValue(specCatalog),
+    } as unknown as jest.Mocked<ProviderParamSpecService>;
+
     service = new ProxyFallbackService(
       providerKeyService,
       customProviderRepo,
@@ -80,6 +109,7 @@ describe('ProxyFallbackService', () => {
       copilotToken,
       pricingCache,
       modelParamsService,
+      providerParamSpecs,
     );
   });
 
@@ -154,11 +184,12 @@ describe('ProxyFallbackService', () => {
         stream: false,
         sessionKey: 'sess-1',
         authType: 'api_key',
-        paramMergeContext: { agentId: 'agent-1' },
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
       });
 
       expect(modelParamsService.get).toHaveBeenCalledWith(
         'agent-1',
+        'tier:default',
         'deepseek',
         'api_key',
         'deepseek-v4-flash',
@@ -190,7 +221,7 @@ describe('ProxyFallbackService', () => {
         stream: false,
         sessionKey: 'sess-1',
         authType: 'api_key',
-        paramMergeContext: { agentId: 'agent-1' },
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
       });
 
       const forwarded = providerClient.forward.mock.calls[0][0];
@@ -217,7 +248,7 @@ describe('ProxyFallbackService', () => {
         stream: false,
         sessionKey: 'sess-1',
         authType: 'api_key',
-        paramMergeContext: { agentId: 'agent-1' },
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
       });
 
       const forwarded = providerClient.forward.mock.calls[0][0];

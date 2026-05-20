@@ -14,6 +14,7 @@ import type {
   AuthType,
   CustomProviderData,
   ModelRoute,
+  ProviderParamSpecCatalog,
   RequestParamDefaults,
   RoutingProvider,
 } from '../services/api.js';
@@ -30,16 +31,19 @@ export interface RoutingHeaderTiersSectionProps {
   externalMutate?: (mutator: (prev: HeaderTier[] | undefined) => HeaderTier[] | undefined) => void;
   embedded?: boolean;
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
   ) => RequestParamDefaults | null;
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelParamSpecs?: () => ProviderParamSpecCatalog;
 }
 
 type Props = RoutingHeaderTiersSectionProps;
@@ -184,6 +188,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 onDisable={() => handleToggle(tier.id, false)}
                 getModelParams={props.getModelParams}
                 setModelParams={props.setModelParams}
+                modelParamSpecs={props.modelParamSpecs}
               />
             )}
           </For>
