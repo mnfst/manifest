@@ -84,9 +84,9 @@ export function ResponseTab(props: { responseBody: ResponseBody }): JSX.Element 
         if (rb.type === 'stream') {
           return (
             <div>
-              <div class="recorded-modal__muted" style="margin-bottom: var(--gap-sm);">
-                Streaming response &mdash; raw Server-Sent Events below.
-              </div>
+              <p style="margin: 0 0 var(--gap-sm); font-size: var(--font-size-sm); font-family: var(--font-family); color: hsl(var(--muted-foreground));">
+                This response was streamed. Raw Server-Sent Events are shown below.
+              </p>
               <CodeBlock code={rb.raw_sse ?? ''} language="plaintext" />
             </div>
           );
