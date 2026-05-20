@@ -103,12 +103,12 @@ const booleanSpecs: readonly ProviderParamSpec[] = [
     provider: 'test',
     authType: 'api_key',
     model: 'test-model',
-    path: 'stream',
+    path: 'logprobs',
     type: 'boolean',
-    label: 'Stream responses',
-    description: 'Controls streaming output.',
+    label: 'Token log probabilities',
+    description: 'Controls whether token log probabilities are requested.',
     default: true,
-    group: 'provider_metadata',
+    group: 'observability',
   },
 ];
 
@@ -269,7 +269,7 @@ describe('ModelParamsDialog', () => {
     fireEvent.click(q('.model-params__toggle') as HTMLButtonElement);
     fireEvent.click(screen.getByText('Save'));
 
-    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ stream: false }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ logprobs: false }));
   });
 
   it('includes applicable nested sibling defaults when saving a nested override', async () => {

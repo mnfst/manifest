@@ -262,12 +262,12 @@ describe('provider-params-spec', () => {
         provider: 'test',
         authType: 'api_key',
         model: 'test-model',
-        path: 'stream',
+        path: 'logprobs',
         type: 'boolean',
-        label: 'Stream',
-        description: 'Controls streaming output.',
+        label: 'Token log probabilities',
+        description: 'Controls whether token log probabilities are requested.',
         default: false,
-        group: 'provider_metadata',
+        group: 'observability',
       } as const;
       expect(providerParamValueIsValid(booleanSpec, true)).toBe(true);
       expect(providerParamValueIsValid(booleanSpec, 'true')).toBe(false);

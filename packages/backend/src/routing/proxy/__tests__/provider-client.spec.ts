@@ -596,7 +596,6 @@ describe('ProviderClient', () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const bodyWithSystem = {
-        stream: false,
         messages: [
           { role: 'system', content: 'Be helpful.' },
           { role: 'user', content: 'Hello' },

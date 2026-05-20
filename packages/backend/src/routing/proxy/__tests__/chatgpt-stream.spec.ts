@@ -15,13 +15,13 @@ describe('ChatGPT Adapter – transformResponsesStreamChunk', () => {
     expect(json.model).toBe('gpt-5');
   });
 
-  it('converts response.completed to a finish chunk', () => {
+  it('converts response.completed to finish + DONE', () => {
     const chunk = 'event: response.completed\ndata: {}';
     const result = transformResponsesStreamChunk(chunk, 'gpt-5');
 
     expect(result).not.toBeNull();
     expect(result).toContain('"finish_reason":"stop"');
-    expect(result).not.toContain('data: [DONE]');
+    expect(result).toContain('data: [DONE]');
   });
 
   it('extracts usage from response.completed event', () => {

@@ -23,12 +23,6 @@ import { OpenAIMessage } from './proxy-types';
 
 export interface ToResponsesRequestOptions {
   /**
-   * Force upstream SSE even when the caller requested a non-streaming response.
-   * Used by subscription backends that only serve the Codex Responses stream;
-   * Manifest still collects the SSE and returns JSON to non-streaming clients.
-   */
-  forceStream?: boolean;
-  /**
    * Map `max_tokens` / `max_completion_tokens` → `max_output_tokens`.
    * The ChatGPT subscription backend (`chatgpt.com/backend-api/codex/responses`)
    * rejects `max_output_tokens`, so callers that target that endpoint must
@@ -76,7 +70,7 @@ export function toResponsesRequest(
   const request: Record<string, unknown> = {
     model,
     input,
-    stream: options.forceStream ? true : body.stream !== false,
+    stream: body.stream !== false,
     store: false,
     instructions: extractInstructions(messages),
   };
@@ -266,11 +260,12 @@ function handleCompletedEvent(dataStr: string, model: string): string {
     ? (response.output as Array<{ type?: string }>)
     : [];
   const hasFunctionCalls = responseOutput.some((item) => item.type === 'function_call');
-  return formatSSE(
+  const finish = formatSSE(
     { delta: {}, finish_reason: hasFunctionCalls ? 'tool_calls' : 'stop' },
     model,
     usage,
   );
+  return `${finish}\ndata: [DONE]\n\n`;
 }
 
 /* ── Non-streaming SSE collection ── */
