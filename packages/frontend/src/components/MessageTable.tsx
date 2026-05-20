@@ -77,7 +77,9 @@ function ExpandableRow(props: {
 
   const isRecorded = () => props.item.recorded && !!props.tableProps.onOpenRecording;
 
-  const handleRowClick = () => {
+  const handleRowClick = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a, [role="button"]')) return;
     if (isRecorded()) {
       props.tableProps.onOpenRecording!(props.item.id);
     } else {

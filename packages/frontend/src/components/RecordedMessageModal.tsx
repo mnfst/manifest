@@ -221,7 +221,9 @@ const RecordedMessageModal: Component<Props> = (props) => {
   // restores focus to the previously-active element on close.
   const [drawerElSignal, setDrawerEl] = createSignal<HTMLDivElement | undefined>();
   let drawerEl: HTMLDivElement | undefined;
-  useFocusTrap(drawerElSignal, () => props.open, { initialFocus: () => drawerElSignal() });
+  useFocusTrap(drawerElSignal, () => props.open && !state.confirmingDelete(), {
+    initialFocus: () => drawerElSignal(),
+  });
   createEffect(
     on(
       () => props.open,

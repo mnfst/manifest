@@ -1147,6 +1147,7 @@
   align-items: center;
   gap: 2px;
   padding: var(--gap-xs) var(--gap-md);
+  border-top: 1px solid hsl(var(--border));
   border-bottom: 1px solid hsl(var(--border));
   background: hsl(var(--muted));
   overflow-x: auto;
