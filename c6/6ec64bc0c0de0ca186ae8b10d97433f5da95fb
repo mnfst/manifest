@@ -1,0 +1,28 @@
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.spec.ts
+  s_d55d26a37e6be3::t_ca27f8e4481db3 1,3,76-88
+packages/frontend/src/components/AnthropicOAuthDetailView.tsx
+  s_d55d26a37e6be3::t_0188ff3ca17489 121-126
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_d55d26a37e6be3::t_0a3e390863cb52 248-268
+  s_d55d26a37e6be3::t_eb5e0b9c28781b 1,26-35,140
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.ts
+  s_d55d26a37e6be3::t_176f5871659dfe 15,67-70
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_d55d26a37e6be3::t_4e6244cfff60f1 3-7,265-280
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "c66ec64bc0c0de0ca186ae8b10d97433f5da95fb",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
