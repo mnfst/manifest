@@ -45,7 +45,7 @@ export class SetModelParamsBodyDto {
   // through one path per intent keeps the storage model simple (no "save
   // empty == delete" magic at the controller layer).
   //
-  // Arbitrary keys are intentional because provider param rows are DB-backed.
+  // Arbitrary keys are intentional because provider params are MPS-backed.
   // This DTO validates JSON shape; ModelParamsController.assertCompatibleParams
   // validates each known value against the route's specs before saving.
   @IsObject()

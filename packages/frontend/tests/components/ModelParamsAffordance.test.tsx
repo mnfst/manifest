@@ -29,7 +29,7 @@ const baseProps = {
 };
 
 describe('ModelParamsAffordance', () => {
-  it('renders the button when the route model has DB-backed specs', () => {
+  it('renders the button when the route model has MPS specs', () => {
     const { container } = render(() => <ModelParamsAffordance {...baseProps} />);
     const btn = container.querySelector('button[aria-label^="Configure model parameters"]');
     expect(btn).not.toBeNull();

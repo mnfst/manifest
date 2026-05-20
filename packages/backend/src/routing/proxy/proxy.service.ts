@@ -88,7 +88,7 @@ export interface RoutingMeta {
   primaryAuthType?: string;
   /**
    * Effective request body parameters for this attempt: client body values,
-   * route-scoped `agent_model_params`, and DB-backed provider param defaults.
+   * route-scoped `agent_model_params`, and MPS provider param defaults.
    * Persisted on `agent_messages.request_params` so the dashboard can show
    * which model params were in play for the recorded request.
    */

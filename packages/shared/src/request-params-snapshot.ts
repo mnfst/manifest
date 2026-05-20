@@ -19,7 +19,7 @@ export interface RequestParamsSnapshotInput {
   body: Record<string, unknown>;
   /** Saved params for the resolved route scope, if any. */
   modelParams: RequestParamDefaults | null | undefined;
-  /** DB-backed specs for the resolved provider/auth/model. */
+  /** MPS catalog specs for the resolved provider/auth/model. */
   specs: readonly ProviderParamSpec[];
 }
 

@@ -116,7 +116,7 @@ export class ModelParamsController {
 
   /**
    * Provider/key compatibility gate, driven by the single
-   * DB-backed provider parameter specs. Returns the
+   * MPS provider parameter catalog. Returns the
    * params trimmed to the keys the provider actually consumes — a partially
    * incompatible payload still saves the compatible part rather than
    * throwing, matching the proxy's lenient merge behavior.
@@ -125,7 +125,7 @@ export class ModelParamsController {
    * compatible with the provider — those are user errors the UI should
    * surface, not silently swallow.
    *
-   * Adding a new provider knob is one row in `provider_param_specs`;
+   * Adding a new provider knob is one MPS entry;
    * this method does not need to change.
    */
   private async assertCompatibleParams(

@@ -23,8 +23,8 @@ export interface ParamApplicabilityCondition {
 }
 
 /**
- * MPC applicability is a deliberately small JSON rule language.
- * Keep this in sync with docs/model-param-capability-schema.md.
+ * MPS applicability is a deliberately small JSON rule language.
+ * Keep this in sync with docs/model-parameters-schema.md.
  */
 export type ParamApplicabilityValue =
   | JsonPrimitive

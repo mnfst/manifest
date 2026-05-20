@@ -509,7 +509,7 @@ describe('ProxyService — orchestration', () => {
     it('snapshot is null when the resolved model has no DB-backed param specs', async () => {
       // Forward-compat property: models that never appear in the DB-backed
       // spec catalog produce a null snapshot. New params light up by adding
-      // provider_param_specs rows — no proxy code needed.
+      // MPS catalog entries — no proxy code needed.
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),

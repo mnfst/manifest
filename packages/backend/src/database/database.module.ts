@@ -20,7 +20,6 @@ import { SpecificityAssignment } from '../entities/specificity-assignment.entity
 import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
 import { AgentModelParams } from '../entities/agent-model-params.entity';
-import { ProviderParamSpecEntity } from '../entities/provider-param-spec.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { DatabaseSeederService } from './database-seeder.service';
@@ -101,7 +100,6 @@ import { AddBenchmarkHistory1788000000000 } from './migrations/1788000000000-Add
 import { RenameBenchmarkToPlayground1789000000000 } from './migrations/1789000000000-RenameBenchmarkToPlayground';
 import { AddOAuthPendingFlows1789100000000 } from './migrations/1789100000000-AddOAuthPendingFlows';
 import { ScopeAgentModelParams1789200000000 } from './migrations/1789200000000-ScopeAgentModelParams';
-import { AddProviderParamCapabilities1789300000000 } from './migrations/1789300000000-AddProviderParamCapabilities';
 
 const entities = [
   AgentMessage,
@@ -122,7 +120,6 @@ const entities = [
   HeaderTier,
   InstallMetadata,
   AgentModelParams,
-  ProviderParamSpecEntity,
   PlaygroundRun,
   PlaygroundColumn,
 ];
@@ -204,7 +201,6 @@ const migrations = [
   RenameBenchmarkToPlayground1789000000000,
   AddOAuthPendingFlows1789100000000,
   ScopeAgentModelParams1789200000000,
-  AddProviderParamCapabilities1789300000000,
 ];
 
 @Module({
@@ -251,7 +247,6 @@ const migrations = [
       SpecificityAssignment,
       HeaderTier,
       AgentModelParams,
-      ProviderParamSpecEntity,
     ]),
     ModelPricesModule,
   ],

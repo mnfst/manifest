@@ -28,7 +28,7 @@ describe('model-params API client', () => {
     );
   });
 
-  it('listModelParamSpecs GETs the DB-backed spec catalog', async () => {
+  it('listModelParamSpecs GETs the MPS catalog', async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       status: 200,

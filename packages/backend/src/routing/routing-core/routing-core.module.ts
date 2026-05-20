@@ -4,7 +4,6 @@ import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { AgentModelParams } from '../../entities/agent-model-params.entity';
-import { ProviderParamSpecEntity } from '../../entities/provider-param-spec.entity';
 import { Agent } from '../../entities/agent.entity';
 import { Tenant } from '../../entities/tenant.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -29,7 +28,6 @@ import { ProviderParamSpecService } from './provider-param-spec.service';
       TierAssignment,
       SpecificityAssignment,
       AgentModelParams,
-      ProviderParamSpecEntity,
       Agent,
       Tenant,
       AgentMessage,

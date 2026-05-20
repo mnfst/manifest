@@ -34,7 +34,6 @@ import { SpecificityAssignment } from '../src/entities/specificity-assignment.en
 import { HeaderTier } from '../src/entities/header-tier.entity';
 import { InstallMetadata } from '../src/entities/install-metadata.entity';
 import { AgentModelParams } from '../src/entities/agent-model-params.entity';
-import { ProviderParamSpecEntity } from '../src/entities/provider-param-spec.entity';
 import { PlaygroundRun } from '../src/entities/playground-run.entity';
 import { PlaygroundColumn } from '../src/entities/playground-column.entity';
 import { HealthModule } from '../src/health/health.module';
@@ -74,7 +73,6 @@ const entities = [
   HeaderTier,
   InstallMetadata,
   AgentModelParams,
-  ProviderParamSpecEntity,
   PlaygroundRun,
   PlaygroundColumn,
 ];

@@ -22,8 +22,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * present in the blob. Today that means `deepseek` for the `thinking` key;
  * this migration mirrored the then-current DeepSeek-only registry as a
  * literal because migrations run before the runtime app boots. Newer
- * provider knobs are represented by `provider_param_specs` rows rather than
- * retroactive slot migration.
+ * provider knobs are represented by the MPS catalog rather than retroactive
+ * slot migration.
  *
  * Conflict resolution: a given (agent, provider, auth_type, model_name) can
  * appear in multiple slots (e.g. as fallback in two tiers). Postgres cannot

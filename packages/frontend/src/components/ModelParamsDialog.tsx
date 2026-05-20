@@ -66,7 +66,7 @@ const groupSpecs = (specs: readonly ProviderParamSpec[]) =>
 
 const valuesEqual = (a: unknown, b: unknown) =>
   typeof a === 'object' || typeof b === 'object'
-    ? /* v8 ignore next -- current MPC rows compare primitives; keep defensive JsonValue equality. */
+    ? /* v8 ignore next -- current MPS entries compare primitives; keep defensive JsonValue equality. */
       JSON.stringify(a) === JSON.stringify(b)
     : a === b;
 

@@ -88,9 +88,9 @@ export class ProxyFallbackService {
    * outbound body. Returns the original body unchanged when no config
    * exists — the provider's natural default applies in that case.
    *
-   * Async because the lookup may hit the database on a cache miss; the
-   * service caches the agent's full row set, so steady-state cost is a
-   * Map lookup, not a query.
+   * Async because saved values still live in the route-scoped params table;
+   * the service caches the agent's full row set, so steady-state cost is a
+   * Map lookup, not a query. The MPS catalog itself is static/fetched metadata.
    */
   private async applyParamMerge(
     body: Record<string, unknown>,

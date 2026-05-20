@@ -1,17 +1,18 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import type { AuthType } from './auth-types';
 import type {
-  JsonValue,
   ModelParamGroup,
   ModelParamRange,
   ModelParamType,
   ParamApplicability,
-} from 'manifest-shared';
+  ProviderParamSpecCatalog,
+} from './provider-params-spec';
+import type { JsonValue } from './request-params';
 
 type SeedSpec = {
   path: string;
   type: ModelParamType;
   label: string;
-  defaultValue: JsonValue;
+  default: JsonValue;
   values?: readonly JsonValue[];
   range?: ModelParamRange;
   group: ModelParamGroup;
@@ -20,7 +21,7 @@ type SeedSpec = {
 
 type SeedRow = SeedSpec & {
   provider: string;
-  authType: string;
+  authType: AuthType;
   model: string;
 };
 
@@ -28,7 +29,7 @@ const MAX_TOKENS: SeedSpec = {
   path: 'max_tokens',
   type: 'integer',
   label: 'Max tokens',
-  defaultValue: 4096,
+  default: 4096,
   range: { min: 1 },
   group: 'generation_length',
 };
@@ -37,7 +38,7 @@ const OPENAI_TEMPERATURE: SeedSpec = {
   path: 'temperature',
   type: 'number',
   label: 'Temperature',
-  defaultValue: 1,
+  default: 1,
   range: { min: 0, max: 2, step: 0.1 },
   group: 'sampling',
 };
@@ -52,7 +53,7 @@ const TOP_P: SeedSpec = {
   path: 'top_p',
   type: 'number',
   label: 'Top P',
-  defaultValue: 1,
+  default: 1,
   range: { min: 0, max: 1, step: 0.01 },
   group: 'sampling',
 };
@@ -68,7 +69,7 @@ const TOP_K: SeedSpec = {
   path: 'top_k',
   type: 'integer',
   label: 'Top K',
-  defaultValue: 0,
+  default: 0,
   range: { min: 0 },
   group: 'sampling',
   applicability: { except: { 'thinking.type': ['adaptive', 'enabled'] } },
@@ -78,7 +79,7 @@ const OPENAI_REASONING_EFFORT: SeedSpec = {
   path: 'reasoning_effort',
   type: 'enum',
   label: 'Reasoning effort',
-  defaultValue: 'medium',
+  default: 'medium',
   values: ['minimal', 'low', 'medium', 'high'],
   group: 'reasoning',
 };
@@ -90,7 +91,7 @@ const OPENAI_XHIGH_REASONING_EFFORT: SeedSpec = {
 
 const OPENAI_GPT_5_1_REASONING_EFFORT: SeedSpec = {
   ...OPENAI_REASONING_EFFORT,
-  defaultValue: 'none',
+  default: 'none',
   values: ['none', 'low', 'medium', 'high'],
 };
 
@@ -98,7 +99,7 @@ const OPENAI_SUBSCRIPTION_REASONING_EFFORT: SeedSpec = {
   path: 'reasoning.effort',
   type: 'enum',
   label: 'Reasoning effort',
-  defaultValue: 'medium',
+  default: 'medium',
   values: ['minimal', 'low', 'medium', 'high'],
   group: 'reasoning',
 };
@@ -112,7 +113,7 @@ const OPENAI_SUBSCRIPTION_REASONING_SUMMARY: SeedSpec = {
   path: 'reasoning.summary',
   type: 'enum',
   label: 'Reasoning summary',
-  defaultValue: 'auto',
+  default: 'auto',
   values: ['auto', 'concise', 'detailed', 'none'],
   group: 'reasoning',
 };
@@ -121,7 +122,7 @@ const OPENAI_SUBSCRIPTION_VERBOSITY: SeedSpec = {
   path: 'text.verbosity',
   type: 'enum',
   label: 'Verbosity',
-  defaultValue: 'medium',
+  default: 'medium',
   values: ['low', 'medium', 'high'],
   group: 'output_format',
 };
@@ -130,7 +131,7 @@ const THINKING_TYPE_ADAPTIVE_ONLY: SeedSpec = {
   path: 'thinking.type',
   type: 'enum',
   label: 'Thinking mode',
-  defaultValue: 'disabled',
+  default: 'disabled',
   values: ['disabled', 'adaptive'],
   group: 'reasoning',
 };
@@ -149,7 +150,7 @@ const THINKING_BUDGET_TOKENS: SeedSpec = {
   path: 'thinking.budget_tokens',
   type: 'integer',
   label: 'Budget tokens',
-  defaultValue: 4096,
+  default: 4096,
   range: { min: 1024 },
   group: 'reasoning',
   applicability: { only: { 'thinking.type': 'enabled' } },
@@ -159,7 +160,7 @@ const DEEPSEEK_THINKING: SeedSpec = {
   path: 'thinking.type',
   type: 'enum',
   label: 'Thinking mode',
-  defaultValue: 'enabled',
+  default: 'enabled',
   values: ['enabled', 'disabled'],
   group: 'reasoning',
 };
@@ -254,107 +255,15 @@ const DEEPSEEK_THINKING_MODELS = [
   'deepseek-v4',
 ] as const;
 
-export class AddProviderParamCapabilities1789300000000 implements MigrationInterface {
-  public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
-      CREATE TABLE IF NOT EXISTS "provider_param_specs" (
-        "id" varchar PRIMARY KEY,
-        "provider" varchar NOT NULL,
-        "auth_type" varchar NOT NULL,
-        "model_name" varchar NOT NULL,
-        "param_path" varchar NOT NULL,
-        "param_type" varchar NOT NULL,
-        "label" varchar NOT NULL,
-        "default_value" jsonb NOT NULL,
-        "values" jsonb DEFAULT NULL,
-        "range" jsonb DEFAULT NULL,
-        "param_group" varchar NOT NULL,
-        "applicability" jsonb DEFAULT NULL,
-        "created_at" timestamp NOT NULL DEFAULT now(),
-        "updated_at" timestamp NOT NULL DEFAULT now(),
-        CONSTRAINT "chk_provider_param_specs_type"
-          CHECK ("param_type" IN ('boolean', 'enum', 'integer', 'number', 'string')),
-        CONSTRAINT "chk_provider_param_specs_group"
-          CHECK ("param_group" IN (
-            'generation_length',
-            'sampling',
-            'reasoning',
-            'tooling',
-            'output_format',
-            'observability',
-            'provider_metadata'
-          ))
-      )
-    `);
-
-    await queryRunner.query(`
-      CREATE UNIQUE INDEX IF NOT EXISTS "idx_provider_param_specs_route_path"
-      ON "provider_param_specs" ("provider", "auth_type", "model_name", "param_path")
-    `);
-
-    await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS "idx_provider_param_specs_lookup"
-      ON "provider_param_specs" ("provider", "auth_type", "model_name", "param_group")
-    `);
-
-    for (const row of providerParamRows()) {
-      await queryRunner.query(
-        `
-          INSERT INTO "provider_param_specs"
-            (
-              "id",
-              "provider",
-              "auth_type",
-              "model_name",
-              "param_path",
-              "param_type",
-              "label",
-              "default_value",
-              "values",
-              "range",
-              "param_group",
-              "applicability"
-            )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10::jsonb, $11, $12::jsonb)
-          ON CONFLICT ON CONSTRAINT "provider_param_specs_pkey" DO UPDATE
-          SET
-            "provider" = EXCLUDED."provider",
-            "auth_type" = EXCLUDED."auth_type",
-            "model_name" = EXCLUDED."model_name",
-            "param_path" = EXCLUDED."param_path",
-            "param_type" = EXCLUDED."param_type",
-            "label" = EXCLUDED."label",
-            "default_value" = EXCLUDED."default_value",
-            "values" = EXCLUDED."values",
-            "range" = EXCLUDED."range",
-            "param_group" = EXCLUDED."param_group",
-            "applicability" = EXCLUDED."applicability",
-            "updated_at" = now()
-        `,
-        [
-          rowId(row),
-          row.provider,
-          row.authType,
-          row.model,
-          row.path,
-          row.type,
-          row.label,
-          JSON.stringify(row.defaultValue),
-          row.values ? JSON.stringify(row.values) : null,
-          row.range ? JSON.stringify(row.range) : null,
-          row.group,
-          row.applicability ? JSON.stringify(row.applicability) : null,
-        ],
-      );
-    }
-  }
-
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX IF EXISTS "idx_provider_param_specs_lookup"`);
-    await queryRunner.query(`DROP INDEX IF EXISTS "idx_provider_param_specs_route_path"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "provider_param_specs"`);
-  }
-}
+/**
+ * Bundled Model Parameters Schema (MPS) catalog.
+ *
+ * This is intentionally shaped exactly like the `/model-param-specs` API payload:
+ * an array of JSON-serializable provider/auth/model param specs. When a remote
+ * params API exists, the runtime source can swap from this bundled fallback to
+ * fetched JSON without changing the dialog, proxy, or storage model.
+ */
+export const MODEL_PARAMETERS_SCHEMA: ProviderParamSpecCatalog = providerParamRows();
 
 function providerParamRows(): SeedRow[] {
   return [
@@ -438,19 +347,11 @@ function anthropicRowsForAuth(
   );
 }
 
-function row(provider: string, authType: string, model: string, spec: SeedSpec): SeedRow {
+function row(provider: string, authType: AuthType, model: string, spec: SeedSpec): SeedRow {
   return {
     provider,
     authType,
     model,
     ...spec,
   };
-}
-
-function rowId(row: SeedRow): string {
-  return [row.provider, row.authType, row.model, row.path]
-    .join('-')
-    .replace(/[^a-z0-9]+/gi, '-')
-    .toLowerCase()
-    .replace(/^-|-$/g, '');
 }

@@ -1,11 +1,17 @@
-# MPC Schema
+# MPS Schema
 
-MPC stands for Model Param Capability.
+MPS stands for Model Parameters Schema.
 
-This document defines the JSON language used by `provider_param_specs`.
-The database rows are the source of truth for provider model parameters.
-Frontend rendering, API validation, request merging, and telemetry snapshots
-must all consume this schema rather than adding provider-specific conditionals.
+This document defines the JSON language used by the model parameter schema
+catalog. The catalog is metadata: it describes which request parameters Manifest
+can configure for a provider/auth/model tuple. User-selected values still live in
+`agent_model_params`.
+
+The runtime source is intentionally shaped like the `/model-param-specs` API
+payload: an array of JSON-serializable entries. Today Manifest ships a bundled
+fallback catalog in `packages/shared/src/model-parameters-schema.ts`; a remote
+params API can later return the same payload shape without changing frontend
+rendering, API validation, request merging, or telemetry snapshots.
 
 The executable validator is `isParamApplicability` in
 `packages/shared/src/provider-params-spec.ts`. Any schema change must update:
@@ -15,9 +21,9 @@ The executable validator is `isParamApplicability` in
 - `isParamApplicability`
 - the shared tests that prove invalid shapes are rejected
 
-## Provider Param Row
+## Schema Entry
 
-Each row describes one parameter for one provider/auth/model tuple.
+Each entry describes one parameter for one provider/auth/model tuple.
 
 ```json
 {
@@ -53,8 +59,8 @@ Rules:
 
 ## Applicability
 
-`applicability` controls whether a parameter is available for the current
-draft or request params.
+`applicability` controls whether a parameter is available for the current draft
+or request params.
 
 Only two top-level keys are allowed:
 
@@ -152,4 +158,5 @@ Add new schema syntax only when a provider rule cannot be represented with:
 - AND within one match object
 
 When extending the language, update the executable validator and add tests for
-both accepted and rejected shapes in `packages/shared/__tests__/provider-params-spec.spec.ts`.
+both accepted and rejected shapes in
+`packages/shared/__tests__/provider-params-spec.spec.ts`.
