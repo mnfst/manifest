@@ -53,7 +53,7 @@ export interface ModelParamDefinition {
   type: ModelParamType;
   label: string;
   description: string;
-  default: JsonValue;
+  default?: JsonValue;
   values?: readonly JsonValue[];
   range?: ModelParamRange;
   group: ModelParamGroup;
@@ -223,6 +223,7 @@ export function expandConfiguredParamDefaults(
     if (!configuredRoots.has(pathRoot(spec.path))) continue;
     if (hasPath(out, spec.path)) continue;
     if (!providerParamIsApplicable(spec, out)) continue;
+    if (spec.default === undefined) continue;
     setPath(out, spec.path, spec.default);
   }
   return out;

@@ -48,7 +48,9 @@ const stateFromCurrent = (
 ): DraftState => {
   let draft: DraftState = {};
   for (const spec of specs) {
-    draft = setProviderParamValue(draft, spec.path, spec.default);
+    if (spec.default !== undefined) {
+      draft = setProviderParamValue(draft, spec.path, spec.default);
+    }
   }
   if (!current) return draft;
   for (const spec of specs) {
@@ -94,9 +96,9 @@ const ModelParamsDialog: Component<Props> = (props) => {
     if (props.open) setDraft(stateFromCurrent(props.specs, props.current));
   });
 
-  const valueFor = (spec: ProviderParamSpec): JsonValue => {
+  const valueFor = (spec: ProviderParamSpec): JsonValue | undefined => {
     const value = getProviderParamValue(draft(), spec.path);
-    return (value === undefined ? spec.default : value) as JsonValue;
+    return (value === undefined ? spec.default : value) as JsonValue | undefined;
   };
 
   const setValue = (spec: ProviderParamSpec, value: JsonValue) => {
@@ -301,6 +303,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
       for (const spec of props.specs) {
         if (!isApplicable(spec)) continue;
         const value = valueFor(spec);
+        if (value === undefined) continue;
         const root = spec.path.split('.')[0];
         const includeNestedDefault =
           spec.path.includes('.') && nestedRootsWithOverrides.has(root) && value !== undefined;
@@ -334,7 +337,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
           </div>
           <div class="model-params__label-hint">
             {isApplicable(spec())
-              ? `Provider default: ${String(spec().default)}`
+              ? `Provider default: ${spec().default === undefined ? 'unset' : String(spec().default)}`
               : 'Unavailable with selected parameters'}
           </div>
         </div>

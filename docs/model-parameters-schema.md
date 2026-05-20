@@ -7,11 +7,11 @@ catalog. The catalog is metadata: it describes which request parameters Manifest
 can configure for a provider/auth/model tuple. User-selected values still live in
 `agent_model_params`.
 
-The runtime source is intentionally shaped like the `/model-param-specs` API
-payload: an array of JSON-serializable entries. Today Manifest ships a bundled
-fallback catalog in `packages/shared/src/model-parameters-schema.ts`; a remote
-params API can later return the same payload shape without changing frontend
-rendering, API validation, request merging, or telemetry snapshots.
+The runtime source is `https://modelparameters.dev/api/v1/models.json`.
+Manifest also ships a bundled fallback catalog in
+`packages/shared/src/model-parameters-schema.ts` so the routing UI still works
+when the remote API is unavailable or does not yet include a model covered by
+the bundled catalog. Remote entries win by exact provider/auth/model tuple.
 
 The executable validator is `isParamApplicability` in
 `packages/shared/src/provider-params-spec.ts`. Any schema change must update:
@@ -55,7 +55,7 @@ Rules:
 - `type` is semantic data type, not a UI control kind.
 - `label` is user-facing copy.
 - `description` is developer-facing explanatory copy for the raw parameter.
-- `default` is the provider default Manifest should display.
+- `default` is the provider default Manifest should display when known.
 - `values` is allowed only for finite choices.
 - `range` describes numeric bounds and optional step.
 - `group` is a semantic grouping for ordering and display.

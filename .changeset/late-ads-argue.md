@@ -2,4 +2,4 @@
 "manifest": patch
 ---
 
-Store model parameter capabilities in PostgreSQL and support scoped per-route defaults.
+Serve model parameter specs from the MPS catalog API and support scoped per-route defaults.

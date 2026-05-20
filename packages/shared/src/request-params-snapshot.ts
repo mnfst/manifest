@@ -46,7 +46,7 @@ export function snapshotRequestParams(
       );
       continue;
     }
-    if (providerParamIsApplicable(spec, out)) {
+    if (spec.default !== undefined && providerParamIsApplicable(spec, out)) {
       out = setProviderParamValue(out, spec.path, spec.default);
     }
   }

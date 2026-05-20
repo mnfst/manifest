@@ -266,12 +266,10 @@ const DEEPSEEK_THINKING_MODELS = [
 ] as const;
 
 /**
- * Bundled Model Parameters Schema (MPS) catalog.
+ * Bundled Model Parameters Schema (MPS) fallback catalog.
  *
- * This is intentionally shaped exactly like the `/model-param-specs` API payload:
- * an array of JSON-serializable provider/auth/model param specs. When a remote
- * params API exists, the runtime source can swap from this bundled fallback to
- * fetched JSON without changing the dialog, proxy, or storage model.
+ * Runtime prefers modelparameters.dev and uses this local JSON-shaped catalog
+ * to fill gaps while the remote API is unavailable or still incomplete.
  */
 export const MODEL_PARAMETERS_SCHEMA: ProviderParamSpecCatalog = providerParamRows();
 
