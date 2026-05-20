@@ -83,6 +83,11 @@ const OPENAI_REASONING_EFFORT: SeedSpec = {
   group: 'reasoning',
 };
 
+const OPENAI_XHIGH_REASONING_EFFORT: SeedSpec = {
+  ...OPENAI_REASONING_EFFORT,
+  values: ['minimal', 'low', 'medium', 'high', 'xhigh'],
+};
+
 const OPENAI_GPT_5_1_REASONING_EFFORT: SeedSpec = {
   ...OPENAI_REASONING_EFFORT,
   defaultValue: 'none',
@@ -98,7 +103,7 @@ const OPENAI_SUBSCRIPTION_REASONING_EFFORT: SeedSpec = {
   group: 'reasoning',
 };
 
-const OPENAI_SUBSCRIPTION_MAX_REASONING_EFFORT: SeedSpec = {
+const OPENAI_SUBSCRIPTION_XHIGH_REASONING_EFFORT: SeedSpec = {
   ...OPENAI_SUBSCRIPTION_REASONING_EFFORT,
   values: ['minimal', 'low', 'medium', 'high', 'xhigh'],
 };
@@ -186,21 +191,29 @@ const OPENAI_GPT_5_REASONING_MODELS = [
   'gpt-5-mini',
   'gpt-5-nano',
   'gpt-5-chat-latest',
+] as const;
+
+const OPENAI_GPT_5_XHIGH_REASONING_MODELS = [
   'gpt-5.2',
   'gpt-5.4',
+  'gpt-5.4-mini',
+  'gpt-5.5',
 ] as const;
 
 const OPENAI_GPT_5_1_REASONING_MODELS = ['gpt-5.1'] as const;
 
-const OPENAI_SUBSCRIPTION_MODELS = [
+const OPENAI_SUBSCRIPTION_XHIGH_REASONING_MODELS = [
+  'gpt-5.5',
   'gpt-5.4',
+  'gpt-5.4-mini',
   'gpt-5.3-codex',
+  'gpt-5.3-codex-spark',
   'gpt-5.2-codex',
   'gpt-5.2',
-  'gpt-5.1-codex',
+  'gpt-5.1-codex-max',
 ] as const;
 
-const OPENAI_SUBSCRIPTION_MAX_REASONING_MODELS = ['gpt-5.1-codex-max'] as const;
+const OPENAI_SUBSCRIPTION_MODELS = ['gpt-5.1-codex'] as const;
 
 const ANTHROPIC_ADAPTIVE_ONLY_MODELS = ['claude-opus-4-7'] as const;
 
@@ -354,6 +367,9 @@ function providerParamRows(): SeedRow[] {
     ...OPENAI_GPT_5_REASONING_MODELS.flatMap((model) =>
       openAiRows(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P, OPENAI_REASONING_EFFORT]),
     ),
+    ...OPENAI_GPT_5_XHIGH_REASONING_MODELS.flatMap((model) =>
+      openAiRows(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P, OPENAI_XHIGH_REASONING_EFFORT]),
+    ),
     ...OPENAI_GPT_5_1_REASONING_MODELS.flatMap((model) =>
       openAiRows(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P, OPENAI_GPT_5_1_REASONING_EFFORT]),
     ),
@@ -364,9 +380,9 @@ function providerParamRows(): SeedRow[] {
         OPENAI_SUBSCRIPTION_VERBOSITY,
       ]),
     ),
-    ...OPENAI_SUBSCRIPTION_MAX_REASONING_MODELS.flatMap((model) =>
+    ...OPENAI_SUBSCRIPTION_XHIGH_REASONING_MODELS.flatMap((model) =>
       openAiRowsForAuth('subscription', model, [
-        OPENAI_SUBSCRIPTION_MAX_REASONING_EFFORT,
+        OPENAI_SUBSCRIPTION_XHIGH_REASONING_EFFORT,
         OPENAI_SUBSCRIPTION_REASONING_SUMMARY,
         OPENAI_SUBSCRIPTION_VERBOSITY,
       ]),

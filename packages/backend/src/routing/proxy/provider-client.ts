@@ -254,6 +254,7 @@ export class ProviderClient {
               stripCodexUnsupported: endpointKey === 'openai-subscription',
             })
           : toResponsesRequest(requestSource, bareModel, {
+              forceStream: endpointKey === 'openai-subscription',
               // The ChatGPT subscription backend rejects max_output_tokens with
               // unsupported_parameter; only opt in for the API-key paths.
               mapMaxOutputTokens:

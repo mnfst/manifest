@@ -34,6 +34,15 @@ describe('chatgpt-adapter', () => {
       expect(req.stream).toBe(false);
     });
 
+    it('can force upstream streaming while preserving non-stream caller semantics elsewhere', () => {
+      const body = {
+        stream: false,
+        messages: [{ role: 'user', content: 'hi' }],
+      };
+      const req = toResponsesRequest(body, 'gpt-5', { forceStream: true });
+      expect(req.stream).toBe(true);
+    });
+
     it('converts assistant tool_calls to function_call items and keeps any preceding text', () => {
       const body = {
         messages: [

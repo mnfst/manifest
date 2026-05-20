@@ -28,10 +28,26 @@ describe('AddProviderParamCapabilities1789300000000', () => {
 
     expect(
       jsonColumn(row('openai', 'subscription', 'gpt-5.3-codex', 'reasoning.effort'), 8),
-    ).toEqual(['minimal', 'low', 'medium', 'high']);
+    ).toEqual(['minimal', 'low', 'medium', 'high', 'xhigh']);
+    expect(jsonColumn(row('openai', 'subscription', 'gpt-5.5', 'reasoning.effort'), 8)).toEqual([
+      'minimal',
+      'low',
+      'medium',
+      'high',
+      'xhigh',
+    ]);
+    expect(
+      jsonColumn(row('openai', 'subscription', 'gpt-5.4-mini', 'reasoning.effort'), 8),
+    ).toEqual(['minimal', 'low', 'medium', 'high', 'xhigh']);
+    expect(
+      jsonColumn(row('openai', 'subscription', 'gpt-5.3-codex-spark', 'reasoning.effort'), 8),
+    ).toEqual(['minimal', 'low', 'medium', 'high', 'xhigh']);
     expect(
       jsonColumn(row('openai', 'subscription', 'gpt-5.1-codex-max', 'reasoning.effort'), 8),
     ).toEqual(['minimal', 'low', 'medium', 'high', 'xhigh']);
+    expect(
+      jsonColumn(row('openai', 'subscription', 'gpt-5.1-codex', 'reasoning.effort'), 8),
+    ).toEqual(['minimal', 'low', 'medium', 'high']);
     expect(
       jsonColumn(row('openai', 'subscription', 'gpt-5.3-codex', 'reasoning.summary'), 8),
     ).toEqual(['auto', 'concise', 'detailed', 'none']);
