@@ -274,7 +274,7 @@ export function DrawerMetrics(props: MetricsProps): JSX.Element {
   return (
     <div
       class="msg-detail__meta"
-      style="padding: var(--gap-sm) var(--drawer-pad) var(--gap-md); min-height: 0;"
+      style="padding: 0 var(--drawer-pad); padding-bottom: var(--gap-md); min-height: 0;"
       aria-label="Call metrics"
     >
       <MetaField label="Date" value={formatTime(m().timestamp)} />

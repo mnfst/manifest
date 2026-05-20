@@ -308,7 +308,9 @@ const RecordedMessageModal: Component<Props> = (props) => {
                 class="recorded-drawer__metadata-collapse"
                 classList={{ 'recorded-drawer__metadata-collapse--hidden': !metadataVisible() }}
               >
-                <DrawerMetrics message={data()!.message} recording={data()!.recording} />
+                <div style="overflow: hidden; min-height: 0;">
+                  <DrawerMetrics message={data()!.message} recording={data()!.recording} />
+                </div>
               </div>
             </Show>
 
