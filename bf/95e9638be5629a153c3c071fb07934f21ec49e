@@ -1,0 +1,53 @@
+docs/model-parameters-schema.md
+  s_d55d26a37e6be3::t_2da14ca3463cd0 26,33-46,53,57
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_d55d26a37e6be3::t_092d4c302f6dd0 17,24-34
+packages/frontend/tests/components/FallbackList.test.tsx
+  s_d55d26a37e6be3::t_df68322f6b6983 71-81
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_d55d26a37e6be3::t_7b69f14bf5069e 3-8,49-59,129
+packages/shared/__tests__/model-parameters-schema.spec.ts
+  s_d55d26a37e6be3::t_61d268c06e5253 52-60
+packages/shared/src/model-parameters-schema.ts
+  s_d55d26a37e6be3::t_4a75b4e65648c7 7,16,28,38-39,55-56,73,84,105,120,130,140,160-161,172,278,280-281,283-284,286-287,289-290,292-293,295-296,302-303,309-310,312-313,315-316,318-320,322-323,329,334-335,338,342-343,347,350,354-361,364-369,374
+packages/shared/__tests__/request-params.spec.ts
+  s_d55d26a37e6be3::t_84a2e701fe3ddb 12,25,37,50
+packages/backend/src/routing/__tests__/model-params.controller.spec.ts
+  s_d55d26a37e6be3::t_60e920d2ff16a2 8,12,17-27,30,51,74
+packages/shared/__tests__/request-params-snapshot.spec.ts
+  s_d55d26a37e6be3::t_06c3812a9b2040 12,25,37,50
+packages/shared/src/provider-params-spec.ts
+  s_d55d26a37e6be3::t_3fd0bc7b4f285b 47,55,63-76,98-111,115-118,132,179,396
+packages/shared/src/index.ts
+  s_d55d26a37e6be3::t_247fb7edaef816 55,60
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_d55d26a37e6be3::t_d4d022179e0caa 22-64,70-80,84-88
+  s_d55d26a37e6be3::t_4c6ccc68af59e8 120-123,130,136,143,149,227-232,278,284-286,289-291
+  s_d55d26a37e6be3::t_0926420b5b6e9e 243
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_d55d26a37e6be3::t_0922c20e2a0dc6 7,15-20,35-46
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_d55d26a37e6be3::t_468b3b7044e03f 148-158
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_d55d26a37e6be3::t_c98ddb55981b9d 182-192,198-208
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_d55d26a37e6be3::t_8cca1b82f6d416 26,41,53,66,79,94,109
+packages/frontend/tests/components/ModelParamsAffordance.test.tsx
+  s_d55d26a37e6be3::t_dcf85662c9396e 11-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "bf95e9638be5629a153c3c071fb07934f21ec49e",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
