@@ -1,0 +1,33 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_d55d26a37e6be3::t_67e73c9d648446 257
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_d55d26a37e6be3::t_ef51ce232ab476 599
+packages/shared/src/subscription/configs.ts
+  s_d55d26a37e6be3::t_e624d9ed16d2e1 25,27,29
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_d55d26a37e6be3::t_0b9c40b7772651 37-45
+packages/backend/src/database/migrations/1789300000000-AddProviderParamCapabilities.ts
+  s_d55d26a37e6be3::t_e23edc0ec15bfe 199-200,206,208,210
+  s_d55d26a37e6be3::t_6f6f24782e113a 86-90,106,194-196,205,213,216,370-372,383,385
+packages/backend/src/database/migrations/1789300000000-AddProviderParamCapabilities.spec.ts
+  s_d55d26a37e6be3::t_918c18375ad281 31,33-36,38,41,44,48-50
+  s_d55d26a37e6be3::t_fe4180d5206f9c 39-40,42-43
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_d55d26a37e6be3::t_620b0c8982bca1 26-30,79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "3df204952a0e413be15cc5a65365a5652ad2ac41",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
