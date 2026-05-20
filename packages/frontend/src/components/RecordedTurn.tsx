@@ -177,10 +177,30 @@ const RecordedTurn: Component<Props> = (props) => {
           <span class="recorded-modal__turn-preview">{props.preview}</span>
         </Show>
         <span class="recorded-modal__turn-toknum" aria-label={`${props.tokens} tokens`}>
-          {props.tokens >= 1000 ? `${(props.tokens / 1000).toFixed(1)}k` : props.tokens} tok
+          {props.tokens >= 1000 ? `${(props.tokens / 1000).toFixed(1)}k` : props.tokens} tokens
         </span>
         <span class="recorded-modal__turn-chevron" aria-hidden="true">
-          {props.expanded ? '▾' : '▸'}
+          {props.expanded ? (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="m7.71 15.71 4.29-4.3 4.29 4.3 1.42-1.42L12 8.59l-5.71 5.7z" />
+            </svg>
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="m12 15.41 5.71-5.7-1.42-1.42-4.29 4.3-4.29-4.3-1.42 1.42z" />
+            </svg>
+          )}
         </span>
       </button>
       <Show when={props.expanded}>
@@ -211,13 +231,15 @@ const RecordedTurn: Component<Props> = (props) => {
           </Show>
         </div>
         <Show when={contentText().length > 2000 || toolCalls().length > 3}>
-          <button
-            type="button"
-            class="recorded-modal__uncap"
-            onClick={() => setBodyCapped((v) => !v)}
-          >
-            {bodyCapped() ? 'Expand to full height' : 'Collapse back'}
-          </button>
+          <div class="recorded-modal__turn-footer">
+            <button
+              type="button"
+              class="recorded-modal__uncap"
+              onClick={() => setBodyCapped((v) => !v)}
+            >
+              {bodyCapped() ? 'Expand to full height' : 'Collapse back'}
+            </button>
+          </div>
         </Show>
       </Show>
     </section>

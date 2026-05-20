@@ -5,6 +5,7 @@ import {
   createResource,
   createSignal,
   on,
+  onCleanup,
   type Component,
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
@@ -160,13 +161,45 @@ const RecordedMessageModal: Component<Props> = (props) => {
     }));
   });
 
+  let highlightedEl: HTMLElement | null = null;
+  let ignoreScroll = false;
+  let clearTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const clearHighlight = () => {
+    if (clearTimer) {
+      clearTimeout(clearTimer);
+      clearTimer = null;
+    }
+    if (highlightedEl) {
+      highlightedEl.classList.remove('recorded-modal__turn--highlight');
+      highlightedEl = null;
+    }
+  };
+
+  const onConversationScroll = () => {
+    if (ignoreScroll) return;
+    if (!highlightedEl) return;
+    if (clearTimer) return;
+    clearTimer = setTimeout(() => {
+      clearHighlight();
+    }, 1000);
+  };
+
   const jumpTo = (index: number) => {
     state.expandTurn(index);
     state.setActiveTurnIndex(index);
     state.setActiveTab('conversation');
     queueMicrotask(() => {
       const el = document.getElementById(`recorded-turn-${index}`);
-      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (!el) return;
+      clearHighlight();
+      el.classList.add('recorded-modal__turn--highlight');
+      highlightedEl = el;
+      ignoreScroll = true;
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => {
+        ignoreScroll = false;
+      }, 600);
     });
   };
 
@@ -193,11 +226,18 @@ const RecordedMessageModal: Component<Props> = (props) => {
     on(
       () => props.open,
       (open) => {
-        if (!open) return;
-        queueMicrotask(() => drawerEl?.focus());
+        if (open) {
+          document.body.style.overflow = 'hidden';
+          queueMicrotask(() => drawerEl?.focus());
+        } else {
+          document.body.style.overflow = '';
+        }
       },
     ),
   );
+  onCleanup(() => {
+    document.body.style.overflow = '';
+  });
 
   const onDrawerKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -293,23 +333,7 @@ const RecordedMessageModal: Component<Props> = (props) => {
                   tools: requestTools(data()!).length,
                 }}
               />
-              <div
-                class="recorded-drawer__tab-body"
-                ref={(el) => {
-                  createEffect(
-                    on(
-                      () => [data(), state.activeTab()],
-                      () => {
-                        if (data() && state.activeTab() === 'conversation') {
-                          requestAnimationFrame(() => {
-                            el.scrollTop = el.scrollHeight;
-                          });
-                        }
-                      },
-                    ),
-                  );
-                }}
-              >
+              <div class="recorded-drawer__tab-body">
                 <RecordedTabContent
                   tab={state.activeTab()}
                   data={data()!}
@@ -322,6 +346,7 @@ const RecordedMessageModal: Component<Props> = (props) => {
                   searchQuery={state.searchQuery()}
                   onSearch={state.setSearchQuery}
                   onToggleTurn={state.toggleTurn}
+                  onConversationScroll={onConversationScroll}
                   outlineProps={{
                     activeIndex: state.activeTurnIndex(),
                     searchQuery: state.searchQuery(),

@@ -46,6 +46,7 @@ interface Props {
   searchQuery: string;
   onSearch: (q: string) => void;
   onToggleTurn: (index: number) => void;
+  onConversationScroll?: () => void;
   outlineProps?: OutlineProps;
 }
 
@@ -74,7 +75,15 @@ export function RecordedTabContent(props: Props): JSX.Element {
                   onJumpLastAssistant={props.outlineProps!.onJumpLastAssistant}
                 />
               </Show>
-              <div class="recorded-drawer__conversation-main">
+              <div
+                class="recorded-drawer__conversation-main"
+                ref={(el) =>
+                  requestAnimationFrame(() => {
+                    el.scrollTop = el.scrollHeight;
+                  })
+                }
+                onScroll={() => props.onConversationScroll?.()}
+              >
                 <Conversation
                   messages={props.messages}
                   rows={props.rows}
