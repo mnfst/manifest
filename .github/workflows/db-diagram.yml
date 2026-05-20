@@ -72,7 +72,9 @@ jobs:
           cat /tmp/changed-migrations.txt
 
       - name: Swap migrations dir to base ref
-        run: git checkout "$BASE_SHA" -- packages/backend/src/database/migrations/
+        run: |
+          rm -rf packages/backend/src/database/migrations
+          git checkout "$BASE_SHA" -- packages/backend/src/database/migrations/
 
       - name: Run BASE migrations
         env:
