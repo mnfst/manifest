@@ -89,6 +89,38 @@ const OPENAI_GPT_5_1_REASONING_EFFORT: SeedSpec = {
   values: ['none', 'low', 'medium', 'high'],
 };
 
+const OPENAI_SUBSCRIPTION_REASONING_EFFORT: SeedSpec = {
+  path: 'reasoning.effort',
+  type: 'enum',
+  label: 'Reasoning effort',
+  defaultValue: 'medium',
+  values: ['minimal', 'low', 'medium', 'high'],
+  group: 'reasoning',
+};
+
+const OPENAI_SUBSCRIPTION_MAX_REASONING_EFFORT: SeedSpec = {
+  ...OPENAI_SUBSCRIPTION_REASONING_EFFORT,
+  values: ['minimal', 'low', 'medium', 'high', 'xhigh'],
+};
+
+const OPENAI_SUBSCRIPTION_REASONING_SUMMARY: SeedSpec = {
+  path: 'reasoning.summary',
+  type: 'enum',
+  label: 'Reasoning summary',
+  defaultValue: 'auto',
+  values: ['auto', 'concise', 'detailed', 'none'],
+  group: 'reasoning',
+};
+
+const OPENAI_SUBSCRIPTION_VERBOSITY: SeedSpec = {
+  path: 'text.verbosity',
+  type: 'enum',
+  label: 'Verbosity',
+  defaultValue: 'medium',
+  values: ['low', 'medium', 'high'],
+  group: 'output_format',
+};
+
 const THINKING_TYPE_ADAPTIVE_ONLY: SeedSpec = {
   path: 'thinking.type',
   type: 'enum',
@@ -160,6 +192,16 @@ const OPENAI_GPT_5_REASONING_MODELS = [
 
 const OPENAI_GPT_5_1_REASONING_MODELS = ['gpt-5.1'] as const;
 
+const OPENAI_SUBSCRIPTION_MODELS = [
+  'gpt-5.4',
+  'gpt-5.3-codex',
+  'gpt-5.2-codex',
+  'gpt-5.2',
+  'gpt-5.1-codex',
+] as const;
+
+const OPENAI_SUBSCRIPTION_MAX_REASONING_MODELS = ['gpt-5.1-codex-max'] as const;
+
 const ANTHROPIC_ADAPTIVE_ONLY_MODELS = ['claude-opus-4-7'] as const;
 
 const ANTHROPIC_FULL_THINKING_MODELS = [
@@ -187,6 +229,10 @@ const ANTHROPIC_SAMPLING_ONLY_MODELS = [
   'claude-3-opus-latest',
   'claude-3-opus-20240229',
 ] as const;
+
+const ANTHROPIC_SUBSCRIPTION_FULL_THINKING_MODELS = ['claude-opus-4', 'claude-sonnet-4'] as const;
+
+const ANTHROPIC_SUBSCRIPTION_EXTENDED_ONLY_MODELS = ['claude-haiku-4'] as const;
 
 const DEEPSEEK_THINKING_MODELS = [
   'deepseek-chat',
@@ -311,6 +357,20 @@ function providerParamRows(): SeedRow[] {
     ...OPENAI_GPT_5_1_REASONING_MODELS.flatMap((model) =>
       openAiRows(model, [MAX_TOKENS, OPENAI_TEMPERATURE, TOP_P, OPENAI_GPT_5_1_REASONING_EFFORT]),
     ),
+    ...OPENAI_SUBSCRIPTION_MODELS.flatMap((model) =>
+      openAiRowsForAuth('subscription', model, [
+        OPENAI_SUBSCRIPTION_REASONING_EFFORT,
+        OPENAI_SUBSCRIPTION_REASONING_SUMMARY,
+        OPENAI_SUBSCRIPTION_VERBOSITY,
+      ]),
+    ),
+    ...OPENAI_SUBSCRIPTION_MAX_REASONING_MODELS.flatMap((model) =>
+      openAiRowsForAuth('subscription', model, [
+        OPENAI_SUBSCRIPTION_MAX_REASONING_EFFORT,
+        OPENAI_SUBSCRIPTION_REASONING_SUMMARY,
+        OPENAI_SUBSCRIPTION_VERBOSITY,
+      ]),
+    ),
     ...ANTHROPIC_ADAPTIVE_ONLY_MODELS.flatMap((model) =>
       anthropicRows(model, [THINKING_TYPE_ADAPTIVE_ONLY]),
     ),
@@ -321,6 +381,15 @@ function providerParamRows(): SeedRow[] {
       anthropicRows(model, [THINKING_TYPE_EXTENDED_ONLY, THINKING_BUDGET_TOKENS]),
     ),
     ...ANTHROPIC_SAMPLING_ONLY_MODELS.flatMap((model) => anthropicRows(model, [])),
+    ...ANTHROPIC_SUBSCRIPTION_FULL_THINKING_MODELS.flatMap((model) =>
+      anthropicRowsForAuth('subscription', model, [THINKING_TYPE_FULL, THINKING_BUDGET_TOKENS]),
+    ),
+    ...ANTHROPIC_SUBSCRIPTION_EXTENDED_ONLY_MODELS.flatMap((model) =>
+      anthropicRowsForAuth('subscription', model, [
+        THINKING_TYPE_EXTENDED_ONLY,
+        THINKING_BUDGET_TOKENS,
+      ]),
+    ),
     ...DEEPSEEK_THINKING_MODELS.map((model) =>
       row('deepseek', 'api_key', model, DEEPSEEK_THINKING),
     ),
@@ -328,12 +397,28 @@ function providerParamRows(): SeedRow[] {
 }
 
 function openAiRows(model: string, specs: readonly SeedSpec[]): SeedRow[] {
-  return specs.map((spec) => row('openai', 'api_key', model, spec));
+  return openAiRowsForAuth('api_key', model, specs);
+}
+
+function openAiRowsForAuth(
+  authType: 'api_key' | 'subscription',
+  model: string,
+  specs: readonly SeedSpec[],
+): SeedRow[] {
+  return specs.map((spec) => row('openai', authType, model, spec));
 }
 
 function anthropicRows(model: string, reasoningSpecs: readonly SeedSpec[]): SeedRow[] {
+  return anthropicRowsForAuth('api_key', model, reasoningSpecs);
+}
+
+function anthropicRowsForAuth(
+  authType: 'api_key' | 'subscription',
+  model: string,
+  reasoningSpecs: readonly SeedSpec[],
+): SeedRow[] {
   return [MAX_TOKENS, ANTHROPIC_TEMPERATURE, ANTHROPIC_TOP_P, TOP_K, ...reasoningSpecs].map(
-    (spec) => row('anthropic', 'api_key', model, spec),
+    (spec) => row('anthropic', authType, model, spec),
   );
 }
 
