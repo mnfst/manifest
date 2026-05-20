@@ -84,24 +84,39 @@ const Settings: Component = () => {
   const keyData = () => (apiKeyData.error ? undefined : apiKeyData());
   const fullKey = () => rotatedKey() ?? keyData()?.apiKey ?? null;
 
-  const recording = () => agentInfo()?.record_messages === true;
-  const [togglingRecording, setTogglingRecording] = createSignal(false);
+  const logging = () => agentInfo()?.record_messages === true;
+  const [togglingLogs, setTogglingLogs] = createSignal(false);
+  const [showDisableLogsModal, setShowDisableLogsModal] = createSignal(false);
 
-  const handleToggleRecording = async (next: boolean) => {
-    if (togglingRecording()) return;
-    setTogglingRecording(true);
+  const handleToggleLogs = async (next: boolean) => {
+    if (togglingLogs()) return;
+    if (!next) {
+      setShowDisableLogsModal(true);
+      return;
+    }
+    setTogglingLogs(true);
     try {
-      await updateAgent(agentName(), { record_messages: next });
+      await updateAgent(agentName(), { record_messages: true });
       await refetchInfo();
-      toast.success(
-        next
-          ? 'Recording enabled. New messages will be captured.'
-          : 'Recording disabled. Existing recordings are kept.',
-      );
+      toast.success('Privacy mode disabled');
     } catch {
       /* error toast handled by fetchMutate */
     } finally {
-      setTogglingRecording(false);
+      setTogglingLogs(false);
+    }
+  };
+
+  const confirmDisableLogs = async () => {
+    setShowDisableLogsModal(false);
+    setTogglingLogs(true);
+    try {
+      await updateAgent(agentName(), { record_messages: false });
+      await refetchInfo();
+      toast.success('Privacy mode enabled');
+    } catch {
+      /* error toast handled by fetchMutate */
+    } finally {
+      setTogglingLogs(false);
     }
   };
   const displayedKey = () => {
@@ -352,52 +367,46 @@ const Settings: Component = () => {
         </Show>
       </ErrorBoundary>
 
-      {/* -- Recording ---------------------------------- */}
-      <h3 class="settings-section__title">
-        Recording
-        <Show when={recording()}>
-          <span class="recording-status-pill" role="status" aria-live="polite">
-            <span class="recording-status-pill__dot" aria-hidden="true" />
-            <span>Recording</span>
-          </span>
-        </Show>
-      </h3>
-      <div class="settings-card">
-        <div class="settings-card__row">
-          <div class="settings-card__label">
-            <span class="settings-card__label-title">Record messages</span>
-            <span class="settings-card__label-desc">
-              Store the full request (messages, headers) and full response for every proxy call made
-              by this agent. Useful for debugging. Anyone with access to this workspace can read the
-              captured content.
-            </span>
-            <span class="settings-card__label-desc settings-card__label-desc--meta">
-              Retention: kept until you delete them.
-            </span>
-          </div>
-          <div class="settings-card__control settings-card__control--end">
-            <label class="notification-toggle" aria-label="Toggle message recording">
-              <input
-                type="checkbox"
-                checked={recording()}
-                disabled={togglingRecording() || agentInfo.loading}
-                onChange={(e) => handleToggleRecording(e.currentTarget.checked)}
-              />
-              <span class="notification-toggle__slider" />
-            </label>
-          </div>
-        </div>
-      </div>
-
       {/* -- Danger Zone -------------------------------- */}
       <h2 class="settings-section__title settings-section__title--danger">Danger zone</h2>
       <div class="settings-card settings-card--danger">
         <div class="settings-card__row">
           <div class="settings-card__label">
+            <span class="settings-card__label-title">Privacy mode</span>
+            <span class="settings-card__label-desc">
+              When privacy mode is enabled, requests and responses are not captured. You lose
+              visibility on conversations and troubleshooting data.
+            </span>
+          </div>
+          <div class="settings-card__control">
+            <Show
+              when={logging()}
+              fallback={
+                <button
+                  class="btn btn--danger btn--sm"
+                  onClick={() => handleToggleLogs(true)}
+                  disabled={togglingLogs() || agentInfo.loading}
+                >
+                  {togglingLogs() ? <span class="spinner" /> : 'Disable privacy mode'}
+                </button>
+              }
+            >
+              <button
+                class="btn btn--danger btn--sm"
+                onClick={() => handleToggleLogs(false)}
+                disabled={togglingLogs() || agentInfo.loading}
+              >
+                {togglingLogs() ? <span class="spinner" /> : 'Enable privacy mode'}
+              </button>
+            </Show>
+          </div>
+        </div>
+        <div class="settings-card__row">
+          <div class="settings-card__label">
             <span class="settings-card__label-title">Delete this agent</span>
             <span class="settings-card__label-desc">
-              Permanently delete this agent, its API key, and all recorded messages and analytics.
-              This action cannot be undone.
+              Permanently delete this agent, its API key, and all messages and analytics. This
+              action cannot be undone.
             </span>
           </div>
           <div class="settings-card__control">
@@ -499,6 +508,80 @@ const Settings: Component = () => {
                 'Delete this agent'
               )}
             </button>
+          </div>
+        </div>
+      </Show>
+
+      {/* -- Disable Logs Modal ------------------------ */}
+      <Show when={showDisableLogsModal()}>
+        <div
+          class="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowDisableLogsModal(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setShowDisableLogsModal(false);
+          }}
+        >
+          <div
+            class="modal-card"
+            style="max-width: 440px;"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="disable-logs-modal-title"
+          >
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
+              <h3 id="disable-logs-modal-title" style="margin: 0; font-size: var(--font-size-lg);">
+                Enable privacy mode
+              </h3>
+              <button
+                style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px;"
+                onClick={() => setShowDisableLogsModal(false)}
+                aria-label="Close"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </button>
+            </div>
+            <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-sm);">
+              Without logs, you will lose visibility on:
+            </p>
+            <ul style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin: 0 0 var(--gap-md) 0; padding-left: 20px; line-height: 1.7;">
+              <li>
+                <strong style="color: hsl(var(--foreground));">Conversation context:</strong> no way
+                to review what your agent sent or received
+              </li>
+              <li>
+                <strong style="color: hsl(var(--foreground));">Troubleshooting:</strong> no data to
+                diagnose unexpected responses
+              </li>
+            </ul>
+            <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-lg);">
+              Existing logs will be kept.
+            </p>
+            <div style="display: flex; gap: var(--gap-sm); justify-content: flex-end;">
+              <button
+                class="btn btn--primary btn--sm"
+                onClick={() => setShowDisableLogsModal(false)}
+              >
+                Cancel
+              </button>
+              <button class="btn btn--danger btn--sm" onClick={confirmDisableLogs}>
+                Enable privacy mode
+              </button>
+            </div>
           </div>
         </div>
       </Show>
