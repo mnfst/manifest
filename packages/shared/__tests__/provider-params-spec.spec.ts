@@ -97,6 +97,9 @@ describe('provider-params-spec', () => {
         getProviderParamSpecs(catalog, 'anthropic', 'subscription', 'claude-sonnet-4-6'),
       ).toEqual([]);
       expect(getProviderParamSpecs(catalog, 'openai', 'api_key', 'gpt-5')).toHaveLength(1);
+      expect(getProviderParamSpecs(catalog, undefined, 'api_key', 'gpt-5')).toEqual([]);
+      expect(getProviderParamSpecs(catalog, 'openai', undefined, 'gpt-5')).toEqual([]);
+      expect(getProviderParamSpecs(catalog, 'openai', 'api_key', undefined)).toEqual([]);
     });
 
     it('is provider-case-insensitive and keeps nested model ids literal', () => {
@@ -141,8 +144,19 @@ describe('provider-params-spec', () => {
 
     it('supports negated except constraints', () => {
       const spec = topPSpec;
+      expect(providerParamIsApplicable(spec, {})).toBe(true);
       expect(providerParamIsApplicable(spec, { temperature: 1 })).toBe(true);
       expect(providerParamIsApplicable(spec, { temperature: 0.2 })).toBe(false);
+    });
+
+    it('treats defensive undefined conditions as matching only undefined values', () => {
+      const spec = {
+        ...temperatureSpec,
+        applicability: { except: { temperature: undefined } },
+      } as unknown as typeof temperatureSpec;
+
+      expect(providerParamIsApplicable(spec, { temperature: undefined })).toBe(false);
+      expect(providerParamIsApplicable(spec, { temperature: 1 })).toBe(true);
     });
 
     it('does not match primitive conditions against object values', () => {
@@ -161,9 +175,13 @@ describe('provider-params-spec', () => {
     });
 
     it('rejects unknown fields and malformed conditions', () => {
+      expect(isParamApplicability(null)).toBe(false);
       expect(isParamApplicability({ conflictsWith: ['temperature'] })).toBe(false);
+      expect(isParamApplicability({ only: { temperature: { nope: 1 } } })).toBe(false);
       expect(isParamApplicability({ except: { temperature: { not: 1, value: 0 } } })).toBe(false);
       expect(isParamApplicability({ except: [] })).toBe(false);
+      expect(isParamApplicability({ except: ['temperature'] })).toBe(false);
+      expect(isParamApplicability({ except: { temperature: undefined } })).toBe(false);
       expect(isParamApplicability({ except: { temperature: { value: 0 } } })).toBe(false);
       expect(isParamApplicability({})).toBe(false);
     });
@@ -230,6 +248,13 @@ describe('provider-params-spec', () => {
       expect(providerParamValueIsValid(temperatureSpec, 1.2)).toBe(false);
       expect(providerParamValueIsValid(thinkingBudgetSpec, 2048)).toBe(true);
       expect(providerParamValueIsValid(thinkingBudgetSpec, 2048.5)).toBe(false);
+      expect(providerParamValueIsValid(thinkingBudgetSpec, 512)).toBe(false);
+      expect(providerParamValueIsValid({ ...thinkingTypeSpec, values: undefined }, 'enabled')).toBe(
+        false,
+      );
+      expect(
+        providerParamValueIsValid({ ...thinkingTypeSpec, type: 'unknown' as 'enum' }, 'enabled'),
+      ).toBe(false);
     });
 
     it('keeps boolean values as booleans', () => {
@@ -246,6 +271,21 @@ describe('provider-params-spec', () => {
       } as const;
       expect(providerParamValueIsValid(booleanSpec, true)).toBe(true);
       expect(providerParamValueIsValid(booleanSpec, 'true')).toBe(false);
+    });
+
+    it('keeps string values as strings', () => {
+      const stringSpec = {
+        ...thinkingTypeSpec,
+        path: 'metadata.user',
+        type: 'string',
+        label: 'User',
+        description: 'Provider metadata user id.',
+        default: '',
+        values: undefined,
+      } as const;
+
+      expect(providerParamValueIsValid(stringSpec, 'user-1')).toBe(true);
+      expect(providerParamValueIsValid(stringSpec, 123)).toBe(false);
     });
   });
 
@@ -300,6 +340,7 @@ describe('provider-params-spec', () => {
       expect(getProviderParamValue({ thinking: { type: 'enabled' } }, 'thinking.type')).toBe(
         'enabled',
       );
+      expect(getProviderParamValue({ thinking: 'enabled' }, 'thinking.type')).toBeUndefined();
     });
   });
 
@@ -314,6 +355,9 @@ describe('provider-params-spec', () => {
         temperature: 0.2,
         thinking: { type: 'enabled' },
       });
+      expect(deleteProviderParamValue({ thinking: 'enabled' }, 'thinking.budget_tokens')).toEqual({
+        thinking: 'enabled',
+      });
       expect(params).toEqual({
         temperature: 0.2,
         thinking: { type: 'enabled', budget_tokens: 4096 },
@@ -322,6 +366,16 @@ describe('provider-params-spec', () => {
   });
 
   describe('setProviderParamValue', () => {
+    it('sets nested values without mutating the input', () => {
+      const params = { temperature: 0.2 };
+
+      expect(setProviderParamValue(params, 'thinking.type', 'enabled')).toEqual({
+        temperature: 0.2,
+        thinking: { type: 'enabled' },
+      });
+      expect(params).toEqual({ temperature: 0.2 });
+    });
+
     it('rejects unsafe paths without polluting prototypes', () => {
       expect(() => setProviderParamValue({}, '__proto__.polluted', true)).toThrow(
         'Invalid provider param path',
