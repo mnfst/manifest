@@ -95,6 +95,7 @@ import { AddProviderKeyLabelToAgentMessages1785100000000 } from './migrations/17
 import { AddRequestParamsColumn1786000000000 } from './migrations/1786000000000-AddRequestParamsColumn';
 import { AddAgentRecordMessages1786100000000 } from './migrations/1786100000000-AddAgentRecordMessages';
 import { AddMessageRecordings1786200000000 } from './migrations/1786200000000-AddMessageRecordings';
+import { DefaultRecordMessagesTrue1786300000000 } from './migrations/1786300000000-DefaultRecordMessagesTrue';
 
 const entities = [
   AgentMessage,
@@ -191,6 +192,7 @@ const migrations = [
   AddRequestParamsColumn1786000000000,
   AddAgentRecordMessages1786100000000,
   AddMessageRecordings1786200000000,
+  DefaultRecordMessagesTrue1786300000000,
 ];
 
 @Module({

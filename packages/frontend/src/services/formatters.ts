@@ -2,6 +2,7 @@
  * Format large numbers with suffix (1.2k, 304.3k, 1.2M).
  */
 export function formatNumber(n: number): string {
+  n = Number(n);
   if (n >= 1_000_000) {
     const v = n / 1_000_000;
     return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}M`;
@@ -19,6 +20,7 @@ export function formatNumber(n: number): string {
  * Returns "< $0.01" for small sub-cent positive costs to avoid misleading "$0.00".
  */
 export function formatCost(n: number): string | null {
+  n = Number(n);
   if (n < 0) return null;
   if (n > 0 && n < 0.01) return '< $0.01';
   return `$${n.toFixed(2)}`;
@@ -82,6 +84,7 @@ export function formatMetricType(metricType: string): string {
  * Format a duration in milliseconds (e.g., "423ms", "1.2s").
  */
 export function formatDuration(ms: number): string {
+  ms = Number(ms);
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
 }

@@ -154,7 +154,7 @@ export function columnHeader(key: MessageColumnKey, tooltips?: boolean): JSX.Ele
 }
 
 export function DateCell(item: MessageRow): JSX.Element {
-  return <td style={`white-space: nowrap; ${MONO_XS}`}>{formatTime(item.timestamp)}</td>;
+  return <td style={`white-space: nowrap; width: 1%; ${MONO_XS}`}>{formatTime(item.timestamp)}</td>;
 }
 
 export function MessageCell(item: MessageRow): JSX.Element {
@@ -174,19 +174,14 @@ export function MessageCell(item: MessageRow): JSX.Element {
 }
 
 export function CostCell(item: MessageRow): JSX.Element {
+  const cost = item.cost;
   return (
     <td style={MONO}>
       <Show
         when={item.auth_type === 'subscription'}
         fallback={
-          <span
-            title={
-              item.cost != null && item.cost > 0 && item.cost < 0.01
-                ? `$${item.cost.toFixed(6)}`
-                : undefined
-            }
-          >
-            {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}
+          <span title={cost != null && cost > 0 && cost < 0.01 ? `$${cost.toFixed(6)}` : undefined}>
+            {cost != null ? (formatCost(cost) ?? '\u2014') : '\u2014'}
           </span>
         }
       >
@@ -303,37 +298,25 @@ export function ModelCell(
             fallback
           </span>
         )}
-        {item.recorded && onOpenRecording ? (
-          <button
-            type="button"
-            class="msg-recorded-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenRecording(item.id);
-            }}
-            title="View recorded request and response"
-            aria-label="View recorded request and response"
-          >
-            <RecordedIcon />
-          </button>
-        ) : null}
       </span>
     </td>
   );
 }
 
 export function TokenCell(value: number | null): JSX.Element {
-  return <td style={MONO}>{value != null ? formatNumber(value) : '\u2014'}</td>;
+  return <td style={`width: 130px; ${MONO}`}>{value != null ? formatNumber(value) : '\u2014'}</td>;
 }
 
 export function SmallTokenCell(value: number | null): JSX.Element {
-  return <td style={MONO_XS}>{value != null ? formatNumber(value) : '\u2014'}</td>;
+  return (
+    <td style={`width: 102px; ${MONO_XS}`}>{value != null ? formatNumber(value) : '\u2014'}</td>
+  );
 }
 
 export function CacheCell(item: MessageRow): JSX.Element {
   const has = (item.cache_read_tokens ?? 0) > 0 || (item.cache_creation_tokens ?? 0) > 0;
   return (
-    <td style={MONO_XS}>
+    <td style={`width: 192px; ${MONO_XS}`}>
       {has
         ? `Read: ${formatNumber(item.cache_read_tokens ?? 0)} / Write: ${formatNumber(item.cache_creation_tokens ?? 0)}`
         : '\u2014'}

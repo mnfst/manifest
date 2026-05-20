@@ -116,7 +116,10 @@ export function DrawerMetrics(props: MetricsProps): JSX.Element {
         <MetricPill label="tier" value={props.message.routing_tier} />
       </Show>
       <Show when={props.recording?.size_bytes != null}>
-        <MetricPill label="size" value={`${(props.recording!.size_bytes! / 1024).toFixed(1)} KB`} />
+        <MetricPill
+          label="size"
+          value={`${(Number(props.recording!.size_bytes!) / 1024).toFixed(1)} KB`}
+        />
       </Show>
     </div>
   );

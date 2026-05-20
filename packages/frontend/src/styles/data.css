@@ -594,6 +594,21 @@
   border-bottom-color: transparent;
 }
 
+.msg-row--clickable {
+  cursor: pointer;
+}
+
+.msg-row--clickable:hover > td {
+  background: hsl(var(--accent));
+}
+
+.msg-detail__eye-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--muted-foreground));
+}
+
 .msg-detail__row > td {
   padding: 0 !important;
 }
