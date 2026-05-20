@@ -98,7 +98,7 @@ describe('ProviderParamSpecService', () => {
     await expect(service.refreshCache()).resolves.toBe(2);
 
     expect(fetchSpy).toHaveBeenCalledWith(
-      'https://modelparameters.dev/api/v1/models.json',
+      expect.stringMatching(/^https:\/\/modelparameters\.dev\/api\/v1\/models\.json\?refresh=\d+$/),
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
     const remoteSpecs = await service.getSpecs('openai', 'api_key', 'gpt-test');

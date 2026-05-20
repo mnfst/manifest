@@ -9,7 +9,21 @@ can configure for a provider/auth/model tuple. User-selected values still live i
 
 The runtime source is `https://modelparameters.dev/api/v1/models.json`.
 Manifest caches the latest valid remote catalog in memory and keeps that cache
-through transient refresh failures.
+through transient refresh failures. Runtime fetches add a cache-busting query
+parameter so webhook-triggered refreshes are not delayed by CDN cache TTLs.
+
+Production can refresh the cache immediately from a GitHub webhook on the
+`mnfst/modelparameters.dev` repository. Configure a GitHub Pull request webhook
+with:
+
+- Payload URL: `https://<manifest-host>/api/v1/webhooks/model-parameters/github`
+- Content type: `application/json`
+- Secret: the same value as Manifest's `MODEL_PARAMETERS_WEBHOOK_SECRET`
+- Events: Pull requests
+
+Manifest verifies `X-Hub-Signature-256` and refreshes only when a pull request
+is closed, merged, targets `main`, and belongs to `mnfst/modelparameters.dev`.
+The daily 4am refresh remains the fallback.
 
 The executable validator is `isParamApplicability` in
 `packages/shared/src/provider-params-spec.ts`. Any schema change must update:

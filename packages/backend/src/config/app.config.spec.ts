@@ -39,6 +39,12 @@ describe('appConfig', () => {
     expect(config.betterAuthUrl).toBe('https://auth.example.com');
   });
 
+  it('reads MODEL_PARAMETERS_WEBHOOK_SECRET from env', async () => {
+    process.env['MODEL_PARAMETERS_WEBHOOK_SECRET'] = 'webhook-secret';
+    const config = await loadConfig();
+    expect(config.modelParametersWebhookSecret).toBe('webhook-secret');
+  });
+
   it('defaults throttle settings', async () => {
     delete process.env['THROTTLE_TTL'];
     delete process.env['THROTTLE_LIMIT'];

@@ -18,6 +18,7 @@ export const appConfig = registerAs('app', () => ({
   throttleTtl: Number(process.env['THROTTLE_TTL'] ?? 60000),
   throttleLimit: Number(process.env['THROTTLE_LIMIT'] ?? 100),
   apiKey: process.env['API_KEY'] ?? '',
+  modelParametersWebhookSecret: process.env['MODEL_PARAMETERS_WEBHOOK_SECRET'] ?? '',
   bindAddress: process.env['BIND_ADDRESS'] ?? '127.0.0.1',
   // Unified email provider (used for BOTH Better Auth transactional emails
   // and threshold alerts when no per-user config exists). Supports mailgun,

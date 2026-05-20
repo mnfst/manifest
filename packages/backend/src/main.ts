@@ -180,8 +180,18 @@ export async function bootstrap() {
   const { toNodeHandler } = await import('better-auth/node');
   expressApp.all('/api/auth/*splat', toNodeHandler(auth));
 
-  // Re-add body parsing for NestJS routes
-  expressApp.use(express.json({ limit: '1mb' }));
+  // Re-add body parsing for NestJS routes. Keep the raw JSON bytes only
+  // when a webhook signature needs to be checked.
+  expressApp.use(
+    express.json({
+      limit: '1mb',
+      verify: (req, _res, buf) => {
+        if (req.headers['x-hub-signature-256']) {
+          (req as express.Request & { rawBody?: Buffer }).rawBody = Buffer.from(buf);
+        }
+      },
+    }),
+  );
   expressApp.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
   const port = Number(process.env['PORT'] ?? 3001);

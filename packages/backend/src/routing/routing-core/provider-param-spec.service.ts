@@ -95,7 +95,7 @@ export class ProviderParamSpecService implements OnModuleInit {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const res = await fetch(MODEL_PARAMETERS_API, { signal: controller.signal });
+      const res = await fetch(modelParametersApiUrl(), { signal: controller.signal });
       if (!res.ok) {
         this.logger.warn(`modelparameters.dev API returned ${res.status}`);
         return null;
@@ -108,6 +108,12 @@ export class ProviderParamSpecService implements OnModuleInit {
       clearTimeout(timeout);
     }
   }
+}
+
+function modelParametersApiUrl(): string {
+  const url = new URL(MODEL_PARAMETERS_API);
+  url.searchParams.set('refresh', String(Date.now()));
+  return url.toString();
 }
 
 function freezeCatalog(catalog: ProviderParamSpecCatalog): ProviderParamSpecCatalog {
