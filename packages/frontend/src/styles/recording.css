@@ -580,7 +580,11 @@
   }
 
   .recorded-drawer__conversation-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+  }
+
+  .recorded-drawer__resize-handle {
+    display: none;
   }
 
   .recorded-modal__rail {
@@ -844,9 +848,49 @@
 /* ── 3-pane layout (rail + main) ──────────────── */
 .recorded-drawer__conversation-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 260px 4px 1fr;
   min-height: 0;
   height: 100%;
+}
+
+.recorded-drawer__conversation-layout--dragging {
+  user-select: none;
+  cursor: col-resize;
+}
+
+.recorded-drawer__resize-handle {
+  width: 4px;
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background 150ms ease;
+  position: relative;
+}
+
+.recorded-drawer__resize-handle:hover,
+.recorded-drawer__conversation-layout--dragging .recorded-drawer__resize-handle {
+  background: hsl(var(--border));
+}
+
+.recorded-drawer__resize-handle--collapsed {
+  cursor: e-resize;
+  background: hsl(var(--border));
+}
+
+.recorded-drawer__resize-grip {
+  width: 2px;
+  height: 24px;
+  border-radius: 1px;
+  background: hsl(var(--muted-foreground) / 0.3);
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.recorded-drawer__resize-handle:hover .recorded-drawer__resize-grip,
+.recorded-drawer__conversation-layout--dragging .recorded-drawer__resize-grip {
+  opacity: 1;
 }
 
 .recorded-drawer__conversation-main {
