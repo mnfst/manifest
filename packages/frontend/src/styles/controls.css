@@ -460,7 +460,7 @@
   border-radius: var(--radius);
   box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
   padding: 4px;
-  z-index: 50;
+  z-index: 200;
   animation: fadeInUp 100ms ease-out;
 }
 

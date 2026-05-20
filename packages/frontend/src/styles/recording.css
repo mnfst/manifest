@@ -528,6 +528,7 @@
   align-items: stretch;
   padding: 0;
   animation: none;
+  z-index: 50 !important;
 }
 
 .recorded-drawer {
