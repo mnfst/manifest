@@ -90,6 +90,25 @@ function diffTable(a, b) {
       changes.push({ kind: 'dropped', column: name, type: col.type });
     }
   }
+
+  const aPk = new Set(a.primaryKeys || []);
+  const bPk = new Set(b.primaryKeys || []);
+  const pkAdded = [...bPk].filter((c) => !aPk.has(c));
+  const pkDropped = [...aPk].filter((c) => !bPk.has(c));
+  if (pkAdded.length || pkDropped.length) {
+    changes.push({ kind: 'pk-changed', added: pkAdded, dropped: pkDropped });
+  }
+
+  const fkKey = (fk) => `${fk.column}->${fk.toTable}.${fk.toColumn}`;
+  const aFk = new Map((a.foreignKeys || []).map((fk) => [fkKey(fk), fk]));
+  const bFk = new Map((b.foreignKeys || []).map((fk) => [fkKey(fk), fk]));
+  for (const [k, fk] of bFk) {
+    if (!aFk.has(k)) changes.push({ kind: 'fk-added', fk });
+  }
+  for (const [k, fk] of aFk) {
+    if (!bFk.has(k)) changes.push({ kind: 'fk-dropped', fk });
+  }
+
   return changes;
 }
 
@@ -162,12 +181,22 @@ function buildSummary(added, modified, dropped) {
 }
 
 function describeChanges(changes) {
-  const counts = { added: 0, modified: 0, dropped: 0 };
+  const counts = {
+    added: 0,
+    modified: 0,
+    dropped: 0,
+    'fk-added': 0,
+    'fk-dropped': 0,
+    'pk-changed': 0,
+  };
   for (const c of changes) counts[c.kind]++;
   const parts = [];
   if (counts.added) parts.push(`+${counts.added} col`);
   if (counts.modified) parts.push(`~${counts.modified} col`);
   if (counts.dropped) parts.push(`-${counts.dropped} col`);
+  if (counts['fk-added']) parts.push(`+${counts['fk-added']} FK`);
+  if (counts['fk-dropped']) parts.push(`-${counts['fk-dropped']} FK`);
+  if (counts['pk-changed']) parts.push('PK changed');
   return parts.join(', ');
 }
 
@@ -191,8 +220,17 @@ function buildDetails(snapshot, added, modified, dropped) {
         const fromDesc = `\`${c.from.type}\` ${c.from.nullable ? 'NULL' : 'NOT NULL'}`;
         const toDesc = `\`${c.to.type}\` ${c.to.nullable ? 'NULL' : 'NOT NULL'}`;
         out.push(`- 🔄 modified \`${c.column}\`: ${fromDesc} → ${toDesc}`);
-      } else {
+      } else if (c.kind === 'dropped') {
         out.push(`- ➖ dropped \`${c.column}\` _(was \`${c.type}\`)_`);
+      } else if (c.kind === 'fk-added') {
+        out.push(`- 🔗 added FK \`${c.fk.column}\` → \`${c.fk.toTable}.${c.fk.toColumn}\``);
+      } else if (c.kind === 'fk-dropped') {
+        out.push(`- 🔗 dropped FK \`${c.fk.column}\` → \`${c.fk.toTable}.${c.fk.toColumn}\``);
+      } else if (c.kind === 'pk-changed') {
+        const parts = [];
+        if (c.added.length) parts.push(`+ \`${c.added.join(', ')}\``);
+        if (c.dropped.length) parts.push(`- \`${c.dropped.join(', ')}\``);
+        out.push(`- 🔑 primary key changed: ${parts.join(', ')}`);
       }
     }
     out.push('');

@@ -28,9 +28,7 @@
         { "name": "key", "type": "varchar(64)", "nullable": false }
       ],
       "primaryKeys": ["id"],
-      "foreignKeys": [
-        { "column": "agent_id", "toTable": "agents", "toColumn": "id" }
-      ]
+      "foreignKeys": []
     },
     "legacy_metrics": {
       "columns": [

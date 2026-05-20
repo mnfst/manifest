@@ -8,7 +8,7 @@
 
 ### Summary
 - 🟢 **Added tables:** `routing_tiers`
-- 🟡 **Modified tables:** `agents` (+1 col, ~1 col, -1 col)
+- 🟡 **Modified tables:** `agent_api_keys` (+1 FK), `agents` (+1 col, ~1 col, -1 col)
 - 🔴 **Removed tables:** `legacy_metrics`
 
 ### Schema diagram
@@ -17,7 +17,7 @@ Full schema — added tables are 🟢, modified tables are 🟡, removed tables 
 
 ```mermaid
 erDiagram
-    agent_api_keys {
+    agent_api_keys["🟡 agent_api_keys (modified)"] {
         varchar id PK
         varchar agent_id FK
         varchar_64_ key
@@ -54,6 +54,9 @@ erDiagram
 - `tier` `varchar` NOT NULL
 - `model` `varchar` NOT NULL
 - `max_cost` `numeric(15,6)` NULL
+
+#### 🟡 `agent_api_keys`
+- 🔗 added FK `agent_id` → `agents.id`
 
 #### 🟡 `agents`
 - 🔄 modified `name`: `varchar` NOT NULL → `varchar` NULL

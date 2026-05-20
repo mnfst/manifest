@@ -61,18 +61,22 @@ async function main() {
 
   const fkRes = await client.query(`
     SELECT
-      tc.table_name AS from_table,
-      kcu.column_name AS from_column,
-      ccu.table_name AS to_table,
-      ccu.column_name AS to_column
-    FROM information_schema.table_constraints tc
-    JOIN information_schema.key_column_usage kcu
-      ON tc.constraint_name = kcu.constraint_name
-      AND tc.table_schema = kcu.table_schema
-    JOIN information_schema.constraint_column_usage ccu
-      ON ccu.constraint_name = tc.constraint_name
-      AND ccu.table_schema = tc.table_schema
-    WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public'
+      fr.relname AS from_table,
+      a_from.attname AS from_column,
+      tr.relname AS to_table,
+      a_to.attname AS to_column
+    FROM pg_constraint c
+    JOIN pg_class fr ON fr.oid = c.conrelid
+    JOIN pg_class tr ON tr.oid = c.confrelid
+    JOIN unnest(c.conkey) WITH ORDINALITY AS ck(attnum, ord) ON true
+    JOIN unnest(c.confkey) WITH ORDINALITY AS cf(attnum, ord) ON cf.ord = ck.ord
+    JOIN pg_attribute a_from
+      ON a_from.attrelid = c.conrelid AND a_from.attnum = ck.attnum
+    JOIN pg_attribute a_to
+      ON a_to.attrelid = c.confrelid AND a_to.attnum = cf.attnum
+    WHERE c.contype = 'f'
+      AND c.connamespace = 'public'::regnamespace
+    ORDER BY fr.relname, ck.ord
   `);
   for (const r of fkRes.rows) {
     if (!tables[r.from_table]) continue;
