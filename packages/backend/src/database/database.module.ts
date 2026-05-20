@@ -99,7 +99,7 @@ import { AddAgentModelParams1787000000000 } from './migrations/1787000000000-Add
 import { AddBenchmarkHistory1788000000000 } from './migrations/1788000000000-AddBenchmarkHistory';
 import { RenameBenchmarkToPlayground1789000000000 } from './migrations/1789000000000-RenameBenchmarkToPlayground';
 import { AddOAuthPendingFlows1789100000000 } from './migrations/1789100000000-AddOAuthPendingFlows';
-import { TestDbDiagramBot1789200000000 } from './migrations/1789200000000-TestDbDiagramBot';
+import { DbDiagramDemoColumn1789300000000 } from './migrations/1789300000000-DbDiagramDemoColumn';
 
 const entities = [
   AgentMessage,
@@ -200,7 +200,7 @@ const migrations = [
   AddBenchmarkHistory1788000000000,
   RenameBenchmarkToPlayground1789000000000,
   AddOAuthPendingFlows1789100000000,
-  TestDbDiagramBot1789200000000,
+  DbDiagramDemoColumn1789300000000,
 ];
 
 @Module({
