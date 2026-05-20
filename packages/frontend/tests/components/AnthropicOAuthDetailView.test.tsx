@@ -234,7 +234,7 @@ describe('AnthropicOAuthDetailView', () => {
     fireEvent.click(screen.getByText('Connect'));
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to exchange code/)).toBeDefined();
+      expect(screen.getByText('boom')).toBeDefined();
     });
   });
 

@@ -118,8 +118,12 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
       await submitAnthropicOAuth(props.agentName, raw, authState);
       toast.success(`${props.provDef.name} subscription connected`);
       props.onUpdate();
-    } catch {
-      setError('Failed to exchange code. The code may have expired — sign in again to retry.');
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to exchange code. The code may have expired — sign in again to retry.',
+      );
     } finally {
       props.setBusy(false);
     }

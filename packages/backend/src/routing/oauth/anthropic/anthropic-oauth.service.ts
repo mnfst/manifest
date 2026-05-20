@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ProviderService } from '../../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../../common/utils/secret-scrub';
@@ -21,6 +21,16 @@ interface AnthropicTokenResponse {
   refresh_token?: string;
   expires_in: number;
   token_type?: string;
+}
+
+export class AnthropicOauthExchangeError extends Error {
+  constructor(
+    message: string,
+    readonly status: HttpStatus,
+  ) {
+    super(message);
+    this.name = 'AnthropicOauthExchangeError';
+  }
 }
 
 const PROVIDER = 'anthropic';
@@ -127,7 +137,7 @@ export class AnthropicOauthService {
           describeTokenExchangeRequest(tokenRequest),
         )}`,
       );
-      throw new Error('Token exchange failed');
+      throw anthropicTokenExchangeError(response.status, text);
     }
     const data = (await response.json()) as AnthropicTokenResponse;
     const blob: OAuthTokenBlob = {
@@ -232,6 +242,27 @@ export class AnthropicOauthService {
   async findPendingForAgent(agentId: string, userId: string): Promise<{ state: string } | null> {
     const pending = await this.pendingFlows.findLatestForAgent(PROVIDER, agentId, userId);
     return pending ? { state: pending.state } : null;
+  }
+}
+
+function anthropicTokenExchangeError(status: number, text: string): AnthropicOauthExchangeError {
+  const providerError = parseAnthropicProviderError(text);
+  if (status === HttpStatus.TOO_MANY_REQUESTS || providerError?.type === 'rate_limit_error') {
+    return new AnthropicOauthExchangeError(
+      'Anthropic rate-limited the OAuth token exchange. Please wait a minute, then sign in again.',
+      HttpStatus.TOO_MANY_REQUESTS,
+    );
+  }
+  return new AnthropicOauthExchangeError('Token exchange failed', HttpStatus.BAD_REQUEST);
+}
+
+function parseAnthropicProviderError(text: string): { type?: string } | null {
+  try {
+    const parsed = JSON.parse(text) as { error?: { type?: unknown } };
+    const type = parsed.error?.type;
+    return typeof type === 'string' ? { type } : null;
+  } catch {
+    return null;
   }
 }
 

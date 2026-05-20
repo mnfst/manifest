@@ -1,6 +1,6 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { AnthropicOauthController } from './anthropic-oauth.controller';
-import { AnthropicOauthService } from './anthropic-oauth.service';
+import { AnthropicOauthExchangeError, AnthropicOauthService } from './anthropic-oauth.service';
 import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
 import { ProviderService } from '../../routing-core/provider.service';
 
@@ -71,6 +71,21 @@ describe('AnthropicOauthController', () => {
       await expect(ctrl.exchange('agent', 'code', 'state', user)).rejects.toBeInstanceOf(
         HttpException,
       );
+    });
+
+    it('preserves rate-limit status from service errors', async () => {
+      const { ctrl, oauth } = build();
+      (oauth.exchangeCode as jest.Mock).mockRejectedValue(
+        new AnthropicOauthExchangeError('Anthropic rate-limited the OAuth token exchange.', 429),
+      );
+
+      try {
+        await ctrl.exchange('agent', 'code', 'state', user);
+        throw new Error('Expected exchange to fail');
+      } catch (err) {
+        expect(err).toBeInstanceOf(HttpException);
+        expect((err as HttpException).getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
+      }
     });
 
     it('wraps non-Error throws with a generic message', async () => {
