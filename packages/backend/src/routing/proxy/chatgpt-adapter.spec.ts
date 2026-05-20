@@ -355,12 +355,12 @@ describe('chatgpt-adapter', () => {
       expect(transformResponsesStreamChunk(chunk, 'gpt-5')).toBeNull();
     });
 
-    it('emits a finish frame + [DONE] on response.completed with usage', () => {
+    it('emits a finish frame on response.completed with usage', () => {
       const chunk =
         'event: response.completed\ndata: {"response":{"usage":{"input_tokens":1,"output_tokens":2,"total_tokens":3,"input_tokens_details":{"cached_tokens":1}},"output":[]}}';
       const raw = transformResponsesStreamChunk(chunk, 'gpt-5');
       expect(raw).not.toBeNull();
-      expect(raw!.trim().endsWith('data: [DONE]')).toBe(true);
+      expect(raw).not.toContain('data: [DONE]');
       const first = raw!.split('\n\n')[0];
       const parsed = JSON.parse(first.replace(/^data: /, ''));
       expect(parsed.choices[0].finish_reason).toBe('stop');

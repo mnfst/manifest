@@ -266,12 +266,11 @@ function handleCompletedEvent(dataStr: string, model: string): string {
     ? (response.output as Array<{ type?: string }>)
     : [];
   const hasFunctionCalls = responseOutput.some((item) => item.type === 'function_call');
-  const finish = formatSSE(
+  return formatSSE(
     { delta: {}, finish_reason: hasFunctionCalls ? 'tool_calls' : 'stop' },
     model,
     usage,
   );
-  return `${finish}\ndata: [DONE]\n\n`;
 }
 
 /* ── Non-streaming SSE collection ── */
