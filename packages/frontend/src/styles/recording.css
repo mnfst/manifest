@@ -911,7 +911,7 @@
   transform: translateX(-50%);
   padding: 4px 10px;
   border-radius: var(--radius-sm, 6px);
-  font-size: 12px;
+  font-size: var(--tooltip-font-size);
   font-weight: 500;
   font-family: var(--font-family);
   white-space: nowrap;
