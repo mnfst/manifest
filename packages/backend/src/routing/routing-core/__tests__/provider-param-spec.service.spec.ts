@@ -71,10 +71,11 @@ describe('ProviderParamSpecService', () => {
     } as unknown as Response);
   }
 
-  it('starts empty before the remote catalog loads', async () => {
+  it('seeds from the bundled snapshot before the remote catalog loads', async () => {
     const service = new ProviderParamSpecService();
 
-    await expect(service.list()).resolves.toEqual([]);
+    // Offline fallback: the catalog is non-empty even with no network.
+    expect((await service.list()).length).toBeGreaterThan(0);
   });
 
   it('filters specs by provider, auth type, and model', async () => {
@@ -175,21 +176,22 @@ describe('ProviderParamSpecService', () => {
     );
   });
 
-  it('stays empty when the initial remote fetch fails', async () => {
+  it('falls back to the bundled snapshot when the initial remote fetch fails', async () => {
     fetchSpy.mockResolvedValue({ ok: false, status: 503 } as Response);
     const service = new ProviderParamSpecService();
 
     await expect(service.refreshCache()).resolves.toBe(0);
-    await expect(service.list()).resolves.toEqual([]);
+    // The seeded snapshot survives a failed refresh — never empty offline.
+    expect((await service.list()).length).toBeGreaterThan(0);
     expect(service.getLastFetchedAt()).toBeNull();
   });
 
-  it('swallows network errors and keeps the cache empty', async () => {
+  it('swallows network errors and keeps the bundled snapshot', async () => {
     fetchSpy.mockRejectedValue(new Error('network down'));
     const service = new ProviderParamSpecService();
 
     await expect(service.refreshCache()).resolves.toBe(0);
-    await expect(service.list()).resolves.toEqual([]);
+    expect((await service.list()).length).toBeGreaterThan(0);
   });
 
   it('keeps the current cache when a later remote fetch fails', async () => {

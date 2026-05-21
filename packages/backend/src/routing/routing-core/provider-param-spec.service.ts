@@ -17,6 +17,7 @@ import {
   type ProviderParamSpec,
   type ProviderParamSpecCatalog,
 } from 'manifest-shared';
+import { MPS_CATALOG_SNAPSHOT } from './mps-catalog-snapshot';
 
 const MODEL_PARAMETERS_API = 'https://modelparams.dev/api/v1/models.json';
 const FETCH_TIMEOUT_MS = 10000;
@@ -45,7 +46,12 @@ interface ModelParametersApiResponse {
 @Injectable()
 export class ProviderParamSpecService implements OnModuleInit {
   private readonly logger = new Logger(ProviderParamSpecService.name);
-  private specs: ProviderParamSpecCatalog = freezeCatalog([]);
+  // Seed from the bundled snapshot so the params catalog is never empty when
+  // modelparams.dev is unreachable at boot (offline / blocked / migrated host).
+  // refreshCache() overwrites this with fresh data on a successful fetch.
+  private specs: ProviderParamSpecCatalog = freezeCatalog(
+    parseModelParametersCatalog(MPS_CATALOG_SNAPSHOT) ?? [],
+  );
   private lastFetchedAt: Date | null = null;
   private etag: string | null = null;
 
