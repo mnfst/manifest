@@ -48,12 +48,13 @@ export class ProviderParamSpecService implements OnModuleInit {
   private specs: ProviderParamSpecCatalog = freezeCatalog([]);
   private lastFetchedAt: Date | null = null;
 
-  async onModuleInit(): Promise<void> {
-    try {
-      await this.refreshCache();
-    } catch (err) {
+  onModuleInit(): void {
+    // Fire-and-forget so a slow modelparameters.dev fetch can't delay
+    // app.listen() and trip Railway's healthcheck (see #1894). The MPS catalog
+    // falls back to its frozen default until the fetch lands.
+    void this.refreshCache().catch((err) => {
       this.logger.warn(`Startup modelparameters.dev refresh failed: ${err}`);
-    }
+    });
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_4AM)
