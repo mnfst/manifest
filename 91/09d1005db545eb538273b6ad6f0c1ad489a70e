@@ -1,0 +1,28 @@
+packages/frontend/tests/components/ProviderKeyForm.test.tsx
+  s_2a22c521aed263::t_2785dec31105a1 45,313-315,336-338,359-361,500,874-880
+packages/frontend/tests/components/OAuthDetailView.test.tsx
+  s_2a22c521aed263::t_1e7d524dfd20f8 187-203
+packages/frontend/tests/components/AnthropicOAuthDetailView.test.tsx
+  s_2a22c521aed263::t_a5325cd08d7921 494-505,550-568
+.changeset/soft-oauth-add-flows.md
+  s_2a22c521aed263::t_a705749356ad55 1-5
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_2a22c521aed263::t_183202ba5d56bc 380-419
+  s_2a22c521aed263::t_a327350ae12cc2 379,420-457
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "9109d1005db545eb538273b6ad6f0c1ad489a70e",
+  "prompts": {},
+  "sessions": {
+    "s_2a22c521aed263": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4988-c505-73d0-a41e-f15bc309f083",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
