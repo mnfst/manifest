@@ -37,8 +37,8 @@ interface TrapProps {
 const Trap: Component<TrapProps> = (props) => {
   let ref: HTMLDivElement | undefined;
   useFocusTrap(
-    () => ref,
     () => props.open,
+    () => ref,
     { initialFocus: () => props.initialFocus?.() },
   );
   return (
@@ -48,14 +48,14 @@ const Trap: Component<TrapProps> = (props) => {
   );
 };
 
-function dispatchTab(shift = false): KeyboardEvent {
+function dispatchTab(target: HTMLElement, shift = false): KeyboardEvent {
   const ev = new KeyboardEvent('keydown', {
     key: 'Tab',
     shiftKey: shift,
     bubbles: true,
     cancelable: true,
   });
-  document.dispatchEvent(ev);
+  target.dispatchEvent(ev);
   return ev;
 }
 
@@ -86,14 +86,15 @@ describe('useFocusTrap', () => {
     expect(document.activeElement?.id).toBe('b1');
   });
 
-  it('falls back to the container itself when there is no focusable child', async () => {
-    const { getByTestId } = render(() => (
+  it('does not move focus when there are no focusable children and no tabindex', async () => {
+    render(() => (
       <Trap open={true}>
         <span>no buttons</span>
       </Trap>
     ));
     await flush();
-    expect(getByTestId('trap').getAttribute('tabindex')).toBe('-1');
+    // Focus stays where it was — nothing inside the container can take it
+    expect(document.activeElement?.tagName).not.toBe('SPAN');
   });
 
   it('uses options.initialFocus when provided', async () => {
@@ -109,7 +110,7 @@ describe('useFocusTrap', () => {
   });
 
   it('wraps focus from the last element back to the first on Tab', async () => {
-    render(() => (
+    const { getByTestId } = render(() => (
       <Trap open={true}>
         <button id="b1">b1</button>
         <button id="b2">b2</button>
@@ -117,13 +118,13 @@ describe('useFocusTrap', () => {
     ));
     await flush();
     (document.getElementById('b2') as HTMLElement).focus();
-    const ev = dispatchTab();
+    const ev = dispatchTab(getByTestId('trap'));
     expect(ev.defaultPrevented).toBe(true);
     expect(document.activeElement?.id).toBe('b1');
   });
 
   it('wraps focus from the first element back to the last on Shift+Tab', async () => {
-    render(() => (
+    const { getByTestId } = render(() => (
       <Trap open={true}>
         <button id="b1">b1</button>
         <button id="b2">b2</button>
@@ -131,13 +132,13 @@ describe('useFocusTrap', () => {
     ));
     await flush();
     (document.getElementById('b1') as HTMLElement).focus();
-    const ev = dispatchTab(true);
+    const ev = dispatchTab(getByTestId('trap'), true);
     expect(ev.defaultPrevented).toBe(true);
     expect(document.activeElement?.id).toBe('b2');
   });
 
   it('ignores non-Tab keypresses', async () => {
-    render(() => (
+    const { getByTestId } = render(() => (
       <Trap open={true}>
         <button id="b1">b1</button>
         <button id="b2">b2</button>
@@ -145,18 +146,18 @@ describe('useFocusTrap', () => {
     ));
     await flush();
     (document.getElementById('b2') as HTMLElement).focus();
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    getByTestId('trap').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     expect(document.activeElement?.id).toBe('b2');
   });
 
   it('prevents the default Tab when there are no focusables left', async () => {
-    render(() => (
+    const { getByTestId } = render(() => (
       <Trap open={true}>
         <span>no buttons</span>
       </Trap>
     ));
     await flush();
-    const ev = dispatchTab();
+    const ev = dispatchTab(getByTestId('trap'));
     expect(ev.defaultPrevented).toBe(true);
   });
 
