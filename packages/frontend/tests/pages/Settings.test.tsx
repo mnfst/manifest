@@ -529,6 +529,231 @@ describe("Settings", () => {
     });
   });
 
+  describe("Logging toggle (danger zone buttons)", () => {
+    it("shows Enable logs button when logging is off", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: false,
+      });
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Enable message logs");
+        expect(container.textContent).toContain("Enable logs");
+      });
+      const enableBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Enable logs",
+      );
+      expect(enableBtn).not.toBeUndefined();
+    });
+
+    it("shows Disable logs button when logging is on", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: true,
+      });
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Disable message logs");
+        expect(container.textContent).toContain("Disable logs");
+      });
+    });
+
+    it("calls updateAgent when Enable logs is clicked", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: false,
+      });
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Enable logs");
+      });
+      const enableBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Enable logs",
+      )!;
+      fireEvent.click(enableBtn);
+      await vi.waitFor(() => {
+        expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", {
+          record_messages: true,
+        });
+      });
+    });
+
+    it("handles enable logs errors gracefully", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: false,
+      });
+      mockUpdateAgent.mockRejectedValueOnce(new Error("boom"));
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Enable logs");
+      });
+      const enableBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Enable logs",
+      )!;
+      fireEvent.click(enableBtn);
+      await vi.waitFor(() => {
+        expect(mockUpdateAgent).toHaveBeenCalled();
+      });
+    });
+
+    it("opens confirmation modal and calls updateAgent when Disable logs is confirmed", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: true,
+      });
+      const { toast } = await import("../../src/services/toast-store.js");
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Disable logs");
+      });
+      const disableBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Disable logs",
+      )!;
+      fireEvent.click(disableBtn);
+      // Confirmation modal should appear
+      await vi.waitFor(() => {
+        expect(document.body.textContent).toContain("Disable logs");
+      });
+      // Click the confirm "Disable logs" button inside the modal
+      const modalDisableBtn = Array.from(document.querySelectorAll(".modal-overlay .btn--danger")).find(
+        (b) => b.textContent?.trim() === "Disable logs",
+      ) as HTMLButtonElement;
+      expect(modalDisableBtn).not.toBeUndefined();
+      fireEvent.click(modalDisableBtn);
+      await vi.waitFor(() => {
+        expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", {
+          record_messages: false,
+        });
+      });
+      await vi.waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith("Logs disabled");
+      });
+    });
+
+    it("does not call updateAgent when Disable logs modal is cancelled", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: true,
+      });
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Disable logs");
+      });
+      const disableBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Disable logs",
+      )!;
+      fireEvent.click(disableBtn);
+      await vi.waitFor(() => {
+        expect(document.body.textContent).toContain("Disable logs");
+      });
+      // Click Cancel inside the modal
+      const cancelBtn = Array.from(document.querySelectorAll(".modal-overlay .btn--primary")).find(
+        (b) => b.textContent?.trim() === "Cancel",
+      ) as HTMLButtonElement;
+      fireEvent.click(cancelBtn);
+      expect(mockUpdateAgent).not.toHaveBeenCalled();
+    });
+  });
+
+  it("handles updateAgent rejection in type modal save without crashing", async () => {
+    mockUpdateAgent.mockRejectedValueOnce(new Error("type update failed"));
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    fireEvent.click(
+      Array.from(container.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Change"),
+      )!,
+    );
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
+    });
+    fireEvent.click(container.querySelector('[data-testid="pick-app"]')!);
+    fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
+    const modalSaveBtn = Array.from(
+      container.querySelectorAll(".modal-card__footer button"),
+    ).find((b) => b.textContent?.includes("Save")) as HTMLButtonElement;
+    fireEvent.click(modalSaveBtn);
+    await vi.waitFor(() => {
+      expect(mockUpdateAgent).toHaveBeenCalled();
+    });
+    // After the rejection, the modal should still be visible (not advanced to setup modal)
+    // and the Save button should be re-enabled (savingType back to false).
+    await vi.waitFor(() => {
+      const stillThere = container.querySelector(".modal-card__footer button");
+      expect(stillThere!.hasAttribute("disabled")).toBe(false);
+    });
+  });
+
+  it("closes the Change type modal when Escape is pressed", async () => {
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    fireEvent.click(
+      Array.from(container.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Change"),
+      )!,
+    );
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
+    });
+    // The change-type modal is the second overlay — find the one hosting the picker
+    const pickerModal = container
+      .querySelector('[data-testid="agent-type-picker"]')!
+      .closest(".modal-overlay") as HTMLElement;
+    expect(pickerModal).not.toBeNull();
+    fireEvent.keyDown(pickerModal, { key: "Escape" });
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).toBeNull();
+    });
+  });
+
+  it("closes the Change type modal when clicking the overlay backdrop", async () => {
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    fireEvent.click(
+      Array.from(container.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Change"),
+      )!,
+    );
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
+    });
+    const pickerModal = container
+      .querySelector('[data-testid="agent-type-picker"]')!
+      .closest(".modal-overlay") as HTMLElement;
+    fireEvent.click(pickerModal);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).toBeNull();
+    });
+  });
+
   it("uses app.manifest.build URL when hostname matches", async () => {
     const originalLocation = window.location;
     Object.defineProperty(window, "location", {
@@ -562,6 +787,83 @@ describe("Settings", () => {
     fireEvent.input(input, { target: { value: "wrong-name" } });
     fireEvent.keyDown(input, { key: "Enter" });
     expect(mockDeleteAgent).not.toHaveBeenCalled();
+  });
+
+  it("handles updateAgent rejection in confirmDisableLogs without crashing", async () => {
+    mockGetAgentInfo.mockResolvedValue({
+      agent_name: "test-agent",
+      agent_category: "personal",
+      agent_platform: "openclaw",
+      record_messages: true,
+    });
+    mockUpdateAgent.mockRejectedValueOnce(new Error("disable failed"));
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Disable logs");
+    });
+    // Click Disable logs to open the confirmation modal
+    const disableBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "Disable logs",
+    )!;
+    fireEvent.click(disableBtn);
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain("Without logs");
+    });
+    // Confirm disable
+    const modalDisableBtn = Array.from(document.querySelectorAll(".modal-overlay .btn--danger")).find(
+      (b) => b.textContent?.trim() === "Disable logs",
+    ) as HTMLButtonElement;
+    fireEvent.click(modalDisableBtn);
+    await vi.waitFor(() => {
+      expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", { record_messages: false });
+    });
+    // Should not crash; togglingLogs should be reset to false
+    await vi.waitFor(() => {
+      const btn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Disable logs",
+      ) as HTMLButtonElement;
+      expect(btn.disabled).toBe(false);
+    });
+  });
+
+  it("shows raw platform value when platform is not in PLATFORM_LABELS", async () => {
+    mockGetAgentInfo.mockResolvedValue({
+      agent_name: "test-agent",
+      agent_category: "personal",
+      agent_platform: "custom_platform",
+      record_messages: false,
+    });
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("custom_platform");
+    });
+  });
+
+  it("closes the disable-logs modal when Escape is pressed on the overlay", async () => {
+    mockGetAgentInfo.mockResolvedValue({
+      agent_name: "test-agent",
+      agent_category: "personal",
+      agent_platform: "openclaw",
+      record_messages: true,
+    });
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Disable logs");
+    });
+    // Click Disable logs to open the confirmation modal
+    const disableBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "Disable logs",
+    )!;
+    fireEvent.click(disableBtn);
+    await vi.waitFor(() => {
+      expect(container.querySelector(".modal-overlay")).not.toBeNull();
+    });
+    // Press Escape on the overlay
+    const overlay = container.querySelector(".modal-overlay")!;
+    fireEvent.keyDown(overlay, { key: "Escape" });
+    await vi.waitFor(() => {
+      expect(container.querySelector(".modal-overlay")).toBeNull();
+    });
   });
 
 });

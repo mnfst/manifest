@@ -1,19 +1,22 @@
 import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Tenant } from '../entities/tenant.entity';
+import { Agent } from '../entities/agent.entity';
 import { IngestEventBusService } from './services/ingest-event-bus.service';
 import { ManifestRuntimeService } from './services/manifest-runtime.service';
 import { TenantCacheService } from './services/tenant-cache.service';
+import { AgentRecordingCacheService } from './services/agent-recording-cache.service';
 import { UserCacheInterceptor } from './interceptors/user-cache.interceptor';
 import { AgentCacheInterceptor } from './interceptors/agent-cache.interceptor';
 
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([Tenant])],
+  imports: [TypeOrmModule.forFeature([Tenant, Agent])],
   providers: [
     IngestEventBusService,
     ManifestRuntimeService,
     TenantCacheService,
+    AgentRecordingCacheService,
     UserCacheInterceptor,
     AgentCacheInterceptor,
   ],
@@ -21,6 +24,7 @@ import { AgentCacheInterceptor } from './interceptors/agent-cache.interceptor';
     IngestEventBusService,
     ManifestRuntimeService,
     TenantCacheService,
+    AgentRecordingCacheService,
     UserCacheInterceptor,
     AgentCacheInterceptor,
   ],

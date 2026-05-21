@@ -98,4 +98,12 @@ describe('messages API client', () => {
     expect(url).toContain('/api/v1/messages/m-1/miscategorized');
     expect((init as RequestInit).method).toBe('DELETE');
   });
+
+  it('deleteMessageRecording DELETEs the recording resource with encoded id', async () => {
+    const fetchMock = setupFetch({});
+    await messages.deleteMessageRecording('m/1');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/messages/m%2F1/recording');
+    expect((init as RequestInit).method).toBe('DELETE');
+  });
 });

@@ -28,6 +28,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
       onClick={(event) => {
         if ((event.target as HTMLElement).closest('a.sidebar__link')) {
           props.onNavigate?.();
+          window.dispatchEvent(new CustomEvent('sidebar-navigate'));
         }
       }}
     >
