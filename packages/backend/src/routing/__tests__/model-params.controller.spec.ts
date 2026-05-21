@@ -37,7 +37,11 @@ describe('ModelParamsController', () => {
     delete: jest.Mock;
     get: jest.Mock;
   }>;
-  let providerParamSpecs: jest.Mocked<{ list: jest.Mock; getSpecs: jest.Mock }>;
+  let providerParamSpecs: jest.Mocked<{
+    list: jest.Mock;
+    getSpecs: jest.Mock;
+    listModelIds: jest.Mock;
+  }>;
   let resolveAgent: jest.Mocked<{ resolve: jest.Mock }>;
 
   beforeEach(async () => {
@@ -50,6 +54,9 @@ describe('ModelParamsController', () => {
     providerParamSpecs = {
       list: jest.fn().mockResolvedValue(specCatalog),
       getSpecs: jest.fn().mockResolvedValue(specs),
+      listModelIds: jest
+        .fn()
+        .mockReturnValue([{ provider: 'deepseek', authType: 'api_key', model: 'deepseek-v4' }]),
     };
     resolveAgent = {
       resolve: jest.fn().mockResolvedValue(mockAgent),
@@ -67,11 +74,29 @@ describe('ModelParamsController', () => {
     controller = module.get<ModelParamsController>(ModelParamsController);
   });
 
-  describe('GET /model-param-specs', () => {
-    it('returns the provider param spec catalog for the resolved agent', async () => {
-      const result = await controller.specs(mockUser, { agentName: 'demo' });
+  describe('GET /model-param-specs/by-model', () => {
+    it('returns the specs for a single resolved route', async () => {
+      const result = await controller.specsByModel(
+        mockUser,
+        { agentName: 'demo' },
+        { provider: 'deepseek', authType: 'api_key', model: 'deepseek-v4' },
+      );
       expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'demo');
-      expect(result).toBe(specCatalog);
+      expect(providerParamSpecs.getSpecs).toHaveBeenCalledWith(
+        'deepseek',
+        'api_key',
+        'deepseek-v4',
+      );
+      expect(result).toBe(specs);
+    });
+  });
+
+  describe('GET /model-param-specs/index', () => {
+    it('returns the model identities for the resolved agent', async () => {
+      const result = await controller.specsIndex(mockUser, { agentName: 'demo' });
+      expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'demo');
+      expect(providerParamSpecs.listModelIds).toHaveBeenCalled();
+      expect(result).toEqual([{ provider: 'deepseek', authType: 'api_key', model: 'deepseek-v4' }]);
     });
   });
 

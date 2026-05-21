@@ -605,6 +605,18 @@
   padding: 8px 0;
 }
 
+/* Loading / "no configurable parameters" placeholder shown while the per-model
+   specs are fetched on dialog open, or when the model exposes no params. */
+.model-params__status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 0;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+}
+
 .model-params__label-title {
   display: flex;
   align-items: baseline;

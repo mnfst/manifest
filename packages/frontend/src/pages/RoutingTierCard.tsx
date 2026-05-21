@@ -21,7 +21,6 @@ import type {
   AvailableModel,
   AuthType,
   ModelRoute,
-  ProviderParamSpecCatalog,
   RequestParamDefaults,
   RoutingProvider,
   CustomProviderData,
@@ -128,7 +127,7 @@ export interface RoutingTierCardProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
-  modelParamSpecs?: () => ProviderParamSpecCatalog;
+  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
 }
 
 const effectiveRoute = (
@@ -499,7 +498,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                               model={modelName()}
                               slotLabel={labelFor(modelName())}
                               scope={modelParamsScopeForTier(props.stage.id)}
-                              specCatalog={props.modelParamSpecs?.() ?? []}
+                              agentName={props.agentName()}
+                              modelHasParams={props.modelHasParams}
                               getParams={props.getModelParams!}
                               setParams={props.setModelParams!}
                               disabled={props.changingTier() === props.stage.id}
@@ -569,7 +569,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               persistClearFallbacks={props.persistClearFallbacks}
               getModelParams={props.getModelParams}
               setModelParams={props.setModelParams}
-              modelParamSpecs={props.modelParamSpecs}
+              modelHasParams={props.modelHasParams}
               modelParamsScope={modelParamsScopeForTier(props.stage.id)}
             />
           </div>
