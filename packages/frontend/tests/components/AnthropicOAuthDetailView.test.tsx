@@ -238,6 +238,28 @@ describe('AnthropicOAuthDetailView', () => {
     });
   });
 
+  it('shows the generic exchange error when the failure is not an Error object', async () => {
+    mockStartAnthropicOAuth.mockResolvedValue({ url: 'https://x', state: 's1' });
+    mockSubmitAnthropicOAuth.mockRejectedValue('boom');
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView();
+    fireEvent.click(screen.getByText('Sign in with Claude'));
+    await waitFor(() => expect(mockStartAnthropicOAuth).toHaveBeenCalled());
+
+    const codeInput = screen.getByLabelText('Anthropic authorization code');
+    fireEvent.input(codeInput, { target: { value: 'code#s1' } });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'Failed to exchange code. The code may have expired — sign in again to retry.',
+        ),
+      ).toBeDefined();
+    });
+  });
+
   it('falls back gracefully when the pending lookup throws on mount', async () => {
     mockGetAnthropicOAuthPending.mockRejectedValue(new Error('network'));
     renderView();
