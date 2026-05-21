@@ -104,6 +104,7 @@ import { AddBenchmarkHistory1788000000000 } from './migrations/1788000000000-Add
 import { RenameBenchmarkToPlayground1789000000000 } from './migrations/1789000000000-RenameBenchmarkToPlayground';
 import { AddOAuthPendingFlows1789100000000 } from './migrations/1789100000000-AddOAuthPendingFlows';
 import { ScopeAgentModelParams1789200000000 } from './migrations/1789200000000-ScopeAgentModelParams';
+import { EnableRecordMessagesForAll1789300000000 } from './migrations/1789300000000-EnableRecordMessagesForAll';
 import { AddAgentApiKeyPrefixActiveIndex1790000000000 } from './migrations/1790000000000-AddAgentApiKeyPrefixActiveIndex';
 
 const entities = [
@@ -210,6 +211,7 @@ const migrations = [
   RenameBenchmarkToPlayground1789000000000,
   AddOAuthPendingFlows1789100000000,
   ScopeAgentModelParams1789200000000,
+  EnableRecordMessagesForAll1789300000000,
   AddAgentApiKeyPrefixActiveIndex1790000000000,
 ];
 
