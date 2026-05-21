@@ -412,7 +412,8 @@ async function handleAddKey(
   }
 }
 
-interface AddAnotherKeyActionProps {
+/** @internal Exported for testing only. */
+export interface AddAnotherKeyActionProps {
   onAdd: (label: string, apiKey: string) => Promise<boolean>;
   busy: Accessor<boolean>;
   setBusy: Setter<boolean>;
@@ -426,7 +427,8 @@ interface AddAnotherKeyActionProps {
   isSubscription?: boolean;
 }
 
-const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
+/** @internal Exported for testing only. */
+export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
   const [localOpen, setLocalOpen] = createSignal(false);
   const isOpen = () => (props.open ?? localOpen)();
   const setIsOpen = (v: boolean) => {
