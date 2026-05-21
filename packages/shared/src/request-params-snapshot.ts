@@ -34,16 +34,16 @@ export function snapshotRequestParams(
   let out: RequestParamDefaults = {};
 
   for (const spec of orderedSpecs) {
-    if (hasPath(body, spec.path)) {
-      out = setProviderParamValue(out, spec.path, getPath(body, spec.path) as JsonValue);
-      continue;
-    }
     if (expandedParams && hasPath(expandedParams, spec.path)) {
       out = setProviderParamValue(
         out,
         spec.path,
         getProviderParamValue(expandedParams, spec.path) as JsonValue,
       );
+      continue;
+    }
+    if (hasPath(body, spec.path)) {
+      out = setProviderParamValue(out, spec.path, getPath(body, spec.path) as JsonValue);
       continue;
     }
     if (spec.default !== undefined && providerParamIsApplicable(spec, out)) {

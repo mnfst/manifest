@@ -88,11 +88,21 @@ describe('snapshotRequestParams', () => {
     ).toEqual({ thinking: { type: 'enabled', budget_tokens: 4096 } });
   });
 
-  it('lets client body values win over saved params', () => {
+  it('records saved Manifest params over client body values at the same path', () => {
     expect(
       snapshotRequestParams({
         body: { temperature: 0.4, messages: [] },
         modelParams: { temperature: 0.8 },
+        specs,
+      }),
+    ).toEqual({ temperature: 0.8, thinking: { type: 'disabled' } });
+  });
+
+  it('records client body params that are not configured in Manifest', () => {
+    expect(
+      snapshotRequestParams({
+        body: { temperature: 0.4, messages: [] },
+        modelParams: { thinking: { type: 'disabled' } },
         specs,
       }),
     ).toEqual({ temperature: 0.4, thinking: { type: 'disabled' } });

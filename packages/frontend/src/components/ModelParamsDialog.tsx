@@ -198,7 +198,10 @@ const ModelParamsDialog: Component<Props> = (props) => {
     };
 
     return (
-      <div class="model-params__scrub-field" classList={{ 'model-params__scrub-field--disabled': isDisabled(spec) }}>
+      <div
+        class="model-params__scrub-field"
+        classList={{ 'model-params__scrub-field--disabled': isDisabled(spec) }}
+      >
         <div
           class="model-params__scrub"
           role="slider"
@@ -225,7 +228,14 @@ const ModelParamsDialog: Component<Props> = (props) => {
           onPointerCancel={(e) => e.currentTarget.releasePointerCapture?.(e.pointerId)}
           onKeyDown={handleKeyDown}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path d="M5 3a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4M5 10a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4M5 17a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7.33 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4" />
           </svg>
         </div>
@@ -362,7 +372,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
           <h2 class="modal-card__title" id="model-params-dialog-title">
             Model parameters
           </h2>
-          <p class="modal-card__desc">Defaults for {props.slotLabel}. Client requests override.</p>
+          <p class="modal-card__desc">Manifest parameters for {props.slotLabel}.</p>
 
           <For each={groupSpecs(props.specs)}>
             {(group) => (

@@ -438,8 +438,8 @@ describe('ProxyService — orchestration', () => {
           } as never,
         }),
       );
-      // The body still carries the client-supplied thinking field — the
-      // fallback service's merge respects that by presence.
+      // The body still carries the client-supplied thinking field; the
+      // fallback service applies the resolved Manifest params last.
       expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toEqual({
         type: 'enabled',
       });
