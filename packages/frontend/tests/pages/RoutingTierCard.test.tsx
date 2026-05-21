@@ -86,6 +86,7 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.persistClearFallbacks,
       props.getModelParams,
       props.setModelParams,
+      props.modelHasParams,
     ];
     void _read;
     return (
