@@ -23,6 +23,7 @@ import {
   getRoutingProviderApiKeyUrl,
   getSubscriptionProviderKeyUrl,
 } from '../services/provider-api-key-urls.js';
+import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
 import { toast } from '../services/toast-store.js';
 
 export const MAX_KEYS_PER_PROVIDER = 5;
@@ -433,7 +434,7 @@ const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
   const [label, setLabel] = createSignal('');
   const [apiKey, setApiKey] = createSignal('');
 
-  const defaultLabel = () => suggestNextLabel(props.existingLabels());
+  const defaultLabel = () => suggestNextProviderKeyLabel(props.existingLabels());
 
   // Sync label suggestion when opened externally
   createEffect(() => {
@@ -717,17 +718,5 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
     </div>
   );
 };
-
-function suggestNextLabel(existing: string[]): string {
-  const lower = new Set(existing.map((l) => l.toLowerCase()));
-  // Skip "Default" — it's the legacy single-key label and doesn't suggest
-  // a numbered sibling. The next user-named key reads more naturally as
-  // "Key 2", "Key 3", … starting from the count of named keys.
-  for (let n = existing.length + 1; n < 100; n++) {
-    const candidate = `Key ${n}`;
-    if (!lower.has(candidate.toLowerCase())) return candidate;
-  }
-  return `Key ${existing.length + 1}`;
-}
 
 export default ProviderKeyForm;
