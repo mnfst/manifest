@@ -14,6 +14,25 @@ const SENSITIVE_HEADERS = new Set<string>([
   'x-api-key',
 ]);
 
+// Infrastructure noise injected by the hosting edge (Railway) and the
+// transport layer. None of it is meaningful for routing or display, so we
+// drop it before recording rather than persisting it on every message.
+const NOISE_HEADERS = new Set<string>([
+  'x-railway-edge',
+  'x-railway-request-id',
+  'x-forwarded-for',
+  'x-forwarded-host',
+  'x-forwarded-proto',
+  'x-forwarded-port',
+  'x-real-ip',
+  'x-request-start',
+  'x-envoy-external-address',
+  'host',
+  'connection',
+  'accept-encoding',
+  'content-length',
+]);
+
 export function sanitizeRequestHeaders(
   headers: IncomingHttpHeaders,
 ): Record<string, string> | null {
@@ -27,6 +46,7 @@ export function sanitizeRequestHeaders(
 
     const key = rawKey.toLowerCase();
     if (SENSITIVE_HEADERS.has(key)) continue;
+    if (NOISE_HEADERS.has(key)) continue;
 
     const joined = Array.isArray(rawVal) ? rawVal.join(', ') : String(rawVal);
     const cleaned = joined.replace(/[\x00-\x1f\x7f]/g, '').trim();
