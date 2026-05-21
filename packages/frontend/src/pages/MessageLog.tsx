@@ -65,13 +65,6 @@ const MessageLog: Component = () => {
   const [feedbackMessageId, setFeedbackMessageId] = createSignal('');
   const [feedbackOverrides, setFeedbackOverrides] = createSignal<Record<string, string | null>>({});
 
-  const applyFeedbackOverrides = (items: MessageRow[]): MessageRow[] => {
-    const overrides = feedbackOverrides();
-    return items.map((item) =>
-      item.id in overrides ? { ...item, feedback_rating: overrides[item.id] ?? undefined } : item,
-    );
-  };
-
   const handleFeedbackLike = (id: string) => {
     setFeedbackOverrides((prev) => ({ ...prev, [id]: 'like' }));
     setMessageFeedback(id, { rating: 'like' }).catch(() => {
@@ -175,6 +168,15 @@ const MessageLog: Component = () => {
       return getMessages(q) as Promise<MessagesData>;
     },
   );
+
+  const displayedItems = createMemo<MessageRow[]>(() => {
+    const items = data()?.items ?? [];
+    if (isSelfHosted()) return items;
+    const overrides = feedbackOverrides();
+    return items.map((item) =>
+      item.id in overrides ? { ...item, feedback_rating: overrides[item.id] ?? undefined } : item,
+    );
+  });
 
   createEffect(
     on(
@@ -438,11 +440,7 @@ const MessageLog: Component = () => {
               </div>
               <div class="data-table-scroll">
                 <MessageTable
-                  items={
-                    isSelfHosted()
-                      ? (data()?.items ?? [])
-                      : applyFeedbackOverrides(data()?.items ?? [])
-                  }
+                  items={displayedItems()}
                   columns={columns()}
                   agentName={params.agentName}
                   customProviderName={customProviderName}

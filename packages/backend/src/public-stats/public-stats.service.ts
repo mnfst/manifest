@@ -7,6 +7,12 @@ import { computeCutoff, sqlDateBucket } from '../common/utils/postgres-sql';
 
 const MAX_RESULTS = 10;
 const EXCLUDED_PROVIDERS = new Set(['Unknown']);
+// Upper bounds for the unbounded GROUP BY aggregations below. The endpoint is
+// public and uncached, so these caps stop a high-volume install (thousands of
+// distinct models) from materialising an unbounded result set on every call.
+// Both limits sit far above any realistic distinct-model count.
+const MAX_MODEL_ROWS = 1000;
+const MAX_PROVIDER_DAILY_ROWS = 50000;
 
 export interface TopModel {
   model: string;
@@ -76,6 +82,7 @@ export class PublicStatsService {
         .where('at.model IS NOT NULL')
         .groupBy('at.model')
         .orderBy('usage_count', 'DESC')
+        .limit(MAX_MODEL_ROWS)
         .getRawMany(),
       this.messageRepo
         .createQueryBuilder('at')
@@ -179,6 +186,7 @@ export class PublicStatsService {
       .addGroupBy('date')
       .addGroupBy('at.auth_type')
       .orderBy('date', 'ASC')
+      .limit(MAX_PROVIDER_DAILY_ROWS)
       .getRawMany();
 
     const modelMap = new Map<
