@@ -48,6 +48,7 @@ interface MessagesData {
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
   const navigate = useNavigate();
+
   preloadModelDisplayNames();
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   onMount(() => {
@@ -61,6 +62,9 @@ const MessageLog: Component = () => {
   const [costMax, setCostMax] = createSignal('');
   const [recordedOnly, setRecordedOnly] = createSignal(false);
   const [recordingModalId, setRecordingModalId] = createSignal<string | null>(null);
+  const closeDr = () => setRecordingModalId(null);
+  onMount(() => window.addEventListener('sidebar-navigate', closeDr));
+  onCleanup(() => window.removeEventListener('sidebar-navigate', closeDr));
   const [setupOpen, setSetupOpen] = createSignal(false);
   const [setupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
@@ -199,7 +203,11 @@ const MessageLog: Component = () => {
   );
 
   const hasActiveFilters = () =>
-    providerFilter() !== '' || tierFilter() !== '' || costMin() !== '' || costMax() !== '' || recordedOnly();
+    providerFilter() !== '' ||
+    tierFilter() !== '' ||
+    costMin() !== '' ||
+    costMax() !== '' ||
+    recordedOnly();
 
   const hasNoData = () => {
     const d = data();

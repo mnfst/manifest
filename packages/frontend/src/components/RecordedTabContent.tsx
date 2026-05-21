@@ -76,49 +76,57 @@ export function RecordedTabContent(props: Props): JSX.Element {
         })()}
       </Show>
       <Show when={props.tab === 'response'}>
-        <ResponseTab responseBody={props.data.recording?.response_body ?? null} />
+        <div class="recorded-drawer__contained-pane">
+          <ResponseTab responseBody={props.data.recording?.response_body ?? null} />
+        </div>
       </Show>
       <Show when={props.tab === 'tools'}>
-        <Show
-          when={tools(props.data).length > 0}
-          fallback={<div class="recorded-modal__empty">No tools defined on this call.</div>}
-        >
-          <ToolsList tools={tools(props.data)} />
-        </Show>
+        <div class="recorded-drawer__contained-pane">
+          <Show
+            when={tools(props.data).length > 0}
+            fallback={<div class="recorded-modal__empty">No tools defined on this call.</div>}
+          >
+            <ToolsList tools={tools(props.data)} />
+          </Show>
+        </div>
       </Show>
       <Show when={props.tab === 'headers'}>
-        <div class="recorded-drawer__headers-grid">
-          <section>
-            <h3 class="recorded-modal__subtitle">Request headers</h3>
-            <HeadersTable
-              headers={props.data.message.request_headers}
-              emptyCopy="No request headers captured."
-            />
-          </section>
-          <section>
-            <h3 class="recorded-modal__subtitle">Response headers</h3>
-            <HeadersTable
-              headers={props.data.recording?.response_headers ?? null}
-              emptyCopy="No response headers captured."
-            />
-          </section>
+        <div class="recorded-drawer__contained-pane">
+          <div class="recorded-drawer__headers-grid">
+            <section>
+              <h3 class="recorded-modal__subtitle">Request headers</h3>
+              <HeadersTable
+                headers={props.data.message.request_headers}
+                emptyCopy="No request headers captured."
+              />
+            </section>
+            <section>
+              <h3 class="recorded-modal__subtitle">Response headers</h3>
+              <HeadersTable
+                headers={props.data.recording?.response_headers ?? null}
+                emptyCopy="No response headers captured."
+              />
+            </section>
+          </div>
         </div>
       </Show>
       <Show when={props.tab === 'raw'}>
-        <section class="recorded-modal__subsection">
-          <h3 class="recorded-modal__subtitle">Request</h3>
-          <CodeBlock
-            code={prettyJson(props.data.recording?.request_body ?? null)}
-            language="json"
-          />
-        </section>
-        <section class="recorded-modal__subsection">
-          <h3 class="recorded-modal__subtitle">Response</h3>
-          <CodeBlock
-            code={prettyJson(props.data.recording?.response_body ?? null)}
-            language="json"
-          />
-        </section>
+        <div class="recorded-drawer__contained-pane">
+          <section class="recorded-modal__subsection">
+            <h3 class="recorded-modal__subtitle">Request</h3>
+            <CodeBlock
+              code={prettyJson(props.data.recording?.request_body ?? null)}
+              language="json"
+            />
+          </section>
+          <section class="recorded-modal__subsection">
+            <h3 class="recorded-modal__subtitle">Response</h3>
+            <CodeBlock
+              code={prettyJson(props.data.recording?.response_body ?? null)}
+              language="json"
+            />
+          </section>
+        </div>
       </Show>
     </>
   );

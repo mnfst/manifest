@@ -1234,8 +1234,15 @@
   overflow-y: auto;
 }
 
-.recorded-drawer__tab-body > *:not(.recorded-drawer__conversation-layout) {
+.recorded-drawer__tab-body
+  > *:not(.recorded-drawer__conversation-layout):not(.recorded-drawer__contained-pane) {
   margin: var(--drawer-pad);
+}
+
+.recorded-drawer__contained-pane {
+  max-width: 1400px;
+  margin-inline: auto;
+  padding: var(--drawer-pad);
 }
 
 .recorded-drawer__headers-grid {
