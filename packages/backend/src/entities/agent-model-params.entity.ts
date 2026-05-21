@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
 import type { AuthType, RequestParamDefaults } from 'manifest-shared';
+import { Agent } from './agent.entity';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 /**
@@ -26,6 +27,13 @@ export class AgentModelParams {
 
   @Column('varchar')
   agent_id!: string;
+
+  // Cascade-delete params when the owning agent is hard-deleted (e.g. tenant
+  // purge). Soft delete sets agents.deleted_at and leaves the row, so this
+  // does NOT fire on the normal delete path — params are retained there.
+  @ManyToOne(() => Agent, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'agent_id' })
+  agent!: Agent;
 
   @Column('varchar')
   scope_key!: string;
