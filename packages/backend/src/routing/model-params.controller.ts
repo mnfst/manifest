@@ -55,6 +55,21 @@ export class ModelParamsController {
   }
 
   /**
+   * Identities (no params/descriptions) of every model that has configurable
+   * specs. The Routing page loads this once on boot so it can show the params
+   * affordance only on rows that actually have something to configure, without
+   * pulling the full catalog.
+   */
+  @Get(':agentName/model-param-specs/index')
+  async specsIndex(
+    @CurrentUser() user: AuthUser,
+    @Param() params: AgentNameParamDto,
+  ): Promise<Array<{ provider: string; authType: AuthType; model: string }>> {
+    await this.resolveAgentService.resolve(user.id, params.agentName);
+    return this.providerParamSpecs.listModelIds();
+  }
+
+  /**
    * Full list for the agent. The frontend calls this once on Routing page
    * boot so every model-row affordance can answer "what's configured for
    * this route?" from one signal without per-row fetches.

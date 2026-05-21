@@ -87,6 +87,19 @@ export class ProviderParamSpecService implements OnModuleInit {
     return this.specs;
   }
 
+  /**
+   * Lightweight identity list (no params/descriptions) so the Routing page can
+   * decide which model rows expose a "configure params" affordance without
+   * downloading the whole catalog.
+   */
+  listModelIds(): Array<{ provider: string; authType: AuthType; model: string }> {
+    return this.specs.map((entry) => ({
+      provider: entry.provider,
+      authType: entry.authType,
+      model: entry.model,
+    }));
+  }
+
   async getSpecs(
     providerId: string | undefined,
     authType: AuthType | undefined,

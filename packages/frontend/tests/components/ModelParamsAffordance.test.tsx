@@ -29,6 +29,7 @@ const baseProps = {
   model: 'deepseek-v4',
   slotLabel: 'deepseek-v4',
   scope: 'tier:default',
+  modelHasParams: () => true,
   getParams: vi.fn(() => null),
   setParams: vi.fn().mockResolvedValue(undefined),
 };
@@ -42,18 +43,18 @@ describe('ModelParamsAffordance', () => {
     mockGetSpecs.mockResolvedValue(specs);
   });
 
-  it('renders the button when the route has a resolved provider and auth', () => {
+  it('renders the button when the index reports the model has params', () => {
     const { container } = render(() => <ModelParamsAffordance {...baseProps} />);
     expect(findButton(container)).not.toBeNull();
   });
 
-  it('still renders the button optimistically without preloading specs', () => {
-    // No catalog at render time: the button shows for any resolved route and
-    // the spec set is only fetched on open.
+  it('does not render the button when the index reports no params for the model', () => {
+    // The lightweight index (modelHasParams) gates the affordance, and no
+    // per-model fetch happens until the dialog is opened.
     const { container } = render(() => (
-      <ModelParamsAffordance {...baseProps} provider="openai" model="gpt-4o" />
+      <ModelParamsAffordance {...baseProps} modelHasParams={() => false} />
     ));
-    expect(findButton(container)).not.toBeNull();
+    expect(findButton(container)).toBeNull();
     expect(mockGetSpecs).not.toHaveBeenCalled();
   });
 

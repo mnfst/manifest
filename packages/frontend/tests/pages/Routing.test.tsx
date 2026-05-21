@@ -17,7 +17,6 @@ const mockRefreshPricing = vi.fn();
 const mockGetComplexityStatus = vi.fn();
 const mockToggleComplexity = vi.fn();
 const mockListModelParams = vi.fn();
-const mockListModelParamSpecs = vi.fn();
 const mockSetModelParams = vi.fn();
 const mockDeleteModelParams = vi.fn();
 
@@ -36,7 +35,8 @@ vi.mock('../../src/services/api.js', () => ({
   toggleComplexity: (...args: unknown[]) => mockToggleComplexity(...args),
   setSpecificityFallbacks: (...args: unknown[]) => mockSetSpecificityFallbacks(...args),
   clearSpecificityFallbacks: (...args: unknown[]) => mockClearSpecificityFallbacks(...args),
-  listModelParamSpecs: (...args: unknown[]) => mockListModelParamSpecs(...args),
+  listModelParamSpecIndex: () =>
+    Promise.resolve([{ provider: 'openai', authType: 'api_key', model: 'gpt-4o' }]),
   listModelParams: (...args: unknown[]) => mockListModelParams(...args),
   setModelParams: (...args: unknown[]) => mockSetModelParams(...args),
   deleteModelParams: (...args: unknown[]) => mockDeleteModelParams(...args),
@@ -277,6 +277,15 @@ vi.mock('../../src/pages/RoutingDefaultTierSection.js', () => ({
     void _read;
     return (
       <div data-testid="default-section">
+        <span data-testid="default-has-params">
+          {String(
+            (props.modelHasParams as (p: string, a: string, m: string) => boolean)(
+              'openai',
+              'api_key',
+              'gpt-4o',
+            ),
+          )}
+        </span>
         <button
           data-testid="toggle-complexity"
           onClick={() => (props.onToggleComplexity as () => void)()}
@@ -503,7 +512,6 @@ beforeEach(() => {
   mockGetComplexityStatus.mockResolvedValue({ enabled: true });
   mockGetPricingHealth.mockResolvedValue({ model_count: 100, last_fetched_at: '2025-01-01' });
   mockToggleComplexity.mockResolvedValue({ enabled: false });
-  mockListModelParamSpecs.mockResolvedValue([]);
   mockListModelParams.mockResolvedValue([]);
 });
 

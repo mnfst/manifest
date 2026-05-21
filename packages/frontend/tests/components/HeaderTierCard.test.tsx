@@ -1161,7 +1161,9 @@ describe('HeaderTierCard', () => {
         onOverride={vi.fn()}
         onFallbacksUpdate={vi.fn()}
         getModelParams={() => null}
-        setModelParams={vi.fn().mockResolvedValue(undefined)}      />
+        setModelParams={vi.fn().mockResolvedValue(undefined)}
+        modelHasParams={() => true}
+      />
     ));
     expect(
       container.querySelector('[aria-label="Configure model parameters for DeepSeek V4"]'),
@@ -1214,7 +1216,9 @@ describe('HeaderTierCard', () => {
         onOverride={vi.fn()}
         onFallbacksUpdate={vi.fn()}
         getModelParams={() => null}
-        setModelParams={setModelParams}      />
+        setModelParams={setModelParams}
+        modelHasParams={() => true}
+      />
     ));
     const btn = container.querySelector(
       '[aria-label="Configure model parameters for DeepSeek V4"]',

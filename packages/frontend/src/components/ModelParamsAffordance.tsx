@@ -11,6 +11,9 @@ interface Props {
   model: string;
   slotLabel: string;
   scope: string;
+  // Predicate (backed by the lightweight spec index) telling whether this route
+  // has any configurable params — so the affordance only renders when it does.
+  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
   getParams: (
     scope: string,
     provider: string,
@@ -44,10 +47,12 @@ const ModelParamsAffordance: Component<Props> = (props) => {
       ),
   );
 
-  // No catalog at render time, so the affordance shows whenever the route has a
-  // resolved provider/auth. A model with no configurable params surfaces as a
-  // "no configurable parameters" message inside the dialog.
-  const supports = () => props.provider !== undefined && props.authType !== undefined;
+  // Show the affordance only for routes the spec index says have configurable
+  // params. The per-model specs themselves are still fetched lazily on open.
+  const supports = () =>
+    props.provider !== undefined &&
+    props.authType !== undefined &&
+    (props.modelHasParams?.(props.provider, props.authType, props.model) ?? false);
 
   const current = () => {
     if (!props.provider || !props.authType) return null;

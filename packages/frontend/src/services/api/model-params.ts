@@ -36,6 +36,22 @@ export function getModelParamSpecs(
   });
 }
 
+/** Route identity of a model that has configurable params (no param metadata). */
+export interface ModelParamSpecId {
+  provider: string;
+  authType: AuthType;
+  model: string;
+}
+
+/**
+ * Lightweight identities of every model that has configurable specs. Loaded
+ * once on Routing page boot so each row can decide whether to show the params
+ * affordance — far cheaper than the full catalog since it omits param details.
+ */
+export function listModelParamSpecIndex(agentName: string) {
+  return fetchJson<ModelParamSpecId[]>(routingPath(agentName, 'model-param-specs/index'));
+}
+
 export function listModelParams(agentName: string) {
   return fetchJson<AgentModelParamsRow[]>(routingPath(agentName, 'model-params'));
 }

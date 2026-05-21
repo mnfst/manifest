@@ -62,6 +62,7 @@ export interface RoutingDefaultTierSectionProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
 }
 
 const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (props) => {
@@ -95,6 +96,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
         connectedProviders={props.connectedProviders}
         getModelParams={props.getModelParams}
         setModelParams={props.setModelParams}
+        modelHasParams={props.modelHasParams}
       />
     </div>
   );
@@ -125,6 +127,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
             connectedProviders={props.connectedProviders}
             getModelParams={props.getModelParams}
             setModelParams={props.setModelParams}
+            modelHasParams={props.modelHasParams}
           />
         )}
       </For>

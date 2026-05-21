@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   getModelParamSpecs,
+  listModelParamSpecIndex,
   listModelParams,
   setModelParams,
   deleteModelParams,
@@ -41,6 +42,19 @@ describe('model-params API client', () => {
     expect(String(url)).toContain('authType=api_key');
     // Model names contain slashes, so they must be encoded in the query string.
     expect(String(url)).toContain('model=anthropic%2Fclaude-opus-4-7');
+  });
+
+  it('listModelParamSpecIndex GETs the spec identity index', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve([]),
+    } as unknown as Response);
+    await listModelParamSpecIndex('demo');
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/routing/demo/model-param-specs/index'),
+      expect.anything(),
+    );
   });
 
   it('setModelParams PUTs the full route identity + params payload', async () => {

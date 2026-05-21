@@ -71,6 +71,7 @@ interface Props {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
 }
 
 const HeaderTierCard: Component<Props> = (props) => {
@@ -337,6 +338,7 @@ const HeaderTierCard: Component<Props> = (props) => {
                       slotLabel={modelLabel() || modelName()}
                       scope={modelParamsScopeForHeaderTier(props.tier.id)}
                       agentName={props.agentName}
+                      modelHasParams={props.modelHasParams}
                       getParams={props.getModelParams!}
                       setParams={props.setModelParams!}
                     />
@@ -393,6 +395,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             }
             getModelParams={props.getModelParams}
             setModelParams={props.setModelParams}
+            modelHasParams={props.modelHasParams}
             modelParamsScope={modelParamsScopeForHeaderTier(props.tier.id)}
             persistClearFallbacks={(_agent, tierId) =>
               clearHeaderTierFallbacks(props.agentName, tierId)

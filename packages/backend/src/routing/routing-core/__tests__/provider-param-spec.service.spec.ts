@@ -110,6 +110,17 @@ describe('ProviderParamSpecService', () => {
     expect(service.getLastFetchedAt()).toBeInstanceOf(Date);
   });
 
+  it('lists model identities without param details', async () => {
+    mockRemoteCatalog();
+    const service = new ProviderParamSpecService();
+    await service.refreshCache();
+
+    expect(service.listModelIds()).toEqual([
+      { provider: 'anthropic', authType: 'api_key', model: 'claude-sonnet-4-6' },
+      { provider: 'openai', authType: 'api_key', model: 'gpt-test' },
+    ]);
+  });
+
   it('sends If-None-Match and keeps the cache on a 304 response', async () => {
     mockRemoteCatalog('"v1"');
     const service = new ProviderParamSpecService();

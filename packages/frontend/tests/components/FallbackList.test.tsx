@@ -66,6 +66,7 @@ const defaultProps = {
   ] as any[],
   onUpdate: vi.fn(),
   onAddFallback: vi.fn(),
+  modelHasParams: () => true,
 };
 
 const modelParamSpecs: ProviderParamSpecCatalog = [
