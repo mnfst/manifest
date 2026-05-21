@@ -18,7 +18,7 @@ import {
   type ProviderParamSpecCatalog,
 } from 'manifest-shared';
 
-const MODEL_PARAMETERS_API = 'https://modelparameters.dev/api/v1/models.json';
+const MODEL_PARAMETERS_API = 'https://modelparams.dev/api/v1/models.json';
 const FETCH_TIMEOUT_MS = 10000;
 const MODEL_PARAM_TYPES: readonly ModelParamType[] = [
   'boolean',
@@ -53,7 +53,7 @@ export class ProviderParamSpecService implements OnModuleInit {
     try {
       await this.refreshCache();
     } catch (err) {
-      this.logger.warn(`Startup modelparameters.dev refresh failed: ${err}`);
+      this.logger.warn(`Startup modelparams.dev refresh failed: ${err}`);
     }
   }
 
@@ -70,15 +70,13 @@ export class ProviderParamSpecService implements OnModuleInit {
 
     const catalog = parseModelParametersCatalog(data);
     if (!catalog) {
-      this.logger.warn(
-        'modelparameters.dev returned an invalid MPS catalog; keeping current cache',
-      );
+      this.logger.warn('modelparams.dev returned an invalid MPS catalog; keeping current cache');
       return 0;
     }
 
     this.specs = freezeCatalog(catalog);
     this.lastFetchedAt = new Date();
-    this.logger.log(`modelparameters.dev MPS catalog loaded: ${this.specs.length} models`);
+    this.logger.log(`modelparams.dev MPS catalog loaded: ${this.specs.length} models`);
     return catalog.length;
   }
 
@@ -113,14 +111,14 @@ export class ProviderParamSpecService implements OnModuleInit {
       // catalog grows.
       if (res.status === 304) return { notModified: true, data: null };
       if (!res.ok) {
-        this.logger.warn(`modelparameters.dev API returned ${res.status}`);
+        this.logger.warn(`modelparams.dev API returned ${res.status}`);
         return { notModified: false, data: null };
       }
       const tag = res.headers.get('etag');
       if (tag) this.etag = tag;
       return { notModified: false, data: (await res.json()) as unknown };
     } catch (err) {
-      this.logger.warn(`Failed to fetch modelparameters.dev data: ${err}`);
+      this.logger.warn(`Failed to fetch modelparams.dev data: ${err}`);
       return { notModified: false, data: null };
     } finally {
       clearTimeout(timeout);

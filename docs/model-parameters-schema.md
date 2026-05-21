@@ -7,7 +7,7 @@ catalog. The catalog is metadata: it describes which request parameters Manifest
 can configure for a provider/auth/model tuple. User-selected values still live in
 `agent_model_params`.
 
-The runtime source is `https://modelparameters.dev/api/v1/models.json`.
+The runtime source is `https://modelparams.dev/api/v1/models.json`.
 Manifest caches the latest valid remote catalog in memory and keeps that cache
 through transient refresh failures.
 

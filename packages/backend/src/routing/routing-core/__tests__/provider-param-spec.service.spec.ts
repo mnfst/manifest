@@ -93,14 +93,14 @@ describe('ProviderParamSpecService', () => {
     expect(subscriptionSpecs.map((spec) => spec.path)).toEqual([]);
   });
 
-  it('refreshes specs from modelparameters.dev and filters API-level params', async () => {
+  it('refreshes specs from modelparams.dev and filters API-level params', async () => {
     mockRemoteCatalog();
     const service = new ProviderParamSpecService();
 
     await expect(service.refreshCache()).resolves.toBe(2);
 
     expect(fetchSpy).toHaveBeenCalledWith(
-      'https://modelparameters.dev/api/v1/models.json',
+      'https://modelparams.dev/api/v1/models.json',
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
     const remoteSpecs = await service.getSpecs('openai', 'api_key', 'gpt-test');
@@ -122,7 +122,7 @@ describe('ProviderParamSpecService', () => {
     await expect(service.refreshCache()).resolves.toBe(2);
     await expect(service.list()).resolves.toHaveLength(2);
     expect(fetchSpy).toHaveBeenLastCalledWith(
-      'https://modelparameters.dev/api/v1/models.json',
+      'https://modelparams.dev/api/v1/models.json',
       expect.objectContaining({ headers: { 'If-None-Match': '"v1"' } }),
     );
   });
@@ -134,7 +134,7 @@ describe('ProviderParamSpecService', () => {
     await service.refreshCache();
 
     expect(fetchSpy).toHaveBeenLastCalledWith(
-      'https://modelparameters.dev/api/v1/models.json',
+      'https://modelparams.dev/api/v1/models.json',
       expect.objectContaining({ headers: {} }),
     );
   });
