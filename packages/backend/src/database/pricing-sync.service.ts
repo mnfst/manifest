@@ -27,20 +27,32 @@ export interface OpenRouterPricingEntry {
 }
 
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/models';
+const FETCH_TIMEOUT_MS = 10000;
 
 @Injectable()
 export class PricingSyncService implements OnModuleInit {
   private readonly logger = new Logger(PricingSyncService.name);
   private cache = new Map<string, OpenRouterPricingEntry>();
   private lastFetchedAt: Date | null = null;
+  private initialLoad: Promise<void> | null = null;
 
-  async onModuleInit(): Promise<void> {
-    // Await startup fetch so ModelPricingCacheService.reload() has data
-    try {
-      await this.refreshCache();
-    } catch (err) {
-      this.logger.error(`Startup OpenRouter cache refresh failed: ${err}`);
-    }
+  onModuleInit(): void {
+    // Kick off the startup fetch WITHOUT blocking boot. A slow or unreachable
+    // OpenRouter previously stalled app.listen() — and with it Railway's
+    // healthcheck — for up to undici's default header timeout (see #1894).
+    // The pricing cache still warms up with real data shortly after the server
+    // starts listening; ModelPricingCacheService awaits whenInitialized()
+    // before its first reload so that warmup sees populated data.
+    this.initialLoad = this.refreshCache()
+      .then(() => undefined)
+      .catch((err) => {
+        this.logger.error(`Startup OpenRouter cache refresh failed: ${err}`);
+      });
+  }
+
+  /** Resolves once the startup refresh has settled (success or handled error). */
+  whenInitialized(): Promise<void> {
+    return this.initialLoad ?? Promise.resolve();
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
@@ -95,8 +107,10 @@ export class PricingSyncService implements OnModuleInit {
   }
 
   private async fetchOpenRouterModels(): Promise<OpenRouterModel[] | null> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const res = await fetch(OPENROUTER_API);
+      const res = await fetch(OPENROUTER_API, { signal: controller.signal });
       if (!res.ok) {
         this.logger.error(`OpenRouter API returned ${res.status}`);
         return null;
@@ -106,6 +120,8 @@ export class PricingSyncService implements OnModuleInit {
     } catch (err) {
       this.logger.error(`Failed to fetch OpenRouter models: ${err}`);
       return null;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
