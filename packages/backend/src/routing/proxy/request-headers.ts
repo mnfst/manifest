@@ -15,8 +15,15 @@ const SENSITIVE_HEADERS = new Set<string>([
 ]);
 
 // Infrastructure noise injected by the hosting edge (Railway) and the
-// transport layer. None of it is meaningful for routing or display, so we
-// drop it before recording rather than persisting it on every message.
+// transport layer. None of it is meaningful for routing or studying an LLM
+// call, so we drop it before recording rather than persisting it on every
+// message.
+//
+// NOTE: `x-forwarded-for` and `x-real-ip` carry the end-user's IP. They are
+// dropped on purpose — not just as noise but because storing client IPs on
+// every message is PII we have no product use for (the telemetry policy
+// already lists "raw IPs" as never-sent). Do NOT re-add them for a "request
+// origin" feature without a deliberate retention/consent decision.
 const NOISE_HEADERS = new Set<string>([
   'x-railway-edge',
   'x-railway-request-id',
