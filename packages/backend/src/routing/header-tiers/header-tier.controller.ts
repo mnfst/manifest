@@ -23,7 +23,7 @@ import { CurrentUser } from '../../auth/current-user.decorator';
 import type { AuthUser } from '../../auth/auth.instance';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
-import { ModelRouteDto } from '../dto/routing.dto';
+import { ModelRouteDto, SetResponseModeDto } from '../dto/routing.dto';
 import { HeaderTierService } from './header-tier.service';
 import { AUTH_TYPES, type TierColor } from 'manifest-shared';
 
@@ -125,6 +125,17 @@ export class HeaderTierController {
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     return this.headerTierService.setEnabled(agent.id, id, body.enabled);
+  }
+
+  @Patch(':agentName/header-tiers/:id/response-mode')
+  async setResponseMode(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('id') id: string,
+    @Body() body: SetResponseModeDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.headerTierService.setResponseMode(agent.id, id, body.responseMode);
   }
 
   @Delete(':agentName/header-tiers/:id')

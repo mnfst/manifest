@@ -2,13 +2,16 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   AUTH_TYPES,
+  MODEL_CAPABILITIES,
   compareProviderParamSpecs,
+  getProviderModelCapabilities,
   getProviderParamSpecs,
   isParamApplicability,
   isProviderParamPath,
   providerParamValueIsValid,
   type AuthType,
   type JsonValue,
+  type ModelCapability,
   type ModelParamDefinition,
   type ModelParamGroup,
   type ModelParamRange,
@@ -115,6 +118,14 @@ export class ProviderParamSpecService implements OnModuleInit {
     return getProviderParamSpecs(this.specs, providerId, authType, model);
   }
 
+  async getCapabilities(
+    providerId: string | undefined,
+    authType: AuthType | undefined,
+    model: string | undefined,
+  ): Promise<readonly ModelCapability[] | null> {
+    return getProviderModelCapabilities(this.specs, providerId, authType, model);
+  }
+
   getLastFetchedAt(): Date | null {
     return this.lastFetchedAt;
   }
@@ -158,10 +169,11 @@ export class ProviderParamSpecService implements OnModuleInit {
 function freezeCatalog(catalog: ProviderParamSpecCatalog): ProviderParamSpecCatalog {
   return Object.freeze(
     catalog
-      .filter((entry) => entry.params.length > 0)
+      .filter((entry) => entry.params.length > 0 || (entry.capabilities?.length ?? 0) > 0)
       .map((entry) =>
         Object.freeze({
           ...entry,
+          ...(entry.capabilities ? { capabilities: Object.freeze([...entry.capabilities]) } : {}),
           params: Object.freeze([...entry.params].sort(compareProviderParamSpecs)),
         }),
       )
@@ -187,19 +199,37 @@ function parseProviderModelParamSpec(raw: unknown): ProviderModelParamSpec | nul
   if (!isNonEmptyString(raw.provider)) return null;
   if (!isAuthType(raw.authType)) return null;
   if (!isNonEmptyString(raw.model)) return null;
-  if (!Array.isArray(raw.params)) return null;
+  if (raw.params !== undefined && !Array.isArray(raw.params)) return null;
+  const capabilities =
+    raw.capabilities === undefined ? undefined : parseModelCapabilities(raw.capabilities);
+  if (raw.capabilities !== undefined && !capabilities) return null;
 
-  const params = raw.params
+  const rawParams = Array.isArray(raw.params) ? raw.params : [];
+  const params = rawParams
     .map(parseModelParamDefinition)
     .filter((param): param is ModelParamDefinition => param !== null);
 
-  if (params.length === 0) return null;
+  if (params.length === 0 && (!capabilities || capabilities.length === 0)) return null;
   return {
     provider: raw.provider,
     authType: raw.authType,
     model: raw.model,
+    ...(capabilities ? { capabilities } : {}),
     params,
   };
+}
+
+function parseModelCapabilities(raw: unknown): readonly ModelCapability[] | null {
+  if (!Array.isArray(raw)) return null;
+  const seen = new Set<ModelCapability>();
+  const out: ModelCapability[] = [];
+  for (const value of raw) {
+    if (!isModelCapability(value)) return null;
+    if (seen.has(value)) continue;
+    seen.add(value);
+    out.push(value);
+  }
+  return out;
 }
 
 function parseModelParamDefinition(raw: unknown): ModelParamDefinition | null {
@@ -273,6 +303,10 @@ function isModelParamGroup(value: unknown): value is ModelParamGroup {
 
 function isAuthType(value: unknown): value is AuthType {
   return typeof value === 'string' && (AUTH_TYPES as readonly string[]).includes(value);
+}
+
+function isModelCapability(value: unknown): value is ModelCapability {
+  return typeof value === 'string' && (MODEL_CAPABILITIES as readonly string[]).includes(value);
 }
 
 function isJsonValue(value: unknown): value is JsonValue {

@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
-import { TIER_SLOTS, AUTH_TYPES } from 'manifest-shared';
+import { AUTH_TYPES, RESPONSE_MODES, TIER_SLOTS, type ResponseMode } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
 const KNOWN_PROVIDER_IDS: readonly string[] = Array.from(PROVIDER_BY_ID_OR_ALIAS.keys());
@@ -204,4 +204,9 @@ export class SetFallbacksDto {
   @ValidateNested({ each: true })
   @Type(() => ModelRouteDto)
   routes?: ModelRouteDto[];
+}
+
+export class SetResponseModeDto {
+  @IsIn(RESPONSE_MODES)
+  responseMode!: ResponseMode;
 }

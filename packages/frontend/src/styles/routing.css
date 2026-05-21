@@ -280,6 +280,80 @@
   left: 18px;
 }
 
+/* ── Response mode segmented control ─────────────── */
+.routing-section__controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.response-mode-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.response-mode-control__label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+}
+
+.response-mode-control__segments {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+}
+
+.response-mode-control__segment {
+  min-width: 76px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.response-mode-control__segment:hover:not(:disabled) {
+  color: hsl(var(--foreground));
+}
+
+.response-mode-control__segment--active {
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.response-mode-control__segment:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.response-mode-control--compact {
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 0 10px;
+}
+
 /* ── Complexity empty state ───────────────────────── */
 .complexity-empty {
   display: flex;
@@ -493,6 +567,43 @@
   color: hsl(var(--muted-foreground));
 }
 
+.routing-card__chip-meta,
+.model-capability-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.model-capability-badges {
+  flex-wrap: wrap;
+}
+
+.model-capability-badges--compact {
+  gap: 4px;
+}
+
+.model-capability-badges--empty {
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.model-capability-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
 .dark .routing-card__model-chip {
   background: #121212;
 }
@@ -508,6 +619,31 @@
 .routing-card__model-chip--drop-target {
   border-color: hsl(var(--primary));
   box-shadow: 0 0 0 1px hsl(var(--primary));
+}
+
+.routing-card__model-chip--skipped {
+  opacity: 0.56;
+  border-style: dashed;
+  background: hsl(var(--muted) / 0.35);
+}
+
+.routing-card__model-chip--skipped:hover {
+  background: hsl(var(--muted) / 0.42);
+}
+
+.routing-card__skipped-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  background: hsl(var(--background));
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .routing-card__chip-action {
@@ -1325,6 +1461,21 @@
   background: transparent;
 }
 
+.fallback-list__card--skipped {
+  opacity: 0.56;
+  border-style: dashed;
+  background: hsl(var(--muted) / 0.35);
+  color: hsl(var(--muted-foreground));
+}
+
+.fallback-list__card--skipped:hover {
+  background: hsl(var(--muted) / 0.42);
+}
+
+.fallback-list__card--skipped .fallback-list__model {
+  color: hsl(var(--muted-foreground));
+}
+
 /* Drop indicator — always present as a spacer, highlights when active */
 .fallback-list__drop-indicator {
   height: 8px;
@@ -1584,6 +1735,15 @@
   .routing-section__header--with-control {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .routing-section__controls {
+    justify-content: flex-start;
+  }
+
+  .response-mode-control {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .provider-toggle__expand {

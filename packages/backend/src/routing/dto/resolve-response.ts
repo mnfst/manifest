@@ -1,5 +1,5 @@
 import { ScoringReason } from '../../scoring';
-import type { ModelRoute, SpecificityCategory, TierSlot } from 'manifest-shared';
+import type { ModelRoute, ResponseMode, SpecificityCategory, TierSlot } from 'manifest-shared';
 
 export type { AuthType } from 'manifest-shared';
 
@@ -20,6 +20,8 @@ export interface ResolveResponse {
    * Replaces the legacy `fallback_models: string[]` field.
    */
   fallback_routes: ModelRoute[] | null;
+  /** Effective transport policy configured on the resolved routing chain. */
+  response_mode?: ResponseMode;
   specificity_category?: SpecificityCategory;
   header_tier_id?: string;
   header_tier_name?: string;

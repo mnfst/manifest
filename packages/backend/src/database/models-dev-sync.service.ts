@@ -1,6 +1,8 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import type { ModelCapability } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
+import { capabilitiesFromModelsDev } from '../model-discovery/model-capabilities';
 
 /**
  * Mapping from our internal provider IDs to models.dev provider directory names.
@@ -44,6 +46,7 @@ export interface ModelsDevModelEntry {
   outputPricePerToken: number | null;
   cacheReadPricePerToken?: number | null;
   cacheWritePricePerToken?: number | null;
+  capabilities: readonly ModelCapability[];
 }
 
 interface RawModelsDevModel {
@@ -130,7 +133,7 @@ export class ModelsDevSyncService implements OnModuleInit {
       const modelMap = new Map<string, ModelsDevModelEntry>();
       for (const [modelId, model] of Object.entries(provider.models)) {
         if (!this.isChatCompatible(model)) continue;
-        const entry = this.parseModel(modelId, model);
+        const entry = this.parseModel(ourId, modelId, model);
         modelMap.set(modelId, entry);
         totalModels++;
       }
@@ -271,7 +274,11 @@ export class ModelsDevSyncService implements OnModuleInit {
     return this.lastFetchedAt;
   }
 
-  private parseModel(modelId: string, raw: RawModelsDevModel): ModelsDevModelEntry {
+  private parseModel(
+    providerId: string,
+    modelId: string,
+    raw: RawModelsDevModel,
+  ): ModelsDevModelEntry {
     const inputPerMillion = raw.cost?.input ?? null;
     const outputPerMillion = raw.cost?.output ?? null;
     const cacheReadPerMillion = raw.cost?.cache_read ?? null;
@@ -286,6 +293,7 @@ export class ModelsDevSyncService implements OnModuleInit {
       structuredOutput: raw.structured_output ?? false,
       contextWindow: raw.limit?.context,
       maxOutputTokens: raw.limit?.output,
+      capabilities: capabilitiesFromModelsDev(providerId, modelId, raw.modalities, raw.tool_call),
       inputPricePerToken: inputPerMillion !== null ? inputPerMillion / 1_000_000 : null,
       outputPricePerToken: outputPerMillion !== null ? outputPerMillion / 1_000_000 : null,
       cacheReadPricePerToken: cacheReadPerMillion !== null ? cacheReadPerMillion / 1_000_000 : null,

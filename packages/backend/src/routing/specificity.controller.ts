@@ -13,7 +13,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { SpecificityService } from './routing-core/specificity.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
-import { AgentNameParamDto, SetFallbacksDto } from './dto/routing.dto';
+import { AgentNameParamDto, SetFallbacksDto, SetResponseModeDto } from './dto/routing.dto';
 import { SetSpecificityOverrideDto, ToggleSpecificityDto } from './dto/specificity.dto';
 import { SPECIFICITY_CATEGORIES } from 'manifest-shared';
 
@@ -79,6 +79,18 @@ export class SpecificityController {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.specificityService.clearOverride(agent.id, category);
     return { ok: true };
+  }
+
+  @Patch(':agentName/specificity/:category/response-mode')
+  async setResponseMode(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('category') category: string,
+    @Body() body: SetResponseModeDto,
+  ) {
+    this.validateCategory(category);
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.specificityService.setResponseMode(agent.id, user.id, category, body.responseMode);
   }
 
   @Put(':agentName/specificity/:category/fallbacks')

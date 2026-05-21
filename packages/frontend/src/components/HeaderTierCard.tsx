@@ -5,6 +5,7 @@ import type {
   CustomProviderData,
   ModelRoute,
   RequestParamDefaults,
+  ResponseMode,
   RoutingProvider,
 } from '../services/api.js';
 import {
@@ -24,6 +25,8 @@ import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
 import { toast } from '../services/toast-store.js';
 import { modelParamsScopeForHeaderTier } from 'manifest-shared';
+import ResponseModeControl from './ResponseModeControl.js';
+import ModelCapabilityBadges from './ModelCapabilityBadges.js';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
@@ -51,6 +54,8 @@ interface Props {
   onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onEdit?: () => void;
   onDisable?: () => void;
+  changingResponseMode?: boolean;
+  onResponseModeChange?: (mode: ResponseMode) => void | Promise<void>;
   /**
    * Per-route params getter, threaded from the routing page boundary. When
    * present, the primary chip and every fallback row render a
@@ -102,6 +107,9 @@ const HeaderTierCard: Component<Props> = (props) => {
   };
 
   const modelLabel = (): string => modelInfo()?.display_name ?? currentModel() ?? '';
+  const isStreamMode = (): boolean => props.tier.response_mode === 'stream';
+  const primarySkipped = (): boolean =>
+    isStreamMode() && !(modelInfo()?.capabilities?.includes('stream') ?? false);
 
   const priceLabel = (): string => {
     const info = modelInfo();
@@ -272,10 +280,22 @@ const HeaderTierCard: Component<Props> = (props) => {
         {props.tier.header_key}: {props.tier.header_value}
       </code>
 
+      <ResponseModeControl
+        compact
+        value={() => props.tier.response_mode ?? 'buffered'}
+        disabled={() => !!props.changingResponseMode || !props.onResponseModeChange}
+        onChange={(mode) => props.onResponseModeChange?.(mode)}
+      />
+
       <div class="routing-card__body">
         <Show when={currentModel()}>
           {(modelName) => (
-            <div class="routing-card__model-chip" onClick={() => setPickerMode('primary')}>
+            <div
+              class="routing-card__model-chip"
+              classList={{ 'routing-card__model-chip--skipped': primarySkipped() }}
+              title={primarySkipped() ? 'Skipped while Stream mode is active' : undefined}
+              onClick={() => setPickerMode('primary')}
+            >
               <div class="routing-card__chip-main">
                 <div class="routing-card__override">
                   <Show
@@ -366,9 +386,23 @@ const HeaderTierCard: Component<Props> = (props) => {
               <div class="routing-card__chip-footer">
                 <Show
                   when={effectiveAuth() !== 'subscription'}
-                  fallback={<span class="routing-card__chip-price">Included in subscription</span>}
+                  fallback={
+                    <span class="routing-card__chip-meta">
+                      <span class="routing-card__chip-price">Included in subscription</span>
+                      <ModelCapabilityBadges capabilities={modelInfo()?.capabilities} compact />
+                      <Show when={primarySkipped()}>
+                        <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                      </Show>
+                    </span>
+                  }
                 >
-                  <span class="routing-card__chip-price">{priceLabel()}</span>
+                  <span class="routing-card__chip-meta">
+                    <span class="routing-card__chip-price">{priceLabel()}</span>
+                    <ModelCapabilityBadges capabilities={modelInfo()?.capabilities} compact />
+                    <Show when={primarySkipped()}>
+                      <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                    </Show>
+                  </span>
                 </Show>
               </div>
             </div>
@@ -394,6 +428,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             getModelParams={props.getModelParams}
             setModelParams={props.setModelParams}
             modelParamsScope={modelParamsScopeForHeaderTier(props.tier.id)}
+            responseMode={props.tier.response_mode ?? 'buffered'}
             persistClearFallbacks={(_agent, tierId) =>
               clearHeaderTierFallbacks(props.agentName, tierId)
             }
@@ -408,6 +443,7 @@ const HeaderTierCard: Component<Props> = (props) => {
           tiers={[]}
           customProviders={props.customProviders}
           connectedProviders={props.connectedProviders}
+          requiredCapability={props.tier.response_mode === 'stream' ? 'stream' : undefined}
           onClose={() => setPickerMode(null)}
           onSelect={handlePickerSelect}
         />

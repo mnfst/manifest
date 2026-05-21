@@ -7,6 +7,7 @@ import {
   type CustomProviderData,
   type ModelRoute,
   type RequestParamDefaults,
+  type ResponseMode,
   type RoutingProvider,
   type TierAssignment,
 } from '../services/api.js';
@@ -35,6 +36,7 @@ interface FallbackListProps {
   // same-name-different-auth ambiguity reported in issue #1708 without
   // changing the visible UI for users whose data has been backfilled.
   fallbackRoutes?: ModelRoute[] | null;
+  responseMode?: ResponseMode;
   models: AvailableModel[];
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
@@ -110,6 +112,30 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     return stripCustomPrefix(model);
   };
   const modelParamsScope = () => props.modelParamsScope ?? modelParamsScopeForTier(props.tier);
+
+  const modelInfoFor = (model: string, index: number): AvailableModel | undefined => {
+    const route = props.fallbackRoutes?.[index];
+    if (route) {
+      const routeProvider = resolveProviderId(route.provider)?.toLowerCase();
+      const routeMatch = props.models.find((m) => {
+        const modelProvider = resolveProviderId(m.provider)?.toLowerCase();
+        return (
+          m.model_name === route.model &&
+          modelProvider === routeProvider &&
+          (!m.auth_type || m.auth_type === route.authType)
+        );
+      });
+      if (routeMatch) return routeMatch;
+    }
+    return (
+      props.models.find((m) => m.model_name === model) ??
+      props.models.find((m) => m.model_name.startsWith(model + '-'))
+    );
+  };
+
+  const skippedInStream = (model: string, index: number): boolean =>
+    props.responseMode === 'stream' &&
+    !(modelInfoFor(model, index)?.capabilities?.includes('stream') ?? false);
 
   /**
    * Active labeled keys for (provider, auth_type), sorted by priority. Used
@@ -362,7 +388,13 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     classList={{
                       'fallback-list__card--dragging': dragIndex() === i(),
                       'fallback-list__card--swapping': props.swappingIndex === i(),
+                      'fallback-list__card--skipped': skippedInStream(model(), i()),
                     }}
+                    title={
+                      skippedInStream(model(), i())
+                        ? 'Skipped while Stream mode is active'
+                        : undefined
+                    }
                     draggable={true}
                     onDragStart={(e) => handleDragStart(i(), e)}
                     // Bind dragend on the draggable row itself rather than
@@ -432,6 +464,9 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                         })()}
                       </Show>
                       <span class="fallback-list__model">{modelLabel(model())}</span>
+                      <Show when={skippedInStream(model(), i())}>
+                        <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                      </Show>
                       <Show when={keys().length > 1}>
                         <FallbackKeyChip
                           keys={keys()}

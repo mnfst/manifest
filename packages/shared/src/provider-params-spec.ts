@@ -1,6 +1,10 @@
 import type { AuthType } from './auth-types';
 import type { JsonPrimitive, JsonValue } from './request-params';
 
+export const MODEL_CAPABILITIES = ['text', 'image', 'audio', 'video', 'stream', 'tools'] as const;
+
+export type ModelCapability = (typeof MODEL_CAPABILITIES)[number];
+
 export type ModelParamType = 'boolean' | 'enum' | 'integer' | 'number' | 'string';
 
 export type ModelParamGroup =
@@ -64,6 +68,7 @@ export interface ProviderModelParamSpec {
   provider: string;
   authType: AuthType;
   model: string;
+  capabilities?: readonly ModelCapability[];
   params: readonly ModelParamDefinition[];
 }
 
@@ -110,6 +115,23 @@ export function getProviderParamSpecs(
       ...param,
     }))
     .sort(compareProviderParamSpecs);
+}
+
+export function getProviderModelCapabilities(
+  catalog: ProviderParamSpecCatalog,
+  providerId: string | undefined,
+  authType: AuthType | undefined,
+  model: string | undefined,
+): readonly ModelCapability[] | null {
+  if (!providerId || !authType || !model) return null;
+  const provider = providerId.toLowerCase();
+  const entry = catalog.find(
+    (spec) =>
+      spec.provider.toLowerCase() === provider &&
+      spec.authType === authType &&
+      spec.model === model,
+  );
+  return entry?.capabilities ?? null;
 }
 
 export function compareProviderParamSpecs(

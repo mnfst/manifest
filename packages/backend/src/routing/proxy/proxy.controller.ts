@@ -159,7 +159,9 @@ export class ProxyController {
 
       let streamUsage = null;
 
-      if (isStream && providerResponse.body) {
+      const shouldStreamResponse = isStream || meta.response_mode === 'stream';
+
+      if (shouldStreamResponse && providerResponse.body) {
         headersSent = true;
         streamUsage = await handleStreamResponse(
           res,

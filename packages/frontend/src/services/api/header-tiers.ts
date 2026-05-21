@@ -1,5 +1,5 @@
 import { fetchJson, fetchMutate, routingPath } from './core.js';
-import type { AuthType, ModelRoute } from './routing.js';
+import type { AuthType, ModelRoute, ResponseMode } from './routing.js';
 import type { TierColor } from 'manifest-shared';
 
 export interface HeaderTier {
@@ -13,6 +13,7 @@ export interface HeaderTier {
   enabled: boolean;
   override_route: ModelRoute | null;
   fallback_routes: ModelRoute[] | null;
+  response_mode?: ResponseMode;
   created_at: string;
   updated_at: string;
 }
@@ -67,6 +68,21 @@ export function toggleHeaderTier(agentName: string, id: string, enabled: boolean
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enabled }),
+    },
+  );
+}
+
+export function setHeaderTierResponseMode(
+  agentName: string,
+  id: string,
+  responseMode: ResponseMode,
+) {
+  return fetchMutate<HeaderTier>(
+    routingPath(agentName, `header-tiers/${encodeURIComponent(id)}/response-mode`),
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ responseMode }),
     },
   );
 }

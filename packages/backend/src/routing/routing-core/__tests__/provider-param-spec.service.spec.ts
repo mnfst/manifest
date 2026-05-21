@@ -176,6 +176,43 @@ describe('ProviderParamSpecService', () => {
     );
   });
 
+  it('keeps capability-only model entries in the catalog', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      json: async () => ({
+        models: [
+          {
+            provider: 'openai',
+            authType: 'api_key',
+            model: 'gpt-stream',
+            capabilities: ['text', 'stream', 'tools'],
+          },
+        ],
+      }),
+    } as unknown as Response);
+    const service = new ProviderParamSpecService();
+
+    await expect(service.refreshCache()).resolves.toBe(1);
+
+    await expect(service.getSpecs('openai', 'api_key', 'gpt-stream')).resolves.toEqual([]);
+    await expect(service.getCapabilities('openai', 'api_key', 'gpt-stream')).resolves.toEqual([
+      'text',
+      'stream',
+      'tools',
+    ]);
+    await expect(service.list()).resolves.toEqual([
+      expect.objectContaining({
+        provider: 'openai',
+        authType: 'api_key',
+        model: 'gpt-stream',
+        capabilities: ['text', 'stream', 'tools'],
+        params: [],
+      }),
+    ]);
+  });
+
   it('falls back to the bundled snapshot when the initial remote fetch fails', async () => {
     fetchSpy.mockResolvedValue({ ok: false, status: 503 } as Response);
     const service = new ProviderParamSpecService();

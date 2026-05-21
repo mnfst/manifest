@@ -729,6 +729,66 @@ describe('ProxyService — orchestration', () => {
       expect(tierService.getTiers).not.toHaveBeenCalled();
     });
 
+    it('skips non-stream fallback routes when response mode is stream', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: [
+          route('custom:local', 'api_key', 'local-model'),
+          route('anthropic', 'api_key', 'claude'),
+        ],
+        response_mode: 'stream',
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('boom', { status: 500 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: null,
+        failures: [],
+      } as never);
+
+      await svc.proxyRequest(baseOpts());
+
+      const call = fallbackService.tryFallbacks.mock.calls[0];
+      expect(call[2]).toEqual(['claude']);
+      expect(call[14]).toEqual([route('anthropic', 'api_key', 'claude')]);
+    });
+
+    it('does not retry a lifted stream fallback as its own fallback', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('anthropic', 'api_key', 'claude'),
+        fallback_routes: null,
+        response_mode: 'stream',
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'standard',
+          fallback_routes: [route('anthropic', 'api_key', 'claude')],
+        } as never,
+      ]);
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('boom', { status: 500 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(500);
+    });
+
     it('looks up tier fallbacks when the resolver returned null', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',

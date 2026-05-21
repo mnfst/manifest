@@ -117,6 +117,41 @@ describe('FallbackList', () => {
     expect(modelLabels.length).toBe(2);
   });
 
+  it('marks non-stream fallback routes as skipped while stream mode is active', () => {
+    const streamModeModels = [
+      {
+        model_name: 'stream-model',
+        provider: 'OpenAI',
+        capabilities: ['text', 'stream'],
+      },
+      {
+        model_name: 'legacy-model',
+        provider: 'custom:local',
+        capabilities: ['text'],
+      },
+    ] as any[];
+
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        responseMode="stream"
+        fallbacks={['stream-model', 'legacy-model']}
+        fallbackRoutes={[
+          { provider: 'openai', authType: 'api_key', model: 'stream-model' },
+          { provider: 'custom:local', authType: 'api_key', model: 'legacy-model' },
+        ]}
+        models={streamModeModels}
+      />
+    ));
+
+    const cards = container.querySelectorAll('.fallback-list__card');
+    expect(cards[0]?.classList.contains('fallback-list__card--skipped')).toBe(false);
+    expect(cards[1]?.classList.contains('fallback-list__card--skipped')).toBe(true);
+    expect(container.querySelector('.routing-card__skipped-badge')?.textContent).toContain(
+      'Skipped in Stream',
+    );
+  });
+
   it('calls onAddFallback when add button in empty state clicked', () => {
     const onAddFallback = vi.fn();
     const { container } = render(() => (

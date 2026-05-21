@@ -558,5 +558,90 @@ describe('TierService', () => {
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
+
+    it('rejects clearing the only stream-capable route while stream mode is active', async () => {
+      tierRepo.findOne.mockResolvedValue({
+        tier: 'standard',
+        override_route: route('custom:local', 'api_key', 'local-model'),
+        auto_assigned_route: null,
+        fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
+        response_mode: 'stream',
+      } as TierAssignment);
+
+      await expect(svc.clearFallbacks('agent-1', 'standard')).rejects.toThrow(
+        /add at least one stream-capable model/,
+      );
+      expect(tierRepo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('stream response mode enforcement', () => {
+    it('rejects stream mode when the route chain has no stream-capable model', async () => {
+      tierRepo.findOne.mockResolvedValue({
+        tier: 'standard',
+        override_route: route('custom:local', 'api_key', 'local-model'),
+        auto_assigned_route: null,
+        fallback_routes: null,
+      } as TierAssignment);
+
+      await expect(svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream')).rejects.toThrow(
+        /add at least one stream-capable model/,
+      );
+      expect(tierRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('allows stream mode when only the primary route is stream-capable', async () => {
+      const existing = {
+        tier: 'standard',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        auto_assigned_route: null,
+        fallback_routes: [route('custom:local', 'api_key', 'local-model')],
+      } as TierAssignment;
+      tierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+
+      expect(result.response_mode).toBe('stream');
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('allows stream mode when the active route chain supports streaming', async () => {
+      const existing = {
+        tier: 'standard',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        auto_assigned_route: null,
+        fallback_routes: [route('anthropic', 'api_key', 'claude-3-5-sonnet')],
+        response_mode: 'buffered',
+      } as TierAssignment;
+      tierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+
+      expect(result.response_mode).toBe('stream');
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('allows adding a non-stream fallback while tier stream mode is active when the primary streams', async () => {
+      const existing = {
+        tier: 'standard',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        response_mode: 'stream',
+      } as TierAssignment;
+      tierRepo.findOne.mockResolvedValue(existing);
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('local-model', 'custom:local', 'api_key'),
+      ]);
+
+      const result = await svc.setFallbacks(
+        'agent-1',
+        'standard',
+        ['local-model'],
+        [route('custom:local', 'api_key', 'local-model')],
+      );
+
+      expect(result).toEqual([route('custom:local', 'api_key', 'local-model')]);
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
+    });
   });
 });

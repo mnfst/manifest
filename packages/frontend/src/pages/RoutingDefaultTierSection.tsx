@@ -4,10 +4,12 @@ import type {
   AvailableModel,
   CustomProviderData,
   RequestParamDefaults,
+  ResponseMode,
   RoutingProvider,
   TierAssignment,
 } from '../services/api.js';
 import { DEFAULT_STAGE, STAGES } from '../services/providers.js';
+import ResponseModeControl from '../components/ResponseModeControl.js';
 import RoutingTierCard from './RoutingTierCard.js';
 
 export interface RoutingDefaultTierSectionProps {
@@ -38,6 +40,9 @@ export interface RoutingDefaultTierSectionProps {
   complexityEnabled: () => boolean;
   togglingComplexity: () => boolean;
   onToggleComplexity: () => void;
+  responseMode: () => ResponseMode;
+  changingResponseMode: () => boolean;
+  onResponseModeChange: (mode: ResponseMode) => void | Promise<void>;
   embedded?: boolean;
   /**
    * Read saved per-route params from the parent's loaded map. Threaded
@@ -150,6 +155,17 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
       ? 'Analyzes the complexity of each request on the fly and routes it to the matching tier.'
       : 'Pick one model and up to 5 fallbacks as your default routing.';
 
+  const controls = () => (
+    <div class="routing-section__controls">
+      <ResponseModeControl
+        value={props.responseMode}
+        disabled={props.changingResponseMode}
+        onChange={props.onResponseModeChange}
+      />
+      {switchButton()}
+    </div>
+  );
+
   if (props.embedded) {
     return (
       <div>
@@ -158,7 +174,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
           style="margin-bottom: 16px;"
         >
           <span class="routing-section__subtitle">{subtitle()}</span>
-          {switchButton()}
+          {controls()}
         </div>
         <Show
           when={props.complexityEnabled()}
@@ -177,7 +193,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
           <span class="routing-section__title">Default routing</span>
           <span class="routing-section__subtitle">{subtitle()}</span>
         </div>
-        {switchButton()}
+        {controls()}
       </div>
       <Show when={props.complexityEnabled()} fallback={defaultCard()}>
         {complexityCards()}
