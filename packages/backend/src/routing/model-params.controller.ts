@@ -14,7 +14,6 @@ import {
   providerParamValueIsValid,
   type AuthType,
   type ProviderParamSpec,
-  type ProviderParamSpecCatalog,
   type RequestParamDefaults,
 } from 'manifest-shared';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -36,15 +35,6 @@ export class ModelParamsController {
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly resolveAgentService: ResolveAgentService,
   ) {}
-
-  @Get(':agentName/model-param-specs')
-  async specs(
-    @CurrentUser() user: AuthUser,
-    @Param() params: AgentNameParamDto,
-  ): Promise<ProviderParamSpecCatalog> {
-    await this.resolveAgentService.resolve(user.id, params.agentName);
-    return this.providerParamSpecs.list();
-  }
 
   /**
    * Specs for a single route, fetched on demand when the user opens a model's

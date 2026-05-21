@@ -67,14 +67,6 @@ describe('ModelParamsController', () => {
     controller = module.get<ModelParamsController>(ModelParamsController);
   });
 
-  describe('GET /model-param-specs', () => {
-    it('returns the provider param spec catalog for the resolved agent', async () => {
-      const result = await controller.specs(mockUser, { agentName: 'demo' });
-      expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'demo');
-      expect(result).toBe(specCatalog);
-    });
-  });
-
   describe('GET /model-param-specs/by-model', () => {
     it('returns the specs for a single resolved route', async () => {
       const result = await controller.specsByModel(
