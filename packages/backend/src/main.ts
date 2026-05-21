@@ -7,6 +7,12 @@ import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
 import { SpaFallbackFilter } from './common/filters/spa-fallback.filter';
 import { httpErrorLogger } from './common/middleware/http-error-logger.middleware';
+import {
+  applyPrivateNetworkAllow,
+  buildDevAllowedOrigins,
+  buildFrameSrc,
+  createCorsOriginHandler,
+} from './cors-csp-config';
 
 export async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -19,18 +25,16 @@ export async function bootstrap() {
 
   const betterAuthUrl = process.env['BETTER_AUTH_URL'] || '';
   const hstsEnabled = /^https:\/\//i.test(betterAuthUrl);
-  const isDevEnv = process.env['NODE_ENV'] !== 'production';
+  const isDev = process.env['NODE_ENV'] !== 'production';
 
-  // In dev, the Wingman gateway tester runs at "backend port + 1" (or an
-  // explicit `WINGMAN_PORT` override) and is embedded as an iframe inside
-  // the dashboard via the bottom drawer. Allow that exact port through CSP
-  // only when NODE_ENV !== 'production'; Docker / cloud builds keep the
-  // strict 'self'-only frame policy.
+  // The Wingman drawer is a dev-only affordance — `frame-src` only loosens
+  // up when NODE_ENV !== 'production' to allow the hosted Wingman SPA
+  // (https://wingman.manifest.build) and locally-running Wingman builds
+  // at `WINGMAN_PORT` (defaults to backend port + 1). Docker / cloud
+  // builds keep the strict 'self'-only frame policy.
   const backendPort = Number(process.env['PORT']) || 3001;
   const wingmanPort = Number(process.env['WINGMAN_PORT']) || backendPort + 1;
-  const frameSrc = isDevEnv
-    ? ["'self'", `http://localhost:${wingmanPort}`, `http://127.0.0.1:${wingmanPort}`]
-    : ["'self'"];
+  const frameSrc = buildFrameSrc({ isDev, wingmanPort });
 
   app.use(
     helmet({
@@ -64,38 +68,35 @@ export async function bootstrap() {
 
   app.use(compression());
 
-  const isDev = process.env['NODE_ENV'] !== 'production';
+  // CORS is enabled only in dev so the Vite frontend on :3000, the local
+  // Wingman build at `WINGMAN_PORT`, and the hosted Wingman SPA can hit
+  // the backend cross-origin. Production never enables CORS — the
+  // dashboard is same-origin and the Wingman drawer is dead-code-
+  // eliminated, so there are no legitimate cross-origin callers.
+  //
+  // `credentials: false` is deliberate — Wingman uses bearer keys, never
+  // cookies, and keeping credentials off the cross-origin path means a
+  // misconfigured allow-list can't leak session cookies. We omit
+  // `allowedHeaders` on purpose so the cors middleware reflects the
+  // request's `Access-Control-Request-Headers`: Wingman replays real SDK
+  // fingerprints (e.g. the OpenAI/Stainless `X-Stainless-*` family), and a
+  // fixed allow-list silently fails those preflights.
   if (isDev) {
-    // Default to a single origin (the Vite dev server). Operators that need
-    // a different origin must set CORS_ORIGIN explicitly. Previously the
-    // fallback regex allowed http+https on both 3000 and 3001 with
-    // credentials, letting any locally-bound process on those ports read
-    // session cookies cross-origin.
-    //
-    // Wingman (the dev gateway tester at "backend port + 1") gets its own
-    // allowlist entry — it never receives cookies (`credentials: false` on
-    // its requests), so it stays out of the credentialed-origin path. The
-    // canonical Vite port (3002) is also included for the `npm run dev`
-    // workflow where the backend defaults to :3001.
     const configuredOrigin = process.env['CORS_ORIGIN'] || 'http://localhost:3000';
-    const allowedOrigins = [
+    const allowedOrigins = buildDevAllowedOrigins({
       configuredOrigin,
-      `http://localhost:${wingmanPort}`,
-      `http://127.0.0.1:${wingmanPort}`,
-      'http://localhost:3002',
-    ];
+      wingmanPort,
+    });
+    // PNA preflight must answer before the cors middleware ends the
+    // OPTIONS response. Registering this `app.use` first puts it ahead
+    // of the cors handler in the express middleware chain.
+    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+      applyPrivateNetworkAllow(req, allowedOrigins, (name, value) => res.setHeader(name, value));
+      next();
+    });
     app.enableCors({
-      origin: (
-        origin: string | undefined,
-        callback: (err: Error | null, allow?: boolean) => void,
-      ) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-          return;
-        }
-        callback(null, false);
-      },
-      credentials: true,
+      origin: createCorsOriginHandler(allowedOrigins),
+      credentials: false,
     });
   }
 

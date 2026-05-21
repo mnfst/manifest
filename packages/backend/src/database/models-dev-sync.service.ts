@@ -96,13 +96,22 @@ export class ModelsDevSyncService implements OnModuleInit {
   /** Map: our provider ID → Map<model ID (native), entry> */
   private cache = new Map<string, Map<string, ModelsDevModelEntry>>();
   private lastFetchedAt: Date | null = null;
+  private initialLoad: Promise<void> | null = null;
 
-  async onModuleInit(): Promise<void> {
-    try {
-      await this.refreshCache();
-    } catch (err) {
-      this.logger.error(`Startup models.dev cache refresh failed: ${err}`);
-    }
+  onModuleInit(): void {
+    // Fire-and-forget so a slow models.dev fetch can't delay app.listen() and
+    // trip Railway's healthcheck (see #1894). ModelPricingCacheService awaits
+    // whenInitialized() before its first reload so warmup still sees data.
+    this.initialLoad = this.refreshCache()
+      .then(() => undefined)
+      .catch((err) => {
+        this.logger.error(`Startup models.dev cache refresh failed: ${err}`);
+      });
+  }
+
+  /** Resolves once the startup refresh has settled (success or handled error). */
+  whenInitialized(): Promise<void> {
+    return this.initialLoad ?? Promise.resolve();
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_4AM)

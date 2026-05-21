@@ -1,0 +1,125 @@
+name: DB Diagram
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    paths:
+      - 'packages/backend/src/database/migrations/**'
+
+jobs:
+  diagram:
+    name: Schema diff diagram
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: mypassword
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U myuser -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      BASE_DB_URL: postgresql://myuser:mypassword@localhost:5432/base_schema
+      HEAD_DB_URL: postgresql://myuser:mypassword@localhost:5432/head_schema
+      PGPASSWORD: mypassword
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      NODE_PATH: ${{ github.workspace }}/node_modules:${{ github.workspace }}/packages/backend/node_modules
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build --workspace=packages/shared
+
+      - name: Create base + head databases
+        run: |
+          psql -h localhost -U myuser -d postgres -c "CREATE DATABASE base_schema;"
+          psql -h localhost -U myuser -d postgres -c "CREATE DATABASE head_schema;"
+
+      - name: Run HEAD migrations
+        env:
+          DATABASE_URL: ${{ env.HEAD_DB_URL }}
+        run: npm run migration:run --workspace=packages/backend
+
+      - name: Extract HEAD schema
+        env:
+          DATABASE_URL: ${{ env.HEAD_DB_URL }}
+        run: node .github/scripts/db-diagram/extract-schema.cjs > /tmp/head-schema.json
+
+      - name: List changed migration files
+        run: |
+          git diff --name-only --diff-filter=AM "$BASE_SHA"...HEAD \
+            -- packages/backend/src/database/migrations/ > /tmp/changed-migrations.txt
+          cat /tmp/changed-migrations.txt
+
+      - name: Swap migrations dir to base ref
+        run: |
+          rm -rf packages/backend/src/database/migrations
+          git checkout "$BASE_SHA" -- packages/backend/src/database/migrations/
+
+      - name: Run BASE migrations
+        env:
+          DATABASE_URL: ${{ env.BASE_DB_URL }}
+        run: npm run migration:run --workspace=packages/backend
+
+      - name: Extract BASE schema
+        env:
+          DATABASE_URL: ${{ env.BASE_DB_URL }}
+        run: node .github/scripts/db-diagram/extract-schema.cjs > /tmp/base-schema.json
+
+      - name: Render diagram comment
+        env:
+          MIGRATION_FILES_FILE: /tmp/changed-migrations.txt
+        run: |
+          MIGRATION_FILES="$(cat /tmp/changed-migrations.txt)" \
+            node .github/scripts/db-diagram/render-diagram.cjs \
+              /tmp/base-schema.json /tmp/head-schema.json > /tmp/comment.md
+          echo "--- comment preview ---"
+          cat /tmp/comment.md
+
+      - name: Post or update sticky PR comment
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/comment.md', 'utf8');
+            const marker = '<!-- db-diagram-bot -->';
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            });
+            const existing = comments.find((c) => c.body && c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body,
+              });
+              core.info(`Updated existing comment ${existing.id}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body,
+              });
+              core.info('Created new comment');
+            }

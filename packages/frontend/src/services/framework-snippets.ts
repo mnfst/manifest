@@ -352,6 +352,28 @@ export function getClaudeCodeSettingsSnippet(baseUrl: string, apiKey: string): s
 }`;
 }
 
+/**
+ * The JSON block to merge into ~/.nanobot/config.json. Nanobot only accepts its
+ * predefined provider keys; "custom" is the built-in slot for arbitrary
+ * OpenAI-compatible endpoints, so we use that rather than an arbitrary name.
+ */
+export function getNanobotConfigSnippet(baseUrl: string, apiKey: string): string {
+  return `{
+  "agents": {
+    "defaults": {
+      "provider": "custom",
+      "model": "auto"
+    }
+  },
+  "providers": {
+    "custom": {
+      "apiKey": "${apiKey}",
+      "apiBase": "${baseUrl}"
+    }
+  }
+}`;
+}
+
 export function getOpenClawDisableSnippet(model: string): string {
   return `openclaw config unset models.providers.manifest
 openclaw config unset agents.defaults.models.manifest/auto

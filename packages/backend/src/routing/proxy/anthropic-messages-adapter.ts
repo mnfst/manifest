@@ -10,8 +10,58 @@ import { OpenAIMessage } from './proxy-types';
 
 type JsonRecord = Record<string, unknown>;
 
+const DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA = {
+  type: 'object',
+  properties: {},
+  additionalProperties: false,
+} as const;
+
+const ANTHROPIC_SERVER_TOOL_PREFIXES = [
+  'bash_',
+  'code_execution_',
+  'computer_',
+  'memory_',
+  'text_editor_',
+  'tool_search_tool_',
+  'web_fetch_',
+  'web_search_',
+] as const;
+
+const ANTHROPIC_SERVER_TOOL_TYPES = ['mcp_toolset'] as const;
+
 function isRecord(value: unknown): value is JsonRecord {
   return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isAnthropicServerToolType(type: string): boolean {
+  return (
+    ANTHROPIC_SERVER_TOOL_TYPES.includes(type as (typeof ANTHROPIC_SERVER_TOOL_TYPES)[number]) ||
+    ANTHROPIC_SERVER_TOOL_PREFIXES.some((prefix) => type.startsWith(prefix))
+  );
+}
+
+function normalizeOpenAiFunctionSchema(schema: unknown): unknown {
+  if (schema === null || schema === undefined || typeof schema !== 'object') {
+    return schema;
+  }
+
+  if (Array.isArray(schema)) {
+    return schema.map((item) => normalizeOpenAiFunctionSchema(item));
+  }
+
+  const result: JsonRecord = {};
+  for (const [key, value] of Object.entries(schema)) {
+    result[key] = normalizeOpenAiFunctionSchema(value);
+  }
+
+  const type = result.type;
+  const isArraySchema =
+    type === 'array' || (Array.isArray(type) && type.some((item) => item === 'array'));
+  if (isArraySchema && result.items === undefined) {
+    result.items = {};
+  }
+
+  return result;
 }
 
 function safeJsonStringify(value: unknown): string {
@@ -137,9 +187,34 @@ function toChatTools(tools: unknown[]): JsonRecord[] {
     function: {
       name: typeof tool.name === 'string' ? tool.name : 'unknown',
       ...(typeof tool.description === 'string' && { description: tool.description }),
-      ...(tool.input_schema !== undefined && { parameters: tool.input_schema }),
+      ...(tool.input_schema !== undefined
+        ? { parameters: normalizeOpenAiFunctionSchema(tool.input_schema) }
+        : typeof tool.type === 'string' &&
+            tool.type !== 'custom' &&
+            !isAnthropicServerToolType(tool.type)
+          ? { parameters: DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA }
+          : {}),
     },
   }));
+}
+
+// Anthropic server tools (web_search_*, bash_*, text_editor_*, computer_*,
+// code_execution_*, etc.) declare themselves with a versioned `type` tag and
+// no `input_schema` — Anthropic resolves the schema server-side from `type`.
+// The OpenAI chat_completions tool shape has no analogue, so a naive
+// translation drops the `type` and re-emits them as nameless custom tools,
+// which Anthropic then rejects with `tools.N.custom.input_schema: Field
+// required` (issue #1886). Stash the originals on chatBody and have
+// toAnthropicRequest re-emit them unchanged when the upstream is Anthropic.
+export function extractAnthropicServerTools(tools: unknown[]): JsonRecord[] {
+  const out: JsonRecord[] = [];
+  for (const tool of tools) {
+    if (!isRecord(tool)) continue;
+    if (typeof tool.type === 'string' && isAnthropicServerToolType(tool.type)) {
+      out.push(tool);
+    }
+  }
+  return out;
 }
 
 function toChatToolChoice(choice: unknown): unknown {
@@ -185,7 +260,11 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   if (body.thinking !== undefined) chatBody.thinking = body.thinking;
   if (body.top_k !== undefined) chatBody.top_k = body.top_k;
 
-  if (Array.isArray(body.tools)) chatBody.tools = toChatTools(body.tools);
+  if (Array.isArray(body.tools)) {
+    chatBody.tools = toChatTools(body.tools);
+    const serverTools = extractAnthropicServerTools(body.tools);
+    if (serverTools.length > 0) chatBody._anthropicServerTools = serverTools;
+  }
   const toolChoice = toChatToolChoice(body.tool_choice);
   if (toolChoice !== undefined) chatBody.tool_choice = toolChoice;
 
@@ -205,13 +284,28 @@ function toAnthropicStopReason(finishReason: unknown): string {
 
 function toAnthropicUsage(usage: unknown): JsonRecord {
   const u = isRecord(usage) ? usage : {};
-  const inputTokens = typeof u.prompt_tokens === 'number' ? u.prompt_tokens : 0;
+  const promptTokens = typeof u.prompt_tokens === 'number' ? u.prompt_tokens : 0;
   const outputTokens = typeof u.completion_tokens === 'number' ? u.completion_tokens : 0;
-  const cacheRead = typeof u.cache_read_tokens === 'number' ? u.cache_read_tokens : 0;
+  const promptDetails = isRecord(u.prompt_tokens_details) ? u.prompt_tokens_details : undefined;
+  // OpenAI-compat providers (OpenAI chat-completions, DeepSeek, Z.AI, MiniMax, etc.)
+  // report cached input under nested `prompt_tokens_details.cached_tokens` instead
+  // of the top-level Anthropic-converted key — fall back to it.
+  const cacheRead =
+    typeof u.cache_read_tokens === 'number'
+      ? u.cache_read_tokens
+      : typeof promptDetails?.cached_tokens === 'number'
+        ? promptDetails.cached_tokens
+        : 0;
+  const cacheCreation = typeof u.cache_creation_tokens === 'number' ? u.cache_creation_tokens : 0;
+  // Chat-shape prompt_tokens is the full input total (uncached + cache reads +
+  // cache creation). Anthropic Messages' input_tokens is the uncached portion
+  // only, with cache_read_input_tokens / cache_creation_input_tokens reported
+  // separately. Subtract so the round-trip matches Anthropic's native shape.
+  const inputTokens = Math.max(0, promptTokens - cacheRead - cacheCreation);
   return {
     input_tokens: inputTokens,
     output_tokens: outputTokens,
-    cache_creation_input_tokens: 0,
+    cache_creation_input_tokens: cacheCreation,
     cache_read_input_tokens: cacheRead,
   };
 }
@@ -281,9 +375,18 @@ interface StreamState {
   messageId: string;
   model: string;
   startedMessage: boolean;
+  // Block-state fields track the *currently open* block of each kind. After a
+  // block is stopped, the *Opened flag flips back to false so a subsequent
+  // chunk of the same kind allocates a fresh index — supports providers that
+  // interleave reasoning_content with content or tool_calls.
+  thinkingIndex: number | null;
+  thinkingOpened: boolean;
   textIndex: number | null;
   textOpened: boolean;
   toolCalls: Map<number, { id: string; index: number; argBuffer: string; opened: boolean }>;
+  // Monotonic counter — block indices must keep increasing across the whole
+  // stream, including across reopens of the same kind.
+  nextBlockIndexCounter: number;
   finalUsage: JsonRecord | null;
   stopReason: string | null;
   endedMessage: boolean;
@@ -299,9 +402,12 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
     messageId: `msg_${randomUUID().replace(/-/g, '')}`,
     model,
     startedMessage: false,
+    thinkingIndex: null,
+    thinkingOpened: false,
     textIndex: null,
     textOpened: false,
     toolCalls: new Map(),
+    nextBlockIndexCounter: 0,
     finalUsage: null,
     stopReason: null,
     endedMessage: false,
@@ -338,8 +444,49 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     if (!choice) continue;
     const delta = isRecord(choice.delta) ? choice.delta : {};
 
+    // DeepSeek (and other thinking-mode providers) stream reasoning as
+    // `delta.reasoning_content` separately from `delta.content`. Surface it as
+    // an Anthropic `thinking` content block so clients can echo it back on the
+    // next turn — the upstream rejects follow-ups that don't return the trace.
+    // Reasoning can also arrive *after* text or a tool_use has already started
+    // (providers don't guarantee reasoning is fully flushed before content).
+    // For text we close it and reopen a fresh thinking block — splitting text
+    // across blocks is fine because each Anthropic text block is independent.
+    // For an in-progress tool_use we DROP the late reasoning: Manifest's
+    // Anthropic-compat layer assumes thinking blocks precede tool_use and
+    // replays them in that shape on the next turn, so emitting a transcript
+    // like `thinking → tool_use → thinking` would produce a stream we can't
+    // safely replay. Keeping the tool_use block contiguous is the more
+    // defensible tradeoff than surfacing a fragment that breaks replay.
+    if (typeof delta.reasoning_content === 'string' && delta.reasoning_content.length > 0) {
+      if (!hasOpenToolCall(state)) {
+        closeTextBlock(state, events);
+        if (!state.thinkingOpened) {
+          state.thinkingIndex = nextBlockIndex(state);
+          events.push(
+            formatMessagesEvent('content_block_start', {
+              type: 'content_block_start',
+              index: state.thinkingIndex,
+              content_block: { type: 'thinking', thinking: '' },
+            }),
+          );
+          state.thinkingOpened = true;
+        }
+        events.push(
+          formatMessagesEvent('content_block_delta', {
+            type: 'content_block_delta',
+            index: state.thinkingIndex,
+            delta: { type: 'thinking_delta', thinking: delta.reasoning_content },
+          }),
+        );
+      }
+      // else: silently drop reasoning_content arriving during an open tool_use.
+    }
+
     if (typeof delta.content === 'string' && delta.content.length > 0) {
-      if (state.textIndex === null) {
+      closeThinkingBlock(state, events);
+      closeOpenToolCalls(state, events);
+      if (!state.textOpened) {
         state.textIndex = nextBlockIndex(state);
         events.push(
           formatMessagesEvent('content_block_start', {
@@ -360,6 +507,8 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     }
 
     if (Array.isArray(delta.tool_calls)) {
+      closeThinkingBlock(state, events);
+      closeTextBlock(state, events);
       for (const call of delta.tool_calls) {
         if (!isRecord(call)) continue;
         const callIndex = typeof call.index === 'number' ? call.index : 0;
@@ -413,8 +562,54 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
   return events.length > 0 ? events.join('') : null;
 }
 
+// Monotonic — every kind of block (thinking/text/tool_use) consumes one slot
+// here, even on reopens. Anthropic's content_block_* events index from 0
+// upward; the index of a reopened block must keep climbing, not collide with
+// an earlier one that has already been stopped.
 function nextBlockIndex(state: StreamState): number {
-  return (state.textIndex !== null ? 1 : 0) + state.toolCalls.size;
+  return state.nextBlockIndexCounter++;
+}
+
+function closeThinkingBlock(state: StreamState, events: string[]): void {
+  if (!state.thinkingOpened || state.thinkingIndex === null) return;
+  events.push(
+    formatMessagesEvent('content_block_stop', {
+      type: 'content_block_stop',
+      index: state.thinkingIndex,
+    }),
+  );
+  state.thinkingOpened = false;
+}
+
+function closeTextBlock(state: StreamState, events: string[]): void {
+  if (!state.textOpened || state.textIndex === null) return;
+  events.push(
+    formatMessagesEvent('content_block_stop', {
+      type: 'content_block_stop',
+      index: state.textIndex,
+    }),
+  );
+  state.textOpened = false;
+}
+
+function hasOpenToolCall(state: StreamState): boolean {
+  for (const entry of state.toolCalls.values()) {
+    if (entry.opened) return true;
+  }
+  return false;
+}
+
+function closeOpenToolCalls(state: StreamState, events: string[]): void {
+  for (const entry of state.toolCalls.values()) {
+    if (!entry.opened) continue;
+    events.push(
+      formatMessagesEvent('content_block_stop', {
+        type: 'content_block_stop',
+        index: entry.index,
+      }),
+    );
+    entry.opened = false;
+  }
 }
 
 function buildMessageStartEvent(state: StreamState, data: JsonRecord): string {
@@ -438,23 +633,9 @@ function closeStream(state: StreamState): string[] {
   if (state.endedMessage) return [];
   const events: string[] = [];
 
-  if (state.textOpened && state.textIndex !== null) {
-    events.push(
-      formatMessagesEvent('content_block_stop', {
-        type: 'content_block_stop',
-        index: state.textIndex,
-      }),
-    );
-  }
-  for (const entry of state.toolCalls.values()) {
-    if (!entry.opened) continue;
-    events.push(
-      formatMessagesEvent('content_block_stop', {
-        type: 'content_block_stop',
-        index: entry.index,
-      }),
-    );
-  }
+  closeThinkingBlock(state, events);
+  closeTextBlock(state, events);
+  closeOpenToolCalls(state, events);
 
   events.push(
     formatMessagesEvent('message_delta', {

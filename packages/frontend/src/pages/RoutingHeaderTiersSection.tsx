@@ -14,6 +14,7 @@ import type {
   AuthType,
   CustomProviderData,
   ModelRoute,
+  RequestParamDefaults,
   RoutingProvider,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
@@ -28,6 +29,20 @@ export interface RoutingHeaderTiersSectionProps {
   externalRefetch?: () => void;
   externalMutate?: (mutator: (prev: HeaderTier[] | undefined) => HeaderTier[] | undefined) => void;
   embedded?: boolean;
+  getModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+  ) => RequestParamDefaults | null;
+  setModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+    params: RequestParamDefaults | null,
+  ) => Promise<unknown>;
+  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
 }
 
 type Props = RoutingHeaderTiersSectionProps;
@@ -170,6 +185,9 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 }
                 onEdit={() => setModalTier(tier)}
                 onDisable={() => handleToggle(tier.id, false)}
+                getModelParams={props.getModelParams}
+                setModelParams={props.setModelParams}
+                modelHasParams={props.modelHasParams}
               />
             )}
           </For>

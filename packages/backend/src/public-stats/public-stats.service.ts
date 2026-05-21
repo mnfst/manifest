@@ -1,7 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import {
+  AGENT_CATEGORIES,
+  AGENT_PLATFORMS,
+  CATEGORY_LABELS,
+  PLATFORM_LABELS,
+  type AgentCategory,
+  type AgentPlatform,
+} from 'manifest-shared';
 import { AgentMessage } from '../entities/agent-message.entity';
+import { Agent } from '../entities/agent.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { computeCutoff, sqlDateBucket } from '../common/utils/postgres-sql';
 
@@ -13,6 +22,9 @@ const EXCLUDED_PROVIDERS = new Set(['Unknown']);
 // Both limits sit far above any realistic distinct-model count.
 const MAX_MODEL_ROWS = 1000;
 const MAX_PROVIDER_DAILY_ROWS = 50000;
+const EXCLUDED_AGENT_PLATFORMS = new Set<string>(['other']);
+const VALID_AGENT_CATEGORIES = new Set<string>(AGENT_CATEGORIES);
+const VALID_AGENT_PLATFORMS = new Set<string>(AGENT_PLATFORMS);
 
 export interface TopModel {
   model: string;
@@ -52,6 +64,15 @@ export interface ModelBreakdown {
 
 export interface ProviderDailyTokens {
   provider: string;
+  total_tokens: number;
+  models: ModelBreakdown[];
+}
+
+export interface AgentDailyTokens {
+  agent_category: AgentCategory;
+  agent_platform: AgentPlatform;
+  category_label: string;
+  platform_label: string;
   total_tokens: number;
   models: ModelBreakdown[];
 }
@@ -256,6 +277,132 @@ export class PublicStatsService {
         provider,
         total_tokens: data.total,
         models: data.models.sort((a, b) => b.total_tokens - a.total_tokens),
+      }));
+  }
+
+  async getAgentDailyTokens(): Promise<AgentDailyTokens[]> {
+    const cutoff30d = computeCutoff('30 days');
+    const dateBucket = sqlDateBucket('at.timestamp');
+
+    const rows: {
+      agent_category: string | null;
+      agent_platform: string | null;
+      model: string;
+      date: string;
+      tokens: string;
+      auth_type: string | null;
+      cost: string | null;
+    }[] = await this.messageRepo
+      .createQueryBuilder('at')
+      .innerJoin(Agent, 'a', 'a.id = at.agent_id')
+      .select('a.agent_category', 'agent_category')
+      .addSelect('a.agent_platform', 'agent_platform')
+      .addSelect('at.model', 'model')
+      .addSelect(dateBucket, 'date')
+      .addSelect('at.auth_type', 'auth_type')
+      .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
+      .addSelect('SUM(at.cost_usd)', 'cost')
+      .where('at.model IS NOT NULL')
+      .andWhere('at.timestamp >= :cutoff30d', { cutoff30d })
+      .andWhere('a.agent_category IS NOT NULL')
+      .andWhere('a.agent_platform IS NOT NULL')
+      .groupBy('a.agent_category')
+      .addGroupBy('a.agent_platform')
+      .addGroupBy('at.model')
+      .addGroupBy('date')
+      .addGroupBy('at.auth_type')
+      .orderBy('date', 'ASC')
+      .getRawMany();
+
+    const modelMap = new Map<
+      string,
+      {
+        category: AgentCategory;
+        platform: AgentPlatform;
+        modelName: string;
+        authType: string | null;
+        total: number;
+        cost: number | null;
+        daily: Map<string, number>;
+      }
+    >();
+
+    for (const r of rows) {
+      const modelName = r.model;
+      if (isCustomModel(modelName)) continue;
+      const category = r.agent_category;
+      const platform = r.agent_platform;
+      if (!category || !platform) continue;
+      if (!VALID_AGENT_CATEGORIES.has(category)) continue;
+      if (!VALID_AGENT_PLATFORMS.has(platform)) continue;
+      if (EXCLUDED_AGENT_PLATFORMS.has(platform)) continue;
+
+      const key = `${category}:${platform}:${modelName}:${r.auth_type ?? ''}`;
+      let entry = modelMap.get(key);
+      if (!entry) {
+        entry = {
+          category: category as AgentCategory,
+          platform: platform as AgentPlatform,
+          modelName,
+          authType: r.auth_type ?? null,
+          total: 0,
+          cost: null,
+          daily: new Map(),
+        };
+        modelMap.set(key, entry);
+      }
+      const tokens = Number(r.tokens ?? 0);
+      entry.total += tokens;
+      const rowCost = r.cost != null ? Number(r.cost) : null;
+      if (rowCost != null) {
+        entry.cost = (entry.cost ?? 0) + rowCost;
+      }
+      entry.daily.set(r.date, (entry.daily.get(r.date) ?? 0) + tokens);
+    }
+
+    const agentMap = new Map<
+      string,
+      {
+        category: AgentCategory;
+        platform: AgentPlatform;
+        total: number;
+        models: ModelBreakdown[];
+      }
+    >();
+
+    for (const [, entry] of modelMap) {
+      const groupKey = `${entry.category}:${entry.platform}`;
+      let group = agentMap.get(groupKey);
+      if (!group) {
+        group = {
+          category: entry.category,
+          platform: entry.platform,
+          total: 0,
+          models: [],
+        };
+        agentMap.set(groupKey, group);
+      }
+      group.total += entry.total;
+      group.models.push({
+        model: entry.modelName,
+        auth_type: entry.authType,
+        total_tokens: entry.total,
+        total_cost: entry.cost,
+        daily: Array.from(entry.daily.entries())
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([date, tokens]) => ({ date, tokens })),
+      });
+    }
+
+    return Array.from(agentMap.values())
+      .sort((a, b) => b.total - a.total)
+      .map((group) => ({
+        agent_category: group.category,
+        agent_platform: group.platform,
+        category_label: CATEGORY_LABELS[group.category],
+        platform_label: PLATFORM_LABELS[group.platform],
+        total_tokens: group.total,
+        models: group.models.sort((a, b) => b.total_tokens - a.total_tokens),
       }));
   }
 

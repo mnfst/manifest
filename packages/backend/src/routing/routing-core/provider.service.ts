@@ -13,9 +13,10 @@ import {
   isManifestUsableProvider,
   isSupportedSubscriptionProvider,
 } from '../../common/utils/subscription-support';
-import type { AuthType } from 'manifest-shared';
+import type { AuthType, ModelRoute } from 'manifest-shared';
 import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
+import { isMinimaxRegion } from '../oauth/minimax-oauth-helpers';
 
 const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
@@ -294,6 +295,22 @@ export class ProviderService {
     existing: UserProvider | null,
   ): Promise<string | null> {
     const lower = provider.toLowerCase();
+
+    // MiniMax subscription stores region so the proxy can route pasted-token
+    // (sk-cp-) connections to the right base URL. OAuth-issued tokens already
+    // encode the region in the resource_url blob field, but the paste path
+    // has no blob — without this column the proxy falls back to global and
+    // CN tokens 401 against the wrong host.
+    if (lower === 'minimax' && authType === 'subscription') {
+      if (requestedRegion === undefined) {
+        return isMinimaxRegion(existing?.region ?? undefined) ? (existing!.region as string) : null;
+      }
+      if (!isMinimaxRegion(requestedRegion)) {
+        throw new BadRequestException('MiniMax subscription region must be one of: global, cn');
+      }
+      return requestedRegion;
+    }
+
     const isQwenProvider = lower === 'qwen' || lower === 'alibaba';
     if (!isQwenProvider || authType !== 'api_key') return null;
 
@@ -458,13 +475,17 @@ export class ProviderService {
       where: { agent_id: agentId, provider, is_active: true },
     });
 
-    if (otherActive.some((record) => isManifestUsableProvider(record))) {
-      // Provider is still available via the other auth type — skip override clearing
+    const hasOtherUsableAuthType = otherActive.some((record) => isManifestUsableProvider(record));
+    if (hasOtherUsableAuthType && !authType) {
+      // Provider is still available and the caller did not target a specific
+      // auth type, so preserve existing route assignments.
       this.routingCache.invalidateAgent(agentId);
       return { notifications: [] };
     }
 
-    const { invalidated } = await this.cleanupProviderReferences(agentId, [provider]);
+    const { invalidated } = await this.cleanupProviderReferences(agentId, [provider], {
+      authType: hasOtherUsableAuthType ? authType : undefined,
+    });
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
 
@@ -602,6 +623,7 @@ export class ProviderService {
   private async cleanupProviderReferences(
     agentId: string,
     providers: string[],
+    options?: { authType?: AuthType },
   ): Promise<{ invalidated: { tier: string; modelName: string }[]; hadTierAssignments: boolean }> {
     if (providers.length === 0) return { invalidated: [], hadTierAssignments: false };
 
@@ -615,8 +637,11 @@ export class ProviderService {
     };
 
     const invalidated: { tier: string; modelName: string }[] = [];
-    const routeBelongs = (route: { provider: string; model: string } | null): boolean => {
+    const routeBelongs = (
+      route: { provider: string; model: string; authType?: AuthType | null } | null,
+    ): boolean => {
       if (!route) return false;
+      if (options?.authType && route.authType !== options.authType) return false;
       if (providerNames.has(route.provider.toLowerCase())) return true;
       return modelBelongs(route.model);
     };
@@ -690,9 +715,7 @@ export class ProviderService {
     // provider's "Default" key doesn't accidentally rewrite another provider's
     // pinned label that happens to share the same string. Cubic flagged this
     // as P1 — keep it tight.
-    const routeMatchesKey = (
-      route: { provider: string; authType: string; keyLabel?: string | null } | null,
-    ): boolean => {
+    const routeMatchesKey = (route: ModelRoute | null): boolean => {
       if (!route) return false;
       if (!route.keyLabel) return false;
       if (route.keyLabel.toLowerCase() !== previousLower) return false;
@@ -700,7 +723,7 @@ export class ProviderService {
       if (route.authType !== authType) return false;
       return true;
     };
-    const replaceKeyLabel = <T extends { keyLabel?: string | null }>(route: T): T => ({
+    const replaceKeyLabel = (route: ModelRoute): ModelRoute => ({
       ...route,
       keyLabel: nextLabel ?? null,
     });
@@ -816,5 +839,29 @@ export class ProviderService {
     const active = existing.filter((r) => r.is_active);
     if (active.length === 0) return 0;
     return Math.max(...active.map((r) => r.priority)) + 1;
+  }
+
+  /**
+   * Returns a unique label for a new OAuth key. If no row exists yet for this
+   * (agent, provider, subscription) tuple, returns undefined so the caller
+   * falls through to the legacy single-key upsert (creating "Default"). When
+   * a "Default" row already exists, returns "Key 2", "Key 3", etc.
+   */
+  async nextOAuthLabel(agentId: string, provider: string): Promise<string | undefined> {
+    const existing = await this.providerRepo.find({
+      where: {
+        agent_id: agentId,
+        provider,
+        auth_type: 'subscription' as AuthType,
+        is_active: true,
+      },
+    });
+    if (existing.length === 0) return undefined;
+    const lower = new Set(existing.map((r) => r.label.toLowerCase()));
+    for (let n = existing.length + 1; n < 100; n++) {
+      const candidate = `Key ${n}`;
+      if (!lower.has(candidate.toLowerCase())) return candidate;
+    }
+    return `Key ${existing.length + 1}`;
   }
 }

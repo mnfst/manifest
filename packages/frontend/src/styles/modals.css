@@ -72,6 +72,14 @@
   gap: 10px;
 }
 
+.setup-modal__title-text {
+  min-width: 0;
+}
+
+.setup-modal__title-text em {
+  overflow-wrap: anywhere;
+}
+
 .setup-modal__platform-icon {
   flex-shrink: 0;
 }
@@ -79,6 +87,7 @@
 .dark .setup-modal__platform-icon[src*='openai'],
 .dark .setup-modal__platform-icon[src*='anthropic'],
 .dark .setup-modal__platform-icon[src*='vercel'],
+.dark .setup-modal__platform-icon[src*='opencode'],
 .dark .setup-modal__platform-icon[src*='other'] {
   filter: invert(1);
 }
@@ -139,6 +148,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--gap-lg);
+  cursor: default;
   animation: fadeIn 150ms ease-out;
 }
 
@@ -343,6 +353,97 @@
 .modal-card__footer .btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    align-items: flex-start;
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  .modal-card {
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    border-radius: 14px;
+    padding: 24px;
+    overscroll-behavior: contain;
+  }
+
+  .setup-modal {
+    max-width: 100% !important;
+  }
+
+  .setup-modal__header {
+    align-items: flex-start;
+    gap: var(--gap-sm);
+  }
+
+  .setup-modal__header .modal-card__title {
+    align-items: flex-start;
+    font-size: var(--font-size-lg);
+    line-height: 1.25;
+    min-width: 0;
+  }
+
+  .setup-modal__platform-icon {
+    width: 24px;
+    height: 24px;
+    margin-top: 1px;
+  }
+
+  .setup-modal__title-text {
+    display: block;
+    line-height: 1.25;
+  }
+
+  .setup-modal__title-text em {
+    font-style: normal;
+    font-weight: 700;
+  }
+
+  .setup-modal__nav {
+    position: sticky;
+    bottom: -24px;
+    margin: var(--gap-lg) -24px -24px;
+    padding: var(--gap-md) 24px calc(var(--gap-md) + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+  }
+
+  .setup-modal__next,
+  .modal-card__footer .btn {
+    width: 100%;
+  }
+
+  .modal-card__footer {
+    justify-content: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal-card {
+    max-height: calc(100dvh - 20px);
+    padding: 20px;
+  }
+
+  .modal-card__title {
+    font-size: var(--font-size-lg);
+  }
+
+  .modal-card__desc {
+    margin-bottom: var(--gap-md);
+  }
+
+  .setup-modal__nav {
+    bottom: -20px;
+    margin: var(--gap-lg) -20px -20px;
+    padding: var(--gap-md) 20px calc(var(--gap-md) + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Stepper */

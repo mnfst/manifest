@@ -4,11 +4,6 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AgentDuplicationService } from './agent-duplication.service';
 import { Agent } from '../../entities/agent.entity';
-import { AgentApiKey } from '../../entities/agent-api-key.entity';
-import { UserProvider } from '../../entities/user-provider.entity';
-import { CustomProvider } from '../../entities/custom-provider.entity';
-import { TierAssignment } from '../../entities/tier-assignment.entity';
-import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { RoutingCacheService } from '../../routing/routing-core/routing-cache.service';
 
 process.env['BETTER_AUTH_SECRET'] = 'a'.repeat(64);
@@ -61,6 +56,7 @@ describe('AgentDuplicationService', () => {
       const customProviderRepo = makeRepoMock('CustomProvider');
       const tierRepo = makeRepoMock('TierAssignment');
       const specRepo = makeRepoMock('SpecificityAssignment');
+      const modelParamsRepo = makeRepoMock('AgentModelParams');
       const manager = {
         getRepository: (entity: { name: string }) => {
           switch (entity.name) {
@@ -76,10 +72,28 @@ describe('AgentDuplicationService', () => {
               return tierRepo;
             case 'SpecificityAssignment':
               return specRepo;
+            case 'AgentModelParams':
+              return modelParamsRepo;
             default:
               throw new Error(`Unexpected entity ${entity.name}`);
           }
         },
+        query: jest.fn(async (sql: string, params: unknown[]) => {
+          if (!sql.includes('INSERT INTO "agent_model_params"')) return;
+          insertedRows['AgentModelParams'] = insertedRows['AgentModelParams'] ?? [];
+          insertedRows['AgentModelParams'].push({
+            id: params[0],
+            user_id: params[1],
+            agent_id: params[2],
+            scope_key: params[3],
+            provider: params[4],
+            auth_type: params[5],
+            model_name: params[6],
+            params: params[7],
+            created_at: params[8],
+            updated_at: params[9],
+          });
+        }),
       };
       return cb(manager);
     });
@@ -121,6 +135,7 @@ describe('AgentDuplicationService', () => {
         CustomProvider: 1,
         TierAssignment: 4,
         SpecificityAssignment: 2,
+        AgentModelParams: 5,
       };
 
       const result = await service.getCopySummary('user-1', 'source-agent');
@@ -129,6 +144,7 @@ describe('AgentDuplicationService', () => {
         customProviders: 1,
         tierAssignments: 4,
         specificityAssignments: 2,
+        modelParams: 5,
       });
     });
 
@@ -214,6 +230,8 @@ describe('AgentDuplicationService', () => {
             api_key_encrypted: 'enc',
             key_prefix: 'sk-',
             auth_type: 'api_key',
+            label: 'Research key',
+            priority: 2,
             region: null,
             is_active: true,
             cached_models: [{ id: 'm' }],
@@ -258,6 +276,31 @@ describe('AgentDuplicationService', () => {
             fallback_models: null,
           },
         ],
+        AgentModelParams: [
+          {
+            id: 'mp1',
+            user_id: 'u1',
+            agent_id: 'src-1',
+            provider: 'deepseek',
+            auth_type: 'api_key',
+            model_name: 'deepseek-v4',
+            scope_key: 'tier:default',
+            params: { thinking: { type: 'disabled' } },
+          },
+          // Custom-provider-keyed row exercises the remap path so a route
+          // pointing to `custom:<old-uuid>` lands on the new agent's custom
+          // provider id instead of dangling on the source's.
+          {
+            id: 'mp2',
+            user_id: 'u1',
+            agent_id: 'src-1',
+            provider: 'custom:cp1',
+            auth_type: 'api_key',
+            model_name: 'qwen-72b',
+            scope_key: 'tier:default',
+            params: { thinking: { type: 'enabled' } },
+          },
+        ],
       };
 
       const result = await service.duplicate('user-1', 'source', {
@@ -273,6 +316,7 @@ describe('AgentDuplicationService', () => {
         customProviders: 1,
         tierAssignments: 1,
         specificityAssignments: 1,
+        modelParams: 2,
       });
 
       expect(insertedRows['Agent']).toHaveLength(1);
@@ -290,7 +334,26 @@ describe('AgentDuplicationService', () => {
       const userProviderRow = (insertedRows['UserProvider'] as Array<Record<string, unknown>>)[0];
       expect(userProviderRow['agent_id']).toBe(agentRow['id']);
       expect(userProviderRow['api_key_encrypted']).toBe('enc');
+      expect(userProviderRow['label']).toBe('Research key');
+      expect(userProviderRow['priority']).toBe(2);
       expect(userProviderRow['id']).not.toBe('up1');
+
+      // Per-route model params travel with the agent. The deepseek row
+      // copies verbatim; the `custom:cp1` row is remapped onto the new
+      // agent's custom provider id (same `custom:<uuid>` remap used for
+      // user_providers / tier_assignments / specificity_assignments).
+      const mpRows = insertedRows['AgentModelParams'] as Array<Record<string, unknown>>;
+      expect(mpRows).toHaveLength(2);
+      const newCustomId = (insertedRows['CustomProvider'] as Array<Record<string, unknown>>)[0][
+        'id'
+      ] as string;
+      const deepseekRow = mpRows.find((r) => r['provider'] === 'deepseek')!;
+      expect(deepseekRow['agent_id']).toBe(agentRow['id']);
+      expect(deepseekRow['model_name']).toBe('deepseek-v4');
+      expect(deepseekRow['params']).toEqual({ thinking: { type: 'disabled' } });
+      const customRow = mpRows.find((r) => String(r['provider']).startsWith('custom:'))!;
+      expect(customRow['provider']).toBe(`custom:${newCustomId}`);
+      expect(customRow['agent_id']).toBe(agentRow['id']);
 
       expect(mockInvalidateAgent).toHaveBeenCalledWith(agentRow['id']);
     });
@@ -591,11 +654,13 @@ describe('AgentDuplicationService', () => {
         customProviders: 0,
         tierAssignments: 0,
         specificityAssignments: 0,
+        modelParams: 0,
       });
       expect(insertedRows['UserProvider']).toBeUndefined();
       expect(insertedRows['CustomProvider']).toBeUndefined();
       expect(insertedRows['TierAssignment']).toBeUndefined();
       expect(insertedRows['SpecificityAssignment']).toBeUndefined();
+      expect(insertedRows['AgentModelParams']).toBeUndefined();
     });
   });
 });

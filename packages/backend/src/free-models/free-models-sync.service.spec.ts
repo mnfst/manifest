@@ -64,20 +64,31 @@ describe('FreeModelsSyncService', () => {
   });
 
   describe('onModuleInit', () => {
-    it('calls refreshCache on init', async () => {
+    it('kicks off refreshCache without blocking and populates the cache', async () => {
+      const refresh = jest.spyOn(service, 'refreshCache');
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => sampleData,
       });
 
-      await service.onModuleInit();
-      expect(fetchSpy).toHaveBeenCalledWith(GITHUB_RAW_URL);
+      // Fire-and-forget (must not block boot — see #1894); await the kicked-off
+      // refresh deterministically via the spy's returned promise.
+      service.onModuleInit();
+      await refresh.mock.results[0].value;
+      expect(fetchSpy).toHaveBeenCalledWith(
+        GITHUB_RAW_URL,
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
       expect(service.getAll()).toHaveLength(2);
     });
 
-    it('does not throw when refreshCache rejects', async () => {
-      jest.spyOn(service, 'refreshCache').mockRejectedValue(new Error('Unexpected'));
-      await service.onModuleInit();
+    it('does not leave an unhandled rejection when refreshCache rejects', async () => {
+      const refresh = jest
+        .spyOn(service, 'refreshCache')
+        .mockRejectedValue(new Error('Unexpected'));
+      service.onModuleInit();
+      // onModuleInit attaches a .catch that swallows the failure.
+      await expect(refresh.mock.results[0].value).rejects.toThrow('Unexpected');
     });
   });
 

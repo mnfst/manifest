@@ -15,7 +15,7 @@ describe('PricingSyncService', () => {
   });
 
   describe('onModuleInit', () => {
-    it('calls refreshCache on init', async () => {
+    it('kicks off refreshCache without blocking and populates the cache', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -28,21 +28,30 @@ describe('PricingSyncService', () => {
         }),
       });
 
-      await service.onModuleInit();
-      // onModuleInit fires refreshCache without awaiting — wait for it
-      await new Promise((r) => setTimeout(r, 10));
-      expect(fetchSpy).toHaveBeenCalledWith('https://openrouter.ai/api/v1/models');
+      // onModuleInit is fire-and-forget (must not block boot — see #1894);
+      // whenInitialized() resolves once the startup fetch has landed.
+      service.onModuleInit();
+      await service.whenInitialized();
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://openrouter.ai/api/v1/models',
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
       expect(service.getAll().size).toBeGreaterThan(0);
     });
 
-    it('does not throw when refreshCache rejects', async () => {
+    it('does not reject when refreshCache rejects', async () => {
       // Make refreshCache itself reject (not just fetch) to trigger the .catch() handler
       jest.spyOn(service, 'refreshCache').mockRejectedValue(new Error('Unexpected failure'));
 
-      await service.onModuleInit();
-      // Give the async .catch time to execute
-      await new Promise((r) => setTimeout(r, 10));
-      // The error is caught by the .catch; no unhandled rejection
+      service.onModuleInit();
+      // The startup failure is swallowed by the .catch; whenInitialized resolves
+      await expect(service.whenInitialized()).resolves.toBeUndefined();
+    });
+  });
+
+  describe('whenInitialized', () => {
+    it('resolves immediately when onModuleInit has not run', async () => {
+      await expect(service.whenInitialized()).resolves.toBeUndefined();
     });
   });
 

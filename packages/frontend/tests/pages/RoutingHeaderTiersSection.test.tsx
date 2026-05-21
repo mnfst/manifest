@@ -29,6 +29,9 @@ vi.mock("../../src/components/HeaderTierCard.js", () => ({
       props.models,
       props.customProviders,
       props.connectedProviders,
+      props.getModelParams,
+      props.setModelParams,
+      props.modelHasParams,
     ];
     void _read;
     return (
@@ -156,6 +159,8 @@ function makeProps(
     models: () => [],
     customProviders: () => [],
     connectedProviders: () => [],
+    getModelParams: () => null,
+    setModelParams: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   } as Parameters<typeof RoutingHeaderTiersSection>[0];
 }

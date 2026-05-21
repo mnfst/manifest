@@ -294,6 +294,35 @@ describe("getClaudeCodeSettingsSnippet", () => {
   });
 });
 
+describe("getNanobotConfigSnippet", () => {
+  it("emits a paste-ready JSON block for ~/.nanobot/config.json", async () => {
+    const { getNanobotConfigSnippet } = await import(
+      "../../src/services/framework-snippets"
+    );
+    const snippet = getNanobotConfigSnippet("http://localhost:38240/v1", "mnfst_key");
+    // Strict-parse to make sure it's valid JSON and shaped correctly.
+    const parsed = JSON.parse(snippet);
+    expect(parsed).toEqual({
+      agents: {
+        defaults: {
+          provider: "custom",
+          model: "auto",
+        },
+      },
+      providers: {
+        custom: {
+          apiKey: "mnfst_key",
+          apiBase: "http://localhost:38240/v1",
+        },
+      },
+    });
+    // The OpenAI-compatible /v1 suffix must stay — nanobot's apiBase points
+    // straight at chat completions, unlike the Anthropic-compatible Claude
+    // Code env block.
+    expect(snippet).toContain("http://localhost:38240/v1");
+  });
+});
+
 describe("getOpenClawSnippet", () => {
   it("includes openclaw config set commands", () => {
     const snippet = getOpenClawSnippet("http://localhost/v1", "mnfst_key");

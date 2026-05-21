@@ -2,7 +2,12 @@ import { A, useLocation } from '@solidjs/router';
 import { Show, type Component } from 'solid-js';
 import { useAgentName, agentPath } from '../services/routing.js';
 
-const Sidebar: Component = () => {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onNavigate?: () => void;
+}
+
+const Sidebar: Component<SidebarProps> = (props) => {
   const location = useLocation();
   const getAgentName = useAgentName();
 
@@ -15,7 +20,18 @@ const Sidebar: Component = () => {
   };
 
   return (
-    <nav class="sidebar" aria-label="Agent navigation">
+    <nav
+      id="agent-navigation"
+      class="sidebar"
+      classList={{ 'sidebar--mobile-open': props.mobileOpen === true }}
+      aria-label="Agent navigation"
+      onClick={(event) => {
+        if ((event.target as HTMLElement).closest('a.sidebar__link')) {
+          props.onNavigate?.();
+          window.dispatchEvent(new CustomEvent('sidebar-navigate'));
+        }
+      }}
+    >
       <Show when={!getAgentName()}>
         <A
           href="/"
@@ -54,6 +70,14 @@ const Sidebar: Component = () => {
           aria-current={isActive('/routing') ? 'page' : undefined}
         >
           Routing
+        </A>
+        <A
+          href={path('/playground')}
+          class="sidebar__link"
+          classList={{ active: isActive('/playground') }}
+          aria-current={isActive('/playground') ? 'page' : undefined}
+        >
+          Playground
         </A>
         <A
           href={path('/limits')}

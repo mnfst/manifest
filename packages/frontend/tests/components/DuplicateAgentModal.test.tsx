@@ -34,13 +34,25 @@ describe('DuplicateAgentModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetDuplicatePreview.mockResolvedValue({
-      copied: { providers: 3, customProviders: 1, tierAssignments: 4, specificityAssignments: 2 },
+      copied: {
+        providers: 3,
+        customProviders: 1,
+        tierAssignments: 4,
+        specificityAssignments: 2,
+        modelParams: 0,
+      },
       suggested_name: 'my-agent-copy',
     });
     mockDuplicateAgent.mockResolvedValue({
       agent: { id: 'new-id', name: 'my-agent-copy', display_name: 'my-agent-copy' },
       apiKey: 'mnfst_xyz',
-      copied: { providers: 3, customProviders: 1, tierAssignments: 4, specificityAssignments: 2 },
+      copied: {
+        providers: 3,
+        customProviders: 1,
+        tierAssignments: 4,
+        specificityAssignments: 2,
+        modelParams: 0,
+      },
     });
   });
 
@@ -125,7 +137,7 @@ describe('DuplicateAgentModal', () => {
 
   it('disables the Duplicate button when name is empty', async () => {
     mockGetDuplicatePreview.mockResolvedValueOnce({
-      copied: { providers: 0, customProviders: 0, tierAssignments: 0, specificityAssignments: 0 },
+      copied: { providers: 0, customProviders: 0, tierAssignments: 0, specificityAssignments: 0, modelParams: 0 },
       suggested_name: '',
     });
     render(() => (
@@ -246,6 +258,7 @@ describe('DuplicateAgentModal', () => {
         customProviders: number;
         tierAssignments: number;
         specificityAssignments: number;
+        modelParams: number;
       };
     }) => void = () => undefined;
     mockDuplicateAgent.mockImplementation(
@@ -294,7 +307,7 @@ describe('DuplicateAgentModal', () => {
     resolveDuplicate({
       agent: { id: 'new-id', name: 'my-agent-copy', display_name: 'my-agent-copy' },
       apiKey: 'mnfst_xyz',
-      copied: { providers: 0, customProviders: 0, tierAssignments: 0, specificityAssignments: 0 },
+      copied: { providers: 0, customProviders: 0, tierAssignments: 0, specificityAssignments: 0, modelParams: 0 },
     });
 
     await waitFor(() => {

@@ -20,6 +20,7 @@ import { formatTimeAgo } from '../services/formatters.js';
 import CopyButton from './CopyButton.js';
 import ProviderKeyForm, { MAX_KEYS_PER_PROVIDER } from './ProviderKeyForm.js';
 import OAuthDetailView from './OAuthDetailView.js';
+import AnthropicOAuthDetailView from './AnthropicOAuthDetailView.js';
 import DeviceCodeDetailView from './DeviceCodeDetailView.js';
 import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 
@@ -77,6 +78,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const subscriptionAuthMode = () =>
     provDef.subscriptionAuthMode ?? (provDef.subscriptionKeyPlaceholder ? 'token' : undefined);
   const isPopupOAuthFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_oauth';
+  const isPopupPasteFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_paste';
   const isDeviceCodeFlow = () => isSubMode() && subscriptionAuthMode() === 'device_code';
   const isCommandOnly = () =>
     isSubMode() &&
@@ -372,6 +374,28 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           onBack={props.onBack}
           onUpdate={props.onUpdate}
           onClose={props.onClose}
+          addKeyOpen={addKeyOpen}
+          setAddKeyOpen={setAddKeyOpen}
+          activeKeys={activeKeys}
+        />
+      </Show>
+
+      {/* Paste-code OAuth subscription (Anthropic) */}
+      <Show when={isPopupPasteFlow()}>
+        <AnthropicOAuthDetailView
+          provDef={provDef}
+          provId={props.provId}
+          agentName={props.agentName}
+          connected={connected}
+          selectedAuthType={props.selectedAuthType}
+          busy={props.busy}
+          setBusy={props.setBusy}
+          onBack={props.onBack}
+          onUpdate={props.onUpdate}
+          onClose={props.onClose}
+          addKeyOpen={addKeyOpen}
+          setAddKeyOpen={setAddKeyOpen}
+          activeKeys={activeKeys}
         />
       </Show>
 
@@ -388,6 +412,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           onBack={props.onBack}
           onUpdate={props.onUpdate}
           onClose={props.onClose}
+          addKeyOpen={addKeyOpen}
+          setAddKeyOpen={setAddKeyOpen}
+          activeKeys={activeKeys}
         />
       </Show>
 
@@ -432,7 +459,15 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       </Show>
 
       {/* API key / subscription token form (non-Ollama, non-command-only, non-OAuth) */}
-      <Show when={!isOllama && !isCommandOnly() && !isPopupOAuthFlow() && !isDeviceCodeFlow()}>
+      <Show
+        when={
+          !isOllama &&
+          !isCommandOnly() &&
+          !isPopupOAuthFlow() &&
+          !isPopupPasteFlow() &&
+          !isDeviceCodeFlow()
+        }
+      >
         <ProviderKeyForm
           provDef={provDef}
           provId={props.provId}

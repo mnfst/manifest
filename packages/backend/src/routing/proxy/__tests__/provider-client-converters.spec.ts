@@ -20,6 +20,20 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('stream_options');
     });
 
+    it('strips Manifest-internal _anthropic* stash fields on every provider (issue #1886)', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        model: 'gpt-4o',
+        _anthropicServerTools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      };
+
+      const openai = sanitizeOpenAiBody(body, 'openai', 'gpt-4o');
+      expect(openai).not.toHaveProperty('_anthropicServerTools');
+
+      const groq = sanitizeOpenAiBody(body, 'groq', 'llama-3');
+      expect(groq).not.toHaveProperty('_anthropicServerTools');
+    });
+
     it('should strip OpenAI-only fields for non-passthrough providers', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
@@ -187,6 +201,109 @@ describe('provider-client-converters', () => {
       const messages = result.messages as any[];
 
       expect(messages[0]).not.toHaveProperty('reasoning_content');
+    });
+
+    it('should preserve reasoning_content for opencode-go deepseek models (issue #1862)', () => {
+      // OpenCode Go's subscription proxies forward DeepSeek requests to the
+      // upstream DeepSeek API, which enforces "reasoning_content must be
+      // passed back" on every thinking-mode follow-up turn.
+      const body = {
+        messages: [
+          { role: 'user', content: 'hello' },
+          { role: 'assistant', content: 'hi', reasoning_content: 'I considered...' },
+          { role: 'user', content: 'continue' },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'opencode-go', 'opencode-go/deepseek-v4-pro');
+      const messages = result.messages as any[];
+
+      expect(messages[1]).toHaveProperty('reasoning_content', 'I considered...');
+    });
+
+    it('should preserve reasoning_content for opencode-go reasoning model families', () => {
+      const body = {
+        messages: [
+          { role: 'user', content: 'x' },
+          {
+            role: 'assistant',
+            content: '',
+            reasoning_content: 'thinking',
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'foo', arguments: '{}' },
+              },
+            ],
+          },
+          { role: 'tool', tool_call_id: 'call_1', content: '{}' },
+        ],
+      };
+
+      for (const model of [
+        'opencode-go/kimi-k2.6',
+        'opencode-go/glm-5.1',
+        'opencode-go/qwen3.6-plus',
+        'opencode-go/minimax-m2.7',
+        'opencode-go/mimo-v2.5',
+      ]) {
+        const result = sanitizeOpenAiBody(body, 'opencode-go', model);
+        const messages = result.messages as any[];
+
+        expect(messages[1]).toHaveProperty('reasoning_content', 'thinking');
+      }
+    });
+
+    it('should strip reasoning_content for unknown opencode-go model families', () => {
+      const body = {
+        messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'opencode-go', 'opencode-go/claude-sonnet-4');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).not.toHaveProperty('reasoning_content');
+    });
+
+    it('should preserve reasoning_content for custom providers proxying DeepSeek', () => {
+      // proxy-fallback.service strips the "custom:<uuid>/" prefix before
+      // calling ProviderClient.forward, so in production sanitizeOpenAiBody
+      // sees the already-bare model id.
+      const body = {
+        messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'custom', 'deepseek-reasoner');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).toHaveProperty('reasoning_content', 'thought');
+    });
+
+    it('should match deepseek family models case-insensitively', () => {
+      const body = {
+        messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'opencode-go', 'opencode-go/DeepSeek-V4-Pro');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).toHaveProperty('reasoning_content', 'thought');
+    });
+
+    it('should strip reasoning_content for deepseek-derived slugs on strict OpenAI endpoints', () => {
+      // Community distillations carry the DeepSeek name but are hosted by
+      // providers that may not implement DeepSeek's echo contract and may
+      // reject unknown message fields. The endpoint allowlist excludes
+      // them — substring-match alone is not enough.
+      for (const endpointKey of ['mistral', 'anthropic', 'openai']) {
+        const body = {
+          messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
+        };
+        const result = sanitizeOpenAiBody(body, endpointKey, 'deepseek-r1-distill-llama-70b');
+        const messages = result.messages as any[];
+        expect(messages[0]).not.toHaveProperty('reasoning_content');
+      }
     });
 
     /* ── Message sanitization: reasoning_details ── */
@@ -669,6 +786,59 @@ describe('provider-client-converters', () => {
 
       expect(result).toHaveProperty('max_tokens', 2048);
       expect(result).not.toHaveProperty('max_completion_tokens');
+    });
+
+    /* ── Copilot: max_tokens → max_completion_tokens (mnfst/manifest#1849) ── */
+
+    it('should convert max_tokens to max_completion_tokens for Copilot GPT-5', () => {
+      const body = { messages: [{ role: 'user', content: 'hi' }], max_tokens: 4096 };
+
+      const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-5');
+
+      expect(result).toHaveProperty('max_completion_tokens', 4096);
+      expect(result).not.toHaveProperty('max_tokens');
+    });
+
+    it('should convert max_tokens to max_completion_tokens for Copilot o-series', () => {
+      const body = { messages: [], max_tokens: 2048 };
+
+      const result = sanitizeOpenAiBody(body, 'copilot', 'o3-mini');
+
+      expect(result).toHaveProperty('max_completion_tokens', 2048);
+      expect(result).not.toHaveProperty('max_tokens');
+    });
+
+    it('should preserve max_completion_tokens unchanged for Copilot GPT-5 family', () => {
+      const body = { messages: [], max_completion_tokens: 1024 };
+
+      const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-5.2');
+
+      expect(result).toHaveProperty('max_completion_tokens', 1024);
+      expect(result).not.toHaveProperty('max_tokens');
+    });
+
+    it('should NOT convert max_tokens for Copilot GPT-4 family (legacy field still accepted)', () => {
+      const body = { messages: [], max_tokens: 4096 };
+
+      const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-4o');
+
+      expect(result).toHaveProperty('max_tokens', 4096);
+      expect(result).not.toHaveProperty('max_completion_tokens');
+    });
+
+    it('should still strip OPENAI_ONLY_FIELDS for Copilot GPT-5', () => {
+      const body = {
+        messages: [],
+        max_tokens: 4096,
+        store: true,
+        service_tier: 'auto',
+      };
+
+      const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-5');
+
+      expect(result).toHaveProperty('max_completion_tokens', 4096);
+      expect(result).not.toHaveProperty('store');
+      expect(result).not.toHaveProperty('service_tier');
     });
   });
 });
