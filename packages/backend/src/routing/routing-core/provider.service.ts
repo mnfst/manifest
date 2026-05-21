@@ -475,13 +475,17 @@ export class ProviderService {
       where: { agent_id: agentId, provider, is_active: true },
     });
 
-    if (otherActive.some((record) => isManifestUsableProvider(record))) {
-      // Provider is still available via the other auth type — skip override clearing
+    const hasOtherUsableAuthType = otherActive.some((record) => isManifestUsableProvider(record));
+    if (hasOtherUsableAuthType && !authType) {
+      // Provider is still available and the caller did not target a specific
+      // auth type, so preserve existing route assignments.
       this.routingCache.invalidateAgent(agentId);
       return { notifications: [] };
     }
 
-    const { invalidated } = await this.cleanupProviderReferences(agentId, [provider]);
+    const { invalidated } = await this.cleanupProviderReferences(agentId, [provider], {
+      authType: hasOtherUsableAuthType ? authType : undefined,
+    });
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
 
@@ -619,6 +623,7 @@ export class ProviderService {
   private async cleanupProviderReferences(
     agentId: string,
     providers: string[],
+    options?: { authType?: AuthType },
   ): Promise<{ invalidated: { tier: string; modelName: string }[]; hadTierAssignments: boolean }> {
     if (providers.length === 0) return { invalidated: [], hadTierAssignments: false };
 
@@ -632,8 +637,11 @@ export class ProviderService {
     };
 
     const invalidated: { tier: string; modelName: string }[] = [];
-    const routeBelongs = (route: { provider: string; model: string } | null): boolean => {
+    const routeBelongs = (
+      route: { provider: string; model: string; authType?: AuthType | null } | null,
+    ): boolean => {
       if (!route) return false;
+      if (options?.authType && route.authType !== options.authType) return false;
       if (providerNames.has(route.provider.toLowerCase())) return true;
       return modelBelongs(route.model);
     };
