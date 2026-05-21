@@ -136,6 +136,12 @@ describe('ModelParamsDialog', () => {
     expect(q('.provider-toggle__switch--on')).not.toBeNull();
   });
 
+  it('describes params as Manifest-owned rather than client-overridden defaults', () => {
+    render(() => <ModelParamsDialog {...baseProps} slotLabel="GPT-5 Nano" />);
+    expect(screen.getByText('Manifest parameters for GPT-5 Nano.')).toBeTruthy();
+    expect(screen.queryByText(/Client requests override/)).toBeNull();
+  });
+
   it('reflects the configured override when present', () => {
     render(() => <ModelParamsDialog {...baseProps} current={{ thinking: { type: 'disabled' } }} />);
     const toggle = q('.model-params__toggle') as HTMLButtonElement;

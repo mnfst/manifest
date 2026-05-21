@@ -228,7 +228,7 @@ describe('ProxyFallbackService', () => {
       expect(forwarded.body.thinking).toBeUndefined();
     });
 
-    it('respects the inbound body field by presence (client wins over saved per-route params)', async () => {
+    it('lets saved Manifest params override inbound body fields at the same path', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -252,7 +252,7 @@ describe('ProxyFallbackService', () => {
       });
 
       const forwarded = providerClient.forward.mock.calls[0][0];
-      expect(forwarded.body.thinking).toEqual({ type: 'enabled' });
+      expect(forwarded.body.thinking).toEqual({ type: 'disabled' });
     });
 
     it('skips the lookup when paramMergeContext is omitted (e.g. legacy callers)', async () => {

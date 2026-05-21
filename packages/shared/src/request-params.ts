@@ -14,9 +14,9 @@ export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue
 export type RequestParamDefaults = Record<string, JsonValue>;
 
 /**
- * Merge configured defaults into a request body using the route's param
- * specs. Storage stays as UI values. The provider wire shape is the same
- * path shape unless a future provider needs a dedicated transformer.
+ * Merge configured Manifest params into a request body using the route's
+ * param specs. Storage stays as UI values. The provider wire shape is the
+ * same path shape unless a future provider needs a dedicated transformer.
  */
 export function applyRequestParamDefaults<T extends Record<string, unknown>>(
   body: T,
@@ -34,15 +34,15 @@ export function applyRequestParamDefaults<T extends Record<string, unknown>>(
     merged = setProviderParamValue(merged, spec.path, getPath(expanded, spec.path) as JsonValue);
   }
 
-  return omitProviderInapplicableParams(deepMerge(merged, body), orderedSpecs) as T;
+  return omitProviderInapplicableParams(deepMerge(body, merged), orderedSpecs) as T;
 }
 
 function deepMerge(
-  defaults: Record<string, unknown>,
-  body: Record<string, unknown>,
+  base: Record<string, unknown>,
+  overrides: Record<string, unknown>,
 ): Record<string, unknown> {
-  const out = structuredCloneRecord(defaults);
-  for (const [key, value] of Object.entries(body)) {
+  const out = structuredCloneRecord(base);
+  for (const [key, value] of Object.entries(overrides)) {
     if (isRecord(value) && isRecord(out[key])) {
       out[key] = deepMerge(out[key] as Record<string, unknown>, value);
     } else {
