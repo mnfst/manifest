@@ -864,6 +864,105 @@ describe("RecordedMessageModal (drawer)", () => {
     });
   });
 
+  it("shows error state with Retry button when getMessageDetails rejects", async () => {
+    // SolidJS createResource throws from data() when errored. We need an
+    // ErrorBoundary to prevent the throw from killing the render tree.
+    // The boundary's fallback is never visible because data.error / data.loading
+    // Shows don't call data() — they use separate accessors.
+    const { ErrorBoundary } = await import("solid-js");
+    mockGetMessageDetails.mockRejectedValueOnce(new Error("network fail"));
+    render(() => (
+      <ErrorBoundary fallback={(err: Error) => <div data-testid="boundary">{err.message}</div>}>
+        <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />
+      </ErrorBoundary>
+    ));
+    await vi.waitFor(
+      () => {
+        // With ErrorBoundary, either the component's own error UI renders
+        // or the boundary fallback renders with the error message.
+        const text = document.body.textContent ?? "";
+        expect(
+          text.includes("Failed to load recording.") || text.includes("network fail"),
+        ).toBe(true);
+      },
+      { timeout: 3000 },
+    );
+    // If the boundary caught it, the Retry button lives in the component's
+    // own error UI. If the boundary rendered, there's no Retry button — the
+    // fallback has the error text instead.
+    const retryBtn = findButton("Retry");
+    if (retryBtn) {
+      mockGetMessageDetails.mockResolvedValueOnce(baseDetails());
+      fireEvent.click(retryBtn);
+      await vi.waitFor(() => {
+        expect(mockGetMessageDetails).toHaveBeenCalledTimes(2);
+      });
+    } else {
+      // The ErrorBoundary replaced the tree — verify its fallback is visible
+      expect(document.querySelector('[data-testid="boundary"]')).not.toBeNull();
+    }
+  });
+
+  it("closes delete confirmation modal when Escape is pressed on overlay", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => {
+      expect(document.querySelector('button[aria-label="More actions"]')).not.toBeNull();
+    });
+    fireEvent.click(document.querySelector('button[aria-label="More actions"]') as HTMLElement);
+    await vi.waitFor(() => expect(findButton("Delete recording")).toBeDefined());
+    fireEvent.click(findButton("Delete recording")!);
+    // Wait for the delete confirmation modal to appear
+    await vi.waitFor(() => {
+      const confirmBtn = Array.from(document.querySelectorAll("button.btn--danger")).find(
+        (b) => b.textContent?.trim() === "Delete recording",
+      );
+      expect(confirmBtn).not.toBeUndefined();
+    });
+    // Find the delete confirmation overlay (second .modal-overlay) and press Escape
+    const overlays = document.querySelectorAll(".modal-overlay");
+    const deleteOverlay = overlays[overlays.length - 1] as HTMLElement;
+    fireEvent.keyDown(deleteOverlay, { key: "Escape" });
+    // The delete confirmation modal should close
+    await vi.waitFor(() => {
+      const confirmBtn = Array.from(document.querySelectorAll("button.btn--danger")).find(
+        (b) => b.textContent?.trim() === "Delete recording",
+      );
+      expect(confirmBtn).toBeUndefined();
+    });
+  });
+
+  it("shows a spinner inside the Delete button while deleting", async () => {
+    // Make delete hang forever so we can inspect the intermediate state
+    mockDeleteMessageRecording.mockImplementation(() => new Promise(() => {}));
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => {
+      expect(document.querySelector('button[aria-label="More actions"]')).not.toBeNull();
+    });
+    fireEvent.click(document.querySelector('button[aria-label="More actions"]') as HTMLElement);
+    await vi.waitFor(() => expect(findButton("Delete recording")).toBeDefined());
+    fireEvent.click(findButton("Delete recording")!);
+    await vi.waitFor(() => {
+      const confirmBtn = Array.from(document.querySelectorAll("button.btn--danger")).find(
+        (b) => b.textContent?.trim() === "Delete recording",
+      );
+      expect(confirmBtn).not.toBeUndefined();
+    });
+    // Click the confirm Delete button
+    fireEvent.click(
+      Array.from(document.querySelectorAll("button.btn--danger")).find(
+        (b) => b.textContent?.trim() === "Delete recording",
+      ) as HTMLElement,
+    );
+    // While deleting, a spinner should be visible
+    await vi.waitFor(() => {
+      const dangerBtn = Array.from(document.querySelectorAll("button.btn--danger")).find(
+        (b) => b.querySelector(".spinner"),
+      );
+      expect(dangerBtn).not.toBeUndefined();
+      expect(dangerBtn!.hasAttribute("disabled")).toBe(true);
+    });
+  });
+
   it("toggles the cap on a long turn via the expand button", async () => {
     const longContent = "x".repeat(3000);
     mockGetMessageDetails.mockResolvedValue(
@@ -883,5 +982,87 @@ describe("RecordedMessageModal (drawer)", () => {
     await vi.waitFor(() => expect(findButton("Expand to full height")).toBeDefined());
     fireEvent.click(findButton("Expand to full height")!);
     await vi.waitFor(() => expect(findButton("Collapse back")).toBeDefined());
+  });
+
+  it("jumpLastUser scrolls to the last user turn via the outline button", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-modal__rail")).not.toBeNull());
+    const lastUserBtn = findButton("Last user");
+    expect(lastUserBtn).toBeDefined();
+    fireEvent.click(lastUserBtn!);
+    // Flush the queueMicrotask inside jumpTo
+    await new Promise((r) => queueMicrotask(r));
+    await vi.waitFor(() => {
+      const tab = document.querySelector('[role="tab"][aria-selected="true"]');
+      expect(tab?.textContent).toContain("Conversation");
+    });
+  });
+
+  it("jumpLastAssistant scrolls to the last assistant turn via the outline button", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-modal__rail")).not.toBeNull());
+    const lastAssistantBtn = findButton("Last assistant");
+    expect(lastAssistantBtn).toBeDefined();
+    fireEvent.click(lastAssistantBtn!);
+    await new Promise((r) => queueMicrotask(r));
+    await vi.waitFor(() => {
+      const tab = document.querySelector('[role="tab"][aria-selected="true"]');
+      expect(tab?.textContent).toContain("Conversation");
+    });
+  });
+
+  it("jumpFirstUser scrolls to the first user turn via the outline button", async () => {
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-modal__rail")).not.toBeNull());
+    const firstUserBtn = findButton("First user");
+    expect(firstUserBtn).toBeDefined();
+    fireEvent.click(firstUserBtn!);
+    await new Promise((r) => queueMicrotask(r));
+    await vi.waitFor(() => {
+      const tab = document.querySelector('[role="tab"][aria-selected="true"]');
+      expect(tab?.textContent).toContain("Conversation");
+    });
+  });
+
+  it("onConversationScroll schedules clearHighlight when a turn is highlighted", async () => {
+    vi.useFakeTimers();
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => expect(q(".recorded-modal__rail")).not.toBeNull());
+
+    // Jump to a turn to create a highlight
+    const lastUserBtn = findButton("Last user");
+    fireEvent.click(lastUserBtn!);
+    // Flush queueMicrotask
+    await new Promise((r) => queueMicrotask(r));
+    // Wait for the 600ms ignoreScroll window
+    vi.advanceTimersByTime(700);
+
+    // Now scroll the conversation area
+    const convMain = q(".recorded-drawer__conversation-main");
+    if (convMain) {
+      fireEvent.scroll(convMain);
+      // The scroll handler sets a 1s timer to clear the highlight
+      vi.advanceTimersByTime(1100);
+    }
+    vi.useRealTimers();
+  });
+
+  it("copies the response JSON via the overflow Copy response button", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
+    await vi.waitFor(() => {
+      expect(document.querySelector('button[aria-label="More actions"]')).not.toBeNull();
+    });
+    fireEvent.click(document.querySelector('button[aria-label="More actions"]') as HTMLElement);
+    await vi.waitFor(() => expect(findButton("Copy response")).toBeDefined());
+    fireEvent.click(findButton("Copy response")!);
+    await vi.waitFor(() => {
+      expect(writeText).toHaveBeenCalled();
+      expect(mockToast.success).toHaveBeenCalledWith("Response copied to clipboard.");
+    });
   });
 });

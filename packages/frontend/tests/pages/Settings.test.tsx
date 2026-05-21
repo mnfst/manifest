@@ -789,4 +789,81 @@ describe("Settings", () => {
     expect(mockDeleteAgent).not.toHaveBeenCalled();
   });
 
+  it("handles updateAgent rejection in confirmDisableLogs without crashing", async () => {
+    mockGetAgentInfo.mockResolvedValue({
+      agent_name: "test-agent",
+      agent_category: "personal",
+      agent_platform: "openclaw",
+      record_messages: true,
+    });
+    mockUpdateAgent.mockRejectedValueOnce(new Error("disable failed"));
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Disable logs");
+    });
+    // Click Disable logs to open the confirmation modal
+    const disableBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "Disable logs",
+    )!;
+    fireEvent.click(disableBtn);
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain("Without logs");
+    });
+    // Confirm disable
+    const modalDisableBtn = Array.from(document.querySelectorAll(".modal-overlay .btn--danger")).find(
+      (b) => b.textContent?.trim() === "Disable logs",
+    ) as HTMLButtonElement;
+    fireEvent.click(modalDisableBtn);
+    await vi.waitFor(() => {
+      expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", { record_messages: false });
+    });
+    // Should not crash; togglingLogs should be reset to false
+    await vi.waitFor(() => {
+      const btn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Disable logs",
+      ) as HTMLButtonElement;
+      expect(btn.disabled).toBe(false);
+    });
+  });
+
+  it("shows raw platform value when platform is not in PLATFORM_LABELS", async () => {
+    mockGetAgentInfo.mockResolvedValue({
+      agent_name: "test-agent",
+      agent_category: "personal",
+      agent_platform: "custom_platform",
+      record_messages: false,
+    });
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("custom_platform");
+    });
+  });
+
+  it("closes the disable-logs modal when Escape is pressed on the overlay", async () => {
+    mockGetAgentInfo.mockResolvedValue({
+      agent_name: "test-agent",
+      agent_category: "personal",
+      agent_platform: "openclaw",
+      record_messages: true,
+    });
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Disable logs");
+    });
+    // Click Disable logs to open the confirmation modal
+    const disableBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "Disable logs",
+    )!;
+    fireEvent.click(disableBtn);
+    await vi.waitFor(() => {
+      expect(container.querySelector(".modal-overlay")).not.toBeNull();
+    });
+    // Press Escape on the overlay
+    const overlay = container.querySelector(".modal-overlay")!;
+    fireEvent.keyDown(overlay, { key: "Escape" });
+    await vi.waitFor(() => {
+      expect(container.querySelector(".modal-overlay")).toBeNull();
+    });
+  });
+
 });

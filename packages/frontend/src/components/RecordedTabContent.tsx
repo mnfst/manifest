@@ -220,7 +220,7 @@ function ResizableConversation(props: {
       <div
         class="recorded-drawer__resize-handle"
         classList={{ 'recorded-drawer__resize-handle--collapsed': collapsed() }}
-        onMouseDown={collapsed() ? expandFromEdge : startDrag}
+        onMouseDown={(e) => (collapsed() ? expandFromEdge(e) : startDrag(e))}
         title={collapsed() ? 'Show sidebar' : undefined}
       >
         <div class="recorded-drawer__resize-grip" />
