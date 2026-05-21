@@ -1,0 +1,23 @@
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_106d832de14e33::t_7677b1183c3ebf 478-481,486-488,626,640-642,644
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_106d832de14e33::t_41bcf4d92bf6b9 11-15,17,262-325
+.changeset/auth-scoped-disconnect.md
+  s_106d832de14e33::t_39380ce51f3ece 1,3-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "3b345e723262988aa06297e6df2151772df5fe8a",
+  "prompts": {},
+  "sessions": {
+    "s_106d832de14e33": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4995-890f-7591-b016-4686b2839754",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
