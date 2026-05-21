@@ -192,15 +192,6 @@ describe('ProviderParamSpecService', () => {
     await expect(service.list()).resolves.toEqual([]);
   });
 
-  it('onModuleInit swallows a refresh failure', async () => {
-    const service = new ProviderParamSpecService();
-    // refreshCache swallows fetch errors itself, so force it to reject to
-    // exercise onModuleInit's defensive catch.
-    jest.spyOn(service, 'refreshCache').mockRejectedValue(new Error('boom'));
-
-    await expect(service.onModuleInit()).resolves.toBeUndefined();
-  });
-
   it('keeps the current cache when a later remote fetch fails', async () => {
     mockRemoteCatalog();
     const service = new ProviderParamSpecService();
@@ -227,5 +218,29 @@ describe('ProviderParamSpecService', () => {
 
     await expect(service.refreshCache()).resolves.toBe(0);
     await expect(service.list()).resolves.toHaveLength(2);
+  });
+
+  describe('onModuleInit', () => {
+    it('kicks off refreshCache without blocking and loads the catalog', async () => {
+      mockRemoteCatalog();
+      const service = new ProviderParamSpecService();
+      const refresh = jest.spyOn(service, 'refreshCache');
+
+      // Fire-and-forget (must not block boot — see #1894); await the kicked-off
+      // refresh deterministically via the spy's returned promise.
+      service.onModuleInit();
+      await refresh.mock.results[0].value;
+
+      await expect(service.list()).resolves.toHaveLength(2);
+    });
+
+    it('does not leave an unhandled rejection when the startup refresh rejects', async () => {
+      const service = new ProviderParamSpecService();
+      const refresh = jest.spyOn(service, 'refreshCache').mockRejectedValue(new Error('boom'));
+
+      service.onModuleInit();
+      // onModuleInit attaches a .catch that swallows the failure.
+      await expect(refresh.mock.results[0].value).rejects.toThrow('boom');
+    });
   });
 });

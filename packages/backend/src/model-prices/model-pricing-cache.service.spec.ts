@@ -32,7 +32,13 @@ function makeMockModelsDevSync() {
     lookupModel: jest.fn().mockReturnValue(null),
     getModelsForProvider: jest.fn().mockReturnValue([]),
     isProviderSupported: jest.fn().mockReturnValue(false),
+    whenInitialized: jest.fn().mockResolvedValue(undefined),
   };
+}
+
+/** Flush the fire-and-forget warmup chain (whenInitialized + reload microtasks). */
+function flushWarmup(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
 }
 
 describe('ModelPricingCacheService', () => {
@@ -40,23 +46,50 @@ describe('ModelPricingCacheService', () => {
   let mockGetAll: jest.Mock;
   let mockRegistry: ReturnType<typeof makeMockRegistry>;
   let mockModelsDevSync: ReturnType<typeof makeMockModelsDevSync>;
+  let mockPricingSync: { getAll: jest.Mock; whenInitialized: jest.Mock };
 
   beforeEach(() => {
     mockGetAll = jest.fn().mockReturnValue(new Map<string, OpenRouterPricingEntry>());
-    const mockSync = { getAll: mockGetAll } as unknown as PricingSyncService;
+    mockPricingSync = {
+      getAll: mockGetAll,
+      whenInitialized: jest.fn().mockResolvedValue(undefined),
+    };
     mockModelsDevSync = makeMockModelsDevSync();
     mockRegistry = makeMockRegistry();
     service = new ModelPricingCacheService(
-      mockSync,
+      mockPricingSync as unknown as PricingSyncService,
       mockModelsDevSync as unknown as ModelsDevSyncService,
       mockRegistry as unknown as ProviderModelRegistryService,
     );
   });
 
   describe('onApplicationBootstrap', () => {
-    it('should call reload()', async () => {
+    it('warms up the cache after the upstream syncs settle', async () => {
       const spy = jest.spyOn(service, 'reload').mockResolvedValue();
-      await service.onApplicationBootstrap();
+      // onApplicationBootstrap is fire-and-forget so it can't delay boot (#1894).
+      service.onApplicationBootstrap();
+      await flushWarmup();
+      expect(mockPricingSync.whenInitialized).toHaveBeenCalledTimes(1);
+      expect(mockModelsDevSync.whenInitialized).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledTimes(1);
+    });
+
+    it('swallows errors when reload fails during warmup', async () => {
+      jest.spyOn(service, 'reload').mockRejectedValue(new Error('boom'));
+      service.onApplicationBootstrap();
+      // warmup's try/catch handles it — no unhandled rejection
+      await expect(flushWarmup()).resolves.toBeUndefined();
+    });
+
+    it('tolerates a missing models.dev sync', async () => {
+      const soloService = new ModelPricingCacheService(
+        mockPricingSync as unknown as PricingSyncService,
+        null,
+        mockRegistry as unknown as ProviderModelRegistryService,
+      );
+      const spy = jest.spyOn(soloService, 'reload').mockResolvedValue();
+      soloService.onApplicationBootstrap();
+      await flushWarmup();
       expect(spy).toHaveBeenCalledTimes(1);
     });
   });

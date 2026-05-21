@@ -8,9 +8,13 @@ import type { TierAutoAssignService } from '../tier-auto-assign.service';
 import type { RoutingCacheService } from '../routing-cache.service';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 
-const route = (provider: string, model: string): ModelRoute => ({
+const route = (
+  provider: string,
+  model: string,
+  authType: ModelRoute['authType'] = 'api_key',
+): ModelRoute => ({
   provider,
-  authType: 'api_key',
+  authType,
   model,
 });
 
@@ -253,6 +257,72 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(tierRepo.find).not.toHaveBeenCalled();
       expect(result.notifications).toEqual([]);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('clears only disconnected auth-type routes when another auth type stays active', async () => {
+      const subscriptionRow = {
+        id: 'p-sub',
+        agent_id: 'agent-1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: true,
+      };
+      providerRepo.find
+        // Active rows matching the disconnect target.
+        .mockResolvedValueOnce([subscriptionRow])
+        // Sibling API-key row remains active for the same provider.
+        .mockResolvedValueOnce([
+          {
+            id: 'p-api',
+            agent_id: 'agent-1',
+            provider: 'anthropic',
+            auth_type: 'api_key',
+            is_active: true,
+          },
+        ]);
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          tier: 'standard',
+          override_route: route('anthropic', 'claude-sonnet-4-6', 'subscription'),
+          fallback_routes: [
+            route('anthropic', 'claude-opus-4-6', 'subscription'),
+            route('anthropic', 'claude-haiku-4-6', 'api_key'),
+          ],
+        } as unknown as TierAssignment,
+      ]);
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          tier: 'standard',
+          override_route: null,
+          auto_assigned_route: route('anthropic', 'claude-haiku-4-6'),
+        } as unknown as TierAssignment,
+      ]);
+      specRepo.find.mockResolvedValue([
+        {
+          category: 'coding',
+          override_route: route('anthropic', 'claude-sonnet-4-6', 'subscription'),
+          fallback_routes: [
+            route('anthropic', 'claude-opus-4-6', 'subscription'),
+            route('anthropic', 'claude-haiku-4-6', 'api_key'),
+          ],
+        } as unknown as SpecificityAssignment,
+      ]);
+
+      const result = await svc.removeProvider('agent-1', 'anthropic', 'subscription');
+
+      expect(subscriptionRow.is_active).toBe(false);
+      const savedTiers = tierRepo.save.mock.calls[0][0];
+      expect(savedTiers[0].override_route).toBeNull();
+      expect(savedTiers[0].fallback_routes).toEqual([
+        route('anthropic', 'claude-haiku-4-6', 'api_key'),
+      ]);
+      const savedSpec = specRepo.save.mock.calls[0][0];
+      expect(savedSpec[0].override_route).toBeNull();
+      expect(savedSpec[0].fallback_routes).toEqual([
+        route('anthropic', 'claude-haiku-4-6', 'api_key'),
+      ]);
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(result.notifications[0]).toMatch(/claude-sonnet-4-6 is no longer available/);
     });
 
     it('throws NotFoundException when no provider record exists', async () => {
