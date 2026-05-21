@@ -115,7 +115,7 @@ const RecordedMessageModal: Component<Props> = (props) => {
     return d ? extractAssistantReply(d.recording?.response_body ?? null) : null;
   });
 
-  // Only the OpenAI chat-completion shape carries an inline `messages[]`
+  // Only OpenAI-compatible request shapes carry inline conversation turns
   // that the rail + Essentials can render meaningfully. For Claude / Gemini
   // / unknown / empty bodies we collapse the chrome so the user sees a
   // single "use the Raw tab" hint in the main pane instead of three
