@@ -21,11 +21,6 @@
 }
 
 .info-tooltip__bubble {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
   padding: 8px 12px;
   background: hsl(var(--popover));
   color: hsl(var(--popover-foreground));
@@ -38,12 +33,6 @@
   width: max-content;
   max-width: 260px;
   box-shadow: 0 2px 8px hsl(var(--foreground) / 0.08);
-  z-index: 50;
+  z-index: 9999;
   pointer-events: none;
-}
-
-.info-tooltip:hover .info-tooltip__bubble,
-.info-tooltip:focus .info-tooltip__bubble,
-.info-tooltip--active .info-tooltip__bubble {
-  display: block;
 }
