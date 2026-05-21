@@ -19,6 +19,7 @@ import {
   type MinimaxOAuthRegion,
   type RoutingProvider,
 } from '../services/api.js';
+import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
 import { validateSubscriptionKey } from '../services/provider-utils.js';
 import { toast } from '../services/toast-store.js';
 
@@ -58,12 +59,17 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [altError, setAltError] = createSignal<string | null>(null);
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
   const [renameValue, setRenameValue] = createSignal('');
+  const [addingAccount, setAddingAccount] = createSignal(false);
 
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
+  const activeKeyLabels = () => (props.activeKeys?.() ?? []).map((k) => k.label);
+  const showConnectFlow = () => !props.connected() || addingAccount();
+  const showConnectedFlow = () => props.connected() && !addingAccount();
 
   // When "Add another key" is clicked in the header, launch a new device code flow.
   createEffect(() => {
     if (props.addKeyOpen?.() && props.connected() && !props.busy()) {
+      setAddingAccount(true);
       props.setAddKeyOpen?.(false);
       void handleStart();
     }
@@ -78,6 +84,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     }
     props.setBusy(true);
     try {
+      const label = addingAccount() ? suggestNextProviderKeyLabel(activeKeyLabels()) : undefined;
       await connectProvider(props.agentName, {
         provider: props.provId,
         apiKey: trimmed,
@@ -87,8 +94,11 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         // api.minimaxi.com). Stick the picker's current value on the row so
         // the proxy fallback honors CN tokens.
         region: selectedRegion(),
+        ...(label && { label }),
       });
       toast.success(`${props.provDef.name} subscription connected`);
+      setAddingAccount(false);
+      setAltToken('');
       props.onUpdate();
     } catch {
       // error toast from fetchMutate
@@ -205,6 +215,8 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
       if (result.status === 'success') {
         clearPollTimer();
         toast.success(`${props.provDef.name} subscription connected`);
+        setAddingAccount(false);
+        setFlow(null);
         props.onUpdate();
         return;
       }
@@ -275,9 +287,18 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     clearPollTimer();
   });
 
+  const cancelAddAccount = () => {
+    setAddingAccount(false);
+    setFlow(null);
+    setStatusMessage(null);
+    setAltToken('');
+    setAltError(null);
+    clearPollTimer();
+  };
+
   return (
     <>
-      <Show when={!props.connected()}>
+      <Show when={showConnectFlow()}>
         <Show
           when={flow()}
           fallback={
@@ -366,8 +387,17 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
             </Show>
           </>
         </Show>
+        <Show when={addingAccount()}>
+          <button
+            class="btn btn--outline provider-detail__action"
+            disabled={props.busy()}
+            onClick={cancelAddAccount}
+          >
+            Cancel
+          </button>
+        </Show>
       </Show>
-      <Show when={props.connected()}>
+      <Show when={showConnectedFlow()}>
         {/* Multi-key list */}
         <Show when={isMultiKey()}>
           <div class="provider-detail__field">

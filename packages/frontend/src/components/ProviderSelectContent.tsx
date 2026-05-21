@@ -75,6 +75,12 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const getProviderByAuth = (provId: string, authType: AuthType) =>
     props.providers.find((p) => p.provider === provId && p.auth_type === authType);
 
+  const getActiveProviderKeys = (provId: string, authType: AuthType) =>
+    props.providers
+      .filter((p) => p.provider === provId && p.auth_type === authType && p.is_active)
+      .slice()
+      .sort((a, b) => a.priority - b.priority);
+
   const isConnected = (provId: string): boolean => {
     const p = getProviderByAuth(provId, 'api_key');
     return !!p && p.is_active && p.has_api_key;
@@ -446,11 +452,13 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
           <CopilotDeviceLogin
             agentName={props.agentName}
             connected={isSubscriptionWithToken(selectedProvider()!)}
+            activeKeys={getActiveProviderKeys(selectedProvider()!, 'subscription')}
             onBack={goBack}
             onConnected={async () => {
               await props.onUpdate();
               goBack();
             }}
+            onUpdated={props.onUpdate}
             onDisconnected={() => {
               goBack();
               props.onUpdate();

@@ -64,11 +64,13 @@ function makeKey(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
   };
 }
 
-function renderView(opts: {
-  connected?: boolean;
-  activeKeys?: RoutingProvider[];
-  addKeyOpen?: boolean;
-} = {}) {
+function renderView(
+  opts: {
+    connected?: boolean;
+    activeKeys?: RoutingProvider[];
+    addKeyOpen?: boolean;
+  } = {},
+) {
   const [busy, setBusy] = createSignal(false);
   const [addKeyOpen, setAddKeyOpen] = createSignal(opts.addKeyOpen ?? false);
   const onBack = vi.fn();
@@ -123,20 +125,14 @@ describe('OAuthDetailView', () => {
   });
 
   it('shows "Disconnect all" button in multi-key mode', () => {
-    const keys = [
-      makeKey({ id: 'k1', label: 'A' }),
-      makeKey({ id: 'k2', label: 'B' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'A' }), makeKey({ id: 'k2', label: 'B' })];
     renderView({ connected: true, activeKeys: keys });
     expect(screen.getByText('Disconnect all')).toBeDefined();
   });
 
   it('clicking Rename shows input and saving calls renameProviderKey', async () => {
     mockRenameProviderKey.mockResolvedValue({ id: 'k1', label: 'New name', priority: 1 });
-    const keys = [
-      makeKey({ id: 'k1', label: 'Old name' }),
-      makeKey({ id: 'k2', label: 'Other' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Old name' }), makeKey({ id: 'k2', label: 'Other' })];
     const { onUpdate } = renderView({ connected: true, activeKeys: keys });
 
     const renameButtons = screen.getAllByText('Rename');
@@ -185,6 +181,7 @@ describe('OAuthDetailView', () => {
     await waitFor(() => {
       expect(mockGetOpenaiOAuthUrl).toHaveBeenCalledWith('test-agent');
     });
+    expect(screen.getByPlaceholderText(/localhost:1455/)).toBeDefined();
   });
 
   it('shows popup-blocked toast when window.open returns null', async () => {
@@ -201,10 +198,7 @@ describe('OAuthDetailView', () => {
 
   it('Disconnect all revokes all OpenAI OAuth tokens', async () => {
     mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true, notifications: [] });
-    const keys = [
-      makeKey({ id: 'k1', label: 'A' }),
-      makeKey({ id: 'k2', label: 'B' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'A' }), makeKey({ id: 'k2', label: 'B' })];
     const { onBack, onUpdate } = renderView({ connected: true, activeKeys: keys });
 
     fireEvent.click(screen.getByText('Disconnect all'));
@@ -218,10 +212,7 @@ describe('OAuthDetailView', () => {
   });
 
   it('commitRename cancels if new label is same as old', async () => {
-    const keys = [
-      makeKey({ id: 'k1', label: 'Same' }),
-      makeKey({ id: 'k2', label: 'Other' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Same' }), makeKey({ id: 'k2', label: 'Other' })];
     renderView({ connected: true, activeKeys: keys });
 
     const renameButtons = screen.getAllByText('Rename');
@@ -409,10 +400,7 @@ describe('OAuthDetailView', () => {
 
   it('commitRename catch branch when renameProviderKey fails', async () => {
     mockRenameProviderKey.mockRejectedValue(new Error('network'));
-    const keys = [
-      makeKey({ id: 'k1', label: 'Old name' }),
-      makeKey({ id: 'k2', label: 'Other' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Old name' }), makeKey({ id: 'k2', label: 'Other' })];
     const { onUpdate } = renderView({ connected: true, activeKeys: keys });
 
     const renameButtons = screen.getAllByText('Rename');

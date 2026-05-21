@@ -43,12 +43,16 @@ const OAuthDetailView: Component<Props> = (props) => {
   const [pasteError, setPasteError] = createSignal<string | null>(null);
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
   const [renameValue, setRenameValue] = createSignal('');
+  const [addingAccount, setAddingAccount] = createSignal(false);
 
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
+  const showConnectFlow = () => !props.connected() || addingAccount();
+  const showConnectedFlow = () => props.connected() && !addingAccount();
 
   // When "Add another key" is clicked in the header, launch a new OAuth popup.
   createEffect(() => {
     if (props.addKeyOpen?.() && props.connected() && !props.busy()) {
+      setAddingAccount(true);
       props.setAddKeyOpen?.(false);
       void handleOAuthLogin();
     }
@@ -65,6 +69,7 @@ const OAuthDetailView: Component<Props> = (props) => {
         toast.error(
           'Popup was blocked by your browser. Allow popups for this site, then try again.',
         );
+        if (props.connected()) setAddingAccount(false);
         props.setBusy(false);
         return;
       }
@@ -75,6 +80,8 @@ const OAuthDetailView: Component<Props> = (props) => {
       monitorOAuthPopup(popup, {
         onSuccess: () => {
           toast.success(`${props.provDef.name} subscription connected`);
+          setAddingAccount(false);
+          setPopupOpened(false);
           props.onUpdate();
         },
         onFailure: () => {
@@ -82,6 +89,7 @@ const OAuthDetailView: Component<Props> = (props) => {
         },
       });
     } catch {
+      if (props.connected()) setAddingAccount(false);
       props.setBusy(false);
     }
   };
@@ -103,12 +111,22 @@ const OAuthDetailView: Component<Props> = (props) => {
       setPasteError(null);
       await submitOpenaiOAuthCallback(code, state);
       toast.success(`${props.provDef.name} subscription connected`);
+      setAddingAccount(false);
+      setPasteUrl('');
+      setPopupOpened(false);
       props.onUpdate();
     } catch {
       setPasteError('Failed to exchange token. The URL may have expired — try logging in again.');
     } finally {
       props.setBusy(false);
     }
+  };
+
+  const cancelAddAccount = () => {
+    setAddingAccount(false);
+    setPopupOpened(false);
+    setPasteUrl('');
+    setPasteError(null);
   };
 
   const handleDisconnect = async () => {
@@ -178,7 +196,7 @@ const OAuthDetailView: Component<Props> = (props) => {
 
   return (
     <>
-      <Show when={!props.connected()}>
+      <Show when={showConnectFlow()}>
         <Show
           when={popupOpened()}
           fallback={
@@ -248,8 +266,17 @@ const OAuthDetailView: Component<Props> = (props) => {
             </button>
           </div>
         </Show>
+        <Show when={addingAccount()}>
+          <button
+            class="btn btn--outline provider-detail__action"
+            disabled={props.busy()}
+            onClick={cancelAddAccount}
+          >
+            Cancel
+          </button>
+        </Show>
       </Show>
-      <Show when={props.connected()}>
+      <Show when={showConnectedFlow()}>
         {/* Multi-key list */}
         <Show when={isMultiKey()}>
           <div class="provider-detail__field">

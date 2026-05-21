@@ -535,5 +535,6 @@ describe('AnthropicOAuthDetailView — addKeyOpen effect', () => {
     await waitFor(() => {
       expect(mockStartAnthropicOAuth).toHaveBeenCalledWith('test-agent');
     });
+    expect(screen.getByLabelText('Anthropic authorization code')).toBeDefined();
   });
 });
