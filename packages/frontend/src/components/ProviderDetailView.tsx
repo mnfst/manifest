@@ -246,12 +246,12 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
         </div>
       </div>
 
-      <Show when={connected() && lastFetchedAgo()}>
+      <Show when={connected()}>
         <div class="provider-detail__models-bar">
           <span>
             {activeProviderRow()?.cached_model_count ?? 0} model
-            {(activeProviderRow()?.cached_model_count ?? 0) === 1 ? '' : 's'} – last refreshed:{' '}
-            {lastFetchedAgo()}
+            {(activeProviderRow()?.cached_model_count ?? 0) === 1 ? '' : 's'}
+            <Show when={lastFetchedAgo()}> – last refreshed: {lastFetchedAgo()}</Show>
           </span>
           <button
             class="btn btn--outline btn--sm provider-detail__refresh-btn"
