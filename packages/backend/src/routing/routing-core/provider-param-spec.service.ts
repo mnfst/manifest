@@ -47,6 +47,7 @@ export class ProviderParamSpecService implements OnModuleInit {
   private readonly logger = new Logger(ProviderParamSpecService.name);
   private specs: ProviderParamSpecCatalog = freezeCatalog([]);
   private lastFetchedAt: Date | null = null;
+  private etag: string | null = null;
 
   async onModuleInit(): Promise<void> {
     try {
@@ -58,10 +59,16 @@ export class ProviderParamSpecService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_DAY_AT_4AM)
   async refreshCache(): Promise<number> {
-    const raw = await this.fetchModelParametersData();
-    if (!raw) return 0;
+    const { notModified, data } = await this.fetchModelParametersData();
+    if (notModified) {
+      // 304 from the conditional GET — the catalog is byte-for-byte unchanged,
+      // so the cached copy stays authoritative. Record the check, skip re-parse.
+      this.lastFetchedAt = new Date();
+      return this.specs.length;
+    }
+    if (!data) return 0;
 
-    const catalog = parseModelParametersCatalog(raw);
+    const catalog = parseModelParametersCatalog(data);
     if (!catalog) {
       this.logger.warn(
         'modelparameters.dev returned an invalid MPS catalog; keeping current cache',
@@ -91,19 +98,30 @@ export class ProviderParamSpecService implements OnModuleInit {
     return this.lastFetchedAt;
   }
 
-  private async fetchModelParametersData(): Promise<unknown | null> {
+  private async fetchModelParametersData(): Promise<{
+    notModified: boolean;
+    data: unknown | null;
+  }> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const res = await fetch(MODEL_PARAMETERS_API, { signal: controller.signal });
+      const headers: Record<string, string> = {};
+      if (this.etag) headers['If-None-Match'] = this.etag;
+      const res = await fetch(MODEL_PARAMETERS_API, { signal: controller.signal, headers });
+      // 304 Not Modified: nothing changed since the last successful fetch, so
+      // the daily refresh costs a round-trip with no body transfer as the
+      // catalog grows.
+      if (res.status === 304) return { notModified: true, data: null };
       if (!res.ok) {
         this.logger.warn(`modelparameters.dev API returned ${res.status}`);
-        return null;
+        return { notModified: false, data: null };
       }
-      return (await res.json()) as unknown;
+      const tag = res.headers.get('etag');
+      if (tag) this.etag = tag;
+      return { notModified: false, data: (await res.json()) as unknown };
     } catch (err) {
       this.logger.warn(`Failed to fetch modelparameters.dev data: ${err}`);
-      return null;
+      return { notModified: false, data: null };
     } finally {
       clearTimeout(timeout);
     }

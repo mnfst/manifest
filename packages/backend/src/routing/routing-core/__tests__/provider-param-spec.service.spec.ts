@@ -11,9 +11,11 @@ describe('ProviderParamSpecService', () => {
     fetchSpy.mockRestore();
   });
 
-  function mockRemoteCatalog(): void {
+  function mockRemoteCatalog(etag: string | null = '"v1"'): void {
     fetchSpy.mockResolvedValue({
       ok: true,
+      status: 200,
+      headers: { get: (name: string) => (name.toLowerCase() === 'etag' ? etag : null) },
       json: async () => ({
         models: [
           {
@@ -66,7 +68,7 @@ describe('ProviderParamSpecService', () => {
           },
         ],
       }),
-    } as Response);
+    } as unknown as Response);
   }
 
   it('starts empty before the remote catalog loads', async () => {
@@ -108,6 +110,35 @@ describe('ProviderParamSpecService', () => {
     expect(service.getLastFetchedAt()).toBeInstanceOf(Date);
   });
 
+  it('sends If-None-Match and keeps the cache on a 304 response', async () => {
+    mockRemoteCatalog('"v1"');
+    const service = new ProviderParamSpecService();
+    await service.refreshCache();
+
+    fetchSpy.mockResolvedValue({ status: 304, ok: false } as Response);
+
+    // 304 returns the cached count without re-parsing, and the conditional
+    // request carries the previously captured ETag.
+    await expect(service.refreshCache()).resolves.toBe(2);
+    await expect(service.list()).resolves.toHaveLength(2);
+    expect(fetchSpy).toHaveBeenLastCalledWith(
+      'https://modelparameters.dev/api/v1/models.json',
+      expect.objectContaining({ headers: { 'If-None-Match': '"v1"' } }),
+    );
+  });
+
+  it('does not set a conditional header when the response has no ETag', async () => {
+    mockRemoteCatalog(null);
+    const service = new ProviderParamSpecService();
+    await service.refreshCache();
+    await service.refreshCache();
+
+    expect(fetchSpy).toHaveBeenLastCalledWith(
+      'https://modelparameters.dev/api/v1/models.json',
+      expect.objectContaining({ headers: {} }),
+    );
+  });
+
   it('stays empty when the initial remote fetch fails', async () => {
     fetchSpy.mockResolvedValue({ ok: false, status: 503 } as Response);
     const service = new ProviderParamSpecService();
@@ -115,6 +146,23 @@ describe('ProviderParamSpecService', () => {
     await expect(service.refreshCache()).resolves.toBe(0);
     await expect(service.list()).resolves.toEqual([]);
     expect(service.getLastFetchedAt()).toBeNull();
+  });
+
+  it('swallows network errors and keeps the cache empty', async () => {
+    fetchSpy.mockRejectedValue(new Error('network down'));
+    const service = new ProviderParamSpecService();
+
+    await expect(service.refreshCache()).resolves.toBe(0);
+    await expect(service.list()).resolves.toEqual([]);
+  });
+
+  it('onModuleInit swallows a refresh failure', async () => {
+    const service = new ProviderParamSpecService();
+    // refreshCache swallows fetch errors itself, so force it to reject to
+    // exercise onModuleInit's defensive catch.
+    jest.spyOn(service, 'refreshCache').mockRejectedValue(new Error('boom'));
+
+    await expect(service.onModuleInit()).resolves.toBeUndefined();
   });
 
   it('keeps the current cache when a later remote fetch fails', async () => {
@@ -136,8 +184,10 @@ describe('ProviderParamSpecService', () => {
 
     fetchSpy.mockResolvedValue({
       ok: true,
+      status: 200,
+      headers: { get: () => null },
       json: async () => ({ models: [{ provider: 'openai', authType: 'api_key' }] }),
-    } as Response);
+    } as unknown as Response);
 
     await expect(service.refreshCache()).resolves.toBe(0);
     await expect(service.list()).resolves.toHaveLength(2);

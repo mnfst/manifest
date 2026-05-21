@@ -1,15 +1,16 @@
-import { createSignal, Show, type Component } from 'solid-js';
-import { getProviderParamSpecs, type ProviderParamSpecCatalog } from 'manifest-shared';
+import { createResource, createSignal, Show, type Component } from 'solid-js';
+import type { ProviderParamSpec } from 'manifest-shared';
 import type { AuthType, RequestParamDefaults } from '../services/api.js';
+import { getModelParamSpecs } from '../services/api/model-params.js';
 import ModelParamsDialog from './ModelParamsDialog.jsx';
 
 interface Props {
+  agentName: string;
   provider: string | undefined;
   authType: AuthType | undefined;
   model: string;
   slotLabel: string;
   scope: string;
-  specCatalog: ProviderParamSpecCatalog;
   getParams: (
     scope: string,
     provider: string,
@@ -29,9 +30,24 @@ interface Props {
 const ModelParamsAffordance: Component<Props> = (props) => {
   const [dialogOpen, setDialogOpen] = createSignal(false);
 
-  const specs = () =>
-    getProviderParamSpecs(props.specCatalog, props.provider, props.authType, props.model);
-  const supports = () => props.provider !== undefined && specs().length > 0;
+  // Fetch specs only while the dialog is open, so the Routing page never
+  // downloads the whole catalog up front. The provider/model filtering that
+  // used to run client-side now happens server-side via the by-model endpoint.
+  const [specs] = createResource(
+    () =>
+      dialogOpen() && props.provider && props.authType
+        ? { provider: props.provider, authType: props.authType, model: props.model }
+        : null,
+    (key) =>
+      getModelParamSpecs(props.agentName, key.provider, key.authType, key.model).catch(
+        () => [] as ProviderParamSpec[],
+      ),
+  );
+
+  // No catalog at render time, so the affordance shows whenever the route has a
+  // resolved provider/auth. A model with no configurable params surfaces as a
+  // "no configurable parameters" message inside the dialog.
+  const supports = () => props.provider !== undefined && props.authType !== undefined;
 
   const current = () => {
     if (!props.provider || !props.authType) return null;
@@ -41,7 +57,7 @@ const ModelParamsAffordance: Component<Props> = (props) => {
   const configured = () => current() !== null;
 
   return (
-    <Show when={supports() && props.authType}>
+    <Show when={supports()}>
       <button
         type="button"
         class="routing-card__chip-action"
@@ -85,7 +101,8 @@ const ModelParamsAffordance: Component<Props> = (props) => {
           open={dialogOpen()}
           slotLabel={props.slotLabel}
           current={current()}
-          specs={specs()}
+          specs={specs() ?? []}
+          loading={specs.loading}
           onSave={(next) =>
             props.setParams(props.scope, props.provider!, props.authType!, props.model, next)
           }

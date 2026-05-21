@@ -1,9 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@solidjs/testing-library';
+import { getModelParamSpecs } from '../../src/services/api/model-params.js';
 
 const mockSetFallbacks = vi.fn();
 vi.mock('../../src/services/api.js', () => ({
   setFallbacks: (...args: unknown[]) => mockSetFallbacks(...args),
+}));
+
+vi.mock('../../src/services/api/model-params.js', () => ({
+  getModelParamSpecs: vi.fn(),
 }));
 
 const mockToastError = vi.fn();
@@ -297,7 +302,11 @@ describe('RoutingTierCard', () => {
   it('opens the dropdown when the change button is clicked', () => {
     const onDropdownOpen = vi.fn();
     const { container } = render(() => <RoutingTierCard {...makeProps({ onDropdownOpen })} />);
-    fireEvent.click(container.querySelector('.routing-card__chip-action') as HTMLButtonElement);
+    // The params affordance shares the chip-action class and now renders
+    // optimistically, so target the change button by its aria-label.
+    fireEvent.click(
+      container.querySelector('button[aria-label^="Change model for"]') as HTMLButtonElement,
+    );
     expect(onDropdownOpen).toHaveBeenCalledWith('simple');
   });
 
@@ -1290,10 +1299,10 @@ describe('providerIdForModel route-provider attribution', () => {
           connectedProviders: () => deepseekProviders,
           getModelParams: () => null,
           setModelParams,
-          modelParamSpecs: () => modelParamSpecs,
         })}
       />
     ));
+    vi.mocked(getModelParamSpecs).mockResolvedValue(modelParamSpecs[0].params);
     const btn = container.querySelector(
       '[aria-label="Configure model parameters for DeepSeek V4"]',
     ) as HTMLButtonElement;

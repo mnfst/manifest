@@ -16,6 +16,9 @@ interface Props {
   slotLabel: string;
   current: RequestParamDefaults | null;
   specs: readonly ProviderParamSpec[];
+  // True while the per-model specs are still being fetched (dialog opens
+  // immediately, specs arrive async).
+  loading?: boolean;
   onSave: (paramDefaults: RequestParamDefaults | null) => Promise<unknown>;
   onClose: () => void;
 }
@@ -368,14 +371,31 @@ const ModelParamsDialog: Component<Props> = (props) => {
           </h2>
           <p class="modal-card__desc">Defaults for {props.slotLabel}. Client requests override.</p>
 
-          <For each={groupSpecs(props.specs)}>
-            {(group) => (
-              <div class="model-params__group">
-                <div class="model-params__group-header">{GROUP_LABELS[group.group]}</div>
-                <For each={group.specs}>{(spec) => <ParamRow spec={spec} />}</For>
+          <Show
+            when={!props.loading}
+            fallback={
+              <div class="model-params__status">
+                <span class="spinner" />
+                <span>Loading parameters…</span>
               </div>
-            )}
-          </For>
+            }
+          >
+            <Show
+              when={props.specs.length > 0}
+              fallback={
+                <p class="model-params__status">This model has no configurable parameters.</p>
+              }
+            >
+              <For each={groupSpecs(props.specs)}>
+                {(group) => (
+                  <div class="model-params__group">
+                    <div class="model-params__group-header">{GROUP_LABELS[group.group]}</div>
+                    <For each={group.specs}>{(spec) => <ParamRow spec={spec} />}</For>
+                  </div>
+                )}
+              </For>
+            </Show>
+          </Show>
 
           <div class="modal-card__footer">
             <button
@@ -384,16 +404,18 @@ const ModelParamsDialog: Component<Props> = (props) => {
               disabled={saving()}
               type="button"
             >
-              Cancel
+              {!props.loading && props.specs.length > 0 ? 'Cancel' : 'Close'}
             </button>
-            <button
-              class="btn btn--primary btn--sm"
-              onClick={handleSave}
-              disabled={saving()}
-              type="button"
-            >
-              {saving() ? <span class="spinner" /> : 'Save'}
-            </button>
+            <Show when={!props.loading && props.specs.length > 0}>
+              <button
+                class="btn btn--primary btn--sm"
+                onClick={handleSave}
+                disabled={saving()}
+                type="button"
+              >
+                {saving() ? <span class="spinner" /> : 'Save'}
+              </button>
+            </Show>
           </div>
         </div>
       </div>

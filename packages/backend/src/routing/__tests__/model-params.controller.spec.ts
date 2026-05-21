@@ -75,6 +75,23 @@ describe('ModelParamsController', () => {
     });
   });
 
+  describe('GET /model-param-specs/by-model', () => {
+    it('returns the specs for a single resolved route', async () => {
+      const result = await controller.specsByModel(
+        mockUser,
+        { agentName: 'demo' },
+        { provider: 'deepseek', authType: 'api_key', model: 'deepseek-v4' },
+      );
+      expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'demo');
+      expect(providerParamSpecs.getSpecs).toHaveBeenCalledWith(
+        'deepseek',
+        'api_key',
+        'deepseek-v4',
+      );
+      expect(result).toBe(specs);
+    });
+  });
+
   describe('GET /model-params', () => {
     it('returns the projected list for the agent', async () => {
       service.list.mockResolvedValueOnce([

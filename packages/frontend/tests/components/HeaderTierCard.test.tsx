@@ -10,6 +10,10 @@ vi.mock('../../src/services/api/header-tiers.js', () => ({
   clearHeaderTierFallbacks: (...args: unknown[]) => mockClearHeaderTierFallbacks(...args),
 }));
 
+vi.mock('../../src/services/api/model-params.js', () => ({
+  getModelParamSpecs: vi.fn(),
+}));
+
 vi.mock('../../src/components/ProviderIcon.js', () => ({
   providerIcon: (id: string) => <span data-testid={`provider-icon-${id}`} />,
   customProviderLogo: () => null,
@@ -156,6 +160,7 @@ vi.mock('../../src/components/HeaderTierSnippetModal.js', () => ({
 
 import HeaderTierCard from '../../src/components/HeaderTierCard';
 import type { ProviderParamSpecCatalog } from 'manifest-shared';
+import { getModelParamSpecs } from '../../src/services/api/model-params.js';
 import type { HeaderTier } from '../../src/services/api/header-tiers';
 import type { AvailableModel, CustomProviderData, RoutingProvider } from '../../src/services/api';
 
@@ -1156,9 +1161,7 @@ describe('HeaderTierCard', () => {
         onOverride={vi.fn()}
         onFallbacksUpdate={vi.fn()}
         getModelParams={() => null}
-        setModelParams={vi.fn().mockResolvedValue(undefined)}
-        modelParamSpecs={() => modelParamSpecs}
-      />
+        setModelParams={vi.fn().mockResolvedValue(undefined)}      />
     ));
     expect(
       container.querySelector('[aria-label="Configure model parameters for DeepSeek V4"]'),
@@ -1169,6 +1172,7 @@ describe('HeaderTierCard', () => {
   // getter is evaluated by the affordance (Solid props are lazy — `setParams`
   // is only read when the affordance calls `props.setParams(...)` on save).
   it('threads setModelParams through the affordance save flow', async () => {
+    vi.mocked(getModelParamSpecs).mockResolvedValue(modelParamSpecs[0].params);
     const setModelParams = vi.fn().mockResolvedValue(undefined);
     const tierDeepseek = {
       ...baseTier,
@@ -1210,9 +1214,7 @@ describe('HeaderTierCard', () => {
         onOverride={vi.fn()}
         onFallbacksUpdate={vi.fn()}
         getModelParams={() => null}
-        setModelParams={setModelParams}
-        modelParamSpecs={() => modelParamSpecs}
-      />
+        setModelParams={setModelParams}      />
     ));
     const btn = container.querySelector(
       '[aria-label="Configure model parameters for DeepSeek V4"]',

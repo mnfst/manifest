@@ -26,13 +26,11 @@ import {
   getComplexityStatus,
   toggleComplexity,
   listModelParams,
-  listModelParamSpecs,
   setModelParams as setModelParamsApi,
   deleteModelParams,
   modelParamsKey,
   type AgentModelParamsRow,
   type AuthType,
-  type ProviderParamSpecCatalog,
   type RequestParamDefaults,
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
@@ -82,12 +80,6 @@ const Routing: Component = () => {
     () => agentName(),
     (name) => listModelParams(name).catch(() => [] as AgentModelParamsRow[]),
   );
-  const [modelParamSpecs] = createResource(
-    () => agentName(),
-    (name) => listModelParamSpecs(name).catch(() => [] as ProviderParamSpecCatalog),
-  );
-  const modelParamSpecCatalog = () =>
-    modelParamSpecs() ?? ([] as unknown as ProviderParamSpecCatalog);
   const modelParamsMap = createMemo(() => {
     const map = new Map<string, RequestParamDefaults>();
     for (const row of modelParams() ?? []) {
@@ -486,7 +478,6 @@ const Routing: Component = () => {
                   embedded
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
-                  modelParamSpecs={modelParamSpecCatalog}
                 />
               ),
               specificity: (
@@ -533,7 +524,6 @@ const Routing: Component = () => {
                   embedded
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
-                  modelParamSpecs={modelParamSpecCatalog}
                 />
               ),
               custom: (
@@ -548,7 +538,6 @@ const Routing: Component = () => {
                   embedded
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
-                  modelParamSpecs={modelParamSpecCatalog}
                 />
               ),
             }}

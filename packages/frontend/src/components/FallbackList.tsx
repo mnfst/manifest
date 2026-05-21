@@ -6,7 +6,6 @@ import {
   type AvailableModel,
   type CustomProviderData,
   type ModelRoute,
-  type ProviderParamSpecCatalog,
   type RequestParamDefaults,
   type RoutingProvider,
   type TierAssignment,
@@ -77,7 +76,6 @@ interface FallbackListProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
-  modelParamSpecs?: () => ProviderParamSpecCatalog;
   modelParamsScope?: string;
 }
 
@@ -439,7 +437,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                         model={model()}
                         slotLabel={modelLabel(model())}
                         scope={modelParamsScope()}
-                        specCatalog={props.modelParamSpecs?.() ?? []}
+                        agentName={props.agentName}
                         getParams={props.getModelParams!}
                         setParams={props.setModelParams!}
                       />
